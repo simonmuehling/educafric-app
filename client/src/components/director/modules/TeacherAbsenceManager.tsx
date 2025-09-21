@@ -136,6 +136,17 @@ const TeacherAbsenceManager: React.FC = () => {
   const [pendingAbsenceData, setPendingAbsenceData] = useState<any>(null);
   const queryClient = useQueryClient();
 
+  // Fetch school teachers for dropdown selection
+  const { data: schoolTeachersData = [], isLoading: teachersLoading } = useQuery<any[]>({
+    queryKey: ['/api/school/teachers'],
+    queryFn: async () => {
+      const response = await fetch('/api/school/teachers', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch teachers');
+      const result = await response.json();
+      return result.teachers || [];
+    }
+  });
+
   // Fetch teacher absences - UPDATED TO USE SCHOOL ROUTES
   const { data: absences = [], isLoading: absencesLoading } = useQuery<TeacherAbsence[]>({
     queryKey: ['/api/schools/teacher-absences'],
@@ -352,7 +363,7 @@ const TeacherAbsenceManager: React.FC = () => {
       e.preventDefault();
       
       // Validate required fields
-      if (!formData.teacherName || !formData.absenceDate || !formData.startTime || !formData.endTime || !formData.reason) {
+      if (!formData.teacherId || !formData.absenceDate || !formData.startTime || !formData.endTime || !formData.reason) {
         toast({
           title: "Champs requis",
           description: "Veuillez remplir tous les champs obligatoires.",
@@ -390,14 +401,38 @@ const TeacherAbsenceManager: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="teacherName">Nom de l'enseignant *</Label>
-              <Input
-                id="teacherName"
-                value={formData.teacherName}
-                onChange={(e) => setFormData(prev => ({ ...prev, teacherName: e.target.value }))}
-                placeholder="Ex: Marie Dubois"
-                required
-                data-testid="input-teacher-name"
-              />
+              <Select 
+                value={formData.teacherId} 
+                onValueChange={(value) => {
+                  const selectedTeacher = schoolTeachersData.find(t => t.id.toString() === value);
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    teacherId: value,
+                    teacherName: selectedTeacher ? `${selectedTeacher.firstName} ${selectedTeacher.lastName}` : ''
+                  }));
+                }}
+              >
+                <SelectTrigger data-testid="select-teacher-name">
+                  <SelectValue placeholder="Sélectionner un enseignant" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teachersLoading ? (
+                    <SelectItem value="loading" disabled>
+                      Chargement des enseignants...
+                    </SelectItem>
+                  ) : schoolTeachersData.length === 0 ? (
+                    <SelectItem value="empty" disabled>
+                      Aucun enseignant trouvé
+                    </SelectItem>
+                  ) : (
+                    schoolTeachersData.map((teacher) => (
+                      <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                        {teacher.firstName} {teacher.lastName} - {teacher.subject || 'Non spécifié'}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -462,7 +497,7 @@ const TeacherAbsenceManager: React.FC = () => {
                 value={formData.reasonCategory} 
                 onValueChange={(value) => setFormData(prev => ({ ...prev, reasonCategory: value }))}
               >
-                <SelectTrigger data-testid="select-reason-category">
+                <SelectTrigger data-testid="select-reason-category" className="bg-blue-50 border-blue-200 focus:border-blue-400">
                   <SelectValue placeholder="Sélectionner une catégorie" />
                 </SelectTrigger>
                 <SelectContent>

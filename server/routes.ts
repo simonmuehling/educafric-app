@@ -1333,6 +1333,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get teachers for school (accessible by director and admin)
+  app.get("/api/school/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.email?.includes('demo@') || 
+                           user.email?.includes('.sandbox@') ||
+                           user.email?.includes('.demo@') ||
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.');
+      
+      let teachers;
+      
+      if (isSandboxUser) {
+        console.log('[SCHOOL_TEACHERS_API] Sandbox user detected - using mock data');
+        // Mock teachers data for sandbox/demo users
+        teachers = [
+          { id: 1, firstName: 'Marie', lastName: 'Dubois', subject: 'Mathématiques', email: 'marie.dubois@test.educafric.com', isActive: true, experience: 8 },
+          { id: 2, firstName: 'Jean', lastName: 'Ngono', subject: 'Français', email: 'jean.ngono@test.educafric.com', isActive: true, experience: 12 },
+          { id: 3, firstName: 'Alice', lastName: 'Nkomo', subject: 'Sciences Physiques', email: 'alice.nkomo@test.educafric.com', isActive: true, experience: 6 },
+          { id: 4, firstName: 'Paul', lastName: 'Mbida', subject: 'Anglais', email: 'paul.mbida@test.educafric.com', isActive: true, experience: 5 },
+          { id: 5, firstName: 'Fatima', lastName: 'Hassan', subject: 'Histoire-Géographie', email: 'fatima.hassan@test.educafric.com', isActive: true, experience: 10 },
+          { id: 6, firstName: 'Sophie', lastName: 'Mengue', subject: 'Sciences Naturelles', email: 'sophie.mengue@test.educafric.com', isActive: true, experience: 7 },
+          { id: 7, firstName: 'André', lastName: 'Bikanda', subject: 'Éducation Physique', email: 'andre.bikanda@test.educafric.com', isActive: true, experience: 4 },
+          { id: 8, firstName: 'Claire', lastName: 'Owono', subject: 'Arts Plastiques', email: 'claire.owono@test.educafric.com', isActive: true, experience: 9 }
+        ];
+      } else {
+        console.log('[SCHOOL_TEACHERS_API] Real user detected - using database data');
+        // Get real teachers from database
+        const { db } = await import('./db');
+        const { users } = await import('@shared/schema');
+        const { eq, and } = await import('drizzle-orm');
+        
+        const userSchoolId = user.school_id || 1;
+        
+        // Get all teachers for this school
+        const schoolTeachers = await db.select()
+          .from(users)
+          .where(and(
+            eq(users.role, 'Teacher'),
+            eq(users.schoolId, userSchoolId)
+          ));
+        
+        teachers = schoolTeachers.map(teacher => ({
+          id: teacher.id,
+          firstName: teacher.firstName,
+          lastName: teacher.lastName,
+          email: teacher.email,
+          subject: teacher.subject || 'Non spécifié',
+          isActive: true,
+          experience: Math.floor(Math.random() * 15) + 1 // Random for now
+        }));
+      }
+      
+      res.json({ 
+        success: true, 
+        teachers,
+        message: 'Teachers retrieved successfully'
+      });
+
+    } catch (error) {
+      console.error('[SCHOOL_TEACHERS_API] Error fetching teachers:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch school teachers'
+      });
+    }
+  });
+
   // Get teachers for director
   app.get("/api/director/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
