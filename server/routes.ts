@@ -79,6 +79,7 @@ import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
 import academicBulletinRoutes from "./routes/academicBulletinRoutes";
 import assetsRoutes from "./routes/assetsRoutes";
 import schoolInfoRoutes from "./routes/schoolInfoRoutes";
+import digitalSignatureRoutes from "./routes/digitalSignatureRoutes";
 import templateRoutes from "./routes/templateRoutes";
 import trackingRoutes from "./routes/tracking";
 import { tutorialRoutes } from "./routes/tutorialRoutes";
@@ -6952,6 +6953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/academic-bulletins', checkSubscriptionFeature('advanced_grade_management'), academicBulletinRoutes);
   app.use('/api/assets', assetsRoutes);
   app.use('/api/school', schoolInfoRoutes);
+  app.use('/api/signatures', digitalSignatureRoutes);
   
   // ✅ ROUTE NOUVEAU GÉNÉRATEUR OPTIMISÉ - ESPACE INTELLIGENT ET ZÉRO CHEVAUCHEMENT
   app.post('/api/optimized-bulletins/sample', async (req, res) => {

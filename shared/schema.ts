@@ -4,6 +4,7 @@
 
 // Import modular schemas
 export * from "./schemas/userSchema";
+export * from "./schemas/digitalSignatureSchema";
 export * from "./schemas/schoolSchema";
 export * from "./schemas/academicSchema";
 export * from "./schemas/messagingSchema";

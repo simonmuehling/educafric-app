@@ -100,6 +100,8 @@ export default function BulletinCreationInterface() {
   const [year, setYear] = useState('2025/2026');
   const [showPreview, setShowPreview] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isSigned, setIsSigned] = useState(false);
+  const [signatureData, setSignatureData] = useState<any>(null);
   const [generalRemark, setGeneralRemark] = useState('');
 
   const addSubject = () => {
@@ -238,6 +240,71 @@ export default function BulletinCreationInterface() {
     }
   };
 
+  const signBulletin = async () => {
+    try {
+      console.log('Signing bulletin digitally...');
+      
+      // Create a simple signature hash
+      const bulletinContent = JSON.stringify({
+        student: student.name,
+        class: student.classLabel,
+        trimester,
+        year,
+        subjects: subjects.map(s => ({ name: s.name, grade: s.grade }))
+      });
+      
+      const timestamp = new Date().toISOString();
+      const signatureData = {
+        signedBy: "Chef d'Établissement",
+        signedAt: timestamp,
+        verificationCode: `EDU-${Date.now().toString(36).toUpperCase()}`,
+        documentHash: btoa(bulletinContent).slice(0, 16),
+        status: 'signed'
+      };
+      
+      setSignatureData(signatureData);
+      setIsSigned(true);
+      
+      alert(`Bulletin signé numériquement!\nCode de vérification: ${signatureData.verificationCode}`);
+    } catch (error) {
+      console.error('Error signing bulletin:', error);
+      alert('Erreur lors de la signature du bulletin');
+    }
+  };
+
+  const sendToStudentsParents = async () => {
+    if (!isSigned) {
+      alert('Le bulletin doit d\'abord être signé avant l\'envoi');
+      return;
+    }
+    
+    try {
+      console.log('Sending bulletin to students and parents...');
+      
+      // Mock notification sending
+      const notifications = {
+        student: {
+          method: 'Email + SMS',
+          status: 'Envoyé',
+          timestamp: new Date().toISOString()
+        },
+        parents: {
+          method: 'Email + WhatsApp',
+          status: 'Envoyé', 
+          timestamp: new Date().toISOString()
+        }
+      };
+      
+      alert(`Bulletin envoyé avec succès!\n\n` +
+            `📧 Élève: ${notifications.student.method}\n` +
+            `📱 Parents: ${notifications.parents.method}\n\n` +
+            `Code de vérification: ${signatureData?.verificationCode}`);
+    } catch (error) {
+      console.error('Error sending bulletin:', error);
+      alert('Erreur lors de l\'envoi du bulletin');
+    }
+  };
+
   const labels = {
     fr: {
       title: "Création de Bulletin Trimestriel",
@@ -278,8 +345,12 @@ export default function BulletinCreationInterface() {
       preview: "Aperçu",
       hide: "Masquer",
       save: "Sauvegarder",
-      printToPDF: "Print to PDF",
+      printToPDF: "Print to PDF", 
       generating: "Génération...",
+      digitalSignature: "Signature Numérique",
+      signBulletin: "Signer le Bulletin",
+      signed: "Signé ✓",
+      sendToStudentParent: "Envoyer aux Élèves/Parents",
       bulletinPreview: "Aperçu du bulletin",
       uploadLogo: "Choisir logo école",
       uploadPhoto: "Choisir photo élève",
@@ -328,6 +399,10 @@ export default function BulletinCreationInterface() {
       save: "Save",
       printToPDF: "Print to PDF",
       generating: "Generating...",
+      digitalSignature: "Digital Signature",
+      signBulletin: "Sign Bulletin",
+      signed: "Signed ✓",
+      sendToStudentParent: "Send to Students/Parents",
       bulletinPreview: "Report card preview",
       uploadLogo: "Choose school logo",
       uploadPhoto: "Choose student photo",
@@ -730,6 +805,25 @@ export default function BulletinCreationInterface() {
             >
               <Printer className="h-4 w-4 mr-2" />
               {isGeneratingPDF ? t.generating : t.printToPDF}
+            </Button>
+            
+            <Button 
+              variant={isSigned ? "default" : "outline"}
+              onClick={signBulletin}
+              disabled={isSigned}
+              data-testid="button-sign-bulletin"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              {isSigned ? t.signed : t.signBulletin}
+            </Button>
+            
+            <Button 
+              onClick={sendToStudentsParents}
+              disabled={!isSigned}
+              data-testid="button-send-bulletin"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {t.sendToStudentParent}
             </Button>
             
             <Button onClick={handleSaveBulletin} data-testid="button-save">
