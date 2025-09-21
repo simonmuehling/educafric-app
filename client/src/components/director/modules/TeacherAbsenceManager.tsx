@@ -1239,9 +1239,9 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) =
       yPosition += 5;
       pdf.text(`Absences résolues: ${filteredAbsences.filter(a => a.isResolved).length}`, 20, yPosition);
       yPosition += 5;
-      pdf.text(`Remplaçants assignés: ${filteredAbsences.filter(a => a.substituteAssigned).length}`, 20, yPosition);
+      pdf.text(`Remplaçants assignés: ${filteredAbsences.filter(a => a.substituteName).length}`, 20, yPosition);
       yPosition += 5;
-      pdf.text(`En attente: ${filteredAbsences.filter(a => !a.isResolved && !a.substituteAssigned).length}`, 20, yPosition);
+      pdf.text(`En attente: ${filteredAbsences.filter(a => !a.isResolved && !a.substituteName).length}`, 20, yPosition);
       
       yPosition += 15;
 
@@ -1277,14 +1277,14 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) =
         pdf.text(absence.reason.substring(0, 20), 120, yPosition);
         
         const status = absence.isResolved ? 'Résolue' : 
-                      absence.substituteAssigned ? 'Remplaçant' : 'En attente';
+                      absence.substituteName ? 'Remplaçant' : 'En attente';
         pdf.text(status, 160, yPosition);
         
         yPosition += 4;
       });
 
       // Pied de page
-      const pageCount = pdf.internal.getNumberOfPages();
+      const pageCount = pdf.getNumberOfPages ? pdf.getNumberOfPages() : 1;
       for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i);
         pdf.setFontSize(8);
@@ -1331,7 +1331,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) =
         'Raison': absence.reason,
         'Catégorie': absence.reasonCategory,
         'Statut': absence.isResolved ? 'Résolue' : 
-                 absence.substituteAssigned ? 'Remplaçant assigné' : 'En attente',
+                 absence.substituteName ? 'Remplaçant assigné' : 'En attente',
         'Remplaçant': absence.substituteName || 'Aucun',
         'Date de déclaration': new Date(absence.createdAt || absence.absenceDate).toLocaleDateString('fr-FR')
       }));
@@ -1363,8 +1363,8 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) =
       const statsData = [
         { 'Métrique': 'Total des absences', 'Valeur': filteredAbsences.length },
         { 'Métrique': 'Absences résolues', 'Valeur': filteredAbsences.filter(a => a.isResolved).length },
-        { 'Métrique': 'Remplaçants assignés', 'Valeur': filteredAbsences.filter(a => a.substituteAssigned).length },
-        { 'Métrique': 'En attente', 'Valeur': filteredAbsences.filter(a => !a.isResolved && !a.substituteAssigned).length },
+        { 'Métrique': 'Remplaçants assignés', 'Valeur': filteredAbsences.filter(a => a.substituteName).length },
+        { 'Métrique': 'En attente', 'Valeur': filteredAbsences.filter(a => !a.isResolved && !a.substituteName).length },
         { 'Métrique': 'Période du rapport', 'Valeur': getReportPeriodText() },
         { 'Métrique': 'Date de génération', 'Valeur': new Date().toLocaleDateString('fr-FR') }
       ];
@@ -1523,7 +1523,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) =
             <div className="flex items-center space-x-2">
               <UserCheck className="w-5 h-5 text-orange-600" />
               <div>
-                <p className="text-2xl font-bold">{filteredAbsences.filter(a => a.substituteAssigned).length}</p>
+                <p className="text-2xl font-bold">{filteredAbsences.filter(a => a.substituteName).length}</p>
                 <p className="text-sm text-gray-600">Remplaçants</p>
               </div>
             </div>
@@ -1535,7 +1535,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) =
             <div className="flex items-center space-x-2">
               <Clock className="w-5 h-5 text-red-600" />
               <div>
-                <p className="text-2xl font-bold">{filteredAbsences.filter(a => !a.isResolved && !a.substituteAssigned).length}</p>
+                <p className="text-2xl font-bold">{filteredAbsences.filter(a => !a.isResolved && !a.substituteName).length}</p>
                 <p className="text-sm text-gray-600">En attente</p>
               </div>
             </div>
@@ -1609,8 +1609,8 @@ const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) =
                     <p className="text-xs text-gray-500">{absence.reason}</p>
                   </div>
                   <div className="text-right">
-                    <Badge variant={absence.isResolved ? "default" : absence.substituteAssigned ? "secondary" : "destructive"}>
-                      {absence.isResolved ? 'Résolue' : absence.substituteAssigned ? 'Remplaçant' : 'En attente'}
+                    <Badge variant={absence.isResolved ? "default" : absence.substituteName ? "secondary" : "destructive"}>
+                      {absence.isResolved ? 'Résolue' : absence.substituteName ? 'Remplaçant' : 'En attente'}
                     </Badge>
                   </div>
                 </div>
