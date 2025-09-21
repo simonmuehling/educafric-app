@@ -257,7 +257,14 @@ const BILINGUAL_LABELS = {
     name: 'Nom',
     studentId: 'ID Élève',
     sentBulletins: 'Bulletins Envoyés',
-    sanctionsDisciplinaires: 'Sanctions Disciplinaires'
+    sanctionsDisciplinaires: 'Sanctions Disciplinaires',
+    
+    // Messages de chargement de données
+    dataLoadedSuccess: 'Données chargées avec succès',
+    dataLoadedDescription: 'Les données sont disponibles. Vous pouvez maintenant naviguer entre les onglets.',
+    resetData: 'Réinitialiser les données',
+    dataActive: 'Données actives',
+    classStatistics: 'Statistiques de la Classe'
   },
   
   en: {
@@ -396,7 +403,14 @@ const BILINGUAL_LABELS = {
     name: 'Name',
     studentId: 'Student ID',
     sentBulletins: 'Sent Bulletins',
-    sanctionsDisciplinaires: 'Disciplinary Sanctions'
+    sanctionsDisciplinaires: 'Disciplinary Sanctions',
+    
+    // Messages de chargement de données
+    dataLoadedSuccess: 'Data loaded successfully',
+    dataLoadedDescription: 'Data is available. You can now navigate between tabs.',
+    resetData: 'Reset data',
+    dataActive: 'Active data',
+    classStatistics: 'Class Statistics'
   }
 };
 
@@ -3021,9 +3035,9 @@ export default function ComprehensiveBulletinGenerator() {
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 space-y-2">
-                        <h4 className="font-medium text-green-900">Données chargées avec succès</h4>
+                        <h4 className="font-medium text-green-900">{t('dataLoadedSuccess')}</h4>
                         <p className="text-sm text-green-700">
-                          Les données sont disponibles. Vous pouvez maintenant naviguer entre les onglets.
+                          {t('dataLoadedDescription')}
                         </p>
                         <div className="flex gap-2 mt-3">
                           <Button 
@@ -3033,11 +3047,11 @@ export default function ComprehensiveBulletinGenerator() {
                             data-testid="reset-data-button"
                           >
                             <RefreshCw className="h-4 w-4 mr-2" />
-                            Réinitialiser les données
+                            {t('resetData')}
                           </Button>
                           <Badge variant="outline" className="text-green-700 border-green-200 bg-green-100">
                             <CheckCircle className="h-3 w-3 mr-1" />
-                            Données actives
+                            {t('dataActive')}
                           </Badge>
                         </div>
                       </div>
@@ -3049,7 +3063,7 @@ export default function ComprehensiveBulletinGenerator() {
               {/* Class Statistics */}
               {classStats && dataLoadingEnabled && (
                 <div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-3">{language === 'fr' ? 'Statistiques de la Classe' : 'Class Statistics'}</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t('classStatistics')}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <Card>
                       <CardContent className="p-4 text-center">
