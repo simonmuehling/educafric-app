@@ -727,7 +727,7 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
                   termAverage: termAvg.toFixed(1),
                   
                   coefficient: Math.floor(Math.random() * 3) + 1, // 1-3
-                  maxScore: 20,
+                  maxScore: "20",
                   subjectComments: `Résultats ${termAvg >= 12 ? 'satisfaisants' : 'à améliorer'} [DEMO]`,
                   
                   isSubmitted: true,
