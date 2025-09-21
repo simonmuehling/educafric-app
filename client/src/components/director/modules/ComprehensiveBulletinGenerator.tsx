@@ -4351,7 +4351,7 @@ export default function ComprehensiveBulletinGenerator() {
                 <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg space-y-3">
                   <h4 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
                     <BookOpen className="h-4 w-4" />
-                    {t.basicOptions}
+                    {language === 'fr' ? 'Options de base' : 'Basic Options'}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="flex items-center space-x-2">
@@ -4361,7 +4361,9 @@ export default function ComprehensiveBulletinGenerator() {
                         onCheckedChange={(checked) => setIncludeComments(checked === true)}
                         data-testid="include-comments"
                       />
-                      <Label htmlFor="include-comments">{t.includeComments}</Label>
+                      <Label htmlFor="include-comments">
+                        {language === 'fr' ? 'Inclure les commentaires' : 'Include comments'}
+                      </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -4370,7 +4372,9 @@ export default function ComprehensiveBulletinGenerator() {
                         onCheckedChange={(checked) => setIncludeRankings(checked === true)}
                         data-testid="include-rankings"
                       />
-                      <Label htmlFor="include-rankings">{t.includeRankings}</Label>
+                      <Label htmlFor="include-rankings">
+                        {language === 'fr' ? 'Inclure les classements' : 'Include rankings'}
+                      </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -4379,7 +4383,9 @@ export default function ComprehensiveBulletinGenerator() {
                         onCheckedChange={(checked) => setIncludeStatistics(checked === true)}
                         data-testid="include-statistics"
                       />
-                      <Label htmlFor="include-statistics">{t.includeStatistics}</Label>
+                      <Label htmlFor="include-statistics">
+                        {language === 'fr' ? 'Inclure les statistiques' : 'Include statistics'}
+                      </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -4388,7 +4394,9 @@ export default function ComprehensiveBulletinGenerator() {
                         onCheckedChange={(checked) => setIncludePerformanceLevels(checked === true)}
                         data-testid="include-performance-levels"
                       />
-                      <Label htmlFor="include-performance-levels">{t.includePerformanceLevels}</Label>
+                      <Label htmlFor="include-performance-levels">
+                        {language === 'fr' ? 'Inclure les niveaux de performance' : 'Include performance levels'}
+                      </Label>
                     </div>
                   </div>
                   
