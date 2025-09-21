@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
+import BulletinCreationInterface from "@/components/academic/BulletinCreationInterface";
 import { 
   FileSpreadsheet, 
   Download, 
@@ -18,7 +19,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Timer
+  Timer,
+  FileText
 } from "lucide-react";
 
 /**************************** CONFIG ****************************/
@@ -859,7 +861,7 @@ export default function AcademicManagementSuite() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="mastersheet" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="mastersheet" className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
             {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
@@ -867,6 +869,10 @@ export default function AcademicManagementSuite() {
           <TabsTrigger value="transcript" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             {language === 'fr' ? 'Relevé de Notes' : 'Transcript'}
+          </TabsTrigger>
+          <TabsTrigger value="bulletins" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            {language === 'fr' ? 'Création Bulletins' : 'Create Bulletins'}
           </TabsTrigger>
           <TabsTrigger value="timetable" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
@@ -912,6 +918,10 @@ export default function AcademicManagementSuite() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="bulletins" className="space-y-4">
+          <BulletinCreationInterface />
         </TabsContent>
 
         <TabsContent value="timetable" className="space-y-4">

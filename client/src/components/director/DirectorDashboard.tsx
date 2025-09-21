@@ -443,26 +443,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       color: 'bg-slate-600',
       component: createDynamicModule('school-settings')
     },
-    {
-      id: 'comprehensive-bulletins',
-      label: language === 'fr' ? 'Générateur de Bulletins' : 'Bulletin Generator',
-      icon: <Award className="w-6 h-6" />,
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Générateur de Bulletins Complet"
-          userType="School"
-          features={[
-            "Génération automatique avec notes approuvées",
-            "PDFs professionnels standards camerounais",
-            "Opérations groupées par classe",
-            "Contrôle qualité et validation intégrés"
-          ]}
-        >
-          {createDynamicModule('comprehensive-bulletins')}
-        </PremiumFeatureGate>
-      )
-    },
+    // comprehensive-bulletins module removed - now integrated in academic-management
     {
       id: 'pdf-generators',
       label: t.pdfGenerators,

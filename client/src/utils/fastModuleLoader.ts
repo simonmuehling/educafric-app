@@ -45,8 +45,7 @@ class FastModuleLoader {
       'teacher.help': () => import('@/components/help/HelpCenter'), // Role-namespaced
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
-      'bulletin-management': () => import('@/components/director/modules/ComprehensiveBulletinGenerator'),
-      'comprehensive-bulletins': () => import('@/components/director/modules/ComprehensiveBulletinGenerator'),
+      // Removed comprehensive-bulletins module - now integrated in academic-management
       'content-approval': () => import('@/components/director/modules/EducationalContentApproval'),
       'pdf-generators': () => import('@/components/director/modules/PDFGenerators'),
       'academic-management': () => import('@/components/director/modules/AcademicManagementSuite'),
