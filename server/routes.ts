@@ -3868,7 +3868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         availableSubstitutes = schoolTeachers.map(teacher => ({
           id: teacher.id,
           name: `${teacher.firstName} ${teacher.lastName}`,
-          subject: teacher.subject || 'Polyvalent',
+          subject: 'Polyvalent', // Subject not in user schema
           phone: teacher.phone || '+237 6XX XXX XXX',
           email: teacher.email,
           availability: 'disponible',
