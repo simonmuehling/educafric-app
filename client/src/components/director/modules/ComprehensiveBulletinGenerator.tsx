@@ -170,6 +170,7 @@ const BILINGUAL_LABELS = {
     classRank: 'Rang',
     
     // Options de génération
+    basicOptions: 'Options de base',
     includeComments: 'Inclure les commentaires',
     includeRankings: 'Inclure les classements',
     includeStatistics: 'Inclure les statistiques',
@@ -315,6 +316,7 @@ const BILINGUAL_LABELS = {
     classRank: 'Rank',
     
     // Options de génération
+    basicOptions: 'Basic Options',
     includeComments: 'Include comments',
     includeRankings: 'Include rankings',
     includeStatistics: 'Include statistics',
@@ -4357,7 +4359,7 @@ export default function ComprehensiveBulletinGenerator() {
                 <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg space-y-3">
                   <h4 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
                     <BookOpen className="h-4 w-4" />
-                    Options de base
+                    {t.basicOptions}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="flex items-center space-x-2">
