@@ -5877,6 +5877,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId
       };
 
+      // ✅ AUTOMATICALLY CREATE NOTIFICATION FOR DIRECTOR
+      try {
+        const notificationTitle = requestData.type === 'school_enrollment' 
+          ? '🏫 Nouvelle Demande d\'Adhésion École' 
+          : `📥 Nouvelle Demande Parent - ${requestData.subject}`;
+        
+        const notificationMessage = requestData.type === 'school_enrollment'
+          ? `Une nouvelle demande d'adhésion école a été soumise par un parent. Enfant: ${requestData.childFirstName} ${requestData.childLastName}. École demandée: ${requestData.schoolCode || 'Non spécifiée'}. Sujet: ${requestData.subject}`
+          : `Type: ${requestData.type}. Sujet: ${requestData.subject}. Description: ${requestData.description.substring(0, 100)}${requestData.description.length > 100 ? '...' : ''}`;
+
+        // Create notification for director (assuming director has userId 1 or get from school admin)
+        await storage.createNotification({
+          userId: 1, // In production, get actual director/admin userId from school
+          title: notificationTitle,
+          message: notificationMessage,
+          type: 'parent_request',
+          priority: requestData.type === 'school_enrollment' ? 'high' : (requestData.priority || 'medium'),
+          metadata: {
+            requestType: requestData.type,
+            parentId: userId,
+            requestId: newRequest.id,
+            subject: requestData.subject,
+            category: requestData.category,
+            schoolCode: requestData.schoolCode || null,
+            childName: requestData.type === 'school_enrollment' 
+              ? `${requestData.childFirstName} ${requestData.childLastName}` 
+              : null
+          }
+        });
+        
+        console.log('[PARENT_REQUESTS] ✅ Director notification created for:', requestData.type);
+      } catch (notificationError) {
+        console.error('[PARENT_REQUESTS] ❌ Failed to create director notification:', notificationError);
+        // Don't fail the request if notification fails
+      }
+
       res.json({ success: true, request: newRequest, message: 'Demande soumise avec succès' });
     } catch (error) {
       console.error('[PARENT_REQUESTS] Error:', error);
