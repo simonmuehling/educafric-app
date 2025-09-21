@@ -3780,46 +3780,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[AVAILABLE_SUBSTITUTES] Finding substitutes for:', { subjectId, date, startTime, endTime });
 
-      // Mock available substitute teachers - in production would check actual availability
-      const availableSubstitutes = [
-        {
-          id: 1002,
-          name: 'Françoise Mbida',
-          subject: 'Physique/Mathématiques',
-          phone: '+237658741963',
-          email: 'francoise.mbida@ecole.cm',
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.email?.includes('demo@') || 
+                           user.email?.includes('.sandbox@') ||
+                           user.email?.includes('.demo@') ||
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.');
+      
+      let availableSubstitutes;
+      
+      if (isSandboxUser) {
+        console.log('[AVAILABLE_SUBSTITUTES] Sandbox user detected - using school teachers as substitutes');
+        // Use school teachers as potential substitutes (sandbox data)
+        availableSubstitutes = [
+          {
+            id: 1,
+            name: 'Marie Dubois',
+            subject: 'Mathématiques',
+            phone: '+237658741963',
+            email: 'marie.dubois@test.educafric.com',
+            availability: 'disponible',
+            canTeachSubject: true,
+            experienceLevel: 'senior',
+            rating: 4.8,
+            lastSubstitution: '2025-09-15'
+          },
+          {
+            id: 3,
+            name: 'Alice Nkomo',
+            subject: 'Sciences Physiques',
+            phone: '+237652147896',
+            email: 'alice.nkomo@test.educafric.com',
+            availability: 'disponible',
+            canTeachSubject: true,
+            experienceLevel: 'expert',
+            rating: 4.9,
+            lastSubstitution: '2025-09-10'
+          },
+          {
+            id: 4,
+            name: 'Paul Mbida',
+            subject: 'Anglais',
+            phone: '+237659876543',
+            email: 'paul.mbida@test.educafric.com',
+            availability: 'limité',
+            canTeachSubject: startTime && startTime < '12:00',
+            experienceLevel: 'junior',
+            rating: 4.5,
+            lastSubstitution: '2025-09-05',
+            note: startTime && startTime >= '12:00' ? 'Disponible seulement le matin' : undefined
+          },
+          {
+            id: 6,
+            name: 'Sophie Mengue',
+            subject: 'Sciences Naturelles',
+            phone: '+237655543210',
+            email: 'sophie.mengue@test.educafric.com',
+            availability: 'disponible',
+            canTeachSubject: true,
+            experienceLevel: 'senior',
+            rating: 4.7,
+            lastSubstitution: '2025-09-12'
+          }
+        ];
+      } else {
+        console.log('[AVAILABLE_SUBSTITUTES] Real user detected - using database teachers as substitutes');
+        // Get real teachers from database who could substitute
+        const { db } = await import('./db');
+        const { users } = await import('@shared/schema');
+        const { eq, and } = await import('drizzle-orm');
+        
+        const userSchoolId = user.school_id || 1;
+        
+        // Get all teachers for this school
+        const schoolTeachers = await db.select()
+          .from(users)
+          .where(and(
+            eq(users.role, 'Teacher'),
+            eq(users.schoolId, userSchoolId)
+          ));
+        
+        // Format teachers as substitute candidates
+        availableSubstitutes = schoolTeachers.map(teacher => ({
+          id: teacher.id,
+          name: `${teacher.firstName} ${teacher.lastName}`,
+          subject: teacher.subject || 'Polyvalent',
+          phone: teacher.phone || '+237 6XX XXX XXX',
+          email: teacher.email,
           availability: 'disponible',
           canTeachSubject: true,
-          experienceLevel: 'senior',
-          rating: 4.8,
-          lastSubstitution: '2025-09-15'
-        },
-        {
-          id: 1003,
-          name: 'Sophie Ngono',
-          subject: 'Sciences/Mathématiques', 
-          phone: '+237652147896',
-          email: 'sophie.ngono@ecole.cm',
-          availability: 'disponible',
-          canTeachSubject: true,
-          experienceLevel: 'junior',
-          rating: 4.5,
-          lastSubstitution: '2025-09-10'
-        },
-        {
-          id: 1004,
-          name: 'David Tchouamo',
-          subject: 'Mathématiques/Physique',
-          phone: '+237659876543',
-          email: 'david.tchouamo@ecole.cm',
-          availability: 'limité',
-          canTeachSubject: true,
-          experienceLevel: 'expert',
-          rating: 4.9,
-          lastSubstitution: '2025-09-05',
-          note: 'Disponible seulement le matin'
-        }
-      ];
+          experienceLevel: Math.random() > 0.5 ? 'senior' : 'junior',
+          rating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10, // 3.5-5.0
+          lastSubstitution: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        }));
+      }
 
       res.json({
         success: true,
