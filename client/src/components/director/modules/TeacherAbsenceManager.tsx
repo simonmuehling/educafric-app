@@ -580,7 +580,7 @@ const TeacherAbsenceManager: React.FC = () => {
                         <div className="flex items-center space-x-3">
                           <h4 className="font-semibold text-lg">{absence.teacherName}</h4>
                           <Badge className={getPriorityColor(absence.priority)}>
-                            {absence.priority.toUpperCase()}
+                            {absence.priority ? absence.priority.toUpperCase() : 'NORMAL'}
                           </Badge>
                           <Badge className={getStatusColor(absence.status)}>
                             {absence.status === 'reported' && 'Signalée'}
