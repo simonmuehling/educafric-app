@@ -36,30 +36,6 @@ export const realTimeTrackingMiddleware = (req: Request, res: Response, next: Ne
       }
     }
     
-    if (req.path.includes('/grade-review/review') && req.method === 'POST') {
-      // Grade review action
-      if (body.success && body.data) {
-        setTimeout(() => {
-          broadcastGradeUpdate(
-            body.data.submissionId,
-            body.data.previousStatus,
-            body.data.newStatus,
-            body.data.reviewedBy
-          );
-        }, 100);
-      }
-    }
-    
-    if (req.path.includes('/grade-review/bulk-review') && req.method === 'POST') {
-      // Bulk review action
-      if (body.success && body.data) {
-        setTimeout(() => {
-          body.data.submissionIds?.forEach((id: number) => {
-            broadcastGradeUpdate(id, 'pending', body.data.reviewAction, body.data.reviewedBy);
-          });
-        }, 100);
-      }
-    }
     
     // Call original json method
     return originalJson.call(this, body);

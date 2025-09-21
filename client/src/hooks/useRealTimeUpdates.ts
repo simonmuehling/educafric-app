@@ -271,7 +271,6 @@ export const useRealTimeUpdates = (options: UseRealTimeOptions = {}) => {
     
     // Invalidate relevant queries
     queryClient.invalidateQueries({ queryKey: ['/api/teacher/grade-entries'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/grade-review/queue'] });
     
     // Call custom handler
     onGradeStatusUpdate?.(event.payload);
@@ -297,9 +296,7 @@ export const useRealTimeUpdates = (options: UseRealTimeOptions = {}) => {
   const handleReviewQueueUpdate = useCallback((event: RealTimeEvent) => {
     const { action, submissionId, priority } = event.payload;
     
-    // Invalidate review queue queries
-    queryClient.invalidateQueries({ queryKey: ['/api/grade-review/queue'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/grade-review/statistics'] });
+    // Invalidate review queue queries removed - module deleted
     
     // Call custom handler
     onReviewQueueUpdate?.(event.payload);
