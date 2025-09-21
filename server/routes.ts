@@ -76,7 +76,7 @@ import uploadsRoutes from "./routes/uploads";
 import bulletinVerificationRoutes from "./routes/bulletinVerificationRoutes";
 import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
 // gradeReviewRoutes removed - using unified comprehensive bulletin system
-import comprehensiveBulletinRoutes from "./routes/comprehensiveBulletinRoutes";
+import academicBulletinRoutes from "./routes/academicBulletinRoutes";
 import templateRoutes from "./routes/templateRoutes";
 import trackingRoutes from "./routes/tracking";
 import { tutorialRoutes } from "./routes/tutorialRoutes";
@@ -6947,7 +6947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.use('/api/comprehensive-bulletins', checkSubscriptionFeature('advanced_grade_management'), comprehensiveBulletinRoutes);
+  app.use('/api/academic-bulletins', checkSubscriptionFeature('advanced_grade_management'), academicBulletinRoutes);
   
   // ✅ ROUTE NOUVEAU GÉNÉRATEUR OPTIMISÉ - ESPACE INTELLIGENT ET ZÉRO CHEVAUCHEMENT
   app.post('/api/optimized-bulletins/sample', async (req, res) => {

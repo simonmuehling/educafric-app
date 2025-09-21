@@ -95,10 +95,40 @@ export default function BulletinCreationInterface() {
     return totalCoef > 0 ? (totalPoints / totalCoef).toFixed(2) : 0;
   };
 
-  const handleSaveBulletin = () => {
-    // Logic to save bulletin to backend
-    console.log('Saving bulletin...', { student, subjects, discipline, trimester, year });
-    alert('Bulletin sauvegardé avec succès !');
+  const handleSaveBulletin = async () => {
+    try {
+      const bulletinData = {
+        studentId: student.id,
+        studentName: student.name,
+        classLabel: student.classLabel,
+        trimester,
+        academicYear: year,
+        subjects,
+        discipline,
+        generalRemark,
+        status: 'draft'
+      };
+
+      const response = await fetch('/api/academic-bulletins/bulletins', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bulletinData),
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Bulletin saved:', result);
+        alert('Bulletin sauvegardé avec succès !');
+      } else {
+        throw new Error('Failed to save bulletin');
+      }
+    } catch (error) {
+      console.error('Error saving bulletin:', error);
+      alert('Erreur lors de la sauvegarde du bulletin');
+    }
   };
 
   const bulletinData = {
