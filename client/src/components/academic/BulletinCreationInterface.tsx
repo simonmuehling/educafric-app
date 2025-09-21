@@ -13,6 +13,13 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReportCardPreview from './ReportCardPreview';
 
+// Import test assets
+import testSchoolLogo1 from '@assets/stock_images/professional_school__54fe3500.jpg';
+import testSchoolLogo2 from '@assets/stock_images/professional_school__632fa15a.jpg';
+import testStudentPhoto1 from '@assets/stock_images/african_student_port_36bf0d4a.jpg';
+import testStudentPhoto2 from '@assets/stock_images/african_student_port_aa685724.jpg';
+import testStudentPhoto3 from '@assets/stock_images/african_student_port_8402c506.jpg';
+
 interface Subject {
   id: string;
   name: string;
@@ -61,7 +68,20 @@ export default function BulletinCreationInterface() {
     guardian: ''
   });
 
-  const [studentPhotoUrl, setStudentPhotoUrl] = useState('');
+  const [studentPhotoUrl, setStudentPhotoUrl] = useState(testStudentPhoto1);
+  const [selectedSchoolLogo, setSelectedSchoolLogo] = useState(testSchoolLogo1);
+  
+  // Available test images
+  const availableSchoolLogos = [
+    { url: testSchoolLogo1, name: 'Logo Educafric Officiel' },
+    { url: testSchoolLogo2, name: 'Logo École Alternative' }
+  ];
+  
+  const availableStudentPhotos = [
+    { url: testStudentPhoto1, name: 'Étudiant 1 - Jean Kamga' },
+    { url: testStudentPhoto2, name: 'Étudiant 2 - Marie Fosso' },
+    { url: testStudentPhoto3, name: 'Étudiant 3 - Paul Mbarga' }
+  ];
 
   const [subjects, setSubjects] = useState<Subject[]>([
     { id: '1', name: 'FRANÇAIS', coefficient: 6, grade: 0, remark: '' },
@@ -261,8 +281,11 @@ export default function BulletinCreationInterface() {
       printToPDF: "Print to PDF",
       generating: "Génération...",
       bulletinPreview: "Aperçu du bulletin",
-      uploadLogo: "Télécharger logo école",
-      uploadPhoto: "Télécharger photo élève"
+      uploadLogo: "Choisir logo école",
+      uploadPhoto: "Choisir photo élève",
+      testImages: "Images de test disponibles",
+      selectLogo: "Sélectionner logo",
+      selectPhoto: "Sélectionner photo"
     },
     en: {
       title: "Create Term Report Card",
@@ -306,8 +329,11 @@ export default function BulletinCreationInterface() {
       printToPDF: "Print to PDF",
       generating: "Generating...",
       bulletinPreview: "Report card preview",
-      uploadLogo: "Upload school logo",
-      uploadPhoto: "Upload student photo"
+      uploadLogo: "Choose school logo",
+      uploadPhoto: "Choose student photo",
+      testImages: "Available test images",
+      selectLogo: "Select logo",
+      selectPhoto: "Select photo"
     }
   };
 
@@ -335,7 +361,7 @@ export default function BulletinCreationInterface() {
     })),
     year,
     trimester,
-    schoolLogoUrl: schoolInfo?.data?.logoUrl || '',
+    schoolLogoUrl: schoolInfo?.data?.logoUrl || selectedSchoolLogo,
     studentPhotoUrl,
     language
   };
@@ -637,6 +663,54 @@ export default function BulletinCreationInterface() {
                   placeholder="Appréciation générale du trimestre..."
                   rows={3}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Test Images Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">{t.testImages}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* School Logo Selection */}
+                <div>
+                  <Label className="text-sm font-medium">{t.selectLogo}</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {availableSchoolLogos.map((logo, index) => (
+                      <div 
+                        key={index}
+                        className={`cursor-pointer border-2 p-2 rounded-lg ${
+                          selectedSchoolLogo === logo.url ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                        }`}
+                        onClick={() => setSelectedSchoolLogo(logo.url)}
+                      >
+                        <img src={logo.url} alt={logo.name} className="w-full h-16 object-contain rounded" />
+                        <p className="text-xs mt-1 text-center">{logo.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Student Photo Selection */}
+                <div>
+                  <Label className="text-sm font-medium">{t.selectPhoto}</Label>
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    {availableStudentPhotos.map((photo, index) => (
+                      <div 
+                        key={index}
+                        className={`cursor-pointer border-2 p-2 rounded-lg ${
+                          studentPhotoUrl === photo.url ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                        }`}
+                        onClick={() => setStudentPhotoUrl(photo.url)}
+                      >
+                        <img src={photo.url} alt={photo.name} className="w-full h-16 object-cover rounded" />
+                        <p className="text-xs mt-1 text-center">{photo.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
