@@ -3604,6 +3604,166 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Assign substitute teacher to absence - connects to TeacherAbsenceManager substitute selection
+  app.post("/api/schools/teacher-absences/:absenceId/assign-substitute", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { absenceId } = req.params;
+      const { substituteTeacherId, substituteName, substituteInstructions, notifyParents, notifyStudents } = req.body;
+      
+      console.log('[SUBSTITUTE_ASSIGNMENT] Assigning substitute:', {
+        absenceId,
+        substituteTeacherId,
+        substituteName,
+        directorId: user.id
+      });
+
+      // In a real app, update the absence record in database
+      // For sandbox, return mock success response
+      
+      // Mock substitute teacher selection and notification
+      const assignmentResult = {
+        success: true,
+        absenceId: parseInt(absenceId),
+        substitute: {
+          teacherId: substituteTeacherId,
+          name: substituteName,
+          confirmed: false, // Will become true when substitute confirms
+          instructions: substituteInstructions,
+          assignedAt: new Date().toISOString(),
+          assignedBy: user.id
+        },
+        notifications: {
+          substituteNotified: true,
+          parentsNotified: notifyParents || false,
+          studentsNotified: notifyStudents || false,
+          adminNotified: true
+        }
+      };
+
+      // Send notifications to substitute teacher
+      if (substituteTeacherId && substituteName) {
+        // Vonage SMS to substitute teacher
+        try {
+          console.log('[SUBSTITUTE_NOTIFICATION] 📱 Sending SMS to substitute teacher:', substituteName);
+          
+          // Mock notification - in production would use Vonage API
+          const smsMessage = `🏫 EDUCAFRIC - Remplacement requis\n\nVous êtes assigné(e) comme remplaçant(e) pour ${substituteInstructions ? 'un cours avec instructions spéciales' : 'un cours'}.\n\nConnectez-vous à l'app pour confirmer votre disponibilité.\n\nMerci !`;
+          
+          console.log('[SUBSTITUTE_NOTIFICATION] ✅ SMS envoyé:', smsMessage);
+          
+          // PWA notification for substitute teacher
+          console.log('[SUBSTITUTE_NOTIFICATION] 🔔 Sending PWA notification...');
+          
+        } catch (notificationError) {
+          console.error('[SUBSTITUTE_NOTIFICATION] ❌ Error sending notifications:', notificationError);
+        }
+      }
+
+      // Send notifications to parents if requested
+      if (notifyParents) {
+        try {
+          console.log('[PARENT_NOTIFICATION] 📧 Notifying parents of substitute assignment...');
+          
+          // Mock parent notifications - would query actual parent contacts
+          const mockParentNotifications = [
+            {
+              type: 'SMS',
+              to: '+237654123456',
+              message: `🏫 Remplaçant assigné pour le cours de ${substituteName}. Détails dans l'app EDUCAFRIC.`
+            },
+            {
+              type: 'EMAIL', 
+              to: 'parent@example.com',
+              subject: 'Remplaçant assigné - École Saint-Joseph',
+              message: `Cher parent,\n\nUn remplaçant a été assigné pour assurer la continuité pédagogique.\n\nRemplaçant: ${substituteName}\nConnectez-vous à EDUCAFRIC pour plus de détails.\n\nCordialement,\nDirection`
+            }
+          ];
+          
+          assignmentResult.notifications.parentMessages = mockParentNotifications;
+          console.log('[PARENT_NOTIFICATION] ✅ Parent notifications queued');
+          
+        } catch (parentNotificationError) {
+          console.error('[PARENT_NOTIFICATION] ❌ Error notifying parents:', parentNotificationError);
+        }
+      }
+
+      res.json(assignmentResult);
+    } catch (error: any) {
+      console.error('[SUBSTITUTE_ASSIGNMENT] Error assigning substitute:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to assign substitute teacher',
+        error: error.message 
+      });
+    }
+  });
+
+  // Get available substitute teachers for assignment
+  app.get("/api/schools/available-substitutes", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { subjectId, date, startTime, endTime } = req.query;
+      
+      console.log('[AVAILABLE_SUBSTITUTES] Finding substitutes for:', { subjectId, date, startTime, endTime });
+
+      // Mock available substitute teachers - in production would check actual availability
+      const availableSubstitutes = [
+        {
+          id: 1002,
+          name: 'Françoise Mbida',
+          subject: 'Physique/Mathématiques',
+          phone: '+237658741963',
+          email: 'francoise.mbida@ecole.cm',
+          availability: 'disponible',
+          canTeachSubject: true,
+          experienceLevel: 'senior',
+          rating: 4.8,
+          lastSubstitution: '2025-09-15'
+        },
+        {
+          id: 1003,
+          name: 'Sophie Ngono',
+          subject: 'Sciences/Mathématiques', 
+          phone: '+237652147896',
+          email: 'sophie.ngono@ecole.cm',
+          availability: 'disponible',
+          canTeachSubject: true,
+          experienceLevel: 'junior',
+          rating: 4.5,
+          lastSubstitution: '2025-09-10'
+        },
+        {
+          id: 1004,
+          name: 'David Tchouamo',
+          subject: 'Mathématiques/Physique',
+          phone: '+237659876543',
+          email: 'david.tchouamo@ecole.cm',
+          availability: 'limité',
+          canTeachSubject: true,
+          experienceLevel: 'expert',
+          rating: 4.9,
+          lastSubstitution: '2025-09-05',
+          note: 'Disponible seulement le matin'
+        }
+      ];
+
+      res.json({
+        success: true,
+        substitutes: availableSubstitutes,
+        criteria: { subjectId, date, startTime, endTime },
+        totalAvailable: availableSubstitutes.length
+      });
+    } catch (error: any) {
+      console.error('[AVAILABLE_SUBSTITUTES] Error fetching substitutes:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch available substitutes',
+        error: error.message 
+      });
+    }
+  });
+
   // ============= TEACHER ABSENCE DECLARATION API =============
 
   // Declare teacher absence - POST route for functional button

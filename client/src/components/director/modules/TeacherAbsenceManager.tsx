@@ -107,12 +107,32 @@ interface AbsenceStats {
   };
 }
 
+interface SubstituteTeacher {
+  id: number;
+  name: string;
+  subject: string;
+  phone: string;
+  email: string;
+  availability: string;
+  canTeachSubject: boolean;
+  experienceLevel: string;
+  rating: number;
+  lastSubstitution: string;
+  note?: string;
+}
+
 const TeacherAbsenceManager: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('current');
   const [selectedAbsence, setSelectedAbsence] = useState<TeacherAbsence | null>(null);
   const [showQuickActions, setShowQuickActions] = useState<number | null>(null);
   const [showAbsenceForm, setShowAbsenceForm] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showSubstituteDialog, setShowSubstituteDialog] = useState(false);
+  const [selectedSubstituteAbsence, setSelectedSubstituteAbsence] = useState<TeacherAbsence | null>(null);
+  const [selectedSubstitute, setSelectedSubstitute] = useState<SubstituteTeacher | null>(null);
+  const [substituteInstructions, setSubstituteInstructions] = useState('');
+  const [notifyParentsForSubstitute, setNotifyParentsForSubstitute] = useState(true);
+  const [notifyStudentsForSubstitute, setNotifyStudentsForSubstitute] = useState(true);
   const [pendingAbsenceData, setPendingAbsenceData] = useState<any>(null);
   const queryClient = useQueryClient();
 
@@ -136,6 +156,75 @@ const TeacherAbsenceManager: React.FC = () => {
       return response.json();
     },
     refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Fetch available substitute teachers
+  const { data: availableSubstitutes = [], isLoading: substitutesLoading } = useQuery<SubstituteTeacher[]>({
+    queryKey: ['/api/schools/available-substitutes', selectedSubstituteAbsence?.subjectId, selectedSubstituteAbsence?.absenceDate, selectedSubstituteAbsence?.startTime, selectedSubstituteAbsence?.endTime],
+    queryFn: async () => {
+      if (!selectedSubstituteAbsence) return [];
+      const params = new URLSearchParams({
+        subjectId: selectedSubstituteAbsence.subjectId.toString(),
+        date: selectedSubstituteAbsence.absenceDate,
+        startTime: selectedSubstituteAbsence.startTime,
+        endTime: selectedSubstituteAbsence.endTime
+      });
+      const response = await fetch(`/api/schools/available-substitutes?${params}`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch substitutes');
+      const result = await response.json();
+      return result.substitutes || [];
+    },
+    enabled: !!selectedSubstituteAbsence && showSubstituteDialog
+  });
+
+  // Assign substitute mutation
+  const assignSubstituteMutation = useMutation({
+    mutationFn: async ({ absenceId, substitute, instructions, notifyParents, notifyStudents }: {
+      absenceId: number;
+      substitute: SubstituteTeacher;
+      instructions: string;
+      notifyParents: boolean;
+      notifyStudents: boolean;
+    }) => {
+      const response = await fetch(`/api/schools/teacher-absences/${absenceId}/assign-substitute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          substituteTeacherId: substitute.id,
+          substituteName: substitute.name,
+          substituteInstructions: instructions,
+          notifyParents,
+          notifyStudents
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to assign substitute');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/schools/teacher-absences'] });
+      setShowSubstituteDialog(false);
+      setSelectedSubstituteAbsence(null);
+      setSelectedSubstitute(null);
+      setSubstituteInstructions('');
+      toast({
+        title: 'Remplaçant assigné avec succès',
+        description: `${data.substitute.name} a été assigné et sera notifié.`
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'assigner le remplaçant. Veuillez réessayer.',
+        variant: 'destructive'
+      });
+    }
   });
 
   // Quick action mutation
@@ -702,14 +791,11 @@ const TeacherAbsenceManager: React.FC = () => {
                               size="sm"
                               className="w-full justify-start"
                               onClick={() => {
-                                // In a real implementation, this would open a substitute selection dialog
-                                handleQuickAction(absence.id, 'assign_substitute', {
-                                  substituteId: 20, // Sample substitute
-                                  substituteName: 'Prof. Alice Nkomo',
-                                  instructions: 'Poursuivre le programme selon le planning'
-                                });
+                                setSelectedSubstituteAbsence(absence);
+                                setShowSubstituteDialog(true);
+                                setShowQuickActions(null);
                               }}
-                              disabled={performActionMutation.isPending}
+                              disabled={assignSubstituteMutation.isPending}
                               data-testid={`button-assign-substitute-${absence.id}`}
                             >
                               <UserCheck className="w-4 h-4 mr-2" />
@@ -883,6 +969,161 @@ const TeacherAbsenceManager: React.FC = () => {
 
       {/* Teacher Absence Declaration Form Dialog */}
       <AbsenceDeclarationForm />
+
+      {/* Substitute Teacher Selection Dialog */}
+      <Dialog open={showSubstituteDialog} onOpenChange={setShowSubstituteDialog}>
+        <DialogContent className="bg-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Assigner un remplaçant
+            </DialogTitle>
+            <p className="text-sm text-gray-600">
+              {selectedSubstituteAbsence && `Pour ${selectedSubstituteAbsence.teacherName} - ${selectedSubstituteAbsence.subjectName}`}
+            </p>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Available Substitutes */}
+            <div>
+              <Label className="text-base font-medium mb-3 block">
+                Remplaçants disponibles
+              </Label>
+              
+              {substitutesLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                  <p className="text-sm text-gray-600 mt-2">Recherche des remplaçants disponibles...</p>
+                </div>
+              ) : availableSubstitutes.length === 0 ? (
+                <div className="text-center py-8">
+                  <UserCheck className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600">Aucun remplaçant disponible pour ce créneau</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {availableSubstitutes.map((substitute) => (
+                    <div
+                      key={substitute.id}
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                        selectedSubstitute?.id === substitute.id
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setSelectedSubstitute(substitute)}
+                      data-testid={`substitute-option-${substitute.id}`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold">{substitute.name}</h4>
+                          <p className="text-sm text-gray-600">{substitute.subject}</p>
+                          <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                            <span className="flex items-center space-x-1">
+                              <span>⭐</span>
+                              <span>{substitute.rating}</span>
+                            </span>
+                            <span>{substitute.experienceLevel}</span>
+                            <span>Dernier rempl.: {substitute.lastSubstitution}</span>
+                          </div>
+                          {substitute.note && (
+                            <p className="text-xs text-amber-600 mt-1">{substitute.note}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <Badge 
+                            className={
+                              substitute.availability === 'disponible' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }
+                          >
+                            {substitute.availability}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Instructions */}
+            <div>
+              <Label htmlFor="instructions">Instructions pour le remplaçant (optionnel)</Label>
+              <Textarea
+                id="instructions"
+                placeholder="Instructions spécifiques, chapitre en cours, matériel nécessaire..."
+                value={substituteInstructions}
+                onChange={(e) => setSubstituteInstructions(e.target.value)}
+                className="mt-2"
+                data-testid="input-substitute-instructions"
+              />
+            </div>
+
+            {/* Notification Options */}
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Options de notification</Label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="notify-parents-substitute"
+                  checked={notifyParentsForSubstitute}
+                  onChange={(e) => setNotifyParentsForSubstitute(e.target.checked)}
+                  className="rounded"
+                />
+                <Label htmlFor="notify-parents-substitute" className="text-sm">
+                  Notifier les parents du changement
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="notify-students-substitute"
+                  checked={notifyStudentsForSubstitute}
+                  onChange={(e) => setNotifyStudentsForSubstitute(e.target.checked)}
+                  className="rounded"
+                />
+                <Label htmlFor="notify-students-substitute" className="text-sm">
+                  Notifier les élèves du remplaçant
+                </Label>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowSubstituteDialog(false)}
+              disabled={assignSubstituteMutation.isPending}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedSubstitute && selectedSubstituteAbsence) {
+                  assignSubstituteMutation.mutate({
+                    absenceId: selectedSubstituteAbsence.id,
+                    substitute: selectedSubstitute,
+                    instructions: substituteInstructions,
+                    notifyParents: notifyParentsForSubstitute,
+                    notifyStudents: notifyStudentsForSubstitute
+                  });
+                }
+              }}
+              disabled={!selectedSubstitute || assignSubstituteMutation.isPending}
+              data-testid="button-confirm-substitute"
+            >
+              {assignSubstituteMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Attribution...
+                </>
+              ) : (
+                'Assigner le remplaçant'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
