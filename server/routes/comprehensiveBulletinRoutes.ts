@@ -277,7 +277,7 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
             termAverage: gradeValue.toString(),
             
             coefficient: gradeData.coefficient || 1,
-            maxScore: gradeData.maxGrade || 20,
+            maxScore: (gradeData.maxGrade || 20).toString(),
             subjectComments: gradeData.comment || '',
             
             isSubmitted: true,
