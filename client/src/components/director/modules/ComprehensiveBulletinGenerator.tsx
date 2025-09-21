@@ -34,6 +34,7 @@ import {
   type SanctionForm 
 } from '@shared/schemas/sanctionsSchema';
 import { useStudentSanctions, useCreateSanction, useDeleteSanction, useRevokeSanction } from '@/hooks/useSanctions';
+import { cn } from '@/lib/utils';
 import { 
   FileText, 
   Download, 
@@ -89,7 +90,9 @@ import {
   Plus,
   Pencil,
   CheckSquare,
-  Square
+  Square,
+  Award,
+  Package
 } from 'lucide-react';
 
 // Lazy loaded components
