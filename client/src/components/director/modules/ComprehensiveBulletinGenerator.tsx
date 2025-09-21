@@ -235,7 +235,6 @@ const BILINGUAL_LABELS = {
     noStudentsSelected: 'Aucun élève sélectionné',
     
     // Statistiques
-    classStatistics: 'Statistiques de la classe',
     totalStudents: 'Total élèves',
     completionRate: 'Taux de completion',
     
@@ -381,7 +380,6 @@ const BILINGUAL_LABELS = {
     noStudentsSelected: 'No students selected',
     
     // Statistiques
-    classStatistics: 'Class statistics',
     totalStudents: 'Total students',
     completionRate: 'Completion rate',
     
