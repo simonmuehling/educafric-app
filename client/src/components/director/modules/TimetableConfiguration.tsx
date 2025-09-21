@@ -84,8 +84,52 @@ const TimetableConfiguration: React.FC = () => {
     retryDelay: 1000
   });
 
+  // Fetch rooms data for dropdown
+  const { data: roomsResponse = {}, isLoading: isLoadingRooms } = useQuery({
+    queryKey: ['/api/director/rooms'],
+    enabled: !!user,
+    queryFn: async () => {
+      console.log('[TIMETABLE_CONFIG] 🔍 Fetching rooms for timetable configuration...');
+      const response = await fetch('/api/director/rooms', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[TIMETABLE_CONFIG] ❌ Failed to fetch rooms:', response.status);
+        throw new Error('Failed to fetch rooms');
+      }
+      const data = await response.json();
+      console.log('[TIMETABLE_CONFIG] ✅ Rooms fetched:', data?.rooms?.length || 0, 'rooms');
+      return data;
+    },
+    retry: 2,
+    retryDelay: 1000
+  });
+
+  // Fetch existing timetables
+  const { data: timetablesResponse = {}, isLoading: isLoadingTimetables, refetch: refetchTimetables } = useQuery({
+    queryKey: ['/api/director/timetables'],
+    enabled: !!user,
+    queryFn: async () => {
+      console.log('[TIMETABLE_CONFIG] 🔍 Fetching existing timetables...');
+      const response = await fetch('/api/director/timetables', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[TIMETABLE_CONFIG] ❌ Failed to fetch timetables:', response.status);
+        return { timetables: [] };
+      }
+      const data = await response.json();
+      console.log('[TIMETABLE_CONFIG] ✅ Timetables fetched:', data?.timetables?.length || 0, 'timetables');
+      return data;
+    },
+    retry: 2,
+    retryDelay: 1000
+  });
+
   const availableClasses = classesResponse?.classes || [];
   const availableTeachers = teachersResponse?.teachers || [];
+  const availableRooms = roomsResponse?.rooms || [];
+  const existingTimetables = timetablesResponse?.timetables || [];
 
   // Function to get subjects from selected class
   const getAvailableSubjects = () => {
@@ -319,16 +363,55 @@ const TimetableConfiguration: React.FC = () => {
     setShowCreateForm(false);
   };
 
-  // Export PDF Function
+  // Enhanced Export PDF Function with Filters
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFilters, setExportFilters] = useState({
+    selectedClasses: [] as string[],
+    selectedTeachers: [] as string[],
+    exportAll: true
+  });
+
   const handleExportPDF = () => {
+    if (exportFilters.exportAll || (exportFilters.selectedClasses.length === 0 && exportFilters.selectedTeachers.length === 0)) {
+      // Direct export if no filters
+      performExport(existingTimetables.length > 0 ? existingTimetables : timetables);
+    } else {
+      // Show filter modal
+      setShowExportModal(true);
+    }
+  };
+
+  const performExport = (dataToExport: any[]) => {
     try {
-      // Create PDF content
-      let pdfContent = `EMPLOI DU TEMPS - ÉCOLE\n\n`;
-      pdfContent += `Généré le: ${new Date().toLocaleDateString('fr-FR')}\n`;
-      pdfContent += `Total créneaux: ${Array.isArray(timetables) ? timetables.length : 0}\n\n`;
+      // Filter data based on selected filters
+      let filteredData = dataToExport;
+      if (!exportFilters.exportAll) {
+        filteredData = dataToExport.filter((item: any) => {
+          const matchesClass = exportFilters.selectedClasses.length === 0 || exportFilters.selectedClasses.includes(item.className);
+          const matchesTeacher = exportFilters.selectedTeachers.length === 0 || exportFilters.selectedTeachers.includes(item.teacher);
+          return matchesClass && matchesTeacher;
+        });
+      }
+      
+      // Create enhanced PDF content
+      let pdfContent = `EMPLOI DU TEMPS - ÉCOLE AFRICAINE MODERNE\n`;
+      pdfContent += `=============================================\n\n`;
+      pdfContent += `Généré le: ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}\n`;
+      pdfContent += `Total créneaux: ${filteredData.length}\n`;
+      
+      if (!exportFilters.exportAll) {
+        pdfContent += `\nFILTRES APPLIQUÉS:\n`;
+        if (exportFilters.selectedClasses.length > 0) {
+          pdfContent += `Classes: ${exportFilters.selectedClasses.join(', ')}\n`;
+        }
+        if (exportFilters.selectedTeachers.length > 0) {
+          pdfContent += `Enseignants: ${exportFilters.selectedTeachers.join(', ')}\n`;
+        }
+      }
+      pdfContent += `\n=============================================\n\n`;
       
       // Group by class and day
-      const groupedTimetables = (Array.isArray(timetables) ? timetables : []).reduce((acc: any, item: any) => {
+      const groupedTimetables = filteredData.reduce((acc: any, item: any) => {
         if (!acc[item.className]) acc[item.className] = {};
         if (!acc[item.className][item.day]) acc[item.className][item.day] = [];
         acc[item.className][item.day].push(item);
@@ -336,30 +419,40 @@ const TimetableConfiguration: React.FC = () => {
       }, {});
       
       Object.entries(groupedTimetables).forEach(([className, days]: [string, any]) => {
-        pdfContent += `=== ${className} ===\n`;
+        pdfContent += `🏫 CLASSE: ${className}\n`;
+        pdfContent += `${'='.repeat(className.length + 10)}\n`;
         Object.entries(days).forEach(([day, slots]: [string, any]) => {
-          pdfContent += `${day.charAt(0).toUpperCase() + day.slice(1)}:\n`;
+          pdfContent += `\n📅 ${day.charAt(0).toUpperCase() + day.slice(1)}:\n`;
+          slots.sort((a: any, b: any) => a.timeSlot?.localeCompare(b.timeSlot) || 0);
           slots.forEach((slot: any) => {
-            pdfContent += `  ${slot.timeSlot} - ${slot.subject} (${slot.teacher}) - ${slot.room}\n`;
+            pdfContent += `  • ${slot.timeSlot || slot.startTime + '-' + slot.endTime} | ${slot.subject} | 👨‍🏫 ${slot.teacher} | 🏢 ${slot.room}\n`;
           });
         });
         pdfContent += `\n`;
       });
       
+      pdfContent += `\n=============================================\n`;
+      pdfContent += `Export généré par EDUCAFRIC - Platform éducative africaine\n`;
+      pdfContent += `Contact: https://www.educafric.com\n`;
+      
       // Create downloadable file
-      const blob = new Blob([pdfContent], { type: 'text/plain' });
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+      const filterSuffix = !exportFilters.exportAll ? '-filtered' : '';
+      const blob = new Blob([pdfContent], { type: 'text/plain;charset=utf-8' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `emploi-du-temps-${new Date().toISOString().split('T')[0]}.txt`;
+      link.download = `emploi-du-temps-educafric-${timestamp}${filterSuffix}.txt`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
       toast({
-        title: language === 'fr' ? 'Export réussi' : 'Export successful',
-        description: language === 'fr' ? 'Emploi du temps exporté avec succès' : 'Timetable exported successfully'
+        title: language === 'fr' ? '🎉 Export réussi!' : '🎉 Export successful!',
+        description: language === 'fr' ? 
+          `${filteredData.length} créneaux exportés avec succès` : 
+          `${filteredData.length} slots exported successfully`
       });
     } catch (error) {
       toast({
@@ -475,14 +568,25 @@ const TimetableConfiguration: React.FC = () => {
                 id: 'view-all',
                 label: language === 'fr' ? 'Voir Tout' : 'View All',
                 icon: <Calendar className="w-5 h-5" />,
-                onClick: () => setShowCreateForm(false),
+                onClick: () => {
+                  setShowCreateForm(false);
+                  // Update timetables with real data from API
+                  setTimetables(existingTimetables);
+                  refetchTimetables();
+                  toast({
+                    title: language === 'fr' ? 'Données actualisées' : 'Data refreshed',
+                    description: language === 'fr' ? 
+                      `${existingTimetables.length} emplois du temps chargés` : 
+                      `${existingTimetables.length} timetables loaded`
+                  });
+                },
                 color: 'bg-green-600 hover:bg-green-700'
               },
               {
                 id: 'export-timetable',
                 label: language === 'fr' ? 'Exporter PDF' : 'Export PDF',
                 icon: <FileText className="w-5 h-5" />,
-                onClick: handleExportPDF,
+                onClick: () => setShowExportModal(true),
                 color: 'bg-purple-600 hover:bg-purple-700'
               },
               {
@@ -729,17 +833,62 @@ const TimetableConfiguration: React.FC = () => {
                   )}
                 </div>
 
-                {/* Room */}
+                {/* Room Selection - From API */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <School className="w-4 h-4" />
                     {language === 'fr' ? 'Salle' : 'Room'}
+                    {isLoadingRooms && <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin" />}
+                    <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700">
+                      {language === 'fr' ? 'API Intégrée' : 'API Integrated'}
+                    </Badge>
                   </label>
-                  <Input
-                    value={formData.room}
-                    onChange={(e) => setFormData(prev => ({ ...prev, room: e.target.value }))}
-                    placeholder={language === 'fr' ? 'Ex: Salle A101' : 'Ex: Room A101'}
-                  />
+                  {isLoadingRooms ? (
+                    <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                      {language === 'fr' ? 'Chargement des salles...' : 'Loading rooms...'}
+                    </div>
+                  ) : availableRooms.length === 0 ? (
+                    <div className="w-full p-3 border rounded text-center text-sm text-yellow-600 bg-yellow-50">
+                      {language === 'fr' ? 
+                        '⚠️ Aucune salle disponible - Créez des salles dans "Gestion des Classes"' : 
+                        '⚠️ No rooms available - Create rooms in "Class Management"'}
+                    </div>
+                  ) : (
+                    <Select value={formData.room} onValueChange={(value) => setFormData(prev => ({ ...prev, room: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={language === 'fr' ? 'Choisir une salle' : 'Choose a room'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableRooms.filter((room: any) => !room.isOccupied).map((room: any) => (
+                          <SelectItem key={room.id} value={room.name}>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">🏢 {room.name}</span>
+                              {room.capacity && (
+                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                                  {language === 'fr' ? 'Cap.' : 'Cap.'} {room.capacity}
+                                </Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                        {availableRooms.some((room: any) => room.isOccupied) && (
+                          <div className="px-2 py-1 text-xs text-gray-500 border-t">
+                            {language === 'fr' ? 'Salles occupées :' : 'Occupied rooms:'}
+                          </div>
+                        )}
+                        {availableRooms.filter((room: any) => room.isOccupied).map((room: any) => (
+                          <SelectItem key={`occupied-${room.id}`} value={room.name} disabled>
+                            <div className="flex items-center gap-2 opacity-50">
+                              <span className="font-medium">🚫 {room.name}</span>
+                              <Badge variant="outline" className="text-xs bg-red-50 text-red-700">
+                                {language === 'fr' ? 'Occupée' : 'Occupied'}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
 
