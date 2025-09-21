@@ -32,6 +32,7 @@ export const bulletinComprehensive = pgTable("bulletin_comprehensive", {
   schoolRegion: text("school_region"), // Région de l'école
   schoolSubdivision: text("school_subdivision"), // Subdivision de l'école
   isRepeater: boolean("is_repeater").default(false),
+  studentPhoto: text("student_photo"), // URL ou chemin de la photo de l'élève pour les bulletins
   guardianName: text("guardian_name"), // Parent/Guardian full name
   guardianPhone: text("guardian_phone"), // Contact phone number
   

@@ -30,6 +30,8 @@ interface Student {
   status: 'active' | 'suspended' | 'graduated';
   average: number;
   attendance: number;
+  redoublant: boolean; // Nouveau champ pour indiquer si l'élève redouble
+  photo?: string; // URL de la photo de l'élève
 }
 
 const FunctionalDirectorStudentManagement: React.FC = () => {
@@ -67,8 +69,14 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     parentName: '',
     parentEmail: '',
     parentPhone: '',
-    photo: null as File | null
+    photo: null as File | null,
+    redoublant: false // Nouveau champ redoublant
   });
+
+  // État pour la gestion de la caméra
+  const [showCamera, setShowCamera] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
 
   // Fetch classes data for dropdown
   const { data: classesResponse = {}, isLoading: isLoadingClasses } = useQuery({
@@ -163,7 +171,15 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
       
       setIsAddStudentOpen(false);
-      setStudentForm({ name: '', email: '', phone: '', className: '', level: '', age: '', gender: '', dateOfBirth: '', placeOfBirth: '', matricule: '', parentName: '', parentEmail: '', parentPhone: '', photo: null });
+      setStudentForm({ 
+        name: '', email: '', phone: '', className: '', level: '', age: '', gender: '', 
+        dateOfBirth: '', placeOfBirth: '', matricule: '', parentName: '', parentEmail: '', 
+        parentPhone: '', photo: null, redoublant: false 
+      });
+      // Réinitialiser les états de la caméra
+      setShowCamera(false);
+      setCapturedPhoto(null);
+      setIsCameraReady(false);
       
       toast({
         title: '✅ Élève ajouté avec succès',
@@ -280,8 +296,13 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       parentName: student.parentName,
       parentEmail: student.parentEmail,
       parentPhone: student.parentPhone,
-      photo: null
+      photo: null,
+      redoublant: student.redoublant || false // Ajouter le champ redoublant
     });
+    // Réinitialiser les états de la caméra lors de l'édition
+    setShowCamera(false);
+    setCapturedPhoto(null);
+    setIsCameraReady(false);
     setIsEditStudentOpen(true);
   };
 
@@ -733,38 +754,116 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                 />
               </div>
               
+              {/* Nouveau champ Redoublant */}
+              <div>
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4" />
+                  {language === 'fr' ? 'Redoublant' : 'Repeating Year'}
+                </Label>
+                <Select 
+                  value={studentForm.redoublant ? 'oui' : 'non'} 
+                  onValueChange={(value) => setStudentForm(prev => ({ ...prev, redoublant: value === 'oui' }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="non">
+                      {language === 'fr' ? '👍 Non - Promotion normale' : '👍 No - Normal promotion'}
+                    </SelectItem>
+                    <SelectItem value="oui">
+                      {language === 'fr' ? '♾ Oui - Redoublant' : '♾ Yes - Repeating year'}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="text-xs text-gray-500 mt-1">
+                  {language === 'fr' ? 
+                    'Cette information apparaîtra sur les bulletins trimestriels' : 
+                    'This information will appear on quarterly report cards'}
+                </div>
+              </div>
+              
               {/* Photo Upload Section */}
               <div>
                 <Label className="text-sm font-medium">
                   {language === 'fr' ? 'Photo de l\'élève (optionnelle)' : 'Student Photo (optional)'}
                 </Label>
-                <div className="mt-2 flex items-center gap-4">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0] || null;
-                      setStudentForm(prev => ({ ...prev, photo: file }));
-                    }}
-                    className="hidden"
-                    id="student-photo-upload"
-                  />
-                  <label
-                    htmlFor="student-photo-upload"
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer border"
-                  >
-                    <Upload className="w-4 h-4" />
-                    {language === 'fr' ? 'Choisir une photo' : 'Choose Photo'}
-                  </label>
-                  {studentForm.photo && (
-                    <span className="text-sm text-green-600">
-                      ✓ {studentForm.photo.name}
-                    </span>
+                <div className="mt-2 space-y-3">
+                  {/* Option 1: Télécharger une photo */}
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setStudentForm(prev => ({ ...prev, photo: file }));
+                        setCapturedPhoto(null); // Clear captured photo if file is uploaded
+                      }}
+                      className="hidden"
+                      id="student-photo-upload"
+                    />
+                    <label
+                      htmlFor="student-photo-upload"
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer border"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {language === 'fr' ? 'Choisir une photo' : 'Choose Photo'}
+                    </label>
+                    {studentForm.photo && (
+                      <span className="text-sm text-green-600">
+                        ✓ {studentForm.photo.name}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Option 2: Prendre une photo avec caméra */}
+                  <div className="flex items-center gap-4">
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setShowCamera(true);
+                        setStudentForm(prev => ({ ...prev, photo: null })); // Clear file upload if camera is used
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 border"
+                      variant="outline"
+                    >
+                      <Camera className="w-4 h-4" />
+                      {language === 'fr' ? 'Prendre une photo' : 'Take Photo'}
+                    </Button>
+                    {capturedPhoto && (
+                      <span className="text-sm text-green-600">
+                        ✓ {language === 'fr' ? 'Photo capturée' : 'Photo captured'}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Aperçu de la photo capturée */}
+                  {capturedPhoto && (
+                    <div className="mt-2">
+                      <div className="text-sm font-medium mb-2">
+                        {language === 'fr' ? 'Aperçu de la photo :' : 'Photo preview:'}
+                      </div>
+                      <img 
+                        src={capturedPhoto} 
+                        alt="Photo capturée" 
+                        className="w-24 h-24 object-cover rounded border"
+                      />
+                    </div>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'fr' ? 'Formats supportés: JPG, PNG, WebP (max 5MB)' : 'Supported formats: JPG, PNG, WebP (max 5MB)'}
-                </p>
+                <div className="text-xs text-gray-500 mt-2 space-y-1">
+                  <p>{language === 'fr' ? 'Formats supportés: JPG, PNG, WebP (max 5MB)' : 'Supported formats: JPG, PNG, WebP (max 5MB)'}</p>
+                  <p className="text-blue-600 font-medium">
+                    {language === 'fr' ? 
+                      '📸 Nouveau: Prenez une photo directement à l\'école avec la caméra!' : 
+                      '📸 New: Take a photo directly at school with the camera!'}
+                  </p>
+                  <p className="text-purple-600">
+                    {language === 'fr' ? 
+                      '🎓 Cette photo apparaîtra automatiquement sur tous les bulletins trimestriels' : 
+                      '🎓 This photo will automatically appear on all quarterly report cards'}
+                  </p>
+                </div>
               </div>
               
               <div className="flex gap-2 pt-4">
@@ -783,6 +882,107 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                 >
                   {text.buttons.cancel}
                 </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Camera Modal for Photo Capture */}
+      {showCamera && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Camera className="w-5 h-5" />
+                {language === 'fr' ? 'Prendre une photo de l\'élève' : 'Take Student Photo'}
+              </h3>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  setShowCamera(false);
+                  setIsCameraReady(false);
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-4">
+              {/* Camera Preview Area */}
+              <div className="bg-gray-100 rounded-lg p-8 text-center min-h-[300px] flex items-center justify-center">
+                <div className="text-center">
+                  <Camera className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600 mb-4">
+                    {language === 'fr' ? 
+                      'Simulation caméra - Cliquez "Capturer" pour simuler la prise de photo' : 
+                      'Camera simulation - Click "Capture" to simulate photo taking'}
+                  </p>
+                  <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded">
+                    {language === 'fr' ? 
+                      '💡 Astuce: En production, cette interface se connecterait à la vraie caméra du dispositif' : 
+                      '💡 Tip: In production, this interface would connect to the device\'s actual camera'}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Camera Controls */}
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => {
+                    // Simulation: générer une image de démonstration
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 300;
+                    canvas.height = 400;
+                    const ctx = canvas.getContext('2d')!;
+                    
+                    // Créer une image de démonstration simple
+                    const gradient = ctx.createLinearGradient(0, 0, 300, 400);
+                    gradient.addColorStop(0, '#e3f2fd');
+                    gradient.addColorStop(1, '#bbdefb');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, 300, 400);
+                    
+                    // Ajouter du texte de démonstration
+                    ctx.fillStyle = '#1976d2';
+                    ctx.font = '20px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Photo Élève', 150, 200);
+                    ctx.font = '14px Arial';
+                    ctx.fillText(new Date().toLocaleString(), 150, 230);
+                    ctx.fillText('EDUCAFRIC', 150, 250);
+                    
+                    const dataUrl = canvas.toDataURL('image/png');
+                    setCapturedPhoto(dataUrl);
+                    setShowCamera(false);
+                    
+                    toast({
+                      title: language === 'fr' ? '📸 Photo capturée!' : '📸 Photo captured!',
+                      description: language === 'fr' ? 
+                        'Photo simulée créée avec succès' : 
+                        'Simulated photo created successfully'
+                    });
+                  }}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Capturer la Photo' : 'Capture Photo'}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowCamera(false);
+                    setIsCameraReady(false);
+                  }}
+                  variant="outline"
+                >
+                  {language === 'fr' ? 'Annuler' : 'Cancel'}
+                </Button>
+              </div>
+              
+              <div className="text-xs text-gray-500 text-center">
+                {language === 'fr' ? 
+                  'Mode simulation - En production, utilisera la caméra réelle du dispositif' : 
+                  'Simulation mode - In production, will use device\'s actual camera'}
               </div>
             </div>
           </div>
