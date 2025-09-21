@@ -4659,6 +4659,79 @@ export default function ComprehensiveBulletinGenerator() {
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t.previewTitle}</DialogTitle>
+            <DialogDescription>
+              {t.previewDescription}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {loadingPreview ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">{t.loadingPreview}</span>
+            </div>
+          ) : previewData ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">
+                    {language === 'fr' ? 'Élève' : 'Student'}
+                  </label>
+                  <p className="text-lg font-semibold">{previewData.studentName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">
+                    {language === 'fr' ? 'Moyenne générale' : 'Overall Average'}
+                  </label>
+                  <p className="text-lg font-semibold text-blue-600">
+                    {previewData.overallAverage ? previewData.overallAverage.toFixed(2) : 'N/A'}
+                  </p>
+                </div>
+              </div>
+              
+              {previewData.subjects && previewData.subjects.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium mb-3 block">
+                    {language === 'fr' ? 'Matières' : 'Subjects'}
+                  </label>
+                  <div className="space-y-2">
+                    {previewData.subjects.map((subject: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="font-medium">{subject.name}</span>
+                        <span className="text-blue-600 font-semibold">
+                          {subject.average ? subject.average.toFixed(2) : 'N/A'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="text-sm text-muted-foreground">
+                {language === 'fr' 
+                  ? `${previewData.subjectCount || 0} matière(s) trouvée(s)`
+                  : `${previewData.subjectCount || 0} subject(s) found`
+                }
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">
+              {t.noPreviewData}
+            </div>
+          )}
+          
+          <div className="flex justify-end gap-3 mt-6">
+            <Button variant="outline" onClick={() => setShowPreviewDialog(false)}>
+              {language === 'fr' ? 'Fermer' : 'Close'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
