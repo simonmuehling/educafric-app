@@ -773,6 +773,8 @@ const TimetableConfiguration: React.FC = () => {
                       className: '',
                       day: '',
                       timeSlot: '',
+                      startTime: '',
+                      endTime: '',
                       subject: '',
                       teacher: '',
                       room: ''
@@ -818,7 +820,7 @@ const TimetableConfiguration: React.FC = () => {
                 ))}
                 
                 {/* Créneaux horaires avec cours */}
-                {timeSlots.map((timeSlot, timeIndex) => (
+                {['08:00 - 09:00', '09:00 - 10:00', '10:30 - 11:30', '11:30 - 12:30', '14:00 - 15:00', '15:00 - 16:00', '16:00 - 17:00'].map((timeSlot, timeIndex) => (
                   <React.Fragment key={timeSlot}>
                     {/* Colonne horaire */}
                     <div className="bg-gray-50 p-2 text-sm font-medium text-center border-r text-gray-600">
