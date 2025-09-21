@@ -513,52 +513,16 @@ const CommunicationsCenter: React.FC = () => {
                   id: 'sms-alert',
                   label: language === 'fr' ? 'Alerte SMS' : 'SMS Alert',
                   icon: <Phone className="w-5 h-5" />,
-                  onClick: async () => {
-                    try {
-                      console.log('[COMMUNICATIONS_CENTER] 🚨 Sending SMS Alert via API');
-                      
-                      const response = await fetch('/api/communications/sms-alert', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json'
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                          recipients: selectedRecipient,
-                          urgencyLevel: 'high',
-                          alertType: 'emergency'
-                        })
-                      });
-
-                      const result = await response.json();
-
-                      if (response.ok && result.success) {
-                        console.log('[COMMUNICATIONS_CENTER] ✅ SMS Alert sent:', result);
-                        toast({
-                          title: language === 'fr' ? 'Alerte SMS Envoyée' : 'SMS Alert Sent',
-                          description: result.message || (language === 'fr' ? 
-                            `Alerte envoyée à ${result.alert?.recipientCount || 0} destinataires` :
-                            `Alert sent to ${result.alert?.recipientCount || 0} recipients`)
-                        });
-                      } else {
-                        console.error('[COMMUNICATIONS_CENTER] ❌ SMS Alert failed:', result);
-                        toast({
-                          title: language === 'fr' ? 'Erreur SMS' : 'SMS Error',
-                          description: result.message || (language === 'fr' ? 
-                            'Impossible d\'envoyer l\'alerte SMS' : 'Failed to send SMS alert'),
-                          variant: 'destructive'
-                        });
-                      }
-                    } catch (error: any) {
-                      console.error('[COMMUNICATIONS_CENTER] ❌ SMS Alert API error:', error);
-                      toast({
-                        title: language === 'fr' ? 'Erreur SMS' : 'SMS Error',
-                        description: language === 'fr' ? 
-                          'Erreur lors de l\'envoi de l\'alerte SMS' : 
-                          'Error sending SMS alert',
-                        variant: 'destructive'
-                      });
-                    }
+                  onClick: () => {
+                    // Afficher l'annonce de contact support Educafric pour activation SMS
+                    toast({
+                      title: language === 'fr' ? '📞 Activation Requise' : '📞 Activation Required',
+                      description: language === 'fr' ? 
+                        'La fonctionnalité SMS Alert nécessite une activation. Veuillez contacter le support Educafric pour activer cette fonctionnalité premium liée à des charges supplémentaires.' :
+                        'SMS Alert functionality requires activation. Please contact Educafric support to activate this premium feature with additional charges.',
+                      variant: 'default',
+                      duration: 8000
+                    });
                   },
                   color: 'bg-orange-600 hover:bg-orange-700'
                 }
@@ -765,7 +729,7 @@ const CommunicationsCenter: React.FC = () => {
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {language === 'fr' ? 'Confirmer l\'envoi du message' : 'Confirm Message Send'}
