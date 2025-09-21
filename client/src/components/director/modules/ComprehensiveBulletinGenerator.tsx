@@ -3231,7 +3231,7 @@ export default function ComprehensiveBulletinGenerator() {
                                 </p>
                                 {qualityStatus.icon && (
                                   <div className={cn("text-xs px-2 py-0.5 rounded-full", qualityStatus.color)}>
-                                    {qualityStatus.icon}
+                                    <qualityStatus.icon className="h-3 w-3" />
                                   </div>
                                 )}
                               </div>
