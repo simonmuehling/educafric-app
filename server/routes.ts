@@ -3466,6 +3466,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= SCHOOL TEACHER ABSENCES API (DIRECTOR ACCESS) =============
+
+  // Get all teacher absences for school (Director access) - connects to TeacherAbsenceManager
+  app.get("/api/schools/teacher-absences", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[TEACHER_ABSENCE] Getting absences for teacher:', user.id);
+      
+      // Mock teacher absences data for sandbox demonstration
+      const mockAbsences = [
+        {
+          id: 1,
+          teacherId: 999,
+          teacherName: 'Marie Dubois',
+          schoolId: user.schoolId || 999,
+          classId: 101,
+          className: '6ème A',
+          subjectId: 1,
+          subjectName: 'Mathématiques',
+          absenceDate: '2025-09-22',
+          startTime: '08:00',
+          endTime: '10:00',
+          reason: 'Maladie soudaine',
+          reasonCategory: 'health',
+          isPlanned: false,
+          status: 'reported',
+          priority: 'high',
+          totalAffectedStudents: 28,
+          affectedClasses: [
+            { classId: 101, className: '6ème A', subjectId: 1, subjectName: 'Mathématiques', period: '08:00-09:00' },
+            { classId: 102, className: '6ème B', subjectId: 1, subjectName: 'Mathématiques', period: '09:00-10:00' }
+          ],
+          parentsNotified: false,
+          studentsNotified: false,
+          adminNotified: true,
+          replacementTeacherId: null,
+          substituteName: null,
+          substituteConfirmed: false,
+          substituteInstructions: null,
+          isResolved: false,
+          impactAssessment: 'High impact - 28 students affected across 2 classes',
+          createdAt: '2025-09-21T06:30:00Z',
+          updatedAt: '2025-09-21T06:30:00Z'
+        },
+        {
+          id: 2,
+          teacherId: 1001,
+          teacherName: 'Paul Martin',
+          schoolId: user.schoolId || 999,
+          classId: 201,
+          className: 'Terminale C',
+          subjectId: 2,
+          subjectName: 'Physique',
+          absenceDate: '2025-09-21',
+          startTime: '14:00',
+          endTime: '16:00',
+          reason: 'Formation continue',
+          reasonCategory: 'professional',
+          isPlanned: true,
+          status: 'substitute_assigned',
+          priority: 'medium',
+          totalAffectedStudents: 35,
+          affectedClasses: [
+            { classId: 201, className: 'Terminale C', subjectId: 2, subjectName: 'Physique', period: '14:00-16:00' }
+          ],
+          parentsNotified: true,
+          studentsNotified: true,
+          adminNotified: true,
+          replacementTeacherId: 1002,
+          substituteName: 'Françoise Mbida',
+          substituteConfirmed: true,
+          substituteInstructions: 'Continuer le chapitre 7 sur la thermodynamique',
+          isResolved: false,
+          impactAssessment: 'Medium impact - well planned with substitute',
+          createdAt: '2025-09-20T10:00:00Z',
+          updatedAt: '2025-09-21T09:00:00Z'
+        }
+      ];
+
+      res.json(mockAbsences);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE] Error fetching school teacher absences:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch teacher absences',
+        error: error.message 
+      });
+    }
+  });
+
+  // Get teacher absence statistics for school dashboard
+  app.get("/api/schools/teacher-absences-stats", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[STORAGE] Getting teacher absence stats for school', user.schoolId || 999);
+      
+      // Mock statistics for demonstration
+      const mockStats = {
+        totalAbsences: 12,
+        thisMonth: 8,
+        lastMonth: 4,
+        trend: 'increasing',
+        averagePerWeek: 2.1,
+        byCategory: [
+          { category: 'health', count: 7, percentage: 58.3 },
+          { category: 'professional', count: 3, percentage: 25.0 },
+          { category: 'personal', count: 2, percentage: 16.7 }
+        ],
+        byStatus: [
+          { status: 'reported', count: 3, percentage: 25.0 },
+          { status: 'notified', count: 2, percentage: 16.7 },
+          { status: 'substitute_assigned', count: 4, percentage: 33.3 },
+          { status: 'resolved', count: 3, percentage: 25.0 }
+        ],
+        impactMetrics: {
+          totalStudentsAffected: 325,
+          averageStudentsPerAbsence: 27.1,
+          totalNotificationsSent: 89,
+          substituteSuccessRate: 75.0
+        },
+        performance: {
+          averageResolutionTime: 4.2, // hours
+          notificationSpeed: 15, // minutes
+          substituteAssignmentSpeed: 85 // minutes
+        }
+      };
+
+      res.json(mockStats);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE] Error fetching teacher absence stats:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch teacher absence statistics',
+        error: error.message 
+      });
+    }
+  });
+
   // ============= TEACHER ABSENCE DECLARATION API =============
 
   // Declare teacher absence - POST route for functional button

@@ -54,7 +54,7 @@ const TeacherAbsenceDeclaration: React.FC = () => {
     queryKey: ['/api/teacher/classes']
   });
 
-  const teacherClasses = classesData?.success 
+  const teacherClasses = (classesData?.success && classesData.classes) 
     ? classesData.classes.map((cls: any) => cls.name) 
     : [];
 
