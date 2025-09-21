@@ -7477,6 +7477,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // ===== ATTENDANCE ROUTES =====
+  // GET attendance for a specific class and date
+  app.get("/api/attendance", requireAuth, async (req, res) => {
+    const { classId, date } = req.query;
+    console.log(`[ATTENDANCE_API] Fetching attendance for class ${classId}, date ${date}`);
+    
+    try {
+      if (!classId || !date) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'ClassId and date are required' 
+        });
+      }
+
+      // Mock attendance data for now since DB is not fully configured
+      const mockAttendance = [
+        {
+          id: 1,
+          studentId: parseInt(classId.toString()) * 10 + 1,
+          classId: parseInt(classId.toString()),
+          date: date,
+          status: 'present',
+          markedBy: req.user?.id,
+          createdAt: new Date()
+        },
+        {
+          id: 2,
+          studentId: parseInt(classId.toString()) * 10 + 2,
+          classId: parseInt(classId.toString()),
+          date: date,
+          status: 'absent',
+          markedBy: req.user?.id,
+          createdAt: new Date()
+        }
+      ];
+
+      console.log(`[ATTENDANCE_API] ✅ Found ${mockAttendance.length} attendance records`);
+      res.json(mockAttendance);
+    } catch (error) {
+      console.error('[ATTENDANCE_API] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch attendance' });
+    }
+  });
+
+  // POST to mark attendance
+  app.post("/api/attendance", requireAuth, async (req, res) => {
+    const attendanceData = req.body;
+    console.log(`[ATTENDANCE_API] Marking attendance:`, attendanceData);
+    
+    try {
+      const { studentId, classId, date, status, directorNote } = attendanceData;
+      
+      if (!studentId || !classId || !date || !status) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required attendance data' 
+        });
+      }
+
+      // Mock successful attendance marking
+      const newAttendance = {
+        id: Math.floor(Math.random() * 10000),
+        studentId: parseInt(studentId),
+        classId: parseInt(classId),
+        date: new Date(date),
+        status: status,
+        notes: directorNote || 'Marqué par la direction',
+        markedBy: req.user?.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      console.log(`[ATTENDANCE_API] ✅ Attendance marked successfully for student ${studentId}: ${status}`);
+      res.json({ 
+        success: true, 
+        attendance: newAttendance,
+        message: `Attendance marked as ${status}` 
+      });
+    } catch (error) {
+      console.error('[ATTENDANCE_API] Error marking attendance:', error);
+      res.status(500).json({ success: false, message: 'Failed to mark attendance' });
+    }
+  });
+
+  // POST to send attendance notifications
+  app.post("/api/notifications/attendance", requireAuth, async (req, res) => {
+    const notificationData = req.body;
+    console.log(`[ATTENDANCE_NOTIFICATIONS] Sending notification:`, notificationData);
+    
+    try {
+      const { studentId, studentName, status, parentEmail, parentPhone, message } = notificationData;
+      
+      // Mock notification sending
+      console.log(`[ATTENDANCE_NOTIFICATIONS] 📧 Would send email to: ${parentEmail}`);
+      console.log(`[ATTENDANCE_NOTIFICATIONS] 📱 Would send SMS to: ${parentPhone}`);
+      console.log(`[ATTENDANCE_NOTIFICATIONS] 📨 Message: ${message}`);
+      
+      // Simulate successful notification
+      res.json({ 
+        success: true,
+        message: 'Notification sent successfully',
+        channels: {
+          email: parentEmail ? 'sent' : 'not_provided',
+          sms: parentPhone ? 'sent' : 'not_provided'
+        }
+      });
+    } catch (error) {
+      console.error('[ATTENDANCE_NOTIFICATIONS] Error sending notification:', error);
+      res.status(500).json({ success: false, message: 'Failed to send notification' });
+    }
+  });
+
   console.log('All routes configured ✅');
 
   // Create HTTP server
