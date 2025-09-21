@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, FileText, Download, Eye } from 'lucide-react';
+import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useQuery } from '@tanstack/react-query';
 import ReportCardPreview from './ReportCardPreview';
 
 interface Subject {
@@ -37,6 +39,14 @@ interface DisciplineInfo {
 }
 
 export default function BulletinCreationInterface() {
+  const { language } = useLanguage();
+  
+  // Fetch school information automatically
+  const { data: schoolInfo, isLoading: loadingSchoolInfo } = useQuery({
+    queryKey: ['/api/school/info'],
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+  }) as { data: any, isLoading: boolean };
+  
   const [student, setStudent] = useState<StudentInfo>({
     name: '',
     id: '',
@@ -48,6 +58,8 @@ export default function BulletinCreationInterface() {
     headTeacher: '',
     guardian: ''
   });
+
+  const [studentPhotoUrl, setStudentPhotoUrl] = useState('');
 
   const [subjects, setSubjects] = useState<Subject[]>([
     { id: '1', name: 'FRANÇAIS', coefficient: 6, grade: 0, remark: '' },
@@ -131,14 +143,109 @@ export default function BulletinCreationInterface() {
     }
   };
 
+  const labels = {
+    fr: {
+      title: "Création de Bulletin Trimestriel",
+      trimester: "Trimestre",
+      selectTrimester: "Sélectionner le trimestre",
+      firstTerm: "Premier Trimestre",
+      secondTerm: "Deuxième Trimestre", 
+      thirdTerm: "Troisième Trimestre",
+      academicYear: "Année scolaire",
+      generalAverage: "Moyenne générale",
+      studentInfo: "Informations de l'élève",
+      namePrenames: "Nom & Prénoms",
+      studentId: "Matricule",
+      class: "Classe",
+      classSize: "Effectif",
+      birthDate: "Date de naissance",
+      birthPlace: "Lieu de naissance",
+      gender: "Genre",
+      selectGender: "Sélectionner",
+      male: "Masculin",
+      female: "Féminin",
+      homeTeacher: "Professeur principal",
+      guardian: "Parents/Tuteurs",
+      subjectsGrades: "Notes par matière",
+      addSubject: "Ajouter",
+      subject: "Matière",
+      coefficient: "Coefficient", 
+      grade: "Note /20",
+      appreciation: "Appréciation",
+      teacherAppreciation: "Appréciation de l'enseignant",
+      disciplineAbsences: "Discipline et Absences",
+      justifiedAbs: "Absences justifiées (h)",
+      unjustifiedAbs: "Absences non justifiées (h)",
+      lates: "Retards",
+      warnings: "Avertissements/Blâmes",
+      generalAppreciation: "Appréciation générale",
+      generalAppreciationPlaceholder: "Appréciation générale du trimestre...",
+      preview: "Aperçu",
+      hide: "Masquer",
+      save: "Sauvegarder",
+      bulletinPreview: "Aperçu du bulletin",
+      uploadLogo: "Télécharger logo école",
+      uploadPhoto: "Télécharger photo élève"
+    },
+    en: {
+      title: "Create Term Report Card",
+      trimester: "Term",
+      selectTrimester: "Select term",
+      firstTerm: "First Term",
+      secondTerm: "Second Term",
+      thirdTerm: "Third Term",
+      academicYear: "Academic year",
+      generalAverage: "General average",
+      studentInfo: "Student information",
+      namePrenames: "Name & Surnames",
+      studentId: "Student ID",
+      class: "Class",
+      classSize: "Class size",
+      birthDate: "Birth date",
+      birthPlace: "Birth place",
+      gender: "Gender",
+      selectGender: "Select",
+      male: "Male",
+      female: "Female", 
+      homeTeacher: "Homeroom teacher",
+      guardian: "Parents/Guardians",
+      subjectsGrades: "Subject grades",
+      addSubject: "Add",
+      subject: "Subject",
+      coefficient: "Coefficient",
+      grade: "Grade /20",
+      appreciation: "Appreciation",
+      teacherAppreciation: "Teacher's appreciation",
+      disciplineAbsences: "Discipline and absences",
+      justifiedAbs: "Justified absences (h)",
+      unjustifiedAbs: "Unjustified absences (h)",
+      lates: "Lates",
+      warnings: "Warnings/Reprimands",
+      generalAppreciation: "General appreciation",
+      generalAppreciationPlaceholder: "General appreciation for the term...",
+      preview: "Preview",
+      hide: "Hide",
+      save: "Save",
+      bulletinPreview: "Report card preview",
+      uploadLogo: "Upload school logo",
+      uploadPhoto: "Upload student photo"
+    }
+  };
+
+  const t = labels[language];
+
   const bulletinData = {
     student: {
       ...student,
       generalRemark,
       discipline,
       school: {
-        name: "LYCÉE DE MENDONG / HIGH SCHOOL OF MENDONG",
-        subtitle: "LDM-2025-001 – Yaounde – Tel: +237 222 xxx xxx"
+        name: schoolInfo?.data?.name || "LYCÉE DE MENDONG / HIGH SCHOOL OF MENDONG",
+        subtitle: `${schoolInfo?.data?.address || "Yaoundé"} – Tel: ${schoolInfo?.data?.phone || "+237 222 xxx xxx"}`,
+        officialInfo: schoolInfo?.data?.officialInfo || {
+          regionaleMinisterielle: 'DÉLÉGATION RÉGIONALE DU CENTRE',
+          delegationDepartementale: 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI'
+        }
       }
     },
     lines: subjects.map(s => ({
@@ -148,7 +255,10 @@ export default function BulletinCreationInterface() {
       remark: s.remark
     })),
     year,
-    trimester
+    trimester,
+    schoolLogoUrl: schoolInfo?.data?.logoUrl || '',
+    studentPhotoUrl,
+    language
   };
 
   return (

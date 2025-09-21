@@ -1,8 +1,120 @@
-// Standalone, no external deps. Drop into src/components/ReportCardPreview.clean.jsx
+// Bilingual Cameroon-style report card component
 import React, { useMemo } from "react";
 
-// ---- tiny helpers (self-contained) ----
-const TRIMESTER_TITLE = (t: string) => `BULLETIN SCOLAIRE – ${String(t || "Premier").toUpperCase()} TRIMESTRE`;
+// ---- Bilingual helpers (FR/EN) ----
+const TRIMESTER_TITLES = {
+  fr: (t: string) => `BULLETIN SCOLAIRE – ${String(t || "Premier").toUpperCase()} TRIMESTRE`,
+  en: (t: string) => `${String(t || "First").toUpperCase()} TERM REPORT CARD`
+};
+
+const OFFICIAL_HEADER = {
+  fr: {
+    country: "RÉPUBLIQUE DU CAMEROUN",
+    motto: "Paix – Travail – Patrie", 
+    ministry: "MINISTÈRE DE L'ENSEIGNEMENT SECONDAIRE",
+    regional: "DÉLÉGATION RÉGIONALE DU CENTRE",
+    departmental: "DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI"
+  },
+  en: {
+    country: "REPUBLIC OF CAMEROON",
+    motto: "Peace – Work – Fatherland",
+    ministry: "MINISTRY OF SECONDARY EDUCATION", 
+    regional: "REGIONAL DELEGATION OF CENTRE REGION",
+    departmental: "DIVISIONAL DELEGATION OF MFOUNDI DIVISION"
+  }
+};
+
+const LABELS = {
+  fr: {
+    student: "Élève",
+    studentId: "Matricule", 
+    class: "Classe",
+    gender: "Genre",
+    birthInfo: "Naissance",
+    repeater: "Redoublant",
+    homeTeacher: "Prof. principal",
+    classSize: "Effectif",
+    guardian: "Parents/Tuteurs",
+    schoolReg: "Matr. École",
+    subject: "Discipline",
+    teacher: "Professeur",
+    competencies: "Compétences",
+    mark: "Note /20",
+    coef: "Coef",
+    weight: "Poids",
+    grade: "Mention",
+    remarks: "Appréciations",
+    totalCoef: "Total Coef",
+    totalWt: "Total Poids",
+    overallAvg: "Moy. Gén.",
+    overallGrade: "Mention Gén.",
+    discipline: "Discipline",
+    classProfile: "Profil Classe",
+    classCouncil: "Conseil & Visas",
+    justifiedAbs: "Abs. just. (h)",
+    unjustifiedAbs: "Abs. non just. (h)", 
+    lates: "Retards",
+    warnings: "Avert.",
+    reprimands: "Blâmes",
+    exclusions: "Excl. (j)",
+    detentions: "Ret. (h)",
+    classAvg: "Moy. Classe",
+    best: "Meilleur",
+    lowest: "Plus faible",
+    rank: "Rang",
+    decision: "Décision",
+    observations: "Observations",
+    principal: "Chef d'établissement",
+    homeTeacherSig: "Professeur principal",
+    parentSig: "Parent/Tuteur",
+    schoolStamp: "Cachet École"
+  },
+  en: {
+    student: "Student",
+    studentId: "Student ID",
+    class: "Class", 
+    gender: "Gender",
+    birthInfo: "Date & Place of Birth",
+    repeater: "Repeater",
+    homeTeacher: "Homeroom Teacher",
+    classSize: "Class Size",
+    guardian: "Guardian / Phone",
+    schoolReg: "School Reg.",
+    subject: "Subject",
+    teacher: "Teacher",
+    competencies: "Competencies",
+    mark: "Mark /20",
+    coef: "Coef",
+    weight: "Wt.",
+    grade: "Grade",
+    remarks: "Remarks",
+    totalCoef: "Total Coef",
+    totalWt: "Total Wt.",
+    overallAvg: "Overall Avg",
+    overallGrade: "Overall Grade",
+    discipline: "Discipline", 
+    classProfile: "Class Profile",
+    classCouncil: "Class Council & Visas",
+    justifiedAbs: "Justified Absences (h)",
+    unjustifiedAbs: "Unjustified Absences (h)",
+    lates: "Lates",
+    warnings: "Warnings",
+    reprimands: "Reprimands", 
+    exclusions: "Exclusions (days)",
+    detentions: "Detentions (hours)",
+    classAvg: "Class Average",
+    best: "Best",
+    lowest: "Lowest", 
+    rank: "Rank",
+    decision: "Decision",
+    observations: "Observations",
+    principal: "Principal / Head of School",
+    homeTeacherSig: "Homeroom Teacher", 
+    parentSig: "Parent / Guardian",
+    schoolStamp: "School Stamp"
+  }
+};
+
 const round2 = (x: number) => Math.round((Number(x) + Number.EPSILON) * 100) / 100;
 const QRImg = ({ value = "https://www.educafric.com", size = 64 }: { value?: string; size?: number }) => (
   <img alt="QR" src={`https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(value)}`} style={{ width: size, height: size }} />
@@ -36,6 +148,12 @@ interface StudentData {
   school?: {
     name?: string;
     subtitle?: string;
+    officialInfo?: {
+      regionaleMinisterielle?: string;
+      delegationDepartementale?: string;
+      boitePostale?: string;
+      arrondissement?: string;
+    };
   };
   discipline?: {
     absJ?: number;
@@ -60,6 +178,7 @@ interface ReportCardProps {
   schoolLogoUrl?: string;
   studentPhotoUrl?: string;
   qrValue?: string;
+  language?: 'fr' | 'en'; // NEW: Language support
 }
 
 export default function ReportCardPreview({
@@ -70,55 +189,81 @@ export default function ReportCardPreview({
   schoolLogoUrl = "",
   studentPhotoUrl = "",
   qrValue = "https://www.educafric.com",
+  language = 'fr', // Default to French
 }: ReportCardProps) {
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
   const totalMxCoef = entries.reduce((s, x) => s + (Number(x.m20) || 0) * (x.coef || 0), 0);
   const moyenne = totalCoef ? round2(totalMxCoef / totalCoef) : 0;
 
+  const labels = LABELS[language];
+  const header = OFFICIAL_HEADER[language];
+  
+  // Use school's official info if available, otherwise use defaults
+  const officialHeader = student.school?.officialInfo ? {
+    country: header.country,
+    motto: header.motto,
+    ministry: header.ministry,
+    regional: student.school.officialInfo.regionaleMinisterielle || header.regional,
+    departmental: student.school.officialInfo.delegationDepartementale || header.departmental
+  } : header;
+
   return (
     <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0">
       <A4Sheet>
-        <div className="p-6">
-          {/* Header with branding */}
-          <div className="grid grid-cols-12 gap-3 items-center">
-            <div className="col-span-3">
+        <div className="p-4">
+          {/* Official Cameroon Government Header */}
+          <div className="text-center mb-6 text-xs">
+            <div className="font-bold">{officialHeader.country}</div>
+            <div className="italic">{officialHeader.motto}</div>
+            <div className="font-semibold mt-2">{officialHeader.ministry}</div>
+            <div className="font-semibold">{officialHeader.regional}</div>
+            <div className="font-semibold mb-4">{officialHeader.departmental}</div>
+          </div>
+
+          {/* School Header with Logo and Photo */}
+          <div className="grid grid-cols-12 gap-3 items-center mb-4">
+            <div className="col-span-2">
               {schoolLogoUrl ? (
-                <img src={schoolLogoUrl} alt="Logo école" className="h-16 object-contain" />
+                <img src={schoolLogoUrl} alt="School Logo" className="h-16 object-contain" onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }} />
               ) : (
-                <div className="h-16 border rounded-xl flex items-center justify-center text-[10px] text-gray-500">Logo École</div>
+                <div className="h-16 border rounded-xl flex items-center justify-center text-[10px] text-gray-500">School Logo</div>
               )}
             </div>
-            <div className="col-span-6 text-center">
-              <div className="text-lg font-semibold">{student.school?.name || "Nom de l'Établissement"}</div>
-              <div className="text-xs text-gray-600">{student.school?.subtitle || "Adresse – Contacts"}</div>
+            <div className="col-span-8 text-center">
+              <div className="text-lg font-semibold">{student.school?.name || "LYCÉE DE MENDONG / HIGH SCHOOL OF MENDONG"}</div>
+              <div className="text-xs text-gray-600">{student.school?.subtitle || "LDM-2025-001 – Yaoundé – Tel: +237 222 xxx xxx"}</div>
             </div>
-            <div className="col-span-3 flex items-center justify-end gap-3">
+            <div className="col-span-2 flex items-center justify-end gap-2">
               {studentPhotoUrl ? (
-                <img src={studentPhotoUrl} alt="Photo élève" className="h-16 w-16 object-cover rounded-lg border" />
+                <img src={studentPhotoUrl} alt="Photo" className="h-16 w-16 object-cover rounded-lg border" onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }} />
               ) : (
                 <div className="h-16 w-16 border rounded-xl flex items-center justify-center text-[10px] text-gray-500">Photo</div>
               )}
-              <div className="bg-white p-1 rounded-md border"><QRImg value={qrValue} size={64} /></div>
+              <div className="bg-white p-1 rounded-md border"><QRImg value={qrValue} size={48} /></div>
             </div>
           </div>
 
-          {/* Titles */}
-          <div className="mt-4">
-            <h1 className="text-xl font-semibold text-center">{TRIMESTER_TITLE(trimester)}</h1>
-            <p className="text-center text-xs text-gray-600">Année scolaire : {year}</p>
+          {/* Report Card Title */}
+          <div className="mt-4 text-center">
+            <h1 className="text-lg font-semibold">{TRIMESTER_TITLES[language](trimester)}</h1>
+            <p className="text-xs text-gray-600">{language === 'fr' ? 'Année scolaire' : 'Academic Year'}: {year}</p>
           </div>
 
           {/* Student info */}
           <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
-            <Info label="Nom & Prénoms" value={student.name || ""} />
-            <Info label="Matricule" value={student.id || ""} />
-            <Info label="Classe" value={student.classLabel || ""} />
-            <Info label="Effectif" value={String(student.classSize || 0)} />
-            <Info label="Naissance" value={`${student.birthDate || "—"} à ${student.birthPlace || "—"}`} />
-            <Info label="Genre" value={student.gender || "—"} />
-            <Info label="Prof. principal" value={student.headTeacher || "—"} />
-            <Info label="Parents/Tuteurs" value={student.guardian || "—"} />
+            <Info label={labels.student} value={student.name || ""} />
+            <Info label={labels.studentId} value={student.id || ""} />
+            <Info label={labels.class} value={student.classLabel || ""} />
+            <Info label={labels.classSize} value={String(student.classSize || 0)} />
+            <Info label={labels.birthInfo} value={`${student.birthDate || "—"} ${language === 'fr' ? 'à' : 'in'} ${student.birthPlace || "—"}`} />
+            <Info label={labels.gender} value={student.gender || "—"} />
+            <Info label={labels.homeTeacher} value={student.headTeacher || "—"} />
+            <Info label={labels.guardian} value={student.guardian || "—"} />
           </div>
 
           {/* Marks table */}
@@ -126,11 +271,11 @@ export default function ReportCardPreview({
             <table className="min-w-full text-xs">
               <thead className="bg-gray-50">
                 <tr>
-                  <Th>Discipline</Th>
-                  <Th>Coef</Th>
-                  <Th>Note /20</Th>
-                  <Th>M × coef</Th>
-                  <Th>Appréciation</Th>
+                  <Th>{labels.subject}</Th>
+                  <Th>{labels.coef}</Th>
+                  <Th>{labels.mark}</Th>
+                  <Th>{labels.weight}</Th>
+                  <Th>{labels.remarks}</Th>
                 </tr>
               </thead>
               <tbody>
@@ -149,11 +294,11 @@ export default function ReportCardPreview({
               </tbody>
               <tfoot>
                 <tr className="bg-gray-100 font-semibold">
-                  <Td colSpan={1}>TOTAL</Td>
+                  <Td colSpan={1}>{labels.totalCoef}</Td>
                   <Td className="text-center">{totalCoef}</Td>
-                  <Td></Td>
+                  <Td className="text-center">—</Td>
                   <Td className="text-center">{round2(totalMxCoef)}</Td>
-                  <Td></Td>
+                  <Td className="text-center">—</Td>
                 </tr>
               </tfoot>
             </table>
@@ -162,35 +307,35 @@ export default function ReportCardPreview({
           {/* Averages & discipline */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
             <div className="rounded-xl border p-3">
-              <div className="text-xs text-gray-500">Moyenne générale</div>
+              <div className="text-xs text-gray-500">{labels.overallAvg}</div>
               <div className="text-2xl font-semibold">{moyenne}/20</div>
             </div>
             <div className="rounded-xl border p-3">
-              <div className="text-xs text-gray-500">Appréciation générale</div>
+              <div className="text-xs text-gray-500">{language === 'fr' ? 'Appréciation générale' : 'General Comments'}</div>
               <div className="min-h-10 text-sm">{student.generalRemark || ""}</div>
             </div>
             <div className="rounded-xl border p-3">
-              <div className="text-xs text-gray-500">Discipline</div>
+              <div className="text-xs text-gray-500">{labels.discipline}</div>
               <div className="text-xs grid grid-cols-2 gap-x-2 gap-y-1">
-                <span>Abs. just.</span><b>{student.discipline?.absJ || 0} h</b>
-                <span>Abs. non just.</span><b>{student.discipline?.absNJ || 0} h</b>
-                <span>Retards</span><b>{student.discipline?.late || 0}</b>
-                <span>Avert./Blâmes</span><b>{student.discipline?.sanctions || 0}</b>
+                <span>{labels.justifiedAbs}</span><b>{student.discipline?.absJ || 0} h</b>
+                <span>{labels.unjustifiedAbs}</span><b>{student.discipline?.absNJ || 0} h</b>
+                <span>{labels.lates}</span><b>{student.discipline?.late || 0}</b>
+                <span>{labels.warnings}/{labels.reprimands}</span><b>{student.discipline?.sanctions || 0}</b>
               </div>
             </div>
           </div>
 
           {/* Signatures */}
           <div className="mt-10 grid grid-cols-3 gap-4 text-xs">
-            <div className="text-center"><div>Le Chef d'établissement</div><div className="h-14"/><div className="font-medium">Visa</div></div>
-            <div className="text-center"><div>Le Professeur principal</div><div className="h-14"/><div className="font-medium">Visa</div></div>
-            <div className="text-center"><div>Le Parent / Tuteur</div><div className="h-14"/><div className="font-medium">Visa</div></div>
+            <div className="text-center"><div>{labels.principal}</div><div className="h-14"/><div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div></div>
+            <div className="text-center"><div>{labels.homeTeacherSig}</div><div className="h-14"/><div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div></div>
+            <div className="text-center"><div>{labels.parentSig}</div><div className="h-14"/><div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div></div>
           </div>
         </div>
       </A4Sheet>
 
       <div className="mt-3 flex justify-end gap-2 print:hidden">
-        <button className="px-3 py-2 rounded-xl bg-gray-100" onClick={() => window.print?.()}>Imprimer</button>
+        <button className="px-3 py-2 rounded-xl bg-gray-100" onClick={() => window.print?.()}>{language === 'fr' ? 'Imprimer' : 'Print'}</button>
       </div>
     </div>
   );
