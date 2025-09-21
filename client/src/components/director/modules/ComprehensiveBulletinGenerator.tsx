@@ -2093,8 +2093,15 @@ export default function ComprehensiveBulletinGenerator() {
     queryFn: async () => {
       if (!selectedClass) return null;
       
+      // Normalize classId to number for API
+      const classIdNum = parseInt(selectedClass, 10);
+      if (isNaN(classIdNum)) {
+        console.warn('Invalid classId:', selectedClass);
+        return null;
+      }
+      
       const response = await apiRequest('GET', 
-        `/api/comprehensive-bulletins/approved-students?classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
+        `/api/comprehensive-bulletins/approved-students?classId=${classIdNum}&term=${selectedTerm}&academicYear=${academicYear}`
       );
       const data = await response.json();
       return data.success ? data.data : null;
@@ -2108,8 +2115,15 @@ export default function ComprehensiveBulletinGenerator() {
     queryFn: async () => {
       if (!selectedClass) return null;
       
+      // Normalize classId to number for API
+      const classIdNum = parseInt(selectedClass, 10);
+      if (isNaN(classIdNum)) {
+        console.warn('Invalid classId for stats:', selectedClass);
+        return null;
+      }
+      
       const response = await apiRequest('GET', 
-        `/api/comprehensive-bulletins/class-statistics?classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
+        `/api/comprehensive-bulletins/class-statistics?classId=${classIdNum}&term=${selectedTerm}&academicYear=${academicYear}`
       );
       const data = await response.json();
       return data.success ? data.data : null;
@@ -2123,8 +2137,15 @@ export default function ComprehensiveBulletinGenerator() {
     queryFn: async () => {
       if (!previewStudentId) return null;
       
+      // Normalize classId to number for API
+      const classIdNum = parseInt(selectedClass, 10);
+      if (isNaN(classIdNum)) {
+        console.warn('Invalid classId for preview:', selectedClass);
+        return null;
+      }
+      
       const response = await apiRequest('GET', 
-        `/api/comprehensive-bulletins/preview?studentId=${previewStudentId}&classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
+        `/api/comprehensive-bulletins/preview?studentId=${previewStudentId}&classId=${classIdNum}&term=${selectedTerm}&academicYear=${academicYear}`
       );
       const data = await response.json();
       return data.success ? data.data : null;
