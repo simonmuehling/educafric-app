@@ -996,10 +996,6 @@ export default function ComprehensiveBulletinGenerator() {
       
       // Generation options
       generationSettings: 'Paramètres de génération',
-      includeComments: 'Inclure les commentaires des professeurs',
-      includeRankings: 'Inclure les classements',
-      includeStatistics: 'Inclure les statistiques de classe',
-      includePerformanceLevels: 'Inclure les niveaux de rendement',
       outputFormat: 'Format de sortie',
       individualPdf: 'PDF individuels',
       batchPdf: 'PDF groupé (un fichier)',
@@ -1283,10 +1279,6 @@ export default function ComprehensiveBulletinGenerator() {
       
       // Generation options
       generationSettings: 'Generation settings',
-      includeComments: 'Include teacher comments',
-      includeRankings: 'Include rankings',
-      includeStatistics: 'Include class statistics',
-      includePerformanceLevels: 'Include performance levels',
       outputFormat: 'Output format',
       individualPdf: 'Individual PDFs',
       batchPdf: 'Batch PDF (single file)',
