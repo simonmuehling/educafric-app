@@ -209,7 +209,7 @@ export default function ReportCardPreview({
   } : header;
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0">
+    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0" data-bulletin-preview="true">
       <A4Sheet>
         <div className="p-4">
           {/* Official Cameroon Government Header */}

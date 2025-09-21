@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School } from 'lucide-react';
+import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import ReportCardPreview from './ReportCardPreview';
 
 interface Subject {
@@ -77,6 +79,7 @@ export default function BulletinCreationInterface() {
   const [trimester, setTrimester] = useState('Premier');
   const [year, setYear] = useState('2025/2026');
   const [showPreview, setShowPreview] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [generalRemark, setGeneralRemark] = useState('');
 
   const addSubject = () => {
@@ -143,6 +146,78 @@ export default function BulletinCreationInterface() {
     }
   };
 
+  const generatePDF = async () => {
+    if (isGeneratingPDF) return;
+    
+    setIsGeneratingPDF(true);
+    
+    try {
+      // Find the preview element
+      const bulletinElement = document.querySelector('[data-bulletin-preview="true"]') as HTMLElement;
+      
+      if (!bulletinElement) {
+        alert('Veuillez d\'abord afficher l\'aperçu du bulletin');
+        setShowPreview(true);
+        return;
+      }
+
+      console.log('Generating PDF for bulletin...');
+
+      // Convert the bulletin to canvas
+      const canvas = await html2canvas(bulletinElement, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: bulletinElement.scrollWidth,
+        height: bulletinElement.scrollHeight
+      });
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 295; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      let position = 0;
+
+      // Add image to PDF
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add new pages if content is too long
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Generate filename
+      const studentName = student.name || 'Eleve';
+      const cleanName = studentName.replace(/[^a-zA-Z0-9]/g, '_');
+      const filename = `Bulletin_${cleanName}_${trimester}_${year.replace('/', '-')}.pdf`;
+
+      // Download PDF
+      pdf.save(filename);
+
+      console.log('PDF generated successfully:', filename);
+      alert('PDF généré avec succès!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Erreur lors de la génération du PDF');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   const labels = {
     fr: {
       title: "Création de Bulletin Trimestriel",
@@ -183,6 +258,8 @@ export default function BulletinCreationInterface() {
       preview: "Aperçu",
       hide: "Masquer",
       save: "Sauvegarder",
+      printToPDF: "Print to PDF",
+      generating: "Génération...",
       bulletinPreview: "Aperçu du bulletin",
       uploadLogo: "Télécharger logo école",
       uploadPhoto: "Télécharger photo élève"
@@ -224,8 +301,10 @@ export default function BulletinCreationInterface() {
       generalAppreciation: "General appreciation",
       generalAppreciationPlaceholder: "General appreciation for the term...",
       preview: "Preview",
-      hide: "Hide",
+      hide: "Hide", 
       save: "Save",
+      printToPDF: "Print to PDF",
+      generating: "Generating...",
       bulletinPreview: "Report card preview",
       uploadLogo: "Upload school logo",
       uploadPhoto: "Upload student photo"
@@ -566,12 +645,22 @@ export default function BulletinCreationInterface() {
           <div className="flex flex-wrap gap-3 justify-end">
             <Button variant="outline" onClick={() => setShowPreview(!showPreview)} data-testid="button-preview">
               <Eye className="h-4 w-4 mr-2" />
-              {showPreview ? 'Masquer' : 'Aperçu'}
+              {showPreview ? t.hide : t.preview}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={generatePDF} 
+              disabled={isGeneratingPDF}
+              data-testid="button-print-pdf"
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              {isGeneratingPDF ? t.generating : t.printToPDF}
             </Button>
             
             <Button onClick={handleSaveBulletin} data-testid="button-save">
               <Download className="h-4 w-4 mr-2" />
-              Sauvegarder
+              {t.save}
             </Button>
           </div>
         </CardContent>

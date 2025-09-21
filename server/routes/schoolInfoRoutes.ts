@@ -21,7 +21,21 @@ router.get('/info', requireAuth, requireAnyRole(['Admin', 'Director', 'Teacher',
     
     console.log('[SCHOOL_INFO] 🏫 Fetching school info for school:', schoolId);
     
-    const school = await db.select().from(schools).where(eq(schools.id, schoolId)).limit(1);
+    const school = await db.select({
+      id: schools.id,
+      name: schools.name,
+      address: schools.address,
+      phone: schools.phone,
+      email: schools.email,
+      logoUrl: schools.logoUrl,
+      regionaleMinisterielle: schools.regionaleMinisterielle,
+      delegationDepartementale: schools.delegationDepartementale,
+      boitePostale: schools.boitePostale,
+      arrondissement: schools.arrondissement,
+      academicYear: schools.academicYear,
+      currentTerm: schools.currentTerm,
+      settings: schools.settings
+    }).from(schools).where(eq(schools.id, schoolId)).limit(1);
     
     if (!school.length) {
       return res.status(404).json({
