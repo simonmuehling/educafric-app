@@ -1220,8 +1220,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               name: cls.name,
               level: cls.level,
               section: cls.section,
-              capacity: (cls as any).max_students || 35,
-              studentCount: Math.min(studentCountForClass, (cls as any).max_students || 35),
+              capacity: 35, // Default capacity
+              studentCount: Math.min(studentCountForClass, 35),
               schoolId: cls.schoolId,
               teacherId: cls.teacherId,
               isActive: true
@@ -1385,7 +1385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           firstName: teacher.firstName,
           lastName: teacher.lastName,
           email: teacher.email,
-          subject: teacher.subject || 'Non spécifié',
+          subject: 'Non spécifié', // Subject not in user schema
           isActive: true,
           experience: Math.floor(Math.random() * 15) + 1 // Random for now
         }));
@@ -1524,10 +1524,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         subjects = schoolSubjects.map(subject => ({
           id: subject.id,
-          name: subject.name,
-          nameEN: subject.name, // Use same name for both languages from DB
-          coefficient: 1, // Default coefficient since not in schema
-          isActive: subject.isActive
+          name: subject.nameFr || 'Subject',
+          nameEN: subject.nameEn || 'Subject',
+          coefficient: parseInt(subject.coefficient) || 1,
+          isActive: true // Default to active
         }));
       }
       
@@ -3753,7 +3753,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           ];
           
-          assignmentResult.notifications.parentMessages = mockParentNotifications;
+          // Add parent messages to a new property
+          (assignmentResult.notifications as any).parentMessages = mockParentNotifications;
           console.log('[PARENT_NOTIFICATION] ✅ Parent notifications queued');
           
         } catch (parentNotificationError) {
