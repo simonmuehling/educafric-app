@@ -25,7 +25,10 @@ import {
   Plus,
   Search,
   Filter,
-  MoreVertical
+  MoreVertical,
+  Download,
+  BarChart3,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -982,23 +985,11 @@ const TeacherAbsenceManager: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Rapports mensuels</h3>
-            <Button size="sm" className="flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>Générer rapport</span>
-            </Button>
-          </div>
-          
-          <Card>
-            <CardContent className="p-8 text-center">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h4 className="font-semibold text-lg mb-2">Rapports en développement</h4>
-              <p className="text-gray-600">
-                La génération automatique de rapports mensuels sera bientôt disponible.
-              </p>
-            </CardContent>
-          </Card>
+          <ReportsTab 
+            absences={absences}
+            stats={stats}
+            isLoading={teachersLoading}
+          />
         </TabsContent>
       </Tabs>
 
@@ -1191,6 +1182,449 @@ const TeacherAbsenceManager: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+};
+
+// ============================
+// COMPOSANT REPORTS TAB
+// ============================
+
+interface ReportsTabProps {
+  absences: TeacherAbsence[];
+  stats: any;
+  isLoading: boolean;
+}
+
+const ReportsTab: React.FC<ReportsTabProps> = ({ absences, stats, isLoading }) => {
+  const [reportPeriod, setReportPeriod] = useState('monthly');
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
+
+  // Import des dépendances pour PDF et Excel
+  const generatePDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      const jsPDF = (await import('jspdf')).default;
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      let yPosition = 20;
+
+      // En-tête du rapport
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('RAPPORT D\'ABSENCES ENSEIGNANTS', pageWidth/2, yPosition, { align: 'center' });
+      
+      yPosition += 10;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Période: ${getReportPeriodText()}`, pageWidth/2, yPosition, { align: 'center' });
+      
+      yPosition += 15;
+
+      // Statistiques générales
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('STATISTIQUES GÉNÉRALES', 20, yPosition);
+      
+      yPosition += 10;
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      
+      const filteredAbsences = getFilteredAbsences();
+      pdf.text(`Total des absences: ${filteredAbsences.length}`, 20, yPosition);
+      yPosition += 5;
+      pdf.text(`Absences résolues: ${filteredAbsences.filter(a => a.isResolved).length}`, 20, yPosition);
+      yPosition += 5;
+      pdf.text(`Remplaçants assignés: ${filteredAbsences.filter(a => a.substituteAssigned).length}`, 20, yPosition);
+      yPosition += 5;
+      pdf.text(`En attente: ${filteredAbsences.filter(a => !a.isResolved && !a.substituteAssigned).length}`, 20, yPosition);
+      
+      yPosition += 15;
+
+      // Liste détaillée des absences
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('DÉTAIL DES ABSENCES', 20, yPosition);
+      
+      yPosition += 10;
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'bold');
+      
+      // En-têtes de colonnes
+      pdf.text('Date', 20, yPosition);
+      pdf.text('Enseignant', 50, yPosition);
+      pdf.text('Matière', 90, yPosition);
+      pdf.text('Raison', 120, yPosition);
+      pdf.text('Statut', 160, yPosition);
+      
+      yPosition += 5;
+      pdf.setFont('helvetica', 'normal');
+
+      // Données des absences
+      filteredAbsences.slice(0, 30).forEach((absence) => {
+        if (yPosition > 270) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        
+        pdf.text(new Date(absence.absenceDate).toLocaleDateString('fr-FR'), 20, yPosition);
+        pdf.text(absence.teacherName.substring(0, 20), 50, yPosition);
+        pdf.text(absence.subjectName.substring(0, 15), 90, yPosition);
+        pdf.text(absence.reason.substring(0, 20), 120, yPosition);
+        
+        const status = absence.isResolved ? 'Résolue' : 
+                      absence.substituteAssigned ? 'Remplaçant' : 'En attente';
+        pdf.text(status, 160, yPosition);
+        
+        yPosition += 4;
+      });
+
+      // Pied de page
+      const pageCount = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.text(`Page ${i}/${pageCount}`, pageWidth - 30, pdf.internal.pageSize.getHeight() - 10);
+        pdf.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} par EDUCAFRIC`, 20, pdf.internal.pageSize.getHeight() - 10);
+      }
+
+      // Téléchargement
+      const fileName = `rapport-absences-${reportPeriod}-${selectedMonth}-${selectedYear}.pdf`;
+      pdf.save(fileName);
+      
+      toast({
+        title: "✅ Rapport PDF généré",
+        description: `Le rapport d'absences a été téléchargé avec succès.`,
+      });
+      
+    } catch (error) {
+      console.error('Erreur génération PDF:', error);
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible de générer le rapport PDF.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const generateExcel = async () => {
+    setIsGeneratingExcel(true);
+    try {
+      const XLSX = await import('xlsx');
+      
+      const filteredAbsences = getFilteredAbsences();
+      
+      // Préparer les données pour Excel
+      const excelData = filteredAbsences.map((absence) => ({
+        'Date': new Date(absence.absenceDate).toLocaleDateString('fr-FR'),
+        'Enseignant': absence.teacherName,
+        'Matière': absence.subjectName,
+        'Classe': absence.className,
+        'Heure début': absence.startTime,
+        'Heure fin': absence.endTime,
+        'Raison': absence.reason,
+        'Catégorie': absence.reasonCategory,
+        'Statut': absence.isResolved ? 'Résolue' : 
+                 absence.substituteAssigned ? 'Remplaçant assigné' : 'En attente',
+        'Remplaçant': absence.substituteName || 'Aucun',
+        'Date de déclaration': new Date(absence.createdAt || absence.absenceDate).toLocaleDateString('fr-FR')
+      }));
+
+      // Créer le classeur
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      
+      // Définir la largeur des colonnes
+      const columnWidths = [
+        { wch: 12 }, // Date
+        { wch: 20 }, // Enseignant
+        { wch: 15 }, // Matière
+        { wch: 10 }, // Classe
+        { wch: 10 }, // Heure début
+        { wch: 10 }, // Heure fin
+        { wch: 25 }, // Raison
+        { wch: 12 }, // Catégorie
+        { wch: 15 }, // Statut
+        { wch: 20 }, // Remplaçant
+        { wch: 15 }  // Date déclaration
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Ajouter la feuille au classeur
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Absences Enseignants');
+      
+      // Ajouter une feuille de statistiques
+      const statsData = [
+        { 'Métrique': 'Total des absences', 'Valeur': filteredAbsences.length },
+        { 'Métrique': 'Absences résolues', 'Valeur': filteredAbsences.filter(a => a.isResolved).length },
+        { 'Métrique': 'Remplaçants assignés', 'Valeur': filteredAbsences.filter(a => a.substituteAssigned).length },
+        { 'Métrique': 'En attente', 'Valeur': filteredAbsences.filter(a => !a.isResolved && !a.substituteAssigned).length },
+        { 'Métrique': 'Période du rapport', 'Valeur': getReportPeriodText() },
+        { 'Métrique': 'Date de génération', 'Valeur': new Date().toLocaleDateString('fr-FR') }
+      ];
+      
+      const statsWorksheet = XLSX.utils.json_to_sheet(statsData);
+      XLSX.utils.book_append_sheet(workbook, statsWorksheet, 'Statistiques');
+      
+      // Télécharger le fichier
+      const fileName = `rapport-absences-${reportPeriod}-${selectedMonth}-${selectedYear}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+      
+      toast({
+        title: "✅ Rapport Excel généré",
+        description: `Le rapport d'absences a été exporté avec succès.`,
+      });
+      
+    } catch (error) {
+      console.error('Erreur génération Excel:', error);
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible de générer le rapport Excel.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingExcel(false);
+    }
+  };
+
+  const getFilteredAbsences = () => {
+    if (!absences) return [];
+    
+    return absences.filter(absence => {
+      const absenceDate = new Date(absence.absenceDate);
+      const absenceMonth = absenceDate.getMonth() + 1;
+      const absenceYear = absenceDate.getFullYear();
+      
+      if (reportPeriod === 'monthly') {
+        return absenceMonth === selectedMonth && absenceYear === selectedYear;
+      } else if (reportPeriod === 'quarterly') {
+        const quarter = Math.ceil(selectedMonth / 3);
+        const absenceQuarter = Math.ceil(absenceMonth / 3);
+        return absenceQuarter === quarter && absenceYear === selectedYear;
+      } else if (reportPeriod === 'annual') {
+        return absenceYear === selectedYear;
+      }
+      
+      return true;
+    });
+  };
+
+  const getReportPeriodText = () => {
+    if (reportPeriod === 'monthly') {
+      const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                         'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+      return `${monthNames[selectedMonth - 1]} ${selectedYear}`;
+    } else if (reportPeriod === 'quarterly') {
+      const quarter = Math.ceil(selectedMonth / 3);
+      return `Trimestre ${quarter} ${selectedYear}`;
+    } else if (reportPeriod === 'annual') {
+      return `Année ${selectedYear}`;
+    }
+    return '';
+  };
+
+  const filteredAbsences = getFilteredAbsences();
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="text-sm text-gray-600 mt-2">Chargement des données...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* En-tête et contrôles */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-semibold">Rapports d'Absences</h3>
+          <p className="text-sm text-gray-600">Générez des rapports PDF ou Excel des absences enseignants</p>
+        </div>
+        
+        {/* Contrôles de période */}
+        <div className="flex items-center space-x-3">
+          <Select value={reportPeriod} onValueChange={setReportPeriod}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">Mensuel</SelectItem>
+              <SelectItem value="quarterly">Trimestriel</SelectItem>
+              <SelectItem value="annual">Annuel</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {reportPeriod !== 'annual' && (
+            <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+              <SelectTrigger className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                    {new Date(2024, i).toLocaleDateString('fr-FR', { month: 'short' })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          
+          <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 3 }, (_, i) => (
+                <SelectItem key={2024 - i} value={(2024 - i).toString()}>
+                  {2024 - i}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Statistiques de la période */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="w-5 h-5 text-blue-600" />
+              <div>
+                <p className="text-2xl font-bold">{filteredAbsences.length}</p>
+                <p className="text-sm text-gray-600">Total absences</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">{filteredAbsences.filter(a => a.isResolved).length}</p>
+                <p className="text-sm text-gray-600">Résolues</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <UserCheck className="w-5 h-5 text-orange-600" />
+              <div>
+                <p className="text-2xl font-bold">{filteredAbsences.filter(a => a.substituteAssigned).length}</p>
+                <p className="text-sm text-gray-600">Remplaçants</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="w-5 h-5 text-red-600" />
+              <div>
+                <p className="text-2xl font-bold">{filteredAbsences.filter(a => !a.isResolved && !a.substituteAssigned).length}</p>
+                <p className="text-sm text-gray-600">En attente</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Actions de génération */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Button 
+          onClick={generatePDF}
+          disabled={isGeneratingPDF || filteredAbsences.length === 0}
+          className="flex items-center space-x-2"
+          data-testid="button-generate-pdf-report"
+        >
+          {isGeneratingPDF ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+          ) : (
+            <FileText className="w-4 h-4" />
+          )}
+          <span>{isGeneratingPDF ? 'Génération PDF...' : 'Générer PDF'}</span>
+        </Button>
+        
+        <Button 
+          onClick={generateExcel}
+          disabled={isGeneratingExcel || filteredAbsences.length === 0}
+          variant="outline"
+          className="flex items-center space-x-2"
+          data-testid="button-generate-excel-report"
+        >
+          {isGeneratingExcel ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600" />
+          ) : (
+            <Download className="w-4 h-4" />
+          )}
+          <span>{isGeneratingExcel ? 'Export Excel...' : 'Exporter Excel'}</span>
+        </Button>
+      </div>
+
+      {/* Aperçu des données */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center space-x-2">
+            <CalendarIcon className="w-5 h-5" />
+            <span>Aperçu - {getReportPeriodText()}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredAbsences.length === 0 ? (
+            <div className="text-center py-8">
+              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-600">Aucune absence trouvée pour cette période</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Sélectionnez une autre période ou attendez que des absences soient déclarées
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {filteredAbsences.slice(0, 10).map((absence) => (
+                <div key={absence.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">{absence.teacherName}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {absence.subjectName}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {new Date(absence.absenceDate).toLocaleDateString('fr-FR')} • {absence.startTime}-{absence.endTime}
+                    </p>
+                    <p className="text-xs text-gray-500">{absence.reason}</p>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant={absence.isResolved ? "default" : absence.substituteAssigned ? "secondary" : "destructive"}>
+                      {absence.isResolved ? 'Résolue' : absence.substituteAssigned ? 'Remplaçant' : 'En attente'}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+              
+              {filteredAbsences.length > 10 && (
+                <p className="text-sm text-gray-500 text-center pt-2">
+                  ... et {filteredAbsences.length - 10} autres absences
+                </p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
