@@ -105,31 +105,52 @@ const TimetableConfiguration: React.FC = () => {
     retryDelay: 1000
   });
 
-  // Fetch existing timetables
+  // Fetch existing timetables - UNIFIED API SOURCE
   const { data: timetablesResponse = {}, isLoading: isLoadingTimetables, refetch: refetchTimetables } = useQuery({
     queryKey: ['/api/director/timetables'],
     enabled: !!user,
     queryFn: async () => {
-      console.log('[TIMETABLE_CONFIG] 🔍 Fetching existing timetables...');
+      console.log('[TIMETABLE_CONFIG] 🔍 Fetching existing timetables from unified API...');
       const response = await fetch('/api/director/timetables', {
         credentials: 'include'
       });
       if (!response.ok) {
-        console.error('[TIMETABLE_CONFIG] ❌ Failed to fetch timetables:', response.status);
+        console.log('[TIMETABLE_CONFIG] ⚠️ No timetables API, using sandbox fallback');
         return { timetables: [] };
       }
       const data = await response.json();
       console.log('[TIMETABLE_CONFIG] ✅ Timetables fetched:', data?.timetables?.length || 0, 'timetables');
       return data;
     },
-    retry: 2,
-    retryDelay: 1000
+    retry: 1,
+    retryDelay: 500
   });
 
   const availableClasses = classesResponse?.classes || [];
   const availableTeachers = teachersResponse?.teachers || [];
   const availableRooms = roomsResponse?.rooms || [];
   const existingTimetables = timetablesResponse?.timetables || [];
+
+  // UNIFIED DATA SOURCE: Use API data as primary source
+  const displayTimetables = existingTimetables.length > 0 ? existingTimetables : timetables;
+  
+  // Reactive room occupancy based on selected time/day
+  const getAvailableRoomsWithOccupancy = () => {
+    if (!formData.day || !formData.startTime || !formData.endTime) {
+      return availableRooms;
+    }
+    
+    const timeSlotKey = `${formData.startTime}-${formData.endTime}`;
+    return availableRooms.map((room: any) => {
+      const isOccupiedNow = displayTimetables.some((timetable: any) => 
+        timetable.day === formData.day && 
+        timetable.room === room.name &&
+        (timetable.timeSlot === timeSlotKey || 
+         (timetable.startTime === formData.startTime && timetable.endTime === formData.endTime))
+      );
+      return { ...room, isOccupied: isOccupiedNow };
+    });
+  };
 
   // Function to get subjects from selected class
   const getAvailableSubjects = () => {
@@ -372,34 +393,38 @@ const TimetableConfiguration: React.FC = () => {
   });
 
   const handleExportPDF = () => {
-    if (exportFilters.exportAll || (exportFilters.selectedClasses.length === 0 && exportFilters.selectedTeachers.length === 0)) {
-      // Direct export if no filters
-      performExport(existingTimetables.length > 0 ? existingTimetables : timetables);
-    } else {
-      // Show filter modal
-      setShowExportModal(true);
-    }
+    // Direct export with current data - simplified approach
+    performExport(displayTimetables, false);
   };
 
-  const performExport = (dataToExport: any[]) => {
+  const handleExportWithFilters = () => {
+    // Show filter modal for advanced export
+    setShowExportModal(true);
+  };
+
+  const performExport = (dataToExport: any[], withFilters = false) => {
     try {
+      // Use unified data source
+      const sourceData = displayTimetables.length > 0 ? displayTimetables : dataToExport;
+      
       // Filter data based on selected filters
-      let filteredData = dataToExport;
-      if (!exportFilters.exportAll) {
-        filteredData = dataToExport.filter((item: any) => {
+      let filteredData = sourceData;
+      if (withFilters && !exportFilters.exportAll) {
+        filteredData = sourceData.filter((item: any) => {
           const matchesClass = exportFilters.selectedClasses.length === 0 || exportFilters.selectedClasses.includes(item.className);
           const matchesTeacher = exportFilters.selectedTeachers.length === 0 || exportFilters.selectedTeachers.includes(item.teacher);
           return matchesClass && matchesTeacher;
         });
       }
       
-      // Create enhanced PDF content
+      // Create enhanced TXT content (labeled as PDF but generates TXT for simplicity)
       let pdfContent = `EMPLOI DU TEMPS - ÉCOLE AFRICAINE MODERNE\n`;
       pdfContent += `=============================================\n\n`;
       pdfContent += `Généré le: ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}\n`;
       pdfContent += `Total créneaux: ${filteredData.length}\n`;
+      pdfContent += `Source: ${displayTimetables.length > 0 ? 'API Unifiée' : 'Données Locales'}\n`;
       
-      if (!exportFilters.exportAll) {
+      if (withFilters && !exportFilters.exportAll) {
         pdfContent += `\nFILTRES APPLIQUÉS:\n`;
         if (exportFilters.selectedClasses.length > 0) {
           pdfContent += `Classes: ${exportFilters.selectedClasses.join(', ')}\n`;
@@ -423,21 +448,22 @@ const TimetableConfiguration: React.FC = () => {
         pdfContent += `${'='.repeat(className.length + 10)}\n`;
         Object.entries(days).forEach(([day, slots]: [string, any]) => {
           pdfContent += `\n📅 ${day.charAt(0).toUpperCase() + day.slice(1)}:\n`;
-          slots.sort((a: any, b: any) => a.timeSlot?.localeCompare(b.timeSlot) || 0);
+          slots.sort((a: any, b: any) => (a.timeSlot || `${a.startTime}-${a.endTime}`)?.localeCompare(b.timeSlot || `${b.startTime}-${b.endTime}`) || 0);
           slots.forEach((slot: any) => {
-            pdfContent += `  • ${slot.timeSlot || slot.startTime + '-' + slot.endTime} | ${slot.subject} | 👨‍🏫 ${slot.teacher} | 🏢 ${slot.room}\n`;
+            const timeDisplay = slot.timeSlot || `${slot.startTime}-${slot.endTime}`;
+            pdfContent += `  • ${timeDisplay} | ${slot.subject} | 👨‍🏫 ${slot.teacher} | 🏢 ${slot.room}\n`;
           });
         });
         pdfContent += `\n`;
       });
       
       pdfContent += `\n=============================================\n`;
-      pdfContent += `Export généré par EDUCAFRIC - Platform éducative africaine\n`;
+      pdfContent += `Export généré par EDUCAFRIC - Plateforme éducative africaine\n`;
       pdfContent += `Contact: https://www.educafric.com\n`;
       
       // Create downloadable file
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
-      const filterSuffix = !exportFilters.exportAll ? '-filtered' : '';
+      const filterSuffix = (withFilters && !exportFilters.exportAll) ? '-filtered' : '';
       const blob = new Blob([pdfContent], { type: 'text/plain;charset=utf-8' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -451,13 +477,13 @@ const TimetableConfiguration: React.FC = () => {
       toast({
         title: language === 'fr' ? '🎉 Export réussi!' : '🎉 Export successful!',
         description: language === 'fr' ? 
-          `${filteredData.length} créneaux exportés avec succès` : 
-          `${filteredData.length} slots exported successfully`
+          `${filteredData.length} créneaux exportés avec succès (Format TXT)` : 
+          `${filteredData.length} slots exported successfully (TXT format)`
       });
     } catch (error) {
       toast({
         title: language === 'fr' ? 'Erreur d\'export' : 'Export error',
-        description: language === 'fr' ? 'Erreur lors de l\'export PDF' : 'Error during PDF export',
+        description: language === 'fr' ? 'Erreur lors de l\'export' : 'Error during export',
         variant: 'destructive'
       });
     }
@@ -570,24 +596,30 @@ const TimetableConfiguration: React.FC = () => {
                 icon: <Calendar className="w-5 h-5" />,
                 onClick: () => {
                   setShowCreateForm(false);
-                  // Update timetables with real data from API
-                  setTimetables(existingTimetables);
+                  // UNIFIED: Use API data as primary display source
                   refetchTimetables();
                   toast({
                     title: language === 'fr' ? 'Données actualisées' : 'Data refreshed',
                     description: language === 'fr' ? 
-                      `${existingTimetables.length} emplois du temps chargés` : 
-                      `${existingTimetables.length} timetables loaded`
+                      `${displayTimetables.length} emplois du temps chargés` : 
+                      `${displayTimetables.length} timetables loaded`
                   });
                 },
                 color: 'bg-green-600 hover:bg-green-700'
               },
               {
                 id: 'export-timetable',
-                label: language === 'fr' ? 'Exporter PDF' : 'Export PDF',
+                label: language === 'fr' ? 'Export Simple' : 'Simple Export',
                 icon: <FileText className="w-5 h-5" />,
-                onClick: () => setShowExportModal(true),
+                onClick: handleExportPDF,
                 color: 'bg-purple-600 hover:bg-purple-700'
+              },
+              {
+                id: 'export-filtered',
+                label: language === 'fr' ? 'Export Avancé' : 'Advanced Export',
+                icon: <FileText className="w-5 h-5" />,
+                onClick: handleExportWithFilters,
+                color: 'bg-indigo-600 hover:bg-indigo-700'
               },
               {
                 id: 'bulk-import',
@@ -859,7 +891,7 @@ const TimetableConfiguration: React.FC = () => {
                         <SelectValue placeholder={language === 'fr' ? 'Choisir une salle' : 'Choose a room'} />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableRooms.filter((room: any) => !room.isOccupied).map((room: any) => (
+                        {getAvailableRoomsWithOccupancy().filter((room: any) => !room.isOccupied).map((room: any) => (
                           <SelectItem key={room.id} value={room.name}>
                             <div className="flex items-center gap-2">
                               <span className="font-medium">🏢 {room.name}</span>
@@ -871,12 +903,12 @@ const TimetableConfiguration: React.FC = () => {
                             </div>
                           </SelectItem>
                         ))}
-                        {availableRooms.some((room: any) => room.isOccupied) && (
+                        {getAvailableRoomsWithOccupancy().some((room: any) => room.isOccupied) && (
                           <div className="px-2 py-1 text-xs text-gray-500 border-t">
-                            {language === 'fr' ? 'Salles occupées :' : 'Occupied rooms:'}
+                            {language === 'fr' ? 'Salles occupées pour ce créneau :' : 'Occupied rooms for this slot:'}
                           </div>
                         )}
-                        {availableRooms.filter((room: any) => room.isOccupied).map((room: any) => (
+                        {getAvailableRoomsWithOccupancy().filter((room: any) => room.isOccupied).map((room: any) => (
                           <SelectItem key={`occupied-${room.id}`} value={room.name} disabled>
                             <div className="flex items-center gap-2 opacity-50">
                               <span className="font-medium">🚫 {room.name}</span>
@@ -947,11 +979,13 @@ const TimetableConfiguration: React.FC = () => {
               {language === 'fr' ? 'Emploi du Temps École - Vue Hebdomadaire' : 'School Timetable - Weekly View'}
             </CardTitle>
             <p className="text-blue-100">
-              {language === 'fr' ? 'Gestion complète avec professeurs africains et matières modernes' : 'Complete management with African teachers and modern subjects'}
+              {language === 'fr' ? 
+                `Source de données: ${displayTimetables.length > 0 ? 'API Unifiée' : 'Local'} - ${displayTimetables.length} créneaux` : 
+                `Data source: ${displayTimetables.length > 0 ? 'Unified API' : 'Local'} - ${displayTimetables.length} slots`}
             </p>
           </CardHeader>
           <CardContent className="p-0">
-            {loading ? (
+            {isLoadingTimetables || loading ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">{language === 'fr' ? 'Chargement des données africaines...' : 'Loading African data...'}</p>
@@ -978,9 +1012,10 @@ const TimetableConfiguration: React.FC = () => {
                     
                     {/* Colonnes des jours */}
                     {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].map((dayKey, dayIndex) => {
-                      // Trouver les cours pour ce jour et cette heure
-                      const coursesForSlot = (Array.isArray(timetables) ? timetables : []).filter((entry: any) => 
-                        entry.day === dayKey && entry.timeSlot === timeSlot
+                      // UNIFIED SOURCE: Use displayTimetables for rendering
+                      const coursesForSlot = displayTimetables.filter((entry: any) => 
+                        entry.day === dayKey && (entry.timeSlot === timeSlot || 
+                        `${entry.startTime}-${entry.endTime}` === timeSlot)
                       );
                       
                       return (
