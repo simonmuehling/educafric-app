@@ -122,61 +122,13 @@ const ReportCardManagement: React.FC = () => {
     { subjectId: 5, subjectName: 'Sciences', grade: '', maxGrade: 20, coefficient: 2, comment: '' }
   ]);
 
-  // Generation options state (adapté de ComprehensiveBulletinGenerator)
-  const [includeComments, setIncludeComments] = useState(true);
-  const [includeRankings, setIncludeRankings] = useState(true);
-  const [includeStatistics, setIncludeStatistics] = useState(true);
-  const [includePerformanceLevels, setIncludePerformanceLevels] = useState(true);
-  const [generationFormat, setGenerationFormat] = useState<'pdf' | 'batch_pdf'>('pdf');
-  
-  // Sections d'évaluation
-  const [includeFirstTrimester, setIncludeFirstTrimester] = useState(false);
-  const [includeDiscipline, setIncludeDiscipline] = useState(false);
-  const [includeStudentWork, setIncludeStudentWork] = useState(false);
-  const [includeClassProfile, setIncludeClassProfile] = useState(false);
-  
-  // Sections absences & retards
-  const [includeUnjustifiedAbsences, setIncludeUnjustifiedAbsences] = useState(false);
-  const [includeJustifiedAbsences, setIncludeJustifiedAbsences] = useState(false);
-  const [includeLateness, setIncludeLateness] = useState(false);
-  const [includeDetentions, setIncludeDetentions] = useState(false);
-
-  // 🎯 SECTIONS MANQUANTES - IDENTIQUES À L'ÉCOLE
-  // Section Sanctions Disciplinaires
-  const [includeConductWarning, setIncludeConductWarning] = useState(false);
-  const [includeConductBlame, setIncludeConductBlame] = useState(false);
-  const [includeExclusions, setIncludeExclusions] = useState(false);
-  const [includePermanentExclusion, setIncludePermanentExclusion] = useState(false);
-  
-  // Section Moyennes & Totaux
-  const [includeTotalGeneral, setIncludeTotalGeneral] = useState(false);
-  const [includeAppreciations, setIncludeAppreciations] = useState(false);
-  const [includeGeneralAverage, setIncludeGeneralAverage] = useState(false);
-  const [includeTrimesterAverage, setIncludeTrimesterAverage] = useState(false);
-  const [includeNumberOfAverages, setIncludeNumberOfAverages] = useState(false);
-  const [includeSuccessRate, setIncludeSuccessRate] = useState(false);
-  
-  // Section Coefficients & Codes
-  const [includeCoef, setIncludeCoef] = useState(false);
-  const [includeCTBA, setIncludeCTBA] = useState(false);
-  const [includeMinMax, setIncludeMinMax] = useState(false);
-  const [includeCBA, setIncludeCBA] = useState(false);
-  const [includeCA, setIncludeCA] = useState(false);
-  const [includeCMA, setIncludeCMA] = useState(false);
-  const [includeCOTE, setIncludeCOTE] = useState(false);
-  const [includeCNA, setIncludeCNA] = useState(false);
-  
-  // Section Appréciations & Signatures
-  const [includeWorkAppreciation, setIncludeWorkAppreciation] = useState(false);
-  const [includeParentVisa, setIncludeParentVisa] = useState(false);
-  const [includeTeacherVisa, setIncludeTeacherVisa] = useState(false);
-  const [includeHeadmasterVisa, setIncludeHeadmasterVisa] = useState(false);
-  
-  // Section Conseil de Classe
-  const [includeClassCouncilDecisions, setIncludeClassCouncilDecisions] = useState(false);
-  const [includeClassCouncilMentions, setIncludeClassCouncilMentions] = useState(false);
-  const [includeOrientationRecommendations, setIncludeOrientationRecommendations] = useState(false);
-  const [includeCouncilDate, setIncludeCouncilDate] = useState(false);
+  // States pour données de discipline et absences (simplifiés)
+  const [discipline, setDiscipline] = useState({
+    absJ: 0,
+    absNJ: 0, 
+    late: 0,
+    sanctions: 0
+  });
 
   // Form pour saisie manuelle
   const manualDataForm = useForm<z.infer<typeof manualDataSchema>>({
@@ -317,61 +269,9 @@ const ReportCardManagement: React.FC = () => {
         classId: parseInt(selectedClass),
         term: selectedTerm,
         academicYear,
-        manualData: data,
-        generationOptions: {
-          // 🎯 TOUTES LES OPTIONS - IDENTIQUES À L'ÉCOLE
-          includeComments,
-          includeRankings,
-          includeStatistics,
-          includePerformanceLevels,
-          includeFirstTrimester,
-          includeDiscipline,
-          includeStudentWork,
-          includeClassProfile,
-          
-          // Absences & Retards
-          includeUnjustifiedAbsences,
-          includeJustifiedAbsences,
-          includeLateness,
-          includeDetentions,
-          
-          // Sanctions Disciplinaires
-          includeConductWarning,
-          includeConductBlame,
-          includeExclusions,
-          includePermanentExclusion,
-          
-          // Moyennes & Totaux
-          includeTotalGeneral,
-          includeAppreciations,
-          includeGeneralAverage,
-          includeTrimesterAverage,
-          includeNumberOfAverages,
-          includeSuccessRate,
-          
-          // Coefficients & Codes
-          includeCoef,
-          includeCTBA,
-          includeMinMax,
-          includeCBA,
-          includeCA,
-          includeCMA,
-          includeCOTE,
-          includeCNA,
-          
-          // Appréciations & Signatures
-          includeWorkAppreciation,
-          includeParentVisa,
-          includeTeacherVisa,
-          includeHeadmasterVisa,
-          
-          // Conseil de Classe
-          includeClassCouncilDecisions,
-          includeClassCouncilMentions,
-          includeOrientationRecommendations,
-          includeCouncilDate,
-          
-          generationFormat
+        manualData: {
+          ...data,
+          discipline: discipline
         }
       });
       return response.json();
@@ -596,8 +496,8 @@ const ReportCardManagement: React.FC = () => {
                   <Form {...manualDataForm}>
                     <form onSubmit={manualDataForm.handleSubmit(onManualDataSubmit)} className="space-y-6">
                       
-                      {/* Section 1: Notes par matière - VISIBLE selon options */}
-                      {includeComments && (
+                      {/* Section 1: Notes par matière - Toujours visible */}
+                      {true && (
                         <Collapsible open={openSections.grades} onOpenChange={() => toggleSection('grades')}>
                           <Card>
                             <CollapsibleTrigger asChild>
@@ -693,8 +593,8 @@ const ReportCardManagement: React.FC = () => {
                         </Collapsible>
                       )}
 
-                      {/* Section 2: Absences & Lateness - VISIBLE selon options */}
-                      {(includeUnjustifiedAbsences || includeJustifiedAbsences || includeLateness || includeDetentions) && (
+                      {/* Section 2: Discipline et Absences - Toujours visible */}
+                      {true && (
                         <Collapsible open={openSections.absences} onOpenChange={() => toggleSection('absences')}>
                           <Card>
                           <CollapsibleTrigger asChild>
@@ -702,7 +602,7 @@ const ReportCardManagement: React.FC = () => {
                               <CardTitle className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <Clock className="h-5 w-5 text-orange-600" />
-                                  {t.absencesLateness}
+                                  Discipline et Absences
                                 </div>
                                 {openSections.absences ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                               </CardTitle>
@@ -710,86 +610,65 @@ const ReportCardManagement: React.FC = () => {
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <CardContent className="pt-0 space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField
-                                  control={manualDataForm.control}
-                                  name="unjustifiedAbsenceHours"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>{t.unjustifiedAbsHours}</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          {...field} 
-                                          type="number" 
-                                          step="0.5" 
-                                          min="0" 
-                                          placeholder="0.0"
-                                          data-testid="unjustified-abs-hours"
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={manualDataForm.control}
-                                  name="justifiedAbsenceHours"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>{t.justifiedAbsHours}</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          {...field} 
-                                          type="number" 
-                                          step="0.5" 
-                                          min="0" 
-                                          placeholder="0.0"
-                                          data-testid="justified-abs-hours"
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={manualDataForm.control}
-                                  name="latenessMinutes"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>{t.latenessMinutes}</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          {...field} 
-                                          type="number" 
-                                          min="0" 
-                                          placeholder="0"
-                                          data-testid="lateness-minutes"
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={manualDataForm.control}
-                                  name="detentionHours"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>{t.detentionHours}</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          {...field} 
-                                          type="number" 
-                                          step="0.5" 
-                                          min="0" 
-                                          placeholder="0.0"
-                                          data-testid="detention-hours"
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div>
+                                  <Label htmlFor="absJ">Absences justifiées (h)</Label>
+                                  <Input
+                                    id="absJ"
+                                    data-testid="input-abs-justified"
+                                    type="number"
+                                    min="0"
+                                    value={discipline.absJ}
+                                    onChange={(e) => setDiscipline({...discipline, absJ: parseInt(e.target.value) || 0})}
+                                    className="bg-green-50 border-green-200"
+                                  />
+                                </div>
+
+                                <div>
+                                  <Label htmlFor="absNJ">Absences non justifiées (h)</Label>
+                                  <Input
+                                    id="absNJ"
+                                    data-testid="input-abs-unjustified"
+                                    type="number"
+                                    min="0"
+                                    value={discipline.absNJ}
+                                    onChange={(e) => setDiscipline({...discipline, absNJ: parseInt(e.target.value) || 0})}
+                                    className="bg-orange-50 border-orange-200"
+                                  />
+                                </div>
+
+                                <div>
+                                  <Label htmlFor="late">Retards</Label>
+                                  <Input
+                                    id="late"
+                                    data-testid="input-lates"
+                                    type="number"
+                                    min="0"
+                                    value={discipline.late}
+                                    onChange={(e) => setDiscipline({...discipline, late: parseInt(e.target.value) || 0})}
+                                    className="bg-yellow-50 border-yellow-200"
+                                  />
+                                </div>
+
+                                <div>
+                                  <Label htmlFor="sanctions">Avertissements/Blâmes</Label>
+                                  <Input
+                                    id="sanctions"
+                                    data-testid="input-sanctions"
+                                    type="number"
+                                    min="0"
+                                    value={discipline.sanctions}
+                                    onChange={(e) => setDiscipline({...discipline, sanctions: parseInt(e.target.value) || 0})}
+                                    className="bg-red-50 border-red-200"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-sm text-blue-700">
+                                  💡 <strong>Adaptation Trimestre :</strong> Les données varient selon le trimestre sélectionné ({selectedTerm === 'T1' ? 'Premier' : selectedTerm === 'T2' ? 'Deuxième' : 'Troisième'} Trimestre). 
+                                  Le système s'adapte automatiquement pour refléter les spécificités de chaque période.
+                                </p>
                               </div>
                             </CardContent>
                           </CollapsibleContent>
@@ -870,390 +749,6 @@ const ReportCardManagement: React.FC = () => {
                     </form>
                   </Form>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-        </Tabs>
-      )}
-    </div>
-  );
-};
-
-export default ReportCardManagement;
-                  <h4 className="font-medium text-gray-800">Absences & Retards</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    <div className="flex items-center space-x-3">
-                      <Checkbox
-                        id="include-unjustified-absences"
-                        checked={includeUnjustifiedAbsences}
-                        onCheckedChange={(checked) => setIncludeUnjustifiedAbsences(checked === true)}
-                        data-testid="include-unjustified-absences-checkbox"
-                      />
-                      <Label htmlFor="include-unjustified-absences">
-                        Absences injustifiées
-                      </Label>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Checkbox
-                        id="include-justified-absences"
-                        checked={includeJustifiedAbsences}
-                        onCheckedChange={(checked) => setIncludeJustifiedAbsences(checked === true)}
-                        data-testid="include-justified-absences-checkbox"
-                      />
-                      <Label htmlFor="include-justified-absences">
-                        Absences justifiées
-                      </Label>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Checkbox
-                        id="include-lateness"
-                        checked={includeLateness}
-                        onCheckedChange={(checked) => setIncludeLateness(checked === true)}
-                        data-testid="include-lateness-checkbox"
-                      />
-                      <Label htmlFor="include-lateness">
-                        Retards
-                      </Label>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Checkbox
-                        id="include-detentions"
-                        checked={includeDetentions}
-                        onCheckedChange={(checked) => setIncludeDetentions(checked === true)}
-                        data-testid="include-detentions-checkbox"
-                      />
-                      <Label htmlFor="include-detentions">
-                        Retenues
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 🎯 SECTIONS COMPLÈTES - IDENTIQUES À L'ÉCOLE */}
-                
-                {/* Section Sanctions Disciplinaires */}
-                <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg space-y-3">
-                  <h4 className="font-semibold text-red-700 dark:text-red-300 flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    Sanctions Disciplinaires
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-conduct-warning"
-                        checked={includeConductWarning}
-                        onCheckedChange={(checked) => setIncludeConductWarning(checked === true)}
-                        data-testid="include-conduct-warning"
-                      />
-                      <Label htmlFor="include-conduct-warning">Avertissement conduite</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-conduct-blame"
-                        checked={includeConductBlame}
-                        onCheckedChange={(checked) => setIncludeConductBlame(checked === true)}
-                        data-testid="include-conduct-blame"
-                      />
-                      <Label htmlFor="include-conduct-blame">Blâme conduite</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-exclusions"
-                        checked={includeExclusions}
-                        onCheckedChange={(checked) => setIncludeExclusions(checked === true)}
-                        data-testid="include-exclusions"
-                      />
-                      <Label htmlFor="include-exclusions">Exclusions temporaires</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-permanent-exclusion"
-                        checked={includePermanentExclusion}
-                        onCheckedChange={(checked) => setIncludePermanentExclusion(checked === true)}
-                        data-testid="include-permanent-exclusion"
-                      />
-                      <Label htmlFor="include-permanent-exclusion">Exclusion définitive</Label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section Moyennes & Totaux */}
-                <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg space-y-3">
-                  <h4 className="font-semibold text-green-700 dark:text-green-300 flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    Moyennes & Totaux
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-total-general"
-                        checked={includeTotalGeneral}
-                        onCheckedChange={(checked) => setIncludeTotalGeneral(checked === true)}
-                        data-testid="include-total-general"
-                      />
-                      <Label htmlFor="include-total-general">Total général</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-general-average"
-                        checked={includeGeneralAverage}
-                        onCheckedChange={(checked) => setIncludeGeneralAverage(checked === true)}
-                        data-testid="include-general-average"
-                      />
-                      <Label htmlFor="include-general-average">Moyenne générale</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-trimester-average"
-                        checked={includeTrimesterAverage}
-                        onCheckedChange={(checked) => setIncludeTrimesterAverage(checked === true)}
-                        data-testid="include-trimester-average"
-                      />
-                      <Label htmlFor="include-trimester-average">Moyenne trimestre</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-success-rate"
-                        checked={includeSuccessRate}
-                        onCheckedChange={(checked) => setIncludeSuccessRate(checked === true)}
-                        data-testid="include-success-rate"
-                      />
-                      <Label htmlFor="include-success-rate">Taux de réussite</Label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section Coefficients & Codes */}
-                <div className="bg-purple-50 dark:bg-purple-950/20 p-4 rounded-lg space-y-3">
-                  <h4 className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-2">
-                    <Award className="h-4 w-4" />
-                    Coefficients & Codes
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-coef"
-                        checked={includeCoef}
-                        onCheckedChange={(checked) => setIncludeCoef(checked === true)}
-                        data-testid="include-coef"
-                      />
-                      <Label htmlFor="include-coef">COEF</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-ctba"
-                        checked={includeCTBA}
-                        onCheckedChange={(checked) => setIncludeCTBA(checked === true)}
-                        data-testid="include-ctba"
-                      />
-                      <Label htmlFor="include-ctba">CTBA</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-cba"
-                        checked={includeCBA}
-                        onCheckedChange={(checked) => setIncludeCBA(checked === true)}
-                        data-testid="include-cba"
-                      />
-                      <Label htmlFor="include-cba">CBA</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-ca"
-                        checked={includeCA}
-                        onCheckedChange={(checked) => setIncludeCA(checked === true)}
-                        data-testid="include-ca"
-                      />
-                      <Label htmlFor="include-ca">CA</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-cma"
-                        checked={includeCMA}
-                        onCheckedChange={(checked) => setIncludeCMA(checked === true)}
-                        data-testid="include-cma"
-                      />
-                      <Label htmlFor="include-cma">CMA</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-cote"
-                        checked={includeCOTE}
-                        onCheckedChange={(checked) => setIncludeCOTE(checked === true)}
-                        data-testid="include-cote"
-                      />
-                      <Label htmlFor="include-cote">COTE</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-cna"
-                        checked={includeCNA}
-                        onCheckedChange={(checked) => setIncludeCNA(checked === true)}
-                        data-testid="include-cna"
-                      />
-                      <Label htmlFor="include-cna">CNA</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-min-max"
-                        checked={includeMinMax}
-                        onCheckedChange={(checked) => setIncludeMinMax(checked === true)}
-                        data-testid="include-min-max"
-                      />
-                      <Label htmlFor="include-min-max">Min/Max</Label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section Appréciations & Signatures */}
-                <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-lg space-y-3">
-                  <h4 className="font-semibold text-indigo-700 dark:text-indigo-300 flex items-center gap-2">
-                    <PenTool className="h-4 w-4" />
-                    Appréciations & Signatures
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-work-appreciation"
-                        checked={includeWorkAppreciation}
-                        onCheckedChange={(checked) => setIncludeWorkAppreciation(checked === true)}
-                        data-testid="include-work-appreciation"
-                      />
-                      <Label htmlFor="include-work-appreciation">Appréciation du travail</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-parent-visa"
-                        checked={includeParentVisa}
-                        onCheckedChange={(checked) => setIncludeParentVisa(checked === true)}
-                        data-testid="include-parent-visa"
-                      />
-                      <Label htmlFor="include-parent-visa">Visa des parents</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-teacher-visa"
-                        checked={includeTeacherVisa}
-                        onCheckedChange={(checked) => setIncludeTeacherVisa(checked === true)}
-                        data-testid="include-teacher-visa"
-                      />
-                      <Label htmlFor="include-teacher-visa">Visa du professeur</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-headmaster-visa"
-                        checked={includeHeadmasterVisa}
-                        onCheckedChange={(checked) => setIncludeHeadmasterVisa(checked === true)}
-                        data-testid="include-headmaster-visa"
-                      />
-                      <Label htmlFor="include-headmaster-visa">Visa du directeur</Label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section Conseil de Classe */}
-                <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg space-y-3">
-                  <h4 className="font-semibold text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Conseil de Classe
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-council-decisions"
-                        checked={includeClassCouncilDecisions}
-                        onCheckedChange={(checked) => setIncludeClassCouncilDecisions(checked === true)}
-                        data-testid="include-council-decisions"
-                      />
-                      <Label htmlFor="include-council-decisions">Décisions du conseil</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-council-mentions"
-                        checked={includeClassCouncilMentions}
-                        onCheckedChange={(checked) => setIncludeClassCouncilMentions(checked === true)}
-                        data-testid="include-council-mentions"
-                      />
-                      <Label htmlFor="include-council-mentions">Mentions du conseil</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-orientation-recommendations"
-                        checked={includeOrientationRecommendations}
-                        onCheckedChange={(checked) => setIncludeOrientationRecommendations(checked === true)}
-                        data-testid="include-orientation-recommendations"
-                      />
-                      <Label htmlFor="include-orientation-recommendations">Recommandations d'orientation</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="include-council-date"
-                        checked={includeCouncilDate}
-                        onCheckedChange={(checked) => setIncludeCouncilDate(checked === true)}
-                        data-testid="include-council-date"
-                      />
-                      <Label htmlFor="include-council-date">Date du conseil</Label>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Aperçu des sections actives - COMPLET */}
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h5 className="font-medium text-blue-800 mb-2">✅ Aperçu des sections actives :</h5>
-                  <div className="flex flex-wrap gap-2">
-                    {includeComments && (
-                      <span className="bg-blue-200 text-blue-800 px-2 py-1 rounded text-sm">
-                        Notes & Appréciations
-                      </span>
-                    )}
-                    {(includeUnjustifiedAbsences || includeJustifiedAbsences || includeLateness || includeDetentions) && (
-                      <span className="bg-orange-200 text-orange-800 px-2 py-1 rounded text-sm">
-                        Absences & Retards
-                      </span>
-                    )}
-                    {(includeConductWarning || includeConductBlame || includeExclusions || includePermanentExclusion) && (
-                      <span className="bg-red-200 text-red-800 px-2 py-1 rounded text-sm">
-                        Sanctions Disciplinaires
-                      </span>
-                    )}
-                    {(includeTotalGeneral || includeGeneralAverage || includeTrimesterAverage || includeSuccessRate) && (
-                      <span className="bg-green-200 text-green-800 px-2 py-1 rounded text-sm">
-                        Moyennes & Totaux
-                      </span>
-                    )}
-                    {(includeCoef || includeCTBA || includeCBA || includeCA || includeCMA || includeCOTE || includeCNA || includeMinMax) && (
-                      <span className="bg-purple-200 text-purple-800 px-2 py-1 rounded text-sm">
-                        Coefficients & Codes
-                      </span>
-                    )}
-                    {(includeWorkAppreciation || includeParentVisa || includeTeacherVisa || includeHeadmasterVisa) && (
-                      <span className="bg-indigo-200 text-indigo-800 px-2 py-1 rounded text-sm">
-                        Appréciations & Signatures
-                      </span>
-                    )}
-                    {(includeClassCouncilDecisions || includeClassCouncilMentions || includeOrientationRecommendations || includeCouncilDate) && (
-                      <span className="bg-yellow-200 text-yellow-800 px-2 py-1 rounded text-sm">
-                        Conseil de Classe
-                      </span>
-                    )}
-                    {includeRankings && (
-                      <span className="bg-green-200 text-green-800 px-2 py-1 rounded text-sm">
-                        Classements
-                      </span>
-                    )}
-                    {includeStatistics && (
-                      <span className="bg-purple-200 text-purple-800 px-2 py-1 rounded text-sm">
-                        Statistiques
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
               </CardContent>
             </Card>
           </TabsContent>
