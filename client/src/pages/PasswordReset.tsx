@@ -245,7 +245,7 @@ export default function PasswordReset() {
                       placeholder={language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com'}
                       value={email}
                       onChange={(e) => setEmail(e?.target?.value)}
-                      className="px-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all mobile-touch-input"
+                      className="px-4 bg-white/80 border border-white/30 rounded-xl text-gray-900 placeholder:text-gray-500 backdrop-blur-sm focus:bg-white/90 focus:border-white/50 transition-all mobile-touch-input"
                       required
                     />
                   </div>
@@ -262,7 +262,7 @@ export default function PasswordReset() {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e?.target?.value)}
                       placeholder={language === 'fr' ? '+237 6XX XXX XXX' : '+237 6XX XXX XXX'}
-                      className="px-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all mobile-touch-input"
+                      className="px-4 bg-white/80 border border-white/30 rounded-xl text-gray-900 placeholder:text-gray-500 backdrop-blur-sm focus:bg-white/90 focus:border-white/50 transition-all mobile-touch-input"
                       required
                     />
                   </div>
@@ -307,7 +307,7 @@ export default function PasswordReset() {
                     placeholder={language === 'fr' ? 'Saisissez votre nouveau mot de passe' : 'Enter your new password'}
                     value={password}
                     onChange={(e) => setPassword(e?.target?.value)}
-                    className="px-4 pr-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all mobile-touch-input"
+                    className="px-4 pr-10 bg-white/80 border border-white/30 rounded-xl text-gray-900 placeholder:text-gray-500 backdrop-blur-sm focus:bg-white/90 focus:border-white/50 transition-all mobile-touch-input"
                     required
                   />
                   <button
@@ -335,7 +335,7 @@ export default function PasswordReset() {
                     placeholder={language === 'fr' ? 'Confirmez votre nouveau mot de passe' : 'Confirm your new password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e?.target?.value)}
-                    className="pl-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all"
+                    className="pl-10 bg-white/80 border border-white/30 rounded-xl text-gray-900 placeholder:text-gray-500 backdrop-blur-sm focus:bg-white/90 focus:border-white/50 transition-all"
                     required
                   />
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/70" />
