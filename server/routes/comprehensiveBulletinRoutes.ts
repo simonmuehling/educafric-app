@@ -7,6 +7,8 @@ import { db } from '../db.js';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import fs from 'fs/promises';
+import crypto from 'crypto';
 import { z } from 'zod';
 import { ComprehensiveBulletinGenerator, type StudentGradeData, type SchoolInfo, type BulletinOptions } from '../services/comprehensiveBulletinGenerator.js';
 import { hostingerMailService } from '../services/hostingerMailService.js';
@@ -3457,7 +3459,7 @@ router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, re
               classId: bulletin.classId,
               term: bulletin.term,
               academicYear: bulletin.academicYear,
-              language: primaryLanguage || schoolDefaultLanguage || 'fr',
+              language: school.defaultLanguage || 'fr',
               recipients: notificationResult.results,
               notificationSummary: notificationResult.summary,
               sentToParents: studentParents.length,
@@ -3516,16 +3518,14 @@ router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, re
         for (const archiveItem of archivingQueue) {
           try {
             // Check for duplicate archives first (idempotency)
-            const existingArchive = await db.select()
-              .from(archivedDocuments)
-              .where(and(
-                eq(archivedDocuments.bulletinId, archiveItem.bulletinId),
-                eq(archivedDocuments.type, 'bulletin'),
-                eq(archivedDocuments.schoolId, schoolId)
-              ))
-              .limit(1);
+            const existingArchives = await storage.listArchives({
+              schoolId: schoolId,
+              type: 'bulletin',
+              bulletinId: archiveItem.bulletinId,
+              limit: 1
+            });
 
-            if (existingArchive.length > 0) {
+            if (existingArchives.length > 0) {
               console.log(`[ARCHIVE_AUTO] ⚠️ Archive already exists for bulletin ${archiveItem.bulletinId}, skipping`);
               continue;
             }
@@ -3583,15 +3583,15 @@ router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, re
             const hash = crypto.createHash('md5').update(`${schoolId}-${archiveItem.classId}-${archiveItem.term}-${filename}-${Date.now()}`).digest('hex').substring(0, 8);
             const storageKey = `schools/${schoolId}/archives/${archiveItem.academicYear}/${archiveItem.classId}/${archiveItem.term}/bulletin/${timestamp}-${hash}-${filename}`;
 
-            // Save to filesystem using ArchiveStorage
+            // Calculate checksum and file size
+            const checksumSha256 = crypto.createHash('sha256').update(pdfBuffer).digest('hex');
+            const sizeBytes = pdfBuffer.length;
+
+            // Create archives directory and save file
             const archiveDir = path.join(process.cwd(), 'storage', 'archives', path.dirname(storageKey));
             await fs.mkdir(archiveDir, { recursive: true });
             const filePath = path.join(process.cwd(), 'storage', 'archives', storageKey);
             await fs.writeFile(filePath, pdfBuffer);
-
-            // Calculate checksum and file size
-            const checksumSha256 = crypto.createHash('sha256').update(pdfBuffer).digest('hex');
-            const sizeBytes = pdfBuffer.length;
 
             // Prepare archive data
             const archiveData = {
