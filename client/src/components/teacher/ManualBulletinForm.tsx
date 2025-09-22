@@ -106,23 +106,7 @@ function round2(x: number): number {
 }
 
 /**************************** DONNÉES ****************************/
-const defaultSubjects = [
-  { matiere: "ANGLAIS", coef: 3 },
-  { matiere: "INFORMATIQUE", coef: 2 },
-  { matiere: "CULTURES NATIONALES", coef: 1 },
-  { matiere: "ÉDUCATION ARTISTIQUE ET CULTURELLE", coef: 1 },
-  { matiere: "FRANÇAIS", coef: 6 },
-  { matiere: "LANGUES NATIONALES", coef: 1 },
-  { matiere: "LETTRES CLASSIQUES (LATIN)", coef: 2 },
-  { matiere: "ÉDUCATION À LA CITOYENNETÉ ET À LA MORALE", coef: 2 },
-  { matiere: "GÉOGRAPHIE", coef: 2 },
-  { matiere: "HISTOIRE", coef: 2 },
-  { matiere: "MATHÉMATIQUES", coef: 4 },
-  { matiere: "SCIENCES", coef: 2 },
-  { matiere: "ÉCONOMIE SOCIALE ET FAMILIALE (ESF)", coef: 1 },
-  { matiere: "ÉDUCATION PHYSIQUE ET SPORTIVE (EPS)", coef: 2 },
-  { matiere: "TRAVAIL MANUEL (TM)", coef: 1 },
-];
+// Matières récupérées dynamiquement via l'API pour les matières assignées à l'enseignant
 
 const defaultCompetences: Record<string, string> = {
   "ANGLAIS": "Use appropriate language skills…",
@@ -265,18 +249,44 @@ export default function ManualBulletinForm({
   const [loading, setLoading] = useState(true);
   const [eleve, setEleve] = useState<any>(null);
   const [language, setLanguage] = useState<'fr' | 'en'>('fr'); // État de la langue
-  const [rows, setRows] = useState<SubjectRow[]>(() => 
-    defaultSubjects.map(s => ({
-      matiere: s.matiere,
-      enseignant: "",
-      competences: defaultCompetences[s.matiere] || "",
-      n20: "",
-      m20: "",
-      coef: s.coef,
-      cote: "",
-      appreciation: "",
-    }))
-  );
+  
+  // Fetch teacher's assigned subjects for the selected class
+  const { data: teacherSubjectsData, isLoading: isLoadingSubjects } = useQuery({
+    queryKey: ['/api/teacher/subjects', classId],
+    queryFn: async () => {
+      if (!classId) return null;
+      const response = await apiRequest('GET', `/api/teacher/subjects?classId=${classId}`);
+      return await response.json();
+    },
+    enabled: !!classId
+  });
+
+  // Extract subjects from API response, fallback to empty array if no data
+  const assignedSubjects = useMemo(() => {
+    if (!teacherSubjectsData || !teacherSubjectsData.subjects) return [];
+    return teacherSubjectsData.subjects.map((subject: any) => ({
+      matiere: subject.name || subject.matiere || subject.subject,
+      coef: subject.coefficient || subject.coef || 1
+    }));
+  }, [teacherSubjectsData]);
+
+  const [rows, setRows] = useState<SubjectRow[]>([]);
+  
+  // Initialize rows when assigned subjects are loaded
+  useEffect(() => {
+    if (assignedSubjects.length > 0) {
+      setRows(assignedSubjects.map(s => ({
+        matiere: s.matiere,
+        enseignant: "",
+        competences: defaultCompetences[s.matiere] || "",
+        n20: "",
+        m20: "",
+        coef: s.coef,
+        cote: "",
+        appreciation: "",
+      })));
+    }
+  }, [assignedSubjects]);
 
   const [meta, setMeta] = useState({
     annee: academicYear,
@@ -857,7 +867,7 @@ export default function ManualBulletinForm({
       </form>
 
       <datalist id="matieres-list">
-        {defaultSubjects.map((s, i) => (
+        {assignedSubjects.map((s, i) => (
           <option key={i} value={s.matiere} />
         ))}
       </datalist>
