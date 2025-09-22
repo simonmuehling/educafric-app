@@ -298,6 +298,8 @@ export default function ReportCardPreview({
                   <Th>{labels.subject}</Th>
                   <Th>{labels.coef}</Th>
                   <Th>{labels.mark}</Th>
+                  <Th>Cote</Th>
+                  <Th>Note %</Th>
                   <Th>{labels.weight}</Th>
                   <Th>{labels.remarks}</Th>
                 </tr>
@@ -305,11 +307,27 @@ export default function ReportCardPreview({
               <tbody>
                 {entries.map((r, idx) => {
                   const mx = round2((Number(r.m20) || 0) * (r.coef || 0));
+                  const grade = Number(r.m20) || 0;
+                  const percentage = Math.round((grade / 20) * 100);
+                  const getCote = (g: number) => {
+                    const pct = Math.round((g / 20) * 100);
+                    if (pct >= 90) return 'A+';
+                    if (pct >= 80) return 'A';
+                    if (pct >= 75) return 'B+';
+                    if (pct >= 70) return 'B';
+                    if (pct >= 60) return 'C+';
+                    if (pct >= 50) return 'C';
+                    return 'D';
+                  };
+                  const cote = getCote(grade);
+                  
                   return (
                     <tr key={idx} className={idx % 2 ? "bg-white" : "bg-gray-50/50"}>
                       <Td>{r.subject}</Td>
                       <Td className="text-center">{r.coef}</Td>
                       <Td className="text-center font-medium">{r.m20}</Td>
+                      <Td className="text-center font-bold text-blue-700">{cote}</Td>
+                      <Td className="text-center font-medium">{percentage}%</Td>
                       <Td className="text-center">{mx}</Td>
                       <Td>{r.remark || ""}</Td>
                     </tr>
@@ -320,6 +338,8 @@ export default function ReportCardPreview({
                 <tr className="bg-gray-100 font-semibold">
                   <Td colSpan={1}>{labels.totalCoef}</Td>
                   <Td className="text-center">{totalCoef}</Td>
+                  <Td className="text-center">—</Td>
+                  <Td className="text-center">—</Td>
                   <Td className="text-center">—</Td>
                   <Td className="text-center">{round2(totalMxCoef)}</Td>
                   <Td className="text-center">—</Td>
