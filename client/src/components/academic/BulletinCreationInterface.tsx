@@ -793,7 +793,16 @@ export default function BulletinCreationInterface() {
     language,
     // Third trimester specific data
     isThirdTrimester,
-    annualSummary: isThirdTrimester ? annualSummary : null
+    annualSummary: isThirdTrimester ? annualSummary : null,
+    // Add missing fields for preview component
+    firstTrimester: isThirdTrimester ? annualSummary.firstTrimesterAverage : null,
+    secondTrimester: isThirdTrimester ? annualSummary.secondTrimesterAverage : null,
+    thirdTrimester: isThirdTrimester ? annualSummary.thirdTrimesterAverage : null,
+    annualAverage: isThirdTrimester ? annualSummary.annualAverage : null,
+    annualRank: isThirdTrimester ? annualSummary.annualRank : null,
+    passDecision: isThirdTrimester ? annualSummary.passDecision : null,
+    finalAppreciation: isThirdTrimester ? annualSummary.finalAppreciation : null,
+    holidayRecommendations: isThirdTrimester ? annualSummary.holidayRecommendations : null
   };
 
   return (
