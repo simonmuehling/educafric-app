@@ -852,17 +852,14 @@ export default function ManualBulletinForm({
           <table className="min-w-full text-xs sm:text-sm">
             <thead className="bg-gray-50">
               <tr className="text-left">
-                <Th>{t('subject')}</Th>
-                <Th>{t('teacher')}</Th>
-                <Th className="w-60">{language === 'fr' ? 'Compétence 1' : 'Competency 1'}</Th>
-                <Th className="w-60">{language === 'fr' ? 'Compétence 2' : 'Competency 2'}</Th>
-                <Th>{language === 'fr' ? 'Note 1 /20' : 'Grade 1 /20'}</Th>
-                <Th>{language === 'fr' ? 'Note 2 /20' : 'Grade 2 /20'}</Th>
-                <Th>{language === 'fr' ? 'Moyenne /20' : 'Average /20'}</Th>
-                <Th>{t('coefficient')}</Th>
-                <Th>{language === 'fr' ? 'Total pondéré' : 'Weighted Total'}</Th>
-                <Th>{t('cote')}</Th>
-                <Th className="w-64">{t('appreciation')}</Th>
+                <Th className="w-40">{language === 'fr' ? 'Matière' : 'Subject'}</Th>
+                <Th className="w-32">{language === 'fr' ? 'N/20-M/20' : 'Mark/20-Avg/20'}</Th>
+                <Th className="w-20">{language === 'fr' ? 'Coef' : 'Coeff'}</Th>
+                <Th className="w-24">{language === 'fr' ? 'M x coef' : 'M x coeff'}</Th>
+                <Th className="w-20">{language === 'fr' ? 'Note %' : 'Mark %'}</Th>
+                <Th className="w-20">{language === 'fr' ? 'COTE' : 'GRADE'}</Th>
+                <Th className="w-80">{language === 'fr' ? 'Compétences évaluées' : 'Competencies assessed'}</Th>
+                <Th className="w-64">{language === 'fr' ? 'Appréciation' : 'Comments'}</Th>
                 <Th>Actions</Th>
               </tr>
             </thead>
