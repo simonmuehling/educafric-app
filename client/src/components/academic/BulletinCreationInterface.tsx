@@ -160,18 +160,18 @@ export default function BulletinCreationInterface() {
 
   // Fetch competency evaluation systems
   const { data: competencySystems, isLoading: loadingCompetencySystems } = useQuery({
-    queryKey: ['/api/comprehensive-bulletins/competency-systems'],
+    queryKey: ['/api/comprehensive-bulletin/competency-systems'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/comprehensive-bulletins/competency-systems');
+      const response = await apiRequest('GET', '/api/comprehensive-bulletin/competency-systems');
       return await response.json();
     }
   });
 
   // Fetch predefined appreciations
   const { data: predefinedAppreciations, isLoading: loadingAppreciations } = useQuery({
-    queryKey: ['/api/comprehensive-bulletins/predefined-appreciations'],
+    queryKey: ['/api/comprehensive-bulletin/predefined-appreciations'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/comprehensive-bulletins/predefined-appreciations?targetRole=director');
+      const response = await apiRequest('GET', '/api/comprehensive-bulletin/predefined-appreciations?targetRole=director');
       return await response.json();
     }
   });
@@ -181,10 +181,10 @@ export default function BulletinCreationInterface() {
 
   // Fetch competency templates
   const { data: competencyTemplates, isLoading: loadingTemplates } = useQuery({
-    queryKey: ['/api/comprehensive-bulletins/competency-templates', trimester],
+    queryKey: ['/api/comprehensive-bulletin/competency-templates', trimester],
     queryFn: async () => {
       const term = trimester === 'Premier' ? 'Premier' : trimester === 'Deuxième' ? 'Deuxième' : 'Troisième';
-      const response = await apiRequest('GET', `/api/comprehensive-bulletins/competency-templates?term=${term}`);
+      const response = await apiRequest('GET', `/api/comprehensive-bulletin/competency-templates?term=${term}`);
       return await response.json();
     }
   });

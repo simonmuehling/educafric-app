@@ -322,18 +322,18 @@ export default function ManualBulletinForm({
 
   // Fetch competency evaluation systems
   const { data: competencySystems } = useQuery({
-    queryKey: ['/api/comprehensive-bulletins/competency-systems'],
+    queryKey: ['/api/comprehensive-bulletin/competency-systems'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/comprehensive-bulletins/competency-systems');
+      const response = await apiRequest('GET', '/api/comprehensive-bulletin/competency-systems');
       return await response.json();
     }
   });
 
   // Fetch predefined appreciations for teachers
   const { data: predefinedAppreciations } = useQuery({
-    queryKey: ['/api/comprehensive-bulletins/predefined-appreciations-teacher'],
+    queryKey: ['/api/comprehensive-bulletin/predefined-appreciations-teacher'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/comprehensive-bulletins/predefined-appreciations?targetRole=teacher');
+      const response = await apiRequest('GET', '/api/comprehensive-bulletin/predefined-appreciations?targetRole=teacher');
       return await response.json();
     }
   });
@@ -509,7 +509,7 @@ export default function ManualBulletinForm({
   // Sauvegarde via notre API comprehensive bulletins
   const saveMutation = useMutation({
     mutationFn: async (payload: any) => {
-      return apiRequest('POST', '/api/comprehensive-bulletins/teacher-submission', {
+      return apiRequest('POST', '/api/comprehensive-bulletin/teacher-submission', {
         studentId: parseInt(studentId || "0"),
         classId: parseInt(classId || "0"),
         term: trimestre,
@@ -556,7 +556,7 @@ export default function ManualBulletinForm({
         title: "✅ Bulletin sauvegardé",
         description: "Les données ont été transmises pour traitement par le directeur"
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/comprehensive-bulletins'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/comprehensive-bulletin'] });
     },
     onError: (error: any) => {
       toast({

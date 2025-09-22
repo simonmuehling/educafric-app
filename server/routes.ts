@@ -77,6 +77,7 @@ import bulletinVerificationRoutes from "./routes/bulletinVerificationRoutes";
 import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
 // gradeReviewRoutes removed - using unified comprehensive bulletin system
 import academicBulletinRoutes from "./routes/academicBulletinRoutes";
+import comprehensiveBulletinRoutes from "./routes/comprehensiveBulletinRoutes";
 import assetsRoutes from "./routes/assetsRoutes";
 import schoolInfoRoutes from "./routes/schoolInfoRoutes";
 import digitalSignatureRoutes from "./routes/digitalSignatureRoutes";
@@ -6970,6 +6971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.use('/api/academic-bulletins', checkSubscriptionFeature('advanced_grade_management'), academicBulletinRoutes);
+  app.use('/api/comprehensive-bulletin', checkSubscriptionFeature('advanced_grade_management'), comprehensiveBulletinRoutes);
   app.use('/api/assets', assetsRoutes);
   app.use('/api/school', schoolInfoRoutes);
   app.use('/api/signatures', digitalSignatureRoutes);
