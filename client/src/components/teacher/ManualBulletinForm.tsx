@@ -257,10 +257,10 @@ interface SubjectRow {
 
 /**************************** COMPOSANT PRINCIPAL ****************************/
 export default function ManualBulletinForm({ 
-  studentId = "demo-001", 
+  studentId, 
   trimestre = "Premier",
-  classId = "1",
-  academicYear = "2025/2026" 
+  classId,
+  academicYear = "2024-2025" 
 }: ManualBulletinFormProps) {
   const [loading, setLoading] = useState(true);
   const [eleve, setEleve] = useState<any>(null);
@@ -301,39 +301,26 @@ export default function ManualBulletinForm({
   // Récupérer le profil étudiant via notre API
   const { data: studentProfile, isLoading: profileLoading } = useQuery({
     queryKey: ['/api/students', studentId],
-    enabled: !!studentId && studentId !== "demo-001"
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/students/${studentId}`);
+      return await response.json();
+    },
+    enabled: !!studentId
   });
 
-  // Données d'exemple pour démo si pas d'ID spécifique
+  // Charger les données de l'élève depuis l'API ou utiliser des données par défaut
   useEffect(() => {
-    if (studentId === "demo-001" || !studentId) {
-      setEleve({
-        id: "demo-001",
-        nom: "NDAH John",
-        sexe: "M",
-        identifiantUnique: "STU-6E-00045",
-        redoublant: false,
-        dateNaissance: "2013-04-21",
-        lieuNaissance: "Douala",
-        classe: "6ème",
-        effectif: 58,
-        professeurPrincipal: "Mme NGONO",
-        parents: { noms: "M. & Mme NDONGO", contacts: "+237 6xx xx xx xx" },
-        photoUrl: "",
-        etablissement: { nom: "LYCÉE DE MENDONG", immatriculation: "LDM-2025-001" },
-      });
-      setLoading(false);
-    } else if (studentProfile) {
+    if (studentProfile) {
       // Adapter les données de notre API au format attendu
       setEleve({
-        id: studentProfile.id,
-        nom: `${studentProfile.firstName} ${studentProfile.lastName}`,
+        id: (studentProfile as any).id || studentId,
+        nom: `${(studentProfile as any).firstName || ''} ${(studentProfile as any).lastName || ''}`,
         sexe: "M", // TODO: récupérer depuis l'API
-        identifiantUnique: studentProfile.matricule,
+        identifiantUnique: (studentProfile as any).matricule || studentId,
         redoublant: false,
         dateNaissance: "2013-04-21", // TODO: récupérer depuis l'API
         lieuNaissance: "Douala", // TODO: récupérer depuis l'API
-        classe: studentProfile.className,
+        classe: (studentProfile as any).className || '',
         effectif: 58, // TODO: récupérer depuis l'API
         professeurPrincipal: "Mme NGONO", // TODO: récupérer depuis l'API
         parents: { noms: "M. & Mme Parent", contacts: "+237 6xx xx xx xx" },
@@ -341,8 +328,26 @@ export default function ManualBulletinForm({
         etablissement: { nom: "Institut Educafric", immatriculation: "EDU-2025-001" },
       });
       setLoading(false);
+    } else if (studentId && !profileLoading) {
+      // Si pas de profil trouvé mais on a un studentId, utiliser des données basiques
+      setEleve({
+        id: studentId,
+        nom: "Élève", // Will be filled when profile loads
+        sexe: "M",
+        identifiantUnique: studentId,
+        redoublant: false,
+        dateNaissance: "",
+        lieuNaissance: "",
+        classe: "", // Will be filled from classId
+        effectif: 0,
+        professeurPrincipal: "",
+        parents: { noms: "", contacts: "" },
+        photoUrl: "",
+        etablissement: { nom: "Institut Educafric", immatriculation: "EDU-2025-001" },
+      });
+      setLoading(false);
     }
-  }, [studentId, studentProfile]);
+  }, [studentId, studentProfile, profileLoading]);
 
   // Calculs automatiques
   const totals = useMemo(() => {
@@ -382,54 +387,46 @@ export default function ManualBulletinForm({
   // Sauvegarde via notre API comprehensive bulletins
   const saveMutation = useMutation({
     mutationFn: async (payload: any) => {
-      if (studentId === "demo-001") {
-        console.log("[DEMO] Bulletin à sauvegarder:", payload);
-        return { ok: true };
-      }
-      
-      return apiRequest('/api/comprehensive-bulletins/teacher-submission', {
-        method: 'POST',
-        body: JSON.stringify({
-          studentId: parseInt(studentId || "0"),
-          classId: parseInt(classId || "0"),
-          term: trimestre,
-          academicYear,
-          manualData: {
-            subjectGrades: payload.lignes.map((ligne: any) => ({
-              subjectName: ligne.matiere,
-              teacherName: ligne.enseignant,
-              competencies: ligne.competences,
-              grade1: ligne.n20,
-              grade2: null, // N'utilise que M/20
-              termAverage: ligne.m20,
-              coefficient: ligne.coef,
-              maxGrade: 20,
-              cote: ligne.cote,
-              comment: ligne.appreciation
-            })),
-            discipline: payload.discipline,
-            generalAppreciation: payload.appEleve,
-            parentVisa: payload.visaParent
-          },
-          generationOptions: {
-            includeComments: true,
-            includeRankings: true,
-            includeStatistics: true,
-            includeUnjustifiedAbsences: true,
-            includeJustifiedAbsences: true,
-            includeLateness: true,
-            includeDetentions: true,
-            includeCoef: true,
-            includeCTBA: true,
-            includeCBA: true,
-            includeCA: true,
-            includeCMA: true,
-            includeCOTE: true,
-            includeWorkAppreciation: true,
-            includeClassCouncilDecisions: true,
-            generationFormat: 'pdf' as const
-          }
-        })
+      return apiRequest('POST', '/api/comprehensive-bulletins/teacher-submission', {
+        studentId: parseInt(studentId || "0"),
+        classId: parseInt(classId || "0"),
+        term: trimestre,
+        academicYear,
+        manualData: {
+          subjectGrades: payload.lignes.map((ligne: any) => ({
+            subjectName: ligne.matiere,
+            teacherName: ligne.enseignant,
+            competencies: ligne.competences,
+            grade1: ligne.n20,
+            grade2: null, // N'utilise que M/20
+            termAverage: ligne.m20,
+            coefficient: ligne.coef,
+            maxGrade: 20,
+            cote: ligne.cote,
+            comment: ligne.appreciation
+          })),
+          discipline: payload.discipline,
+          generalAppreciation: payload.appEleve,
+          parentVisa: payload.visaParent
+        },
+        generationOptions: {
+          includeComments: true,
+          includeRankings: true,
+          includeStatistics: true,
+          includeUnjustifiedAbsences: true,
+          includeJustifiedAbsences: true,
+          includeLateness: true,
+          includeDetentions: true,
+          includeCoef: true,
+          includeCTBA: true,
+          includeCBA: true,
+          includeCA: true,
+          includeCMA: true,
+          includeCOTE: true,
+          includeWorkAppreciation: true,
+          includeClassCouncilDecisions: true,
+          generationFormat: 'pdf' as const
+        }
       });
     },
     onSuccess: () => {
