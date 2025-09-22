@@ -19,7 +19,8 @@ import {
   bulletins,
   bulletinWorkflow,
   bulletinComprehensive,
-  bulletinSubjectCodes
+  bulletinSubjectCodes,
+  teacherSubjectAssignments
 } from '../../shared/schema.js';
 import { insertTeacherGradeSubmissionSchema } from '../../shared/schemas/bulletinSchema.js';
 import { 
@@ -219,9 +220,7 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
       });
     }
 
-    // 🔒 VÉRIFICATION CRITIQUE: Teacher doit être assigné à cette classe
-    // Pour l'instant, on vérifie que teacher et étudiant sont dans la même école
-    // TODO: Implémenter table teacher_class_assignments pour contrôle plus strict
+    // 🔒 VÉRIFICATION CRITIQUE: Teacher doit être assigné à cette classe ET aux matières
     const teacherAccess = await db.select({
       teacherId: users.id,
       teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
@@ -240,6 +239,63 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
         success: false,
         message: 'Teacher not authorized for this school'
       });
+    }
+
+    // 🔒 VÉRIFICATION STRICTE: Teacher doit être assigné à cette classe
+    const classAssignments = await db.select({
+      teacherId: teacherSubjectAssignments.teacherId,
+      classId: teacherSubjectAssignments.classId
+    })
+    .from(teacherSubjectAssignments)
+    .where(and(
+      eq(teacherSubjectAssignments.teacherId, user.id),
+      eq(teacherSubjectAssignments.classId, classId),
+      eq(teacherSubjectAssignments.schoolId, schoolId),
+      eq(teacherSubjectAssignments.active, true)
+    ))
+    .limit(1);
+
+    if (classAssignments.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Teacher not assigned to this class. Please contact your administrator for proper class assignments.'
+      });
+    }
+
+    // 🔒 VÉRIFICATION STRICTE: Teacher doit être assigné à chaque matière
+    if (manualData.subjectGrades && manualData.subjectGrades.length > 0) {
+      const subjectIds = manualData.subjectGrades.map(grade => grade.subjectId);
+      
+      const authorizedSubjects = await db.select({
+        subjectId: teacherSubjectAssignments.subjectId
+      })
+      .from(teacherSubjectAssignments)
+      .where(and(
+        eq(teacherSubjectAssignments.teacherId, user.id),
+        eq(teacherSubjectAssignments.classId, classId),
+        eq(teacherSubjectAssignments.schoolId, schoolId),
+        eq(teacherSubjectAssignments.active, true),
+        inArray(teacherSubjectAssignments.subjectId, subjectIds)
+      ));
+
+      const authorizedSubjectIds = authorizedSubjects.map(s => s.subjectId);
+      const unauthorizedSubjects = subjectIds.filter(id => !authorizedSubjectIds.includes(id));
+
+      if (unauthorizedSubjects.length > 0) {
+        // Get subject names for error message
+        const subjectNames = await db.select({
+          id: subjects.id,
+          name: subjects.name
+        })
+        .from(subjects)
+        .where(inArray(subjects.id, unauthorizedSubjects));
+
+        return res.status(403).json({
+          success: false,
+          message: `Teacher not assigned to subjects: ${subjectNames.map(s => s.name).join(', ')}. Please contact your administrator for proper subject assignments.`,
+          unauthorizedSubjects: subjectNames
+        });
+      }
     }
 
     console.log('[TEACHER_SUBMISSION] ✅ Access verified:', {
