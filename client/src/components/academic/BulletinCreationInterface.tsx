@@ -847,7 +847,7 @@ export default function BulletinCreationInterface() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="studentName">Nom & Prénoms</Label>
+                  <Label htmlFor="studentName">{labels[language].namePrenames}</Label>
                   <Input
                     id="studentName"
                     data-testid="input-student-name"
@@ -858,7 +858,7 @@ export default function BulletinCreationInterface() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="studentId">Matricule</Label>
+                  <Label htmlFor="studentId">{labels[language].studentId}</Label>
                   <Input
                     id="studentId"
                     data-testid="input-student-id"
@@ -869,7 +869,7 @@ export default function BulletinCreationInterface() {
                 </div>
 
                 <div>
-                  <Label htmlFor="classLabel">Classe</Label>
+                  <Label htmlFor="classLabel">{labels[language].class}</Label>
                   <Input
                     id="classLabel"
                     data-testid="input-class-label"
@@ -892,7 +892,7 @@ export default function BulletinCreationInterface() {
                 </div>
 
                 <div>
-                  <Label htmlFor="birthDate">Date de naissance</Label>
+                  <Label htmlFor="birthDate">{labels[language].birthDate}</Label>
                   <Input
                     id="birthDate"
                     data-testid="input-birth-date"
@@ -903,7 +903,7 @@ export default function BulletinCreationInterface() {
                 </div>
 
                 <div>
-                  <Label htmlFor="birthPlace">Lieu de naissance</Label>
+                  <Label htmlFor="birthPlace">{labels[language].birthPlace}</Label>
                   <Input
                     id="birthPlace"
                     data-testid="input-birth-place"
@@ -928,7 +928,7 @@ export default function BulletinCreationInterface() {
 
                 <div className="border-l-4 border-blue-500 pl-3 bg-blue-50/50 rounded-r-lg">
                   <Label htmlFor="headTeacher" className="text-sm font-semibold text-blue-700">
-                    📚 Professeur principal
+                    📚 {labels[language].homeTeacher}
                   </Label>
                   <Input
                     id="headTeacher"
@@ -941,7 +941,7 @@ export default function BulletinCreationInterface() {
                 </div>
 
                 <div>
-                  <Label htmlFor="guardian">Parents/Tuteurs</Label>
+                  <Label htmlFor="guardian">{labels[language].guardian}</Label>
                   <Input
                     id="guardian"
                     data-testid="input-guardian"
@@ -1519,7 +1519,7 @@ export default function BulletinCreationInterface() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center justify-between">
-                Discipline et Absences
+                {labels[language].disciplineAbsences}
                 <Button 
                   onClick={() => calculateDisciplineData(student.id || student.name, trimester)} 
                   size="sm" 
@@ -1527,7 +1527,7 @@ export default function BulletinCreationInterface() {
                   data-testid="button-calculate-discipline"
                 >
                   <FileText className="h-4 w-4 mr-1" />
-                  Calculer Auto
+                  {language === 'fr' ? 'Calculer Auto' : 'Auto Calculate'}
                 </Button>
               </CardTitle>
             </CardHeader>
@@ -1535,7 +1535,7 @@ export default function BulletinCreationInterface() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="absJ" className="flex items-center">
-                    Absences justifiées (h)
+                    {labels[language].justifiedAbs}
                     <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>
                   </Label>
                   <Input
@@ -1551,7 +1551,7 @@ export default function BulletinCreationInterface() {
 
                 <div>
                   <Label htmlFor="absNJ" className="flex items-center">
-                    Absences non justifiées (h)
+                    {labels[language].unjustifiedAbs}
                     <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>
                   </Label>
                   <Input
@@ -1567,7 +1567,7 @@ export default function BulletinCreationInterface() {
 
                 <div>
                   <Label htmlFor="late" className="flex items-center">
-                    Retards
+                    {labels[language].lates}
                     <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>
                   </Label>
                   <Input
@@ -1583,7 +1583,7 @@ export default function BulletinCreationInterface() {
 
                 <div>
                   <Label htmlFor="sanctions" className="flex items-center">
-                    Avertissements/Blâmes
+                    {labels[language].warnings}
                     <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>
                   </Label>
                   <Input
@@ -1600,19 +1600,18 @@ export default function BulletinCreationInterface() {
 
               <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-700">
-                  💡 <strong>Calcul Automatique :</strong> Cliquez sur "Calculer Auto" pour récupérer automatiquement les données d'assiduité 
-                  de l'élève pour le trimestre sélectionné. Les valeurs peuvent être modifiées manuellement si nécessaire.
+                  💡 <strong>{language === 'fr' ? 'Calcul Automatique :' : 'Automatic Calculation:'}</strong> {language === 'fr' ? 'Cliquez sur "Calculer Auto" pour récupérer automatiquement les données d\'assiduité de l\'élève pour le trimestre sélectionné. Les valeurs peuvent être modifiées manuellement si nécessaire.' : 'Click "Auto Calculate" to automatically retrieve student attendance data for the selected term. Values can be manually modified if necessary.'}
                 </p>
               </div>
 
               <div className="mt-4">
-                <Label htmlFor="generalRemark">Appréciation générale</Label>
+                <Label htmlFor="generalRemark">{labels[language].generalAppreciation}</Label>
                 <Textarea
                   id="generalRemark"
                   data-testid="textarea-general-remark"
                   value={generalRemark}
                   onChange={(e) => setGeneralRemark(e.target.value)}
-                  placeholder="Appréciation générale du trimestre..."
+                  placeholder={labels[language].generalAppreciationPlaceholder}
                   rows={3}
                 />
               </div>
