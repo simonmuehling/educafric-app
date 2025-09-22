@@ -312,6 +312,17 @@ export default function ManualBulletinForm({
     enabled: !!classId
   });
 
+  // Fetch all class subjects with coefficients for comprehensive subject list
+  const { data: classSubjectsData, isLoading: isLoadingClassSubjects } = useQuery({
+    queryKey: ['/api/classes', classId, 'subjects'],
+    queryFn: async () => {
+      if (!classId) return null;
+      const response = await apiRequest('GET', `/api/classes/${classId}/subjects`);
+      return await response.json();
+    },
+    enabled: !!classId
+  });
+
   // Extract subjects from API response, fallback to empty array if no data
   const assignedSubjects = useMemo(() => {
     if (!teacherSubjectsData || !teacherSubjectsData.subjects) return [];
@@ -320,6 +331,27 @@ export default function ManualBulletinForm({
       coef: subject.coefficient || subject.coef || 1
     }));
   }, [teacherSubjectsData]);
+
+  // Extract all class subjects with coefficients for subject selection
+  const allClassSubjects = useMemo(() => {
+    if (!classSubjectsData || !classSubjectsData.subjects) return [];
+    return classSubjectsData.subjects.map((subject: any) => ({
+      matiere: subject.nameFr || subject.name || subject.matiere,
+      matiereEn: subject.nameEn || subject.name || subject.matiere,
+      coef: Number(subject.coefficient) || 1,
+      code: subject.code || ''
+    }));
+  }, [classSubjectsData]);
+
+  // Helper function to get coefficient for a subject from class configuration
+  const getCoefficientForSubject = (subjectName: string): number => {
+    const subject = allClassSubjects.find(s => 
+      s.matiere.toLowerCase().includes(subjectName.toLowerCase()) ||
+      s.matiereEn.toLowerCase().includes(subjectName.toLowerCase()) ||
+      normalizeSubjectKey(s.matiere) === normalizeSubjectKey(subjectName)
+    );
+    return subject?.coef || 1;
+  };
 
   const [rows, setRows] = useState<SubjectRow[]>([]);
   
@@ -848,8 +880,16 @@ export default function ManualBulletinForm({
                       <input 
                         className="w-44 border rounded-lg px-2 py-1" 
                         value={r.matiere} 
-                        onChange={e=>updateRow(i,{matiere:e.target.value})} 
-                        list="matieres-list"
+                        onChange={e=>{
+                          const newMatiere = e.target.value;
+                          const autoCoef = getCoefficientForSubject(newMatiere);
+                          updateRow(i,{
+                            matiere: newMatiere,
+                            coef: autoCoef
+                          });
+                        }}
+                        list="class-subjects-list"
+                        placeholder="Sélectionner ou taper une matière..."
                         data-testid={`input-subject-${i}`}
                       />
                     </Td>
@@ -1055,6 +1095,15 @@ export default function ManualBulletinForm({
             </tfoot>
           </table>
         </div>
+
+        {/* Datalist pour suggestions de matières avec coefficients */}
+        <datalist id="class-subjects-list">
+          {allClassSubjects.map((subject, idx) => (
+            <option key={idx} value={subject.matiere}>
+              {subject.matiere} (Coef: {subject.coef})
+            </option>
+          ))}
+        </datalist>
 
         <div className="p-4 flex items-center justify-between">
           <button 
