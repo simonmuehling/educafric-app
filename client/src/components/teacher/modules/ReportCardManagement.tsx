@@ -92,7 +92,7 @@ const ReportCardManagement: React.FC = () => {
     enabled: !!selectedClass
   });
 
-  const students = studentsData?.students || [];
+  const students = Array.isArray(studentsData) ? studentsData : (studentsData?.students || []);
   const filteredStudents = useMemo(() => {
     if (!searchQuery) return students;
     return students.filter((student: any) => 
