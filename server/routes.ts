@@ -8477,10 +8477,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log(`[ATTENDANCE_API] ✅ Attendance marked successfully for student ${studentId}: ${status}`);
+      
+      // Trigger automatic notification if status is absent, late, or excused
+      if (['absent', 'late', 'excused'].includes(status)) {
+        console.log(`[ATTENDANCE_API] 🔔 Triggering automatic notification for student ${studentId} - status: ${status}`);
+        
+        // Import and use attendance notification service
+        try {
+          const { AttendanceNotificationService } = await import('./services/attendanceNotificationService');
+          const notificationService = new AttendanceNotificationService();
+          
+          // Mock student and school data for notification
+          const notificationData = {
+            studentId: parseInt(studentId),
+            studentName: `Élève ${studentId}`, // Would be fetched from DB in real implementation
+            className: `Classe ${classId}`, // Would be fetched from DB
+            date: new Date(date).toLocaleDateString('fr-FR'),
+            status: status as 'absent' | 'late' | 'excused',
+            notes: directorNote,
+            schoolName: 'École Sandbox Educafric',
+            markedBy: req.user?.name || 'Direction'
+          };
+          
+          // Send notifications asynchronously (don't block attendance marking)
+          notificationService.sendAttendanceNotification(notificationData).then(result => {
+            if (result.success) {
+              console.log(`[ATTENDANCE_API] ✅ Notifications sent successfully: ${result.notificationsSent} sent`);
+            } else {
+              console.log(`[ATTENDANCE_API] ⚠️ Notification sending failed:`, result.errors);
+            }
+          }).catch(error => {
+            console.error('[ATTENDANCE_API] Notification error:', error);
+          });
+          
+        } catch (importError) {
+          console.error('[ATTENDANCE_API] Failed to import notification service:', importError);
+        }
+      }
+      
       res.json({ 
         success: true, 
         attendance: newAttendance,
-        message: `Attendance marked as ${status}` 
+        message: `Attendance marked as ${status}`,
+        notificationTriggered: ['absent', 'late', 'excused'].includes(status)
       });
     } catch (error) {
       console.error('[ATTENDANCE_API] Error marking attendance:', error);
