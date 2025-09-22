@@ -842,7 +842,7 @@ export default function BulletinCreationInterface() {
           {/* Student Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Informations de l'élève</CardTitle>
+              <CardTitle className="text-lg">{labels[language].studentInfo}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -958,10 +958,10 @@ export default function BulletinCreationInterface() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center justify-between">
-                Notes par matière
+                {labels[language].subjectsGrades}
                 <Button onClick={addSubject} size="sm" data-testid="button-add-subject">
                   <Plus className="h-4 w-4 mr-1" />
-                  Ajouter
+                  {labels[language].addSubject}
                 </Button>
               </CardTitle>
             </CardHeader>
