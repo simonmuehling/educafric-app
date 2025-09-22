@@ -400,20 +400,43 @@ export default function BulletinCreationInterface() {
   };
 
   const updateSubject = (id: string, field: keyof Subject, value: string | number) => {
-    setSubjects(subjects.map(s => {
-      if (s.id === id) {
-        const updatedSubject = { ...s, [field]: value };
-        
-        // Automatically update competency level and description when grade changes
-        if (field === 'grade' && typeof value === 'number') {
-          const competencyLevel = calculateCompetencyLevel(value);
-          updatedSubject.competencyLevel = competencyLevel as any;
-          updatedSubject.competencyEvaluation = getCompetencyDescription(competencyLevel, language);
-        }
-        
-        return updatedSubject;
+    setSubjects(prev => prev.map(s => {
+      if (s.id !== id) return s;
+      
+      // Convert numeric inputs and create updated subject
+      const numValue = Number(value) || 0;
+      const updatedSubject = { 
+        ...s, 
+        [field]: (field === 'name' || field === 'remark' || field === 'cote' || field === 'competence1' || field === 'competence2') ? value : numValue 
+      };
+      
+      // Always recalculate derived values
+      const n1 = Number(updatedSubject.note1) || 0;
+      const n2 = Number(updatedSubject.note2) || 0;
+      const coef = Number(updatedSubject.coefficient) || 0;
+      
+      // Calculate moyenne finale from note1 and note2
+      if (['note1', 'note2'].includes(field)) {
+        updatedSubject.moyenneFinale = calculateMoyenneFinale(n1, n2);
+        updatedSubject.grade = updatedSubject.moyenneFinale;
       }
-      return s;
+      
+      // If moyenne finale is directly updated, sync it to grade
+      if (field === 'moyenneFinale') {
+        updatedSubject.grade = Number(updatedSubject.moyenneFinale) || 0;
+      }
+      
+      // Recalculate all derived fields
+      const finalGrade = Number(updatedSubject.grade) || 0;
+      updatedSubject.totalPondere = round2(finalGrade * coef);
+      updatedSubject.cote = coteFromNote(finalGrade);
+      
+      // Update competency evaluation
+      const competencyLevel = calculateCompetencyLevel(finalGrade);
+      updatedSubject.competencyLevel = competencyLevel as any;
+      updatedSubject.competencyEvaluation = getCompetencyDescription(competencyLevel, language);
+      
+      return updatedSubject;
     }));
   };
 
