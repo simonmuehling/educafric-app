@@ -47,6 +47,22 @@ interface DisciplineInfo {
   sanctions: number;
 }
 
+// Grade calculation functions for Cameroon system
+const calculatePercentage = (grade: number): number => {
+  return Math.round((grade / 20) * 100);
+};
+
+const calculateCote = (grade: number): string => {
+  const percentage = calculatePercentage(grade);
+  if (percentage >= 90) return 'A+';
+  if (percentage >= 80) return 'A';
+  if (percentage >= 75) return 'B+';
+  if (percentage >= 70) return 'B';
+  if (percentage >= 60) return 'C+';
+  if (percentage >= 50) return 'C';
+  return 'D';
+};
+
 export default function BulletinCreationInterface() {
   const { language } = useLanguage();
   
@@ -654,8 +670,12 @@ export default function BulletinCreationInterface() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {subjects.map((subject, index) => (
-                  <div key={subject.id} className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg">
+                {subjects.map((subject, index) => {
+                  const percentage = calculatePercentage(subject.grade);
+                  const cote = calculateCote(subject.grade);
+                  
+                  return (
+                  <div key={subject.id} className="grid grid-cols-1 md:grid-cols-8 gap-3 p-3 border rounded-lg">
                     <div>
                       <Label className="text-sm">Matière</Label>
                       <Input
@@ -691,6 +711,22 @@ export default function BulletinCreationInterface() {
                       />
                     </div>
 
+                    <div>
+                      <Label className="text-sm">Cote</Label>
+                      <div className="flex items-center h-10 px-3 border rounded-md bg-gray-50">
+                        <Badge variant={cote === 'A+' || cote === 'A' ? 'default' : cote === 'B+' || cote === 'B' ? 'secondary' : 'destructive'}>
+                          {cote}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm">Note %</Label>
+                      <div className="flex items-center h-10 px-3 border rounded-md bg-gray-50 font-medium">
+                        {percentage}%
+                      </div>
+                    </div>
+
                     <div className="md:col-span-2">
                       <Label className="text-sm">Appréciation</Label>
                       <Input
@@ -712,7 +748,8 @@ export default function BulletinCreationInterface() {
                       </Button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
