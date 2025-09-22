@@ -127,109 +127,143 @@ const defaultCompetences: Record<string, string> = {
   "INFORMATIQUE": "Identifier les éléments matériels / logiciels…",
 };
 
-// ====== TEMPLATES COMPÉTENCES PAR TRIMESTRE ======
-// Compétences pré-remplies selon le référentiel africain
-const COMPETENCE_TEMPLATES = {
+// ====== TEMPLATES COMPÉTENCES PAR TRIMESTRE (2 COMPÉTENCES PAR MATIÈRE) ======
+// Système de compétences spécifiques africaines - 2 compétences fixes par matière/trimestre
+const COMPETENCES_BY_TRIMESTER_AND_SUBJECT = {
   Premier: {
-    ANGLAIS: [
-      "Se présenter, parler de la famille et de l'école",
-      "Acheter/vendre, découvrir les métiers",
-    ].join("\n"),
-    INFORMATIQUE: [
-      "Identifier matériel/logiciel d'un micro-ordinateur",
-      "Connaitre les règles en salle info",
-    ].join("\n"),
-    FRANÇAIS: [
-      "Orthographier et comprendre un dialogue",
-      "Écrire une lettre privée (structure et politesse)",
-    ].join("\n"),
-    MATHÉMATIQUES: [
-      "Résoudre des opérations de base (addition, soustraction)",
-      "Comprendre les notions de géométrie plane",
-    ].join("\n"),
-    SCIENCES: [
-      "Observer et décrire les phénomènes naturels",
-      "Identifier les organes du corps humain",
-    ].join("\n"),
-    GÉOGRAPHIE: [
-      "Se situer dans l'espace et le temps",
-      "Identifier les continents et océans",
-    ].join("\n"),
-    HISTOIRE: [
-      "Comprendre les périodes historiques de base",
-      "Identifier les personnages historiques importants",
-    ].join("\n"),
+    ANGLAIS: {
+      competence1: "Se présenter, parler de la famille et de l'école",
+      competence2: "Acheter/vendre, découvrir les métiers"
+    },
+    INFORMATIQUE: {
+      competence1: "Identifier matériel/logiciel d'un micro-ordinateur",
+      competence2: "Connaitre les règles en salle info"
+    },
+    FRANÇAIS: {
+      competence1: "Orthographier et comprendre un dialogue",
+      competence2: "Écrire une lettre privée (structure et politesse)"
+    },
+    MATHÉMATIQUES: {
+      competence1: "Résoudre des opérations de base (addition, soustraction)",
+      competence2: "Comprendre les notions de géométrie plane"
+    },
+    SCIENCES: {
+      competence1: "Observer et décrire les phénomènes naturels",
+      competence2: "Identifier les organes du corps humain"
+    },
+    GÉOGRAPHIE: {
+      competence1: "Se situer dans l'espace et le temps",
+      competence2: "Identifier les continents et océans"
+    },
+    HISTOIRE: {
+      competence1: "Comprendre les périodes historiques de base",
+      competence2: "Identifier les personnages historiques importants"
+    },
   },
   Deuxième: {
-    ANGLAIS: [
-      "Décrire son quotidien, loisirs et habitudes (Present Simple)",
-      "Donner/recevoir des indications (directions, lieux)",
-    ].join("\n"),
-    INFORMATIQUE: [
-      "Gestion des fichiers et dossiers (créer, renommer, organiser)",
-      "Traitement de texte : mise en forme de base",
-    ].join("\n"),
-    FRANÇAIS: [
-      "Compréhension et résumé d'un récit",
-      "Production d'un paragraphe argumentatif simple",
-    ].join("\n"),
-    MATHÉMATIQUES: [
-      "Résoudre des problèmes avec multiplication et division",
-      "Comprendre les fractions et pourcentages",
-    ].join("\n"),
-    SCIENCES: [
-      "Expérimenter et analyser des réactions simples",
-      "Comprendre les cycles de la vie",
-    ].join("\n"),
-    GÉOGRAPHIE: [
-      "Analyser les climats et reliefs",
-      "Comprendre l'organisation territoriale",
-    ].join("\n"),
-    HISTOIRE: [
-      "Analyser les causes et conséquences d'événements",
-      "Comprendre l'évolution des sociétés",
-    ].join("\n"),
+    ANGLAIS: {
+      competence1: "Décrire son quotidien, loisirs et habitudes (Present Simple)",
+      competence2: "Donner/recevoir des indications (directions, lieux)"
+    },
+    INFORMATIQUE: {
+      competence1: "Gestion des fichiers et dossiers (créer, renommer, organiser)",
+      competence2: "Traitement de texte : mise en forme de base"
+    },
+    FRANÇAIS: {
+      competence1: "Compréhension et résumé d'un récit",
+      competence2: "Production d'un paragraphe argumentatif simple"
+    },
+    MATHÉMATIQUES: {
+      competence1: "Résoudre des problèmes avec multiplication et division",
+      competence2: "Comprendre les fractions et pourcentages"
+    },
+    SCIENCES: {
+      competence1: "Expérimenter et analyser des réactions simples",
+      competence2: "Comprendre les cycles de la vie"
+    },
+    GÉOGRAPHIE: {
+      competence1: "Analyser les climats et reliefs",
+      competence2: "Comprendre l'organisation territoriale"
+    },
+    HISTOIRE: {
+      competence1: "Analyser les causes et conséquences d'événements",
+      competence2: "Comprendre l'évolution des sociétés"
+    },
   },
   Troisième: {
-    ANGLAIS: [
-      "Parler de projets et d'événements passés (Past Simple)",
-      "Exprimer des intentions et plans (Futur proche)",
-    ].join("\n"),
-    INFORMATIQUE: [
-      "Présentation : diaporama (insertion d'images/tableaux)",
-      "Sensibilisation sécurité numérique (mots de passe, phishing)",
-    ].join("\n"),
-    FRANÇAIS: [
-      "Analyse grammaticale (accords essentiels)",
-      "Écriture d'un récit cohérent (début, développement, fin)",
-    ].join("\n"),
-    MATHÉMATIQUES: [
-      "Résoudre des équations du premier degré",
-      "Maîtriser les propriétés géométriques avancées",
-    ].join("\n"),
-    SCIENCES: [
-      "Comprendre les lois physiques fondamentales",
-      "Analyser les écosystèmes et biodiversité",
-    ].join("\n"),
-    GÉOGRAPHIE: [
-      "Synthèse des connaissances géographiques",
-      "Analyser les enjeux du développement durable",
-    ].join("\n"),
-    HISTOIRE: [
-      "Synthèse historique et perspectives d'avenir",
-      "Comprendre les enjeux contemporains",
-    ].join("\n"),
+    ANGLAIS: {
+      competence1: "Parler de projets et d'événements passés (Past Simple)",
+      competence2: "Exprimer des intentions et plans (Futur proche)"
+    },
+    INFORMATIQUE: {
+      competence1: "Présentation : diaporama (insertion d'images/tableaux)",
+      competence2: "Sensibilisation sécurité numérique (mots de passe, phishing)"
+    },
+    FRANÇAIS: {
+      competence1: "Analyse grammaticale (accords essentiels)",
+      competence2: "Écriture d'un récit cohérent (début, développement, fin)"
+    },
+    MATHÉMATIQUES: {
+      competence1: "Résoudre des équations du premier degré",
+      competence2: "Maîtriser les propriétés géométriques avancées"
+    },
+    SCIENCES: {
+      competence1: "Comprendre les lois physiques fondamentales",
+      competence2: "Analyser les écosystèmes et biodiversité"
+    },
+    GÉOGRAPHIE: {
+      competence1: "Synthèse des connaissances géographiques",
+      competence2: "Analyser les enjeux du développement durable"
+    },
+    HISTOIRE: {
+      competence1: "Synthèse historique et perspectives d'avenir",
+      competence2: "Comprendre les enjeux contemporains"
+    },
   },
 };
 
-function prefillCompetencesFor(trimester: string) {
-  return (prevRows: SubjectRow[]) => prevRows.map(r => ({
-    ...r,
-    competences: (COMPETENCE_TEMPLATES?.[trimester as keyof typeof COMPETENCE_TEMPLATES]?.[normalizeKey(r.matiere)] || r.competences || "")
-  }));
+// ====== FONCTIONS HELPER POUR LES COMPÉTENCES ======
+function getCompetencesByTrimester(matiere: string, trimestre: string): { competence1: string; competence2: string } {
+  const normalizedMatiere = normalizeSubjectKey(matiere.toUpperCase());
+  const competences = COMPETENCES_BY_TRIMESTER_AND_SUBJECT[trimestre as keyof typeof COMPETENCES_BY_TRIMESTER_AND_SUBJECT]?.[normalizedMatiere as keyof typeof COMPETENCES_BY_TRIMESTER_AND_SUBJECT.Premier];
+  
+  if (competences && typeof competences === 'object') {
+    return {
+      competence1: competences.competence1 || "",
+      competence2: competences.competence2 || ""
+    };
+  }
+  
+  return { competence1: "", competence2: "" };
 }
 
-function normalizeKey(m: string): string {
+function calculateMoyenneFinale(note1: string | number, note2: string | number): number {
+  const n1 = Number(note1) || 0;
+  const n2 = Number(note2) || 0;
+  
+  if (n1 > 0 && n2 > 0) {
+    return round2((n1 + n2) / 2);
+  } else if (n1 > 0) {
+    return round2(n1);
+  } else if (n2 > 0) {
+    return round2(n2);
+  }
+  
+  return 0;
+}
+
+function prefillCompetencesFor(trimester: string) {
+  return (prevRows: SubjectRow[]) => prevRows.map(r => {
+    const competences = getCompetencesByTrimester(r.matiere, trimester);
+    return {
+      ...r,
+      competence1: competences.competence1,
+      competence2: competences.competence2
+    };
+  });
+}
+
+function normalizeSubjectKey(m: string): string {
   if (!m) return "";
   const k = m.toUpperCase();
   if (k.includes("ANGLAIS")) return "ANGLAIS";
@@ -245,10 +279,13 @@ function normalizeKey(m: string): string {
 interface SubjectRow {
   matiere: string;
   enseignant: string;
-  competences: string;
-  n20: string | number;
-  m20: string | number;
+  competence1: string;  // Première compétence
+  competence2: string;  // Deuxième compétence
+  note1: string | number;  // Note première compétence /20
+  note2: string | number;  // Note deuxième compétence /20
+  moyenneFinale: string | number;  // M/20 - Moyenne des deux compétences
   coef: number;
+  totalPondere: number;  // M/20 * coefficient
   cote: string;
   appreciation: string;
 }
@@ -292,15 +329,18 @@ export default function ManualBulletinForm({
       setRows(assignedSubjects.map(s => ({
         matiere: s.matiere,
         enseignant: "",
-        competences: defaultCompetences[s.matiere] || "",
-        n20: "",
-        m20: "",
+        competence1: getCompetencesByTrimester(s.matiere, meta.trimestre).competence1 || "",
+        competence2: getCompetencesByTrimester(s.matiere, meta.trimestre).competence2 || "",
+        note1: "",
+        note2: "",
+        moyenneFinale: "",
         coef: s.coef,
+        totalPondere: 0,
         cote: "",
         appreciation: "",
       })));
     }
-  }, [assignedSubjects]);
+  }, [assignedSubjects, meta.trimestre]);
 
   const [meta, setMeta] = useState({
     annee: academicYear,
@@ -485,13 +525,20 @@ export default function ManualBulletinForm({
 
   // Calculs automatiques
   const totals = useMemo(() => {
-    const withMx = rows.map(r => ({
-      ...r,
-      m20Num: Number(r.m20) || 0,
-      coefNum: Number(r.coef) || 0,
-    }));
-    const totalCoef = withMx.reduce((s, r) => s + r.coefNum, 0);
-    const totalMxCoef = withMx.reduce((s, r) => s + r.m20Num * r.coefNum, 0);
+    const withCalculations = rows.map(r => {
+      const moyenneFinale = Number(r.moyenneFinale) || calculateMoyenneFinale(r.note1, r.note2);
+      const coefNum = Number(r.coef) || 0;
+      const totalPondere = round2(moyenneFinale * coefNum);
+      return {
+        ...r,
+        moyenneFinaleNum: moyenneFinale,
+        coefNum,
+        totalPondereNum: totalPondere
+      };
+    });
+    
+    const totalCoef = withCalculations.reduce((s, r) => s + r.coefNum, 0);
+    const totalMxCoef = withCalculations.reduce((s, r) => s + r.totalPondereNum, 0);
     const moyenne = totalCoef > 0 ? round2(totalMxCoef / totalCoef) : 0;
     const cote = coteFromNote(moyenne);
     return { totalCoef, totalMxCoef: round2(totalMxCoef), moyenne, cote };
@@ -505,10 +552,13 @@ export default function ManualBulletinForm({
     setRows(prev => ([...prev, { 
       matiere: "", 
       enseignant: "", 
-      competences: "", 
-      n20: "", 
-      m20: "", 
+      competence1: "", 
+      competence2: "", 
+      note1: "", 
+      note2: "", 
+      moyenneFinale: "",
       coef: 1, 
+      totalPondere: 0,
       cote: "", 
       appreciation: "" 
     }]));
@@ -772,11 +822,13 @@ export default function ManualBulletinForm({
               <tr className="text-left">
                 <Th>{t('subject')}</Th>
                 <Th>{t('teacher')}</Th>
-                <Th className="w-80">{t('competencies')}</Th>
-                <Th>{t('grade1')}</Th>
-                <Th>{t('grade2')}</Th>
+                <Th className="w-60">{language === 'fr' ? 'Compétence 1' : 'Competency 1'}</Th>
+                <Th className="w-60">{language === 'fr' ? 'Compétence 2' : 'Competency 2'}</Th>
+                <Th>{language === 'fr' ? 'Note 1 /20' : 'Grade 1 /20'}</Th>
+                <Th>{language === 'fr' ? 'Note 2 /20' : 'Grade 2 /20'}</Th>
+                <Th>{language === 'fr' ? 'Moyenne /20' : 'Average /20'}</Th>
                 <Th>{t('coefficient')}</Th>
-                <Th>{t('total')}</Th>
+                <Th>{language === 'fr' ? 'Total pondéré' : 'Weighted Total'}</Th>
                 <Th>{t('cote')}</Th>
                 <Th className="w-64">{t('appreciation')}</Th>
                 <Th>Actions</Th>
@@ -784,8 +836,12 @@ export default function ManualBulletinForm({
             </thead>
             <tbody>
               {rows.map((r, i) => {
-                const mx = round2((Number(r.m20)||0) * (Number(r.coef)||0));
-                const cote = r.cote || coteFromNote(r.m20);
+                // Calcul automatique de la moyenne finale des 2 compétences
+                const moyenneCalculee = calculateMoyenneFinale(r.note1, r.note2);
+                const moyenneFinale = Number(r.moyenneFinale) || moyenneCalculee;
+                const totalPondere = round2(moyenneFinale * (Number(r.coef)||0));
+                const cote = r.cote || coteFromNote(moyenneFinale);
+                
                 return (
                   <tr key={i} className={i % 2 ? "bg-white" : "bg-gray-50/30"}>
                     <Td>
@@ -810,9 +866,20 @@ export default function ManualBulletinForm({
                       <textarea 
                         className="w-full border rounded-lg px-2 py-1" 
                         rows={2} 
-                        value={r.competences} 
-                        onChange={e=>updateRow(i,{competences:e.target.value})}
-                        data-testid={`textarea-competencies-${i}`}
+                        value={r.competence1} 
+                        onChange={e=>updateRow(i,{competence1:e.target.value})}
+                        placeholder="Première compétence..."
+                        data-testid={`textarea-competence1-${i}`}
+                      />
+                    </Td>
+                    <Td>
+                      <textarea 
+                        className="w-full border rounded-lg px-2 py-1" 
+                        rows={2} 
+                        value={r.competence2} 
+                        onChange={e=>updateRow(i,{competence2:e.target.value})}
+                        placeholder="Deuxième compétence..."
+                        data-testid={`textarea-competence2-${i}`}
                       />
                     </Td>
                     <Td>
@@ -822,9 +889,17 @@ export default function ManualBulletinForm({
                         min="0" 
                         max="20" 
                         className="w-20 border rounded-lg px-2 py-1" 
-                        value={r.n20} 
-                        onChange={e=>updateRow(i,{n20:e.target.value})}
-                        data-testid={`input-n20-${i}`}
+                        value={r.note1} 
+                        onChange={e=>{
+                          const newNote1 = e.target.value;
+                          const newMoyenne = calculateMoyenneFinale(newNote1, r.note2);
+                          updateRow(i,{
+                            note1: newNote1,
+                            moyenneFinale: newMoyenne,
+                            totalPondere: round2(newMoyenne * (Number(r.coef)||0))
+                          });
+                        }}
+                        data-testid={`input-note1-${i}`}
                       />
                     </Td>
                     <Td>
@@ -834,10 +909,23 @@ export default function ManualBulletinForm({
                         min="0" 
                         max="20" 
                         className="w-20 border rounded-lg px-2 py-1" 
-                        value={r.m20} 
-                        onChange={e=>updateRow(i,{m20:e.target.value})}
-                        data-testid={`input-m20-${i}`}
+                        value={r.note2} 
+                        onChange={e=>{
+                          const newNote2 = e.target.value;
+                          const newMoyenne = calculateMoyenneFinale(r.note1, newNote2);
+                          updateRow(i,{
+                            note2: newNote2,
+                            moyenneFinale: newMoyenne,
+                            totalPondere: round2(newMoyenne * (Number(r.coef)||0))
+                          });
+                        }}
+                        data-testid={`input-note2-${i}`}
                       />
+                    </Td>
+                    <Td>
+                      <span className="px-2 py-1 inline-block bg-blue-100 rounded-lg font-semibold text-blue-800">
+                        {moyenneFinale}
+                      </span>
                     </Td>
                     <Td>
                       <input 
@@ -846,12 +934,20 @@ export default function ManualBulletinForm({
                         min="0" 
                         className="w-16 border rounded-lg px-2 py-1" 
                         value={r.coef} 
-                        onChange={e=>updateRow(i,{coef:parseInt(e.target.value) || 0})}
+                        onChange={e=>{
+                          const newCoef = parseInt(e.target.value) || 0;
+                          updateRow(i,{
+                            coef: newCoef,
+                            totalPondere: round2(moyenneFinale * newCoef)
+                          });
+                        }}
                         data-testid={`input-coef-${i}`}
                       />
                     </Td>
                     <Td>
-                      <span className="px-2 py-1 inline-block bg-gray-100 rounded-lg">{mx}</span>
+                      <span className="px-2 py-1 inline-block bg-green-100 rounded-lg font-semibold text-green-800">
+                        {totalPondere}
+                      </span>
                     </Td>
                     <Td>
                       <input 
