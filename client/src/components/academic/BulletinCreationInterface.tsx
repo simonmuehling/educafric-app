@@ -1003,20 +1003,22 @@ export default function BulletinCreationInterface() {
                                 max="20"
                                 className="w-12 border rounded px-1 py-1 text-center text-xs"
                                 value={subject.note1 === 0 ? '' : subject.note1}
-                                onChange={(e) => {
-                                  const newNote1 = parseFloat(e.target.value) || 0;
-                                  const newMoyenne = calculateMoyenneFinale(newNote1, subject.note2);
-                                  updateSubject(subject.id, 'note1', newNote1);
-                                  updateSubject(subject.id, 'moyenneFinale', newMoyenne);
-                                  updateSubject(subject.id, 'totalPondere', round2(newMoyenne * subject.coefficient));
-                                }}
+                                onChange={(e) => updateSubject(subject.id, 'note1', parseFloat(e.target.value) || 0)}
                                 placeholder="N"
                                 data-testid={`input-note1-${index}`}
                               />
                               <span className="text-gray-500">-</span>
-                              <span className="w-12 text-center text-xs font-bold bg-blue-50 px-1 py-1 rounded border">
-                                {moyenneFinale || '0'}
-                              </span>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="20"
+                                className="w-12 border rounded px-1 py-1 text-center text-xs font-bold bg-blue-50"
+                                value={subject.moyenneFinale === 0 ? '' : subject.moyenneFinale}
+                                onChange={(e) => updateSubject(subject.id, 'moyenneFinale', parseFloat(e.target.value) || 0)}
+                                placeholder="M"
+                                data-testid={`input-moyenne-${index}`}
+                              />
                               <Input
                                 type="number"
                                 step="0.01"
@@ -1024,13 +1026,7 @@ export default function BulletinCreationInterface() {
                                 max="20"
                                 className="w-12 border rounded px-1 py-1 text-center text-xs ml-1"
                                 value={subject.note2 === 0 ? '' : subject.note2}
-                                onChange={(e) => {
-                                  const newNote2 = parseFloat(e.target.value) || 0;
-                                  const newMoyenne = calculateMoyenneFinale(subject.note1, newNote2);
-                                  updateSubject(subject.id, 'note2', newNote2);
-                                  updateSubject(subject.id, 'moyenneFinale', newMoyenne);
-                                  updateSubject(subject.id, 'totalPondere', round2(newMoyenne * subject.coefficient));
-                                }}
+                                onChange={(e) => updateSubject(subject.id, 'note2', parseFloat(e.target.value) || 0)}
                                 placeholder="N2"
                                 data-testid={`input-note2-${index}`}
                               />
@@ -1048,7 +1044,6 @@ export default function BulletinCreationInterface() {
                               onChange={(e) => {
                                 const newCoef = parseInt(e.target.value) || 0;
                                 updateSubject(subject.id, 'coefficient', newCoef);
-                                updateSubject(subject.id, 'totalPondere', round2(moyenneFinale * newCoef));
                               }}
                               data-testid={`input-coef-${index}`}
                             />
