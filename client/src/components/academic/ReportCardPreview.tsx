@@ -175,8 +175,14 @@ interface StudentData {
 
 interface SubjectLine {
   subject: string;
+  note1?: number;
+  moyenneFinale?: number;
   m20: number | string;
   coef: number;
+  totalPondere?: number;
+  notePercent?: number;
+  cote?: string;
+  competencesEvaluees?: string;
   remark?: string;
 }
 
@@ -295,13 +301,14 @@ export default function ReportCardPreview({
             <table className="min-w-full text-xs">
               <thead className="bg-gray-50">
                 <tr>
-                  <Th>{labels.subject}</Th>
-                  <Th>{labels.coef}</Th>
-                  <Th>{labels.mark}</Th>
-                  <Th>Cote</Th>
-                  <Th>Note %</Th>
-                  <Th>{labels.weight}</Th>
-                  <Th>{labels.remarks}</Th>
+                  <Th>{language === 'fr' ? 'Matière' : 'Subject'}</Th>
+                  <Th>N/20-M/20</Th>
+                  <Th>{language === 'fr' ? 'Coefficient' : 'Coefficient'}</Th>
+                  <Th>M x coef</Th>
+                  <Th>{language === 'fr' ? 'Note %' : 'Grade %'}</Th>
+                  <Th>COTE</Th>
+                  <Th>{language === 'fr' ? 'Compétences évaluées' : 'Evaluated Competencies'}</Th>
+                  <Th>{language === 'fr' ? 'Appréciation' : 'Appreciation'}</Th>
                 </tr>
               </thead>
               <tbody>
@@ -324,12 +331,15 @@ export default function ReportCardPreview({
                   return (
                     <tr key={idx} className={idx % 2 ? "bg-white" : "bg-gray-50/50"}>
                       <Td>{r.subject}</Td>
+                      <Td className="text-center font-medium">
+                        {r.note1 || 0}/{r.moyenneFinale || r.m20 || 0}
+                      </Td>
                       <Td className="text-center">{r.coef}</Td>
-                      <Td className="text-center font-medium">{r.m20}</Td>
-                      <Td className="text-center font-bold text-blue-700">{cote}</Td>
-                      <Td className="text-center font-medium">{percentage}%</Td>
-                      <Td className="text-center">{mx}</Td>
-                      <Td>{r.remark || ""}</Td>
+                      <Td className="text-center">{r.totalPondere || mx}</Td>
+                      <Td className="text-center font-medium">{r.notePercent || percentage}%</Td>
+                      <Td className="text-center font-bold text-blue-700">{r.cote || cote}</Td>
+                      <Td className="text-xs">{r.competencesEvaluees || ""}</Td>
+                      <Td className="text-xs">{r.remark || ""}</Td>
                     </tr>
                   );
                 })}
@@ -337,11 +347,12 @@ export default function ReportCardPreview({
               <tfoot>
                 <tr className="bg-gray-100 font-semibold">
                   <Td colSpan={1}>{labels.totalCoef}</Td>
+                  <Td className="text-center">—</Td>
                   <Td className="text-center">{totalCoef}</Td>
-                  <Td className="text-center">—</Td>
-                  <Td className="text-center">—</Td>
-                  <Td className="text-center">—</Td>
                   <Td className="text-center">{round2(totalMxCoef)}</Td>
+                  <Td className="text-center">—</Td>
+                  <Td className="text-center">—</Td>
+                  <Td className="text-center">—</Td>
                   <Td className="text-center">—</Td>
                 </tr>
               </tfoot>
