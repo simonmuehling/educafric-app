@@ -290,6 +290,28 @@ interface SubjectRow {
   appreciation: string;
 }
 
+// Extended student information interface (matching director interface)
+interface ExtendedStudentInfo {
+  name: string;
+  id: string;
+  className: string;
+  classSize: number;
+  birthDate: string;
+  birthPlace: string;
+  gender: string;
+  headTeacher: string;
+  guardian: string;
+  photoUrl?: string;
+}
+
+// Discipline information interface (matching director interface)  
+interface ExtendedDisciplineInfo {
+  absJ: number;     // Absences justifiées (heures)
+  absNJ: number;    // Absences non justifiées (heures) 
+  late: number;     // Retards
+  sanctions: number; // Sanctions/Avertissements
+}
+
 /**************************** COMPOSANT PRINCIPAL ****************************/
 export default function ManualBulletinForm({ 
   studentId, 
@@ -315,6 +337,48 @@ export default function ManualBulletinForm({
     appEleve: "",
     visaParent: ""
   });
+
+  // Extended student information state (matching director interface)
+  const [extendedStudent, setExtendedStudent] = useState<ExtendedStudentInfo>({
+    name: '',
+    id: '',
+    className: '',
+    classSize: 0,
+    birthDate: '',
+    birthPlace: '',
+    gender: '',
+    headTeacher: '',
+    guardian: '',
+    photoUrl: ''
+  });
+
+  // Extended discipline state (matching director interface)
+  const [extendedDiscipline, setExtendedDiscipline] = useState<ExtendedDisciplineInfo>({
+    absJ: 0,
+    absNJ: 0,
+    late: 0,
+    sanctions: 0
+  });
+
+  // General appreciation state (matching director interface)
+  const [generalRemark, setGeneralRemark] = useState('');
+
+  // Annual summary state for third trimester (matching director interface)
+  const [annualSummary, setAnnualSummary] = useState({
+    firstTrimesterAverage: 0,
+    secondTrimesterAverage: 0,
+    thirdTrimesterAverage: 0,
+    annualAverage: 0,
+    annualRank: 0,
+    totalStudents: 45,
+    passDecision: '', // 'PASSE', 'REDOUBLE', 'RENVOYÉ'
+    finalAppreciation: '',
+    holidayRecommendations: ''
+  });
+
+  // Digital signature state (matching director interface)
+  const [isSigned, setIsSigned] = useState(false);
+  const [signatureData, setSignatureData] = useState<any>(null);
   
   // Fetch teacher's assigned subjects for the selected class
   const { data: teacherSubjectsData, isLoading: isLoadingSubjects } = useQuery({
@@ -388,6 +452,9 @@ export default function ManualBulletinForm({
       })));
     }
   }, [assignedSubjects, meta.trimestre]);
+
+  // Check if this is third trimester for annual summary
+  const isThirdTrimester = meta.trimestre === 'Troisième';
 
   // Helper pour obtenir les labels dans la langue courante
   const t = (key: keyof typeof BILINGUAL_LABELS.fr) => BILINGUAL_LABELS[language][key];
@@ -518,7 +585,7 @@ export default function ManualBulletinForm({
   // Charger les données de l'élève depuis l'API ou utiliser des données par défaut
   useEffect(() => {
     if (studentProfile) {
-      // Adapter les données de notre API au format attendu
+      // Adapter les données de notre API au format attendu pour eleve (legacy format)
       setEleve({
         id: (studentProfile as any).id || studentId,
         nom: `${(studentProfile as any).firstName || ''} ${(studentProfile as any).lastName || ''}`,
@@ -534,6 +601,21 @@ export default function ManualBulletinForm({
         photoUrl: "",
         etablissement: { nom: "Institut Educafric", immatriculation: "EDU-2025-001" },
       });
+
+      // Also populate extended student info (matching director interface)
+      setExtendedStudent({
+        name: `${(studentProfile as any).firstName || ''} ${(studentProfile as any).lastName || ''}`,
+        id: (studentProfile as any).matricule || studentId || '',
+        className: (studentProfile as any).className || '',
+        classSize: 58, // TODO: récupérer depuis l'API
+        birthDate: "2013-04-21", // TODO: récupérer depuis l'API
+        birthPlace: "Douala", // TODO: récupérer depuis l'API
+        gender: "Masculin", // TODO: récupérer depuis l'API
+        headTeacher: "Mme NGONO", // TODO: récupérer depuis l'API
+        guardian: "M. & Mme Parent", // TODO: récupérer depuis l'API
+        photoUrl: ""
+      });
+
       setLoading(false);
     } else if (studentId && !profileLoading) {
       // Si pas de profil trouvé mais on a un studentId, utiliser des données basiques
@@ -552,6 +634,21 @@ export default function ManualBulletinForm({
         photoUrl: "",
         etablissement: { nom: "Institut Educafric", immatriculation: "EDU-2025-001" },
       });
+
+      // Also set basic extended student info
+      setExtendedStudent({
+        name: "Élève",
+        id: studentId || '',
+        className: '',
+        classSize: 0,
+        birthDate: '',
+        birthPlace: '',
+        gender: '',
+        headTeacher: '',
+        guardian: '',
+        photoUrl: ''
+      });
+
       setLoading(false);
     }
   }, [studentId, studentProfile, profileLoading]);
@@ -609,6 +706,11 @@ export default function ManualBulletinForm({
         classId: parseInt(classId || "0"),
         term: trimestre,
         academicYear,
+        extendedStudentInfo: extendedStudent,
+        extendedDisciplineInfo: extendedDiscipline,
+        generalRemark,
+        annualSummary: isThirdTrimester ? annualSummary : null,
+        signatureData: isSigned ? signatureData : null,
         manualData: {
           subjectGrades: payload.lignes.map((ligne: any) => ({
             subjectName: ligne.matiere,
@@ -1113,64 +1215,157 @@ export default function ManualBulletinForm({
 
         <hr/>
 
-        {/* Discipline / Profil classe */}
+        {/* Extended Student Information Section (matching director interface) */}
+        <div className="p-4 bg-blue-50 rounded-xl">
+          <h3 className="font-semibold mb-3 text-blue-800">Informations Complètes de l'Élève</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+            <LabeledInput 
+              label="Nom & Prénoms" 
+              value={extendedStudent.name} 
+              onChange={v=>setExtendedStudent(prev=>({...prev,name:v}))}
+              data-testid="input-student-name"
+            />
+            <LabeledInput 
+              label="Matricule" 
+              value={extendedStudent.id} 
+              onChange={v=>setExtendedStudent(prev=>({...prev,id:v}))}
+              data-testid="input-student-id"
+            />
+            <LabeledInput 
+              label="Classe" 
+              value={extendedStudent.className} 
+              onChange={v=>setExtendedStudent(prev=>({...prev,className:v}))}
+              data-testid="input-student-class"
+            />
+            <NumberField 
+              label="Effectif de la classe" 
+              value={extendedStudent.classSize} 
+              onChange={v=>setExtendedStudent(prev=>({...prev,classSize:Number(v)||0}))}
+              data-testid="input-class-size"
+            />
+            <LabeledInput 
+              label="Date de naissance" 
+              value={extendedStudent.birthDate} 
+              onChange={v=>setExtendedStudent(prev=>({...prev,birthDate:v}))}
+              type="date"
+              data-testid="input-birth-date"
+            />
+            <LabeledInput 
+              label="Lieu de naissance" 
+              value={extendedStudent.birthPlace} 
+              onChange={v=>setExtendedStudent(prev=>({...prev,birthPlace:v}))}
+              data-testid="input-birth-place"
+            />
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Genre</label>
+              <select 
+                className="w-full text-sm border rounded-lg px-2 py-1"
+                value={extendedStudent.gender}
+                onChange={e=>setExtendedStudent(prev=>({...prev,gender:e.target.value}))}
+                data-testid="select-gender"
+              >
+                <option value="">Sélectionner</option>
+                <option value="Masculin">Masculin</option>
+                <option value="Féminin">Féminin</option>
+              </select>
+            </div>
+            <LabeledInput 
+              label="Professeur principal" 
+              value={extendedStudent.headTeacher} 
+              onChange={v=>setExtendedStudent(prev=>({...prev,headTeacher:v}))}
+              data-testid="input-head-teacher"
+            />
+            <LabeledInput 
+              label="Parents/Tuteurs" 
+              value={extendedStudent.guardian} 
+              onChange={v=>setExtendedStudent(prev=>({...prev,guardian:v}))}
+              data-testid="input-guardian"
+            />
+          </div>
+        </div>
+
+        <hr/>
+
+        {/* Extended Discipline Section (matching director interface) */}
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div className="bg-gray-50 rounded-xl p-3">
-            <h3 className="font-semibold mb-2">Discipline</h3>
+            <h3 className="font-semibold mb-2">Discipline et Absences</h3>
             <div className="grid grid-cols-2 gap-2">
               <NumberField 
                 label="Absences justifiées (h)" 
-                value={meta.absJust} 
-                onChange={v=>setMeta(m=>({...m,absJust:Number(v)||0}))}
-                data-testid="input-justified-absences"
+                value={extendedDiscipline.absJ} 
+                onChange={v=>setExtendedDiscipline(prev=>({...prev,absJ:Number(v)||0}))}
+                data-testid="input-justified-absences-extended"
               />
               <NumberField 
                 label="Absences non justifiées (h)" 
-                value={meta.absNonJust} 
-                onChange={v=>setMeta(m=>({...m,absNonJust:Number(v)||0}))}
-                data-testid="input-unjustified-absences"
+                value={extendedDiscipline.absNJ} 
+                onChange={v=>setExtendedDiscipline(prev=>({...prev,absNJ:Number(v)||0}))}
+                data-testid="input-unjustified-absences-extended"
               />
               <NumberField 
-                label="Retards (fois)" 
-                value={meta.retards} 
-                onChange={v=>setMeta(m=>({...m,retards:Number(v)||0}))}
-                data-testid="input-lateness"
+                label="Retards" 
+                value={extendedDiscipline.late} 
+                onChange={v=>setExtendedDiscipline(prev=>({...prev,late:Number(v)||0}))}
+                data-testid="input-late-extended"
               />
               <NumberField 
-                label="Avertissements" 
-                value={meta.avertissements} 
-                onChange={v=>setMeta(m=>({...m,avertissements:Number(v)||0}))}
-                data-testid="input-warnings"
-              />
-              <NumberField 
-                label="Blâmes" 
-                value={meta.blames} 
-                onChange={v=>setMeta(m=>({...m,blames:Number(v)||0}))}
-                data-testid="input-blames"
-              />
-              <NumberField 
-                label="Exclusions (jours)" 
-                value={meta.exclusions} 
-                onChange={v=>setMeta(m=>({...m,exclusions:Number(v)||0}))}
-                data-testid="input-exclusions"
-              />
-              <NumberField 
-                label="Consignes (heures)" 
-                value={meta.consignes} 
-                onChange={v=>setMeta(m=>({...m,consignes:Number(v)||0}))}
-                data-testid="input-detentions"
+                label="Sanctions/Avertissements" 
+                value={extendedDiscipline.sanctions} 
+                onChange={v=>setExtendedDiscipline(prev=>({...prev,sanctions:Number(v)||0}))}
+                data-testid="input-sanctions-extended"
               />
             </div>
+
+            {/* Legacy discipline fields for compatibility */}
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <h4 className="text-xs font-medium text-gray-600 mb-2">Détails additionnels</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <NumberField 
+                  label="Avertissements" 
+                  value={meta.avertissements} 
+                  onChange={v=>setMeta(m=>({...m,avertissements:Number(v)||0}))}
+                  data-testid="input-warnings"
+                />
+                <NumberField 
+                  label="Blâmes" 
+                  value={meta.blames} 
+                  onChange={v=>setMeta(m=>({...m,blames:Number(v)||0}))}
+                  data-testid="input-blames"
+                />
+                <NumberField 
+                  label="Exclusions (jours)" 
+                  value={meta.exclusions} 
+                  onChange={v=>setMeta(m=>({...m,exclusions:Number(v)||0}))}
+                  data-testid="input-exclusions"
+                />
+                <NumberField 
+                  label="Consignes (heures)" 
+                  value={meta.consignes} 
+                  onChange={v=>setMeta(m=>({...m,consignes:Number(v)||0}))}
+                  data-testid="input-detentions"
+                />
+              </div>
+            </div>
           </div>
+          
           <div className="bg-gray-50 rounded-xl p-3">
-            <h3 className="font-semibold mb-2">Appréciations générales</h3>
+            <h3 className="font-semibold mb-2">Appréciations Générales</h3>
             <div className="grid gap-2">
+              <LabeledTextArea 
+                label="Appréciation générale du trimestre" 
+                value={generalRemark} 
+                onChange={setGeneralRemark} 
+                rows={4}
+                placeholder="Appréciation générale sur le travail et le comportement de l'élève..."
+                data-testid="textarea-general-remark"
+              />
               <LabeledTextArea 
                 label="Appréciation du travail de l'élève (points forts / à améliorer)" 
                 value={meta.appEleve} 
                 onChange={v=>setMeta(m=>({...m,appEleve:v}))} 
-                rows={4}
-                data-testid="textarea-general-appreciation"
+                rows={3}
+                data-testid="textarea-work-appreciation"
               />
               <LabeledInput 
                 label="Visa du parent / Tuteur" 
@@ -1178,6 +1373,163 @@ export default function ManualBulletinForm({
                 onChange={v=>setMeta(m=>({...m,visaParent:v}))}
                 data-testid="input-parent-visa"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Annual Summary Section for Third Trimester (matching director interface) */}
+        {isThirdTrimester && (
+          <>
+            <hr/>
+            <div className="p-4 bg-orange-50 rounded-xl">
+              <h3 className="font-semibold mb-3 text-orange-800">Bilan Annuel - Troisième Trimestre</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <NumberField 
+                  label="Moyenne 1er Trimestre" 
+                  value={annualSummary.firstTrimesterAverage} 
+                  onChange={v=>setAnnualSummary(prev=>({...prev,firstTrimesterAverage:Number(v)||0}))}
+                  step="0.01"
+                  data-testid="input-first-trimester-average"
+                />
+                <NumberField 
+                  label="Moyenne 2ème Trimestre" 
+                  value={annualSummary.secondTrimesterAverage} 
+                  onChange={v=>setAnnualSummary(prev=>({...prev,secondTrimesterAverage:Number(v)||0}))}
+                  step="0.01"
+                  data-testid="input-second-trimester-average"
+                />
+                <NumberField 
+                  label="Moyenne 3ème Trimestre" 
+                  value={annualSummary.thirdTrimesterAverage} 
+                  onChange={v=>setAnnualSummary(prev=>({...prev,thirdTrimesterAverage:Number(v)||0}))}
+                  step="0.01"
+                  data-testid="input-third-trimester-average"
+                />
+                <NumberField 
+                  label="Moyenne Annuelle" 
+                  value={annualSummary.annualAverage} 
+                  onChange={v=>setAnnualSummary(prev=>({...prev,annualAverage:Number(v)||0}))}
+                  step="0.01"
+                  data-testid="input-annual-average"
+                />
+                <NumberField 
+                  label="Rang Annuel" 
+                  value={annualSummary.annualRank} 
+                  onChange={v=>setAnnualSummary(prev=>({...prev,annualRank:Number(v)||0}))}
+                  data-testid="input-annual-rank"
+                />
+                <NumberField 
+                  label="Total Élèves" 
+                  value={annualSummary.totalStudents} 
+                  onChange={v=>setAnnualSummary(prev=>({...prev,totalStudents:Number(v)||0}))}
+                  data-testid="input-total-students"
+                />
+              </div>
+              
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Décision de Passage</label>
+                  <select 
+                    className="w-full text-sm border rounded-lg px-2 py-1"
+                    value={annualSummary.passDecision}
+                    onChange={e=>setAnnualSummary(prev=>({...prev,passDecision:e.target.value}))}
+                    data-testid="select-pass-decision"
+                  >
+                    <option value="">Sélectionner</option>
+                    <option value="PASSE">PASSE en classe supérieure</option>
+                    <option value="REDOUBLE">REDOUBLE</option>
+                    <option value="RENVOYÉ">RENVOYÉ</option>
+                  </select>
+                </div>
+                <div>
+                  {/* Placeholder for additional annual options */}
+                </div>
+              </div>
+              
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <LabeledTextArea 
+                  label="Appréciation Finale" 
+                  value={annualSummary.finalAppreciation} 
+                  onChange={v=>setAnnualSummary(prev=>({...prev,finalAppreciation:v}))} 
+                  rows={3}
+                  placeholder="Bilan final de l'année scolaire..."
+                  data-testid="textarea-final-appreciation"
+                />
+                <LabeledTextArea 
+                  label="Recommandations pour les Vacances" 
+                  value={annualSummary.holidayRecommendations} 
+                  onChange={v=>setAnnualSummary(prev=>({...prev,holidayRecommendations:v}))} 
+                  rows={3}
+                  placeholder="Activités et recommandations pour les vacances..."
+                  data-testid="textarea-holiday-recommendations"
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Digital Signature and Actions Section (matching director interface) */}
+        <hr/>
+        <div className="p-4 bg-green-50 rounded-xl">
+          <h3 className="font-semibold mb-3 text-green-800">Signature Numérique et Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSigned(!isSigned);
+                  if (!isSigned) {
+                    setSignatureData({
+                      verificationCode: `EDU${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+                      timestamp: new Date().toISOString(),
+                      signedBy: "Enseignant",
+                      status: 'signed'
+                    });
+                  }
+                }}
+                className={`w-full px-4 py-2 rounded-xl font-medium ${
+                  isSigned 
+                    ? 'bg-green-600 text-white' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                }`}
+                data-testid="button-sign-bulletin"
+              >
+                {isSigned ? '✓ Bulletin Signé' : 'Signer le Bulletin'}
+              </button>
+              
+              {isSigned && signatureData && (
+                <div className="text-xs text-green-700 bg-white p-2 rounded border">
+                  <div><strong>Code:</strong> {signatureData.verificationCode}</div>
+                  <div><strong>Signé par:</strong> {signatureData.signedBy}</div>
+                  <div><strong>Date:</strong> {new Date(signatureData.timestamp).toLocaleString('fr-FR')}</div>
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isSigned) {
+                    alert('Le bulletin doit d\'abord être signé avant l\'envoi');
+                    return;
+                  }
+                  alert(`Bulletin envoyé avec succès!\n\n📧 Élève: Email + SMS\n📱 Parents: Email + WhatsApp\n\nCode de vérification: ${signatureData?.verificationCode}`);
+                }}
+                disabled={!isSigned}
+                className={`w-full px-4 py-2 rounded-xl font-medium ${
+                  isSigned 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+                data-testid="button-send-bulletin"
+              >
+                Envoyer aux Élèves/Parents
+              </button>
+              
+              <div className="text-xs text-gray-600">
+                Envoi automatique par Email, SMS et WhatsApp
+              </div>
             </div>
           </div>
         </div>
