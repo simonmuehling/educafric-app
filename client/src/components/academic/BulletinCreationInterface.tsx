@@ -32,7 +32,6 @@ interface Subject {
   competencyEvaluation?: string;
   // Additional fields for official Cameroon format
   note1: number;
-  note2: number;
   moyenneFinale: number;
   competence1: string;
   competence2: string;
@@ -80,11 +79,7 @@ const round2 = (x: number): number => {
   return Math.round((Number(x) + Number.EPSILON) * 100) / 100;
 };
 
-const calculateMoyenneFinale = (note1: string | number, note2: string | number): number => {
-  const n1 = Number(note1) || 0;
-  const n2 = Number(note2) || 0;
-  return round2((n1 + n2) / 2);
-};
+// Note: No longer calculating moyenne - both N/20 and M/20 are independent manual inputs
 
 const coteFromNote = (note: number): string => {
   if (note >= 18) return 'A+';
@@ -279,7 +274,7 @@ export default function BulletinCreationInterface() {
       grade: 0, 
       remark: '', 
       note1: 0, 
-      note2: 0, 
+ 
       moyenneFinale: 0, 
       competence1: '', 
       competence2: '', 
@@ -293,7 +288,7 @@ export default function BulletinCreationInterface() {
       grade: 0, 
       remark: '', 
       note1: 0, 
-      note2: 0, 
+ 
       moyenneFinale: 0, 
       competence1: '', 
       competence2: '', 
@@ -307,7 +302,7 @@ export default function BulletinCreationInterface() {
       grade: 0, 
       remark: '', 
       note1: 0, 
-      note2: 0, 
+ 
       moyenneFinale: 0, 
       competence1: '', 
       competence2: '', 
@@ -385,7 +380,7 @@ export default function BulletinCreationInterface() {
       grade: 0,
       remark: '',
       note1: 0,
-      note2: 0,
+
       moyenneFinale: 0,
       competence1: '',
       competence2: '',
@@ -412,7 +407,6 @@ export default function BulletinCreationInterface() {
       
       // Always recalculate derived values
       const n1 = Number(updatedSubject.note1) || 0;
-      const n2 = Number(updatedSubject.note2) || 0;
       const coef = Number(updatedSubject.coefficient) || 0;
       
       // No automatic calculation - note1 and moyenneFinale are independent manual inputs
@@ -773,7 +767,6 @@ export default function BulletinCreationInterface() {
     lines: subjects.map(s => ({
       subject: s.name,
       note1: s.note1,
-      note2: s.note2,
       moyenneFinale: s.moyenneFinale,
       m20: s.moyenneFinale || s.grade, // Use moyenneFinale as primary, fallback to grade
       coef: s.coefficient,
@@ -1039,17 +1032,6 @@ export default function BulletinCreationInterface() {
                                 onChange={(e) => updateSubject(subject.id, 'moyenneFinale', parseFloat(e.target.value) || 0)}
                                 placeholder="M/20"
                                 data-testid={`input-moyenne-${index}`}
-                              />
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="20"
-                                className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm ml-1"
-                                value={subject.note2 === 0 ? '' : subject.note2}
-                                onChange={(e) => updateSubject(subject.id, 'note2', parseFloat(e.target.value) || 0)}
-                                placeholder="N2/20"
-                                data-testid={`input-note2-${index}`}
                               />
                             </div>
                           </td>
