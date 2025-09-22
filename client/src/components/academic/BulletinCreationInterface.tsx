@@ -572,15 +572,13 @@ export default function BulletinCreationInterface() {
         academicYear: year
       };
       
-      const response = await apiRequest('/api/bulletins/create', {
-        method: 'POST',
-        body: verificationData
-      });
+      const response = await apiRequest('POST', '/api/bulletins/create', verificationData);
+      const responseData = await response.json();
       
-      if (response.success) {
+      if (responseData.success) {
         const signatureData = {
-          verificationCode: response.data.verificationCode,
-          shortCode: response.data.shortCode,
+          verificationCode: responseData.data.verificationCode,
+          shortCode: responseData.data.shortCode,
           timestamp: new Date().toISOString(),
           signedBy: "Chef d'Établissement",
           status: 'signed'
@@ -589,9 +587,9 @@ export default function BulletinCreationInterface() {
         setSignatureData(signatureData);
         setIsSigned(true);
         
-        alert(`Bulletin signé numériquement!\nCode de vérification: ${response.data.shortCode}\n\nVous pouvez vérifier ce bulletin sur /verify avec ce code.`);
+        alert(`Bulletin signé numériquement!\nCode de vérification: ${responseData.data.shortCode}\n\nVous pouvez vérifier ce bulletin sur /verify avec ce code.`);
       } else {
-        throw new Error(response.message || 'Erreur lors de la signature');
+        throw new Error(responseData.message || 'Erreur lors de la signature');
       }
     } catch (error) {
       console.error('Error signing bulletin:', error);
