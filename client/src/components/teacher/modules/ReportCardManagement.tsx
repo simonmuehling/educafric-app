@@ -42,18 +42,40 @@ const ReportCardManagement: React.FC = () => {
     enabled: !!user
   });
 
-  // Extract classes from response
-  const classes = useMemo(() => {
+  // Extract schools and classes from response - preserve school organization
+  const schoolsWithClasses = useMemo(() => {
     if (!classesData) return [];
-    if (Array.isArray(classesData)) return classesData;
-    if (classesData.classes && Array.isArray(classesData.classes)) return classesData.classes;
-    // Handle schoolsWithClasses format
     if (classesData.schoolsWithClasses && Array.isArray(classesData.schoolsWithClasses)) {
-      const allClasses = classesData.schoolsWithClasses.flatMap((school: any) => school.classes || []);
-      return allClasses;
+      return classesData.schoolsWithClasses;
+    }
+    // Fallback for other formats - create single school structure
+    let allClasses = [];
+    if (Array.isArray(classesData)) {
+      allClasses = classesData;
+    } else if (classesData.classes && Array.isArray(classesData.classes)) {
+      allClasses = classesData.classes;
+    }
+    
+    if (allClasses.length > 0) {
+      return [{
+        schoolId: user?.schoolId || 1,
+        schoolName: 'École Principale',
+        classes: allClasses
+      }];
     }
     return [];
-  }, [classesData]);
+  }, [classesData, user]);
+
+  // Flatten classes for compatibility with existing code
+  const classes = useMemo(() => {
+    return schoolsWithClasses.flatMap((school: any) => 
+      (school.classes || []).map((cls: any) => ({
+        ...cls,
+        schoolName: school.schoolName,
+        schoolId: school.schoolId
+      }))
+    );
+  }, [schoolsWithClasses]);
 
   // Check if sandbox mode and no data available  
   const isSandboxMode = user?.email?.includes('sandbox') || user?.email?.includes('@test.educafric.com');
@@ -199,10 +221,19 @@ const ReportCardManagement: React.FC = () => {
                   <SelectValue placeholder={t.selectClass} />
                 </SelectTrigger>
                 <SelectContent>
-                  {classes.map((cls: any) => (
-                    <SelectItem key={cls.id} value={cls.id.toString()}>
-                      {cls.name} - {cls.level}
-                    </SelectItem>
+                  {schoolsWithClasses.map((school: any) => (
+                    <div key={school.schoolId}>
+                      {schoolsWithClasses.length > 1 && (
+                        <div className="px-2 py-1.5 text-sm font-semibold text-gray-600 bg-gray-50">
+                          🏫 {school.schoolName}
+                        </div>
+                      )}
+                      {(school.classes || []).map((cls: any) => (
+                        <SelectItem key={cls.id} value={cls.id.toString()}>
+                          {cls.name} - {cls.level}
+                        </SelectItem>
+                      ))}
+                    </div>
                   ))}
                 </SelectContent>
               </Select>
