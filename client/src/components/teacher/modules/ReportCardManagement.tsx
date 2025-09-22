@@ -329,7 +329,13 @@ const ReportCardManagement: React.FC = () => {
     generationSettings: language === 'fr' ? 'Paramètres de génération' : 'Generation Settings',
     includeComments: language === 'fr' ? 'Inclure commentaires' : 'Include comments',
     includeRankings: language === 'fr' ? 'Inclure classements' : 'Include rankings',
-    includeStatistics: language === 'fr' ? 'Inclure statistiques' : 'Include statistics'
+    includeStatistics: language === 'fr' ? 'Inclure statistiques' : 'Include statistics',
+    loadTestData: language === 'fr' ? 'Charger les données de test' : 'Load test data',
+    regenerateTestData: language === 'fr' ? 'Regénérer les données de test' : 'Regenerate test data',
+    loadTestDataDescription: language === 'fr' ? 'Chargez des données de test pour explorer le système de bulletins unifié.' : 'Load test data to explore the unified bulletin system.',
+    regenerateTestDataDescription: language === 'fr' ? 'Rechargez des données fraîches pour tester le système avec de nouvelles informations.' : 'Reload fresh data to test the system with new information.',
+    generatingInProgress: language === 'fr' ? 'Génération en cours...' : 'Generation in progress...',
+    testDataSummary: language === 'fr' ? '2 classes • 16 étudiants • 6 matières • Données cohérentes' : '2 classes • 16 students • 6 subjects • Consistent data'
   };
 
   return (
@@ -355,17 +361,20 @@ const ReportCardManagement: React.FC = () => {
               <Database className="h-8 w-8 text-blue-500" />
               <div>
                 <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
-                  Mode Sandbox - Données de Test
+                  {language === 'fr' ? 'Mode Sandbox - Données de Test' : 'Sandbox Mode - Test Data'}
                 </h3>
                 <p className="text-sm text-blue-600 dark:text-blue-400">
-                  {hasNoData ? 'Aucune donnée disponible' : `${classes.length} classes chargées`}
+                  {hasNoData 
+                    ? (language === 'fr' ? 'Aucune donnée disponible' : 'No data available')
+                    : `${classes.length} ${language === 'fr' ? 'classes chargées' : 'classes loaded'}`
+                  }
                 </p>
               </div>
             </div>
             <p className="text-blue-700 dark:text-blue-300 text-center mb-4 text-sm max-w-md">
               {hasNoData 
-                ? 'Chargez des données de test pour explorer le système de bulletins unifié.'
-                : 'Rechargez des données fraîches pour tester le système avec de nouvelles informations.'
+                ? t.loadTestDataDescription
+                : t.regenerateTestDataDescription
               }
             </p>
             <Button 
@@ -377,18 +386,18 @@ const ReportCardManagement: React.FC = () => {
               {loadTestDataMutation.isPending ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Génération en cours...
+                  {t.generatingInProgress}
                 </>
               ) : (
                 <>
                   <Database className="h-4 w-4 mr-2" />
-                  {hasNoData ? 'Charger les données de test' : 'Regénérer les données de test'}
+                  {hasNoData ? t.loadTestData : t.regenerateTestData}
                 </>
               )}
             </Button>
             <div className="mt-3 text-xs text-blue-600 dark:text-blue-400 text-center">
-              <p>✅ 2 classes • 16 étudiants • 6 matières • Données cohérentes</p>
-              <p>🔄 Données temporaires en mémoire (redémarrage = reset)</p>
+              <p>✅ {t.testDataSummary}</p>
+              <p>🔄 {language === 'fr' ? 'Données temporaires en mémoire (redémarrage = reset)' : 'Temporary data in memory (restart = reset)'}</p>
             </div>
           </CardContent>
         </Card>
@@ -676,8 +685,8 @@ const ReportCardManagement: React.FC = () => {
                         </Collapsible>
                       )}
 
-                      {/* Section 3: Appreciations & Comments - VISIBLE selon options */}
-                      {includeComments && (
+                      {/* Section 3: Appreciations & Comments - Optionnelle */}
+                      {false && (
                         <Collapsible open={openSections.appreciations} onOpenChange={() => toggleSection('appreciations')}>
                           <Card>
                           <CollapsibleTrigger asChild>
