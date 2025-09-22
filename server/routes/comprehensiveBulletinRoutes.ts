@@ -30,6 +30,15 @@ import {
   type InsertBulletinComprehensive,
   type InsertBulletinSubjectCodes
 } from '../../shared/schemas/bulletinComprehensiveSchema.ts';
+import {
+  competencyEvaluationSystems,
+  predefinedAppreciations,
+  competencyTemplates,
+  predefinedAppreciationValidationSchema,
+  competencyTemplateValidationSchema,
+  DEFAULT_COMPETENCY_SYSTEMS,
+  DEFAULT_APPRECIATION_TEMPLATES
+} from '../../shared/schemas/predefinedAppreciationsSchema.ts';
 import { eq, and, sql, inArray } from 'drizzle-orm';
 import { requireAuth, requireAnyRole } from '../middleware/auth';
 
@@ -6194,6 +6203,349 @@ router.get('/email-status/:bulletinId', requireAuth, requireDirectorAuth, async 
     res.status(500).json({
       success: false,
       message: 'Erreur lors de la récupération du statut email',
+      error: error.message
+    });
+  }
+});
+
+// ===== PREDEFINED APPRECIATIONS & COMPETENCY TEMPLATES ROUTES =====
+
+// Get competency evaluation systems
+router.get('/competency-systems', requireAuth, async (req, res) => {
+  try {
+    const systems = await db.select().from(competencyEvaluationSystems).where(eq(competencyEvaluationSystems.isActive, true));
+    
+    res.json({
+      success: true,
+      data: systems
+    });
+  } catch (error: any) {
+    console.error('[COMPETENCY_SYSTEMS] ❌ Error fetching systems:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching competency evaluation systems',
+      error: error.message
+    });
+  }
+});
+
+// Get predefined appreciations
+router.get('/predefined-appreciations', requireAuth, async (req, res) => {
+  try {
+    const { category, targetRole, schoolId } = req.query;
+    const user = req.user as any;
+    
+    // Build query conditions
+    const conditions = [eq(predefinedAppreciations.isActive, true)];
+    
+    // Filter by category if provided
+    if (category) {
+      conditions.push(eq(predefinedAppreciations.category, category as string));
+    }
+    
+    // Filter by target role if provided
+    if (targetRole) {
+      conditions.push(eq(predefinedAppreciations.targetRole, targetRole as string));
+    }
+    
+    // Include global templates and school-specific templates
+    if (schoolId || user.schoolId) {
+      const userSchoolId = schoolId ? parseInt(schoolId as string) : user.schoolId;
+      conditions.push(
+        sql`(${predefinedAppreciations.isGlobal} = true OR ${predefinedAppreciations.schoolId} = ${userSchoolId} OR ${predefinedAppreciations.schoolId} IS NULL)`
+      );
+    } else {
+      conditions.push(eq(predefinedAppreciations.isGlobal, true));
+    }
+    
+    const appreciations = await db
+      .select()
+      .from(predefinedAppreciations)
+      .where(and(...conditions))
+      .orderBy(predefinedAppreciations.category, predefinedAppreciations.name);
+    
+    res.json({
+      success: true,
+      data: appreciations
+    });
+  } catch (error: any) {
+    console.error('[PREDEFINED_APPRECIATIONS] ❌ Error fetching appreciations:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching predefined appreciations',
+      error: error.message
+    });
+  }
+});
+
+// Create predefined appreciation
+router.post('/predefined-appreciations', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Validate request body
+    const validationResult = predefinedAppreciationValidationSchema.safeParse({
+      ...req.body,
+      createdBy: user.id,
+      schoolId: req.body.schoolId || user.schoolId
+    });
+    
+    if (!validationResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationResult.error.errors
+      });
+    }
+    
+    const [newAppreciation] = await db
+      .insert(predefinedAppreciations)
+      .values(validationResult.data)
+      .returning();
+    
+    console.log('[PREDEFINED_APPRECIATIONS] ✅ Created appreciation:', newAppreciation.name);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Predefined appreciation created successfully',
+      data: newAppreciation
+    });
+  } catch (error: any) {
+    console.error('[PREDEFINED_APPRECIATIONS] ❌ Error creating appreciation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating predefined appreciation',
+      error: error.message
+    });
+  }
+});
+
+// Update predefined appreciation
+router.put('/predefined-appreciations/:id', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = req.user as any;
+    
+    // Check if appreciation exists and user has permission
+    const [existing] = await db
+      .select()
+      .from(predefinedAppreciations)
+      .where(eq(predefinedAppreciations.id, parseInt(id)))
+      .limit(1);
+    
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: 'Predefined appreciation not found'
+      });
+    }
+    
+    // Only allow editing if it's user's school or global (admin only)
+    if (!existing.isGlobal && existing.schoolId !== user.schoolId && user.role !== 'Admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to edit this appreciation'
+      });
+    }
+    
+    // Validate update data
+    const validationResult = predefinedAppreciationValidationSchema.partial().safeParse(req.body);
+    
+    if (!validationResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationResult.error.errors
+      });
+    }
+    
+    const [updated] = await db
+      .update(predefinedAppreciations)
+      .set({ ...validationResult.data, updatedAt: new Date() })
+      .where(eq(predefinedAppreciations.id, parseInt(id)))
+      .returning();
+    
+    console.log('[PREDEFINED_APPRECIATIONS] ✅ Updated appreciation:', updated.name);
+    
+    res.json({
+      success: true,
+      message: 'Predefined appreciation updated successfully',
+      data: updated
+    });
+  } catch (error: any) {
+    console.error('[PREDEFINED_APPRECIATIONS] ❌ Error updating appreciation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating predefined appreciation',
+      error: error.message
+    });
+  }
+});
+
+// Get competency templates
+router.get('/competency-templates', requireAuth, async (req, res) => {
+  try {
+    const { subjectName, term, schoolId } = req.query;
+    const user = req.user as any;
+    
+    // Build query conditions
+    const conditions = [eq(competencyTemplates.isActive, true)];
+    
+    // Filter by subject if provided
+    if (subjectName) {
+      conditions.push(eq(competencyTemplates.subjectName, subjectName as string));
+    }
+    
+    // Filter by term if provided
+    if (term) {
+      conditions.push(eq(competencyTemplates.term, term as string));
+    }
+    
+    // Include global templates and school-specific templates
+    if (schoolId || user.schoolId) {
+      const userSchoolId = schoolId ? parseInt(schoolId as string) : user.schoolId;
+      conditions.push(
+        sql`(${competencyTemplates.isGlobal} = true OR ${competencyTemplates.schoolId} = ${userSchoolId} OR ${competencyTemplates.schoolId} IS NULL)`
+      );
+    } else {
+      conditions.push(eq(competencyTemplates.isGlobal, true));
+    }
+    
+    const templates = await db
+      .select()
+      .from(competencyTemplates)
+      .where(and(...conditions))
+      .orderBy(competencyTemplates.subjectName, competencyTemplates.term);
+    
+    res.json({
+      success: true,
+      data: templates
+    });
+  } catch (error: any) {
+    console.error('[COMPETENCY_TEMPLATES] ❌ Error fetching templates:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching competency templates',
+      error: error.message
+    });
+  }
+});
+
+// Create competency template
+router.post('/competency-templates', requireAuth, requireAnyRole(['Director', 'Admin', 'Teacher']), async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Validate request body
+    const validationResult = competencyTemplateValidationSchema.safeParse({
+      ...req.body,
+      createdBy: user.id,
+      schoolId: req.body.schoolId || user.schoolId
+    });
+    
+    if (!validationResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationResult.error.errors
+      });
+    }
+    
+    const [newTemplate] = await db
+      .insert(competencyTemplates)
+      .values(validationResult.data)
+      .returning();
+    
+    console.log('[COMPETENCY_TEMPLATES] ✅ Created template:', newTemplate.subjectName, newTemplate.term);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Competency template created successfully',
+      data: newTemplate
+    });
+  } catch (error: any) {
+    console.error('[COMPETENCY_TEMPLATES] ❌ Error creating template:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating competency template',
+      error: error.message
+    });
+  }
+});
+
+// Initialize default data (systems and templates)
+router.post('/initialize-defaults', requireAuth, requireAnyRole(['Admin']), async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Initialize competency evaluation systems
+    const systemInserts = [];
+    for (const [key, system] of Object.entries(DEFAULT_COMPETENCY_SYSTEMS)) {
+      try {
+        const [existing] = await db
+          .select()
+          .from(competencyEvaluationSystems)
+          .where(eq(competencyEvaluationSystems.name, system.name))
+          .limit(1);
+        
+        if (!existing) {
+          const [newSystem] = await db
+            .insert(competencyEvaluationSystems)
+            .values(system)
+            .returning();
+          systemInserts.push(newSystem);
+        }
+      } catch (error) {
+        console.error(`[INIT_DEFAULTS] Error creating system ${key}:`, error);
+      }
+    }
+    
+    // Initialize default appreciation templates
+    const appreciationInserts = [];
+    for (const template of DEFAULT_APPRECIATION_TEMPLATES) {
+      try {
+        const [existing] = await db
+          .select()
+          .from(predefinedAppreciations)
+          .where(and(
+            eq(predefinedAppreciations.name, template.name),
+            eq(predefinedAppreciations.isGlobal, true)
+          ))
+          .limit(1);
+        
+        if (!existing) {
+          const [newAppreciation] = await db
+            .insert(predefinedAppreciations)
+            .values({
+              ...template,
+              createdBy: user.id
+            })
+            .returning();
+          appreciationInserts.push(newAppreciation);
+        }
+      } catch (error) {
+        console.error(`[INIT_DEFAULTS] Error creating appreciation ${template.name}:`, error);
+      }
+    }
+    
+    console.log('[INIT_DEFAULTS] ✅ Initialization completed:', {
+      systemsCreated: systemInserts.length,
+      appreciationsCreated: appreciationInserts.length
+    });
+    
+    res.json({
+      success: true,
+      message: 'Default data initialized successfully',
+      data: {
+        competencySystems: systemInserts,
+        predefinedAppreciations: appreciationInserts
+      }
+    });
+  } catch (error: any) {
+    console.error('[INIT_DEFAULTS] ❌ Error initializing defaults:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error initializing default data',
       error: error.message
     });
   }

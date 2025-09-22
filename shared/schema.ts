@@ -15,6 +15,7 @@ export * from "./schemas/bulletinVerificationSchema"; // NEW: Bulletin verificat
 export * from "./schemas/classEnrollmentSchema"; // CRITICAL: Class enrollment for RBAC security
 export * from "./schemas/sanctionsSchema"; // NEW: Disciplinary sanctions management
 export * from "./schemas/librarySchema"; // NEW: Library books and recommendations management
+export * from "./schemas/predefinedAppreciationsSchema"; // NEW: Predefined appreciations and competency templates
 
 // Import existing schema modules
 export * from "./tutorialSchema";
@@ -39,8 +40,13 @@ import {
   libraryRecommendationDispatch, 
   webpushSubscriptions 
 } from "./schemas/librarySchema";
+import {
+  competencyEvaluationSystems,
+  predefinedAppreciations,
+  competencyTemplates
+} from "./schemas/predefinedAppreciationsSchema";
 
-export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions };
+export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates };
 
 // Additional simplified tables for compatibility
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric, date, unique, foreignKey } from "drizzle-orm/pg-core";
