@@ -882,9 +882,9 @@ export default function ManualBulletinForm({
                         )}
                         
                         {/* Appreciation Input with Predefined Options */}
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 items-start">
                           <textarea 
-                            className="flex-1 border rounded-lg px-2 py-1 text-sm" 
+                            className="flex-1 border rounded-lg px-2 py-1 text-sm min-h-[3rem]" 
                             rows={2} 
                             value={r.appreciation} 
                             onChange={e=>updateRow(i,{appreciation:e.target.value})} 
@@ -892,31 +892,43 @@ export default function ManualBulletinForm({
                             data-testid={`textarea-appreciation-${i}`}
                           />
                           
-                          {/* Predefined Appreciations Selector */}
+                          {/* Compact Predefined Appreciations Selector - Mobile Optimized */}
                           <Select 
                             onValueChange={(value) => updateRow(i, {appreciation: value})}
                           >
                             <SelectTrigger 
-                              className="w-20 text-xs"
+                              className="w-8 h-8 p-0 border-2 border-blue-300 hover:border-blue-500 flex items-center justify-center shrink-0"
                               disabled={!predefinedAppreciations?.data}
                               data-testid={`button-open-appreciations-${i}`}
+                              title={predefinedAppreciations?.data ? "Choisir une appréciation prédéfinie" : "Chargement..."}
                             >
-                              <SelectValue placeholder={predefinedAppreciations?.data ? "+" : "..."} />
+                              <SelectValue placeholder={predefinedAppreciations?.data ? "📝" : "⏳"} />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="max-w-[280px] max-h-[200px] overflow-y-auto">
+                              <div className="p-2 border-b bg-slate-50 text-xs font-medium text-slate-600">
+                                📝 Appréciations suggérées
+                              </div>
                               {predefinedAppreciations?.data?.filter((app: any) => 
                                 (!app.gradeRange || (Number(r.m20) >= app.gradeRange.min && Number(r.m20) < app.gradeRange.max))
-                              ).slice(0, 5).map((appreciation: any) => (
+                              ).slice(0, 8).map((appreciation: any) => (
                                 <SelectItem 
                                   key={appreciation.id} 
                                   value={appreciation.appreciation}
                                   data-testid={`option-appreciation-${appreciation.id}`}
+                                  className="cursor-pointer hover:bg-blue-50"
                                 >
-                                  <div className="text-xs">
-                                    {appreciation.appreciation?.substring(0, 30)}...
+                                  <div className="text-xs leading-relaxed py-1">
+                                    {appreciation.appreciation?.length > 45 
+                                      ? appreciation.appreciation.substring(0, 45) + "..." 
+                                      : appreciation.appreciation}
                                   </div>
                                 </SelectItem>
                               ))}
+                              {!predefinedAppreciations?.data?.length && (
+                                <div className="p-2 text-xs text-slate-500 italic">
+                                  Aucune appréciation disponible
+                                </div>
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
