@@ -415,15 +415,16 @@ export default function BulletinCreationInterface() {
       const n2 = Number(updatedSubject.note2) || 0;
       const coef = Number(updatedSubject.coefficient) || 0;
       
-      // Calculate moyenne finale from note1 and note2
-      if (['note1', 'note2'].includes(field)) {
-        updatedSubject.moyenneFinale = calculateMoyenneFinale(n1, n2);
-        updatedSubject.grade = updatedSubject.moyenneFinale;
-      }
+      // No automatic calculation - note1 and moyenneFinale are independent manual inputs
       
-      // If moyenne finale is directly updated, sync it to grade
+      // If moyenne finale is directly updated, sync it to grade  
       if (field === 'moyenneFinale') {
         updatedSubject.grade = Number(updatedSubject.moyenneFinale) || 0;
+      }
+      
+      // If note1 is updated, sync it to grade (N/20 is the primary grade)
+      if (field === 'note1') {
+        updatedSubject.grade = Number(updatedSubject.note1) || 0;
       }
       
       // Recalculate all derived fields
@@ -993,8 +994,8 @@ export default function BulletinCreationInterface() {
                   </thead>
                   <tbody>
                     {subjects.map((subject, index) => {
-                      // Calculate values using the new Cameroon format
-                      const moyenneFinale = calculateMoyenneFinale(subject.note1, subject.note2);
+                      // Use manually entered values - no automatic calculation
+                      const moyenneFinale = subject.moyenneFinale || 0;
                       const totalPondere = round2(moyenneFinale * subject.coefficient);
                       const notePercent = round2((moyenneFinale / 20) * 100);
                       const cote = coteFromNote(moyenneFinale);
@@ -1024,7 +1025,7 @@ export default function BulletinCreationInterface() {
                                 className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm"
                                 value={subject.note1 === 0 ? '' : subject.note1}
                                 onChange={(e) => updateSubject(subject.id, 'note1', parseFloat(e.target.value) || 0)}
-                                placeholder="N"
+                                placeholder="N/20"
                                 data-testid={`input-note1-${index}`}
                               />
                               <span className="text-gray-500">-</span>
@@ -1036,7 +1037,7 @@ export default function BulletinCreationInterface() {
                                 className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm font-bold bg-blue-50"
                                 value={subject.moyenneFinale === 0 ? '' : subject.moyenneFinale}
                                 onChange={(e) => updateSubject(subject.id, 'moyenneFinale', parseFloat(e.target.value) || 0)}
-                                placeholder="M"
+                                placeholder="M/20"
                                 data-testid={`input-moyenne-${index}`}
                               />
                               <Input
@@ -1047,7 +1048,7 @@ export default function BulletinCreationInterface() {
                                 className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm ml-1"
                                 value={subject.note2 === 0 ? '' : subject.note2}
                                 onChange={(e) => updateSubject(subject.id, 'note2', parseFloat(e.target.value) || 0)}
-                                placeholder="N2"
+                                placeholder="N2/20"
                                 data-testid={`input-note2-${index}`}
                               />
                             </div>
