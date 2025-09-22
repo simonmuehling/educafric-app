@@ -892,14 +892,17 @@ export default function BulletinCreationInterface() {
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="headTeacher">Professeur principal</Label>
+                <div className="border-l-4 border-blue-500 pl-3 bg-blue-50/50 rounded-r-lg">
+                  <Label htmlFor="headTeacher" className="text-sm font-semibold text-blue-700">
+                    📚 Professeur principal
+                  </Label>
                   <Input
                     id="headTeacher"
                     data-testid="input-head-teacher"
                     value={student.headTeacher}
                     onChange={(e) => setStudent({...student, headTeacher: e.target.value})}
-                    placeholder="Mme NGONO"
+                    placeholder="Mme NGONO Marie"
+                    className="mt-1 border-blue-200 focus:border-blue-400"
                   />
                 </div>
 
@@ -1089,8 +1092,8 @@ export default function BulletinCreationInterface() {
                                     📝 Appréciations suggérées
                                   </div>
                                   {predefinedAppreciations?.data?.filter((app: any) => 
-                                    app.targetRole === 'director' && 
-                                    (!app.gradeRange || (moyenneFinale >= app.gradeRange.min && moyenneFinale <= app.gradeRange.max))
+                                    (app.targetRole === 'director' || app.targetRole === 'teacher' || !app.targetRole) && 
+                                    (!app.gradeRange || moyenneFinale === 0 || (moyenneFinale >= (app.gradeRange.min || 0) && moyenneFinale <= (app.gradeRange.max || 20)))
                                   ).map((appreciation: any) => (
                                     <SelectItem key={appreciation.id} value={appreciation.appreciationFr}>
                                       <div className="text-xs leading-relaxed py-1">
