@@ -886,13 +886,13 @@ export class ComprehensiveBulletinGenerator {
       
       console.log(`[A4_LAYOUT] 📏 Table: ${tableWidth}pts wide, starting at x=${tableStartX}`);
       
-      // New column structure matching example: SUBJECTS | C | T1 | T2 | T3 | COMP | TEACHER
+      // New column structure: SUBJECTS | C | T1 | T2 | T3 | COMP (teacher name displayed under subject name)
       const tableHeaders = options.language === 'fr' 
-        ? ['MATIÈRES', 'C', 'T1', 'T2', 'T3', 'COMP', 'ENSEIGNANT']
-        : ['SUBJECTS', 'C', 'T1', 'T2', 'T3', 'COMP', 'TEACHER'];
+        ? ['MATIÈRES', 'C', 'T1', 'T2', 'T3', 'COMP']
+        : ['SUBJECTS', 'C', 'T1', 'T2', 'T3', 'COMP'];
       
-      // 🔧 A4-Optimized column widths for perfect print fit (total: 455pts fits in A4 content)
-      const tableColWidths = [180, 25, 35, 35, 35, 45, 100]; // Total: 455pts (fits in A4 content)
+      // 🔧 A4-Optimized column widths - removed teacher column, expanded subject column
+      const tableColWidths = [280, 25, 35, 35, 35, 45]; // Total: 455pts (fits in A4 content)
       
       console.log(`[A4_LAYOUT] 📏 Column widths total: ${tableColWidths.reduce((a,b) => a+b, 0)}pts (content: ${tableWidth}pts)`);
       
@@ -954,7 +954,7 @@ export class ComprehensiveBulletinGenerator {
         
         // Draw subjects in this section
         section.subjects.forEach((subject, index) => {
-          const rowHeight = 10;
+          const rowHeight = 14; // Increased height to accommodate teacher name under subject
           const isEvenRow = index % 2 === 0;
           
           // Subtle alternating row background
@@ -966,7 +966,7 @@ export class ComprehensiveBulletinGenerator {
             });
           }
           
-          // Draw subject data with new column structure
+          // Draw subject data with new column structure (removed teacher column)
           colX = tableStartX + 2;
           
           const rowData = [
@@ -975,25 +975,36 @@ export class ComprehensiveBulletinGenerator {
             subject.firstEvaluation?.toFixed(1) || '--',
             subject.secondEvaluation?.toFixed(1) || '--', 
             subject.thirdEvaluation?.toFixed(1) || '--',
-            subject.termAverage.toFixed(1),
-            subject.teacherName || 'N/A'
+            subject.termAverage.toFixed(1)
           ];
           
           rowData.forEach((data, colIndex) => {
-            const textSize = colIndex === 0 ? 7 : 6;
-            const font = colIndex === 0 ? helveticaBold : helvetica;
-            
-            // Truncate teacher name if too long
-            let displayData = data;
-            if (colIndex === 6 && data.length > 12) {
-              displayData = data.substring(0, 10) + '..';
+            if (colIndex === 0) {
+              // First column: Display subject name in bold at top
+              drawText(data, colX, currentY - 4, {
+                font: helveticaBold, 
+                size: 7, 
+                color: textColor
+              });
+              
+              // Display teacher name below subject name in smaller italic font
+              const teacherName = subject.teacherName || 'N/A';
+              drawText(teacherName, colX, currentY - 11, {
+                font: helvetica, 
+                size: 5.5, 
+                color: rgb(0.4, 0.4, 0.4) // Slightly gray for distinction
+              });
+            } else {
+              // Other columns: center vertically in the row
+              const textSize = 6;
+              const font = helvetica;
+              
+              drawText(data, colX, currentY - 8, {
+                font, 
+                size: textSize, 
+                color: textColor
+              });
             }
-            
-            drawText(displayData, colX, currentY - 7, {
-              font, 
-              size: textSize, 
-              color: textColor
-            });
             colX += tableColWidths[colIndex];
           });
           
