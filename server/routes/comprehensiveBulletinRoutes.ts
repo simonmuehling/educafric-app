@@ -634,6 +634,387 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
   }
 });
 
+// ===== GET TEACHER SUBMISSIONS =====
+// Route: GET /api/comprehensive-bulletins/teacher-submissions
+// Purpose: Retrieve pending teacher submissions for director review
+router.get('/teacher-submissions', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { classId, term } = req.query;
+
+    console.log('[GET_SUBMISSIONS] 📋 Fetching teacher submissions:', {
+      schoolId,
+      classId: classId || 'all',
+      term: term || 'all'
+    });
+
+    // Build query conditions
+    let conditions = [
+      eq(bulletinComprehensive.schoolId, schoolId),
+      eq(bulletinComprehensive.status, 'teacher_submitted')
+    ];
+
+    if (classId) {
+      conditions.push(eq(bulletinComprehensive.classId, parseInt(classId as string)));
+    }
+
+    if (term) {
+      conditions.push(eq(bulletinComprehensive.term, term as string));
+    }
+
+    // Fetch submissions with teacher and student info
+    const submissions = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      classId: bulletinComprehensive.classId,
+      term: bulletinComprehensive.term,
+      academicYear: bulletinComprehensive.academicYear,
+      status: bulletinComprehensive.status,
+      createdAt: bulletinComprehensive.createdAt,
+      
+      // Student info
+      studentName: sql<string>`CONCAT(student.firstName, ' ', student.lastName)`,
+      
+      // Class info
+      className: classes.name,
+      
+      // Teacher info (we'll get from teacherGradeSubmissions)
+      teacherName: sql<string>`'Multiple Teachers'`, // Default, will be overridden
+    })
+    .from(bulletinComprehensive)
+    .innerJoin(users.as('student'), eq(bulletinComprehensive.studentId, users.as('student').id))
+    .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
+    .where(and(...conditions))
+    .orderBy(bulletinComprehensive.createdAt);
+
+    // Get teacher info and subject grades for each submission
+    const enrichedSubmissions = await Promise.all(
+      submissions.map(async (submission) => {
+        // Get teacher info and grades for this submission
+        const gradeSubmissions = await db.select({
+          teacherName: sql<string>`CONCAT(teacher.firstName, ' ', teacher.lastName)`,
+          subjectName: subjects.name,
+          grade: teacherGradeSubmissions.termAverage,
+          coefficient: teacherGradeSubmissions.coefficient,
+          submittedAt: teacherGradeSubmissions.submittedAt
+        })
+        .from(teacherGradeSubmissions)
+        .innerJoin(users.as('teacher'), eq(teacherGradeSubmissions.teacherId, users.as('teacher').id))
+        .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
+        .where(and(
+          eq(teacherGradeSubmissions.studentId, submission.studentId),
+          eq(teacherGradeSubmissions.classId, submission.classId),
+          eq(teacherGradeSubmissions.term, submission.term as 'T1' | 'T2' | 'T3'),
+          eq(teacherGradeSubmissions.academicYear, submission.academicYear),
+          eq(teacherGradeSubmissions.reviewStatus, 'pending')
+        ));
+
+        // Get unique teacher name
+        const uniqueTeachers = [...new Set(gradeSubmissions.map(g => g.teacherName))];
+        const teacherName = uniqueTeachers.length === 1 ? uniqueTeachers[0] : `${uniqueTeachers.length} enseignants`;
+
+        // Format subject grades
+        const subjectGrades = gradeSubmissions.map(grade => ({
+          subjectName: grade.subjectName || 'Matière inconnue',
+          grade: parseFloat(grade.grade || '0'),
+          coefficient: grade.coefficient || 1
+        }));
+
+        return {
+          ...submission,
+          teacherName,
+          subjectGrades,
+          submittedAt: gradeSubmissions[0]?.submittedAt || submission.createdAt
+        };
+      })
+    );
+
+    console.log('[GET_SUBMISSIONS] ✅ Retrieved submissions:', {
+      count: enrichedSubmissions.length,
+      schoolId
+    });
+
+    res.json({
+      success: true,
+      data: enrichedSubmissions
+    });
+
+  } catch (error) {
+    console.error('[GET_SUBMISSIONS] ❌ Failed to fetch submissions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch teacher submissions',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// ===== APPROVE TEACHER SUBMISSION =====
+// Route: POST /api/comprehensive-bulletins/approve-submission/:id
+// Purpose: Approve a teacher submission and mark grades as approved
+router.post('/approve-submission/:id', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    const submissionId = parseInt(req.params.id);
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    console.log('[APPROVE_SUBMISSION] ✅ Approving submission:', {
+      submissionId,
+      approvedBy: user.id,
+      schoolId
+    });
+
+    // Get submission details
+    const submission = await db.select()
+      .from(bulletinComprehensive)
+      .where(and(
+        eq(bulletinComprehensive.id, submissionId),
+        eq(bulletinComprehensive.schoolId, schoolId),
+        eq(bulletinComprehensive.status, 'teacher_submitted')
+      ))
+      .limit(1);
+
+    if (submission.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Submission not found or already processed'
+      });
+    }
+
+    const sub = submission[0];
+
+    // Update bulletin status to approved
+    await db.update(bulletinComprehensive)
+      .set({
+        status: 'director_approved',
+        updatedAt: new Date()
+      })
+      .where(eq(bulletinComprehensive.id, submissionId));
+
+    // Update all related grade submissions to approved
+    await db.update(teacherGradeSubmissions)
+      .set({
+        reviewStatus: 'approved',
+        reviewedBy: user.id,
+        reviewedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(teacherGradeSubmissions.studentId, sub.studentId),
+        eq(teacherGradeSubmissions.classId, sub.classId),
+        eq(teacherGradeSubmissions.term, sub.term as 'T1' | 'T2' | 'T3'),
+        eq(teacherGradeSubmissions.academicYear, sub.academicYear),
+        eq(teacherGradeSubmissions.reviewStatus, 'pending')
+      ));
+
+    // Send notification to teacher(s)
+    try {
+      const teachers = await db.select({
+        teacherId: teacherGradeSubmissions.teacherId,
+        teacherName: sql<string>`CONCAT(teacher.firstName, ' ', teacher.lastName)`
+      })
+      .from(teacherGradeSubmissions)
+      .innerJoin(users.as('teacher'), eq(teacherGradeSubmissions.teacherId, users.as('teacher').id))
+      .where(and(
+        eq(teacherGradeSubmissions.studentId, sub.studentId),
+        eq(teacherGradeSubmissions.classId, sub.classId),
+        eq(teacherGradeSubmissions.term, sub.term as 'T1' | 'T2' | 'T3'),
+        eq(teacherGradeSubmissions.reviewStatus, 'approved')
+      ))
+      .groupBy(teacherGradeSubmissions.teacherId, sql`teacher.firstName`, sql`teacher.lastName`);
+
+      for (const teacher of teachers) {
+        await storage.addNotification({
+          id: crypto.randomUUID(),
+          userId: teacher.teacherId,
+          type: 'submission_approved',
+          title: 'Notes approuvées',
+          message: `Vos notes ont été approuvées et sont maintenant intégrées dans les bulletins`,
+          data: {
+            submissionId,
+            studentId: sub.studentId,
+            classId: sub.classId,
+            term: sub.term,
+            academicYear: sub.academicYear,
+            status: 'approved'
+          },
+          isRead: false,
+          createdAt: new Date(),
+          priority: 'normal'
+        });
+      }
+    } catch (notificationError) {
+      console.error('[APPROVE_SUBMISSION] ❌ Failed to send notifications:', notificationError);
+    }
+
+    console.log('[APPROVE_SUBMISSION] ✅ Submission approved successfully');
+
+    res.json({
+      success: true,
+      message: 'Submission approved successfully',
+      data: {
+        submissionId,
+        status: 'director_approved'
+      }
+    });
+
+  } catch (error) {
+    console.error('[APPROVE_SUBMISSION] ❌ Failed to approve submission:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to approve submission',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// ===== REJECT TEACHER SUBMISSION =====
+// Route: POST /api/comprehensive-bulletins/reject-submission/:id
+// Purpose: Reject a teacher submission with feedback
+router.post('/reject-submission/:id', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    const submissionId = parseInt(req.params.id);
+    const { reason } = req.body;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    console.log('[REJECT_SUBMISSION] 🚫 Rejecting submission:', {
+      submissionId,
+      rejectedBy: user.id,
+      reason,
+      schoolId
+    });
+
+    // Get submission details
+    const submission = await db.select()
+      .from(bulletinComprehensive)
+      .where(and(
+        eq(bulletinComprehensive.id, submissionId),
+        eq(bulletinComprehensive.schoolId, schoolId),
+        eq(bulletinComprehensive.status, 'teacher_submitted')
+      ))
+      .limit(1);
+
+    if (submission.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Submission not found or already processed'
+      });
+    }
+
+    const sub = submission[0];
+
+    // Update bulletin status to rejected
+    await db.update(bulletinComprehensive)
+      .set({
+        status: 'director_rejected',
+        updatedAt: new Date()
+      })
+      .where(eq(bulletinComprehensive.id, submissionId));
+
+    // Update all related grade submissions to rejected
+    await db.update(teacherGradeSubmissions)
+      .set({
+        reviewStatus: 'rejected',
+        reviewedBy: user.id,
+        reviewedAt: new Date(),
+        reviewComments: reason || 'Needs revision',
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(teacherGradeSubmissions.studentId, sub.studentId),
+        eq(teacherGradeSubmissions.classId, sub.classId),
+        eq(teacherGradeSubmissions.term, sub.term as 'T1' | 'T2' | 'T3'),
+        eq(teacherGradeSubmissions.academicYear, sub.academicYear),
+        eq(teacherGradeSubmissions.reviewStatus, 'pending')
+      ));
+
+    // Send notification to teacher(s)
+    try {
+      const teachers = await db.select({
+        teacherId: teacherGradeSubmissions.teacherId,
+        teacherName: sql<string>`CONCAT(teacher.firstName, ' ', teacher.lastName)`
+      })
+      .from(teacherGradeSubmissions)
+      .innerJoin(users.as('teacher'), eq(teacherGradeSubmissions.teacherId, users.as('teacher').id))
+      .where(and(
+        eq(teacherGradeSubmissions.studentId, sub.studentId),
+        eq(teacherGradeSubmissions.classId, sub.classId),
+        eq(teacherGradeSubmissions.term, sub.term as 'T1' | 'T2' | 'T3'),
+        eq(teacherGradeSubmissions.reviewStatus, 'rejected')
+      ))
+      .groupBy(teacherGradeSubmissions.teacherId, sql`teacher.firstName`, sql`teacher.lastName`);
+
+      for (const teacher of teachers) {
+        await storage.addNotification({
+          id: crypto.randomUUID(),
+          userId: teacher.teacherId,
+          type: 'submission_rejected',
+          title: 'Notes rejetées',
+          message: `Vos notes ont été rejetées et nécessitent des corrections: ${reason}`,
+          data: {
+            submissionId,
+            studentId: sub.studentId,
+            classId: sub.classId,
+            term: sub.term,
+            academicYear: sub.academicYear,
+            status: 'rejected',
+            reason
+          },
+          isRead: false,
+          createdAt: new Date(),
+          priority: 'high'
+        });
+      }
+    } catch (notificationError) {
+      console.error('[REJECT_SUBMISSION] ❌ Failed to send notifications:', notificationError);
+    }
+
+    console.log('[REJECT_SUBMISSION] ✅ Submission rejected successfully');
+
+    res.json({
+      success: true,
+      message: 'Submission rejected successfully',
+      data: {
+        submissionId,
+        status: 'director_rejected',
+        reason
+      }
+    });
+
+  } catch (error) {
+    console.error('[REJECT_SUBMISSION] ❌ Failed to reject submission:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reject submission',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // 🎯 ROUTE POUR RÉCUPÉRER LES PRÉFÉRENCES TEACHER (Director Access)
 router.get('/teacher-preferences/:studentId/:classId/:term/:academicYear', requireAuth, requireDirectorAuth, async (req, res) => {
   try {
