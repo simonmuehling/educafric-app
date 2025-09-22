@@ -596,36 +596,9 @@ export class ModularStorage {
       return memoryNotifications;
     }
     
-    // Fallback to mock data
-    console.log(`[STORAGE] 📝 No real notifications found, returning mock data for user ${userId}`);
-    return [
-      {
-        id: 1,
-        userId,
-        title: 'Nouvelle note disponible',
-        message: 'Une nouvelle note est disponible pour votre enfant',
-        type: 'grade',
-        priority: 'normal',
-        timestamp: new Date().toISOString(),
-        actionUrl: "/",
-        actionText: "Voir",
-        isRead: false,
-        createdAt: new Date()
-      },
-      {
-        id: 2,
-        userId,
-        title: 'Absence signalée',
-        message: 'Votre enfant a été marqué absent aujourd\'hui',
-        type: 'attendance', 
-        priority: 'normal',
-        timestamp: new Date().toISOString(),
-        actionUrl: "/",
-        actionText: "Voir",
-        isRead: false,
-        createdAt: new Date()
-      }
-    ];
+    // Return empty array if no real notifications exist
+    console.log(`[STORAGE] 📝 No real notifications found for user ${userId}, returning empty array`);
+    return [];
   }
   
   async createNotification(data: any) {
