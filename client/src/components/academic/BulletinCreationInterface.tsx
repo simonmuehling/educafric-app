@@ -771,8 +771,19 @@ export default function BulletinCreationInterface() {
     },
     lines: subjects.map(s => ({
       subject: s.name,
-      m20: s.grade,
+      note1: s.note1,
+      note2: s.note2,
+      moyenneFinale: s.moyenneFinale,
+      m20: s.moyenneFinale || s.grade, // Use moyenneFinale as primary, fallback to grade
       coef: s.coefficient,
+      totalPondere: s.totalPondere,
+      notePercent: round2((s.moyenneFinale / 20) * 100),
+      cote: s.cote,
+      competence1: s.competence1,
+      competence2: s.competence2,
+      competencesEvaluees: s.competence1 && s.competence2 ? `${s.competence1}; ${s.competence2}` : (s.competence1 || s.competence2 || ''),
+      competencyLevel: s.competencyLevel,
+      competencyEvaluation: s.competencyEvaluation,
       remark: s.remark
     })),
     year,
