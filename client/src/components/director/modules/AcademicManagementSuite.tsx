@@ -756,6 +756,181 @@ export function AttendanceRegister({ selectedClass }: { selectedClass: string })
   );
 }
 
+/**************************** TEACHER SUBMISSIONS MANAGER ****************************/
+function TeacherSubmissionsManager({ selectedClass, selectedTerm }: { selectedClass: string; selectedTerm: string }) {
+  const { language } = useLanguage();
+  
+  // Fetch pending teacher submissions
+  const { data: submissionsData, isLoading: submissionsLoading, refetch } = useQuery({
+    queryKey: ['/api/comprehensive-bulletins/teacher-submissions', selectedClass, selectedTerm],
+    queryFn: () => fetch(`/api/comprehensive-bulletins/teacher-submissions?classId=${selectedClass}&term=${selectedTerm}`).then(res => res.json()),
+    enabled: !!selectedClass && !!selectedTerm,
+  });
+
+  const handleApproveSubmission = async (submissionId: string) => {
+    try {
+      const response = await fetch(`/api/comprehensive-bulletins/approve-submission/${submissionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (response.ok) {
+        refetch();
+      }
+    } catch (error) {
+      console.error('Failed to approve submission:', error);
+    }
+  };
+
+  const handleRejectSubmission = async (submissionId: string, reason: string) => {
+    try {
+      const response = await fetch(`/api/comprehensive-bulletins/reject-submission/${submissionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      });
+      
+      if (response.ok) {
+        refetch();
+      }
+    } catch (error) {
+      console.error('Failed to reject submission:', error);
+    }
+  };
+
+  if (!selectedClass || !selectedTerm) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <Timer className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">
+            {language === 'fr' 
+              ? 'Sélectionnez une classe et un trimestre pour voir les soumissions des enseignants'
+              : 'Select a class and term to view teacher submissions'
+            }
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (submissionsLoading) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">
+            {language === 'fr' ? 'Chargement des soumissions...' : 'Loading submissions...'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const submissions = submissionsData?.data || [];
+
+  if (submissions.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <Timer className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">
+            {language === 'fr' 
+              ? 'Aucune soumission en attente pour cette classe et ce trimestre'
+              : 'No pending submissions for this class and term'
+            }
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Timer className="h-5 w-5" />
+            {language === 'fr' ? 'Soumissions Enseignants en Attente' : 'Pending Teacher Submissions'}
+            <Badge variant="secondary">{submissions.length}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {submissions.map((submission: any) => (
+              <Card key={submission.id} className="border-l-4 border-yellow-400">
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-lg">{submission.studentName}</h4>
+                      <p className="text-sm text-muted-foreground">{submission.className}</p>
+                      <p className="text-sm">
+                        <strong>{language === 'fr' ? 'Enseignant:' : 'Teacher:'}</strong> {submission.teacherName}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm">
+                        <strong>{language === 'fr' ? 'Trimestre:' : 'Term:'}</strong> {submission.term}
+                      </p>
+                      <p className="text-sm">
+                        <strong>{language === 'fr' ? 'Année:' : 'Year:'}</strong> {submission.academicYear}
+                      </p>
+                      <p className="text-sm">
+                        <strong>{language === 'fr' ? 'Soumis le:' : 'Submitted:'}</strong> {' '}
+                        {new Date(submission.submittedAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        onClick={() => handleApproveSubmission(submission.id)}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        size="sm"
+                        data-testid={`approve-submission-${submission.id}`}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        {language === 'fr' ? 'Approuver' : 'Approve'}
+                      </Button>
+                      <Button
+                        onClick={() => handleRejectSubmission(submission.id, 'Needs revision')}
+                        variant="outline"
+                        className="border-red-300 text-red-600 hover:bg-red-50"
+                        size="sm"
+                        data-testid={`reject-submission-${submission.id}`}
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        {language === 'fr' ? 'Rejeter' : 'Reject'}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {submission.subjectGrades && submission.subjectGrades.length > 0 && (
+                    <div className="mt-4 pt-4 border-t">
+                      <h5 className="font-medium mb-2">
+                        {language === 'fr' ? 'Notes soumises:' : 'Submitted Grades:'}
+                      </h5>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                        {submission.subjectGrades.map((grade: any, index: number) => (
+                          <div key={index} className="bg-gray-50 p-2 rounded">
+                            <p className="font-medium">{grade.subjectName}</p>
+                            <p className="text-blue-600 font-bold">{grade.grade}/20</p>
+                            {grade.coefficient && (
+                              <p className="text-xs text-muted-foreground">Coef: {grade.coefficient}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 /**************************** ACADEMIC MANAGEMENT SUITE MAIN COMPONENT ****************************/
 export default function AcademicManagementSuite() {
   const { language } = useLanguage();
@@ -861,7 +1036,7 @@ export default function AcademicManagementSuite() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="mastersheet" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="mastersheet" className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
             {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
@@ -873,6 +1048,10 @@ export default function AcademicManagementSuite() {
           <TabsTrigger value="bulletins" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             {language === 'fr' ? 'Création Bulletins' : 'Create Bulletins'}
+          </TabsTrigger>
+          <TabsTrigger value="submissions" className="flex items-center gap-2">
+            <Timer className="h-4 w-4" />
+            {language === 'fr' ? 'Soumissions Enseignants' : 'Teacher Submissions'}
           </TabsTrigger>
           <TabsTrigger value="timetable" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
@@ -922,6 +1101,10 @@ export default function AcademicManagementSuite() {
 
         <TabsContent value="bulletins" className="space-y-4">
           <BulletinCreationInterface />
+        </TabsContent>
+
+        <TabsContent value="submissions" className="space-y-4">
+          <TeacherSubmissionsManager selectedClass={selectedClass} selectedTerm={selectedTerm} />
         </TabsContent>
 
         <TabsContent value="timetable" className="space-y-4">
