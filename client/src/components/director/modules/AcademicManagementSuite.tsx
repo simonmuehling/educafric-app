@@ -1357,12 +1357,8 @@ export default function AcademicManagementSuite() {
       </Card>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="mastersheet" className="w-full">
+      <Tabs defaultValue="transcript" className="w-full">
         <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="mastersheet" className="flex items-center gap-2">
-            <FileSpreadsheet className="h-4 w-4" />
-            {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
-          </TabsTrigger>
           <TabsTrigger value="transcript" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             {language === 'fr' ? 'Relevé de Notes' : 'Transcript'}
@@ -1370,6 +1366,10 @@ export default function AcademicManagementSuite() {
           <TabsTrigger value="bulletins" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             {language === 'fr' ? 'Création Bulletins' : 'Create Bulletins'}
+          </TabsTrigger>
+          <TabsTrigger value="mastersheet" className="flex items-center gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
           </TabsTrigger>
           <TabsTrigger value="submissions" className="flex items-center gap-2">
             <Timer className="h-4 w-4" />
