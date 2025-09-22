@@ -1444,8 +1444,8 @@ export default function AcademicManagementSuite() {
     queryKey: ['/api/director/students'],
   });
 
-  const classes = classesData?.classes || [];
-  const students = studentsData?.students || [];
+  const classes = (classesData as any)?.classes || [];
+  const students = (studentsData as any)?.students || [];
 
   return (
     <div className="space-y-6">
