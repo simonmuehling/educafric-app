@@ -562,9 +562,9 @@ export default function BulletinCreationInterface() {
       // Create verification record on server
       const verificationData = {
         studentName: student.name,
-        studentMatricule: student.id,
-        studentBirthDate: student.birthDate,
-        studentGender: student.gender,
+        studentMatricule: String(student.id),
+        studentBirthDate: student.birthDate || '',
+        studentGender: student.gender || '',
         className: student.classLabel,
         schoolName: schoolInfo?.data?.name || "École non spécifiée",
         generalAverage: overallAverage,

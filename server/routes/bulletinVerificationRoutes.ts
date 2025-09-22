@@ -35,9 +35,11 @@ const createVerificationSchema = z.object({
 // POST /api/bulletin/verify - Create a new bulletin verification
 router.post('/create', async (req, res) => {
   try {
+    console.log('[BULLETIN_CREATE] 📝 Received data:', JSON.stringify(req.body, null, 2));
     const validation = createVerificationSchema.safeParse(req.body);
     
     if (!validation.success) {
+      console.log('[BULLETIN_CREATE] ❌ Validation error:', JSON.stringify(validation.error.errors, null, 2));
       return res.status(400).json({
         success: false,
         message: 'Invalid verification data',
