@@ -457,32 +457,11 @@ export default function ReportCardPreview({
             </div>
           )}
 
-          {/* Averages & discipline */}
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-            <div className="rounded-xl border p-3">
-              <div className="text-xs text-gray-500">{labels.overallAvg}</div>
-              <div className="text-2xl font-semibold">{moyenne}/20</div>
-            </div>
-            <div className="rounded-xl border p-3">
-              <div className="text-xs text-gray-500">{language === 'fr' ? 'Appréciation générale' : 'General Comments'}</div>
-              <div className="min-h-10 text-sm">{student.generalRemark || ""}</div>
-            </div>
-            <div className="rounded-xl border p-3">
-              <div className="text-xs text-gray-500">{labels.discipline}</div>
-              <div className="text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span>{labels.justifiedAbs}</span><b>{student.discipline?.absJ || 0} h</b>
-                </div>
-                <div className="flex justify-between">
-                  <span>{labels.unjustifiedAbs}</span><b>{student.discipline?.absNJ || 0} h</b>
-                </div>
-                <div className="flex justify-between">
-                  <span>{labels.lates}</span><b>{student.discipline?.late || 0}</b>
-                </div>
-                <div className="flex justify-between">
-                  <span className="truncate pr-2">Avert./Blâmes</span><b>{student.discipline?.sanctions || 0}</b>
-                </div>
-              </div>
+          {/* Overall Average */}
+          <div className="mt-4 flex justify-center">
+            <div className="rounded-xl border p-3 w-48">
+              <div className="text-xs text-gray-500 text-center">{labels.overallAvg}</div>
+              <div className="text-2xl font-semibold text-center">{moyenne}/20</div>
             </div>
           </div>
 
