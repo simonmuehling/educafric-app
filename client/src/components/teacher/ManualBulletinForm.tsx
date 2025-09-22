@@ -779,7 +779,7 @@ export default function ManualBulletinForm({
                 <Th>{t('total')}</Th>
                 <Th>{t('cote')}</Th>
                 <Th className="w-64">{t('appreciation')}</Th>
-                <Th></Th>
+                <Th>Actions</Th>
               </tr>
             </thead>
             <tbody>
@@ -954,7 +954,7 @@ export default function ManualBulletinForm({
                 <Td>{totals.totalCoef}</Td>
                 <Td>{totals.totalMxCoef}</Td>
                 <Td>{totals.cote}</Td>
-                <Td colSpan={2}></Td>
+                <Td colSpan={2}>{""}</Td>
               </tr>
             </tfoot>
           </table>
@@ -984,43 +984,43 @@ export default function ManualBulletinForm({
               <NumberField 
                 label="Absences justifiées (h)" 
                 value={meta.absJust} 
-                onChange={v=>setMeta(m=>({...m,absJust:v}))}
+                onChange={v=>setMeta(m=>({...m,absJust:Number(v)||0}))}
                 data-testid="input-justified-absences"
               />
               <NumberField 
                 label="Absences non justifiées (h)" 
                 value={meta.absNonJust} 
-                onChange={v=>setMeta(m=>({...m,absNonJust:v}))}
+                onChange={v=>setMeta(m=>({...m,absNonJust:Number(v)||0}))}
                 data-testid="input-unjustified-absences"
               />
               <NumberField 
                 label="Retards (fois)" 
                 value={meta.retards} 
-                onChange={v=>setMeta(m=>({...m,retards:v}))}
+                onChange={v=>setMeta(m=>({...m,retards:Number(v)||0}))}
                 data-testid="input-lateness"
               />
               <NumberField 
                 label="Avertissements" 
                 value={meta.avertissements} 
-                onChange={v=>setMeta(m=>({...m,avertissements:v}))}
+                onChange={v=>setMeta(m=>({...m,avertissements:Number(v)||0}))}
                 data-testid="input-warnings"
               />
               <NumberField 
                 label="Blâmes" 
                 value={meta.blames} 
-                onChange={v=>setMeta(m=>({...m,blames:v}))}
+                onChange={v=>setMeta(m=>({...m,blames:Number(v)||0}))}
                 data-testid="input-blames"
               />
               <NumberField 
                 label="Exclusions (jours)" 
                 value={meta.exclusions} 
-                onChange={v=>setMeta(m=>({...m,exclusions:v}))}
+                onChange={v=>setMeta(m=>({...m,exclusions:Number(v)||0}))}
                 data-testid="input-exclusions"
               />
               <NumberField 
                 label="Consignes (heures)" 
                 value={meta.consignes} 
-                onChange={v=>setMeta(m=>({...m,consignes:v}))}
+                onChange={v=>setMeta(m=>({...m,consignes:Number(v)||0}))}
                 data-testid="input-detentions"
               />
             </div>
