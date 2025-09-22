@@ -110,8 +110,18 @@ const LABELS = {
     observations: "Observations",
     principal: "Principal / Head of School",
     homeTeacherSig: "Homeroom Teacher", 
-    parentSig: "Parent / Guardian",
-    schoolStamp: "School Stamp"
+    parentSig: "Parent / Guardian", 
+    schoolStamp: "School Stamp",
+    annualSummary: "Annual Summary",
+    trimesterAverages: "Trimester Averages",
+    firstTrimester: "1st T.",
+    secondTrimester: "2nd T.",
+    thirdTrimester: "3rd T.",
+    annualAverage: "Annual Average",
+    annualRank: "Annual Rank",
+    passDecision: "Pass Decision",
+    finalAppreciation: "Final Appreciation",
+    holidayRecommendations: "Holiday Recommendations"
   }
 };
 
@@ -179,6 +189,18 @@ interface ReportCardProps {
   studentPhotoUrl?: string;
   qrValue?: string;
   language?: 'fr' | 'en'; // NEW: Language support
+  isThirdTrimester?: boolean;
+  annualSummary?: {
+    firstTrimesterAverage: number;
+    secondTrimesterAverage: number;
+    thirdTrimesterAverage: number;
+    annualAverage: number;
+    annualRank: number;
+    totalStudents: number;
+    passDecision: string;
+    finalAppreciation: string;
+    holidayRecommendations: string;
+  } | null;
 }
 
 export default function ReportCardPreview({
@@ -190,6 +212,8 @@ export default function ReportCardPreview({
   studentPhotoUrl = "",
   qrValue = "https://www.educafric.com",
   language = 'fr', // Default to French
+  isThirdTrimester = false,
+  annualSummary = null,
 }: ReportCardProps) {
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
@@ -303,6 +327,66 @@ export default function ReportCardPreview({
               </tfoot>
             </table>
           </div>
+
+          {/* Third Trimester Annual Summary */}
+          {isThirdTrimester && annualSummary && (
+            <div className="mt-4 border-2 border-orange-300 rounded-xl p-4 bg-orange-50">
+              <h3 className="text-lg font-semibold text-orange-800 mb-3">{labels.annualSummary}</h3>
+              
+              {/* Trimester Averages */}
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                <div className="text-center">
+                  <div className="text-xs text-gray-600">{labels.firstTrimester}</div>
+                  <div className="text-sm font-semibold">{annualSummary.firstTrimesterAverage}/20</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-600">{labels.secondTrimester}</div>
+                  <div className="text-sm font-semibold">{annualSummary.secondTrimesterAverage}/20</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-600">{labels.thirdTrimester}</div>
+                  <div className="text-sm font-semibold">{annualSummary.thirdTrimesterAverage}/20</div>
+                </div>
+                <div className="text-center bg-white rounded border p-2">
+                  <div className="text-xs text-orange-700 font-medium">{labels.annualAverage}</div>
+                  <div className="text-lg font-bold text-orange-800">{annualSummary.annualAverage}/20</div>
+                </div>
+              </div>
+
+              {/* Annual Rank and Pass Decision */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="text-center border rounded p-2">
+                  <div className="text-xs text-gray-600">{labels.annualRank}</div>
+                  <div className="text-sm font-semibold">{annualSummary.annualRank}e / {annualSummary.totalStudents}</div>
+                </div>
+                <div className="text-center border rounded p-2">
+                  <div className="text-xs text-gray-600">{labels.passDecision}</div>
+                  <div className={`text-sm font-bold ${
+                    annualSummary.passDecision === 'PASSE' ? 'text-green-700' : 
+                    annualSummary.passDecision === 'REDOUBLE' ? 'text-orange-700' : 'text-red-700'
+                  }`}>
+                    {annualSummary.passDecision}
+                  </div>
+                </div>
+              </div>
+
+              {/* Final Appreciation */}
+              {annualSummary.finalAppreciation && (
+                <div className="mb-3">
+                  <div className="text-xs text-gray-600 font-medium">{labels.finalAppreciation}</div>
+                  <div className="text-sm italic bg-white border rounded p-2">{annualSummary.finalAppreciation}</div>
+                </div>
+              )}
+
+              {/* Holiday Recommendations */}
+              {annualSummary.holidayRecommendations && (
+                <div>
+                  <div className="text-xs text-gray-600 font-medium">{labels.holidayRecommendations}</div>
+                  <div className="text-sm bg-white border rounded p-2">{annualSummary.holidayRecommendations}</div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Averages & discipline */}
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">

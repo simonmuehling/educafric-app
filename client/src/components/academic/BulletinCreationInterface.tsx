@@ -98,6 +98,22 @@ export default function BulletinCreationInterface() {
 
   const [trimester, setTrimester] = useState('Premier');
   const [year, setYear] = useState('2025/2026');
+  
+  // Check if this is third trimester for annual summary
+  const isThirdTrimester = trimester === 'Troisième';
+  
+  // Annual data for third trimester
+  const [annualSummary, setAnnualSummary] = useState({
+    firstTrimesterAverage: 0,
+    secondTrimesterAverage: 0,
+    thirdTrimesterAverage: 0,
+    annualAverage: 0,
+    annualRank: 0,
+    totalStudents: 45,
+    passDecision: '', // 'PASSE', 'REDOUBLE', 'RENVOYÉ'
+    finalAppreciation: '',
+    holidayRecommendations: ''
+  });
   const [showPreview, setShowPreview] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isSigned, setIsSigned] = useState(false);
@@ -351,6 +367,19 @@ export default function BulletinCreationInterface() {
       signBulletin: "Signer le Bulletin",
       signed: "Signé ✓",
       sendToStudentParent: "Envoyer aux Élèves/Parents",
+      annualSummary: "Bilan Annuel",
+      trimesterAverages: "Moyennes Trimestrielles",
+      firstTrimester: "1er Trimestre",
+      secondTrimester: "2ème Trimestre", 
+      thirdTrimester: "3ème Trimestre",
+      annualAverage: "Moyenne Annuelle",
+      annualRank: "Rang Annuel",
+      passDecision: "Décision de Passage",
+      passes: "PASSE en classe supérieure",
+      repeats: "REDOUBLE",
+      expelled: "RENVOYÉ",
+      finalAppreciation: "Appréciation Finale",
+      holidayRecommendations: "Recommandations pour les Vacances",
       bulletinPreview: "Aperçu du bulletin",
       uploadLogo: "Choisir logo école",
       uploadPhoto: "Choisir photo élève",
@@ -403,6 +432,19 @@ export default function BulletinCreationInterface() {
       signBulletin: "Sign Bulletin",
       signed: "Signed ✓",
       sendToStudentParent: "Send to Students/Parents",
+      annualSummary: "Annual Summary",
+      trimesterAverages: "Trimester Averages",
+      firstTrimester: "1st Trimester",
+      secondTrimester: "2nd Trimester",
+      thirdTrimester: "3rd Trimester", 
+      annualAverage: "Annual Average",
+      annualRank: "Annual Rank",
+      passDecision: "Pass Decision",
+      passes: "PASSES to next grade",
+      repeats: "REPEATS grade",
+      expelled: "EXPELLED",
+      finalAppreciation: "Final Appreciation",
+      holidayRecommendations: "Holiday Recommendations",
       bulletinPreview: "Report card preview",
       uploadLogo: "Choose school logo",
       uploadPhoto: "Choose student photo",
@@ -438,7 +480,10 @@ export default function BulletinCreationInterface() {
     trimester,
     schoolLogoUrl: schoolInfo?.data?.logoUrl || selectedSchoolLogo,
     studentPhotoUrl,
-    language
+    language,
+    // Third trimester specific data
+    isThirdTrimester,
+    annualSummary: isThirdTrimester ? annualSummary : null
   };
 
   return (
@@ -789,6 +834,150 @@ export default function BulletinCreationInterface() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Third Trimester Annual Summary */}
+          {isThirdTrimester && (
+            <Card className="border-orange-200 bg-orange-50">
+              <CardHeader>
+                <CardTitle className="text-lg text-orange-800 flex items-center">
+                  <School className="h-5 w-5 mr-2" />
+                  {t.annualSummary} - {year}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Trimester Averages */}
+                <div>
+                  <Label className="text-sm font-medium text-orange-700">{t.trimesterAverages}</Label>
+                  <div className="grid grid-cols-3 gap-4 mt-2">
+                    <div>
+                      <Label className="text-xs">{t.firstTrimester}</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="20"
+                        value={annualSummary.firstTrimesterAverage}
+                        onChange={(e) => setAnnualSummary(prev => ({
+                          ...prev,
+                          firstTrimesterAverage: parseFloat(e.target.value) || 0
+                        }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">{t.secondTrimester}</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="20"
+                        value={annualSummary.secondTrimesterAverage}
+                        onChange={(e) => setAnnualSummary(prev => ({
+                          ...prev,
+                          secondTrimesterAverage: parseFloat(e.target.value) || 0
+                        }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">{t.thirdTrimester}</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="20"
+                        value={annualSummary.thirdTrimesterAverage}
+                        onChange={(e) => setAnnualSummary(prev => ({
+                          ...prev,
+                          thirdTrimesterAverage: parseFloat(e.target.value) || 0
+                        }))}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Annual Average and Rank */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">{t.annualAverage}</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="20"
+                      value={annualSummary.annualAverage}
+                      onChange={(e) => setAnnualSummary(prev => ({
+                        ...prev,
+                        annualAverage: parseFloat(e.target.value) || 0
+                      }))}
+                      className="mt-1 font-bold text-lg"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">{t.annualRank}</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={annualSummary.annualRank}
+                        onChange={(e) => setAnnualSummary(prev => ({
+                          ...prev,
+                          annualRank: parseInt(e.target.value) || 0
+                        }))}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-gray-600 self-center">
+                        / {annualSummary.totalStudents}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pass Decision */}
+                <div>
+                  <Label className="text-sm font-medium text-red-700">{t.passDecision}</Label>
+                  <Select 
+                    value={annualSummary.passDecision} 
+                    onValueChange={(value) => setAnnualSummary(prev => ({...prev, passDecision: value}))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Sélectionner la décision..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PASSE">{t.passes}</SelectItem>
+                      <SelectItem value="REDOUBLE">{t.repeats}</SelectItem>
+                      <SelectItem value="RENVOYE">{t.expelled}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Final Appreciation */}
+                <div>
+                  <Label className="text-sm font-medium">{t.finalAppreciation}</Label>
+                  <Textarea
+                    value={annualSummary.finalAppreciation}
+                    onChange={(e) => setAnnualSummary(prev => ({...prev, finalAppreciation: e.target.value}))}
+                    placeholder="Appréciation sur l'évolution de l'élève durant l'année..."
+                    rows={3}
+                    className="mt-1"
+                  />
+                </div>
+
+                {/* Holiday Recommendations */}
+                <div>
+                  <Label className="text-sm font-medium">{t.holidayRecommendations}</Label>
+                  <Textarea
+                    value={annualSummary.holidayRecommendations}
+                    onChange={(e) => setAnnualSummary(prev => ({...prev, holidayRecommendations: e.target.value}))}
+                    placeholder="Recommandations pour les vacances et la préparation de la classe suivante..."
+                    rows={2}
+                    className="mt-1"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Actions */}
           <div className="flex flex-wrap gap-3 justify-end">
