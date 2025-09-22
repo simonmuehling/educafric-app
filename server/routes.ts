@@ -2074,6 +2074,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/students", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      const { classId } = req.query; // Récupérer le paramètre classId
       
       // Check if user is in sandbox/demo mode
       const isSandboxUser = user.email?.includes('@test.educafric.com') || 
@@ -2083,8 +2084,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (isSandboxUser) {
         console.log('[TEACHER_API] 🔧 Sandbox user detected, serving sandbox students data');
+        console.log('[TEACHER_API] 📚 Filtering by classId:', classId);
         // Use rich sandbox data for sandbox users
-        const sandboxStudents = [
+        const allSandboxStudents = [
           {
             id: 1, 
             firstName: 'Marie', 
@@ -2176,15 +2178,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             behavior: 'Excellent'
           }
         ];
-        return res.json(sandboxStudents);
+        
+        // Filtrer par classId si fourni
+        const filteredStudents = classId 
+          ? allSandboxStudents.filter(student => student.classId === parseInt(classId as string))
+          : allSandboxStudents;
+        
+        console.log('[TEACHER_API] 📊 Found', filteredStudents.length, 'students for classId:', classId);
+        return res.json(filteredStudents);
       }
       
-      const students = [
+      const allStudents = [
         {
           id: 1,
           firstName: 'Jean',
           lastName: 'Kamga',
+          classId: 1,
           class: '6ème A',
+          matricule: 'MAT001',
           average: 14.5,
           attendance: 95,
           parentContact: '+237657005678'
@@ -2193,14 +2204,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: 2,
           firstName: 'Marie', 
           lastName: 'Nkomo',
+          classId: 2,
           class: '5ème B',
+          matricule: 'MAT002',
           average: 16.2,
           attendance: 98,
           parentContact: '+237657007890'
         }
       ];
       
-      res.json({ success: true, students });
+      // Filtrer par classId si fourni
+      const filteredStudents = classId 
+        ? allStudents.filter(student => student.classId === parseInt(classId as string))
+        : allStudents;
+      
+      console.log('[TEACHER_API] 📊 Found', filteredStudents.length, 'non-sandbox students for classId:', classId);
+      res.json({ success: true, students: filteredStudents });
     } catch (error) {
       console.error('[TEACHER_API] Error fetching students:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch students' });
