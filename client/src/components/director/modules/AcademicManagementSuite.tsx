@@ -1531,12 +1531,8 @@ export default function AcademicManagementSuite() {
       </Card>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="transcript" className="w-full">
+      <Tabs defaultValue="bulletins" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="transcript" className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            {language === 'fr' ? 'Relevé de Notes' : 'Transcript'}
-          </TabsTrigger>
           <TabsTrigger value="bulletins" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             {language === 'fr' ? 'Création Bulletins' : 'Create Bulletins'}
@@ -1545,11 +1541,19 @@ export default function AcademicManagementSuite() {
             <FileSpreadsheet className="h-4 w-4" />
             {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
           </TabsTrigger>
+          <TabsTrigger value="transcript" className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            {language === 'fr' ? 'Relevé de Notes' : 'Transcript'}
+          </TabsTrigger>
           <TabsTrigger value="archives" className="flex items-center gap-2">
             <Archive className="h-4 w-4" />
             {language === 'fr' ? 'Archives' : 'Archives'}
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="bulletins" className="space-y-4">
+          <BulletinCreationInterface />
+        </TabsContent>
 
         <TabsContent value="mastersheet" className="space-y-4">
           {selectedClass ? (
@@ -1586,11 +1590,6 @@ export default function AcademicManagementSuite() {
             </Card>
           )}
         </TabsContent>
-
-        <TabsContent value="bulletins" className="space-y-4">
-          <BulletinCreationInterface />
-        </TabsContent>
-
 
         <TabsContent value="archives" className="space-y-4">
           <ArchiveManagement />
