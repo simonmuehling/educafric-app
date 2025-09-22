@@ -2060,6 +2060,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== COMMERCIAL NOTIFICATION ROUTES =====
+  app.get("/api/commercial/notifications", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      console.log(`[COMMERCIAL_NOTIFICATIONS] 📋 Fetching notifications for user ${user.id}`);
+      
+      // Get notifications from storage
+      const notifications = await storage.getUserNotifications(user.id, 'commercial');
+      
+      console.log(`[COMMERCIAL_NOTIFICATIONS] ✅ Found ${notifications.length} notifications for user ${user.id}`);
+      
+      res.json(notifications);
+    } catch (error) {
+      console.error('[COMMERCIAL_NOTIFICATIONS] Error fetching notifications:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch notifications' });
+    }
+  });
+
+  app.patch("/api/commercial/notifications/:id/mark-read", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      const { isRead } = req.body;
+      
+      console.log(`[COMMERCIAL_NOTIFICATIONS] 📋 Marking notification ${id} as ${isRead ? 'read' : 'unread'} for user ${user.id}`);
+      
+      // Update notification in storage
+      await storage.markNotificationAsRead(parseInt(id), isRead);
+      
+      console.log(`[COMMERCIAL_NOTIFICATIONS] ✅ Notification ${id} marked as ${isRead ? 'read' : 'unread'}`);
+      
+      res.json({ success: true, message: 'Notification updated successfully' });
+    } catch (error) {
+      console.error('[COMMERCIAL_NOTIFICATIONS] Error updating notification:', error);
+      res.status(500).json({ success: false, message: 'Failed to update notification' });
+    }
+  });
+
+  app.delete("/api/commercial/notifications/:id", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      
+      console.log(`[COMMERCIAL_NOTIFICATIONS] 🗑️ Deleting notification ${id} for user ${user.id}`);
+      
+      // Delete notification from storage
+      await storage.deleteNotification(parseInt(id));
+      
+      console.log(`[COMMERCIAL_NOTIFICATIONS] ✅ Notification ${id} deleted successfully`);
+      
+      res.json({ success: true, message: 'Notification deleted successfully' });
+    } catch (error) {
+      console.error('[COMMERCIAL_NOTIFICATIONS] Error deleting notification:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete notification' });
+    }
+  });
+
+  app.patch("/api/commercial/notifications/mark-all-read", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      console.log(`[COMMERCIAL_NOTIFICATIONS] 📋 Marking all notifications as read for user ${user.id}`);
+      
+      // Get all user notifications and mark as read
+      const notifications = await storage.getUserNotifications(user.id, 'commercial');
+      
+      for (const notification of notifications) {
+        if (!notification.isRead) {
+          await storage.markNotificationAsRead(notification.id, true);
+        }
+      }
+      
+      console.log(`[COMMERCIAL_NOTIFICATIONS] ✅ All notifications marked as read for user ${user.id}`);
+      
+      res.json({ success: true, message: 'All notifications marked as read' });
+    } catch (error) {
+      console.error('[COMMERCIAL_NOTIFICATIONS] Error marking all as read:', error);
+      res.status(500).json({ success: false, message: 'Failed to mark all notifications as read' });
+    }
+  });
+
   // Nouvelle route pour se déconnecter d'une école
   app.post("/api/teacher/disconnect-school", requireAuth, async (req, res) => {
     try {

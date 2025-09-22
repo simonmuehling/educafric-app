@@ -74,6 +74,7 @@ class FastModuleLoader {
       'DocumentsContracts': () => import('@/components/commercial/modules/DocumentsContracts'),
       'CommercialStatistics': () => import('@/components/commercial/modules/CommercialStatistics'),
       'commercial-communications': () => import('@/components/shared/CommunicationsCenter'), // Using existing communications module
+      'commercial-notifications': () => import('@/components/commercial/modules/FunctionalCommercialNotifications'), // New dedicated notification center
       
       // ⚠️ REMOVED DUPLICATE ALIASES TO PREVENT CONFLICTS
       // 'director-students' removed - use 'students' for Director context
