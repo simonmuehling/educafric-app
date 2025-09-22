@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReportCardPreview from './ReportCardPreview';
@@ -26,6 +27,9 @@ interface Subject {
   coefficient: number;
   grade: number;
   remark: string;
+  competencies?: string;
+  competencyLevel?: 'CTBA' | 'CBA' | 'CA' | 'CMA' | 'CNA' | 'CVWA' | 'CWA' | 'CAA';
+  competencyEvaluation?: string;
 }
 
 interface StudentInfo {
@@ -63,14 +67,153 @@ const calculateCote = (grade: number): string => {
   return 'D';
 };
 
+// Dynamic Competency evaluation functions that work with backend data
+
 export default function BulletinCreationInterface() {
   const { language } = useLanguage();
+  
+  // State for selected competency system
+  const [selectedCompetencySystem, setSelectedCompetencySystem] = useState<any>(null);
+
+  // Dynamic function to calculate competency level based on the selected system
+  const calculateCompetencyLevel = (grade: number): string => {
+    if (!selectedCompetencySystem?.levels) {
+      // Fallback to default system based on language
+      if (grade >= 16) return language === 'fr' ? 'CTBA' : 'CVWA';
+      if (grade >= 14) return language === 'fr' ? 'CBA' : 'CWA';
+      if (grade >= 12) return 'CA'; // Same in both systems
+      if (grade >= 10) return language === 'fr' ? 'CMA' : 'CAA';
+      return 'CNA'; // Same in both systems
+    }
+
+    // Sort levels by gradeRange.min descending to ensure proper classification
+    const sortedLevels = [...selectedCompetencySystem.levels].sort((a: any, b: any) => b.gradeRange.min - a.gradeRange.min);
+    
+    // Use the actual system data from backend
+    for (const level of sortedLevels) {
+      if (grade >= level.gradeRange.min && grade <= level.gradeRange.max) {
+        return level.code;
+      }
+    }
+    return 'CNA'; // Fallback
+  };
+
+  // Dynamic function to get competency color based on level
+  const getCompetencyColor = (level: string): string => {
+    // Universal color mapping that works for both FR and EN systems
+    const colorMap: { [key: string]: string } = {
+      'CTBA': 'bg-green-100 text-green-800',
+      'CVWA': 'bg-green-100 text-green-800',
+      'CBA': 'bg-blue-100 text-blue-800',
+      'CWA': 'bg-blue-100 text-blue-800',
+      'CA': 'bg-yellow-100 text-yellow-800',
+      'CMA': 'bg-orange-100 text-orange-800',
+      'CAA': 'bg-orange-100 text-orange-800',
+      'CNA': 'bg-red-100 text-red-800'
+    };
+    return colorMap[level] || 'bg-gray-100 text-gray-800';
+  };
+
+  // Dynamic function to get competency description from backend or fallback
+  const getCompetencyDescription = (level: string, language: 'fr' | 'en'): string => {
+    if (selectedCompetencySystem?.levels) {
+      const levelData = selectedCompetencySystem.levels.find((l: any) => l.code === level);
+      if (levelData) {
+        // Use description field from schema (fallback to descriptionFr/descriptionEn if they exist)
+        return levelData.description || 
+               (language === 'fr' ? levelData.descriptionFr : levelData.descriptionEn) || 
+               levelData.code;
+      }
+    }
+
+    // Fallback descriptions
+    const descriptions = {
+      fr: {
+        'CTBA': 'Compétences très bien acquises',
+        'CBA': 'Compétences bien acquises',
+        'CA': 'Compétences acquises',
+        'CMA': 'Compétences moyennement acquises',
+        'CNA': 'Compétences non acquises',
+        'CVWA': 'Compétences très bien acquises',
+        'CWA': 'Compétences bien acquises',
+        'CAA': 'Compétences moyennement acquises'
+      },
+      en: {
+        'CTBA': 'Competences Very Well Acquired',
+        'CBA': 'Competences Well Acquired',
+        'CA': 'Competences Acquired',
+        'CMA': 'Competences Averagely Acquired',
+        'CNA': 'Competences Not Acquired',
+        'CVWA': 'Competences Very Well Acquired',
+        'CWA': 'Competences Well Acquired',
+        'CAA': 'Competences Averagely Acquired'
+      }
+    };
+    return descriptions[language][level] || level;
+  };
   
   // Fetch school information automatically
   const { data: schoolInfo, isLoading: loadingSchoolInfo } = useQuery({
     queryKey: ['/api/school/info'],
     staleTime: 1000 * 60 * 5, // 5 minutes cache
   }) as { data: any, isLoading: boolean };
+
+  // Fetch competency evaluation systems
+  const { data: competencySystems, isLoading: loadingCompetencySystems } = useQuery({
+    queryKey: ['/api/comprehensive-bulletins/competency-systems'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/comprehensive-bulletins/competency-systems');
+      return await response.json();
+    }
+  });
+
+  // Fetch predefined appreciations
+  const { data: predefinedAppreciations, isLoading: loadingAppreciations } = useQuery({
+    queryKey: ['/api/comprehensive-bulletins/predefined-appreciations'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/comprehensive-bulletins/predefined-appreciations?targetRole=director');
+      return await response.json();
+    }
+  });
+
+  const [trimester, setTrimester] = useState('Premier');
+  const [year, setYear] = useState('2025/2026');
+
+  // Fetch competency templates
+  const { data: competencyTemplates, isLoading: loadingTemplates } = useQuery({
+    queryKey: ['/api/comprehensive-bulletins/competency-templates', trimester],
+    queryFn: async () => {
+      const term = trimester === 'Premier' ? 'Premier' : trimester === 'Deuxième' ? 'Deuxième' : 'Troisième';
+      const response = await apiRequest('GET', `/api/comprehensive-bulletins/competency-templates?term=${term}`);
+      return await response.json();
+    }
+  });
+
+  // Effect to set default competency system based on language
+  useEffect(() => {
+    if (competencySystems?.data) {
+      const defaultSystem = competencySystems.data.find((system: any) => 
+        system.language === language
+      );
+      if (defaultSystem) {
+        // Always update when language changes to match new language system
+        if (!selectedCompetencySystem || selectedCompetencySystem.language !== language) {
+          setSelectedCompetencySystem(defaultSystem);
+        }
+      }
+    }
+  }, [competencySystems, language, selectedCompetencySystem]);
+
+  // Effect to recompute all subject competencies when language or system changes
+  useEffect(() => {
+    if (selectedCompetencySystem && subjects.length > 0) {
+      setSubjects(subjects.map(subject => ({
+        ...subject,
+        competencyLevel: calculateCompetencyLevel(subject.grade) as any,
+        competencyEvaluation: getCompetencyDescription(calculateCompetencyLevel(subject.grade), language)
+      })));
+    }
+  }, [language, selectedCompetencySystem]);
   
   const [student, setStudent] = useState<StudentInfo>({
     name: '',
@@ -111,9 +254,6 @@ export default function BulletinCreationInterface() {
     late: 0,
     sanctions: 0
   });
-
-  const [trimester, setTrimester] = useState('Premier');
-  const [year, setYear] = useState('2025/2026');
   
   // Check if this is third trimester for annual summary
   const isThirdTrimester = trimester === 'Troisième';
@@ -185,9 +325,21 @@ export default function BulletinCreationInterface() {
   };
 
   const updateSubject = (id: string, field: keyof Subject, value: string | number) => {
-    setSubjects(subjects.map(s => 
-      s.id === id ? { ...s, [field]: value } : s
-    ));
+    setSubjects(subjects.map(s => {
+      if (s.id === id) {
+        const updatedSubject = { ...s, [field]: value };
+        
+        // Automatically update competency level and description when grade changes
+        if (field === 'grade' && typeof value === 'number') {
+          const competencyLevel = calculateCompetencyLevel(value);
+          updatedSubject.competencyLevel = competencyLevel as any;
+          updatedSubject.competencyEvaluation = getCompetencyDescription(competencyLevel, language);
+        }
+        
+        return updatedSubject;
+      }
+      return s;
+    }));
   };
 
   const calculateAverage = () => {
@@ -760,14 +912,42 @@ export default function BulletinCreationInterface() {
                       </div>
                     </div>
 
+                    <div>
+                      <Label className="text-sm">Compétences évaluées</Label>
+                      <Badge className={getCompetencyColor(calculateCompetencyLevel(subject.grade))}>
+                        {calculateCompetencyLevel(subject.grade)}
+                      </Badge>
+                      <div className="text-xs text-gray-600 mt-1">
+                        {getCompetencyDescription(calculateCompetencyLevel(subject.grade), language)}
+                      </div>
+                    </div>
+
                     <div className="md:col-span-2">
                       <Label className="text-sm">Appréciation</Label>
-                      <Input
-                        data-testid={`input-subject-remark-${index}`}
-                        value={subject.remark}
-                        onChange={(e) => updateSubject(subject.id, 'remark', e.target.value)}
-                        placeholder="Appréciation de l'enseignant"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          data-testid={`input-subject-remark-${index}`}
+                          value={subject.remark}
+                          onChange={(e) => updateSubject(subject.id, 'remark', e.target.value)}
+                          placeholder="Appréciation de l'enseignant"
+                          className="flex-1"
+                        />
+                        <Select onValueChange={(value) => updateSubject(subject.id, 'remark', value)}>
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Prédéfinie" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {predefinedAppreciations?.data?.filter((app: any) => 
+                              app.targetRole === 'director' && 
+                              (!app.gradeRange || (subject.grade >= app.gradeRange.min && subject.grade <= app.gradeRange.max))
+                            ).map((appreciation: any) => (
+                              <SelectItem key={appreciation.id} value={appreciation.appreciationFr}>
+                                {language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     <div className="flex items-end">
@@ -783,6 +963,239 @@ export default function BulletinCreationInterface() {
                   </div>
                   );
                 })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Compétences évaluées Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center justify-between">
+                {language === 'fr' ? 'Compétences évaluées' : 'Evaluated Competencies'}
+                <div className="flex gap-2">
+                  <Badge variant="outline">
+                    {language === 'fr' ? 'Système APPRECIATION' : 'REMARKS_2 System'}
+                  </Badge>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Competency Evaluation System Selection */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">
+                      {language === 'fr' ? 'Système d\'évaluation' : 'Evaluation System'}
+                    </Label>
+                    <Select 
+                      value={selectedCompetencySystem?.name || (language === 'fr' ? 'APPRECIATION' : 'REMARKS_2')}
+                      onValueChange={(value) => {
+                        const system = competencySystems?.data?.find((s: any) => s.name === value);
+                        if (system) {
+                          setSelectedCompetencySystem(system);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un système" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {competencySystems?.data?.map((system: any) => (
+                          <SelectItem key={system.id} value={system.name}>
+                            {system.name} ({system.language.toUpperCase()})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Competency Levels Display */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <Label className="text-sm font-medium mb-3 block">
+                    {language === 'fr' ? 'Grille d\'évaluation' : 'Evaluation Grid'}
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                    {selectedCompetencySystem?.levels ? (
+                      // Use actual system data
+                      selectedCompetencySystem.levels
+                        .sort((a: any, b: any) => b.gradeRange.min - a.gradeRange.min) // Sort by grade range descending
+                        .map((level: any, index: number) => {
+                          const colorClasses = getCompetencyColor(level.code);
+                          const bgColor = colorClasses.includes('green') ? 'bg-green-100 border-green-200' :
+                                         colorClasses.includes('blue') ? 'bg-blue-100 border-blue-200' :
+                                         colorClasses.includes('yellow') ? 'bg-yellow-100 border-yellow-200' :
+                                         colorClasses.includes('orange') ? 'bg-orange-100 border-orange-200' :
+                                         'bg-red-100 border-red-200';
+                          
+                          const textColor = colorClasses.includes('green') ? 'text-green-800' :
+                                           colorClasses.includes('blue') ? 'text-blue-800' :
+                                           colorClasses.includes('yellow') ? 'text-yellow-800' :
+                                           colorClasses.includes('orange') ? 'text-orange-800' :
+                                           'text-red-800';
+                          
+                          return (
+                            <div key={level.code} className={`p-3 rounded-lg border ${bgColor}`}>
+                              <div className={`font-semibold text-sm ${textColor}`}>
+                                {level.code}
+                              </div>
+                              <div className={`text-xs mt-1 ${textColor.replace('800', '700')}`}>
+                                {language === 'fr' ? level.descriptionFr : level.descriptionEn}
+                              </div>
+                              <div className={`text-xs font-medium mt-1 ${textColor.replace('800', '600')}`}>
+                                {level.gradeRange.min}-{level.gradeRange.max}/20
+                              </div>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      // Fallback display when no system loaded
+                      <>
+                        <div className="bg-green-100 p-3 rounded-lg border border-green-200">
+                          <div className="font-semibold text-green-800 text-sm">
+                            {language === 'fr' ? 'CTBA' : 'CVWA'}
+                          </div>
+                          <div className="text-xs text-green-700 mt-1">
+                            {language === 'fr' 
+                              ? 'Compétences très bien acquises' 
+                              : 'Competences Very Well Acquired'
+                            }
+                          </div>
+                          <div className="text-xs text-green-600 font-medium mt-1">16-20/20</div>
+                        </div>
+
+                        <div className="bg-blue-100 p-3 rounded-lg border border-blue-200">
+                          <div className="font-semibold text-blue-800 text-sm">
+                            {language === 'fr' ? 'CBA' : 'CWA'}
+                          </div>
+                          <div className="text-xs text-blue-700 mt-1">
+                            {language === 'fr' 
+                              ? 'Compétences bien acquises' 
+                              : 'Competences Well Acquired'
+                            }
+                          </div>
+                          <div className="text-xs text-blue-600 font-medium mt-1">14-16/20</div>
+                        </div>
+
+                        <div className="bg-yellow-100 p-3 rounded-lg border border-yellow-200">
+                          <div className="font-semibold text-yellow-800 text-sm">CA</div>
+                          <div className="text-xs text-yellow-700 mt-1">
+                            {language === 'fr' 
+                              ? 'Compétences acquises' 
+                              : 'Competences Acquired'
+                            }
+                          </div>
+                          <div className="text-xs text-yellow-600 font-medium mt-1">12-14/20</div>
+                        </div>
+
+                        <div className="bg-orange-100 p-3 rounded-lg border border-orange-200">
+                          <div className="font-semibold text-orange-800 text-sm">
+                            {language === 'fr' ? 'CMA' : 'CAA'}
+                          </div>
+                          <div className="text-xs text-orange-700 mt-1">
+                            {language === 'fr' 
+                              ? 'Compétences moyennement acquises' 
+                              : 'Competences Averagely Acquired'
+                            }
+                          </div>
+                          <div className="text-xs text-orange-600 font-medium mt-1">10-12/20</div>
+                        </div>
+
+                        <div className="bg-red-100 p-3 rounded-lg border border-red-200">
+                          <div className="font-semibold text-red-800 text-sm">CNA</div>
+                          <div className="text-xs text-red-700 mt-1">
+                            {language === 'fr' 
+                              ? 'Compétences non acquises' 
+                              : 'Competences Not Acquired'
+                            }
+                          </div>
+                          <div className="text-xs text-red-600 font-medium mt-1">0-10/20</div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Subject Competency Summary */}
+                <div className="border rounded-lg p-4">
+                  <Label className="text-sm font-medium mb-3 block">
+                    {language === 'fr' ? 'Résumé des compétences par matière' : 'Subject Competency Summary'}
+                  </Label>
+                  <div className="space-y-2">
+                    {subjects.map((subject, index) => {
+                      const competencyLevel = calculateCompetencyLevel(subject.grade);
+                      return (
+                        <div key={subject.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <div className="flex items-center gap-3">
+                            <span className="font-medium text-sm min-w-0 flex-1">{subject.name}</span>
+                            <span className="text-sm text-gray-600">{subject.grade}/20</span>
+                          </div>
+                          <Badge className={getCompetencyColor(competencyLevel)}>
+                            {competencyLevel}
+                          </Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Predefined Appreciations by Category */}
+                <div className="border rounded-lg p-4">
+                  <Label className="text-sm font-medium mb-3 block">
+                    {language === 'fr' ? 'Appréciations prédéfinies' : 'Predefined Appreciations'}
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* General Appreciations */}
+                    <div>
+                      <Label className="text-xs text-gray-600 mb-2 block">
+                        {language === 'fr' ? 'Appréciations générales' : 'General Appreciations'}
+                      </Label>
+                      <div className="space-y-1">
+                        {predefinedAppreciations?.data?.filter((app: any) => 
+                          app.category === 'general' && app.targetRole === 'director'
+                        ).slice(0, 3).map((appreciation: any) => (
+                          <Button
+                            key={appreciation.id}
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-left justify-start text-xs h-auto py-2"
+                            onClick={() => {
+                              // Could be used to apply to general appreciation field
+                              console.log('Selected appreciation:', appreciation);
+                            }}
+                          >
+                            {language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Council Decisions */}
+                    <div>
+                      <Label className="text-xs text-gray-600 mb-2 block">
+                        {language === 'fr' ? 'Décisions du conseil' : 'Council Decisions'}
+                      </Label>
+                      <div className="space-y-1">
+                        {predefinedAppreciations?.data?.filter((app: any) => 
+                          app.category === 'council_decision'
+                        ).slice(0, 3).map((appreciation: any) => (
+                          <Button
+                            key={appreciation.id}
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-left justify-start text-xs h-auto py-2"
+                            onClick={() => {
+                              // Could be used to apply to council decision field
+                              console.log('Selected council decision:', appreciation);
+                            }}
+                          >
+                            {language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
