@@ -175,7 +175,7 @@ export class ArchiveStorage {
     try {
       const [log] = await db.insert(archiveAccessLogs)
         .values({
-          archiveId: accessData.archiveId,
+          archiveId: accessData.archiveId || null,
           schoolId: accessData.schoolId,
           userId: accessData.userId,
           action: accessData.action,

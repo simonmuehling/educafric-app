@@ -42,10 +42,10 @@ export const archivedDocuments = pgTable("archived_documents", {
 // Audit trail for archive access and downloads
 export const archiveAccessLogs = pgTable("archive_access_logs", {
   id: serial("id").primaryKey(),
-  archiveId: integer("archive_id").notNull(),
+  archiveId: integer("archive_id"), // Nullable for list operations
   schoolId: integer("school_id").notNull(),
   userId: integer("user_id").notNull(),
-  action: text("action").notNull(), // 'view' | 'download' | 'export'
+  action: text("action").notNull(), // 'view' | 'download' | 'export' | 'list'
   ip: text("ip"),
   userAgent: text("user_agent"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -87,10 +87,10 @@ export const insertArchivedDocumentSchema = z.object({
 });
 
 export const insertArchiveAccessLogSchema = z.object({
-  archiveId: z.number(),
+  archiveId: z.number().nullable(),
   schoolId: z.number(),
   userId: z.number(),
-  action: z.enum(['view', 'download', 'export']),
+  action: z.enum(['view', 'download', 'export', 'list']),
   ip: z.string().optional(),
   userAgent: z.string().optional(),
 });
@@ -110,13 +110,13 @@ export type NewArchiveAccessLog = z.infer<typeof insertArchiveAccessLogSchema>;
 // Archive filter schema
 export const archiveFilterSchema = z.object({
   academicYear: z.string().optional(),
-  classId: z.number().optional(),
+  classId: z.coerce.number().optional(),
   term: z.string().optional(),
   type: z.enum(['bulletin', 'mastersheet']).optional(),
-  studentId: z.number().optional(),
+  studentId: z.coerce.number().optional(),
   search: z.string().optional(), // Search in filename, student name, etc.
-  page: z.number().min(1).default(1),
-  limit: z.number().min(1).max(100).default(20),
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(20),
 });
 
 export type ArchiveFilter = z.infer<typeof archiveFilterSchema>;

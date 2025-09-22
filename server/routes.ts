@@ -34,6 +34,13 @@ import { storage } from "./storage.js";
 import { db } from "./db.js";
 import { users, schools, classes, subjects, grades } from "../shared/schema.js";
 import { eq, and, sql } from "drizzle-orm";
+import { 
+  ArchiveFilter, 
+  NewArchivedDocument, 
+  NewArchiveAccessLog,
+  insertArchivedDocumentSchema,
+  archiveFilterSchema 
+} from "../shared/schemas/archiveSchema.js";
 
 // Import validation schemas to prevent security issues
 import { 
@@ -7348,6 +7355,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[DIRECTOR_COMMUNICATIONS] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch director communications' });
+    }
+  });
+
+  // ============= DIRECTOR ARCHIVE API ROUTES =============
+  
+  // Get archived bulletins and mastersheets with filtering
+  app.get('/api/director/archives', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      
+      // Validate query parameters
+      const filterValidation = archiveFilterSchema.safeParse(req.query);
+      if (!filterValidation.success) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid filter parameters',
+          errors: filterValidation.error.errors 
+        });
+      }
+      
+      const filters = filterValidation.data;
+      console.log('[ARCHIVES_API] GET /api/director/archives with filters:', filters);
+      
+      const archives = await storage.listArchives(user.schoolId, filters);
+      
+      // Log access
+      await storage.logAccess({
+        archiveId: null, // For list operations
+        schoolId: user.schoolId,
+        userId: user.id,
+        action: 'list',
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+      
+      res.json({ success: true, data: archives });
+    } catch (error) {
+      console.error('[ARCHIVES_API] Error listing archives:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch archives' });
+    }
+  });
+
+  // Get archive statistics
+  app.get('/api/director/archives/stats', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const { academicYear } = req.query;
+      
+      console.log('[ARCHIVES_API] GET /api/director/archives/stats for year:', academicYear);
+      
+      const stats = await storage.getArchiveStats(user.schoolId, academicYear as string);
+      
+      res.json({ success: true, data: stats });
+    } catch (error) {
+      console.error('[ARCHIVES_API] Error fetching archive stats:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch archive statistics' });
+    }
+  });
+
+  // Get specific archive details
+  app.get('/api/director/archives/:id', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const archiveId = parseInt(req.params.id);
+      
+      if (isNaN(archiveId)) {
+        return res.status(400).json({ success: false, message: 'Invalid archive ID' });
+      }
+      
+      console.log('[ARCHIVES_API] GET /api/director/archives/' + archiveId);
+      
+      const archive = await storage.getArchiveById(archiveId, user.schoolId);
+      if (!archive) {
+        return res.status(404).json({ success: false, message: 'Archive not found' });
+      }
+      
+      // Log access
+      await storage.logAccess({
+        archiveId,
+        schoolId: user.schoolId,
+        userId: user.id,
+        action: 'view',
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+      
+      res.json({ success: true, data: archive });
+    } catch (error) {
+      console.error('[ARCHIVES_API] Error fetching archive:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch archive' });
+    }
+  });
+
+  // Download archived document
+  app.get('/api/director/archives/:id/download', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const archiveId = parseInt(req.params.id);
+      
+      if (isNaN(archiveId)) {
+        return res.status(400).json({ success: false, message: 'Invalid archive ID' });
+      }
+      
+      console.log('[ARCHIVES_API] GET /api/director/archives/' + archiveId + '/download');
+      
+      const archive = await storage.getArchiveById(archiveId, user.schoolId);
+      if (!archive) {
+        return res.status(404).json({ success: false, message: 'Archive not found' });
+      }
+      
+      // Log download access
+      await storage.logAccess({
+        archiveId,
+        schoolId: user.schoolId,
+        userId: user.id,
+        action: 'download',
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+      
+      // Check if file exists in storage
+      const filePath = path.join(__dirname, '../storage/archives', archive.storageKey);
+      
+      if (!fs.existsSync(filePath)) {
+        console.error('[ARCHIVES_API] File not found in storage:', filePath);
+        return res.status(404).json({ success: false, message: 'Archive file not found' });
+      }
+      
+      // Set appropriate headers for download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${archive.filename}"`);
+      res.setHeader('Cache-Control', 'private, max-age=3600'); // Cache for 1 hour
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+      
+    } catch (error) {
+      console.error('[ARCHIVES_API] Error downloading archive:', error);
+      res.status(500).json({ success: false, message: 'Failed to download archive' });
+    }
+  });
+
+  // Get access logs for an archive
+  app.get('/api/director/archives/:id/logs', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const archiveId = parseInt(req.params.id);
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      
+      if (isNaN(archiveId)) {
+        return res.status(400).json({ success: false, message: 'Invalid archive ID' });
+      }
+      
+      console.log('[ARCHIVES_API] GET /api/director/archives/' + archiveId + '/logs');
+      
+      // Verify archive exists and belongs to school
+      const archive = await storage.getArchiveById(archiveId, user.schoolId);
+      if (!archive) {
+        return res.status(404).json({ success: false, message: 'Archive not found' });
+      }
+      
+      const logs = await storage.getAccessLogs(archiveId, user.schoolId, limit);
+      
+      res.json({ success: true, data: logs });
+    } catch (error) {
+      console.error('[ARCHIVES_API] Error fetching access logs:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch access logs' });
     }
   });
   
