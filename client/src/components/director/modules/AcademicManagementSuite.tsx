@@ -1358,7 +1358,7 @@ export default function AcademicManagementSuite() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="mastersheet" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="mastersheet" className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
             {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
@@ -1374,10 +1374,6 @@ export default function AcademicManagementSuite() {
           <TabsTrigger value="submissions" className="flex items-center gap-2">
             <Timer className="h-4 w-4" />
             {language === 'fr' ? 'Soumissions Enseignants' : 'Teacher Submissions'}
-          </TabsTrigger>
-          <TabsTrigger value="timetable" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            {language === 'fr' ? 'Emploi du Temps' : 'Timetable'}
           </TabsTrigger>
           <TabsTrigger value="attendance" className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
@@ -1433,9 +1429,6 @@ export default function AcademicManagementSuite() {
           <TeacherSubmissionsManager selectedClass={selectedClass} selectedTerm={selectedTerm} />
         </TabsContent>
 
-        <TabsContent value="timetable" className="space-y-4">
-          <TimeTable selectedClass={selectedClass} />
-        </TabsContent>
 
         <TabsContent value="attendance" className="space-y-4">
           <AttendanceRegister selectedClass={selectedClass} />
