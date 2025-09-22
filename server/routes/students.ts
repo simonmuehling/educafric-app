@@ -379,7 +379,7 @@ router.post('/messages/teacher', requireAuth, async (req, res) => {
       });
     }
 
-    const { teacherId, subject, message } = req.body;
+    const { teacherId, subject, message, notificationChannels } = req.body;
     
     if (!teacherId || !subject || !message) {
       return res.status(400).json({
@@ -387,6 +387,11 @@ router.post('/messages/teacher', requireAuth, async (req, res) => {
         message: 'Teacher ID, subject, and message are required'
       });
     }
+
+    // Ensure only PWA and email notifications (no SMS)
+    const allowedChannels = notificationChannels ? 
+      notificationChannels.filter((channel: string) => ['pwa', 'email'].includes(channel)) : 
+      ['pwa', 'email'];
 
     // Create message record (simplified implementation)
     const newMessage = {
@@ -397,16 +402,19 @@ router.post('/messages/teacher', requireAuth, async (req, res) => {
       toRole: 'Teacher',
       subject,
       message,
+      notificationChannels: allowedChannels,
       date: new Date().toISOString(),
       status: 'sent'
     };
     
     console.log('[STUDENTS_API] Message to teacher sent:', newMessage);
+    console.log('[STUDENTS_API] Notification channels (PWA+Email only):', allowedChannels);
     
     res.json({
       success: true,
       message: 'Message sent to teacher successfully',
-      data: newMessage
+      data: newMessage,
+      notificationChannels: allowedChannels
     });
   } catch (error) {
     console.error('[STUDENTS_API] Error sending message to teacher:', error);
@@ -417,8 +425,8 @@ router.post('/messages/teacher', requireAuth, async (req, res) => {
   }
 });
 
-// Send message to parent
-router.post('/messages/parent', requireAuth, async (req, res) => {
+// Send message to school administration
+router.post('/messages/school', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
     
@@ -429,40 +437,56 @@ router.post('/messages/parent', requireAuth, async (req, res) => {
       });
     }
 
-    const { parentId, subject, message } = req.body;
+    const { recipientType, subject, message, notificationChannels } = req.body;
     
-    if (!parentId || !subject || !message) {
+    if (!recipientType || !subject || !message) {
       return res.status(400).json({
         success: false,
-        message: 'Parent ID, subject, and message are required'
+        message: 'Recipient type, subject, and message are required'
       });
     }
+
+    // Ensure only PWA and email notifications (no SMS)
+    const allowedChannels = notificationChannels ? 
+      notificationChannels.filter((channel: string) => ['pwa', 'email'].includes(channel)) : 
+      ['pwa', 'email'];
+
+    // Map recipient type to display name
+    const recipientMap = {
+      'administration': 'Administration',
+      'director': 'Direction',
+      'student_services': 'Services Étudiants'
+    };
 
     // Create message record (simplified implementation)
     const newMessage = {
       id: Date.now(),
       from: `${user.firstName || 'Élève'} ${user.lastName || ''}`,
       fromRole: 'Student',
-      to: `Parent #${parentId}`,
-      toRole: 'Parent',
+      to: recipientMap[recipientType as keyof typeof recipientMap] || 'École',
+      toRole: 'School',
+      recipientType,
       subject,
       message,
+      notificationChannels: allowedChannels,
       date: new Date().toISOString(),
       status: 'sent'
     };
     
-    console.log('[STUDENTS_API] Message to parent sent:', newMessage);
+    console.log('[STUDENTS_API] Message to school sent:', newMessage);
+    console.log('[STUDENTS_API] Notification channels (PWA+Email only):', allowedChannels);
     
     res.json({
       success: true,
-      message: 'Message sent to parent successfully',
-      data: newMessage
+      message: 'Message sent to school successfully',
+      data: newMessage,
+      notificationChannels: allowedChannels
     });
   } catch (error) {
-    console.error('[STUDENTS_API] Error sending message to parent:', error);
+    console.error('[STUDENTS_API] Error sending message to school:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to send message to parent'
+      message: 'Failed to send message to school'
     });
   }
 });

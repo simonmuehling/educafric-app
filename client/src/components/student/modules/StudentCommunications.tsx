@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  MessageSquare, Eye, Reply, Trash2, RefreshCw, 
-  AlertCircle, CheckCircle, Clock, User 
+  MessageSquare, Eye, Reply, RefreshCw, 
+  AlertCircle, CheckCircle, Clock, User, School 
 } from 'lucide-react';
 
 const StudentCommunications: React.FC = () => {
@@ -22,36 +22,37 @@ const StudentCommunications: React.FC = () => {
   const queryClient = useQueryClient();
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
   const [isTeacherMessageOpen, setIsTeacherMessageOpen] = useState(false);
-  const [isParentMessageOpen, setIsParentMessageOpen] = useState(false);
+  const [isSchoolMessageOpen, setIsSchoolMessageOpen] = useState(false);
   const [teacherForm, setTeacherForm] = useState({
     teacherId: '',
     subject: '',
-    message: ''
+    message: '',
+    notificationChannels: ['pwa', 'email'] // Only PWA notifications and email
   });
-  const [parentForm, setParentForm] = useState({
-    parentId: '',
+  const [schoolForm, setSchoolForm] = useState({
+    recipientType: 'administration',
     subject: '',
-    message: ''
+    message: '',
+    notificationChannels: ['pwa', 'email'] // Only PWA notifications and email
   });
 
   const text = {
     fr: {
       title: 'Messages École',
-      subtitle: 'Communiquer avec mes enseignants et mes parents',
+      subtitle: 'Communiquer avec mon école et mes enseignants',
       loading: 'Chargement des messages...',
       error: 'Erreur lors du chargement des messages',
       noMessages: 'Aucun message',
       refresh: 'Actualiser',
       markRead: 'Marquer comme lu',
       reply: 'Répondre',
-      delete: 'Supprimer',
       from: 'De',
       subject: 'Objet',
       date: 'Date',
       writeToTeacher: 'Écrire à mes enseignants',
-      writeToParents: 'Écrire à mes parents',
+      writeToSchool: 'Écrire à mon école',
       selectTeacher: 'Choisir un enseignant',
-      selectParent: 'Choisir un parent',
+      selectSchoolContact: 'Choisir un contact école',
       messageSubject: 'Sujet du message',
       messageContent: 'Votre message',
       send: 'Envoyer',
@@ -62,6 +63,9 @@ const StudentCommunications: React.FC = () => {
       messageSent: 'Message envoyé',
       messageSentDesc: 'Votre message a été envoyé avec succès',
       cancel: 'Annuler',
+      administration: 'Administration',
+      director: 'Direction',
+      studentServices: 'Services étudiants',
       priority: {
         urgent: 'Urgent',
         high: 'Important',
@@ -71,25 +75,25 @@ const StudentCommunications: React.FC = () => {
       status: {
         read: 'Lu',
         unread: 'Non lu'
-      }
+      },
+      notificationInfo: 'Canaux: PWA + Email (pas de SMS)'
     },
     en: {
       title: 'School Messages',
-      subtitle: 'Communicate with my teachers and parents',
+      subtitle: 'Communicate with my school and teachers',
       loading: 'Loading messages...',
       error: 'Error loading messages',
       noMessages: 'No messages',
       refresh: 'Refresh',
       markRead: 'Mark as read',
       reply: 'Reply',
-      delete: 'Delete',
       from: 'From',
       subject: 'Subject',
       date: 'Date',
       writeToTeacher: 'Write to my teachers',
-      writeToParents: 'Write to my parents',
+      writeToSchool: 'Write to my school',
       selectTeacher: 'Choose a teacher',
-      selectParent: 'Choose a parent',
+      selectSchoolContact: 'Choose a school contact',
       messageSubject: 'Message subject',
       messageContent: 'Your message',
       send: 'Send',
@@ -100,6 +104,9 @@ const StudentCommunications: React.FC = () => {
       messageSent: 'Message sent',
       messageSentDesc: 'Your message has been sent successfully',
       cancel: 'Cancel',
+      administration: 'Administration',
+      director: 'Director',
+      studentServices: 'Student Services',
       priority: {
         urgent: 'Urgent',
         high: 'Important',
@@ -109,7 +116,8 @@ const StudentCommunications: React.FC = () => {
       status: {
         read: 'Read',
         unread: 'Unread'
-      }
+      },
+      notificationInfo: 'Channels: PWA + Email (no SMS)'
     }
   };
 
@@ -121,7 +129,10 @@ const StudentCommunications: React.FC = () => {
       const response = await fetch('/api/student/messages/teacher', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(messageData),
+        body: JSON.stringify({
+          ...messageData,
+          notificationChannels: ['pwa', 'email'] // Ensure only PWA and email
+        }),
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to send message to teacher');
@@ -130,7 +141,7 @@ const StudentCommunications: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/student/messages'] });
       setIsTeacherMessageOpen(false);
-      setTeacherForm({ teacherId: '', subject: '', message: '' });
+      setTeacherForm({ teacherId: '', subject: '', message: '', notificationChannels: ['pwa', 'email'] });
       toast({
         title: t.messageSent,
         description: t.messageSentDesc
@@ -145,22 +156,25 @@ const StudentCommunications: React.FC = () => {
     }
   });
 
-  // Send message to parent mutation
-  const sendParentMessageMutation = useMutation({
+  // Send message to school mutation
+  const sendSchoolMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const response = await fetch('/api/student/messages/parent', {
+      const response = await fetch('/api/student/messages/school', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(messageData),
+        body: JSON.stringify({
+          ...messageData,
+          notificationChannels: ['pwa', 'email'] // Ensure only PWA and email
+        }),
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to send message to parent');
+      if (!response.ok) throw new Error('Failed to send message to school');
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/student/messages'] });
-      setIsParentMessageOpen(false);
-      setParentForm({ parentId: '', subject: '', message: '' });
+      setIsSchoolMessageOpen(false);
+      setSchoolForm({ recipientType: 'administration', subject: '', message: '', notificationChannels: ['pwa', 'email'] });
       toast({
         title: t.messageSent,
         description: t.messageSentDesc
@@ -187,9 +201,9 @@ const StudentCommunications: React.FC = () => {
     }
   };
 
-  const handleSendToParent = () => {
-    if (parentForm.parentId && parentForm.subject && parentForm.message) {
-      sendParentMessageMutation.mutate(parentForm);
+  const handleSendToSchool = () => {
+    if (schoolForm.recipientType && schoolForm.subject && schoolForm.message) {
+      sendSchoolMessageMutation.mutate(schoolForm);
     } else {
       toast({
         title: 'Information manquante',
@@ -199,7 +213,7 @@ const StudentCommunications: React.FC = () => {
     }
   };
 
-  // Fetch messages from PostgreSQL API
+  // Fetch messages from API
   const { data: messages = [], isLoading, error, refetch } = useQuery<any[]>({
     queryKey: ['/api/student/messages'],
     enabled: !!user
@@ -218,19 +232,6 @@ const StudentCommunications: React.FC = () => {
     enabled: !!user
   });
 
-  // Fetch parents list
-  const { data: parents = [] } = useQuery({
-    queryKey: ['/api/student/parents'],
-    queryFn: async () => {
-      const response = await fetch('/api/student/parents', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch parents');
-      return response.json();
-    },
-    enabled: !!user
-  });
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'bg-red-500';
@@ -244,7 +245,7 @@ const StudentCommunications: React.FC = () => {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'Teacher': return <User className="w-4 h-4" />;
-      case 'Admin': return <AlertCircle className="w-4 h-4" />;
+      case 'Admin': return <School className="w-4 h-4" />;
       default: return <MessageSquare className="w-4 h-4" />;
     }
   };
@@ -310,6 +311,7 @@ const StudentCommunications: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
+          <p className="text-xs text-blue-600 mt-1">{t.notificationInfo}</p>
         </div>
         <Button onClick={handleRefresh} variant="outline">
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -361,6 +363,7 @@ const StudentCommunications: React.FC = () => {
                       value={teacherForm.subject}
                       onChange={(e) => setTeacherForm(prev => ({ ...prev, subject: e.target.value }))}
                       placeholder={t.subjectPlaceholder}
+                      data-testid="input-teacher-subject"
                     />
                   </div>
                   <div>
@@ -370,13 +373,18 @@ const StudentCommunications: React.FC = () => {
                       onChange={(e) => setTeacherForm(prev => ({ ...prev, message: e.target.value }))}
                       placeholder={t.contentPlaceholder}
                       rows={4}
+                      data-testid="textarea-teacher-message"
                     />
+                  </div>
+                  <div className="text-xs text-blue-600">
+                    {t.notificationInfo}
                   </div>
                   <div className="flex gap-2 pt-4">
                     <Button 
                       onClick={handleSendToTeacher}
                       disabled={sendTeacherMessageMutation.isPending || !teacherForm.teacherId || !teacherForm.subject || !teacherForm.message}
                       className="flex-1 bg-blue-600 hover:bg-blue-700"
+                      data-testid="button-send-teacher"
                     >
                       {sendTeacherMessageMutation.isPending ? t.sending : t.send}
                     </Button>
@@ -390,68 +398,72 @@ const StudentCommunications: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Write to Parents */}
+        {/* Write to School */}
         <Card>
           <CardHeader>
             <h3 className="text-lg font-semibold">
-              <User className="w-5 h-5 mr-2 inline" />
-              {t.writeToParents}
+              <School className="w-5 h-5 mr-2 inline" />
+              {t.writeToSchool}
             </h3>
           </CardHeader>
           <CardContent>
-            <Dialog open={isParentMessageOpen} onOpenChange={setIsParentMessageOpen}>
+            <Dialog open={isSchoolMessageOpen} onOpenChange={setIsSchoolMessageOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700 w-full" data-testid="button-write-parent">
-                  <User className="w-4 h-4 mr-2" />
-                  {t.writeToParents}
+                <Button className="bg-green-600 hover:bg-green-700 w-full" data-testid="button-write-school">
+                  <School className="w-4 h-4 mr-2" />
+                  {t.writeToSchool}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                  <DialogTitle>{t.writeToParents}</DialogTitle>
+                  <DialogTitle>{t.writeToSchool}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">{t.selectParent}</label>
-                    <Select value={parentForm.parentId} onValueChange={(value) => setParentForm(prev => ({ ...prev, parentId: value }))}>
+                    <label className="text-sm font-medium">{t.selectSchoolContact}</label>
+                    <Select value={schoolForm.recipientType} onValueChange={(value) => setSchoolForm(prev => ({ ...prev, recipientType: value }))}>
                       <SelectTrigger>
-                        <SelectValue placeholder={t.selectParent} />
+                        <SelectValue placeholder={t.selectSchoolContact} />
                       </SelectTrigger>
                       <SelectContent>
-                        {parents.map((parent: any) => (
-                          <SelectItem key={parent.id} value={parent.id.toString()}>
-                            {parent.firstName} {parent.lastName} - {parent.relationship}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="administration">{t.administration}</SelectItem>
+                        <SelectItem value="director">{t.director}</SelectItem>
+                        <SelectItem value="student_services">{t.studentServices}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
                     <label className="text-sm font-medium">{t.messageSubject}</label>
                     <Input
-                      value={parentForm.subject}
-                      onChange={(e) => setParentForm(prev => ({ ...prev, subject: e.target.value }))}
+                      value={schoolForm.subject}
+                      onChange={(e) => setSchoolForm(prev => ({ ...prev, subject: e.target.value }))}
                       placeholder={t.subjectPlaceholder}
+                      data-testid="input-school-subject"
                     />
                   </div>
                   <div>
                     <label className="text-sm font-medium">{t.messageContent}</label>
                     <Textarea
-                      value={parentForm.message}
-                      onChange={(e) => setParentForm(prev => ({ ...prev, message: e.target.value }))}
+                      value={schoolForm.message}
+                      onChange={(e) => setSchoolForm(prev => ({ ...prev, message: e.target.value }))}
                       placeholder={t.contentPlaceholder}
                       rows={4}
+                      data-testid="textarea-school-message"
                     />
+                  </div>
+                  <div className="text-xs text-blue-600">
+                    {t.notificationInfo}
                   </div>
                   <div className="flex gap-2 pt-4">
                     <Button 
-                      onClick={handleSendToParent}
-                      disabled={sendParentMessageMutation.isPending || !parentForm.parentId || !parentForm.subject || !parentForm.message}
+                      onClick={handleSendToSchool}
+                      disabled={sendSchoolMessageMutation.isPending || !schoolForm.recipientType || !schoolForm.subject || !schoolForm.message}
                       className="flex-1 bg-green-600 hover:bg-green-700"
+                      data-testid="button-send-school"
                     >
-                      {sendParentMessageMutation.isPending ? t.sending : t.send}
+                      {sendSchoolMessageMutation.isPending ? t.sending : t.send}
                     </Button>
-                    <Button variant="outline" onClick={() => setIsParentMessageOpen(false)}>
+                    <Button variant="outline" onClick={() => setIsSchoolMessageOpen(false)}>
                       {t.cancel}
                     </Button>
                   </div>

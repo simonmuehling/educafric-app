@@ -527,6 +527,196 @@ router.get('/messages', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/student/messages/teacher - Send message to teacher
+router.post('/messages/teacher', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - students only'
+      });
+    }
+
+    const { teacherId, subject, message, notificationChannels } = req.body;
+    
+    if (!teacherId || !subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Teacher ID, subject, and message are required'
+      });
+    }
+
+    // Ensure only PWA and email notifications (no SMS)
+    const allowedChannels = notificationChannels ? 
+      notificationChannels.filter((channel: string) => ['pwa', 'email'].includes(channel)) : 
+      ['pwa', 'email'];
+
+    // Create message record (simplified implementation)
+    const newMessage = {
+      id: Date.now(),
+      from: `${user.firstName || 'Élève'} ${user.lastName || ''}`,
+      fromRole: 'Student',
+      to: `Enseignant #${teacherId}`,
+      toRole: 'Teacher',
+      subject,
+      message,
+      notificationChannels: allowedChannels,
+      date: new Date().toISOString(),
+      status: 'sent'
+    };
+    
+    console.log('[STUDENT_API] Message to teacher sent:', newMessage);
+    console.log('[STUDENT_API] Notification channels (PWA+Email only):', allowedChannels);
+    
+    res.json({
+      success: true,
+      message: 'Message sent to teacher successfully',
+      data: newMessage,
+      notificationChannels: allowedChannels
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] Error sending message to teacher:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send message to teacher'
+    });
+  }
+});
+
+// POST /api/student/messages/school - Send message to school administration
+router.post('/messages/school', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - students only'
+      });
+    }
+
+    const { recipientType, subject, message, notificationChannels } = req.body;
+    
+    if (!recipientType || !subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Recipient type, subject, and message are required'
+      });
+    }
+
+    // Validate recipientType
+    const allowedRecipients = ['administration', 'director', 'student_services'];
+    if (!allowedRecipients.includes(recipientType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid recipient type. Must be: administration, director, or student_services'
+      });
+    }
+
+    // Ensure only PWA and email notifications (no SMS)
+    const allowedChannels = notificationChannels ? 
+      notificationChannels.filter((channel: string) => ['pwa', 'email'].includes(channel)) : 
+      ['pwa', 'email'];
+
+    // Map recipient type to display name
+    const recipientMap = {
+      'administration': 'Administration',
+      'director': 'Direction',
+      'student_services': 'Services Étudiants'
+    };
+
+    // Create message record (simplified implementation)
+    const newMessage = {
+      id: Date.now(),
+      from: `${user.firstName || 'Élève'} ${user.lastName || ''}`,
+      fromRole: 'Student',
+      to: recipientMap[recipientType as keyof typeof recipientMap] || 'École',
+      toRole: 'School',
+      recipientType,
+      subject,
+      message,
+      notificationChannels: allowedChannels,
+      date: new Date().toISOString(),
+      status: 'sent'
+    };
+    
+    console.log('[STUDENT_API] Message to school sent:', newMessage);
+    console.log('[STUDENT_API] Notification channels (PWA+Email only):', allowedChannels);
+    
+    res.json({
+      success: true,
+      message: 'Message sent to school successfully',
+      data: newMessage,
+      notificationChannels: allowedChannels
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] Error sending message to school:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send message to school'
+    });
+  }
+});
+
+// GET /api/student/teachers - Get teachers for student (for Messages École module)
+router.get('/teachers', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // For demo accounts, return mock teachers
+    if (user.email && user.email.includes('@test.educafric.com')) {
+      const mockTeachers = [
+        {
+          id: 1,
+          firstName: 'Marie',
+          lastName: 'Nguyen',
+          subject: 'Mathématiques',
+          email: 'marie.nguyen@test.educafric.com',
+          phone: '+237657001001'
+        },
+        {
+          id: 2,
+          firstName: 'Jean',
+          lastName: 'Kamga',
+          subject: 'Français',
+          email: 'jean.kamga@test.educafric.com',
+          phone: '+237657001002'
+        },
+        {
+          id: 3,
+          firstName: 'Sophie',
+          lastName: 'Mballa',
+          subject: 'Sciences',
+          email: 'sophie.mballa@test.educafric.com',
+          phone: '+237657001003'
+        }
+      ];
+      
+      return res.json({
+        success: true,
+        teachers: mockTeachers,
+        message: 'Teachers list retrieved successfully'
+      });
+    } else {
+      // For real accounts, get actual teacher list from database
+      // This would normally query the database for student's teachers by class/school
+      return res.json({
+        success: true,
+        teachers: [],
+        message: 'No teachers found'
+      });
+    }
+  } catch (error) {
+    console.error('[STUDENT_API] Error fetching teachers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch teachers'
+    });
+  }
+});
+
 // GET /api/student/attendance - Get student attendance
 router.get('/attendance', requireAuth, async (req, res) => {
   try {
