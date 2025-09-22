@@ -16,6 +16,7 @@ export * from "./schemas/classEnrollmentSchema"; // CRITICAL: Class enrollment f
 export * from "./schemas/sanctionsSchema"; // NEW: Disciplinary sanctions management
 export * from "./schemas/librarySchema"; // NEW: Library books and recommendations management
 export * from "./schemas/predefinedAppreciationsSchema"; // NEW: Predefined appreciations and competency templates
+export * from "./schemas/archiveSchema"; // NEW: Archive system for bulletins and mastersheets
 
 // Import existing schema modules
 export * from "./tutorialSchema";
@@ -45,8 +46,12 @@ import {
   predefinedAppreciations,
   competencyTemplates
 } from "./schemas/predefinedAppreciationsSchema";
+import {
+  archivedDocuments,
+  archiveAccessLogs
+} from "./schemas/archiveSchema";
 
-export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates };
+export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates, archivedDocuments, archiveAccessLogs };
 
 // Additional simplified tables for compatibility
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric, date, unique, foreignKey } from "drizzle-orm/pg-core";
