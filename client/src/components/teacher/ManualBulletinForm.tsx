@@ -870,12 +870,15 @@ export default function ManualBulletinForm({
                 const moyenneFinale = Number(r.moyenneFinale) || moyenneCalculee;
                 const totalPondere = round2(moyenneFinale * (Number(r.coef)||0));
                 const cote = r.cote || coteFromNote(moyenneFinale);
+                const notePercent = round2((moyenneFinale / 20) * 100);
+                const competencesEvaluees = r.competence1 && r.competence2 ? `${r.competence1}; ${r.competence2}` : (r.competence1 || r.competence2 || '');
                 
                 return (
                   <tr key={i} className={i % 2 ? "bg-white" : "bg-gray-50/30"}>
-                    <Td>
+                    {/* Matière */}
+                    <Td data-testid={`cell-subject-${i}`}>
                       <input 
-                        className="w-44 border rounded-lg px-2 py-1" 
+                        className="w-36 border rounded-lg px-2 py-1 text-sm" 
                         value={r.matiere} 
                         onChange={e=>{
                           const newMatiere = e.target.value;
@@ -886,90 +889,66 @@ export default function ManualBulletinForm({
                           });
                         }}
                         list="class-subjects-list"
-                        placeholder="Sélectionner ou taper une matière..."
+                        placeholder="Matière..."
                         data-testid={`input-subject-${i}`}
                       />
                     </Td>
-                    <Td>
-                      <input 
-                        className="w-44 border rounded-lg px-2 py-1" 
-                        value={r.enseignant} 
-                        onChange={e=>updateRow(i,{enseignant:e.target.value})} 
-                        placeholder="M/Mme…"
-                        data-testid={`input-teacher-${i}`}
-                      />
+
+                    {/* N/20-M/20 */}
+                    <Td data-testid={`cell-nm20-${i}`}>
+                      <div className="flex items-center gap-1 text-sm">
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          min="0" 
+                          max="20" 
+                          className="w-12 border rounded px-1 py-1 text-center text-xs" 
+                          value={r.note1} 
+                          onChange={e=>{
+                            const newNote1 = e.target.value;
+                            const newMoyenne = calculateMoyenneFinale(newNote1, r.note2);
+                            updateRow(i,{
+                              note1: newNote1,
+                              moyenneFinale: newMoyenne,
+                              totalPondere: round2(newMoyenne * (Number(r.coef)||0))
+                            });
+                          }}
+                          placeholder="N"
+                          data-testid={`input-note1-${i}`}
+                        />
+                        <span className="text-gray-500">-</span>
+                        <span className="w-12 text-center text-xs font-bold bg-blue-50 px-1 py-1 rounded border">
+                          {moyenneFinale || '0'}
+                        </span>
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          min="0" 
+                          max="20" 
+                          className="w-12 border rounded px-1 py-1 text-center text-xs ml-1" 
+                          value={r.note2} 
+                          onChange={e=>{
+                            const newNote2 = e.target.value;
+                            const newMoyenne = calculateMoyenneFinale(r.note1, newNote2);
+                            updateRow(i,{
+                              note2: newNote2,
+                              moyenneFinale: newMoyenne,
+                              totalPondere: round2(newMoyenne * (Number(r.coef)||0))
+                            });
+                          }}
+                          placeholder="N2"
+                          data-testid={`input-note2-${i}`}
+                        />
+                      </div>
                     </Td>
-                    <Td>
-                      <textarea 
-                        className="w-full border rounded-lg px-2 py-1" 
-                        rows={2} 
-                        value={r.competence1} 
-                        onChange={e=>updateRow(i,{competence1:e.target.value})}
-                        placeholder="Première compétence..."
-                        data-testid={`textarea-competence1-${i}`}
-                      />
-                    </Td>
-                    <Td>
-                      <textarea 
-                        className="w-full border rounded-lg px-2 py-1" 
-                        rows={2} 
-                        value={r.competence2} 
-                        onChange={e=>updateRow(i,{competence2:e.target.value})}
-                        placeholder="Deuxième compétence..."
-                        data-testid={`textarea-competence2-${i}`}
-                      />
-                    </Td>
-                    <Td>
-                      <input 
-                        type="number" 
-                        step="0.01" 
-                        min="0" 
-                        max="20" 
-                        className="w-20 border rounded-lg px-2 py-1" 
-                        value={r.note1} 
-                        onChange={e=>{
-                          const newNote1 = e.target.value;
-                          const newMoyenne = calculateMoyenneFinale(newNote1, r.note2);
-                          updateRow(i,{
-                            note1: newNote1,
-                            moyenneFinale: newMoyenne,
-                            totalPondere: round2(newMoyenne * (Number(r.coef)||0))
-                          });
-                        }}
-                        data-testid={`input-note1-${i}`}
-                      />
-                    </Td>
-                    <Td>
-                      <input 
-                        type="number" 
-                        step="0.01" 
-                        min="0" 
-                        max="20" 
-                        className="w-20 border rounded-lg px-2 py-1" 
-                        value={r.note2} 
-                        onChange={e=>{
-                          const newNote2 = e.target.value;
-                          const newMoyenne = calculateMoyenneFinale(r.note1, newNote2);
-                          updateRow(i,{
-                            note2: newNote2,
-                            moyenneFinale: newMoyenne,
-                            totalPondere: round2(newMoyenne * (Number(r.coef)||0))
-                          });
-                        }}
-                        data-testid={`input-note2-${i}`}
-                      />
-                    </Td>
-                    <Td>
-                      <span className="px-2 py-1 inline-block bg-blue-100 rounded-lg font-semibold text-blue-800">
-                        {moyenneFinale}
-                      </span>
-                    </Td>
-                    <Td>
+
+                    {/* Coefficient */}
+                    <Td data-testid={`cell-coef-${i}`}>
                       <input 
                         type="number" 
                         step="1" 
                         min="0" 
-                        className="w-16 border rounded-lg px-2 py-1" 
+                        className="w-14 border rounded-lg px-2 py-1 text-center text-sm" 
                         value={r.coef} 
                         onChange={e=>{
                           const newCoef = parseInt(e.target.value) || 0;
@@ -981,90 +960,102 @@ export default function ManualBulletinForm({
                         data-testid={`input-coef-${i}`}
                       />
                     </Td>
-                    <Td>
-                      <span className="px-2 py-1 inline-block bg-green-100 rounded-lg font-semibold text-green-800">
+
+                    {/* M x coef */}
+                    <Td data-testid={`cell-mxcoef-${i}`}>
+                      <span className="px-2 py-1 inline-block bg-green-50 rounded-lg font-semibold text-green-800 text-sm">
                         {totalPondere}
                       </span>
                     </Td>
-                    <Td>
+
+                    {/* Note % */}
+                    <Td data-testid={`cell-percent-${i}`}>
+                      <span className="px-2 py-1 inline-block bg-purple-50 rounded-lg font-semibold text-purple-800 text-sm">
+                        {notePercent}%
+                      </span>
+                    </Td>
+
+                    {/* COTE */}
+                    <Td data-testid={`cell-cote-${i}`}>
                       <input 
-                        className="w-16 border rounded-lg px-2 py-1" 
+                        className="w-12 border rounded-lg px-2 py-1 text-center font-bold text-sm" 
                         value={cote} 
                         onChange={e=>updateRow(i,{cote:e.target.value})}
                         data-testid={`input-cote-${i}`}
                       />
                     </Td>
-                    <Td>
-                      <div className="space-y-2">
-                        {/* Competency Badge */}
-                        {(r.m20 !== '' && r.m20 != null) && calculateCompetencyLevel(Number(r.m20)) && (
-                          <div className="flex items-center gap-2">
-                            <Badge 
-                              className={getCompetencyColor(calculateCompetencyLevel(Number(r.m20)))}
-                              data-testid={`badge-competency-${i}`}
-                            >
-                              {calculateCompetencyLevel(Number(r.m20))}
-                            </Badge>
-                            <span 
-                              className="text-xs text-gray-600"
-                              data-testid={`text-competency-desc-${i}`}
-                            >
-                              {getCompetencyDescription(calculateCompetencyLevel(Number(r.m20)))}
-                            </span>
-                          </div>
-                        )}
+
+                    {/* Compétences évaluées */}
+                    <Td data-testid={`cell-competences-${i}`}>
+                      <textarea 
+                        className="w-full border rounded-lg px-2 py-1 text-xs" 
+                        rows={2} 
+                        value={competencesEvaluees}
+                        onChange={e=>{
+                          const newCompetences = e.target.value;
+                          // Split by semicolon and update both competencies
+                          const parts = newCompetences.split(';');
+                          updateRow(i,{
+                            competence1: parts[0]?.trim() || '',
+                            competence2: parts[1]?.trim() || ''
+                          });
+                        }}
+                        placeholder="Compétences séparées par ;"
+                        data-testid={`input-competences-${i}`}
+                      />
+                    </Td>
+
+                    {/* Appréciation */}
+                    <Td data-testid={`cell-appreciation-${i}`}>
+                      <div className="flex gap-1 items-start">
+                        <textarea 
+                          className="flex-1 border rounded-lg px-2 py-1 text-xs min-h-[2.5rem]" 
+                          rows={2} 
+                          value={r.appreciation} 
+                          onChange={e=>updateRow(i,{appreciation:e.target.value})} 
+                          placeholder={appreciationFromNote(moyenneFinale, predefinedAppreciations)}
+                          data-testid={`textarea-appreciation-${i}`}
+                        />
                         
-                        {/* Appreciation Input with Predefined Options */}
-                        <div className="flex gap-1 items-start">
-                          <textarea 
-                            className="flex-1 border rounded-lg px-2 py-1 text-sm min-h-[3rem]" 
-                            rows={2} 
-                            value={r.appreciation} 
-                            onChange={e=>updateRow(i,{appreciation:e.target.value})} 
-                            placeholder={appreciationFromNote(r.m20, predefinedAppreciations)}
-                            data-testid={`textarea-appreciation-${i}`}
-                          />
-                          
-                          {/* Compact Predefined Appreciations Selector - Mobile Optimized */}
-                          <Select 
-                            onValueChange={(value) => updateRow(i, {appreciation: value})}
+                        {/* Compact Predefined Appreciations Selector - Mobile Optimized */}
+                        <Select 
+                          onValueChange={(value) => updateRow(i, {appreciation: value})}
+                        >
+                          <SelectTrigger 
+                            className="w-6 h-6 p-0 border-2 border-blue-300 hover:border-blue-500 flex items-center justify-center shrink-0 text-xs"
+                            disabled={!predefinedAppreciations?.data}
+                            data-testid={`button-open-appreciations-${i}`}
+                            title={predefinedAppreciations?.data ? "Choisir une appréciation" : "Chargement..."}
                           >
-                            <SelectTrigger 
-                              className="w-8 h-8 p-0 border-2 border-blue-300 hover:border-blue-500 flex items-center justify-center shrink-0"
-                              disabled={!predefinedAppreciations?.data}
-                              data-testid={`button-open-appreciations-${i}`}
-                              title={predefinedAppreciations?.data ? "Choisir une appréciation prédéfinie" : "Chargement..."}
-                            >
-                              <SelectValue placeholder={predefinedAppreciations?.data ? "📝" : "⏳"} />
-                            </SelectTrigger>
-                            <SelectContent className="max-w-[280px] max-h-[200px] overflow-y-auto">
-                              <div className="p-2 border-b bg-slate-50 text-xs font-medium text-slate-600">
-                                📝 Appréciations suggérées
-                              </div>
-                              {predefinedAppreciations?.data?.filter((app: any) => 
-                                (!app.gradeRange || (Number(r.m20) >= app.gradeRange.min && Number(r.m20) < app.gradeRange.max))
-                              ).slice(0, 8).map((appreciation: any) => (
-                                <SelectItem 
-                                  key={appreciation.id} 
-                                  value={appreciation.appreciation}
-                                  data-testid={`option-appreciation-${appreciation.id}`}
-                                  className="cursor-pointer hover:bg-blue-50"
-                                >
-                                  <div className="text-xs leading-relaxed py-1">
-                                    {appreciation.appreciation?.length > 45 
-                                      ? appreciation.appreciation.substring(0, 45) + "..." 
-                                      : appreciation.appreciation}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                              {!predefinedAppreciations?.data?.length && (
-                                <div className="p-2 text-xs text-slate-500 italic">
-                                  Aucune appréciation disponible
+                            <SelectValue placeholder="📝" />
+                          </SelectTrigger>
+                          <SelectContent className="max-w-[280px] max-h-[200px] overflow-y-auto">
+                            <div className="p-2 border-b bg-slate-50 text-xs font-medium text-slate-600">
+                              📝 Appréciations suggérées
+                            </div>
+                            {predefinedAppreciations?.data?.filter((app: any) => 
+                              (!app.gradeRange || (Number(moyenneFinale) >= app.gradeRange.min && Number(moyenneFinale) < app.gradeRange.max))
+                            ).slice(0, 8).map((appreciation: any) => (
+                              <SelectItem 
+                                key={appreciation.id} 
+                                value={appreciation.appreciation}
+                                data-testid={`option-appreciation-${appreciation.id}`}
+                                className="cursor-pointer hover:bg-blue-50"
+                              >
+                                <div className="text-xs leading-relaxed py-1">
+                                  {appreciation.appreciation?.length > 45 
+                                    ? appreciation.appreciation.substring(0, 45) + "..." 
+                                    : appreciation.appreciation}
                                 </div>
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                              </SelectItem>
+                            ))}
+                            {!predefinedAppreciations?.data?.length && (
+                              <div className="p-2 text-xs text-slate-500 italic">
+                                Aucune appréciation disponible
+                              </div>
+                            )}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </Td>
                     <Td>
@@ -1082,12 +1073,15 @@ export default function ManualBulletinForm({
               })}
             </tbody>
             <tfoot>
-              <tr className="bg-gray-100 font-semibold">
-                <Td colSpan={5}>{language === 'fr' ? 'TOTAL' : 'TOTAL'}</Td>
-                <Td>{totals.totalCoef}</Td>
-                <Td>{totals.totalMxCoef}</Td>
-                <Td>{totals.cote}</Td>
-                <Td colSpan={2}>{""}</Td>
+              <tr className="bg-gray-100 font-semibold text-sm">
+                <Td colSpan={2}>{language === 'fr' ? 'TOTAL GÉNÉRAL' : 'GENERAL TOTAL'}</Td>
+                <Td className="text-center">{totals.totalCoef}</Td>
+                <Td className="text-center font-bold text-green-800">{totals.totalMxCoef}</Td>
+                <Td className="text-center">{round2((totals.moyenne / 20) * 100)}%</Td>
+                <Td className="text-center font-bold">{totals.cote}</Td>
+                <Td colSpan={3} className="text-center text-gray-600">
+                  {language === 'fr' ? 'Moyenne générale:' : 'General average:'} <strong>{totals.moyenne}/20</strong>
+                </Td>
               </tr>
             </tfoot>
           </table>
