@@ -12,7 +12,9 @@ import { SubjectStorage } from "./subjectStorage";
 import { AcademicStorage } from "./academicStorage";
 import { SanctionStorage } from "./sanctionsStorage";
 import { LibraryStorage } from "./libraryStorage";
+import { ArchiveStorage } from "./archiveStorage";
 import type { NotificationPreferences, InsertNotificationPreferences } from "../../shared/schema";
+import type { ArchiveFilter, ArchiveResponse, NewArchivedDocument, NewArchiveAccessLog } from "../../shared/schemas/archiveSchema";
 
 // Main storage class combining all modules
 export class ModularStorage {
@@ -27,6 +29,7 @@ export class ModularStorage {
   private academicStorage: AcademicStorage;
   private sanctionStorage: SanctionStorage;
   private libraryStorage: LibraryStorage;
+  private archiveStorage: ArchiveStorage;
 
   constructor() {
     this.userStorage = new UserStorage();
@@ -40,6 +43,7 @@ export class ModularStorage {
     this.academicStorage = new AcademicStorage();
     this.sanctionStorage = new SanctionStorage();
     this.libraryStorage = new LibraryStorage();
+    this.archiveStorage = new ArchiveStorage();
   }
 
   // === USER METHODS ===
@@ -1246,6 +1250,15 @@ export class ModularStorage {
   async getRecommendedBooksForStudent(studentId: number, schoolId: number) { return this.libraryStorage.getRecommendedBooksForStudent(studentId, schoolId); }
   async getRecommendedBooksForParent(parentId: number, schoolId: number) { return this.libraryStorage.getRecommendedBooksForParent(parentId, schoolId); }
   async getTeacherRecommendations(teacherId: number, schoolId: number) { return this.libraryStorage.getTeacherRecommendations(teacherId, schoolId); }
+  
+  // === ARCHIVE METHODS ===
+  async saveArchive(archiveData: NewArchivedDocument) { return this.archiveStorage.saveArchive(archiveData); }
+  async listArchives(schoolId: number, filters: ArchiveFilter) { return this.archiveStorage.listArchives(schoolId, filters); }
+  async getArchiveById(id: number, schoolId: number) { return this.archiveStorage.getArchiveById(id, schoolId); }
+  async getPresignedUrl(archiveId: number, schoolId: number, ttlSeconds?: number) { return this.archiveStorage.getPresignedUrl(archiveId, schoolId, ttlSeconds); }
+  async logAccess(accessData: NewArchiveAccessLog) { return this.archiveStorage.logAccess(accessData); }
+  async getAccessLogs(archiveId: number, schoolId: number, limit?: number) { return this.archiveStorage.getAccessLogs(archiveId, schoolId, limit); }
+  async getArchiveStats(schoolId: number, academicYear?: string) { return this.archiveStorage.getArchiveStats(schoolId, academicYear); }
   
   // === SANDBOX SEEDING METHODS - FOR TESTING BULLETIN WORKFLOW ===
   private seedData: any = null;
