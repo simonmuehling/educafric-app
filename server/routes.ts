@@ -33,7 +33,12 @@ import adminRoutes from "./routes/admin";
 import { storage } from "./storage.js";
 import { db } from "./db.js";
 import { users, schools, classes, subjects, grades } from "../shared/schema.js";
-import { eq, and, sql } from "drizzle-orm";
+import { 
+  predefinedAppreciations, 
+  competencyEvaluationSystems, 
+  competencyTemplates 
+} from "../shared/schemas/predefinedAppreciationsSchema.js";
+import { eq, and, or, asc, desc, sql } from "drizzle-orm";
 import { 
   ArchiveFilter, 
   NewArchivedDocument, 
@@ -7523,6 +7528,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[ARCHIVES_API] Error fetching access logs:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch access logs' });
+    }
+  });
+
+  // ============= PREDEFINED APPRECIATIONS API ROUTES =============
+  // Route pour récupérer les appréciations prédéfinies pour les enseignants
+  app.get('/api/predefined-appreciations', requireAuth, requireAnyRole(['Teacher', 'Director', 'Council', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const role = ['teacher', 'director', 'council'].includes(req.query.role as string) ? req.query.role as string : 'teacher';
+      const category = req.query.category as string;
+      const language = ['fr', 'en'].includes(req.query.language as string) ? req.query.language as string : 'fr';
+      
+      let conditions = [
+        eq(predefinedAppreciations.isActive, true),
+        eq(predefinedAppreciations.targetRole, role)
+      ];
+      
+      // Filtrer par école ou global
+      if (user.schoolId) {
+        conditions.push(
+          or(
+            eq(predefinedAppreciations.schoolId, user.schoolId),
+            eq(predefinedAppreciations.isGlobal, true)
+          )
+        );
+      } else {
+        conditions.push(eq(predefinedAppreciations.isGlobal, true));
+      }
+      
+      // Filtrer par catégorie si spécifiée
+      if (category) {
+        conditions.push(eq(predefinedAppreciations.category, category));
+      }
+      
+      const appreciations = await db.select()
+        .from(predefinedAppreciations)
+        .where(and(...conditions))
+        .orderBy(
+          asc(predefinedAppreciations.category),
+          desc(predefinedAppreciations.usageCount),
+          asc(predefinedAppreciations.name)
+        );
+      
+      console.log(`[APPRECIATIONS_API] Retrieved ${appreciations.length} predefined appreciations for ${role}`);
+      
+      res.json({
+        success: true,
+        data: appreciations.map(app => ({
+          id: app.id,
+          name: app.name,
+          category: app.category,
+          appreciation: language === 'en' ? app.appreciationEn : app.appreciationFr,
+          competencyLevel: app.competencyLevel,
+          gradeRange: app.gradeRange
+        }))
+      });
+      
+    } catch (error: any) {
+      console.error('[APPRECIATIONS_API] Error fetching predefined appreciations:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch predefined appreciations',
+        error: error.message
+      });
+    }
+  });
+
+  // Route pour récupérer les systèmes d'évaluation des compétences
+  app.get('/api/competency-systems', requireAuth, requireAnyRole(['Teacher', 'Director', 'Council', 'Admin']), async (req, res) => {
+    try {
+      const language = ['fr', 'en'].includes(req.query.language as string) ? req.query.language as string : 'fr';
+      
+      const systems = await db.select()
+        .from(competencyEvaluationSystems)
+        .where(and(
+          eq(competencyEvaluationSystems.isActive, true),
+          eq(competencyEvaluationSystems.language, language)
+        ))
+        .orderBy(asc(competencyEvaluationSystems.name));
+      
+      console.log(`[COMPETENCY_API] Retrieved ${systems.length} competency systems for language ${language}`);
+      
+      res.json({
+        success: true,
+        data: systems
+      });
+      
+    } catch (error: any) {
+      console.error('[COMPETENCY_API] Error fetching competency systems:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch competency systems',
+        error: error.message
+      });
+    }
+  });
+
+  // Route pour récupérer les modèles de compétences par matière
+  app.get('/api/competency-templates', requireAuth, requireAnyRole(['Teacher', 'Director', 'Council', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const subject = req.query.subject as string;
+      const term = req.query.term as string;
+      const language = ['fr', 'en'].includes(req.query.language as string) ? req.query.language as string : 'fr';
+      
+      let conditions = [eq(competencyTemplates.isActive, true)];
+      
+      // Filtrer par école ou global
+      if (user.schoolId) {
+        conditions.push(
+          or(
+            eq(competencyTemplates.schoolId, user.schoolId),
+            eq(competencyTemplates.isGlobal, true)
+          )
+        );
+      } else {
+        conditions.push(eq(competencyTemplates.isGlobal, true));
+      }
+      
+      if (subject) {
+        conditions.push(eq(competencyTemplates.subjectName, subject));
+      }
+      
+      if (term) {
+        conditions.push(eq(competencyTemplates.term, term));
+      }
+      
+      const templates = await db.select()
+        .from(competencyTemplates)
+        .where(and(...conditions))
+        .orderBy(
+          asc(competencyTemplates.subjectName),
+          asc(competencyTemplates.term)
+        );
+      
+      console.log(`[COMPETENCY_TEMPLATES_API] Retrieved ${templates.length} competency templates`);
+      
+      res.json({
+        success: true,
+        data: templates.map(template => ({
+          id: template.id,
+          subjectName: template.subjectName,
+          term: template.term,
+          classLevel: template.classLevel,
+          competencies: language === 'en' ? template.competenciesEn : template.competenciesFr,
+          learningObjectives: template.learningObjectives,
+          evaluationCriteria: template.evaluationCriteria
+        }))
+      });
+      
+    } catch (error: any) {
+      console.error('[COMPETENCY_TEMPLATES_API] Error fetching competency templates:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch competency templates',
+        error: error.message
+      });
     }
   });
   
