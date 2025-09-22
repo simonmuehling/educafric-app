@@ -457,6 +457,18 @@ export default function ManualBulletinForm({
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Confirmation avant envoi vers l'école
+    const confirmSubmission = window.confirm(
+      language === 'fr' 
+        ? `Confirmez-vous l'envoi de ces notes vers l'école pour validation ?\n\nCette action notifiera l'administration scolaire et les notes ne pourront plus être modifiées sans autorisation.`
+        : `Do you confirm sending these grades to the school for validation?\n\nThis action will notify the school administration and grades cannot be modified without authorization.`
+    );
+    
+    if (!confirmSubmission) {
+      return;
+    }
+    
     const payload = {
       eleve,
       meta,
