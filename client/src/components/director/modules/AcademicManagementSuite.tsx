@@ -20,7 +20,10 @@ import {
   CheckCircle,
   XCircle,
   Timer,
-  FileText
+  FileText,
+  Archive,
+  Eye,
+  Search
 } from "lucide-react";
 
 /**************************** CONFIG ****************************/
@@ -558,6 +561,325 @@ export function TimeTable({ selectedClass }: { selectedClass: string }) {
   );
 }
 
+/**************************** ARCHIVE MANAGEMENT COMPONENT ****************************/
+export function ArchiveManagement() {
+  const { language } = useLanguage();
+  const [filters, setFilters] = useState({
+    academicYear: '',
+    classId: '',
+    term: '',
+    type: '',
+    search: '',
+    page: 1,
+    limit: 20
+  });
+
+  // Fetch archives with filters
+  const { data: archivesData, isLoading: archivesLoading, refetch } = useQuery({
+    queryKey: ['/api/director/archives', filters],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value.toString());
+      });
+      return fetch(`/api/director/archives?${params}`).then(res => res.json());
+    },
+  });
+
+  // Fetch archive statistics
+  const { data: statsData } = useQuery({
+    queryKey: ['/api/director/archives/stats', filters.academicYear],
+    queryFn: () => {
+      const url = filters.academicYear 
+        ? `/api/director/archives/stats?academicYear=${filters.academicYear}`
+        : '/api/director/archives/stats';
+      return fetch(url).then(res => res.json());
+    },
+  });
+
+  const archives = archivesData?.documents || archivesData?.data?.documents || [];
+  const stats = statsData?.data || statsData || {};
+  
+  const handleDownload = async (archiveId: number, filename: string) => {
+    try {
+      const response = await fetch(`/api/director/archives/${archiveId}/download`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 Bytes';
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return language === 'fr' 
+      ? date.toLocaleDateString('fr-FR')
+      : date.toLocaleDateString('en-US');
+  };
+
+  const getTermLabel = (termCode: string): string => {
+    const termMap = {
+      'T1': language === 'fr' ? 'Premier' : 'First',
+      'T2': language === 'fr' ? 'Deuxième' : 'Second', 
+      'T3': language === 'fr' ? 'Troisième' : 'Third',
+      'Premier': language === 'fr' ? 'Premier' : 'First',
+      'Deuxième': language === 'fr' ? 'Deuxième' : 'Second',
+      'Troisième': language === 'fr' ? 'Troisième' : 'Third'
+    };
+    return termMap[termCode as keyof typeof termMap] || termCode;
+  };
+
+  const handleViewDetails = (archive: any) => {
+    // TODO: Implement archive details modal
+    console.log('View archive details:', archive);
+    alert(`Archive: ${archive.filename}\nType: ${archive.type}\nClass: ${archive.classId}\nTerm: ${getTermLabel(archive.term)}\nYear: ${archive.academicYear}`);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Archive className="h-5 w-5 text-blue-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {language === 'fr' ? 'Total Documents' : 'Total Documents'}
+                </p>
+                <p className="text-2xl font-bold">{stats.totalDocuments || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {language === 'fr' ? 'Bulletins' : 'Bulletins'}
+                </p>
+                <p className="text-2xl font-bold">{stats.totalBulletins || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5 text-purple-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {language === 'fr' ? 'Feuilles Maîtresses' : 'Master Sheets'}
+                </p>
+                <p className="text-2xl font-bold">{stats.totalMastersheets || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-orange-500" />
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {language === 'fr' ? 'Taille Totale' : 'Total Size'}
+                </p>
+                <p className="text-2xl font-bold">{formatFileSize(stats.totalSizeBytes || 0)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5" />
+            {language === 'fr' ? 'Filtres de Recherche' : 'Search Filters'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <Input
+              placeholder={language === 'fr' ? 'Année académique...' : 'Academic year...'}
+              value={filters.academicYear}
+              onChange={(e) => setFilters(prev => ({ ...prev, academicYear: e.target.value }))}
+              data-testid="input-academic-year-filter"
+            />
+            
+            <Input
+              placeholder={language === 'fr' ? 'ID Classe...' : 'Class ID...'}
+              value={filters.classId}
+              onChange={(e) => setFilters(prev => ({ ...prev, classId: e.target.value }))}
+              data-testid="input-class-id-filter"
+            />
+            
+            <Select value={filters.term} onValueChange={(value) => setFilters(prev => ({ ...prev, term: value }))} data-testid="select-term-filter">
+              <SelectTrigger>
+                <SelectValue placeholder={language === 'fr' ? 'Trimestre' : 'Term'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">
+                  {language === 'fr' ? 'Tous les trimestres' : 'All terms'}
+                </SelectItem>
+                <SelectItem value="T1">
+                  {language === 'fr' ? 'Premier Trimestre' : 'First Term'}
+                </SelectItem>
+                <SelectItem value="T2">
+                  {language === 'fr' ? 'Deuxième Trimestre' : 'Second Term'}
+                </SelectItem>
+                <SelectItem value="T3">
+                  {language === 'fr' ? 'Troisième Trimestre' : 'Third Term'}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))} data-testid="select-type-filter">
+              <SelectTrigger>
+                <SelectValue placeholder={language === 'fr' ? 'Type' : 'Type'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">
+                  {language === 'fr' ? 'Tous les types' : 'All types'}
+                </SelectItem>
+                <SelectItem value="bulletin">
+                  {language === 'fr' ? 'Bulletins' : 'Bulletins'}
+                </SelectItem>
+                <SelectItem value="mastersheet">
+                  {language === 'fr' ? 'Feuilles Maîtresses' : 'Master Sheets'}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Input
+              placeholder={language === 'fr' ? 'Rechercher...' : 'Search...'}
+              value={filters.search}
+              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+              data-testid="input-search-filter"
+            />
+            
+            <Button onClick={() => refetch()} data-testid="button-search-archives">
+              <Search className="h-4 w-4 mr-2" />
+              {language === 'fr' ? 'Actualiser' : 'Refresh'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Archives List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Archive className="h-5 w-5" />
+            {language === 'fr' ? 'Archives des Documents' : 'Document Archives'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {archivesLoading ? (
+            <div className="p-8 text-center" data-testid="loading-archives">
+              <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              {language === 'fr' ? 'Chargement des archives...' : 'Loading archives...'}
+            </div>
+          ) : archives.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground" data-testid="empty-archives">
+              <Archive className="h-12 w-12 mx-auto mb-4" />
+              <p>{language === 'fr' ? 'Aucune archive trouvée' : 'No archives found'}</p>
+              <p className="text-sm mt-2">
+                {language === 'fr' 
+                  ? 'Les documents archivés apparaîtront ici après envoi'
+                  : 'Archived documents will appear here after sending'
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <Th>{language === 'fr' ? 'Nom du Fichier' : 'Filename'}</Th>
+                    <Th>{language === 'fr' ? 'Type' : 'Type'}</Th>
+                    <Th>{language === 'fr' ? 'Classe' : 'Class'}</Th>
+                    <Th>{language === 'fr' ? 'Trimestre' : 'Term'}</Th>
+                    <Th>{language === 'fr' ? 'Année' : 'Year'}</Th>
+                    <Th>{language === 'fr' ? 'Taille' : 'Size'}</Th>
+                    <Th>{language === 'fr' ? 'Envoyé le' : 'Sent Date'}</Th>
+                    <Th>{language === 'fr' ? 'Actions' : 'Actions'}</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {archives.map((archive: any, index: number) => (
+                    <tr key={archive.id} className={index % 2 ? "bg-white" : "bg-gray-50/50"} data-testid={`row-archive-${archive.id}`}>
+                      <Td className="font-medium" data-testid={`text-filename-${archive.id}`}>{archive.filename}</Td>
+                      <Td data-testid={`badge-type-${archive.id}`}>
+                        <Badge variant={archive.type === 'bulletin' ? 'default' : 'secondary'}>
+                          {archive.type === 'bulletin' 
+                            ? (language === 'fr' ? 'Bulletin' : 'Bulletin')
+                            : (language === 'fr' ? 'Feuille M.' : 'Master Sheet')
+                          }
+                        </Badge>
+                      </Td>
+                      <Td data-testid={`text-class-${archive.id}`}>{archive.classId}</Td>
+                      <Td data-testid={`text-term-${archive.id}`}>{getTermLabel(archive.term)}</Td>
+                      <Td data-testid={`text-year-${archive.id}`}>{archive.academicYear}</Td>
+                      <Td data-testid={`text-size-${archive.id}`}>{formatFileSize(archive.sizeBytes)}</Td>
+                      <Td data-testid={`text-date-${archive.id}`}>{formatDate(archive.sentAt)}</Td>
+                      <Td>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownload(archive.id, archive.filename)}
+                            data-testid={`button-download-archive-${archive.id}`}
+                            title={language === 'fr' ? 'Télécharger' : 'Download'}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewDetails(archive)}
+                            data-testid={`button-view-archive-${archive.id}`}
+                            title={language === 'fr' ? 'Voir détails' : 'View details'}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 /**************************** ATTENDANCE REGISTER COMPONENT ****************************/
 export function AttendanceRegister({ selectedClass }: { selectedClass: string }) {
   const { language } = useLanguage();
@@ -1036,7 +1358,7 @@ export default function AcademicManagementSuite() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="mastersheet" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="mastersheet" className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
             {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
@@ -1060,6 +1382,10 @@ export default function AcademicManagementSuite() {
           <TabsTrigger value="attendance" className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
             {language === 'fr' ? 'Présences' : 'Attendance'}
+          </TabsTrigger>
+          <TabsTrigger value="archives" className="flex items-center gap-2">
+            <Archive className="h-4 w-4" />
+            {language === 'fr' ? 'Archives' : 'Archives'}
           </TabsTrigger>
         </TabsList>
 
@@ -1113,6 +1439,10 @@ export default function AcademicManagementSuite() {
 
         <TabsContent value="attendance" className="space-y-4">
           <AttendanceRegister selectedClass={selectedClass} />
+        </TabsContent>
+
+        <TabsContent value="archives" className="space-y-4">
+          <ArchiveManagement />
         </TabsContent>
       </Tabs>
     </div>
