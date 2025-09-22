@@ -301,6 +301,21 @@ export default function ManualBulletinForm({
   const [eleve, setEleve] = useState<any>(null);
   const [language, setLanguage] = useState<'fr' | 'en'>('fr'); // État de la langue
   
+  // État des métadonnées du bulletin
+  const [meta, setMeta] = useState({
+    trimestre: trimestre || "Premier",
+    annee: academicYear || "2024-2025",
+    avertissements: 0,
+    blames: 0,
+    absJust: 0,
+    absNonJust: 0,
+    retards: 0,
+    exclusions: 0,
+    consignes: 0,
+    appEleve: "",
+    visaParent: ""
+  });
+  
   // Fetch teacher's assigned subjects for the selected class
   const { data: teacherSubjectsData, isLoading: isLoadingSubjects } = useQuery({
     queryKey: ['/api/teacher/subjects', classId],
@@ -373,20 +388,6 @@ export default function ManualBulletinForm({
       })));
     }
   }, [assignedSubjects, meta.trimestre]);
-
-  const [meta, setMeta] = useState({
-    annee: academicYear,
-    trimestre: trimestre || "Premier",
-    avertissements: 0,
-    blames: 0,
-    absJust: 0,
-    absNonJust: 0,
-    retards: 0,
-    exclusions: 0,
-    consignes: 0,
-    appEleve: "",
-    visaParent: "",
-  });
 
   // Helper pour obtenir les labels dans la langue courante
   const t = (key: keyof typeof BILINGUAL_LABELS.fr) => BILINGUAL_LABELS[language][key];

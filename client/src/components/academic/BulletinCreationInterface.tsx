@@ -30,6 +30,14 @@ interface Subject {
   competencies?: string;
   competencyLevel?: 'CTBA' | 'CBA' | 'CA' | 'CMA' | 'CNA' | 'CVWA' | 'CWA' | 'CAA';
   competencyEvaluation?: string;
+  // Additional fields for official Cameroon format
+  note1: number;
+  note2: number;
+  moyenneFinale: number;
+  competence1: string;
+  competence2: string;
+  totalPondere: number;
+  cote: string;
 }
 
 interface StudentInfo {
