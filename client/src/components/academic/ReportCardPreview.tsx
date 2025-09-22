@@ -359,6 +359,44 @@ export default function ReportCardPreview({
             </table>
           </div>
 
+          {/* General Appreciations and Discipline Section */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* General Appreciations */}
+            <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+              <h3 className="text-sm font-bold text-blue-800 mb-2">
+                {language === 'fr' ? 'Appréciation Générale' : 'General Appreciations'}
+              </h3>
+              <div className="text-sm bg-white border rounded p-2 min-h-[60px]">
+                {student.generalRemark || (language === 'fr' ? 'Aucune appréciation saisie' : 'No general appreciation entered')}
+              </div>
+            </div>
+
+            {/* Discipline and Absences */}
+            <div className="border-2 border-green-200 rounded-lg p-4 bg-green-50">
+              <h3 className="text-sm font-bold text-green-800 mb-2">
+                {language === 'fr' ? 'Discipline et Absences' : 'Discipline and Absences'}
+              </h3>
+              <div className="text-sm space-y-2 bg-white border rounded p-2">
+                <div className="flex justify-between">
+                  <span>{language === 'fr' ? 'Abs. justifiées (h)' : 'Justified absences (h)'}</span>
+                  <span className="font-bold">{student.discipline?.absJ || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{language === 'fr' ? 'Abs. non justifiées (h)' : 'Unjustified absences (h)'}</span>
+                  <span className="font-bold">{student.discipline?.absNJ || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{language === 'fr' ? 'Retards' : 'Lates'}</span>
+                  <span className="font-bold">{student.discipline?.late || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{language === 'fr' ? 'Avert./Blâmes' : 'Warnings/Reprimands'}</span>
+                  <span className="font-bold">{student.discipline?.sanctions || 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Third Trimester Annual Summary */}
           {isThirdTrimester && annualSummary && (
             <div className="mt-4 border-2 border-orange-300 rounded-xl p-4 bg-orange-50">
