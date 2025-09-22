@@ -1552,6 +1552,10 @@ export default function AcademicManagementSuite() {
         </TabsList>
 
         <TabsContent value="bulletins" className="space-y-4">
+          {/* Teacher Submissions Review Section */}
+          <TeacherSubmissionsManager selectedClass={selectedClass} selectedTerm={selectedTerm} />
+          
+          {/* Director Bulletin Creation Interface */}
           <BulletinCreationInterface />
         </TabsContent>
 
