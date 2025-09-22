@@ -49,7 +49,6 @@ class FastModuleLoader {
       'content-approval': () => import('@/components/director/modules/EducationalContentApproval'),
       'pdf-generators': () => import('@/components/director/modules/PDFGenerators'),
       'academic-management': () => import('@/components/director/modules/AcademicManagementSuite'),
-      'school-bulletin-manual-entry': () => import('@/components/director/modules/SchoolBulletinManualEntry'),
       
       
       // =============================================
