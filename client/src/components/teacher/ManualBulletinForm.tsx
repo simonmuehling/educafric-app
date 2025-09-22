@@ -96,9 +96,21 @@ function coteFromNote(note20: string | number): string {
   return r ? r.grade : "";
 }
 
-function appreciationFromNote(note20: string | number): string {
+function appreciationFromNote(note20: string | number, predefinedAppreciations?: any): string {
   if (note20 == null || note20 === '' || (typeof note20 === 'string' && note20.trim() === '') || isNaN(Number(note20))) return "";
   const n = Number(note20);
+  
+  // Try to use predefined appreciations first
+  if (predefinedAppreciations?.data) {
+    const matching = predefinedAppreciations.data.find((app: any) => 
+      app.gradeRange && n >= app.gradeRange.min && n < app.gradeRange.max
+    );
+    if (matching) {
+      return matching.appreciation;
+    }
+  }
+  
+  // Fallback to hard-coded values if no predefined appreciations
   const r = performanceGrid.find(g => n >= g.min && n < g.max);
   return r ? r.remark : "";
 }
@@ -322,18 +334,18 @@ export default function ManualBulletinForm({
 
   // Fetch competency evaluation systems
   const { data: competencySystems } = useQuery({
-    queryKey: ['/api/comprehensive-bulletin/competency-systems'],
+    queryKey: ['/api/competency-systems', language],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/comprehensive-bulletin/competency-systems');
+      const response = await apiRequest('GET', `/api/competency-systems?language=${language}`);
       return await response.json();
     }
   });
 
   // Fetch predefined appreciations for teachers
   const { data: predefinedAppreciations } = useQuery({
-    queryKey: ['/api/comprehensive-bulletin/predefined-appreciations-teacher'],
+    queryKey: ['/api/predefined-appreciations', 'teacher', language],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/comprehensive-bulletin/predefined-appreciations?targetRole=teacher');
+      const response = await apiRequest('GET', `/api/predefined-appreciations?role=teacher&language=${language}`);
       return await response.json();
     }
   });
@@ -595,7 +607,7 @@ export default function ManualBulletinForm({
         coef: Number(r.coef) || 0,
         mxcoef: Number(r.m20 || 0) * Number(r.coef || 0),
         cote: r.cote || (r.m20 !== '' && r.m20 != null ? coteFromNote(r.m20) : ''),
-        appreciation: r.appreciation || (r.m20 !== '' && r.m20 != null ? appreciationFromNote(r.m20) : ''),
+        appreciation: r.appreciation || (r.m20 !== '' && r.m20 != null ? appreciationFromNote(r.m20, predefinedAppreciations) : ''),
       })),
       totaux: totals,
       discipline: {
@@ -876,7 +888,7 @@ export default function ManualBulletinForm({
                             rows={2} 
                             value={r.appreciation} 
                             onChange={e=>updateRow(i,{appreciation:e.target.value})} 
-                            placeholder={appreciationFromNote(r.m20)}
+                            placeholder={appreciationFromNote(r.m20, predefinedAppreciations)}
                             data-testid={`textarea-appreciation-${i}`}
                           />
                           
@@ -893,16 +905,15 @@ export default function ManualBulletinForm({
                             </SelectTrigger>
                             <SelectContent>
                               {predefinedAppreciations?.data?.filter((app: any) => 
-                                app.targetRole === 'teacher' && 
-                                (!app.gradeRange || (Number(r.m20) >= app.gradeRange.min && Number(r.m20) <= app.gradeRange.max))
+                                (!app.gradeRange || (Number(r.m20) >= app.gradeRange.min && Number(r.m20) < app.gradeRange.max))
                               ).slice(0, 5).map((appreciation: any) => (
                                 <SelectItem 
                                   key={appreciation.id} 
-                                  value={language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn}
+                                  value={appreciation.appreciation}
                                   data-testid={`option-appreciation-${appreciation.id}`}
                                 >
                                   <div className="text-xs">
-                                    {(language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn)?.substring(0, 30)}...
+                                    {appreciation.appreciation?.substring(0, 30)}...
                                   </div>
                                 </SelectItem>
                               ))}
