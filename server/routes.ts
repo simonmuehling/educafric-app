@@ -6203,8 +6203,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as { schoolId: number; role: string };
       const schoolId = user.schoolId || 999; // Fallback to sandbox for demo
       
-      // Fetch real school data from database
-      const schoolQuery = await db.select().from(schools).where(eq(schools.id, schoolId)).limit(1);
+      // Fetch real school data from database (select only existing columns)
+      const schoolQuery = await db.select({
+        id: schools.id,
+        name: schools.name,
+        type: schools.type,
+        address: schools.address,
+        phone: schools.phone,
+        email: schools.email,
+        logoUrl: schools.logoUrl,
+        regionaleMinisterielle: schools.regionaleMinisterielle,
+        delegationDepartementale: schools.delegationDepartementale,
+        boitePostale: schools.boitePostale,
+        arrondissement: schools.arrondissement,
+        subscriptionStatus: schools.subscriptionStatus,
+        subscriptionPlan: schools.subscriptionPlan,
+        academicYear: schools.academicYear,
+        currentTerm: schools.currentTerm
+      }).from(schools).where(eq(schools.id, schoolId)).limit(1);
       
       if (schoolQuery.length === 0) {
         // Fallback to demo data if school not found
