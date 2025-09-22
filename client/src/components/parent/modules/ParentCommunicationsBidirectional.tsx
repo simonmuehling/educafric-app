@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,16 +9,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   MessageSquare, Send, Users, Clock, CheckCircle2, Edit3, 
-  User, Building, Mail, Phone, AlertCircle, Star, Reply
+  User, Building, Mail, Phone, AlertCircle, Star, Reply, Loader2
 } from 'lucide-react';
 
 const ParentCommunicationsBidirectional = () => {
   const { language } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState('inbox');
   const [newMessage, setNewMessage] = useState({
-    recipient: '',
+    recipientId: '',
+    recipientType: '',
     subject: '',
     content: '',
     priority: 'normal'
@@ -85,55 +91,99 @@ const ParentCommunicationsBidirectional = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Données d'exemple pour la démo
-  const teachers = [
-    { id: 1, name: 'Mme Marie Ntamack', subject: 'Mathématiques', class: '3ème A' },
-    { id: 2, name: 'M. Paul Mbarga', subject: 'Français', class: '3ème A' },
-    { id: 3, name: 'Mme Sophie Onana', subject: 'Anglais', class: '3ème A' }
-  ];
+  // Fetch authorized recipients from API
+  const { data: recipientsData, isLoading: recipientsLoading } = useQuery({
+    queryKey: ['/api/parent/communications/recipients'],
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
 
-  const receivedMessages = [
-    {
-      id: 1,
-      from: 'Mme Marie Ntamack',
-      subject: 'Résultats de Junior en mathématiques',
-      content: 'Bonsoir Mme Kamga, Je vous écris pour vous informer des excellents résultats de Junior en mathématiques...',
-      date: '2025-01-28 14:30',
-      status: 'unread',
-      priority: 'normal'
+  const recipients = (recipientsData as any)?.recipients || [];
+  const children = recipients.filter(r => r.type === 'child');
+  const teachers = recipients.filter(r => r.type === 'teacher');
+  const schools = recipients.filter(r => r.type === 'school');
+
+  // Fetch messages from API
+  const { data: messagesData, isLoading: messagesLoading } = useQuery({
+    queryKey: ['/api/parent/messages'],
+    staleTime: 1000 * 60 * 2 // 2 minutes
+  });
+
+  const receivedMessages = (messagesData as any)?.messages || [];
+  const sentMessages = []; // Will be implemented when needed
+
+  // Send message mutation with PWA notifications
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData: any) => {
+      const response = await fetch('/api/parent/communications/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(messageData)
+      });
+      if (!response.ok) throw new Error('Failed to send message');
+      return response.json();
     },
-    {
-      id: 2,
-      from: 'Direction - M. Essono',
-      subject: 'Réunion parents-professeurs',
-      content: 'Chers parents, Nous organisons une réunion parents-professeurs le 15 février...',
-      date: '2025-01-27 09:15',
-      status: 'read',
-      priority: 'urgent'
+    onSuccess: (data) => {
+      toast({
+        title: language === 'fr' ? 'Message envoyé' : 'Message sent',
+        description: language === 'fr' 
+          ? `Message envoyé avec succès via ${(data as any).notificationMethod}`
+          : `Message sent successfully via ${(data as any).notificationMethod}`
+      });
+      // Reset form
+      setNewMessage({
+        recipientId: '',
+        recipientType: '',
+        subject: '',
+        content: '',
+        priority: 'normal'
+      });
+      // Refresh messages
+      queryClient.invalidateQueries({ queryKey: ['/api/parent/messages'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' 
+          ? 'Erreur lors de l\'envoi du message'
+          : 'Error sending message',
+        variant: 'destructive'
+      });
     }
-  ];
-
-  const sentMessages = [
-    {
-      id: 1,
-      to: 'Mme Marie Ntamack',
-      subject: 'Question sur les devoirs de mathématiques',
-      content: 'Bonjour Madame, J\'aimerais avoir des précisions sur les exercices 15-20...',
-      date: '2025-01-26 16:45',
-      status: 'read'
-    }
-  ];
+  });
 
   const handleSendMessage = () => {
-    console.log('Message envoyé:', newMessage);
-    // Reset form
-    setNewMessage({
-      recipient: '',
-      subject: '',
-      content: '',
-      priority: 'normal'
+    if (!newMessage.recipientId || !newMessage.subject || !newMessage.content) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' 
+          ? 'Veuillez remplir tous les champs'
+          : 'Please fill all required fields',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    sendMessageMutation.mutate({
+      recipientId: newMessage.recipientId,
+      recipientType: newMessage.recipientType,
+      subject: newMessage.subject,
+      content: newMessage.content,
+      priority: newMessage.priority
     });
-    // Afficher notification de succès
+  };
+
+  const handleRecipientChange = (value: string) => {
+    const recipient = recipients.find(r => r.id === value);
+    if (recipient) {
+      setNewMessage({
+        ...newMessage,
+        recipientId: value,
+        recipientType: recipient.type
+      });
+    }
   };
 
   return (
@@ -218,42 +268,58 @@ const ParentCommunicationsBidirectional = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {(Array.isArray(receivedMessages) ? receivedMessages : []).map((message) => (
-                    <div 
-                      key={message.id}
-                      className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${
-                        message.status === 'unread' ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-medium text-gray-900">{message.from}</p>
-                          <p className="text-sm text-gray-600">{message.subject}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {message.priority === 'urgent' && (
-                            <Badge variant="destructive" className="text-xs">
-                              <AlertCircle className="w-3 h-3 mr-1" />
-                              Urgent
-                            </Badge>
-                          )}
-                          <Badge variant={message.status === 'unread' ? 'default' : 'secondary'}>
-                            {message.status === 'unread' ? t.unread : t.read}
-                          </Badge>
-                        </div>
+                {messagesLoading ? (
+                  <div className="flex items-center justify-center p-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span className="ml-2">
+                      {language === 'fr' ? 'Chargement des messages...' : 'Loading messages...'}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {receivedMessages.length === 0 ? (
+                      <div className="text-center p-8 text-muted-foreground">
+                        <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>{language === 'fr' ? 'Aucun message reçu' : 'No messages received'}</p>
                       </div>
-                      <p className="text-sm text-gray-700 mb-2 line-clamp-2">{message.content}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">{message.date}</span>
-                        <Button variant="outline" size="sm">
-                          <Reply className="w-4 h-4 mr-1" />
-                          {t.reply}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ) : (
+                      receivedMessages.map((message) => (
+                        <div 
+                          key={message.id}
+                          className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${
+                            message.status === 'unread' ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <p className="font-medium text-gray-900">{message.from}</p>
+                              <p className="text-sm text-gray-600">{message.subject}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {message.priority === 'urgent' && (
+                                <Badge variant="destructive" className="text-xs">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  Urgent
+                                </Badge>
+                              )}
+                              <Badge variant={message.status === 'unread' ? 'default' : 'secondary'}>
+                                {message.status === 'unread' ? t.unread : t.read}
+                              </Badge>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-2 line-clamp-2">{message.content}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">{message.date}</span>
+                            <Button variant="outline" size="sm">
+                              <Reply className="w-4 h-4 mr-1" />
+                              {t.reply}
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -270,21 +336,74 @@ const ParentCommunicationsBidirectional = () => {
               <CardContent className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">{t.recipient}</label>
-                  <Select value={newMessage.recipient} onValueChange={(value) => 
-                    setNewMessage({...newMessage, recipient: value})
-                  }>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t.selectTeacher} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="direction">{t.direction}</SelectItem>
-                      {(Array.isArray(teachers) ? teachers : []).map((teacher) => (
-                        <SelectItem key={teacher.id} value={teacher?.id?.toString()}>
-                          {teacher.name || ''} - {teacher.subject} ({teacher.class})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {recipientsLoading ? (
+                    <div className="flex items-center justify-center p-4">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <span className="ml-2">Chargement des destinataires...</span>
+                    </div>
+                  ) : (
+                    <Select 
+                      value={newMessage.recipientId} 
+                      onValueChange={handleRecipientChange}
+                      data-testid="select-recipient"
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={language === 'fr' ? 'Sélectionner un destinataire' : 'Select recipient'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {/* Children */}
+                        {children.length > 0 && (
+                          <>
+                            <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
+                              {language === 'fr' ? 'Mes enfants' : 'My children'}
+                            </div>
+                            {children.map((child) => (
+                              <SelectItem key={child.id} value={child.id}>
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4" />
+                                  {child.name} - {child.details}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                        
+                        {/* Schools */}
+                        {schools.length > 0 && (
+                          <>
+                            <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
+                              {language === 'fr' ? 'Écoles' : 'Schools'}
+                            </div>
+                            {schools.map((school) => (
+                              <SelectItem key={school.id} value={school.id}>
+                                <div className="flex items-center gap-2">
+                                  <Building className="h-4 w-4" />
+                                  {school.name} - {school.details}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                        
+                        {/* Teachers */}
+                        {teachers.length > 0 && (
+                          <>
+                            <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">
+                              {language === 'fr' ? 'Enseignants' : 'Teachers'}
+                            </div>
+                            {teachers.map((teacher) => (
+                              <SelectItem key={teacher.id} value={teacher.id}>
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4" />
+                                  {teacher.name} - {teacher.details}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
 
                 <div>
@@ -324,11 +443,26 @@ const ParentCommunicationsBidirectional = () => {
                 <Button 
                   onClick={handleSendMessage}
                   className="w-full"
-                  disabled={!newMessage.recipient || !newMessage.subject || !newMessage.content}
+                  disabled={!newMessage.recipientId || !newMessage.subject || !newMessage.content || sendMessageMutation.isPending}
+                  data-testid="button-send-message"
                 >
-                  <Send className="w-4 h-4 mr-2" />
-                  {t.send}
+                  {sendMessageMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  {sendMessageMutation.isPending 
+                    ? (language === 'fr' ? 'Envoi...' : 'Sending...') 
+                    : t.send
+                  }
                 </Button>
+                
+                <div className="text-xs text-muted-foreground text-center mt-2">
+                  📱 {language === 'fr' 
+                    ? 'Notifications envoyées via PWA (pas de SMS)'
+                    : 'Notifications sent via PWA (no SMS)'
+                  }
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -366,31 +500,86 @@ const ParentCommunicationsBidirectional = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Enseignants disponibles */}
+        {/* Destinataires autorisés */}
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="w-5 h-5" />
-              {t.teachers}
+              {language === 'fr' ? 'Destinataires autorisés' : 'Authorized Recipients'}
             </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {language === 'fr' 
+                ? 'Vous pouvez uniquement communiquer avec les écoles de vos enfants, leurs enseignants et vos enfants'
+                : 'You can only communicate with your children\'s schools, their teachers, and your children'
+              }
+            </p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {(Array.isArray(teachers) ? teachers : []).map((teacher) => (
-                <div key={teacher.id} className="p-3 border border-gray-200 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-gray-100 p-2 rounded-full">
-                      <User className="w-4 h-4 text-gray-600" />
+            {recipientsLoading ? (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">
+                  {language === 'fr' ? 'Chargement...' : 'Loading...'}
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Summary */}
+                <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{children.length}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {language === 'fr' ? 'Enfants' : 'Children'}
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">{teacher.name || ''}</p>
-                      <p className="text-xs text-gray-600">{teacher.subject}</p>
-                      <p className="text-xs text-gray-500">{teacher.class}</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{schools.length}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {language === 'fr' ? 'Écoles' : 'Schools'}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">{teachers.length}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {language === 'fr' ? 'Enseignants' : 'Teachers'}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+                
+                {/* Recipients Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {recipients.map((recipient) => (
+                    <div key={recipient.id} className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-full ${
+                          recipient.type === 'child' ? 'bg-blue-100' :
+                          recipient.type === 'school' ? 'bg-green-100' :
+                          'bg-purple-100'
+                        }`}>
+                          {recipient.type === 'child' ? (
+                            <User className="w-4 h-4 text-blue-600" />
+                          ) : recipient.type === 'school' ? (
+                            <Building className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <User className="w-4 h-4 text-purple-600" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{recipient.name}</p>
+                          <p className="text-xs text-gray-600 truncate">{recipient.details}</p>
+                          <Badge variant="outline" className="text-xs mt-1">
+                            {recipient.type === 'child' ? (language === 'fr' ? 'Enfant' : 'Child') :
+                             recipient.type === 'school' ? (language === 'fr' ? 'École' : 'School') :
+                             (language === 'fr' ? 'Enseignant' : 'Teacher')
+                            }
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
