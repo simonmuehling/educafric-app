@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
-  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare, FileSpreadsheet
+  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare, FileSpreadsheet, Edit3
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -470,6 +470,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-blue-500 to-cyan-500',
       component: createDynamicModule('academic-management')
+    },
+    {
+      id: 'school-bulletin-manual-entry',
+      label: language === 'fr' ? 'Saisie Manuelle Bulletins' : 'Manual Bulletin Entry',
+      icon: <Edit3 className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-purple-500 to-indigo-500',
+      component: createDynamicModule('school-bulletin-manual-entry')
     },
   ];
 
