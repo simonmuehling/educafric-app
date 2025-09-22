@@ -445,26 +445,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     },
     // comprehensive-bulletins module removed - now integrated in academic-management
     {
-      id: 'pdf-generators',
-      label: t.pdfGenerators,
-      icon: <FileSpreadsheet className="w-6 h-6" />,
-      color: 'bg-gradient-to-r from-green-500 to-teal-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Générateurs PDF Professionnels"
-          userType="School"
-          features={[
-            "Feuilles de Maître avec statistiques complètes",
-            "Relevés de Notes officiels multi-trimestres",
-            "Emplois du Temps avec en-têtes camerounais",
-            "Génération avec données démo et réelles"
-          ]}
-        >
-          {createDynamicModule('pdf-generators')}
-        </PremiumFeatureGate>
-      )
-    },
-    {
       id: 'academic-management',
       label: language === 'fr' ? 'Gestion Académique' : 'Academic Management',
       icon: <BookOpen className="w-6 h-6" />,

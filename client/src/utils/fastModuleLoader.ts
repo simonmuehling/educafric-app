@@ -47,7 +47,6 @@ class FastModuleLoader {
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
       // Removed comprehensive-bulletins module - now integrated in academic-management
       'content-approval': () => import('@/components/director/modules/EducationalContentApproval'),
-      'pdf-generators': () => import('@/components/director/modules/PDFGenerators'),
       'academic-management': () => import('@/components/director/modules/AcademicManagementSuite'),
       
       
