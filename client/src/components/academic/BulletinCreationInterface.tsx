@@ -75,6 +75,27 @@ const calculateCote = (grade: number): string => {
   return 'D';
 };
 
+// Helper functions for Cameroon bulletin format
+const round2 = (x: number): number => {
+  return Math.round((Number(x) + Number.EPSILON) * 100) / 100;
+};
+
+const calculateMoyenneFinale = (note1: string | number, note2: string | number): number => {
+  const n1 = Number(note1) || 0;
+  const n2 = Number(note2) || 0;
+  return round2((n1 + n2) / 2);
+};
+
+const coteFromNote = (note: number): string => {
+  if (note >= 18) return 'A+';
+  if (note >= 16) return 'A';
+  if (note >= 14) return 'B+';
+  if (note >= 12) return 'B';
+  if (note >= 10) return 'C+';
+  if (note >= 8) return 'C';
+  return 'D';
+};
+
 // Dynamic Competency evaluation functions that work with backend data
 
 export default function BulletinCreationInterface() {
@@ -251,9 +272,48 @@ export default function BulletinCreationInterface() {
   ];
 
   const [subjects, setSubjects] = useState<Subject[]>([
-    { id: '1', name: 'FRANÇAIS', coefficient: 6, grade: 0, remark: '' },
-    { id: '2', name: 'ANGLAIS', coefficient: 3, grade: 0, remark: '' },
-    { id: '3', name: 'MATHÉMATIQUES', coefficient: 4, grade: 0, remark: '' },
+    { 
+      id: '1', 
+      name: 'FRANÇAIS', 
+      coefficient: 6, 
+      grade: 0, 
+      remark: '', 
+      note1: 0, 
+      note2: 0, 
+      moyenneFinale: 0, 
+      competence1: '', 
+      competence2: '', 
+      totalPondere: 0, 
+      cote: '' 
+    },
+    { 
+      id: '2', 
+      name: 'ANGLAIS', 
+      coefficient: 3, 
+      grade: 0, 
+      remark: '', 
+      note1: 0, 
+      note2: 0, 
+      moyenneFinale: 0, 
+      competence1: '', 
+      competence2: '', 
+      totalPondere: 0, 
+      cote: '' 
+    },
+    { 
+      id: '3', 
+      name: 'MATHÉMATIQUES', 
+      coefficient: 4, 
+      grade: 0, 
+      remark: '', 
+      note1: 0, 
+      note2: 0, 
+      moyenneFinale: 0, 
+      competence1: '', 
+      competence2: '', 
+      totalPondere: 0, 
+      cote: '' 
+    },
   ]);
 
   const [discipline, setDiscipline] = useState<DisciplineInfo>({
@@ -323,7 +383,14 @@ export default function BulletinCreationInterface() {
       name: '',
       coefficient: 1,
       grade: 0,
-      remark: ''
+      remark: '',
+      note1: 0,
+      note2: 0,
+      moyenneFinale: 0,
+      competence1: '',
+      competence2: '',
+      totalPondere: 0,
+      cote: ''
     };
     setSubjects([...subjects, newSubject]);
   };
@@ -862,115 +929,200 @@ export default function BulletinCreationInterface() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {subjects.map((subject, index) => {
-                  const percentage = calculatePercentage(subject.grade);
-                  const cote = calculateCote(subject.grade);
-                  
-                  return (
-                  <div key={subject.id} className="grid grid-cols-1 md:grid-cols-8 gap-3 p-3 border rounded-lg">
-                    <div>
-                      <Label className="text-sm">Matière</Label>
-                      <Input
-                        data-testid={`input-subject-name-${index}`}
-                        value={subject.name}
-                        onChange={(e) => updateSubject(subject.id, 'name', e.target.value)}
-                        placeholder="Nom de la matière"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label className="text-sm">Coefficient</Label>
-                      <Input
-                        data-testid={`input-subject-coefficient-${index}`}
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={subject.coefficient}
-                        onChange={(e) => updateSubject(subject.id, 'coefficient', parseInt(e.target.value) || 1)}
-                      />
-                    </div>
+              {/* Table structure matching official Cameroon bulletin format */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-blue-50 border-b-2 border-blue-200">
+                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Matière' : 'Subject'}</th>
+                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'N/20-M/20' : 'N/20-M/20'}</th>
+                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Coefficient' : 'Coefficient'}</th>
+                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'M x coef' : 'M x coef'}</th>
+                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Note %' : 'Grade %'}</th>
+                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">COTE</th>
+                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Compétences évaluées' : 'Evaluated Competencies'}</th>
+                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Appréciation' : 'Appreciation'}</th>
+                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Actions' : 'Actions'}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {subjects.map((subject, index) => {
+                      // Calculate values using the new Cameroon format
+                      const moyenneFinale = calculateMoyenneFinale(subject.note1, subject.note2);
+                      const totalPondere = round2(moyenneFinale * subject.coefficient);
+                      const notePercent = round2((moyenneFinale / 20) * 100);
+                      const cote = coteFromNote(moyenneFinale);
+                      const competencesEvaluees = subject.competence1 && subject.competence2 ? `${subject.competence1}; ${subject.competence2}` : (subject.competence1 || subject.competence2 || '');
+                      
+                      return (
+                        <tr key={subject.id} className={index % 2 ? "bg-white" : "bg-gray-50/30"}>
+                          {/* Matière */}
+                          <td className="px-3 py-2 border" data-testid={`cell-subject-${index}`}>
+                            <Input
+                              className="w-full border-0 bg-transparent text-sm"
+                              value={subject.name}
+                              onChange={(e) => updateSubject(subject.id, 'name', e.target.value)}
+                              placeholder="Matière..."
+                              data-testid={`input-subject-name-${index}`}
+                            />
+                          </td>
 
-                    <div>
-                      <Label className="text-sm">Note /20</Label>
-                      <Input
-                        data-testid={`input-subject-grade-${index}`}
-                        type="number"
-                        min="0"
-                        max="20"
-                        step="0.5"
-                        value={subject.grade}
-                        onChange={(e) => updateSubject(subject.id, 'grade', parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
+                          {/* N/20-M/20 */}
+                          <td className="px-3 py-2 border" data-testid={`cell-nm20-${index}`}>
+                            <div className="flex items-center gap-1 text-sm">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="20"
+                                className="w-12 border rounded px-1 py-1 text-center text-xs"
+                                value={subject.note1}
+                                onChange={(e) => {
+                                  const newNote1 = parseFloat(e.target.value) || 0;
+                                  const newMoyenne = calculateMoyenneFinale(newNote1, subject.note2);
+                                  updateSubject(subject.id, 'note1', newNote1);
+                                  updateSubject(subject.id, 'moyenneFinale', newMoyenne);
+                                  updateSubject(subject.id, 'totalPondere', round2(newMoyenne * subject.coefficient));
+                                }}
+                                placeholder="N"
+                                data-testid={`input-note1-${index}`}
+                              />
+                              <span className="text-gray-500">-</span>
+                              <span className="w-12 text-center text-xs font-bold bg-blue-50 px-1 py-1 rounded border">
+                                {moyenneFinale || '0'}
+                              </span>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="20"
+                                className="w-12 border rounded px-1 py-1 text-center text-xs ml-1"
+                                value={subject.note2}
+                                onChange={(e) => {
+                                  const newNote2 = parseFloat(e.target.value) || 0;
+                                  const newMoyenne = calculateMoyenneFinale(subject.note1, newNote2);
+                                  updateSubject(subject.id, 'note2', newNote2);
+                                  updateSubject(subject.id, 'moyenneFinale', newMoyenne);
+                                  updateSubject(subject.id, 'totalPondere', round2(newMoyenne * subject.coefficient));
+                                }}
+                                placeholder="N2"
+                                data-testid={`input-note2-${index}`}
+                              />
+                            </div>
+                          </td>
 
-                    <div>
-                      <Label className="text-sm">Cote</Label>
-                      <div className="flex items-center h-10 px-3 border rounded-md bg-gray-50">
-                        <Badge variant={cote === 'A+' || cote === 'A' ? 'default' : cote === 'B+' || cote === 'B' ? 'secondary' : 'destructive'}>
-                          {cote}
-                        </Badge>
-                      </div>
-                    </div>
+                          {/* Coefficient */}
+                          <td className="px-3 py-2 border" data-testid={`cell-coef-${index}`}>
+                            <Input
+                              type="number"
+                              step="1"
+                              min="0"
+                              className="w-14 border-0 bg-transparent text-center text-sm"
+                              value={subject.coefficient}
+                              onChange={(e) => {
+                                const newCoef = parseInt(e.target.value) || 0;
+                                updateSubject(subject.id, 'coefficient', newCoef);
+                                updateSubject(subject.id, 'totalPondere', round2(moyenneFinale * newCoef));
+                              }}
+                              data-testid={`input-coef-${index}`}
+                            />
+                          </td>
 
-                    <div>
-                      <Label className="text-sm">Note %</Label>
-                      <div className="flex items-center h-10 px-3 border rounded-md bg-gray-50 font-medium">
-                        {percentage}%
-                      </div>
-                    </div>
+                          {/* M x coef */}
+                          <td className="px-3 py-2 border text-center" data-testid={`cell-mxcoef-${index}`}>
+                            <span className="px-2 py-1 inline-block bg-green-50 rounded-lg font-semibold text-green-800 text-sm">
+                              {totalPondere}
+                            </span>
+                          </td>
 
-                    <div>
-                      <Label className="text-sm">Compétences évaluées</Label>
-                      <Badge className={getCompetencyColor(calculateCompetencyLevel(subject.grade))}>
-                        {calculateCompetencyLevel(subject.grade)}
-                      </Badge>
-                      <div className="text-xs text-gray-600 mt-1">
-                        {getCompetencyDescription(calculateCompetencyLevel(subject.grade), language)}
-                      </div>
-                    </div>
+                          {/* Note % */}
+                          <td className="px-3 py-2 border text-center" data-testid={`cell-percent-${index}`}>
+                            <span className="px-2 py-1 inline-block bg-purple-50 rounded-lg font-semibold text-purple-800 text-sm">
+                              {notePercent}%
+                            </span>
+                          </td>
 
-                    <div className="md:col-span-2">
-                      <Label className="text-sm">Appréciation</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          data-testid={`input-subject-remark-${index}`}
-                          value={subject.remark}
-                          onChange={(e) => updateSubject(subject.id, 'remark', e.target.value)}
-                          placeholder="Appréciation de l'enseignant"
-                          className="flex-1"
-                        />
-                        <Select onValueChange={(value) => updateSubject(subject.id, 'remark', value)}>
-                          <SelectTrigger className="w-48">
-                            <SelectValue placeholder="Prédéfinie" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {predefinedAppreciations?.data?.filter((app: any) => 
-                              app.targetRole === 'director' && 
-                              (!app.gradeRange || (subject.grade >= app.gradeRange.min && subject.grade <= app.gradeRange.max))
-                            ).map((appreciation: any) => (
-                              <SelectItem key={appreciation.id} value={appreciation.appreciationFr}>
-                                {language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                          {/* COTE */}
+                          <td className="px-3 py-2 border text-center" data-testid={`cell-cote-${index}`}>
+                            <Input
+                              className="w-12 border-0 bg-transparent text-center font-bold text-sm"
+                              value={cote}
+                              onChange={(e) => updateSubject(subject.id, 'cote', e.target.value)}
+                              data-testid={`input-cote-${index}`}
+                            />
+                          </td>
 
-                    <div className="flex items-end">
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        onClick={() => removeSubject(subject.id)}
-                        data-testid={`button-remove-subject-${index}`}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  );
-                })}
+                          {/* Compétences évaluées */}
+                          <td className="px-3 py-2 border" data-testid={`cell-competences-${index}`}>
+                            <textarea
+                              className="w-full border-0 bg-transparent text-xs resize-none"
+                              rows={2}
+                              value={competencesEvaluees}
+                              onChange={(e) => {
+                                const newCompetences = e.target.value;
+                                const parts = newCompetences.split(';');
+                                updateSubject(subject.id, 'competence1', parts[0]?.trim() || '');
+                                updateSubject(subject.id, 'competence2', parts[1]?.trim() || '');
+                              }}
+                              placeholder="Compétences séparées par ;"
+                              data-testid={`input-competences-${index}`}
+                            />
+                          </td>
+
+                          {/* Appréciation */}
+                          <td className="px-3 py-2 border" data-testid={`cell-appreciation-${index}`}>
+                            <div className="flex gap-1 items-start">
+                              <textarea
+                                className="flex-1 border-0 bg-transparent text-xs min-h-[2.5rem] resize-none"
+                                rows={2}
+                                value={subject.remark}
+                                onChange={(e) => updateSubject(subject.id, 'remark', e.target.value)}
+                                placeholder="Appréciation..."
+                                data-testid={`textarea-appreciation-${index}`}
+                              />
+                              <Select onValueChange={(value) => updateSubject(subject.id, 'remark', value)}>
+                                <SelectTrigger className="w-6 h-6 p-0 border-2 border-blue-300 hover:border-blue-500 flex items-center justify-center shrink-0 text-xs">
+                                  <SelectValue placeholder="📝" />
+                                </SelectTrigger>
+                                <SelectContent className="max-w-[280px] max-h-[200px] overflow-y-auto">
+                                  <div className="p-2 border-b bg-slate-50 text-xs font-medium text-slate-600">
+                                    📝 Appréciations suggérées
+                                  </div>
+                                  {predefinedAppreciations?.data?.filter((app: any) => 
+                                    app.targetRole === 'director' && 
+                                    (!app.gradeRange || (moyenneFinale >= app.gradeRange.min && moyenneFinale <= app.gradeRange.max))
+                                  ).map((appreciation: any) => (
+                                    <SelectItem key={appreciation.id} value={appreciation.appreciationFr}>
+                                      <div className="text-xs leading-relaxed py-1">
+                                        {(language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn)?.length > 45 
+                                          ? (language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn).substring(0, 45) + "..." 
+                                          : (language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn)}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="px-3 py-2 border text-center">
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removeSubject(subject.id)}
+                              className="h-6 w-6 p-0"
+                              data-testid={`button-remove-${index}`}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
