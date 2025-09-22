@@ -977,7 +977,7 @@ export default function BulletinCreationInterface() {
             <CardContent>
               {/* Table structure matching official Cameroon bulletin format */}
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+                <table className="w-full border-collapse min-w-[800px]">
                   <thead>
                     <tr className="bg-blue-50 border-b-2 border-blue-200">
                       <th className="px-3 py-2 text-left text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Matière' : 'Subject'}</th>
@@ -1003,7 +1003,7 @@ export default function BulletinCreationInterface() {
                       return (
                         <tr key={subject.id} className={index % 2 ? "bg-white" : "bg-gray-50/30"}>
                           {/* Matière */}
-                          <td className="px-3 py-2 border" data-testid={`cell-subject-${index}`}>
+                          <td className="px-2 py-2 border min-w-[120px]" data-testid={`cell-subject-${index}`}>
                             <Input
                               className="w-full border-0 bg-transparent text-sm"
                               value={subject.name}
@@ -1014,14 +1014,14 @@ export default function BulletinCreationInterface() {
                           </td>
 
                           {/* N/20-M/20 */}
-                          <td className="px-3 py-2 border" data-testid={`cell-nm20-${index}`}>
-                            <div className="flex items-center gap-1 text-sm">
+                          <td className="px-2 py-2 border" data-testid={`cell-nm20-${index}`}>
+                            <div className="flex flex-wrap items-center gap-1 text-sm">
                               <Input
                                 type="number"
                                 step="0.01"
                                 min="0"
                                 max="20"
-                                className="w-12 border rounded px-1 py-1 text-center text-xs"
+                                className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm"
                                 value={subject.note1 === 0 ? '' : subject.note1}
                                 onChange={(e) => updateSubject(subject.id, 'note1', parseFloat(e.target.value) || 0)}
                                 placeholder="N"
@@ -1033,7 +1033,7 @@ export default function BulletinCreationInterface() {
                                 step="0.01"
                                 min="0"
                                 max="20"
-                                className="w-12 border rounded px-1 py-1 text-center text-xs font-bold bg-blue-50"
+                                className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm font-bold bg-blue-50"
                                 value={subject.moyenneFinale === 0 ? '' : subject.moyenneFinale}
                                 onChange={(e) => updateSubject(subject.id, 'moyenneFinale', parseFloat(e.target.value) || 0)}
                                 placeholder="M"
@@ -1044,7 +1044,7 @@ export default function BulletinCreationInterface() {
                                 step="0.01"
                                 min="0"
                                 max="20"
-                                className="w-12 border rounded px-1 py-1 text-center text-xs ml-1"
+                                className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm ml-1"
                                 value={subject.note2 === 0 ? '' : subject.note2}
                                 onChange={(e) => updateSubject(subject.id, 'note2', parseFloat(e.target.value) || 0)}
                                 placeholder="N2"
@@ -1086,7 +1086,7 @@ export default function BulletinCreationInterface() {
                           {/* COTE */}
                           <td className="px-3 py-2 border text-center" data-testid={`cell-cote-${index}`}>
                             <Input
-                              className="w-12 border-0 bg-transparent text-center font-bold text-sm"
+                              className="w-16 md:w-20 border-0 bg-transparent text-center font-bold text-sm"
                               value={cote}
                               onChange={(e) => updateSubject(subject.id, 'cote', e.target.value)}
                               data-testid={`input-cote-${index}`}
