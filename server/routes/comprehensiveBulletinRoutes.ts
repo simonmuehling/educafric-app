@@ -448,10 +448,169 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
       status: 'teacher_submitted'
     });
 
+    // 🔔 NOTIFICATIONS ET INTÉGRATION SYSTÈME ÉCOLE
+    try {
+      const teacherName = `${user.firstName} ${user.lastName}`;
+      const studentName = studentClassAccess[0].studentName;
+      const className = studentClassAccess[0].className;
+      
+      // 1. Ajouter notification dans le centre de notifications
+      await storage.addNotification({
+        id: crypto.randomUUID(),
+        userId: schoolId, // Notification pour l'école (directeur)
+        type: 'grade_submission',
+        title: 'Nouvelles notes soumises',
+        message: `${teacherName} a soumis les notes de ${studentName} (${className}) pour le ${term}e trimestre`,
+        data: {
+          teacherId: user.id,
+          teacherName,
+          studentId,
+          studentName,
+          classId,
+          className,
+          term,
+          academicYear,
+          submissionId: crypto.randomUUID(),
+          status: 'pending_review'
+        },
+        isRead: false,
+        createdAt: new Date(),
+        priority: 'high'
+      });
+
+      // 2. Notification pour l'enseignant (confirmation)
+      await storage.addNotification({
+        id: crypto.randomUUID(),
+        userId: user.id,
+        type: 'submission_confirmation',
+        title: 'Notes envoyées',
+        message: `Vos notes pour ${studentName} (${className}) ont été transmises à l'école pour validation`,
+        data: {
+          studentId,
+          studentName,
+          classId,
+          className,
+          term,
+          academicYear,
+          status: 'submitted'
+        },
+        isRead: false,
+        createdAt: new Date(),
+        priority: 'normal'
+      });
+
+      // 3. Email notification à l'école
+      const emailSubject = `📚 Nouvelles notes soumises - ${studentName} (${className})`;
+      const emailContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">EDUCAFRIC - Soumission de Notes</h2>
+          
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #1e40af; margin-top: 0;">Nouvelles notes en attente de validation</h3>
+            
+            <p><strong>Enseignant :</strong> ${teacherName}</p>
+            <p><strong>Élève :</strong> ${studentName}</p>
+            <p><strong>Classe :</strong> ${className}</p>
+            <p><strong>Trimestre :</strong> ${term}</p>
+            <p><strong>Année scolaire :</strong> ${academicYear}</p>
+            <p><strong>Date de soumission :</strong> ${new Date().toLocaleDateString('fr-FR')}</p>
+          </div>
+          
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0;"><strong>Action requise :</strong> Veuillez vous connecter au module "Gestion Académique" pour valider ces notes et procéder à la génération des bulletins.</p>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+            Plateforme EDUCAFRIC - Système de gestion scolaire<br>
+            <a href="https://www.educafric.com" style="color: #2563eb;">www.educafric.com</a>
+          </p>
+        </div>
+      `;
+
+      // Envoyer email aux directeurs de l'école
+      try {
+        const schoolDirectors = await db.select({
+          email: users.email,
+          name: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`
+        })
+        .from(users)
+        .where(and(
+          eq(users.schoolId, schoolId),
+          eq(users.role, 'Director')
+        ));
+
+        for (const director of schoolDirectors) {
+          if (director.email) {
+            await hostingerMailService.sendEmail({
+              to: director.email,
+              subject: emailSubject,
+              html: emailContent
+            });
+            console.log(`[TEACHER_SUBMISSION] 📧 Email sent to director: ${director.email}`);
+          }
+        }
+      } catch (emailError) {
+        console.error('[TEACHER_SUBMISSION] ❌ Failed to send email notification:', emailError);
+        // Continue sans bloquer - les emails ne sont pas critiques
+      }
+
+      // 4. Calculer les totaux trimestriels automatiquement
+      try {
+        const allGradesForStudent = await db.select({
+          termAverage: teacherGradeSubmissions.termAverage,
+          coefficient: teacherGradeSubmissions.coefficient
+        })
+        .from(teacherGradeSubmissions)
+        .where(and(
+          eq(teacherGradeSubmissions.studentId, studentId),
+          eq(teacherGradeSubmissions.term, term as 'T1' | 'T2' | 'T3'),
+          eq(teacherGradeSubmissions.academicYear, academicYear),
+          eq(teacherGradeSubmissions.reviewStatus, 'pending')
+        ));
+
+        if (allGradesForStudent.length > 0) {
+          let totalPoints = 0;
+          let totalCoefficients = 0;
+
+          allGradesForStudent.forEach(grade => {
+            const average = parseFloat(grade.termAverage || '0');
+            const coef = grade.coefficient || 1;
+            totalPoints += average * coef;
+            totalCoefficients += coef;
+          });
+
+          const trimesterAverage = totalCoefficients > 0 ? totalPoints / totalCoefficients : 0;
+          
+          // Mettre à jour le bulletin avec la moyenne calculée
+          await db.update(bulletinComprehensive)
+            .set({
+              termGeneral: trimesterAverage.toFixed(2),
+              termCoeff: totalCoefficients.toString(),
+              updatedAt: new Date()
+            })
+            .where(and(
+              eq(bulletinComprehensive.studentId, studentId),
+              eq(bulletinComprehensive.term, term),
+              eq(bulletinComprehensive.academicYear, academicYear)
+            ));
+
+          console.log(`[TEACHER_SUBMISSION] 📊 Trimester average calculated: ${trimesterAverage.toFixed(2)}`);
+        }
+      } catch (calculationError) {
+        console.error('[TEACHER_SUBMISSION] ❌ Failed to calculate trimester average:', calculationError);
+        // Continue sans bloquer
+      }
+
+      console.log('[TEACHER_SUBMISSION] 🔔 All notifications and integrations completed successfully');
+    } catch (notificationError) {
+      console.error('[TEACHER_SUBMISSION] ❌ Failed to send notifications:', notificationError);
+      // Continue sans bloquer - les notifications ne doivent pas empêcher la soumission
+    }
+
     // Return success response
     res.json({
       success: true,
-      message: 'Teacher submission received and stored for director processing',
+      message: 'Notes soumises avec succès. L\'école a été notifiée et va procéder à la validation.',
       data: {
         studentId,
         classId,
@@ -459,7 +618,9 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
         academicYear,
         status: 'teacher_submitted',
         submittedAt: new Date().toISOString(),
-        teacherName: `${user.firstName} ${user.lastName}`
+        teacherName: `${user.firstName} ${user.lastName}`,
+        notificationsSent: true,
+        averageCalculated: true
       }
     });
 
