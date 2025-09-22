@@ -979,7 +979,7 @@ export default function BulletinCreationInterface() {
                                 min="0"
                                 max="20"
                                 className="w-12 border rounded px-1 py-1 text-center text-xs"
-                                value={subject.note1}
+                                value={subject.note1 === 0 ? '' : subject.note1}
                                 onChange={(e) => {
                                   const newNote1 = parseFloat(e.target.value) || 0;
                                   const newMoyenne = calculateMoyenneFinale(newNote1, subject.note2);
@@ -1000,7 +1000,7 @@ export default function BulletinCreationInterface() {
                                 min="0"
                                 max="20"
                                 className="w-12 border rounded px-1 py-1 text-center text-xs ml-1"
-                                value={subject.note2}
+                                value={subject.note2 === 0 ? '' : subject.note2}
                                 onChange={(e) => {
                                   const newNote2 = parseFloat(e.target.value) || 0;
                                   const newMoyenne = calculateMoyenneFinale(subject.note1, newNote2);
@@ -1021,7 +1021,7 @@ export default function BulletinCreationInterface() {
                               step="1"
                               min="0"
                               className="w-14 border-0 bg-transparent text-center text-sm"
-                              value={subject.coefficient}
+                              value={subject.coefficient === 0 ? '' : subject.coefficient}
                               onChange={(e) => {
                                 const newCoef = parseInt(e.target.value) || 0;
                                 updateSubject(subject.id, 'coefficient', newCoef);
@@ -1129,6 +1129,129 @@ export default function BulletinCreationInterface() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Appréciations générales */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                📝 {language === 'fr' ? 'Appréciations générales' : 'General Appreciations'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">
+                    {language === 'fr' ? 'Appréciation générale du travail de l\'élève' : 'General appreciation of student work'}
+                  </Label>
+                  <textarea
+                    className="w-full border rounded-lg p-3 text-sm min-h-[100px] resize-y"
+                    placeholder={language === 'fr' ? 
+                      'Saisir l\'appréciation générale du travail, comportement et résultats de l\'élève...' : 
+                      'Enter general appreciation of student work, behavior and results...'}
+                    value={generalRemark}
+                    onChange={(e) => setGeneralRemark(e.target.value)}
+                    data-testid="textarea-general-remarks"
+                  />
+                </div>
+                
+                <div className="flex gap-2 items-start">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium mb-2 block">
+                      {language === 'fr' ? 'Signature et observations' : 'Signature and observations'}
+                    </Label>
+                    <Input
+                      placeholder={language === 'fr' ? 'Nom et signature du directeur...' : 'Name and signature of director...'}
+                      className="border-blue-200 focus:border-blue-400"
+                      data-testid="input-director-signature"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium mb-2 block">
+                      {language === 'fr' ? 'Date' : 'Date'}
+                    </Label>
+                    <Input
+                      type="date"
+                      defaultValue={new Date().toISOString().split('T')[0]}
+                      className="border-blue-200 focus:border-blue-400"
+                      data-testid="input-signature-date"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Décisions du conseil - visible seulement au 3ème trimestre */}
+          {trimester === 'Troisième' && (
+            <Card className="border-orange-200">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 text-orange-700">
+                  🏛️ {language === 'fr' ? 'Décisions du conseil' : 'Council Decisions'}
+                </CardTitle>
+                <p className="text-sm text-orange-600 mt-1">
+                  {language === 'fr' ? 'Section visible uniquement pour le troisième trimestre' : 'Section visible only for third trimester'}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">
+                      {language === 'fr' ? 'Décision du conseil de classe' : 'Class council decision'}
+                    </Label>
+                    <Select>
+                      <SelectTrigger data-testid="select-council-decision">
+                        <SelectValue placeholder={language === 'fr' ? 'Sélectionner la décision...' : 'Select decision...'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="passe-superieur">{language === 'fr' ? 'Passe en classe supérieure' : 'Advances to next grade'}</SelectItem>
+                        <SelectItem value="passe-felicitations">{language === 'fr' ? 'Passe avec félicitations' : 'Advances with congratulations'}</SelectItem>
+                        <SelectItem value="passe-encouragements">{language === 'fr' ? 'Passe avec encouragements' : 'Advances with encouragement'}</SelectItem>
+                        <SelectItem value="passe-avertissement">{language === 'fr' ? 'Passe avec avertissement' : 'Advances with warning'}</SelectItem>
+                        <SelectItem value="redouble">{language === 'fr' ? 'Redouble' : 'Repeats grade'}</SelectItem>
+                        <SelectItem value="orientation">{language === 'fr' ? 'Orientation' : 'Orientation'}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">
+                      {language === 'fr' ? 'Observations et recommandations' : 'Observations and recommendations'}
+                    </Label>
+                    <textarea
+                      className="w-full border rounded-lg p-3 text-sm min-h-[80px] resize-y border-orange-200 focus:border-orange-400"
+                      placeholder={language === 'fr' ? 
+                        'Observations du conseil de classe et recommandations pour l\'année suivante...' : 
+                        'Class council observations and recommendations for next year...'}
+                      data-testid="textarea-council-observations"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">
+                        {language === 'fr' ? 'Président du conseil' : 'Council president'}
+                      </Label>
+                      <Input
+                        placeholder={language === 'fr' ? 'Nom du président...' : 'President name...'}
+                        className="border-orange-200 focus:border-orange-400"
+                        data-testid="input-council-president"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">
+                        {language === 'fr' ? 'Date du conseil' : 'Council date'}
+                      </Label>
+                      <Input
+                        type="date"
+                        className="border-orange-200 focus:border-orange-400"
+                        data-testid="input-council-date"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Compétences évaluées Section */}
           <Card>
