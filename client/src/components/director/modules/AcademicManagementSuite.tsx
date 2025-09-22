@@ -1532,7 +1532,7 @@ export default function AcademicManagementSuite() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="transcript" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="transcript" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             {language === 'fr' ? 'Relevé de Notes' : 'Transcript'}
@@ -1544,14 +1544,6 @@ export default function AcademicManagementSuite() {
           <TabsTrigger value="mastersheet" className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
             {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
-          </TabsTrigger>
-          <TabsTrigger value="submissions" className="flex items-center gap-2">
-            <Timer className="h-4 w-4" />
-            {language === 'fr' ? 'Soumissions Enseignants' : 'Teacher Submissions'}
-          </TabsTrigger>
-          <TabsTrigger value="attendance" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            {language === 'fr' ? 'Présences' : 'Attendance'}
           </TabsTrigger>
           <TabsTrigger value="archives" className="flex items-center gap-2">
             <Archive className="h-4 w-4" />
@@ -1599,14 +1591,6 @@ export default function AcademicManagementSuite() {
           <BulletinCreationInterface />
         </TabsContent>
 
-        <TabsContent value="submissions" className="space-y-4">
-          <TeacherSubmissionsManager selectedClass={selectedClass} selectedTerm={selectedTerm} />
-        </TabsContent>
-
-
-        <TabsContent value="attendance" className="space-y-4">
-          <AttendanceRegister selectedClass={selectedClass} />
-        </TabsContent>
 
         <TabsContent value="archives" className="space-y-4">
           <ArchiveManagement />
