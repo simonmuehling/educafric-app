@@ -2,6 +2,8 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 // Support bilingue FR/EN
 const BILINGUAL_LABELS = {
@@ -88,14 +90,14 @@ const performanceGrid = [
 ];
 
 function coteFromNote(note20: string | number): string {
-  if (note20 == null || isNaN(Number(note20))) return "";
+  if (note20 == null || note20 === '' || (typeof note20 === 'string' && note20.trim() === '') || isNaN(Number(note20))) return "";
   const n = Number(note20);
   const r = performanceGrid.find(g => n >= g.min && n < g.max);
   return r ? r.grade : "";
 }
 
 function appreciationFromNote(note20: string | number): string {
-  if (note20 == null || isNaN(Number(note20))) return "";
+  if (note20 == null || note20 === '' || (typeof note20 === 'string' && note20.trim() === '') || isNaN(Number(note20))) return "";
   const n = Number(note20);
   const r = performanceGrid.find(g => n >= g.min && n < g.max);
   return r ? r.remark : "";
@@ -318,6 +320,116 @@ export default function ManualBulletinForm({
     enabled: !!studentId
   });
 
+  // Fetch competency evaluation systems
+  const { data: competencySystems } = useQuery({
+    queryKey: ['/api/comprehensive-bulletins/competency-systems'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/comprehensive-bulletins/competency-systems');
+      return await response.json();
+    }
+  });
+
+  // Fetch predefined appreciations for teachers
+  const { data: predefinedAppreciations } = useQuery({
+    queryKey: ['/api/comprehensive-bulletins/predefined-appreciations-teacher'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/comprehensive-bulletins/predefined-appreciations?targetRole=teacher');
+      return await response.json();
+    }
+  });
+
+  // State for selected competency system
+  const [selectedCompetencySystem, setSelectedCompetencySystem] = useState<any>(null);
+
+  // Effect to set default competency system based on language
+  useEffect(() => {
+    if (competencySystems?.data) {
+      const defaultSystem = competencySystems.data.find((system: any) => 
+        system.language === language
+      );
+      if (defaultSystem) {
+        if (!selectedCompetencySystem || selectedCompetencySystem.language !== language) {
+          setSelectedCompetencySystem(defaultSystem);
+        }
+      }
+    }
+  }, [competencySystems, language, selectedCompetencySystem]);
+
+  // Memoized sorted competency levels for performance
+  const sortedCompetencyLevels = useMemo(() => {
+    if (!selectedCompetencySystem?.levels) return [];
+    return [...selectedCompetencySystem.levels].sort((a: any, b: any) => b.gradeRange.min - a.gradeRange.min);
+  }, [selectedCompetencySystem?.levels]);
+
+  // Dynamic competency calculation functions (similar to director interface)
+  const calculateCompetencyLevel = (grade: number): string => {
+    // Guard against invalid grades - treat 0 as valid
+    if (grade == null || Number.isNaN(grade)) return '';
+    
+    if (!selectedCompetencySystem?.levels || sortedCompetencyLevels.length === 0) {
+      // Fallback to default system based on language
+      if (grade >= 16) return language === 'fr' ? 'CTBA' : 'CVWA';
+      if (grade >= 14) return language === 'fr' ? 'CBA' : 'CWA';
+      if (grade >= 12) return 'CA';
+      if (grade >= 10) return language === 'fr' ? 'CMA' : 'CAA';
+      return 'CNA';
+    }
+
+    for (const level of sortedCompetencyLevels) {
+      if (grade >= level.gradeRange.min && grade <= level.gradeRange.max) {
+        return level.code;
+      }
+    }
+    return 'CNA';
+  };
+
+  const getCompetencyColor = (level: string): string => {
+    const colorMap: { [key: string]: string } = {
+      'CTBA': 'bg-green-100 text-green-800',
+      'CVWA': 'bg-green-100 text-green-800',
+      'CBA': 'bg-blue-100 text-blue-800',
+      'CWA': 'bg-blue-100 text-blue-800',
+      'CA': 'bg-yellow-100 text-yellow-800',
+      'CMA': 'bg-orange-100 text-orange-800',
+      'CAA': 'bg-orange-100 text-orange-800',
+      'CNA': 'bg-red-100 text-red-800'
+    };
+    return colorMap[level] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getCompetencyDescription = (level: string): string => {
+    if (selectedCompetencySystem?.levels) {
+      const levelData = selectedCompetencySystem.levels.find((l: any) => l.code === level);
+      if (levelData) {
+        return levelData.description || levelData.code;
+      }
+    }
+
+    const descriptions = {
+      fr: {
+        'CTBA': 'Compétences très bien acquises',
+        'CBA': 'Compétences bien acquises', 
+        'CA': 'Compétences acquises',
+        'CMA': 'Compétences moyennement acquises',
+        'CNA': 'Compétences non acquises',
+        'CVWA': 'Compétences très bien acquises',
+        'CWA': 'Compétences bien acquises',
+        'CAA': 'Compétences moyennement acquises'
+      },
+      en: {
+        'CTBA': 'Competences Very Well Acquired',
+        'CBA': 'Competences Well Acquired',
+        'CA': 'Competences Acquired', 
+        'CMA': 'Competences Averagely Acquired',
+        'CNA': 'Competences Not Acquired',
+        'CVWA': 'Competences Very Well Acquired',
+        'CWA': 'Competences Well Acquired',
+        'CAA': 'Competences Averagely Acquired'
+      }
+    };
+    return descriptions[language][level] || level;
+  };
+
   // Charger les données de l'élève depuis l'API ou utiliser des données par défaut
   useEffect(() => {
     if (studentProfile) {
@@ -482,8 +594,8 @@ export default function ManualBulletinForm({
         m20: Number(r.m20) || null,
         coef: Number(r.coef) || 0,
         mxcoef: Number(r.m20 || 0) * Number(r.coef || 0),
-        cote: r.cote || coteFromNote(r.m20),
-        appreciation: r.appreciation || appreciationFromNote(r.m20),
+        cote: r.cote || (r.m20 !== '' && r.m20 != null ? coteFromNote(r.m20) : ''),
+        appreciation: r.appreciation || (r.m20 !== '' && r.m20 != null ? appreciationFromNote(r.m20) : ''),
       })),
       totaux: totals,
       discipline: {
@@ -738,14 +850,66 @@ export default function ManualBulletinForm({
                       />
                     </Td>
                     <Td>
-                      <textarea 
-                        className="w-full border rounded-lg px-2 py-1" 
-                        rows={2} 
-                        value={r.appreciation} 
-                        onChange={e=>updateRow(i,{appreciation:e.target.value})} 
-                        placeholder={appreciationFromNote(r.m20)}
-                        data-testid={`textarea-appreciation-${i}`}
-                      />
+                      <div className="space-y-2">
+                        {/* Competency Badge */}
+                        {(r.m20 !== '' && r.m20 != null) && calculateCompetencyLevel(Number(r.m20)) && (
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              className={getCompetencyColor(calculateCompetencyLevel(Number(r.m20)))}
+                              data-testid={`badge-competency-${i}`}
+                            >
+                              {calculateCompetencyLevel(Number(r.m20))}
+                            </Badge>
+                            <span 
+                              className="text-xs text-gray-600"
+                              data-testid={`text-competency-desc-${i}`}
+                            >
+                              {getCompetencyDescription(calculateCompetencyLevel(Number(r.m20)))}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Appreciation Input with Predefined Options */}
+                        <div className="flex gap-1">
+                          <textarea 
+                            className="flex-1 border rounded-lg px-2 py-1 text-sm" 
+                            rows={2} 
+                            value={r.appreciation} 
+                            onChange={e=>updateRow(i,{appreciation:e.target.value})} 
+                            placeholder={appreciationFromNote(r.m20)}
+                            data-testid={`textarea-appreciation-${i}`}
+                          />
+                          
+                          {/* Predefined Appreciations Selector */}
+                          <Select 
+                            onValueChange={(value) => updateRow(i, {appreciation: value})}
+                          >
+                            <SelectTrigger 
+                              className="w-20 text-xs"
+                              disabled={!predefinedAppreciations?.data}
+                              data-testid={`button-open-appreciations-${i}`}
+                            >
+                              <SelectValue placeholder={predefinedAppreciations?.data ? "+" : "..."} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {predefinedAppreciations?.data?.filter((app: any) => 
+                                app.targetRole === 'teacher' && 
+                                (!app.gradeRange || (Number(r.m20) >= app.gradeRange.min && Number(r.m20) <= app.gradeRange.max))
+                              ).slice(0, 5).map((appreciation: any) => (
+                                <SelectItem 
+                                  key={appreciation.id} 
+                                  value={language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn}
+                                  data-testid={`option-appreciation-${appreciation.id}`}
+                                >
+                                  <div className="text-xs">
+                                    {(language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn)?.substring(0, 30)}...
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     </Td>
                     <Td>
                       <button 
