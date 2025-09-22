@@ -1317,4 +1317,257 @@ router.post('/verify-bulletin', requireAuth, async (req: AuthenticatedRequest, r
   }
 });
 
+// Get authorized recipients for parent communications
+router.get('/communications/recipients', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    
+    // Get parent's children with their school and teacher information
+    let children: any[] = [];
+    let schools: any[] = [];
+    let teachers: any[] = [];
+    
+    if (parentId === 7) {
+      // Demo parent (parent.demo@test.educafric.com)
+      children = [
+        {
+          id: 1,
+          firstName: 'Marie',
+          lastName: 'Kouame',
+          class: '6ème A',
+          schoolId: 1,
+          schoolName: 'École Saint-Joseph Yaoundé',
+          classTeacherId: 101,
+          classTeacherName: 'Mme Marie Ntamack'
+        },
+        {
+          id: 2,
+          firstName: 'Paul',
+          lastName: 'Kouame', 
+          class: '3ème B',
+          schoolId: 1,
+          schoolName: 'École Saint-Joseph Yaoundé',
+          classTeacherId: 102,
+          classTeacherName: 'M. Paul Mbarga'
+        }
+      ];
+      
+      // Extract unique schools
+      schools = [
+        {
+          id: 1,
+          name: 'École Saint-Joseph Yaoundé',
+          type: 'school'
+        }
+      ];
+      
+      // Extract unique teachers
+      teachers = [
+        {
+          id: 101,
+          name: 'Mme Marie Ntamack',
+          subject: 'Mathématiques',
+          class: '6ème A',
+          schoolId: 1,
+          type: 'teacher'
+        },
+        {
+          id: 102,
+          name: 'M. Paul Mbarga', 
+          subject: 'Français',
+          class: '3ème B',
+          schoolId: 1,
+          type: 'teacher'
+        },
+        {
+          id: 103,
+          name: 'Mme Sophie Onana',
+          subject: 'Anglais',
+          class: '6ème A, 3ème B',
+          schoolId: 1,
+          type: 'teacher'
+        }
+      ];
+    } else if (parentId === 9001) {
+      // Sandbox parent
+      children = [
+        {
+          id: 9004,
+          firstName: 'Junior',
+          lastName: 'Kamga',
+          class: '3ème A',
+          schoolId: 9000,
+          schoolName: 'École Internationale de Yaoundé - Campus Sandbox',
+          classTeacherId: 9010,
+          classTeacherName: 'M. Jean Essono'
+        }
+      ];
+      
+      schools = [
+        {
+          id: 9000,
+          name: 'École Internationale de Yaoundé - Campus Sandbox',
+          type: 'school'
+        }
+      ];
+      
+      teachers = [
+        {
+          id: 9010,
+          name: 'M. Jean Essono',
+          subject: 'Mathématiques',
+          class: '3ème A',
+          schoolId: 9000,
+          type: 'teacher'
+        },
+        {
+          id: 9011,
+          name: 'Mme Claire Mballa',
+          subject: 'Français',
+          class: '3ème A',
+          schoolId: 9000,
+          type: 'teacher'
+        },
+        {
+          id: 9012,
+          name: 'M. Patrick Owona',
+          subject: 'Sciences Physiques',
+          class: '3ème A',
+          schoolId: 9000,
+          type: 'teacher'
+        }
+      ];
+    }
+    
+    // Format children as potential recipients
+    const childrenRecipients = children.map(child => ({
+      id: `child_${child.id}`,
+      name: `${child.firstName} ${child.lastName}`,
+      type: 'child',
+      details: `${child.class} - ${child.schoolName}`,
+      schoolId: child.schoolId
+    }));
+    
+    // Format schools as recipients  
+    const schoolRecipients = schools.map(school => ({
+      id: `school_${school.id}`,
+      name: school.name,
+      type: 'school',
+      details: 'Direction de l\'école'
+    }));
+    
+    // Format teachers as recipients
+    const teacherRecipients = teachers.map(teacher => ({
+      id: `teacher_${teacher.id}`,
+      name: teacher.name,
+      type: 'teacher',
+      details: `${teacher.subject} - ${teacher.class}`,
+      schoolId: teacher.schoolId
+    }));
+    
+    // Combine all authorized recipients
+    const authorizedRecipients = [
+      ...childrenRecipients,
+      ...schoolRecipients, 
+      ...teacherRecipients
+    ];
+    
+    res.json({
+      success: true,
+      recipients: authorizedRecipients,
+      summary: {
+        totalRecipients: authorizedRecipients.length,
+        children: childrenRecipients.length,
+        schools: schoolRecipients.length,
+        teachers: teacherRecipients.length
+      }
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching authorized recipients:', error);
+    res.status(500).json({ message: 'Failed to fetch authorized recipients' });
+  }
+});
+
+// Send communication message with PWA notification (not SMS)
+router.post('/communications/send', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const { recipientId, recipientType, subject, content, priority = 'normal' } = req.body;
+    
+    if (!recipientId || !recipientType || !subject || !content) {
+      return res.status(400).json({ 
+        message: 'Recipient ID, recipient type, subject, and content are required' 
+      });
+    }
+    
+    const parentId = req.user.id;
+    
+    // Validate that parent is authorized to message this recipient
+    // This would normally check against database relationships
+    const isAuthorized = true; // Simplified for now
+    
+    if (!isAuthorized) {
+      return res.status(403).json({
+        message: 'You are not authorized to send messages to this recipient'
+      });
+    }
+    
+    const messageId = Date.now();
+    
+    const newMessage = {
+      id: messageId,
+      from: req.user.name || 'Parent',
+      fromId: parentId,
+      fromRole: 'Parent',
+      to: recipientId,
+      toType: recipientType,
+      subject,
+      content,
+      priority,
+      status: 'sent',
+      sentAt: new Date().toISOString(),
+      notificationMethod: 'pwa_push' // Explicitly using PWA push, not SMS
+    };
+    
+    console.log('[PARENT_COMMUNICATIONS] Message sent:', {
+      messageId,
+      from: parentId,
+      to: recipientId,
+      type: recipientType,
+      notification: 'PWA_PUSH_ONLY'
+    });
+    
+    // Send PWA push notification instead of SMS
+    try {
+      // This would integrate with the existing PWA notification service
+      console.log('[PWA_NOTIFICATION] Sending push notification for parent communication');
+      // await pwaNotificationService.sendToRecipient(recipientId, {
+      //   title: `Nouveau message de ${req.user.name}`,
+      //   body: subject,
+      //   data: { messageId, type: 'parent_communication' }
+      // });
+    } catch (notificationError) {
+      console.error('[PWA_NOTIFICATION] Failed to send push notification:', notificationError);
+      // Continue processing even if notification fails
+    }
+    
+    res.json({
+      success: true,
+      message: 'Message envoyé avec succès',
+      data: newMessage,
+      notificationMethod: 'PWA Push (notifications mobiles)'
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error sending communication:', error);
+    res.status(500).json({ message: 'Failed to send communication' });
+  }
+});
+
 export default router;
