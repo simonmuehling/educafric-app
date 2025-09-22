@@ -386,8 +386,8 @@ function Router() {
       <Route path="/demo" component={Demo} />
       <Route path="/subscription-success" component={SubscriptionSuccess} />
       <Route path="/geolocation-pricing" component={GeolocationPricing} />
-      <Route path="/verify" component={BulletinVerification} />
-      <Route path="/verify-demo" component={Verify} />
+      <Route path="/verify" component={Verify} />
+      <Route path="/bulletin-verification" component={BulletinVerification} />
       
       <Route path="/geolocation">
         <ProtectedRoute>
