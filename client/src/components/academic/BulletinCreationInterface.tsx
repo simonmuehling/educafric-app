@@ -1821,7 +1821,7 @@ export default function BulletinCreationInterface() {
           )}
 
           {/* Actions */}
-          <div className="flex flex-wrap gap-3 justify-end">
+          <div className="flex flex-wrap gap-3 justify-end print:hidden no-print">
             <Button variant="outline" onClick={() => setShowPreview(!showPreview)} data-testid="button-preview">
               <Eye className="h-4 w-4 mr-2" />
               {showPreview ? t.hide : t.preview}

@@ -481,8 +481,8 @@ export default function ReportCardPreview({
         </div>
       </A4Sheet>
 
-      <div className="mt-3 flex justify-end gap-2 print:hidden">
-        <button className="px-3 py-2 rounded-xl bg-gray-100" onClick={() => window.print?.()}>{language === 'fr' ? 'Imprimer' : 'Print'}</button>
+      <div className="mt-3 flex justify-end gap-2 print:hidden no-print">
+        <button className="px-3 py-2 rounded-xl bg-gray-100 print:hidden no-print" onClick={() => window.print?.()}>{language === 'fr' ? 'Imprimer' : 'Print'}</button>
       </div>
     </div>
   );

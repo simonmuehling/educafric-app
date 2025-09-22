@@ -1335,3 +1335,27 @@ select:focus-visible {
     padding: 12px;
   }
 }
+
+/* Print media queries - Hide print buttons and actions when printing to PDF */
+@media print {
+  [data-testid="button-print-pdf"],
+  button[onClick*="print"],
+  button:contains("Print"),
+  button:contains("Imprimer"),
+  .print\\:hidden,
+  [class*="print:hidden"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Ensure proper page breaks for report cards */
+  .report-card-page {
+    page-break-after: always;
+  }
+  
+  /* Hide any UI elements that shouldn't appear in printed documents */
+  .no-print,
+  [class*="no-print"] {
+    display: none !important;
+  }
+}
