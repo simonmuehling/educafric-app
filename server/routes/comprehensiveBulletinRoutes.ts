@@ -19,9 +19,10 @@ import {
   bulletins,
   bulletinWorkflow,
   bulletinComprehensive,
-  bulletinSubjectCodes,
-  teacherSubjectAssignments
+  bulletinSubjectCodes
 } from '../../shared/schema.js';
+import { teacherClassSubjects, classSubjects } from '../../shared/schemas/classSubjectsSchema.js';
+import { classEnrollments } from '../../shared/schemas/classEnrollmentSchema.js';
 import { insertTeacherGradeSubmissionSchema } from '../../shared/schemas/bulletinSchema.js';
 import { 
   bulletinComprehensiveValidationSchema,
@@ -33,6 +34,32 @@ import { eq, and, sql, inArray } from 'drizzle-orm';
 import { requireAuth, requireAnyRole } from '../middleware/auth';
 
 const router = Router();
+
+// RBAC Helper: Verify teacher has permission for classId + subjectId (copied from teacher-rbac.ts)
+async function verifyTeacherPermission(teacherId: number, schoolId: number, classId: number, subjectId: number) {
+  try {
+    // Need to join teacherClassSubjects with classSubjects to get subjectId
+    const [assignment] = await db
+      .select()
+      .from(teacherClassSubjects)
+      .innerJoin(classSubjects, eq(classSubjects.id, teacherClassSubjects.classSubjectId))
+      .where(
+        and(
+          eq(teacherClassSubjects.teacherId, teacherId),
+          eq(teacherClassSubjects.schoolId, schoolId),
+          eq(teacherClassSubjects.classId, classId),
+          eq(classSubjects.subjectId, subjectId),
+          eq(teacherClassSubjects.isActive, true)
+        )
+      )
+      .limit(1);
+    
+    return !!assignment;
+  } catch (error) {
+    console.error('[TEACHER_RBAC] Error verifying permission:', error);
+    return false;
+  }
+}
 
 // Validation schema for teacher submissions
 const teacherSubmissionSchema = z.object({
@@ -196,27 +223,30 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
 
     const { studentId, classId, term, academicYear, manualData, generationOptions } = validationResult.data;
 
-    // 🔒 AUTORISATION RENFORCÉE - Vérifier étudiant ET teacher assigné à cette classe  
-    const studentClassAccess = await db.select({
+    // 🔒 VÉRIFICATION STRICTE: Étudiant doit être inscrit dans cette classe
+    const studentEnrollment = await db.select({
       studentId: users.id,
       studentName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
       classId: classes.id,
       className: classes.name
     })
     .from(users)
-    .innerJoin(classes, and(
+    .innerJoin(classEnrollments, eq(classEnrollments.studentId, users.id))
+    .innerJoin(classes, eq(classes.id, classEnrollments.classId))
+    .where(and(
       eq(users.id, studentId),
       eq(users.role, 'Student'),
       eq(users.schoolId, schoolId),
-      eq(classes.id, classId),
+      eq(classEnrollments.classId, classId),
+      eq(classEnrollments.status, 'active'),
       eq(classes.schoolId, schoolId)
     ))
     .limit(1);
 
-    if (studentClassAccess.length === 0) {
+    if (studentEnrollment.length === 0) {
       return res.status(403).json({
         success: false,
-        message: 'Student not found in specified class or access denied'
+        message: 'Student not found or not enrolled in specified class'
       });
     }
 
@@ -241,54 +271,43 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
       });
     }
 
-    // 🔒 VÉRIFICATION STRICTE: Teacher doit être assigné à cette classe
-    const classAssignments = await db.select({
-      teacherId: teacherSubjectAssignments.teacherId,
-      classId: teacherSubjectAssignments.classId
-    })
-    .from(teacherSubjectAssignments)
-    .where(and(
-      eq(teacherSubjectAssignments.teacherId, user.id),
-      eq(teacherSubjectAssignments.classId, classId),
-      eq(teacherSubjectAssignments.schoolId, schoolId),
-      eq(teacherSubjectAssignments.active, true)
-    ))
-    .limit(1);
+    // 🔒 VÉRIFICATION OBLIGATOIRE: Teacher doit être assigné à cette classe (indépendant des notes)
+    const classAssignment = await db.select()
+      .from(teacherClassSubjects)
+      .where(and(
+        eq(teacherClassSubjects.teacherId, user.id),
+        eq(teacherClassSubjects.schoolId, schoolId),
+        eq(teacherClassSubjects.classId, classId),
+        eq(teacherClassSubjects.isActive, true)
+      ))
+      .limit(1);
 
-    if (classAssignments.length === 0) {
+    if (classAssignment.length === 0) {
       return res.status(403).json({
         success: false,
         message: 'Teacher not assigned to this class. Please contact your administrator for proper class assignments.'
       });
     }
 
-    // 🔒 VÉRIFICATION STRICTE: Teacher doit être assigné à chaque matière
+    // 🔒 VÉRIFICATION STRICTE: Teacher doit être assigné à chaque matière spécifiée
     if (manualData.subjectGrades && manualData.subjectGrades.length > 0) {
-      const subjectIds = manualData.subjectGrades.map(grade => grade.subjectId);
+      const unauthorized = [];
       
-      const authorizedSubjects = await db.select({
-        subjectId: teacherSubjectAssignments.subjectId
-      })
-      .from(teacherSubjectAssignments)
-      .where(and(
-        eq(teacherSubjectAssignments.teacherId, user.id),
-        eq(teacherSubjectAssignments.classId, classId),
-        eq(teacherSubjectAssignments.schoolId, schoolId),
-        eq(teacherSubjectAssignments.active, true),
-        inArray(teacherSubjectAssignments.subjectId, subjectIds)
-      ));
+      for (const gradeData of manualData.subjectGrades) {
+        const hasPermission = await verifyTeacherPermission(user.id, schoolId, classId, gradeData.subjectId);
+        if (!hasPermission) {
+          unauthorized.push(gradeData.subjectId);
+        }
+      }
 
-      const authorizedSubjectIds = authorizedSubjects.map(s => s.subjectId);
-      const unauthorizedSubjects = subjectIds.filter(id => !authorizedSubjectIds.includes(id));
-
-      if (unauthorizedSubjects.length > 0) {
+      if (unauthorized.length > 0) {
         // Get subject names for error message
         const subjectNames = await db.select({
           id: subjects.id,
           name: subjects.name
         })
         .from(subjects)
-        .where(inArray(subjects.id, unauthorizedSubjects));
+        .where(inArray(subjects.id, unauthorized));
 
         return res.status(403).json({
           success: false,
@@ -302,9 +321,9 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
       teacherId: user.id,
       teacherName: teacherAccess[0].teacherName,
       studentId,
-      studentName: studentClassAccess[0].studentName,
+      studentName: studentEnrollment[0].studentName,
       classId,
-      className: studentClassAccess[0].className,
+      className: studentEnrollment[0].className,
       schoolId
     });
 
@@ -507,8 +526,8 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
     // 🔔 NOTIFICATIONS ET INTÉGRATION SYSTÈME ÉCOLE
     try {
       const teacherName = `${user.firstName} ${user.lastName}`;
-      const studentName = studentClassAccess[0].studentName;
-      const className = studentClassAccess[0].className;
+      const studentName = studentEnrollment[0].studentName;
+      const className = studentEnrollment[0].className;
       
       // 1. Ajouter notification dans le centre de notifications
       await storage.addNotification({
