@@ -420,11 +420,19 @@ export default function ReportCardPreview({
             </div>
             <div className="rounded-xl border p-3">
               <div className="text-xs text-gray-500">{labels.discipline}</div>
-              <div className="text-xs grid grid-cols-2 gap-x-2 gap-y-1">
-                <span>{labels.justifiedAbs}</span><b>{student.discipline?.absJ || 0} h</b>
-                <span>{labels.unjustifiedAbs}</span><b>{student.discipline?.absNJ || 0} h</b>
-                <span>{labels.lates}</span><b>{student.discipline?.late || 0}</b>
-                <span>{labels.warnings}/{labels.reprimands}</span><b>{student.discipline?.sanctions || 0}</b>
+              <div className="text-xs space-y-1">
+                <div className="flex justify-between">
+                  <span>{labels.justifiedAbs}</span><b>{student.discipline?.absJ || 0} h</b>
+                </div>
+                <div className="flex justify-between">
+                  <span>{labels.unjustifiedAbs}</span><b>{student.discipline?.absNJ || 0} h</b>
+                </div>
+                <div className="flex justify-between">
+                  <span>{labels.lates}</span><b>{student.discipline?.late || 0}</b>
+                </div>
+                <div className="flex justify-between">
+                  <span className="truncate pr-2">Avert./Blâmes</span><b>{student.discipline?.sanctions || 0}</b>
+                </div>
               </div>
             </div>
           </div>
