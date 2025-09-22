@@ -534,16 +534,11 @@ const ReportCardManagement: React.FC = () => {
       {/* Main Tabs Interface */}
       {selectedClass && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="manual-data-entry" className="flex items-center gap-2">
               <Edit3 className="h-4 w-4" />
               <span className="hidden sm:inline">{t.manualDataEntry}</span>
               <span className="sm:hidden">Saisie</span>
-            </TabsTrigger>
-            <TabsTrigger value="generation-options" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">{t.generationOptions}</span>
-              <span className="sm:hidden">Options</span>
             </TabsTrigger>
           </TabsList>
 
@@ -879,62 +874,13 @@ const ReportCardManagement: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {/* Generation Options Tab - Contrôle les sections visibles */}
-          <TabsContent value="generation-options" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  {t.generationSettings}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                
-                {/* Options principales */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-800">Sections à inclure</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    <div className="flex items-center space-x-3">
-                      <Checkbox
-                        id="include-comments"
-                        checked={includeComments}
-                        onCheckedChange={(checked) => setIncludeComments(checked === true)}
-                        data-testid="include-comments-checkbox"
-                      />
-                      <Label htmlFor="include-comments" className="font-medium">
-                        Notes par matière & Appréciations
-                      </Label>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Checkbox
-                        id="include-rankings"
-                        checked={includeRankings}
-                        onCheckedChange={(checked) => setIncludeRankings(checked === true)}
-                        data-testid="include-rankings-checkbox"
-                      />
-                      <Label htmlFor="include-rankings" className="font-medium">
-                        {t.includeRankings}
-                      </Label>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Checkbox
-                        id="include-statistics"
-                        checked={includeStatistics}
-                        onCheckedChange={(checked) => setIncludeStatistics(checked === true)}
-                        data-testid="include-statistics-checkbox"
-                      />
-                      <Label htmlFor="include-statistics" className="font-medium">
-                        {t.includeStatistics}
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Options d'absences/retards */}
-                <div className="space-y-4">
+        </Tabs>
+      )}
+    </div>
+  );
+};
+
+export default ReportCardManagement;
                   <h4 className="font-medium text-gray-800">Absences & Retards</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     
