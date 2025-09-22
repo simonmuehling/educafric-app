@@ -27,6 +27,8 @@ export const bulletinVerifications = pgTable("bulletin_verifications", {
   // Verification metadata - embedded in QR code
   studentName: text("student_name").notNull(),
   studentMatricule: text("student_matricule").notNull(),
+  studentBirthDate: text("student_birth_date"), // Date de naissance
+  studentGender: text("student_gender"), // Sexe
   className: text("class_name").notNull(),
   schoolName: text("school_name").notNull(),
   generalAverage: text("general_average"), // Stored as string for display

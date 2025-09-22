@@ -1,396 +1,339 @@
 import React, { useState } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  CheckCircle, XCircle, Clock, User, School, FileText, 
-  Download, Eye, BarChart3, Users, Award, Image
-} from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Search, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
 
-interface VerificationData {
-  bulletins: Array<{
-    id: number;
+interface VerificationResult {
+  success: boolean;
+  data?: {
     studentName: string;
+    studentMatricule: string;
+    studentBirthDate?: string;
+    studentGender?: string;
     className: string;
+    schoolName: string;
+    generalAverage?: string;
     term: string;
-    status: 'completed' | 'pending' | 'error';
-    average: number;
-    dataSource: 'real' | 'mock';
-  }>;
-  profiles: Array<{
-    id: number;
-    name: string;
-    role: string;
-    hasProfileImage: boolean;
-    profileImageUrl?: string;
-    lastUpdated: string;
-  }>;
-  schoolSettings: {
-    hasLogo: boolean;
-    logoUrl?: string;
-    name: string;
-    configuration: string;
+    academicYear: string;
+    issuedAt: string;
+    verificationCount: number;
+    isActive: boolean;
   };
+  message?: string;
+  messageFr?: string;
 }
 
-const Verify: React.FC = () => {
-  const { language } = useLanguage();
-  const [activeTab, setActiveTab] = useState('bulletins');
-  const [isLoading, setIsLoading] = useState(false);
+export default function Verify() {
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [result, setResult] = useState<VerificationResult | null>(null);
+  const [language, setLanguage] = useState<'fr' | 'en'>('fr');
 
-  const text = {
+  const searchBulletin = async () => {
+    if (!verificationCode.trim()) {
+      setResult({
+        success: false,
+        message: 'Please enter a verification code',
+        messageFr: 'Veuillez saisir un code de vérification'
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    setResult(null);
+
+    try {
+      const response = await fetch(`/api/bulletins/verify?code=${encodeURIComponent(verificationCode.trim())}&language=${language}`);
+      const data = await response.json();
+      setResult(data);
+    } catch (error) {
+      setResult({
+        success: false,
+        message: 'Network error - please try again',
+        messageFr: 'Erreur réseau - veuillez réessayer'
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      searchBulletin();
+    }
+  };
+
+  const t = {
     fr: {
-      title: 'Vérification du Système Complet',
-      subtitle: 'Visualisation du résultat final avec données réelles',
-      bulletinsTab: 'Bulletins',
-      profilesTab: 'Profils',
-      schoolTab: 'École',
-      bulletinsTitle: 'Bulletins avec Données Réelles',
-      profilesTitle: 'Profils Utilisateurs Complets',
-      schoolTitle: 'Configuration École',
-      testWorkflow: 'Tester le Workflow Complet',
-      viewDetails: 'Voir Détails',
-      downloadPdf: 'Télécharger PDF',
-      status: {
-        completed: 'Terminé',
-        pending: 'En attente',
-        error: 'Erreur'
-      },
-      dataSource: {
-        real: 'Données Réelles',
-        mock: 'Données Test'
-      },
-      hasProfileImage: 'Image de profil',
-      hasLogo: 'Logo école',
-      lastUpdated: 'Dernière mise à jour'
+      title: 'Vérification de Bulletin',
+      subtitle: 'Vérifiez l\'authenticité d\'un bulletin scolaire',
+      codeLabel: 'Code de vérification',
+      codePlaceholder: 'Saisissez le code (ex: ABC12345)',
+      searchButton: 'Vérifier',
+      searching: 'Vérification...',
+      studentInfo: 'Informations de l\'Élève',
+      academicInfo: 'Informations Académiques',
+      bulletinInfo: 'Informations du Bulletin',
+      name: 'Nom et Prénom',
+      studentId: 'Matricule',
+      birthDate: 'Date de naissance',
+      gender: 'Sexe',
+      class: 'Classe',
+      school: 'Établissement',
+      average: 'Moyenne générale',
+      term: 'Trimestre',
+      year: 'Année académique',
+      issuedAt: 'Émis le',
+      verificationCount: 'Vérifications',
+      status: 'Statut',
+      valid: 'Valide',
+      invalid: 'Invalide',
+      male: 'Masculin',
+      female: 'Féminin',
+      notProvided: 'Non renseigné'
     },
     en: {
-      title: 'Complete System Verification',
-      subtitle: 'Final result visualization with real data',
-      bulletinsTab: 'Report Cards',
-      profilesTab: 'Profiles',
-      schoolTab: 'School',
-      bulletinsTitle: 'Report Cards with Real Data',
-      profilesTitle: 'Complete User Profiles',
-      schoolTitle: 'School Configuration',
-      testWorkflow: 'Test Complete Workflow',
-      viewDetails: 'View Details',
-      downloadPdf: 'Download PDF',
-      status: {
-        completed: 'Completed',
-        pending: 'Pending',
-        error: 'Error'
-      },
-      dataSource: {
-        real: 'Real Data',
-        mock: 'Test Data'
-      },
-      hasProfileImage: 'Profile image',
-      hasLogo: 'School logo',
-      lastUpdated: 'Last updated'
+      title: 'Bulletin Verification',
+      subtitle: 'Verify the authenticity of a school report card',
+      codeLabel: 'Verification code',
+      codePlaceholder: 'Enter code (e.g., ABC12345)',
+      searchButton: 'Verify',
+      searching: 'Verifying...',
+      studentInfo: 'Student Information',
+      academicInfo: 'Academic Information', 
+      bulletinInfo: 'Bulletin Information',
+      name: 'Full Name',
+      studentId: 'Student ID',
+      birthDate: 'Birth date',
+      gender: 'Gender',
+      class: 'Class',
+      school: 'School',
+      average: 'General average',
+      term: 'Term',
+      year: 'Academic year',
+      issuedAt: 'Issued on',
+      verificationCount: 'Verifications',
+      status: 'Status',
+      valid: 'Valid',
+      invalid: 'Invalid',
+      male: 'Male',
+      female: 'Female',
+      notProvided: 'Not provided'
     }
   };
 
-  const t = text[language as keyof typeof text];
-
-  // Données de vérification simulées avec les vraies données Kamga
-  const verificationData: VerificationData = {
-    bulletins: [
-      {
-        id: 1,
-        studentName: 'Jean Kamga',
-        className: 'Terminale C',
-        term: 'T1 2024-2025',
-        status: 'completed',
-        average: 16.8,
-        dataSource: 'real'
-      },
-      {
-        id: 2,
-        studentName: 'Marie Kamga',
-        className: '3ème A',
-        term: 'T1 2024-2025',
-        status: 'completed',
-        average: 15.2,
-        dataSource: 'real'
-      },
-      {
-        id: 3,
-        studentName: 'Junior Kamga',
-        className: '6ème B',
-        term: 'T1 2024-2025',
-        status: 'completed',
-        average: 14.5,
-        dataSource: 'real'
-      }
-    ],
-    profiles: [
-      {
-        id: 1,
-        name: 'Marie Kamga',
-        role: 'Parent',
-        hasProfileImage: true,
-        profileImageUrl: '/api/uploads/profiles/marie-kamga.jpg',
-        lastUpdated: '2025-09-07T18:40:00Z'
-      },
-      {
-        id: 2,
-        name: 'Jean Kamga',
-        role: 'Student',
-        hasProfileImage: true,
-        profileImageUrl: '/api/uploads/profiles/jean-kamga.jpg',
-        lastUpdated: '2025-09-07T18:35:00Z'
-      },
-      {
-        id: 3,
-        name: 'Dr. Françoise Kamga',
-        role: 'Director',
-        hasProfileImage: true,
-        profileImageUrl: '/api/uploads/profiles/director-kamga.jpg',
-        lastUpdated: '2025-09-07T18:30:00Z'
-      }
-    ],
-    schoolSettings: {
-      hasLogo: true,
-      logoUrl: '/api/uploads/school/logo-educafric-school.png',
-      name: 'École Primaire Publique de Biyem-Assi',
-      configuration: 'Complet avec logo, couleurs, et signature digitale'
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'pending':
-        return <Clock className="h-5 w-5 text-yellow-500" />;
-      case 'error':
-        return <XCircle className="h-5 w-5 text-red-500" />;
-      default:
-        return <Clock className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'error':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const handleTestWorkflow = () => {
-    setIsLoading(true);
-    // Simuler le test du workflow complet
-    setTimeout(() => {
-      setIsLoading(false);
-      alert(language === 'fr' ? 
-        'Workflow testé avec succès !\nTous les bulletins utilisent maintenant des données réelles.' :
-        'Workflow tested successfully!\nAll report cards now use real data.'
-      );
-    }, 2000);
-  };
+  const labels = t[language];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <Card className="border-2 border-blue-200">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-            <CardTitle className="flex items-center space-x-3 text-xl">
-              <BarChart3 className="h-6 w-6" />
-              <span>{t.title}</span>
+      <div className="container mx-auto max-w-4xl">
+        
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center items-center gap-3 mb-4">
+            <FileText className="h-10 w-10 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">{labels.title}</h1>
+          </div>
+          <p className="text-gray-600 text-lg">{labels.subtitle}</p>
+          
+          {/* Language Toggle */}
+          <div className="mt-4 flex justify-center gap-2">
+            <Button
+              variant={language === 'fr' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setLanguage('fr')}
+            >
+              Français
+            </Button>
+            <Button
+              variant={language === 'en' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setLanguage('en')}
+            >
+              English
+            </Button>
+          </div>
+        </div>
+
+        {/* Search Form */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5" />
+              {labels.title}
             </CardTitle>
-            <p className="text-blue-100">{t.subtitle}</p>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <div className="text-sm text-gray-600">
-                ✅ {language === 'fr' ? 'Système corrigé pour utiliser les vraies données' : 'System fixed to use real data'}
+          <CardContent>
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <Label htmlFor="code">{labels.codeLabel}</Label>
+                <Input
+                  id="code"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder={labels.codePlaceholder}
+                  onKeyPress={handleKeyPress}
+                  className="mt-1"
+                  data-testid="input-verification-code"
+                />
               </div>
               <Button 
-                onClick={handleTestWorkflow} 
-                disabled={isLoading}
-                className="bg-green-600 hover:bg-green-700"
+                onClick={searchBulletin}
+                disabled={isSearching || !verificationCode.trim()}
+                data-testid="button-verify"
               >
-                {isLoading ? 
-                  (language === 'fr' ? 'Test en cours...' : 'Testing...') : 
-                  t.testWorkflow
-                }
+                {isSearching ? labels.searching : labels.searchButton}
               </Button>
             </div>
-
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="bulletins" className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4" />
-                  <span>{t.bulletinsTab}</span>
-                </TabsTrigger>
-                <TabsTrigger value="profiles" className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>{t.profilesTab}</span>
-                </TabsTrigger>
-                <TabsTrigger value="school" className="flex items-center space-x-2">
-                  <School className="h-4 w-4" />
-                  <span>{t.schoolTab}</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="bulletins" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <span>{t.bulletinsTitle}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {verificationData.bulletins.map((bulletin) => (
-                        <div key={bulletin.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center space-x-4">
-                            {getStatusIcon(bulletin.status)}
-                            <div>
-                              <div className="font-medium">{bulletin.studentName}</div>
-                              <div className="text-sm text-gray-600">{bulletin.className} • {bulletin.term}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <Badge className={getStatusColor(bulletin.status)}>
-                              {t.status[bulletin.status as keyof typeof t.status]}
-                            </Badge>
-                            <Badge variant="outline" className={bulletin.dataSource === 'real' ? 'border-green-500 text-green-700' : 'border-yellow-500 text-yellow-700'}>
-                              {t.dataSource[bulletin.dataSource as keyof typeof t.dataSource]}
-                            </Badge>
-                            <div className="font-semibold text-lg">{bulletin.average}/20</div>
-                            <Button size="sm" variant="outline">
-                              <Download className="h-4 w-4 mr-1" />
-                              PDF
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="profiles" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Users className="h-5 w-5 text-green-600" />
-                      <span>{t.profilesTitle}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {verificationData.profiles.map((profile) => (
-                        <div key={profile.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center space-x-4">
-                            <Avatar className="h-12 w-12">
-                              <AvatarImage src={profile.profileImageUrl} alt={profile.name} />
-                              <AvatarFallback>
-                                <User className="h-6 w-6" />
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{profile.name}</div>
-                              <div className="text-sm text-gray-600">{profile.role}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <Badge className={profile.hasProfileImage ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                              <Image className="h-3 w-3 mr-1" />
-                              {profile.hasProfileImage ? t.hasProfileImage : 'No image'}
-                            </Badge>
-                            <div className="text-sm text-gray-500">
-                              {t.lastUpdated}: {new Date(profile.lastUpdated).toLocaleTimeString()}
-                            </div>
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4 mr-1" />
-                              {t.viewDetails}
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="school" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <School className="h-5 w-5 text-purple-600" />
-                      <span>{t.schoolTitle}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div className="flex items-center space-x-4 p-4 border rounded-lg">
-                        <div className="h-16 w-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                          {verificationData.schoolSettings.hasLogo ? (
-                            <img 
-                              src={verificationData.schoolSettings.logoUrl} 
-                              alt="School Logo" 
-                              className="h-full w-full object-contain rounded-lg"
-                            />
-                          ) : (
-                            <School className="h-8 w-8 text-gray-400" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-lg">{verificationData.schoolSettings.name}</div>
-                          <div className="text-sm text-gray-600">{verificationData.schoolSettings.configuration}</div>
-                        </div>
-                        <Badge className={verificationData.schoolSettings.hasLogo ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                          <Award className="h-3 w-3 mr-1" />
-                          {verificationData.schoolSettings.hasLogo ? t.hasLogo : 'No logo'}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card className="p-4">
-                          <div className="text-center">
-                            <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                            <div className="font-semibold">Logo École</div>
-                            <div className="text-sm text-gray-600">Configuré</div>
-                          </div>
-                        </Card>
-                        <Card className="p-4">
-                          <div className="text-center">
-                            <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                            <div className="font-semibold">Profils Kamga</div>
-                            <div className="text-sm text-gray-600">Images ajoutées</div>
-                          </div>
-                        </Card>
-                        <Card className="p-4">
-                          <div className="text-center">
-                            <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                            <div className="font-semibold">Données Réelles</div>
-                            <div className="text-sm text-gray-600">Bulletins corrigés</div>
-                          </div>
-                        </Card>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
           </CardContent>
         </Card>
+
+        {/* Results */}
+        {result && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {result.success ? (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-red-500" />
+                )}
+                {result.success ? labels.valid : labels.invalid}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {result.success && result.data ? (
+                <div className="space-y-6">
+                  
+                  {/* Student Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <Badge variant="secondary">{labels.studentInfo}</Badge>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-xs text-gray-500">{labels.name}</Label>
+                        <div className="font-medium" data-testid="text-student-name">
+                          {result.data.studentName}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-xs text-gray-500">{labels.studentId}</Label>
+                        <div className="font-medium" data-testid="text-student-id">
+                          {result.data.studentMatricule}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-xs text-gray-500">{labels.birthDate}</Label>
+                        <div className="font-medium" data-testid="text-birth-date">
+                          {result.data.studentBirthDate || labels.notProvided}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-xs text-gray-500">{labels.gender}</Label>
+                        <div className="font-medium" data-testid="text-gender">
+                          {result.data.studentGender === 'M' ? labels.male : 
+                           result.data.studentGender === 'F' ? labels.female : 
+                           labels.notProvided}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Academic Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <Badge variant="secondary">{labels.academicInfo}</Badge>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <Label className="text-xs text-gray-500">{labels.class}</Label>
+                        <div className="font-medium" data-testid="text-class">
+                          {result.data.className}
+                        </div>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <Label className="text-xs text-gray-500">{labels.school}</Label>
+                        <div className="font-medium" data-testid="text-school">
+                          {result.data.schoolName}
+                        </div>
+                      </div>
+                      <div className="bg-green-50 p-3 rounded-lg border-2 border-green-200">
+                        <Label className="text-xs text-gray-500">{labels.average}</Label>
+                        <div className="text-xl font-bold text-green-700" data-testid="text-average">
+                          {result.data.generalAverage ? `${result.data.generalAverage}/20` : labels.notProvided}
+                        </div>
+                      </div>
+                      <div className="bg-orange-50 p-3 rounded-lg">
+                        <Label className="text-xs text-gray-500">{labels.term} - {labels.year}</Label>
+                        <div className="font-medium" data-testid="text-term-year">
+                          {result.data.term} {result.data.academicYear}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Bulletin Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <Badge variant="secondary">{labels.bulletinInfo}</Badge>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-xs text-gray-500">{labels.issuedAt}</Label>
+                        <div className="font-medium" data-testid="text-issued-date">
+                          {new Date(result.data.issuedAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-xs text-gray-500">{labels.verificationCount}</Label>
+                        <div className="font-medium" data-testid="text-verification-count">
+                          {result.data.verificationCount}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-xs text-gray-500">{labels.status}</Label>
+                        <div className="font-medium" data-testid="text-status">
+                          <Badge variant={result.data.isActive ? "default" : "destructive"}>
+                            {result.data.isActive ? labels.valid : labels.invalid}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                  <p className="text-lg text-red-600" data-testid="text-error-message">
+                    {language === 'fr' ? result.messageFr : result.message}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Footer */}
+        <div className="text-center text-sm text-gray-500 mt-8">
+          <p>
+            {language === 'fr' 
+              ? 'Système de vérification sécurisé - EDUCAFRIC'
+              : 'Secure verification system - EDUCAFRIC'
+            }
+          </p>
+        </div>
+
       </div>
     </div>
   );
-};
-
-export default Verify;
+}

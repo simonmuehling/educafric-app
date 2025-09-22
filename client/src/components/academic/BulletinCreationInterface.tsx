@@ -554,31 +554,48 @@ export default function BulletinCreationInterface() {
     try {
       console.log('Signing bulletin digitally...');
       
-      // Create a simple signature hash
-      const bulletinContent = JSON.stringify({
-        student: student.name,
-        class: student.classLabel,
-        trimester,
-        year,
-        subjects: subjects.map(s => ({ name: s.name, grade: s.grade }))
-      });
+      // Calculate overall average
+      const totalCoef = subjects.reduce((sum, s) => sum + (s.coefficient || 0), 0);
+      const totalMxCoef = subjects.reduce((sum, s) => sum + (s.moyenneFinale || 0) * (s.coefficient || 0), 0);
+      const overallAverage = totalCoef ? (totalMxCoef / totalCoef).toFixed(2) : '0.00';
       
-      const timestamp = new Date().toISOString();
-      const signatureData = {
-        signedBy: "Chef d'Établissement",
-        signedAt: timestamp,
-        verificationCode: `EDU-${Date.now().toString(36).toUpperCase()}`,
-        documentHash: btoa(bulletinContent).slice(0, 16),
-        status: 'signed'
+      // Create verification record on server
+      const verificationData = {
+        studentName: student.name,
+        studentMatricule: student.id,
+        studentBirthDate: student.birthDate,
+        studentGender: student.gender,
+        className: student.classLabel,
+        schoolName: schoolInfo?.data?.name || "École non spécifiée",
+        generalAverage: overallAverage,
+        term: trimester,
+        academicYear: year
       };
       
-      setSignatureData(signatureData);
-      setIsSigned(true);
+      const response = await apiRequest('/api/bulletins/create', {
+        method: 'POST',
+        body: verificationData
+      });
       
-      alert(`Bulletin signé numériquement!\nCode de vérification: ${signatureData.verificationCode}`);
+      if (response.success) {
+        const signatureData = {
+          verificationCode: response.data.verificationCode,
+          shortCode: response.data.shortCode,
+          timestamp: new Date().toISOString(),
+          signedBy: "Chef d'Établissement",
+          status: 'signed'
+        };
+        
+        setSignatureData(signatureData);
+        setIsSigned(true);
+        
+        alert(`Bulletin signé numériquement!\nCode de vérification: ${response.data.shortCode}\n\nVous pouvez vérifier ce bulletin sur /verify avec ce code.`);
+      } else {
+        throw new Error(response.message || 'Erreur lors de la signature');
+      }
     } catch (error) {
       console.error('Error signing bulletin:', error);
-      alert('Erreur lors de la signature du bulletin');
+      alert('Erreur lors de la signature du bulletin: ' + (error.message || 'Erreur inconnue'));
     }
   };
 
@@ -755,6 +772,7 @@ export default function BulletinCreationInterface() {
       ...student,
       generalRemark,
       discipline,
+      verificationCode: signatureData?.shortCode,
       school: {
         name: schoolInfo?.data?.name || "LYCÉE DE MENDONG / HIGH SCHOOL OF MENDONG",
         subtitle: `${schoolInfo?.data?.address || "Yaoundé"} – Tel: ${schoolInfo?.data?.phone || "+237 222 xxx xxx"}`,

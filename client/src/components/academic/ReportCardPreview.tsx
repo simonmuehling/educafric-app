@@ -457,12 +457,19 @@ export default function ReportCardPreview({
             </div>
           )}
 
-          {/* Overall Average */}
-          <div className="mt-4 flex justify-center">
+          {/* Overall Average and Verification Code */}
+          <div className="mt-4 flex justify-center gap-4">
             <div className="rounded-xl border p-3 w-48">
               <div className="text-xs text-gray-500 text-center">{labels.overallAvg}</div>
               <div className="text-2xl font-semibold text-center">{moyenne}/20</div>
             </div>
+            {(student as any).verificationCode && (
+              <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-3 w-48">
+                <div className="text-xs text-blue-700 text-center font-medium">{language === 'fr' ? 'Code de Vérification' : 'Verification Code'}</div>
+                <div className="text-lg font-bold text-blue-800 text-center">{(student as any).verificationCode}</div>
+                <div className="text-xs text-blue-600 text-center mt-1">{language === 'fr' ? 'Vérifiez sur /verify' : 'Verify on /verify'}</div>
+              </div>
+            )}
           </div>
 
           {/* Signatures */}

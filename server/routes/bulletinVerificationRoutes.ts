@@ -19,6 +19,89 @@ const router = Router();
 // Rate limiting - simple in-memory store (use Redis in production)
 const verificationAttempts = new Map<string, { count: number; lastAttempt: Date }>();
 
+// Create verification schema
+const createVerificationSchema = z.object({
+  studentName: z.string().min(1, 'Student name is required'),
+  studentMatricule: z.string().min(1, 'Student matricule is required'),
+  studentBirthDate: z.string().optional(),
+  studentGender: z.string().optional(),
+  className: z.string().min(1, 'Class name is required'),
+  schoolName: z.string().min(1, 'School name is required'),
+  generalAverage: z.string().optional(),
+  term: z.string().min(1, 'Term is required'),
+  academicYear: z.string().min(1, 'Academic year is required')
+});
+
+// POST /api/bulletin/verify - Create a new bulletin verification
+router.post('/create', async (req, res) => {
+  try {
+    const validation = createVerificationSchema.safeParse(req.body);
+    
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification data',
+        messageFr: 'Données de vérification invalides',
+        errors: validation.error.errors
+      });
+    }
+    
+    const data = validation.data;
+    
+    // Generate verification codes
+    const verificationCode = require('crypto').randomUUID();
+    const shortCode = Math.random().toString(36).substr(2, 8).toUpperCase();
+    
+    // Create verification hash
+    const hashString = `${data.studentName}-${data.className}-${data.term}-${data.academicYear}`;
+    const verificationHash = require('crypto').createHash('sha256').update(hashString).digest('hex');
+    
+    // Insert verification record
+    const verificationRecord = await db.insert(bulletinVerifications).values({
+      verificationCode,
+      shortCode,
+      bulletinId: 1, // Dummy value for now
+      studentId: 1, // Dummy value for now
+      schoolId: 1, // Dummy value for now
+      classId: 1, // Dummy value for now
+      term: data.term,
+      academicYear: data.academicYear,
+      studentName: data.studentName,
+      studentMatricule: data.studentMatricule,
+      studentBirthDate: data.studentBirthDate,
+      studentGender: data.studentGender,
+      className: data.className,
+      schoolName: data.schoolName,
+      generalAverage: data.generalAverage,
+      verificationHash,
+      qrCodeData: `/verify?code=${shortCode}`,
+      issuedBy: req.user?.id || 1, // Use logged in user or dummy
+      isActive: true
+    }).returning();
+    
+    console.log(`[BULLETIN_CREATE] ✅ Verification created: ${shortCode}`);
+    
+    res.json({
+      success: true,
+      data: {
+        verificationCode,
+        shortCode,
+        verificationId: verificationRecord[0].id
+      },
+      message: 'Bulletin verification created successfully',
+      messageFr: 'Vérification du bulletin créée avec succès'
+    });
+    
+  } catch (error: any) {
+    console.error('[BULLETIN_CREATE] ❌ Error creating verification:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create bulletin verification',
+      messageFr: 'Échec de la création de la vérification du bulletin'
+    });
+  }
+});
+
 // Rate limiting middleware
 const rateLimitVerification = (req: any, res: any, next: any) => {
   const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
@@ -90,6 +173,8 @@ router.get('/verify', rateLimitVerification, async (req, res) => {
       academicYear: bulletinVerifications.academicYear,
       studentName: bulletinVerifications.studentName,
       studentMatricule: bulletinVerifications.studentMatricule,
+      studentBirthDate: bulletinVerifications.studentBirthDate,
+      studentGender: bulletinVerifications.studentGender,
       className: bulletinVerifications.className,
       schoolName: bulletinVerifications.schoolName,
       generalAverage: bulletinVerifications.generalAverage,
