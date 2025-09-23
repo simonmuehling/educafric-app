@@ -13,6 +13,7 @@ import {
 } from '../../shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -51,12 +52,12 @@ router.post('/create', async (req, res) => {
     const data = validation.data;
     
     // Generate verification codes
-    const verificationCode = require('crypto').randomUUID();
+    const verificationCode = crypto.randomUUID();
     const shortCode = Math.random().toString(36).substr(2, 8).toUpperCase();
     
     // Create verification hash
     const hashString = `${data.studentName}-${data.className}-${data.term}-${data.academicYear}`;
-    const verificationHash = require('crypto').createHash('sha256').update(hashString).digest('hex');
+    const verificationHash = crypto.createHash('sha256').update(hashString).digest('hex');
     
     // Insert verification record
     const verificationRecord = await db.insert(bulletinVerifications).values({
