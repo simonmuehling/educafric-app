@@ -2090,63 +2090,6 @@ export default function BulletinCreationInterface() {
                   </div>
                 </div>
 
-                {/* Predefined Appreciations by Category */}
-                <div className="border rounded-lg p-4">
-                  <Label className="text-sm font-medium mb-3 block">
-                    {language === 'fr' ? 'Appréciations prédéfinies' : 'Predefined Appreciations'}
-                  </Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* General Appreciations */}
-                    <div>
-                      <Label className="text-xs text-gray-600 mb-2 block">
-                        {language === 'fr' ? 'Appréciations générales' : 'General Appreciations'}
-                      </Label>
-                      <div className="space-y-1">
-                        {predefinedAppreciations?.data?.filter((app: any) => 
-                          app.category === 'general' && app.targetRole === 'director'
-                        ).slice(0, 3).map((appreciation: any) => (
-                          <Button
-                            key={appreciation.id}
-                            variant="outline"
-                            size="sm"
-                            className="w-full text-left justify-start text-xs h-auto py-2"
-                            onClick={() => {
-                              // Could be used to apply to general appreciation field
-                              console.log('Selected appreciation:', appreciation);
-                            }}
-                          >
-                            {language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Council Decisions */}
-                    <div>
-                      <Label className="text-xs text-gray-600 mb-2 block">
-                        {language === 'fr' ? 'Décisions du conseil' : 'Council Decisions'}
-                      </Label>
-                      <div className="space-y-1">
-                        {predefinedAppreciations?.data?.filter((app: any) => 
-                          app.category === 'council_decision'
-                        ).slice(0, 3).map((appreciation: any) => (
-                          <Button
-                            key={appreciation.id}
-                            variant="outline"
-                            size="sm"
-                            className="w-full text-left justify-start text-xs h-auto py-2"
-                            onClick={() => {
-                              // Could be used to apply to council decision field
-                              console.log('Selected council decision:', appreciation);
-                            }}
-                          >
-                            {language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
