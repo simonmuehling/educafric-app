@@ -307,8 +307,9 @@ export default function BulletinCreationInterface() {
   });
 
   const [studentPhotoUrl, setStudentPhotoUrl] = useState('');
+  const [schoolLogoUrl, setSchoolLogoUrl] = useState('');
   // Use the existing schoolInfo from line 194 - consolidate real school logo URL
-  const realSchoolLogoUrl = schoolInfo?.data?.logoUrl || '';
+  const realSchoolLogoUrl = schoolInfo?.data?.logoUrl || schoolLogoUrl;
 
   const [subjects, setSubjects] = useState<Subject[]>([
     { 
@@ -1229,6 +1230,112 @@ export default function BulletinCreationInterface() {
                   </div>
                 </div>
               </div>
+
+              {/* School Logo Section */}
+              {!schoolInfo?.data?.logoUrl && (
+                <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 className="font-semibold text-blue-800 flex items-center gap-2">
+                        <School className="h-5 w-5" />
+                        {language === 'fr' ? 'Logo de l\'École' : 'School Logo'}
+                      </h4>
+                      <p className="text-sm text-blue-600">
+                        {language === 'fr' 
+                          ? 'Ajoutez le logo officiel de votre établissement pour le bulletin'
+                          : 'Add your school\'s official logo for the bulletin'
+                        }
+                      </p>
+                    </div>
+                    
+                    {/* Logo Preview */}
+                    <div className="flex items-center gap-4">
+                      {schoolLogoUrl ? (
+                        <div className="relative">
+                          <img 
+                            src={schoolLogoUrl} 
+                            alt="Logo école" 
+                            className="w-16 h-16 object-contain border-2 border-blue-300 rounded-md"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              setSchoolLogoUrl('');
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0 bg-red-500 text-white border-red-500 hover:bg-red-600"
+                            onClick={() => setSchoolLogoUrl('')}
+                            data-testid="button-remove-school-logo"
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 border-2 border-dashed border-blue-300 rounded-md flex items-center justify-center bg-blue-50">
+                          <div className="text-center">
+                            <School className="h-6 w-6 mx-auto text-blue-400 mb-1" />
+                            <p className="text-xs text-blue-500">
+                              {language === 'fr' ? 'Aucun logo' : 'No logo'}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Logo Upload Interface - only show if no logo */}
+                  {!schoolLogoUrl && (
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-2">
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const base64String = event.target?.result as string;
+                                  setSchoolLogoUrl(base64String);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            data-testid="input-upload-school-logo"
+                          />
+                          <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                            <Upload className="h-4 w-4 mr-2" />
+                            {language === 'fr' ? 'Télécharger logo' : 'Upload Logo'}
+                          </Button>
+                        </div>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                          onClick={() => {
+                            // Demo logo URL for testing
+                            setSchoolLogoUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&face=center');
+                          }}
+                          data-testid="button-demo-school-logo"
+                        >
+                          {language === 'fr' ? 'Logo de démo' : 'Demo Logo'}
+                        </Button>
+                      </div>
+                      
+                      <p className="text-xs text-blue-600">
+                        {language === 'fr' 
+                          ? 'Format recommandé : PNG/SVG transparent, 64x64px minimum, taille < 1MB'
+                          : 'Recommended format: Transparent PNG/SVG, 64x64px minimum, size < 1MB'
+                        }
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Student Photo Section */}
               <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
