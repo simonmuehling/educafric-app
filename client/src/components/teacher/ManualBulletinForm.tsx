@@ -1134,7 +1134,7 @@ export default function ManualBulletinForm({
                           </SelectTrigger>
                           <SelectContent className="max-w-[280px] max-h-[200px] overflow-y-auto">
                             <div className="p-2 border-b bg-slate-50 text-xs font-medium text-slate-600">
-                              📝 Appréciations suggérées
+                              📝 {language === 'fr' ? 'Commentaires Ministère' : 'Ministry Comments'}
                             </div>
                             {predefinedAppreciations?.data?.filter((app: any) => 
                               (!app.gradeRange || (Number(r.moyenneFinale) >= app.gradeRange.min && Number(r.moyenneFinale) < app.gradeRange.max))
@@ -1158,9 +1158,14 @@ export default function ManualBulletinForm({
                                 </div>
                               </SelectItem>
                             ))}
+                            <div className="px-2 py-1 text-xs text-blue-600 border-t bg-blue-50">
+                              {language === 'fr' 
+                                ? `💬 ${predefinedAppreciations?.data?.length || 0} commentaires disponibles` 
+                                : `💬 ${predefinedAppreciations?.data?.length || 0} comments available`}
+                            </div>
                             {!predefinedAppreciations?.data?.length && (
                               <div className="p-2 text-xs text-slate-500 italic">
-                                Aucune appréciation disponible
+                                {language === 'fr' ? 'Aucun commentaire disponible' : 'No comments available'}
                               </div>
                             )}
                           </SelectContent>
@@ -1453,7 +1458,6 @@ export default function ManualBulletinForm({
                   value={annualSummary.finalAppreciation} 
                   onChange={v=>setAnnualSummary(prev=>({...prev,finalAppreciation:v}))} 
                   rows={3}
-                  placeholder="Bilan final de l'année scolaire..."
                   data-testid="textarea-final-appreciation"
                 />
                 <LabeledTextArea 
@@ -1461,7 +1465,6 @@ export default function ManualBulletinForm({
                   value={annualSummary.holidayRecommendations} 
                   onChange={v=>setAnnualSummary(prev=>({...prev,holidayRecommendations:v}))} 
                   rows={3}
-                  placeholder="Activités et recommandations pour les vacances..."
                   data-testid="textarea-holiday-recommendations"
                 />
               </div>
