@@ -16,6 +16,44 @@ import AnnualReportSheet from './AnnualReportSheet';
 
 // Real school data fetching (useQuery already imported above)
 
+// Ministry-required Teacher Comments - LISTE DES COMMENTAIRES POUR L'ENSEIGNANT
+const TEACHER_COMMENTS = {
+  fr: [
+    { id: 'excellent_work', text: 'Excellent travail. Félicitations.' },
+    { id: 'very_good', text: 'Très bon travail. Continuez ainsi.' },
+    { id: 'satisfactory', text: 'Travail satisfaisant. Bien.' },
+    { id: 'can_do_better', text: 'Peut mieux faire. Travaillez davantage.' },
+    { id: 'effort_needed', text: 'Un effort supplémentaire est nécessaire.' },
+    { id: 'good_progress', text: 'Bons progrès constatés.' },
+    { id: 'irregular_work', text: 'Travail irrégulier. Soyez plus assidu(e).' },
+    { id: 'weak_results', text: 'Résultats faibles. Redoublez d\'efforts.' },
+    { id: 'good_behavior', text: 'Bon comportement en classe.' },
+    { id: 'participation', text: 'Participation active appréciée.' },
+    { id: 'homework_regular', text: 'Devoirs régulièrement faits.' },
+    { id: 'homework_irregular', text: 'Devoirs irréguliers.' },
+    { id: 'concentrate_more', text: 'Concentrez-vous davantage.' },
+    { id: 'good_attitude', text: 'Bonne attitude de travail.' },
+    { id: 'leadership', text: 'Esprit de leadership remarquable.' }
+  ],
+  en: [
+    { id: 'excellent_work', text: 'Excellent work. Congratulations.' },
+    { id: 'very_good', text: 'Very good work. Keep it up.' },
+    { id: 'satisfactory', text: 'Satisfactory work. Good.' },
+    { id: 'can_do_better', text: 'Can do better. Work harder.' },
+    { id: 'effort_needed', text: 'Additional effort is needed.' },
+    { id: 'good_progress', text: 'Good progress observed.' },
+    { id: 'irregular_work', text: 'Irregular work. Be more diligent.' },
+    { id: 'weak_results', text: 'Weak results. Double your efforts.' },
+    { id: 'good_behavior', text: 'Good classroom behavior.' },
+    { id: 'participation', text: 'Active participation appreciated.' },
+    { id: 'homework_regular', text: 'Homework regularly done.' },
+    { id: 'homework_irregular', text: 'Irregular homework.' },
+    { id: 'concentrate_more', text: 'Concentrate more.' },
+    { id: 'good_attitude', text: 'Good work attitude.' },
+    { id: 'leadership', text: 'Remarkable leadership spirit.' }
+  ]
+};
+
 // Ministry Performance Grid - EXACT from documents for reference purposes
 const PERFORMANCE_GRID = {
   fr: {
@@ -425,6 +463,7 @@ export default function BulletinCreationInterface() {
     }
   };
   const [generalRemark, setGeneralRemark] = useState('');
+  const [selectedTeacherComments, setSelectedTeacherComments] = useState<string[]>([]);
 
   const addSubject = () => {
     const newSubject: Subject = {
@@ -2083,15 +2122,100 @@ export default function BulletinCreationInterface() {
                   <Label className="text-sm font-medium mb-2 block">
                     {language === 'fr' ? 'Appréciation générale du travail de l\'élève' : 'General student work appreciation'}
                   </Label>
-                  <textarea
-                    className="w-full border rounded-lg p-3 text-sm min-h-[100px] resize-y"
-                    placeholder={language === 'fr' ? 
-                      'Saisir l\'appréciation générale du travail, comportement et résultats...' : 
-                      'Enter general appreciation of work, behavior and results...'}
-                    value={generalRemark}
-                    onChange={(e) => setGeneralRemark(e.target.value)}
-                    data-testid="textarea-general-remark"
-                  />
+                  
+                  {/* Ministry-required Teacher Comments List */}
+                  <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold text-green-800 flex items-center gap-2">
+                        📋 {language === 'fr' ? 'LISTE DES COMMENTAIRES POUR L\'ENSEIGNANT (Ministère)' : 'LIST OF COMMENTS FOR TEACHERS (Ministry)'}
+                      </h4>
+                      <div className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                        {selectedTeacherComments.length}/3 {language === 'fr' ? 'sélectionnés' : 'selected'}
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-green-600 mb-3">
+                      {language === 'fr' 
+                        ? 'Sélectionnez jusqu\'à 3 commentaires officiels (obligatoire par le Ministère)'
+                        : 'Select up to 3 official comments (required by Ministry)'
+                      }
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
+                      {TEACHER_COMMENTS[language].map((comment) => {
+                        const isSelected = selectedTeacherComments.includes(comment.id);
+                        const canSelect = selectedTeacherComments.length < 3 || isSelected;
+                        
+                        return (
+                          <button
+                            key={comment.id}
+                            type="button"
+                            disabled={!canSelect}
+                            className={`text-left p-2 text-xs rounded border transition-all ${
+                              isSelected 
+                                ? 'bg-green-100 border-green-400 text-green-800 font-medium'
+                                : canSelect
+                                  ? 'bg-white border-gray-200 text-gray-700 hover:bg-green-50 hover:border-green-300'
+                                  : 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed'
+                            }`}
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedTeacherComments(prev => prev.filter(id => id !== comment.id));
+                              } else if (selectedTeacherComments.length < 3) {
+                                setSelectedTeacherComments(prev => [...prev, comment.id]);
+                              }
+                            }}
+                            data-testid={`button-teacher-comment-${comment.id}`}
+                          >
+                            <span className="flex items-start gap-2">
+                              <span className={`flex-shrink-0 w-3 h-3 mt-0.5 border rounded-sm ${
+                                isSelected ? 'bg-green-500 border-green-500' : 'border-gray-300'
+                              }`}>
+                                {isSelected && <span className="block w-full h-full text-white text-center text-xs leading-3">✓</span>}
+                              </span>
+                              <span className="flex-1">{comment.text}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Selected Comments Display */}
+                    {selectedTeacherComments.length > 0 && (
+                      <div className="mt-3 p-3 bg-white border border-green-300 rounded">
+                        <p className="text-xs font-medium text-green-700 mb-2">
+                          {language === 'fr' ? 'Commentaires sélectionnés :' : 'Selected comments:'}
+                        </p>
+                        <ul className="space-y-1">
+                          {selectedTeacherComments.map((commentId, index) => {
+                            const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
+                            return (
+                              <li key={commentId} className="text-xs text-gray-700 flex items-start gap-2">
+                                <span className="text-green-600 font-bold">{index + 1}.</span>
+                                <span>{comment?.text}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Additional Free Text (Optional) */}
+                  <div>
+                    <Label className="text-xs text-gray-600 mb-1 block">
+                      {language === 'fr' ? 'Commentaire libre supplémentaire (optionnel)' : 'Additional free comment (optional)'}
+                    </Label>
+                    <textarea
+                      className="w-full border rounded-lg p-3 text-sm min-h-[60px] resize-y"
+                      placeholder={language === 'fr' ? 
+                        'Ajoutez un commentaire personnalisé si nécessaire...' : 
+                        'Add a personal comment if needed...'}
+                      value={generalRemark}
+                      onChange={(e) => setGeneralRemark(e.target.value)}
+                      data-testid="textarea-additional-remark"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
