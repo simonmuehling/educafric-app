@@ -114,7 +114,8 @@ const TeacherBulletinInterface: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Selection states - Teachers start with class selection (no school selection needed)
+  // Selection states
+  const [selectedSchool, setSelectedSchool] = useState<string>('');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [selectedTerm, setSelectedTerm] = useState<'T1' | 'T2' | 'T3'>('T1');
@@ -155,6 +156,7 @@ const TeacherBulletinInterface: React.FC = () => {
   const labels = {
     fr: {
       title: 'Création de Bulletin - Enseignant',
+      selectSchool: 'Sélectionner une école',
       selectClass: 'Sélectionner une classe', 
       selectStudent: 'Sélectionner un élève',
       selectTerm: 'Sélectionner le trimestre',
@@ -180,6 +182,7 @@ const TeacherBulletinInterface: React.FC = () => {
     },
     en: {
       title: 'Report Card Creation - Teacher',
+      selectSchool: 'Select a school',
       selectClass: 'Select a class',
       selectStudent: 'Select a student', 
       selectTerm: 'Select term',
@@ -207,14 +210,24 @@ const TeacherBulletinInterface: React.FC = () => {
 
   const t = labels[language as keyof typeof labels];
 
-  // Fetch classes assigned to the teacher directly (no school selection needed)
-  const { data: classesData } = useQuery({
-    queryKey: ['/api/teacher/classes'],
+  // Fetch schools for teacher
+  const { data: schoolsData } = useQuery({
+    queryKey: ['/api/teacher/schools'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/teacher/classes');
+      const response = await apiRequest('GET', '/api/teacher/schools');
       return await response.json();
     },
     enabled: !!user
+  });
+
+  // Fetch classes for selected school
+  const { data: classesData } = useQuery({
+    queryKey: ['/api/teacher/classes', selectedSchool],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/teacher/classes?schoolId=${selectedSchool}`);
+      return await response.json();
+    },
+    enabled: !!selectedSchool
   });
 
   // Fetch students for selected class
@@ -236,6 +249,7 @@ const TeacherBulletinInterface: React.FC = () => {
     }
   });
 
+  const schools = schoolsData?.schools || [];
   const classes = classesData?.classes || [];
   const students = studentsData?.students || studentsData || [];
   const savedBulletins: SavedBulletin[] = savedBulletinsData?.bulletins || [];
@@ -366,7 +380,7 @@ const TeacherBulletinInterface: React.FC = () => {
 
   const handleSave = () => {
     const bulletinData = {
-      schoolId: user?.schoolId?.toString() || '1',
+      schoolId: selectedSchool,
       classId: selectedClass,
       studentId: selectedStudent,
       term: selectedTerm,
@@ -383,7 +397,7 @@ const TeacherBulletinInterface: React.FC = () => {
 
   const handleSignBulletin = () => {
     const bulletinData = {
-      schoolId: user?.schoolId?.toString() || '1',
+      schoolId: selectedSchool,
       classId: selectedClass,
       studentId: selectedStudent,
       term: selectedTerm,
@@ -400,7 +414,7 @@ const TeacherBulletinInterface: React.FC = () => {
 
   const handleSendToSchool = () => {
     const bulletinData = {
-      schoolId: user?.schoolId?.toString() || '1',
+      schoolId: selectedSchool,
       classId: selectedClass,
       studentId: selectedStudent,
       term: selectedTerm,
@@ -415,7 +429,7 @@ const TeacherBulletinInterface: React.FC = () => {
     sendToSchoolMutation.mutate(bulletinData);
   };
 
-  const canProceedToCreation = selectedClass && selectedStudent && selectedTerm;
+  const canProceedToCreation = selectedSchool && selectedClass && selectedStudent && selectedTerm;
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -446,15 +460,32 @@ const TeacherBulletinInterface: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                {language === 'fr' ? 'Sélection Classe → Élève' : 'Selection Class → Student'}
+                <School className="h-5 w-5" />
+                {language === 'fr' ? 'Sélection École → Classe → Élève' : 'Selection School → Class → Student'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Class Selection - Teachers see only assigned classes */}
+              {/* School Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="school">{t.selectSchool}</Label>
+                <Select value={selectedSchool} onValueChange={setSelectedSchool}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t.selectSchool} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {schools.map((school: any) => (
+                      <SelectItem key={school.id} value={school.id.toString()}>
+                        {school.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Class Selection */}
               <div className="space-y-2">
                 <Label htmlFor="class">{t.selectClass}</Label>
-                <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <Select value={selectedClass} onValueChange={setSelectedClass} disabled={!selectedSchool}>
                   <SelectTrigger>
                     <SelectValue placeholder={t.selectClass} />
                   </SelectTrigger>
