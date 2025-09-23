@@ -246,60 +246,350 @@ export const DEFAULT_COMPETENCY_SYSTEMS = {
   }
 };
 
-// Default appreciation templates
+// ===== COMPREHENSIVE MINISTRY TEACHER COMMENTS LIST =====
+// Liste officielle des commentaires pour l'enseignant (Ministère des Enseignements Secondaires)
 export const DEFAULT_APPRECIATION_TEMPLATES = [
-  // General appreciations for excellent performance
+  // ===== EXCELLENTE PERFORMANCE (CTBA - 16-20/20) =====
   {
-    name: "Excellent travail",
+    name: "Excellence remarquable",
     category: "general",
     targetRole: "teacher",
-    appreciationFr: "Excellent travail. L'élève démontre une maîtrise remarquable des compétences. Continue ainsi !",
-    appreciationEn: "Excellent work. The student demonstrates remarkable mastery of competencies. Keep it up!",
+    appreciationFr: "Travail excellent. L'élève fait preuve d'une maîtrise exceptionnelle des compétences. Félicitations !",
+    appreciationEn: "Excellent work. The student demonstrates exceptional mastery of skills. Congratulations!",
+    competencyLevel: "CTBA",
+    gradeRange: { min: 18, max: 20 },
+    isGlobal: true
+  },
+  {
+    name: "Très bon élève",
+    category: "general", 
+    targetRole: "teacher",
+    appreciationFr: "Très bon élève. Résultats remarquables. Continue sur cette excellente voie.",
+    appreciationEn: "Very good student. Remarkable results. Continue on this excellent path.",
+    competencyLevel: "CTBA",
+    gradeRange: { min: 16, max: 18 },
+    isGlobal: true
+  },
+  {
+    name: "Compétences maîtrisées",
+    category: "general",
+    targetRole: "teacher", 
+    appreciationFr: "Toutes les compétences sont parfaitement maîtrisées. Élève modèle à suivre.",
+    appreciationEn: "All competencies are perfectly mastered. Model student to follow.",
     competencyLevel: "CTBA",
     gradeRange: { min: 16, max: 20 },
     isGlobal: true
   },
+
+  // ===== BONNE PERFORMANCE (CBA - 14-16/20) =====
   {
-    name: "Bon travail",
+    name: "Bon travail général",
     category: "general",
     targetRole: "teacher",
-    appreciationFr: "Bon travail. L'élève progresse bien. Quelques efforts supplémentaires pour exceller.",
-    appreciationEn: "Good work. The student is progressing well. A few more efforts to excel.",
+    appreciationFr: "Bon travail dans l'ensemble. L'élève progresse de façon satisfaisante.",
+    appreciationEn: "Good overall work. The student is progressing satisfactorily.",
     competencyLevel: "CBA",
     gradeRange: { min: 14, max: 16 },
     isGlobal: true
   },
   {
-    name: "Travail correct",
+    name: "Résultats encourageants",
     category: "general",
     targetRole: "teacher",
-    appreciationFr: "Travail correct. L'élève doit fournir plus d'efforts dans certaines matières.",
-    appreciationEn: "Fair work. The student needs to put in more effort in some subjects.",
+    appreciationFr: "Résultats encourageants. Quelques efforts supplémentaires pour atteindre l'excellence.",
+    appreciationEn: "Encouraging results. A few more efforts to reach excellence.",
+    competencyLevel: "CBA", 
+    gradeRange: { min: 14, max: 16 },
+    isGlobal: true
+  },
+  {
+    name: "Élève sérieux",
+    category: "general",
+    targetRole: "teacher",
+    appreciationFr: "Élève sérieux et appliqué. Maintenir cette régularité dans le travail.",
+    appreciationEn: "Serious and dedicated student. Maintain this consistency in work.",
+    competencyLevel: "CBA",
+    gradeRange: { min: 14, max: 16 },
+    isGlobal: true
+  },
+
+  // ===== PERFORMANCE SATISFAISANTE (CA - 12-14/20) =====
+  {
+    name: "Travail acceptable",
+    category: "general",
+    targetRole: "teacher",
+    appreciationFr: "Travail acceptable mais peut mieux faire. Plus de rigueur nécessaire.",
+    appreciationEn: "Acceptable work but can do better. More rigor needed.",
     competencyLevel: "CA",
     gradeRange: { min: 12, max: 14 },
     isGlobal: true
   },
   {
-    name: "Efforts à fournir",
+    name: "Progrès à consolider", 
     category: "general",
     targetRole: "teacher",
-    appreciationFr: "L'élève doit redoubler d'efforts. Un accompagnement personnalisé est recommandé.",
-    appreciationEn: "The student needs to make more effort. Personalized support is recommended.",
-    competencyLevel: "CMA",
-    gradeRange: { min: 8, max: 12 },
+    appreciationFr: "Des progrès sont notés mais restent à consolider par un travail plus soutenu.",
+    appreciationEn: "Progress is noted but needs to be consolidated through more sustained work.",
+    competencyLevel: "CA",
+    gradeRange: { min: 12, max: 14 },
     isGlobal: true
   },
   {
-    name: "Difficultés importantes",
+    name: "Résultats moyens",
     category: "general",
     targetRole: "teacher",
-    appreciationFr: "Difficultés importantes constatées. Un suivi renforcé et un soutien sont nécessaires.",
-    appreciationEn: "Significant difficulties observed. Enhanced monitoring and support are necessary.",
+    appreciationFr: "Résultats moyens. L'élève doit redoubler d'efforts pour progresser.",
+    appreciationEn: "Average results. The student must work harder to progress.",
+    competencyLevel: "CA",
+    gradeRange: { min: 12, max: 14 },
+    isGlobal: true
+  },
+
+  // ===== PERFORMANCE INSUFFISANTE (CMA - 10-12/20) =====
+  {
+    name: "Travail insuffisant",
+    category: "general",
+    targetRole: "teacher",
+    appreciationFr: "Travail insuffisant. Doit fournir plus d'efforts et être plus attentif en classe.",
+    appreciationEn: "Insufficient work. Must make more effort and be more attentive in class.",
+    competencyLevel: "CMA",
+    gradeRange: { min: 10, max: 12 },
+    isGlobal: true
+  },
+  {
+    name: "Résultats décevants",
+    category: "general",
+    targetRole: "teacher",
+    appreciationFr: "Résultats décevants compte tenu des capacités de l'élève. Plus de sérieux demandé.",
+    appreciationEn: "Disappointing results given the student's abilities. More seriousness required.",
+    competencyLevel: "CMA",
+    gradeRange: { min: 10, max: 12 },
+    isGlobal: true
+  },
+  {
+    name: "Manque de régularité",
+    category: "general",
+    targetRole: "teacher",
+    appreciationFr: "Manque de régularité dans le travail. L'élève doit être plus constant dans ses efforts.",
+    appreciationEn: "Lack of consistency in work. The student must be more constant in their efforts.",
+    competencyLevel: "CMA",
+    gradeRange: { min: 10, max: 12 },
+    isGlobal: true
+  },
+
+  // ===== PERFORMANCE FAIBLE (CNA - 0-10/20) =====
+  {
+    name: "Grandes difficultés",
+    category: "general",
+    targetRole: "teacher",
+    appreciationFr: "L'élève éprouve de grandes difficultés. Un soutien pédagogique s'impose.",
+    appreciationEn: "The student experiences great difficulties. Pedagogical support is essential.",
+    competencyLevel: "CNA",
+    gradeRange: { min: 0, max: 10 },
+    isGlobal: true
+  },
+  {
+    name: "Travail très insuffisant",
+    category: "general",
+    targetRole: "teacher",
+    appreciationFr: "Travail très insuffisant. L'élève doit absolument se ressaisir et travailler davantage.",
+    appreciationEn: "Very insufficient work. The student must absolutely pull themselves together and work more.",
+    competencyLevel: "CNA",
+    gradeRange: { min: 0, max: 10 },
+    isGlobal: true
+  },
+  {
+    name: "Bases non acquises",
+    category: "general", 
+    targetRole: "teacher",
+    appreciationFr: "Les bases fondamentales ne sont pas acquises. Recommande un accompagnement renforcé.",
+    appreciationEn: "Fundamental basics are not acquired. Recommend reinforced support.",
     competencyLevel: "CNA",
     gradeRange: { min: 0, max: 8 },
     isGlobal: true
   },
-  // Council decisions
+
+  // ===== COMMENTAIRES SPÉCIFIQUES PAR MATIÈRE =====
+  
+  // MATHÉMATIQUES
+  {
+    name: "Excellent en calcul",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Excellent en calcul mental et écrit. Raisonnement mathématique très développé.",
+    appreciationEn: "Excellent in mental and written calculation. Very developed mathematical reasoning.",
+    subjectContext: "MATHÉMATIQUES",
+    competencyLevel: "CTBA",
+    gradeRange: { min: 16, max: 20 },
+    isGlobal: true
+  },
+  {
+    name: "Bonne logique mathématique",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Bonne capacité de raisonnement logique. Maîtrise correcte des opérations de base.",
+    appreciationEn: "Good logical reasoning ability. Correct mastery of basic operations.",
+    subjectContext: "MATHÉMATIQUES",
+    competencyLevel: "CBA",
+    gradeRange: { min: 14, max: 16 },
+    isGlobal: true
+  },
+  {
+    name: "Difficultés en géométrie",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Quelques difficultés en géométrie. Réviser les propriétés des figures planes.",
+    appreciationEn: "Some difficulties in geometry. Review properties of plane figures.",
+    subjectContext: "MATHÉMATIQUES",
+    competencyLevel: "CA",
+    gradeRange: { min: 10, max: 14 },
+    isGlobal: true
+  },
+
+  // FRANÇAIS
+  {
+    name: "Excellente maîtrise du français",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Excellente maîtrise de la langue française. Expression écrite et orale remarquables.",
+    appreciationEn: "Excellent mastery of French language. Remarkable written and oral expression.",
+    subjectContext: "FRANÇAIS",
+    competencyLevel: "CTBA",
+    gradeRange: { min: 16, max: 20 },
+    isGlobal: true
+  },
+  {
+    name: "Bonne expression écrite",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Bonne expression écrite. Continuer à enrichir le vocabulaire et la syntaxe.",
+    appreciationEn: "Good written expression. Continue to enrich vocabulary and syntax.",
+    subjectContext: "FRANÇAIS",
+    competencyLevel: "CBA",
+    gradeRange: { min: 14, max: 16 },
+    isGlobal: true
+  },
+  {
+    name: "Fautes d'orthographe",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Trop de fautes d'orthographe et de grammaire. Réviser les règles de base.",
+    appreciationEn: "Too many spelling and grammar mistakes. Review basic rules.",
+    subjectContext: "FRANÇAIS",
+    competencyLevel: "CMA",
+    gradeRange: { min: 8, max: 12 },
+    isGlobal: true
+  },
+
+  // ANGLAIS
+  {
+    name: "Excellent niveau d'anglais",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Excellent niveau d'anglais. Compréhension et expression parfaitement maîtrisées.",
+    appreciationEn: "Excellent level of English. Comprehension and expression perfectly mastered.",
+    subjectContext: "ANGLAIS",
+    competencyLevel: "CTBA",
+    gradeRange: { min: 16, max: 20 },
+    isGlobal: true
+  },
+  {
+    name: "Bon vocabulaire anglais",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Bon vocabulaire de base. Travailler davantage la grammaire anglaise.",
+    appreciationEn: "Good basic vocabulary. Work more on English grammar.",
+    subjectContext: "ANGLAIS",
+    competencyLevel: "CBA",
+    gradeRange: { min: 14, max: 16 },
+    isGlobal: true
+  },
+  {
+    name: "Difficultés de prononciation",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Difficultés de prononciation. Pratiquer davantage l'expression orale en anglais.",
+    appreciationEn: "Pronunciation difficulties. Practice more oral expression in English.",
+    subjectContext: "ANGLAIS",
+    competencyLevel: "CA",
+    gradeRange: { min: 10, max: 14 },
+    isGlobal: true
+  },
+
+  // SCIENCES
+  {
+    name: "Esprit scientifique développé",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Esprit scientifique très développé. Excellent sens de l'observation et de l'analyse.",
+    appreciationEn: "Very developed scientific mind. Excellent sense of observation and analysis.",
+    subjectContext: "SCIENCES",
+    competencyLevel: "CTBA",
+    gradeRange: { min: 16, max: 20 },
+    isGlobal: true
+  },
+  {
+    name: "Bon raisonnement scientifique",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Bon raisonnement scientifique. Comprend bien les phénomènes étudiés.",
+    appreciationEn: "Good scientific reasoning. Understands well the phenomena studied.",
+    subjectContext: "SCIENCES",
+    competencyLevel: "CBA",
+    gradeRange: { min: 14, max: 16 },
+    isGlobal: true
+  },
+  {
+    name: "Manque de méthode",
+    category: "subject_specific",
+    targetRole: "teacher",
+    appreciationFr: "Manque de méthode dans la démarche scientifique. Améliorer l'organisation du travail.",
+    appreciationEn: "Lack of method in scientific approach. Improve work organization.",
+    subjectContext: "SCIENCES",
+    competencyLevel: "CA",
+    gradeRange: { min: 10, max: 14 },
+    isGlobal: true
+  },
+
+  // ===== COMMENTAIRES COMPORTEMENTAUX =====
+  {
+    name: "Élève discipliné",
+    category: "conduct",
+    targetRole: "teacher",
+    appreciationFr: "Élève discipliné et respectueux. Comportement exemplaire en classe.",
+    appreciationEn: "Disciplined and respectful student. Exemplary behavior in class.",
+    competencyLevel: "CTBA",
+    isGlobal: true
+  },
+  {
+    name: "Participation active",
+    category: "conduct",
+    targetRole: "teacher",
+    appreciationFr: "Participe activement aux cours. Attitude positive face aux apprentissages.",
+    appreciationEn: "Actively participates in lessons. Positive attitude towards learning.",
+    competencyLevel: "CBA",
+    isGlobal: true
+  },
+  {
+    name: "Manque d'attention",
+    category: "conduct",
+    targetRole: "teacher",
+    appreciationFr: "Manque d'attention en classe. Doit être plus concentré pendant les leçons.",
+    appreciationEn: "Lack of attention in class. Must be more focused during lessons.",
+    competencyLevel: "CMA",
+    isGlobal: true
+  },
+  {
+    name: "Bavardages excessifs",
+    category: "conduct",
+    targetRole: "teacher",
+    appreciationFr: "Bavardages excessifs qui perturbent la classe. Doit améliorer son comportement.",
+    appreciationEn: "Excessive talking that disrupts the class. Must improve behavior.",
+    competencyLevel: "CMA",
+    isGlobal: true
+  },
+
+  // ===== DÉCISIONS DU CONSEIL DE CLASSE =====
   {
     name: "Félicitations",
     category: "council_decision",
@@ -322,12 +612,22 @@ export const DEFAULT_APPRECIATION_TEMPLATES = [
   },
   {
     name: "Mise en garde",
-    category: "council_decision",
+    category: "council_decision", 
     targetRole: "council",
     appreciationFr: "Mise en garde du conseil de classe. Des améliorations sont attendues.",
     appreciationEn: "Warning from the class council. Improvements are expected.",
     competencyLevel: "CMA",
     gradeRange: { min: 8, max: 12 },
+    isGlobal: true
+  },
+  {
+    name: "Blâme",
+    category: "council_decision",
+    targetRole: "council", 
+    appreciationFr: "Blâme du conseil de classe. Redressement impératif demandé.",
+    appreciationEn: "Blame from the class council. Imperative improvement required.",
+    competencyLevel: "CNA",
+    gradeRange: { min: 0, max: 10 },
     isGlobal: true
   }
 ];
