@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 // Print CSS approach for ministry-grade output quality
 import ReportCardPreview from './ReportCardPreview';
+import AnnualReportSheet from './AnnualReportSheet';
 
 // Real school data fetching (useQuery already imported above)
 
@@ -350,6 +351,7 @@ export default function BulletinCreationInterface() {
     holidayRecommendations: ''
   });
   const [showPreview, setShowPreview] = useState(false);
+  const [showAnnualReport, setShowAnnualReport] = useState(false);
   // Removed PDF generation - using high-quality print instead
   const [isSigned, setIsSigned] = useState(false);
   const [signatureData, setSignatureData] = useState<any>(null);
@@ -2063,6 +2065,16 @@ export default function BulletinCreationInterface() {
             
             <Button 
               variant="outline" 
+              onClick={() => setShowAnnualReport(!showAnnualReport)} 
+              data-testid="button-annual-report"
+              className="border-orange-300 text-orange-700 hover:bg-orange-50"
+            >
+              <School className="h-4 w-4 mr-2" />
+              {language === 'fr' ? 'Rapport Annuel' : 'Annual Report'}
+            </Button>
+            
+            <Button 
+              variant="outline" 
               onClick={printBulletin}
               data-testid="button-print-bulletin"
             >
@@ -2105,6 +2117,99 @@ export default function BulletinCreationInterface() {
           </CardHeader>
           <CardContent>
             <ReportCardPreview {...bulletinData} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Annual Report Sheet */}
+      {showAnnualReport && (
+        <Card className="border-orange-200">
+          <CardHeader className="bg-orange-50">
+            <CardTitle className="text-lg text-orange-800 flex items-center">
+              <School className="h-5 w-5 mr-2" />
+              {language === 'fr' ? 'Fiche de Rapport Annuel Officielle' : 'Official Annual Report Sheet'}
+            </CardTitle>
+            <p className="text-sm text-orange-600">
+              {language === 'fr' 
+                ? 'Document officiel du Ministère des Enseignements Secondaires - Format CBA'
+                : 'Official Ministry of Secondary Education Document - CBA Format'
+              }
+            </p>
+          </CardHeader>
+          <CardContent className="p-0">
+            <AnnualReportSheet
+              student={{
+                name: student.name,
+                id: student.id,
+                class: student.classLabel,
+                classLabel: student.classLabel,
+                gender: student.gender,
+                birthDate: student.birthDate,
+                birthPlace: student.birthPlace,
+                guardian: student.guardian,
+                schoolMatricule: student.id
+              }}
+              schoolInfo={{
+                name: student.schoolName || 'LYCÉE DE……….',
+                region: student.regionaleMinisterielle || '…',
+                department: student.delegationDepartementale || '…',
+                logo: realSchoolLogoUrl
+              }}
+              academicYear={year}
+              trimesterData={{
+                trimester1: {
+                  average: annualSummary.firstTrimesterAverage || 0,
+                  rank: `${annualSummary.annualRank || 0}e`,
+                  totalStudents: annualSummary.totalStudents || 30,
+                  subjectCount: subjects.length,
+                  passedSubjects: subjects.filter(s => s.grade >= 10).length,
+                  discipline: {
+                    absJ: Math.floor(discipline.absJ / 3),
+                    absNJ: Math.floor(discipline.absNJ / 3),
+                    lates: Math.floor(discipline.late / 3),
+                    sanctions: Math.floor(discipline.sanctions / 3)
+                  },
+                  teacherObservations: `${language === 'fr' ? 'Bon travail au premier trimestre' : 'Good work in first term'}`
+                },
+                trimester2: {
+                  average: annualSummary.secondTrimesterAverage || 0,
+                  rank: `${annualSummary.annualRank || 0}e`,
+                  totalStudents: annualSummary.totalStudents || 30,
+                  subjectCount: subjects.length,
+                  passedSubjects: subjects.filter(s => s.grade >= 10).length,
+                  discipline: {
+                    absJ: Math.floor(discipline.absJ / 3),
+                    absNJ: Math.floor(discipline.absNJ / 3),
+                    lates: Math.floor(discipline.late / 3),
+                    sanctions: Math.floor(discipline.sanctions / 3)
+                  },
+                  teacherObservations: `${language === 'fr' ? 'Progression constante au deuxième trimestre' : 'Steady progress in second term'}`
+                },
+                trimester3: {
+                  average: annualSummary.thirdTrimesterAverage || 0,
+                  rank: `${annualSummary.annualRank || 0}e`,
+                  totalStudents: annualSummary.totalStudents || 30,
+                  subjectCount: subjects.length,
+                  passedSubjects: subjects.filter(s => s.grade >= 10).length,
+                  discipline: {
+                    absJ: Math.floor(discipline.absJ / 3),
+                    absNJ: Math.floor(discipline.absNJ / 3),
+                    lates: Math.floor(discipline.late / 3),
+                    sanctions: Math.floor(discipline.sanctions / 3)
+                  },
+                  teacherObservations: `${language === 'fr' ? 'Excellent travail au troisième trimestre' : 'Excellent work in third term'}`
+                }
+              }}
+              annualSummary={{
+                annualAverage: annualSummary.annualAverage || 0,
+                annualRank: `${annualSummary.annualRank || 0}e / ${annualSummary.totalStudents || 30}`,
+                finalDecision: (annualSummary.passDecision as 'PASSE' | 'REDOUBLE' | 'RENVOYE') || 'PASSE',
+                principalObservations: annualSummary.finalAppreciation || `${language === 'fr' ? 'Élève sérieux et appliqué' : 'Serious and dedicated student'}`,
+                parentObservations: '',
+                holidayRecommendations: annualSummary.holidayRecommendations || `${language === 'fr' ? 'Continuer les efforts et réviser régulièrement' : 'Continue efforts and review regularly'}`
+              }}
+              language={language}
+            />
           </CardContent>
         </Card>
       )}
