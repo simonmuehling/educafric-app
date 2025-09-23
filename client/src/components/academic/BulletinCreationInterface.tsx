@@ -1628,34 +1628,26 @@ export default function BulletinCreationInterface() {
                           {/* Appréciation */}
                           <td className="px-3 py-2 border" data-testid={`cell-appreciation-${index}`}>
                             <div className="flex gap-1 items-start">
-                              <textarea
-                                className="flex-1 border-0 bg-transparent text-xs min-h-[2.5rem] resize-none"
-                                rows={2}
-                                value={subject.remark}
-                                onChange={(e) => updateSubject(subject.id, 'remark', e.target.value)}
-                                placeholder="Appréciation..."
-                                data-testid={`textarea-appreciation-${index}`}
-                              />
-                              <Select onValueChange={(value) => updateSubject(subject.id, 'remark', value)}>
-                                <SelectTrigger className="w-6 h-6 p-0 border-2 border-blue-300 hover:border-blue-500 flex items-center justify-center shrink-0 text-xs">
-                                  <SelectValue placeholder="📝" />
+                              <Select onValueChange={(value) => updateSubject(subject.id, 'remark', value)} value={subject.remark}>
+                                <SelectTrigger className="flex-1 border-0 bg-transparent text-xs min-h-[2.5rem] text-left">
+                                  <SelectValue placeholder={language === 'fr' ? "Sélectionnez une appréciation..." : "Select an appreciation..."} />
                                 </SelectTrigger>
-                                <SelectContent className="max-w-[280px] max-h-[200px] overflow-y-auto">
-                                  <div className="p-2 border-b bg-slate-50 text-xs font-medium text-slate-600">
-                                    📝 Appréciations suggérées
-                                  </div>
-                                  {predefinedAppreciations?.data?.filter((app: any) => 
-                                    (app.targetRole === 'director' || app.targetRole === 'teacher' || !app.targetRole) && 
-                                    (!app.gradeRange || moyenneFinale === 0 || (moyenneFinale >= (app.gradeRange.min || 0) && moyenneFinale <= (app.gradeRange.max || 20)))
-                                  ).map((appreciation: any) => (
-                                    <SelectItem key={appreciation.id} value={appreciation.appreciationFr}>
-                                      <div className="text-xs leading-relaxed py-1">
-                                        {(language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn)?.length > 45 
-                                          ? (language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn).substring(0, 45) + "..." 
-                                          : (language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn)}
-                                      </div>
-                                    </SelectItem>
-                                  ))}
+                                <SelectContent>
+                                  <SelectItem value="CTBA">
+                                    {language === 'fr' ? 'Compétences Très Bien Acquises (CTBA)' : 'Competences Very Well Acquired (CVWA)'}
+                                  </SelectItem>
+                                  <SelectItem value="CBA">
+                                    {language === 'fr' ? 'Compétences Bien Acquises (CBA)' : 'Competences Well Acquired (CWA)'}
+                                  </SelectItem>
+                                  <SelectItem value="CA">
+                                    {language === 'fr' ? 'Compétences Acquises (CA)' : 'Competences Acquired (CA)'}
+                                  </SelectItem>
+                                  <SelectItem value="CMA">
+                                    {language === 'fr' ? 'Compétences Moyennement Acquises (CMA)' : 'Competences Averagely Acquired (CAA)'}
+                                  </SelectItem>
+                                  <SelectItem value="CNA">
+                                    {language === 'fr' ? 'Compétences Non Acquises (CNA)' : 'Competences Not Acquired (CNA)'}
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
