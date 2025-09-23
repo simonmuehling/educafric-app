@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import TeacherBulletinInterface from '../TeacherBulletinInterface';
+import ManualBulletinForm from '../ManualBulletinForm';
 import { 
   FileText, 
   Edit3, 
@@ -525,47 +526,13 @@ const ConsolidatedBulletinManagement: React.FC = () => {
                       </p>
                     </div>
                     
-                    {/* Simplified Teacher Actions */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <Button 
-                        className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700"
-                        onClick={() => {
-                          toast({
-                            title: language === 'fr' ? "Bulletin sauvegardé" : "Report card saved",
-                            description: language === 'fr' ? "Le bulletin a été sauvegardé comme brouillon" : "Report card saved as draft"
-                          });
-                        }}
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>{language === 'fr' ? 'Sauvegarder' : 'Save'}</span>
-                      </Button>
-                      
-                      <Button 
-                        className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700"
-                        onClick={() => {
-                          toast({
-                            title: language === 'fr' ? "Bulletin signé" : "Report card signed",
-                            description: language === 'fr' ? "Le bulletin a été signé électroniquement" : "Report card electronically signed"
-                          });
-                        }}
-                      >
-                        <Award className="w-4 h-4" />
-                        <span>{language === 'fr' ? 'Signer le bulletin' : 'Sign Report Card'}</span>
-                      </Button>
-                      
-                      <Button 
-                        className="flex items-center justify-center space-x-2 bg-purple-600 hover:bg-purple-700"
-                        onClick={() => {
-                          toast({
-                            title: language === 'fr' ? "Envoyé à l'école" : "Sent to school",
-                            description: language === 'fr' ? "Le bulletin a été envoyé à l'administration" : "Report card sent to administration"
-                          });
-                        }}
-                      >
-                        <CheckSquare className="w-4 h-4" />
-                        <span>{language === 'fr' ? 'Envoyer à l\'école' : 'Send to School'}</span>
-                      </Button>
-                    </div>
+                    {/* Manual Bulletin Form for Grade Input */}
+                    <ManualBulletinForm
+                      studentId={selectedStudentForEntry.toString()}
+                      trimestre={selectedTerm}
+                      classId={selectedClass}
+                      academicYear={academicYear}
+                    />
                   </div>
                 )}
               </CardContent>
