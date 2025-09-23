@@ -11,7 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import BulletinCreationInterface from '../../academic/BulletinCreationInterface';
+import TeacherBulletinInterface from '../TeacherBulletinInterface';
 import { 
   FileText, 
   Edit3, 
@@ -482,7 +482,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
                         Année: {academicYear}
                       </p>
                     </div>
-                    <BulletinCreationInterface />
+                    <TeacherBulletinInterface />
                   </div>
                 )}
               </CardContent>

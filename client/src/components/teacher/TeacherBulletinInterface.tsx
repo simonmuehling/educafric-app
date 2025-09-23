@@ -267,7 +267,7 @@ const TeacherBulletinInterface: React.FC = () => {
           birthDate: selectedStudentData.dateOfBirth || '',
           birthPlace: selectedStudentData.placeOfBirth || '',
           gender: selectedStudentData.gender || '',
-          headTeacher: user?.name || '',
+          headTeacher: user?.firstName ? `${user.firstName} ${user.lastName}` : '',
           guardian: selectedStudentData.parentName || '',
           isRepeater: false,
           numberOfSubjects: 0,
@@ -743,16 +743,21 @@ const TeacherBulletinInterface: React.FC = () => {
                 <CardContent>
                   {student.name && subjects.length > 0 && (
                     <ReportCardPreview
-                      student={student}
-                      subjects={subjects}
-                      discipline={discipline}
+                      student={{
+                        name: student.name,
+                        id: student.id,
+                        classLabel: student.classLabel
+                      }}
+                      lines={subjects.map(subject => ({
+                        subject: subject.name,
+                        m20: subject.grade,
+                        coef: subject.coefficient,
+                        remark: subject.remark,
+                        cote: subject.competencyLevel || ''
+                      }))}
                       year={academicYear}
-                      term={selectedTerm}
-                      language={language}
-                      selectedComments={selectedComments}
-                      generalAppreciation={generalAppreciation}
-                      teacherName={user?.name || ''}
-                      isTeacherMode={true}
+                      trimester={selectedTerm === 'T1' ? 'Premier' : selectedTerm === 'T2' ? 'Deuxième' : 'Troisième'}
+                      language={language as 'fr' | 'en'}
                     />
                   )}
                 </CardContent>
