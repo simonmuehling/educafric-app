@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { storage } from '../storage';
+import { requireAuth } from '../middleware/auth';
 
 const router = Router();
 
