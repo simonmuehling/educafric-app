@@ -7,8 +7,6 @@ import { db } from '../db.js';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import fs from 'fs/promises';
-import crypto from 'crypto';
 import { z } from 'zod';
 import { ComprehensiveBulletinGenerator, type StudentGradeData, type SchoolInfo, type BulletinOptions } from '../services/comprehensiveBulletinGenerator.js';
 import { hostingerMailService } from '../services/hostingerMailService.js';
