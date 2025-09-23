@@ -598,21 +598,6 @@ export default function ReportCardPreview({
             </table>
           </div>
 
-          {/* Ministry Signature Section */}
-          <div className="mt-6 grid grid-cols-3 gap-4 text-[8px]">
-            <div className="text-center">
-              <div className="h-16 border-b border-black mb-1"></div>
-              <div className="font-bold">{language === 'fr' ? 'Signature du parent/tuteur' : 'Parent\'s/Guardian\'s signature'}</div>
-            </div>
-            <div className="text-center">
-              <div className="h-16 border-b border-black mb-1"></div>
-              <div className="font-bold">{language === 'fr' ? 'Signature du professeur principal' : 'Class master\'s signature'}</div>
-            </div>
-            <div className="text-center">
-              <div className="h-16 border-b border-black mb-1"></div>
-              <div className="font-bold">{language === 'fr' ? 'Le PROVISEUR' : 'The PRINCIPAL'}</div>
-            </div>
-          </div>
 
           {/* Third Trimester Annual Summary */}
           {isThirdTrimester && annualSummary && (
@@ -709,22 +694,75 @@ export default function ReportCardPreview({
             )}
           </div>
 
-          {/* Signatures */}
-          <div className="mt-10 grid grid-cols-3 gap-4 text-xs">
-            <div className="text-center">
-              <div>{language === 'fr' ? 'Chef d\'établissement' : 'Principal / Head of School'}</div>
-              <div className="h-14"/>
-              <div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div>
+          {/* Ministry Official Signature Section - EXACT Format */}
+          <div className="mt-8 grid grid-cols-3 gap-6 text-[8px]">
+            {/* Left: Class Teacher */}
+            <div className="text-left">
+              <div className="mb-2">
+                <div className="font-bold">{language === 'fr' ? 'PROFESSEUR PRINCIPAL' : 'CLASS TEACHER'}</div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Nom:' : 'Name:'}</div>
+                  <div className="border-b border-black h-4"></div>
+                </div>
+                <div>
+                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Signature:' : 'Signature:'}</div>
+                  <div className="border-b border-black h-4"></div>
+                </div>
+                <div>
+                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Date:' : 'Date:'}</div>
+                  <div className="border-b border-black h-4"></div>
+                </div>
+              </div>
             </div>
+
+            {/* Center: Principal/Head Teacher with Official Stamp */}
             <div className="text-center">
-              <div>{language === 'fr' ? 'Professeur principal' : 'Homeroom Teacher'}</div>
-              <div className="h-14"/>
-              <div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div>
+              <div className="mb-2">
+                <div className="font-bold">{language === 'fr' ? 'CHEF D\'ÉTABLISSEMENT' : 'PRINCIPAL/HEAD TEACHER'}</div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Nom:' : 'Name:'}</div>
+                  <div className="border-b border-black h-4"></div>
+                </div>
+                <div>
+                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Cachet Officiel/Sceau:' : 'Official Stamp/Seal:'}</div>
+                  <div className="border border-black h-12 flex items-center justify-center text-[6px] text-gray-400">
+                    {language === 'fr' ? 'CACHET ÉCOLE' : 'SCHOOL STAMP'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Signature:' : 'Signature:'}</div>
+                  <div className="border-b border-black h-4"></div>
+                </div>
+                <div>
+                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Date:' : 'Date:'}</div>
+                  <div className="border-b border-black h-4"></div>
+                </div>
+              </div>
             </div>
-            <div className="text-center">
-              <div>{language === 'fr' ? 'Parent / Tuteur' : 'Parent / Guardian'}</div>
-              <div className="h-14"/>
-              <div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div>
+
+            {/* Right: Parent/Guardian */}
+            <div className="text-right">
+              <div className="mb-2">
+                <div className="font-bold">{language === 'fr' ? 'PARENT/TUTEUR' : 'PARENT/GUARDIAN'}</div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Nom:' : 'Name:'}</div>
+                  <div className="border-b border-black h-4"></div>
+                </div>
+                <div>
+                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Signature:' : 'Signature:'}</div>
+                  <div className="border-b border-black h-4"></div>
+                </div>
+                <div>
+                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Date:' : 'Date:'}</div>
+                  <div className="border-b border-black h-4"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
