@@ -2570,6 +2570,129 @@ router.post('/generate-sample', async (req, res) => {
   }
 });
 
+// Generate PDF from bulletin data - FOR PRINT BUTTONS
+// ENDPOINT: POST /api/comprehensive-bulletin/generate-pdf
+router.post('/generate-pdf', requireAuth, async (req, res) => {
+  try {
+    console.log('[BULLETIN_PDF] 🎯 Generating PDF from bulletin data');
+    
+    const { bulletinData, studentInfo, schoolInfo, language = 'fr' } = req.body;
+    
+    if (!bulletinData || !studentInfo || !schoolInfo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required data: bulletinData, studentInfo, and schoolInfo are required'
+      });
+    }
+
+    // Transform frontend bulletin data to match PDF generator format
+    const studentData: StudentGradeData = {
+      studentId: parseInt(studentInfo.id) || 1,
+      firstName: studentInfo.name.split(' ')[0] || 'Nom',
+      lastName: studentInfo.name.split(' ').slice(1).join(' ') || 'Prénom',
+      matricule: studentInfo.matricule || studentInfo.id?.toString() || 'MATRICULE',
+      birthDate: studentInfo.birthDate || '01/01/2000',
+      photo: studentInfo.photoUrl || null,
+      classId: parseInt(studentInfo.classId) || 1,
+      className: studentInfo.classLabel || bulletinData.classLabel || 'Classe',
+      term: bulletinData.term || 'Premier',
+      academicYear: bulletinData.academicYear || '2024-2025',
+      schoolName: schoolInfo.name || 'École',
+      
+      // Transform subjects from frontend format
+      subjects: (bulletinData.subjects || []).map((subject: any, index: number) => ({
+        subjectId: subject.id || index + 1,
+        subjectName: subject.name || subject.subject || 'Matière',
+        teacherId: 1,
+        teacherName: subject.teacher || 'Enseignant',
+        firstEvaluation: parseFloat(subject.note1) || parseFloat(subject.mk20) || 0,
+        secondEvaluation: undefined,
+        thirdEvaluation: undefined,
+        termAverage: parseFloat(subject.moyenneFinale) || parseFloat(subject.av20) || parseFloat(subject.grade) || 0,
+        coefficient: parseInt(subject.coefficient) || parseInt(subject.coef) || 1,
+        maxScore: 20,
+        comments: subject.remark || subject.remarksAndSignature || '',
+        rank: undefined
+      })),
+      
+      // Calculate overall average
+      overallAverage: parseFloat(bulletinData.generalAverage) || parseFloat(bulletinData.moyenne) || 0,
+      classRank: parseInt(bulletinData.rank) || 1,
+      totalStudents: parseInt(bulletinData.totalStudents) || 30
+    };
+
+    // School info from frontend
+    const school: SchoolInfo = {
+      id: parseInt(schoolInfo.id) || 1,
+      name: schoolInfo.name || 'École',
+      address: schoolInfo.address || '',
+      phone: schoolInfo.phone || '',
+      email: schoolInfo.email || '',
+      logoUrl: schoolInfo.logoUrl || null,
+      directorName: schoolInfo.directorName || '',
+      motto: schoolInfo.motto || '',
+      regionaleMinisterielle: schoolInfo.regionaleMinisterielle || '',
+      delegationDepartementale: schoolInfo.delegationDepartementale || '',
+      boitePostale: schoolInfo.boitePostale || '',
+      arrondissement: schoolInfo.arrondissement || '',
+      academicYear: studentData.academicYear,
+      currentTerm: studentData.term
+    };
+
+    // PDF generation options
+    const options: BulletinOptions = {
+      includeComments: true,
+      includeRankings: true,
+      includeStatistics: true,
+      includePerformanceLevels: true,
+      language: language as 'fr' | 'en',
+      format: 'A4',
+      orientation: 'portrait',
+      includeQRCode: true,
+      qrCodeSize: 60,
+      logoMaxWidth: 80,
+      logoMaxHeight: 80,
+      photoMaxWidth: 60,
+      photoMaxHeight: 80
+    };
+
+    console.log('[BULLETIN_PDF] 📊 Generating PDF for:', {
+      studentName: `${studentData.firstName} ${studentData.lastName}`,
+      className: studentData.className,
+      term: studentData.term,
+      subjectCount: studentData.subjects.length,
+      average: studentData.overallAverage
+    });
+
+    // Generate PDF
+    const pdfBuffer = await ComprehensiveBulletinGenerator.generateProfessionalBulletin(
+      studentData,
+      school,
+      options
+    );
+
+    // Generate filename
+    const safeStudentName = `${studentData.firstName}_${studentData.lastName}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = `bulletin_${safeStudentName}_${studentData.term}_${studentData.academicYear.replace('/', '-')}.pdf`;
+
+    console.log('[BULLETIN_PDF] ✅ PDF generated successfully:', filename);
+
+    // Send PDF as download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.send(pdfBuffer);
+
+  } catch (error: any) {
+    console.error('[BULLETIN_PDF] ❌ Error generating PDF:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate bulletin PDF',
+      error: error.message
+    });
+  }
+});
+
 // Save comprehensive bulletin manual data
 router.post('/save', requireAuth, requireDirectorAuth, async (req, res) => {
   try {

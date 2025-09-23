@@ -571,6 +571,91 @@ export default function BulletinCreationInterface() {
     }
   };
 
+  // DOWNLOAD PDF: Generate and download actual PDF file
+  const downloadBulletinPDF = async () => {
+    if (!showPreview) {
+      alert(language === 'fr' ? 'Veuillez d\'abord afficher l\'aperçu du bulletin' : 'Please show bulletin preview first');
+      return;
+    }
+
+    try {
+      console.log('🔄 Generating PDF download...');
+      
+      // Prepare bulletin data for PDF generation
+      const bulletinData = {
+        studentName: student.name,
+        classLabel: student.classLabel,
+        term: trimestre,
+        academicYear: year,
+        generalAverage: moyenne.toFixed(2),
+        subjects: subjects.map(subject => ({
+          id: subject.id,
+          name: subject.name,
+          note1: subject.note1,
+          moyenneFinale: subject.moyenneFinale,
+          coefficient: subject.coefficient,
+          remark: subject.remark,
+          teacher: subject.teacher || 'Enseignant'
+        }))
+      };
+
+      const studentInfo = {
+        id: student.id,
+        name: student.name,
+        matricule: student.id,
+        birthDate: student.birthDate,
+        classId: student.classId,
+        classLabel: student.classLabel,
+        photoUrl: studentPhotoUrl
+      };
+
+      const schoolInfo = {
+        id: 999,
+        name: student.schoolName || 'École',
+        address: '',
+        phone: '',
+        email: '',
+        logoUrl: realSchoolLogoUrl,
+        directorName: '',
+        motto: ''
+      };
+
+      // Call PDF generation API
+      const response = await fetch('/api/comprehensive-bulletin/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bulletinData,
+          studentInfo,
+          schoolInfo,
+          language
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`PDF generation failed: ${response.status}`);
+      }
+
+      // Download the PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bulletin_${student.name.replace(/\s+/g, '_')}_${trimestre}_${year.replace('/', '-')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      console.log('✅ PDF downloaded successfully');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert(language === 'fr' ? 'Erreur lors de la génération du PDF' : 'PDF generation error');
+    }
+  };
+
   // HIGH-QUALITY PRINT: Use browser's native print for ministry-grade output
   const printBulletin = () => {
     if (!showPreview) {
@@ -2411,6 +2496,15 @@ export default function BulletinCreationInterface() {
             >
               <School className="h-4 w-4 mr-2" />
               {language === 'fr' ? 'Rapport Annuel' : 'Annual Report'}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={downloadBulletinPDF}
+              data-testid="button-download-pdf"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {language === 'fr' ? 'Imprimer PDF' : 'Print to PDF'}
             </Button>
             
             <Button 
