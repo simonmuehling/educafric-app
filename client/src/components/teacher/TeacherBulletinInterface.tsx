@@ -210,24 +210,14 @@ const TeacherBulletinInterface: React.FC = () => {
 
   const t = labels[language as keyof typeof labels];
 
-  // Fetch schools for teacher
-  const { data: schoolsData } = useQuery({
-    queryKey: ['/api/teacher/schools'],
+  // Fetch classes for teacher (includes school information)
+  const { data: classesData } = useQuery({
+    queryKey: ['/api/teacher/classes'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/teacher/schools');
+      const response = await apiRequest('GET', '/api/teacher/classes');
       return await response.json();
     },
     enabled: !!user
-  });
-
-  // Fetch classes for selected school
-  const { data: classesData } = useQuery({
-    queryKey: ['/api/teacher/classes', selectedSchool],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/teacher/classes?schoolId=${selectedSchool}`);
-      return await response.json();
-    },
-    enabled: !!selectedSchool
   });
 
   // Fetch students for selected class
@@ -249,8 +239,46 @@ const TeacherBulletinInterface: React.FC = () => {
     }
   });
 
-  const schools = schoolsData?.schools || [];
-  const classes = classesData?.classes || [];
+  // Process schools and classes data similar to ConsolidatedBulletinManagement
+  const schoolsWithClasses = React.useMemo(() => {
+    if (!classesData) return [];
+    if (classesData.schoolsWithClasses && Array.isArray(classesData.schoolsWithClasses)) {
+      return classesData.schoolsWithClasses;
+    }
+    
+    // Fallback for other formats
+    let allClasses = [];
+    if (Array.isArray(classesData)) {
+      allClasses = classesData;
+    } else if (classesData.classes && Array.isArray(classesData.classes)) {
+      allClasses = classesData.classes;
+    }
+    
+    if (allClasses.length > 0) {
+      return [{
+        schoolId: user?.schoolId || 1,
+        schoolName: 'École Principale',
+        classes: allClasses
+      }];
+    }
+    return [];
+  }, [classesData, user]);
+
+  // Extract schools from schoolsWithClasses
+  const schools = React.useMemo(() => {
+    return schoolsWithClasses.map((school: any) => ({
+      id: String(school.schoolId),
+      name: school.schoolName
+    }));
+  }, [schoolsWithClasses]);
+
+  // Extract classes for selected school
+  const classes = React.useMemo(() => {
+    if (!selectedSchool) return [];
+    const school = schoolsWithClasses.find((s: any) => String(s.schoolId) === selectedSchool);
+    return school?.classes || [];
+  }, [schoolsWithClasses, selectedSchool]);
+
   const students = studentsData?.students || studentsData || [];
   const savedBulletins: SavedBulletin[] = savedBulletinsData?.bulletins || [];
 
@@ -474,7 +502,7 @@ const TeacherBulletinInterface: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {schools.map((school: any) => (
-                      <SelectItem key={school.id} value={school.id.toString()}>
+                      <SelectItem key={school.id} value={String(school.id)}>
                         {school.name}
                       </SelectItem>
                     ))}
@@ -491,7 +519,7 @@ const TeacherBulletinInterface: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {classes.map((cls: any) => (
-                      <SelectItem key={cls.id} value={cls.id.toString()}>
+                      <SelectItem key={cls.id} value={String(cls.id)}>
                         {cls.name || cls.className || cls.label}
                       </SelectItem>
                     ))}
