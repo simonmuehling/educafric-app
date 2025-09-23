@@ -585,7 +585,7 @@ export default function BulletinCreationInterface() {
       const bulletinData = {
         studentName: student.name,
         classLabel: student.classLabel,
-        term: trimestre,
+        term: trimester,
         academicYear: year,
         generalAverage: moyenne.toFixed(2),
         subjects: subjects.map(subject => ({
