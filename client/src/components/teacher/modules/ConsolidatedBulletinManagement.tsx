@@ -414,7 +414,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
       )}
 
       {/* Main Interface */}
-      {selectedClass && (
+      {selectedSchool && selectedClass && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
