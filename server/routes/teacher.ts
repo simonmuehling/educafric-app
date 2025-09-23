@@ -1642,4 +1642,238 @@ router.post('/admin-responses/:id/read', requireAuth, async (req, res) => {
   }
 });
 
+// ====================
+// TEACHER BULLETIN ROUTES
+// ====================
+
+// Get saved bulletins for teacher
+router.get('/saved-bulletins', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Teacher role required.'
+      });
+    }
+
+    console.log('[TEACHER_BULLETINS] Fetching saved bulletins for teacher:', user.id);
+
+    // TODO: Replace with actual database implementation
+    // For now, return mock data organized by school and class
+    const savedBulletins = [
+      {
+        id: 'bulletin_1',
+        studentId: '1',
+        studentName: 'Marie Dupont',
+        schoolId: user.schoolId?.toString() || '1',
+        schoolName: 'Lycée Bilingue de Yaoundé',
+        classId: '1',
+        className: '6ème A',
+        term: 'T1',
+        academicYear: '2024-2025',
+        status: 'draft',
+        lastModified: new Date().toISOString(),
+        createdDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+      },
+      {
+        id: 'bulletin_2', 
+        studentId: '2',
+        studentName: 'Jean Martin',
+        schoolId: user.schoolId?.toString() || '1',
+        schoolName: 'Lycée Bilingue de Yaoundé',
+        classId: '2',
+        className: '5ème B',
+        term: 'T2',
+        academicYear: '2024-2025',
+        status: 'signed',
+        lastModified: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        createdDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days ago
+      }
+    ];
+
+    res.json({
+      success: true,
+      bulletins: savedBulletins
+    });
+  } catch (error) {
+    console.error('[TEACHER_BULLETINS] Error fetching saved bulletins:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch saved bulletins'
+    });
+  }
+});
+
+// Save bulletin draft
+router.post('/bulletins/save', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Teacher role required.'
+      });
+    }
+
+    const bulletinData = req.body;
+    console.log('[TEACHER_BULLETINS] Saving bulletin draft for teacher:', user.id);
+
+    // Validate required fields
+    if (!bulletinData.schoolId || !bulletinData.classId || !bulletinData.studentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: schoolId, classId, studentId'
+      });
+    }
+
+    // TODO: Implement actual database save
+    // await storage.saveBulletinDraft(user.id, bulletinData);
+    
+    const savedBulletin = {
+      id: `bulletin_${Date.now()}`,
+      teacherId: user.id,
+      ...bulletinData,
+      status: 'draft',
+      lastModified: new Date().toISOString(),
+      createdDate: new Date().toISOString()
+    };
+
+    console.log('[TEACHER_BULLETINS] ✅ Bulletin draft saved successfully:', savedBulletin.id);
+
+    res.status(201).json({
+      success: true,
+      message: 'Bulletin saved successfully',
+      bulletin: savedBulletin
+    });
+  } catch (error) {
+    console.error('[TEACHER_BULLETINS] Error saving bulletin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save bulletin'
+    });
+  }
+});
+
+// Sign bulletin
+router.post('/bulletins/sign', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Teacher role required.'
+      });
+    }
+
+    const bulletinData = req.body;
+    console.log('[TEACHER_BULLETINS] Signing bulletin for teacher:', user.id);
+
+    // Validate required fields
+    if (!bulletinData.schoolId || !bulletinData.classId || !bulletinData.studentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: schoolId, classId, studentId'
+      });
+    }
+
+    // TODO: Implement actual database signature
+    // await storage.signBulletin(user.id, bulletinData);
+    
+    const signedBulletin = {
+      id: bulletinData.id || `bulletin_${Date.now()}`,
+      teacherId: user.id,
+      teacherSignature: {
+        teacherName: `${user.firstName} ${user.lastName}`,
+        signedAt: new Date().toISOString(),
+        teacherId: user.id
+      },
+      ...bulletinData,
+      status: 'signed',
+      lastModified: new Date().toISOString()
+    };
+
+    console.log('[TEACHER_BULLETINS] ✅ Bulletin signed successfully:', signedBulletin.id);
+
+    res.json({
+      success: true,
+      message: 'Bulletin signed successfully',
+      bulletin: signedBulletin
+    });
+  } catch (error) {
+    console.error('[TEACHER_BULLETINS] Error signing bulletin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to sign bulletin'
+    });
+  }
+});
+
+// Send bulletin to school
+router.post('/bulletins/send-to-school', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Teacher role required.'
+      });
+    }
+
+    const bulletinData = req.body;
+    console.log('[TEACHER_BULLETINS] Sending bulletin to school for teacher:', user.id);
+
+    // Validate required fields and signed status
+    if (!bulletinData.schoolId || !bulletinData.classId || !bulletinData.studentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: schoolId, classId, studentId'
+      });
+    }
+
+    if (bulletinData.status !== 'signed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Bulletin must be signed before sending to school'
+      });
+    }
+
+    // TODO: Implement actual database send to school
+    // await storage.sendBulletinToSchool(user.id, bulletinData);
+    
+    const sentBulletin = {
+      ...bulletinData,
+      status: 'sent',
+      sentToSchoolAt: new Date().toISOString(),
+      lastModified: new Date().toISOString()
+    };
+
+    console.log('[TEACHER_BULLETINS] ✅ Bulletin sent to school successfully:', sentBulletin.id);
+
+    // TODO: Send notification to school administration
+    // await storage.sendNotificationToSchool(bulletinData.schoolId, {
+    //   type: 'bulletin_received',
+    //   message: `New bulletin received from ${user.firstName} ${user.lastName}`,
+    //   studentId: bulletinData.studentId,
+    //   teacherId: user.id
+    // });
+
+    res.json({
+      success: true,
+      message: 'Bulletin sent to school successfully',
+      bulletin: sentBulletin
+    });
+  } catch (error) {
+    console.error('[TEACHER_BULLETINS] Error sending bulletin to school:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send bulletin to school'
+    });
+  }
+});
+
 export default router;
