@@ -10,16 +10,10 @@ import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer, 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+// Print CSS approach for ministry-grade output quality
 import ReportCardPreview from './ReportCardPreview';
 
-// Import test assets
-import testSchoolLogo1 from '@assets/stock_images/professional_school__54fe3500.jpg';
-import testSchoolLogo2 from '@assets/stock_images/professional_school__632fa15a.jpg';
-import testStudentPhoto1 from '@assets/stock_images/african_student_port_36bf0d4a.jpg';
-import testStudentPhoto2 from '@assets/stock_images/african_student_port_aa685724.jpg';
-import testStudentPhoto3 from '@assets/stock_images/african_student_port_8402c506.jpg';
+// Real school data fetching (useQuery already imported above)
 
 interface Subject {
   id: string;
@@ -280,20 +274,9 @@ export default function BulletinCreationInterface() {
     schoolPhone: ''
   });
 
-  const [studentPhotoUrl, setStudentPhotoUrl] = useState(testStudentPhoto1);
-  const [selectedSchoolLogo, setSelectedSchoolLogo] = useState(testSchoolLogo1);
-  
-  // Available test images
-  const availableSchoolLogos = [
-    { url: testSchoolLogo1, name: 'Logo Educafric Officiel' },
-    { url: testSchoolLogo2, name: 'Logo École Alternative' }
-  ];
-  
-  const availableStudentPhotos = [
-    { url: testStudentPhoto1, name: 'Étudiant 1 - Jean Kamga' },
-    { url: testStudentPhoto2, name: 'Étudiant 2 - Marie Fosso' },
-    { url: testStudentPhoto3, name: 'Étudiant 3 - Paul Mbarga' }
-  ];
+  const [studentPhotoUrl, setStudentPhotoUrl] = useState('');
+  // Use the existing schoolInfo from line 194 - consolidate real school logo URL
+  const realSchoolLogoUrl = schoolInfo?.data?.logoUrl || '';
 
   const [subjects, setSubjects] = useState<Subject[]>([
     { 
@@ -367,7 +350,7 @@ export default function BulletinCreationInterface() {
     holidayRecommendations: ''
   });
   const [showPreview, setShowPreview] = useState(false);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  // Removed PDF generation - using high-quality print instead
   const [isSigned, setIsSigned] = useState(false);
   const [signatureData, setSignatureData] = useState<any>(null);
 
@@ -515,75 +498,58 @@ export default function BulletinCreationInterface() {
     }
   };
 
-  const generatePDF = async () => {
-    if (isGeneratingPDF) return;
-    
-    setIsGeneratingPDF(true);
-    
+  // HIGH-QUALITY PRINT: Use browser's native print for ministry-grade output
+  const printBulletin = () => {
+    if (!showPreview) {
+      alert(language === 'fr' ? 'Veuillez d\'abord afficher l\'aperçu du bulletin' : 'Please show bulletin preview first');
+      return;
+    }
+
+    // Add print-specific styles for ministry-grade output
+    const printStyles = document.getElementById('ministry-print-styles');
+    if (!printStyles) {
+      const style = document.createElement('style');
+      style.id = 'ministry-print-styles';
+      style.textContent = `
+        @media print {
+          @page { 
+            size: A4; 
+            margin: 12mm; 
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
+          }
+          body { 
+            font-family: 'Times New Roman', serif !important;
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
+          }
+          /* Hide interface elements during print */
+          .print\\:hidden, .no-print { display: none !important; }
+          /* Ministry-grade text and borders */
+          table { border-collapse: collapse !important; }
+          th, td { 
+            border: 1px solid #000 !important; 
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
+          }
+          /* Logo sizing for print - EXACT ministry dimensions */
+          .school-logo { 
+            width: 22mm !important; 
+            height: 22mm !important; 
+            object-fit: contain !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
     try {
-      // Find the preview element
-      const bulletinElement = document.querySelector('[data-bulletin-preview="true"]') as HTMLElement;
-      
-      if (!bulletinElement) {
-        alert('Veuillez d\'abord afficher l\'aperçu du bulletin');
-        setShowPreview(true);
-        return;
-      }
-
-      console.log('Generating PDF for bulletin...');
-
-      // Convert the bulletin to canvas
-      const canvas = await html2canvas(bulletinElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: bulletinElement.scrollWidth,
-        height: bulletinElement.scrollHeight
-      });
-
-      // Create PDF
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-
-      let position = 0;
-
-      // Add image to PDF
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add new pages if content is too long
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      // Generate filename
-      const studentName = student.name || 'Eleve';
-      const cleanName = studentName.replace(/[^a-zA-Z0-9]/g, '_');
-      const filename = `Bulletin_${cleanName}_${trimester}_${year.replace('/', '-')}.pdf`;
-
-      // Download PDF
-      pdf.save(filename);
-
-      console.log('PDF generated successfully:', filename);
-      alert('PDF généré avec succès!');
+      // Use browser's native high-quality print - much better than html2canvas
+      window.print();
+      console.log('✅ Ministry-grade print initiated');
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Erreur lors de la génération du PDF');
-    } finally {
-      setIsGeneratingPDF(false);
+      console.error('Print error:', error);
+      alert(language === 'fr' ? 'Erreur lors de l\'impression' : 'Print error');
     }
   };
 
@@ -861,7 +827,7 @@ export default function BulletinCreationInterface() {
     })),
     year,
     trimester,
-    schoolLogoUrl: schoolInfo?.data?.logoUrl || selectedSchoolLogo,
+    schoolLogoUrl: realSchoolLogoUrl,
     studentPhotoUrl,
     language,
     // Third trimester specific data
@@ -2037,53 +2003,36 @@ export default function BulletinCreationInterface() {
             </CardContent>
           </Card>
 
-          {/* Test Images Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t.testImages}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* School Logo Selection */}
-                <div>
-                  <Label className="text-sm font-medium">{t.selectLogo}</Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    {availableSchoolLogos.map((logo, index) => (
-                      <div 
-                        key={index}
-                        className={`cursor-pointer border-2 p-2 rounded-lg ${
-                          selectedSchoolLogo === logo.url ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                        }`}
-                        onClick={() => setSelectedSchoolLogo(logo.url)}
-                      >
-                        <img src={logo.url} alt={logo.name} className="w-full h-16 object-contain rounded" />
-                        <p className="text-xs mt-1 text-center">{logo.name}</p>
-                      </div>
-                    ))}
+          {/* Real School Logo Info */}
+          {realSchoolLogoUrl && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  {language === 'fr' ? 'Logo École Officiel' : 'Official School Logo'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-4">
+                  <img 
+                    src={realSchoolLogoUrl} 
+                    alt="School Logo" 
+                    className="w-16 h-16 object-contain border border-gray-200 rounded" 
+                  />
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      {language === 'fr' 
+                        ? 'Logo officiel de l\'école utilisé dans les bulletins'
+                        : 'Official school logo used in report cards'
+                      }
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">
+                      ✓ {language === 'fr' ? 'Logo configuré' : 'Logo configured'}
+                    </p>
                   </div>
                 </div>
-
-                {/* Student Photo Selection */}
-                <div>
-                  <Label className="text-sm font-medium">{t.selectPhoto}</Label>
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    {availableStudentPhotos.map((photo, index) => (
-                      <div 
-                        key={index}
-                        className={`cursor-pointer border-2 p-2 rounded-lg ${
-                          studentPhotoUrl === photo.url ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                        }`}
-                        onClick={() => setStudentPhotoUrl(photo.url)}
-                      >
-                        <img src={photo.url} alt={photo.name} className="w-full h-16 object-cover rounded" />
-                        <p className="text-xs mt-1 text-center">{photo.name}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Third Trimester Annual Summary */}
           {isThirdTrimester && (
@@ -2238,12 +2187,11 @@ export default function BulletinCreationInterface() {
             
             <Button 
               variant="outline" 
-              onClick={generatePDF} 
-              disabled={isGeneratingPDF}
-              data-testid="button-print-pdf"
+              onClick={printBulletin}
+              data-testid="button-print-bulletin"
             >
               <Printer className="h-4 w-4 mr-2" />
-              {isGeneratingPDF ? t.generating : t.printToPDF}
+              {language === 'fr' ? 'Imprimer (Qualité Ministère)' : 'Print (Ministry Grade)'}
             </Button>
             
             <Button 

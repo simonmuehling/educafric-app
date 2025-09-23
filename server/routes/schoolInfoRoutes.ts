@@ -21,6 +21,7 @@ router.get('/info', requireAuth, requireAnyRole(['Admin', 'Director', 'Teacher',
     
     console.log('[SCHOOL_INFO] 🏫 Fetching school info for school:', schoolId);
     
+    // TEMPORARY: Remove ministry fields until database is updated
     const school = await db.select({
       id: schools.id,
       name: schools.name,
@@ -28,10 +29,6 @@ router.get('/info', requireAuth, requireAnyRole(['Admin', 'Director', 'Teacher',
       phone: schools.phone,
       email: schools.email,
       logoUrl: schools.logoUrl,
-      regionaleMinisterielle: schools.regionaleMinisterielle,
-      delegationDepartementale: schools.delegationDepartementale,
-      boitePostale: schools.boitePostale,
-      arrondissement: schools.arrondissement,
       academicYear: schools.academicYear,
       currentTerm: schools.currentTerm,
       settings: schools.settings
@@ -54,12 +51,12 @@ router.get('/info', requireAuth, requireAnyRole(['Admin', 'Director', 'Teacher',
       phone: schoolData.phone,
       email: schoolData.email,
       logoUrl: schoolData.logoUrl,
-      // Official Cameroon government information for documents
+      // Official Cameroon government information for documents (temporary defaults)
       officialInfo: {
-        regionaleMinisterielle: schoolData.regionaleMinisterielle || 'DÉLÉGATION RÉGIONALE DU CENTRE',
-        delegationDepartementale: schoolData.delegationDepartementale || 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI',
-        boitePostale: schoolData.boitePostale,
-        arrondissement: schoolData.arrondissement,
+        regionaleMinisterielle: 'DÉLÉGATION RÉGIONALE DU CENTRE',
+        delegationDepartementale: 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI',
+        boitePostale: 'B.P. 1234 Yaoundé',
+        arrondissement: 'Yaoundé 1er',
       },
       // Additional school details
       academicYear: schoolData.academicYear,
@@ -71,7 +68,7 @@ router.get('/info', requireAuth, requireAnyRole(['Admin', 'Director', 'Teacher',
       schoolId,
       name: schoolData.name,
       hasLogo: !!schoolData.logoUrl,
-      hasOfficialInfo: !!(schoolData.regionaleMinisterielle || schoolData.delegationDepartementale)
+      hasOfficialInfo: true // Always true since we provide defaults
     });
     
     res.json({
