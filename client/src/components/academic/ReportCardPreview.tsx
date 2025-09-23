@@ -265,57 +265,54 @@ export default function ReportCardPreview({
     <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0" data-bulletin-preview="true">
       <A4Sheet>
         <div className="p-4">
-          {/* EXACT Ministry Header - Bilingual Side by Side */}
+          {/* EXACT Ministry Header - Bilingual Side by Side with School Logo */}
           <div className="text-center mb-6">
-            {/* Line 1: Countries */}
-            <div className="grid grid-cols-2 text-xs font-bold mb-1">
-              <div>{MINISTRY_HEADER.line1.fr}</div>
-              <div>{MINISTRY_HEADER.line1.en}</div>
-            </div>
-            {/* Line 2: Mottos */}
-            <div className="grid grid-cols-2 text-xs italic mb-2">
-              <div>{MINISTRY_HEADER.line2.fr}</div>
-              <div>{MINISTRY_HEADER.line2.en}</div>
-            </div>
-            {/* Separator */}
-            <div className="grid grid-cols-2 text-xs mb-2">
-              <div>*************</div>
-              <div>*************</div>
-            </div>
-            {/* Line 3: Ministry */}
-            <div className="grid grid-cols-2 text-xs font-semibold mb-2">
-              <div>{MINISTRY_HEADER.line3.fr}</div>
-              <div>{MINISTRY_HEADER.line3.en}</div>
-            </div>
-            {/* Separator */}
-            <div className="grid grid-cols-2 text-xs mb-2">
-              <div>*************</div>
-              <div>*************</div>
-            </div>
-            {/* Line 4: Regional */}
-            <div className="grid grid-cols-2 text-xs font-semibold mb-1">
-              <div>{student.school?.officialInfo?.regionaleMinisterielle || MINISTRY_HEADER.line4.fr}</div>
-              <div>{MINISTRY_HEADER.line4.en}</div>
-            </div>
-            {/* Separator */}
-            <div className="grid grid-cols-2 text-xs mb-2">
-              <div>*************</div>
-              <div>***********</div>
-            </div>
-            {/* Line 5: Departmental */}
-            <div className="grid grid-cols-2 text-xs font-semibold mb-1">
-              <div>{student.school?.officialInfo?.delegationDepartementale || MINISTRY_HEADER.line5.fr}</div>
-              <div>{MINISTRY_HEADER.line5.en}</div>
-            </div>
-            {/* Separator */}
-            <div className="grid grid-cols-2 text-xs mb-2">
-              <div>*************</div>
-              <div>*************</div>
-            </div>
-            {/* Line 6: School */}
-            <div className="grid grid-cols-2 text-xs font-semibold mb-4">
-              <div>{student.school?.name || MINISTRY_HEADER.line6.fr}</div>
-              <div>{MINISTRY_HEADER.line6.en}</div>
+            <div className="grid grid-cols-3 gap-4 items-center">
+              {/* Left Column: French */}
+              <div className="text-xs">
+                <div className="font-bold mb-1">{MINISTRY_HEADER.line1.fr}</div>
+                <div className="italic mb-2">{MINISTRY_HEADER.line2.fr}</div>
+                <div className="mb-2">*************</div>
+                <div className="font-semibold mb-2">{MINISTRY_HEADER.line3.fr}</div>
+                <div className="mb-2">*************</div>
+                <div className="font-semibold mb-1">{student.school?.officialInfo?.regionaleMinisterielle || MINISTRY_HEADER.line4.fr}</div>
+                <div className="mb-2">*************</div>
+                <div className="font-semibold mb-1">{student.school?.officialInfo?.delegationDepartementale || MINISTRY_HEADER.line5.fr}</div>
+                <div className="mb-2">*************</div>
+                <div className="font-semibold mb-4">{student.school?.name || MINISTRY_HEADER.line6.fr}</div>
+              </div>
+
+              {/* Center: School Logo */}
+              <div className="flex justify-center items-center">
+                {schoolLogoUrl ? (
+                  <img 
+                    src={schoolLogoUrl} 
+                    alt="Logo de l'école" 
+                    className="w-16 h-16 object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center text-[6px] text-gray-400">
+                    LOGO<br/>ÉCOLE
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: English */}
+              <div className="text-xs">
+                <div className="font-bold mb-1">{MINISTRY_HEADER.line1.en}</div>
+                <div className="italic mb-2">{MINISTRY_HEADER.line2.en}</div>
+                <div className="mb-2">*************</div>
+                <div className="font-semibold mb-2">{MINISTRY_HEADER.line3.en}</div>
+                <div className="mb-2">*************</div>
+                <div className="font-semibold mb-1">{MINISTRY_HEADER.line4.en}</div>
+                <div className="mb-2">***********</div>
+                <div className="font-semibold mb-1">{MINISTRY_HEADER.line5.en}</div>
+                <div className="mb-2">*************</div>
+                <div className="font-semibold mb-4">{MINISTRY_HEADER.line6.en}</div>
+              </div>
             </div>
           </div>
 
