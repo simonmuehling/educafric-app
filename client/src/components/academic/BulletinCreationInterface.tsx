@@ -1499,6 +1499,112 @@ export default function BulletinCreationInterface() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Grille d'évaluation - Repositioned below GRILLE DE NOTATION */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <Label className="text-sm font-medium mb-3 block">
+                    {language === 'fr' ? 'Grille d\'évaluation' : 'Evaluation Grid'}
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                    {selectedCompetencySystem?.levels ? (
+                      // Use actual system data
+                      selectedCompetencySystem.levels
+                        .sort((a: any, b: any) => b.gradeRange.min - a.gradeRange.min) // Sort by grade range descending
+                        .map((level: any, index: number) => {
+                          const colorClasses = getCompetencyColor(level.code);
+                          const bgColor = colorClasses.includes('green') ? 'bg-green-100 border-green-200' :
+                                         colorClasses.includes('blue') ? 'bg-blue-100 border-blue-200' :
+                                         colorClasses.includes('yellow') ? 'bg-yellow-100 border-yellow-200' :
+                                         colorClasses.includes('orange') ? 'bg-orange-100 border-orange-200' :
+                                         'bg-red-100 border-red-200';
+                          
+                          const textColor = colorClasses.includes('green') ? 'text-green-800' :
+                                           colorClasses.includes('blue') ? 'text-blue-800' :
+                                           colorClasses.includes('yellow') ? 'text-yellow-800' :
+                                           colorClasses.includes('orange') ? 'text-orange-800' :
+                                           'text-red-800';
+                          
+                          return (
+                            <div key={level.code} className={`p-3 rounded-lg border ${bgColor}`}>
+                              <div className={`font-semibold text-sm ${textColor}`}>
+                                {level.code}
+                              </div>
+                              <div className={`text-xs mt-1 ${textColor.replace('800', '700')}`}>
+                                {language === 'fr' ? level.descriptionFr : level.descriptionEn}
+                              </div>
+                              <div className={`text-xs font-medium mt-1 ${textColor.replace('800', '600')}`}>
+                                {level.gradeRange.min}-{level.gradeRange.max}/20
+                              </div>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      // Fallback display when no system loaded
+                      <>
+                        <div className="bg-green-100 p-3 rounded-lg border border-green-200">
+                          <div className="font-semibold text-green-800 text-sm">
+                            {language === 'fr' ? 'CTBA' : 'CVWA'}
+                          </div>
+                          <div className="text-xs text-green-700 mt-1">
+                            {language === 'fr' 
+                              ? 'Compétences très bien acquises' 
+                              : 'Competences Very Well Acquired'
+                            }
+                          </div>
+                          <div className="text-xs text-green-600 font-medium mt-1">16-20/20</div>
+                        </div>
+
+                        <div className="bg-blue-100 p-3 rounded-lg border border-blue-200">
+                          <div className="font-semibold text-blue-800 text-sm">
+                            {language === 'fr' ? 'CBA' : 'CWA'}
+                          </div>
+                          <div className="text-xs text-blue-700 mt-1">
+                            {language === 'fr' 
+                              ? 'Compétences bien acquises' 
+                              : 'Competences Well Acquired'
+                            }
+                          </div>
+                          <div className="text-xs text-blue-600 font-medium mt-1">14-16/20</div>
+                        </div>
+
+                        <div className="bg-yellow-100 p-3 rounded-lg border border-yellow-200">
+                          <div className="font-semibold text-yellow-800 text-sm">CA</div>
+                          <div className="text-xs text-yellow-700 mt-1">
+                            {language === 'fr' 
+                              ? 'Compétences acquises' 
+                              : 'Competences Acquired'
+                            }
+                          </div>
+                          <div className="text-xs text-yellow-600 font-medium mt-1">12-14/20</div>
+                        </div>
+
+                        <div className="bg-orange-100 p-3 rounded-lg border border-orange-200">
+                          <div className="font-semibold text-orange-800 text-sm">
+                            {language === 'fr' ? 'CMA' : 'CAA'}
+                          </div>
+                          <div className="text-xs text-orange-700 mt-1">
+                            {language === 'fr' 
+                              ? 'Compétences moyennement acquises' 
+                              : 'Competences Averagely Acquired'
+                            }
+                          </div>
+                          <div className="text-xs text-orange-600 font-medium mt-1">10-12/20</div>
+                        </div>
+
+                        <div className="bg-red-100 p-3 rounded-lg border border-red-200">
+                          <div className="font-semibold text-red-800 text-sm">CNA</div>
+                          <div className="text-xs text-red-700 mt-1">
+                            {language === 'fr' 
+                              ? 'Compétences non acquises' 
+                              : 'Competences Not Acquired'
+                            }
+                          </div>
+                          <div className="text-xs text-red-600 font-medium mt-1">0-10/20</div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Table structure matching official Cameroon bulletin format */}
@@ -1961,111 +2067,6 @@ export default function BulletinCreationInterface() {
                   </div>
                 </div>
 
-                {/* Competency Levels Display */}
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <Label className="text-sm font-medium mb-3 block">
-                    {language === 'fr' ? 'Grille d\'évaluation' : 'Evaluation Grid'}
-                  </Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-                    {selectedCompetencySystem?.levels ? (
-                      // Use actual system data
-                      selectedCompetencySystem.levels
-                        .sort((a: any, b: any) => b.gradeRange.min - a.gradeRange.min) // Sort by grade range descending
-                        .map((level: any, index: number) => {
-                          const colorClasses = getCompetencyColor(level.code);
-                          const bgColor = colorClasses.includes('green') ? 'bg-green-100 border-green-200' :
-                                         colorClasses.includes('blue') ? 'bg-blue-100 border-blue-200' :
-                                         colorClasses.includes('yellow') ? 'bg-yellow-100 border-yellow-200' :
-                                         colorClasses.includes('orange') ? 'bg-orange-100 border-orange-200' :
-                                         'bg-red-100 border-red-200';
-                          
-                          const textColor = colorClasses.includes('green') ? 'text-green-800' :
-                                           colorClasses.includes('blue') ? 'text-blue-800' :
-                                           colorClasses.includes('yellow') ? 'text-yellow-800' :
-                                           colorClasses.includes('orange') ? 'text-orange-800' :
-                                           'text-red-800';
-                          
-                          return (
-                            <div key={level.code} className={`p-3 rounded-lg border ${bgColor}`}>
-                              <div className={`font-semibold text-sm ${textColor}`}>
-                                {level.code}
-                              </div>
-                              <div className={`text-xs mt-1 ${textColor.replace('800', '700')}`}>
-                                {language === 'fr' ? level.descriptionFr : level.descriptionEn}
-                              </div>
-                              <div className={`text-xs font-medium mt-1 ${textColor.replace('800', '600')}`}>
-                                {level.gradeRange.min}-{level.gradeRange.max}/20
-                              </div>
-                            </div>
-                          );
-                        })
-                    ) : (
-                      // Fallback display when no system loaded
-                      <>
-                        <div className="bg-green-100 p-3 rounded-lg border border-green-200">
-                          <div className="font-semibold text-green-800 text-sm">
-                            {language === 'fr' ? 'CTBA' : 'CVWA'}
-                          </div>
-                          <div className="text-xs text-green-700 mt-1">
-                            {language === 'fr' 
-                              ? 'Compétences très bien acquises' 
-                              : 'Competences Very Well Acquired'
-                            }
-                          </div>
-                          <div className="text-xs text-green-600 font-medium mt-1">16-20/20</div>
-                        </div>
-
-                        <div className="bg-blue-100 p-3 rounded-lg border border-blue-200">
-                          <div className="font-semibold text-blue-800 text-sm">
-                            {language === 'fr' ? 'CBA' : 'CWA'}
-                          </div>
-                          <div className="text-xs text-blue-700 mt-1">
-                            {language === 'fr' 
-                              ? 'Compétences bien acquises' 
-                              : 'Competences Well Acquired'
-                            }
-                          </div>
-                          <div className="text-xs text-blue-600 font-medium mt-1">14-16/20</div>
-                        </div>
-
-                        <div className="bg-yellow-100 p-3 rounded-lg border border-yellow-200">
-                          <div className="font-semibold text-yellow-800 text-sm">CA</div>
-                          <div className="text-xs text-yellow-700 mt-1">
-                            {language === 'fr' 
-                              ? 'Compétences acquises' 
-                              : 'Competences Acquired'
-                            }
-                          </div>
-                          <div className="text-xs text-yellow-600 font-medium mt-1">12-14/20</div>
-                        </div>
-
-                        <div className="bg-orange-100 p-3 rounded-lg border border-orange-200">
-                          <div className="font-semibold text-orange-800 text-sm">
-                            {language === 'fr' ? 'CMA' : 'CAA'}
-                          </div>
-                          <div className="text-xs text-orange-700 mt-1">
-                            {language === 'fr' 
-                              ? 'Compétences moyennement acquises' 
-                              : 'Competences Averagely Acquired'
-                            }
-                          </div>
-                          <div className="text-xs text-orange-600 font-medium mt-1">10-12/20</div>
-                        </div>
-
-                        <div className="bg-red-100 p-3 rounded-lg border border-red-200">
-                          <div className="font-semibold text-red-800 text-sm">CNA</div>
-                          <div className="text-xs text-red-700 mt-1">
-                            {language === 'fr' 
-                              ? 'Compétences non acquises' 
-                              : 'Competences Not Acquired'
-                            }
-                          </div>
-                          <div className="text-xs text-red-600 font-medium mt-1">0-10/20</div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
 
                 {/* Subject Competency Summary */}
                 <div className="border rounded-lg p-4">
