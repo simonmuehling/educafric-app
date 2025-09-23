@@ -2039,33 +2039,6 @@ export default function BulletinCreationInterface() {
             <CardContent>
               <div className="space-y-4">
                 {/* Competency Evaluation System Selection */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium mb-2 block">
-                      {language === 'fr' ? 'Système d\'évaluation' : 'Evaluation System'}
-                    </Label>
-                    <Select 
-                      value={selectedCompetencySystem?.name || (language === 'fr' ? 'APPRECIATION' : 'REMARKS_2')}
-                      onValueChange={(value) => {
-                        const system = competencySystems?.data?.find((s: any) => s.name === value);
-                        if (system) {
-                          setSelectedCompetencySystem(system);
-                        }
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un système" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {competencySystems?.data?.map((system: any) => (
-                          <SelectItem key={system.id} value={system.name}>
-                            {system.name} ({system.language.toUpperCase()})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
 
 
                 {/* Subject Competency Summary */}
