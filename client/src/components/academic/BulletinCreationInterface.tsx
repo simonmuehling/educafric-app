@@ -1205,6 +1205,110 @@ export default function BulletinCreationInterface() {
                   </div>
                 </div>
               </div>
+
+              {/* Student Photo Section */}
+              <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="font-semibold text-purple-800 flex items-center gap-2">
+                      <Camera className="h-5 w-5" />
+                      {language === 'fr' ? 'Photo de l\'élève' : 'Student Photo'}
+                    </h4>
+                    <p className="text-sm text-purple-600">
+                      {language === 'fr' 
+                        ? 'Format ministère officiel requis pour le bulletin'
+                        : 'Official ministry format required for bulletin'
+                      }
+                    </p>
+                  </div>
+                  
+                  {/* Photo Preview */}
+                  <div className="flex items-center gap-4">
+                    {studentPhotoUrl ? (
+                      <div className="relative">
+                        <img 
+                          src={studentPhotoUrl} 
+                          alt="Photo élève" 
+                          className="w-20 h-24 object-cover border-2 border-purple-300 rounded-md"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            setStudentPhotoUrl('');
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="absolute -top-2 -right-2 h-6 w-6 p-0 bg-red-500 text-white border-red-500 hover:bg-red-600"
+                          onClick={() => setStudentPhotoUrl('')}
+                          data-testid="button-remove-photo"
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="w-20 h-24 border-2 border-dashed border-purple-300 rounded-md flex items-center justify-center bg-purple-50">
+                        <div className="text-center">
+                          <Camera className="h-6 w-6 mx-auto text-purple-400 mb-1" />
+                          <p className="text-xs text-purple-500">
+                            {language === 'fr' ? 'Aucune photo' : 'No photo'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Photo Upload Interface - only show if no photo */}
+                {!studentPhotoUrl && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                const base64String = event.target?.result as string;
+                                setStudentPhotoUrl(base64String);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          data-testid="input-upload-photo"
+                        />
+                        <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
+                          <Upload className="h-4 w-4 mr-2" />
+                          {language === 'fr' ? 'Télécharger photo' : 'Upload Photo'}
+                        </Button>
+                      </div>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                        onClick={() => {
+                          // Demo photo URL for testing
+                          setStudentPhotoUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=200&fit=crop&face=center');
+                        }}
+                        data-testid="button-demo-photo"
+                      >
+                        {language === 'fr' ? 'Photo de démo' : 'Demo Photo'}
+                      </Button>
+                    </div>
+                    
+                    <p className="text-xs text-purple-600">
+                      {language === 'fr' 
+                        ? 'Format recommandé : JPG/PNG, 150x200px minimum, taille < 2MB'
+                        : 'Recommended format: JPG/PNG, 150x200px minimum, size < 2MB'
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
