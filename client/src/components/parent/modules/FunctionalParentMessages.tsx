@@ -47,7 +47,8 @@ const FunctionalParentMessages: React.FC = () => {
     subject: '',
     recipient: '',
     content: '',
-    priority: 'medium'
+    priority: 'medium',
+    notificationChannels: ['pwa', 'email'] // Only PWA notifications and email, no SMS
   });
 
   // Fetch parent messages data - TEMPORAIRE: utiliser données réelles de l'API
@@ -138,7 +139,7 @@ const FunctionalParentMessages: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/parent/messages'] });
       setIsNewMessageOpen(false);
-      setNewMessage({ subject: '', recipient: '', content: '', priority: 'medium' });
+      setNewMessage({ subject: '', recipient: '', content: '', priority: 'medium', notificationChannels: ['pwa', 'email'] });
       toast({
         title: "Message envoyé",
         description: "Votre message a été envoyé avec succès.",
@@ -435,6 +436,9 @@ const FunctionalParentMessages: React.FC = () => {
                     placeholder="Tapez votre message ici..."
                     rows={4}
                   />
+                </div>
+                <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
+                  📢 Canaux: Notifications PWA + Email (pas de SMS)
                 </div>
                 <div className="flex gap-2 pt-4">
                   <Button 
