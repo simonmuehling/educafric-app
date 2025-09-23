@@ -215,7 +215,14 @@ export default function BulletinCreationInterface() {
   });
 
   const [trimester, setTrimester] = useState('Premier');
+  const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [year, setYear] = useState('2025/2026');
+
+  // Fetch available classes
+  const { data: classesData, isLoading: loadingClasses } = useQuery({
+    queryKey: ['/api/director/classes'],
+    queryFn: () => fetch('/api/director/classes').then(res => res.json()),
+  });
 
   // Fetch competency templates
   const { data: competencyTemplates, isLoading: loadingTemplates } = useQuery({
@@ -857,7 +864,23 @@ export default function BulletinCreationInterface() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="class">Classe</Label>
+              <Select value={selectedClassId} onValueChange={setSelectedClassId}>
+                <SelectTrigger data-testid="select-class">
+                  <SelectValue placeholder="Sélectionner la classe" />
+                </SelectTrigger>
+                <SelectContent>
+                  {classesData?.classes?.map((cls: any) => (
+                    <SelectItem key={cls.id} value={cls.id.toString()}>
+                      {cls.name}
+                    </SelectItem>
+                  )) || []}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div>
               <Label htmlFor="trimester">Trimestre</Label>
               <Select value={trimester} onValueChange={setTrimester}>
