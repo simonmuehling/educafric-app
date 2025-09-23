@@ -122,8 +122,15 @@ const ConsolidatedBulletinManagement: React.FC = () => {
 
   // Extract schools and classes from response
   const schoolsWithClasses = useMemo(() => {
-    if (!classesData) return [];
+    console.log('[CONSOLIDATED_BULLETIN] Raw classesData:', classesData);
+    
+    if (!classesData) {
+      console.log('[CONSOLIDATED_BULLETIN] No classesData available');
+      return [];
+    }
+    
     if (classesData.schoolsWithClasses && Array.isArray(classesData.schoolsWithClasses)) {
+      console.log('[CONSOLIDATED_BULLETIN] Using schoolsWithClasses:', classesData.schoolsWithClasses);
       return classesData.schoolsWithClasses;
     }
     
@@ -136,24 +143,29 @@ const ConsolidatedBulletinManagement: React.FC = () => {
     }
     
     if (allClasses.length > 0) {
+      console.log('[CONSOLIDATED_BULLETIN] Using fallback format with classes:', allClasses);
       return [{
         schoolId: user?.schoolId || 1,
         schoolName: 'École Principale',
         classes: allClasses
       }];
     }
+    
+    console.log('[CONSOLIDATED_BULLETIN] No classes found in any format');
     return [];
   }, [classesData, user]);
 
   // Flatten classes for compatibility
   const classes = useMemo(() => {
-    return schoolsWithClasses.flatMap((school: any) => 
+    const flatClasses = schoolsWithClasses.flatMap((school: any) => 
       (school.classes || []).map((cls: any) => ({
         ...cls,
         schoolName: school.schoolName,
         schoolId: school.schoolId
       }))
     );
+    console.log('[CONSOLIDATED_BULLETIN] Flattened classes:', flatClasses);
+    return flatClasses;
   }, [schoolsWithClasses]);
 
   // Check sandbox mode and data availability  
