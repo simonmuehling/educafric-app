@@ -651,24 +651,34 @@ export default function ReportCardPreview({
           {/* Third Trimester Annual Summary */}
           {isThirdTrimester && annualSummary && (
             <div className="mt-6 border-2 border-orange-300 rounded-xl p-4 bg-orange-50">
-              <h3 className="text-lg font-semibold text-orange-800 mb-3">{labels.annualSummary}</h3>
+              <h3 className="text-lg font-semibold text-orange-800 mb-3">
+                {language === 'fr' ? 'Résumé Annuel' : 'Annual Summary'}
+              </h3>
               
               {/* Trimester Averages */}
               <div className="grid grid-cols-4 gap-3 mb-4">
                 <div className="text-center">
-                  <div className="text-xs text-gray-600">{labels.firstTrimester}</div>
+                  <div className="text-xs text-gray-600">
+                    {language === 'fr' ? '1er T.' : '1st T.'}
+                  </div>
                   <div className="text-sm font-semibold">{annualSummary.firstTrimesterAverage}/20</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-600">{labels.secondTrimester}</div>
+                  <div className="text-xs text-gray-600">
+                    {language === 'fr' ? '2e T.' : '2nd T.'}
+                  </div>
                   <div className="text-sm font-semibold">{annualSummary.secondTrimesterAverage}/20</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-600">{labels.thirdTrimester}</div>
+                  <div className="text-xs text-gray-600">
+                    {language === 'fr' ? '3e T.' : '3rd T.'}
+                  </div>
                   <div className="text-sm font-semibold">{annualSummary.thirdTrimesterAverage}/20</div>
                 </div>
                 <div className="text-center bg-white rounded border p-2">
-                  <div className="text-xs text-orange-700 font-medium">{labels.annualAverage}</div>
+                  <div className="text-xs text-orange-700 font-medium">
+                    {language === 'fr' ? 'Moyenne Annuelle' : 'Annual Average'}
+                  </div>
                   <div className="text-lg font-bold text-orange-800">{annualSummary.annualAverage}/20</div>
                 </div>
               </div>
@@ -676,11 +686,15 @@ export default function ReportCardPreview({
               {/* Annual Rank and Pass Decision */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center border rounded p-2">
-                  <div className="text-xs text-gray-600">{labels.annualRank}</div>
+                  <div className="text-xs text-gray-600">
+                    {language === 'fr' ? 'Rang Annuel' : 'Annual Rank'}
+                  </div>
                   <div className="text-sm font-semibold">{annualSummary.annualRank}e / {annualSummary.totalStudents}</div>
                 </div>
                 <div className="text-center border rounded p-2">
-                  <div className="text-xs text-gray-600">{labels.passDecision}</div>
+                  <div className="text-xs text-gray-600">
+                    {language === 'fr' ? 'Décision de Passage' : 'Pass Decision'}
+                  </div>
                   <div className={`text-sm font-bold ${
                     annualSummary.passDecision === 'PASSE' ? 'text-green-700' : 
                     annualSummary.passDecision === 'REDOUBLE' ? 'text-orange-700' : 'text-red-700'
@@ -693,7 +707,9 @@ export default function ReportCardPreview({
               {/* Final Appreciation */}
               {annualSummary.finalAppreciation && (
                 <div className="mb-3">
-                  <div className="text-xs text-gray-600 font-medium">{labels.finalAppreciation}</div>
+                  <div className="text-xs text-gray-600 font-medium">
+                    {language === 'fr' ? 'Appréciation Finale' : 'Final Appreciation'}
+                  </div>
                   <div className="text-sm italic bg-white border rounded p-2">{annualSummary.finalAppreciation}</div>
                 </div>
               )}
@@ -701,7 +717,9 @@ export default function ReportCardPreview({
               {/* Holiday Recommendations */}
               {annualSummary.holidayRecommendations && (
                 <div>
-                  <div className="text-xs text-gray-600 font-medium">{labels.holidayRecommendations}</div>
+                  <div className="text-xs text-gray-600 font-medium">
+                    {language === 'fr' ? 'Recommandations pour les Vacances' : 'Holiday Recommendations'}
+                  </div>
                   <div className="text-sm bg-white border rounded p-2">{annualSummary.holidayRecommendations}</div>
                 </div>
               )}
@@ -711,7 +729,9 @@ export default function ReportCardPreview({
           {/* Overall Average and Verification Code */}
           <div className="mt-4 flex justify-center gap-4">
             <div className="rounded-xl border p-3 w-48">
-              <div className="text-xs text-gray-500 text-center">{labels.overallAvg}</div>
+              <div className="text-xs text-gray-500 text-center">
+                {language === 'fr' ? 'Moyenne Générale' : 'Overall Average'}
+              </div>
               <div className="text-2xl font-semibold text-center">{moyenne}/20</div>
             </div>
             {(student as any).verificationCode && (
@@ -725,9 +745,21 @@ export default function ReportCardPreview({
 
           {/* Signatures */}
           <div className="mt-10 grid grid-cols-3 gap-4 text-xs">
-            <div className="text-center"><div>{labels.principal}</div><div className="h-14"/><div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div></div>
-            <div className="text-center"><div>{labels.homeTeacherSig}</div><div className="h-14"/><div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div></div>
-            <div className="text-center"><div>{labels.parentSig}</div><div className="h-14"/><div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div></div>
+            <div className="text-center">
+              <div>{language === 'fr' ? 'Chef d\'établissement' : 'Principal / Head of School'}</div>
+              <div className="h-14"/>
+              <div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div>
+            </div>
+            <div className="text-center">
+              <div>{language === 'fr' ? 'Professeur principal' : 'Homeroom Teacher'}</div>
+              <div className="h-14"/>
+              <div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div>
+            </div>
+            <div className="text-center">
+              <div>{language === 'fr' ? 'Parent / Tuteur' : 'Parent / Guardian'}</div>
+              <div className="h-14"/>
+              <div className="font-medium">{language === 'fr' ? 'Visa' : 'Signature'}</div>
+            </div>
           </div>
         </div>
       </A4Sheet>

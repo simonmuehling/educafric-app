@@ -101,3 +101,6 @@ externalPort = 3002
 
 [agent]
 integrations = ["javascript_object_storage:1.0.0", "javascript_database:1.0.0", "javascript_sendgrid:1.0.0", "javascript_log_in_with_replit:1.0.0", "javascript_stripe:1.0.0"]
+
+[objectStorage]
+defaultBucketID = "replit-objstore-5e32ab65-3e75-45f8-b547-a6f9ea5bc61a"

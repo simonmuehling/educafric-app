@@ -39,23 +39,39 @@ interface Subject {
   cote: string;
 }
 
+// Ministry-compliant StudentInfo interface with ALL required fields
 interface StudentInfo {
   name: string;
-  id: string;
+  id: string; // Unique Identification number
   classLabel: string;
-  classSize: number;
+  classSize: number; // Class enrolment
   birthDate: string;
   birthPlace: string;
   gender: string;
-  headTeacher: string;
-  guardian: string;
+  headTeacher: string; // Class master
+  guardian: string; // Parent's/Guardian's name and contact
+  // NEW: Ministry required fields
+  isRepeater: boolean; // Repeater: Yes/No
+  numberOfSubjects: number; // Number of subjects
+  numberOfPassed: number; // Number passed
+  // School official information that can be overridden
+  schoolName?: string;
+  regionaleMinisterielle?: string; // DÉLÉGATION RÉGIONALE DE
+  delegationDepartementale?: string; // DÉLÉGATION DÉPARTEMENTALE DE
+  schoolAddress?: string;
+  schoolPhone?: string;
 }
 
+// Ministry-compliant DisciplineInfo interface with extended fields
 interface DisciplineInfo {
-  absJ: number;
-  absNJ: number;
-  late: number;
-  sanctions: number;
+  absJ: number; // Justified Abs (h)
+  absNJ: number; // Unjustified Abs. (h)
+  late: number; // Late (nbr of times)
+  sanctions: number; // Conduct Warning/Reprimand
+  // NEW: Extended discipline fields from ministry documents
+  punishmentHours: number; // Punishment (hours)
+  suspension: number; // Suspension days
+  dismissal: boolean; // Dismissed (yes/no)
 }
 
 // Grade calculation functions for Cameroon system
@@ -251,7 +267,17 @@ export default function BulletinCreationInterface() {
     birthPlace: '',
     gender: '',
     headTeacher: '',
-    guardian: ''
+    guardian: '',
+    // NEW: Ministry required fields
+    isRepeater: false,
+    numberOfSubjects: 0,
+    numberOfPassed: 0,
+    // School official information
+    schoolName: '',
+    regionaleMinisterielle: '',
+    delegationDepartementale: '',
+    schoolAddress: '',
+    schoolPhone: ''
   });
 
   const [studentPhotoUrl, setStudentPhotoUrl] = useState(testStudentPhoto1);
@@ -318,7 +344,11 @@ export default function BulletinCreationInterface() {
     absJ: 0,
     absNJ: 0,
     late: 0,
-    sanctions: 0
+    sanctions: 0,
+    // NEW: Extended discipline fields
+    punishmentHours: 0,
+    suspension: 0,
+    dismissal: false
   });
   
   // Check if this is third trimester for annual summary
@@ -362,7 +392,11 @@ export default function BulletinCreationInterface() {
         absJ: baseJustifiedAbs,
         absNJ: baseUnjustifiedAbs,
         late: baseLates,
-        sanctions: baseSanctions
+        sanctions: baseSanctions,
+        // NEW: Extended discipline fields
+        punishmentHours: 0,
+        suspension: 0,
+        dismissal: false
       });
 
       // Show success message
@@ -656,6 +690,19 @@ export default function BulletinCreationInterface() {
       female: "Féminin",
       homeTeacher: "Professeur principal",
       guardian: "Parents/Tuteurs",
+      // NEW: Ministry required field labels
+      isRepeater: "Redoublant",
+      numberOfSubjects: "Nombre de matières",
+      numberOfPassed: "Nombre réussi",
+      schoolName: "Nom de l'école",
+      regionaleMinisterielle: "Délégation régionale",
+      delegationDepartementale: "Délégation départementale",
+      schoolAddress: "Adresse de l'école",
+      schoolPhone: "Téléphone de l'école",
+      // Extended discipline fields
+      punishmentHours: "Punition (heures)",
+      suspension: "Suspension (jours)",
+      dismissal: "Renvoi",
       subjectsGrades: "Notes par matière",
       addSubject: "Ajouter",
       subject: "Matière",
@@ -719,8 +766,21 @@ export default function BulletinCreationInterface() {
       selectGender: "Select",
       male: "Male",
       female: "Female", 
-      homeTeacher: "Homeroom teacher",
+      homeTeacher: "Homeroom teacher", 
       guardian: "Parents/Guardians",
+      // NEW: Ministry required field labels
+      isRepeater: "Repeater",
+      numberOfSubjects: "Number of subjects",
+      numberOfPassed: "Number passed",
+      schoolName: "School name",
+      regionaleMinisterielle: "Regional delegation",
+      delegationDepartementale: "Departmental delegation",
+      schoolAddress: "School address",
+      schoolPhone: "School phone",
+      // Extended discipline fields
+      punishmentHours: "Punishment (hours)",
+      suspension: "Suspension (days)",
+      dismissal: "Dismissal",
       subjectsGrades: "Subject grades",
       addSubject: "Add",
       subject: "Subject",
@@ -887,7 +947,17 @@ export default function BulletinCreationInterface() {
                     birthPlace: selectedStudent.birthPlace || '',
                     gender: selectedStudent.gender || '',
                     headTeacher: selectedStudent.headTeacher || '',
-                    guardian: selectedStudent.guardian || selectedStudent.parentName || ''
+                    guardian: selectedStudent.guardian || selectedStudent.parentName || '',
+                    // NEW: Ministry required fields
+                    isRepeater: selectedStudent.isRepeater || false,
+                    numberOfSubjects: selectedStudent.numberOfSubjects || 0,
+                    numberOfPassed: selectedStudent.numberOfPassed || 0,
+                    // School official information
+                    schoolName: selectedStudent.schoolName || '',
+                    regionaleMinisterielle: selectedStudent.regionaleMinisterielle || '',
+                    delegationDepartementale: selectedStudent.delegationDepartementale || '',
+                    schoolAddress: selectedStudent.schoolAddress || '',
+                    schoolPhone: selectedStudent.schoolPhone || ''
                   });
                   
                   // Auto-fill subjects with grades from teachers
@@ -1026,6 +1096,119 @@ export default function BulletinCreationInterface() {
                     onChange={(e) => setStudent({...student, guardian: e.target.value})}
                     placeholder="Mr & Mrs NDONGO"
                   />
+                </div>
+
+                {/* NEW: Ministry Required Fields - Academic Status */}
+                <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                  <div className="border-t pt-4 mt-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 bg-yellow-50 p-2 rounded border-l-4 border-yellow-400">
+                      📋 {language === 'fr' ? 'Informations Académiques (Obligatoire Ministère)' : 'Academic Information (Ministry Required)'}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="isRepeater" className="flex items-center space-x-2">
+                          <Input
+                            id="isRepeater"
+                            type="checkbox"
+                            checked={student.isRepeater}
+                            onChange={(e) => setStudent({...student, isRepeater: e.target.checked})}
+                            className="w-4 h-4"
+                            data-testid="input-is-repeater"
+                          />
+                          <span>{labels[language].isRepeater}</span>
+                        </Label>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="numberOfSubjects">{labels[language].numberOfSubjects}</Label>
+                        <Input
+                          id="numberOfSubjects"
+                          type="number"
+                          value={student.numberOfSubjects}
+                          onChange={(e) => setStudent({...student, numberOfSubjects: parseInt(e.target.value) || 0})}
+                          placeholder="12"
+                          data-testid="input-number-subjects"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="numberOfPassed">{labels[language].numberOfPassed}</Label>
+                        <Input
+                          id="numberOfPassed"
+                          type="number"
+                          value={student.numberOfPassed}
+                          onChange={(e) => setStudent({...student, numberOfPassed: parseInt(e.target.value) || 0})}
+                          placeholder="8"
+                          data-testid="input-number-passed"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* NEW: School Official Information */}
+                <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                  <div className="border-t pt-4 mt-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 bg-blue-50 p-2 rounded border-l-4 border-blue-400">
+                      🏫 {language === 'fr' ? 'Informations Officielles École' : 'Official School Information'}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="schoolName">{labels[language].schoolName}</Label>
+                        <Input
+                          id="schoolName"
+                          value={student.schoolName}
+                          onChange={(e) => setStudent({...student, schoolName: e.target.value})}
+                          placeholder="Collège Notre-Dame de Fatima"
+                          data-testid="input-school-name"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="regionaleMinisterielle">{labels[language].regionaleMinisterielle}</Label>
+                        <Input
+                          id="regionaleMinisterielle"
+                          value={student.regionaleMinisterielle}
+                          onChange={(e) => setStudent({...student, regionaleMinisterielle: e.target.value})}
+                          placeholder="Délégation Régionale du Littoral"
+                          data-testid="input-regionale-ministerielle"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="delegationDepartementale">{labels[language].delegationDepartementale}</Label>
+                        <Input
+                          id="delegationDepartementale"
+                          value={student.delegationDepartementale}
+                          onChange={(e) => setStudent({...student, delegationDepartementale: e.target.value})}
+                          placeholder="Délégation Départementale du Wouri"
+                          data-testid="input-delegation-departementale"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="schoolPhone">{labels[language].schoolPhone}</Label>
+                        <Input
+                          id="schoolPhone"
+                          value={student.schoolPhone}
+                          onChange={(e) => setStudent({...student, schoolPhone: e.target.value})}
+                          placeholder="+237 233 12 34 56"
+                          data-testid="input-school-phone"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <Label htmlFor="schoolAddress">{labels[language].schoolAddress}</Label>
+                        <Input
+                          id="schoolAddress"
+                          value={student.schoolAddress}
+                          onChange={(e) => setStudent({...student, schoolAddress: e.target.value})}
+                          placeholder="BP 1234, Douala, Cameroun"
+                          data-testid="input-school-address"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -1781,6 +1964,56 @@ export default function BulletinCreationInterface() {
                     onChange={(e) => setDiscipline({...discipline, sanctions: parseInt(e.target.value) || 0})}
                     className="bg-red-50 border-red-200"
                   />
+                </div>
+
+                {/* NEW: Extended Ministry-Required Discipline Fields */}
+                <div>
+                  <Label htmlFor="punishmentHours" className="flex items-center">
+                    {labels[language].punishmentHours}
+                    <Badge variant="outline" className="ml-2 text-xs bg-yellow-100">Ministry</Badge>
+                  </Label>
+                  <Input
+                    id="punishmentHours"
+                    data-testid="input-punishment-hours"
+                    type="number"
+                    min="0"
+                    value={discipline.punishmentHours}
+                    onChange={(e) => setDiscipline({...discipline, punishmentHours: parseInt(e.target.value) || 0})}
+                    className="bg-yellow-50 border-yellow-200"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="suspension" className="flex items-center">
+                    {labels[language].suspension}
+                    <Badge variant="outline" className="ml-2 text-xs bg-yellow-100">Ministry</Badge>
+                  </Label>
+                  <Input
+                    id="suspension"
+                    data-testid="input-suspension"
+                    type="number"
+                    min="0"
+                    value={discipline.suspension}
+                    onChange={(e) => setDiscipline({...discipline, suspension: parseInt(e.target.value) || 0})}
+                    className="bg-orange-50 border-orange-200"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="dismissal" className="flex items-center space-x-2">
+                    <Input
+                      id="dismissal"
+                      type="checkbox"
+                      checked={discipline.dismissal}
+                      onChange={(e) => setDiscipline({...discipline, dismissal: e.target.checked})}
+                      className="w-4 h-4"
+                      data-testid="input-dismissal"
+                    />
+                    <span>{labels[language].dismissal}</span>
+                    <Badge variant="outline" className="ml-2 text-xs bg-yellow-100">Ministry</Badge>
+                  </Label>
                 </div>
               </div>
 
