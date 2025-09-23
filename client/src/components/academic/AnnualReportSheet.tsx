@@ -13,6 +13,7 @@ interface AnnualReportSheetProps {
     birthPlace?: string;
     guardian?: string;
     schoolMatricule?: string;
+    photoUrl?: string;
   };
   schoolInfo?: {
     name: string;
@@ -231,16 +232,43 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
         <h3 className="font-bold text-sm mb-3 bg-gray-100 p-2">
           {t.studentInfo}
         </h3>
-        <div className="grid grid-cols-2 gap-6 text-sm">
-          <div className="space-y-2">
-            <div><strong>{t.student}:</strong> {student.name}</div>
-            <div><strong>{t.matricule}:</strong> {student.id}</div>
-            <div><strong>{t.class}:</strong> {student.classLabel}</div>
+        <div className="flex gap-6">
+          <div className="flex-1 grid grid-cols-2 gap-6 text-sm">
+            <div className="space-y-2">
+              <div><strong>{t.student}:</strong> {student.name}</div>
+              <div><strong>{t.matricule}:</strong> {student.id}</div>
+              <div><strong>{t.class}:</strong> {student.classLabel}</div>
+            </div>
+            <div className="space-y-2">
+              <div><strong>{t.born}:</strong> {student.birthDate} {t.at} {student.birthPlace}</div>
+              <div><strong>Genre/Gender:</strong> {student.gender}</div>
+              <div><strong>{t.guardian}:</strong> {student.guardian}</div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <div><strong>{t.born}:</strong> {student.birthDate} {t.at} {student.birthPlace}</div>
-            <div><strong>Genre/Gender:</strong> {student.gender}</div>
-            <div><strong>{t.guardian}:</strong> {student.guardian}</div>
+          
+          {/* Student Photo - Ministry Standard (24mm x 32mm) */}
+          <div className="flex-shrink-0">
+            {student.photoUrl ? (
+              <div className="border-2 border-black p-1 bg-white">
+                <img 
+                  src={student.photoUrl} 
+                  alt="Photo de l'élève / Student Photo" 
+                  className="student-photo-annual-report w-16 h-20 object-cover"
+                  style={{ width: '24mm', height: '32mm' }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="border-2 border-black p-1 bg-gray-50 w-16 h-20 flex items-center justify-center text-center">
+                <div className="text-xs text-gray-500" style={{ width: '24mm', height: '32mm', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                  <div>📷</div>
+                  <div>PHOTO</div>
+                  <div>ÉLÈVE</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

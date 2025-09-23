@@ -2487,7 +2487,8 @@ export default function BulletinCreationInterface() {
                 birthDate: student.birthDate,
                 birthPlace: student.birthPlace,
                 guardian: student.guardian,
-                schoolMatricule: student.id
+                schoolMatricule: student.id,
+                photoUrl: studentPhotoUrl
               }}
               schoolInfo={{
                 name: student.schoolName || 'LYCÉE DE……….',
