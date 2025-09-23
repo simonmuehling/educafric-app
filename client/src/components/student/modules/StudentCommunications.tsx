@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   MessageSquare, Eye, Reply, RefreshCw, 
   AlertCircle, CheckCircle, Clock, User, School 
@@ -319,160 +320,183 @@ const StudentCommunications: React.FC = () => {
         </Button>
       </div>
 
-      {/* Communication Sections */}
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
-        {/* Write to Teachers */}
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold">
-              <User className="w-5 h-5 mr-2 inline" />
-              {t.writeToTeacher}
-            </h3>
-          </CardHeader>
-          <CardContent>
-            <Dialog open={isTeacherMessageOpen} onOpenChange={setIsTeacherMessageOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 w-full" data-testid="button-write-teacher">
-                  <User className="w-4 h-4 mr-2" />
-                  {t.writeToTeacher}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>{t.writeToTeacher}</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">{t.selectTeacher}</label>
-                    <Select value={teacherForm.teacherId} onValueChange={(value) => setTeacherForm(prev => ({ ...prev, teacherId: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t.selectTeacher} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {teachers.map((teacher: any) => (
-                          <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                            {teacher.firstName} {teacher.lastName} - {teacher.subject}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">{t.messageSubject}</label>
-                    <Input
-                      value={teacherForm.subject}
-                      onChange={(e) => setTeacherForm(prev => ({ ...prev, subject: e.target.value }))}
-                      placeholder={t.subjectPlaceholder}
-                      data-testid="input-teacher-subject"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">{t.messageContent}</label>
-                    <Textarea
-                      value={teacherForm.message}
-                      onChange={(e) => setTeacherForm(prev => ({ ...prev, message: e.target.value }))}
-                      placeholder={t.contentPlaceholder}
-                      rows={4}
-                      data-testid="textarea-teacher-message"
-                    />
-                  </div>
-                  <div className="text-xs text-blue-600">
-                    {t.notificationInfo}
-                  </div>
-                  <div className="flex gap-2 pt-4">
-                    <Button 
-                      onClick={handleSendToTeacher}
-                      disabled={sendTeacherMessageMutation.isPending || !teacherForm.teacherId || !teacherForm.subject || !teacherForm.message}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700"
-                      data-testid="button-send-teacher"
-                    >
-                      {sendTeacherMessageMutation.isPending ? t.sending : t.send}
-                    </Button>
-                    <Button variant="outline" onClick={() => setIsTeacherMessageOpen(false)}>
-                      {t.cancel}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
+      {/* Communication Tabs - Optimized for Mobile */}
+      <Tabs defaultValue="teachers" className="mb-6">
+        <TabsList className="grid w-full grid-cols-2 h-12 bg-gray-100 rounded-lg p-1">
+          <TabsTrigger 
+            value="teachers" 
+            className="flex items-center justify-center space-x-1 md:space-x-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-md transition-all duration-200"
+            data-testid="tab-teachers"
+          >
+            <User className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="text-xs md:text-sm font-medium hidden sm:inline">Enseignants</span>
+            <span className="text-xs md:text-sm font-medium sm:hidden">Prof</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="school" 
+            className="flex items-center justify-center space-x-1 md:space-x-2 data-[state=active]:bg-green-500 data-[state=active]:text-white rounded-md transition-all duration-200"
+            data-testid="tab-school"
+          >
+            <School className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="text-xs md:text-sm font-medium hidden sm:inline">École</span>
+            <span className="text-xs md:text-sm font-medium sm:hidden">École</span>
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Write to School */}
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold">
-              <School className="w-5 h-5 mr-2 inline" />
-              {t.writeToSchool}
-            </h3>
-          </CardHeader>
-          <CardContent>
-            <Dialog open={isSchoolMessageOpen} onOpenChange={setIsSchoolMessageOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700 w-full" data-testid="button-write-school">
-                  <School className="w-4 h-4 mr-2" />
-                  {t.writeToSchool}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>{t.writeToSchool}</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">{t.selectSchoolContact}</label>
-                    <Select value={schoolForm.recipientType} onValueChange={(value) => setSchoolForm(prev => ({ ...prev, recipientType: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t.selectSchoolContact} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="administration">{t.administration}</SelectItem>
-                        <SelectItem value="director">{t.director}</SelectItem>
-                        <SelectItem value="student_services">{t.studentServices}</SelectItem>
-                      </SelectContent>
-                    </Select>
+        <TabsContent value="teachers" className="mt-4">
+          <Card>
+            <CardHeader>
+              <h3 className="text-lg font-semibold">
+                <User className="w-5 h-5 mr-2 inline" />
+                {t.writeToTeacher}
+              </h3>
+            </CardHeader>
+            <CardContent>
+              <Dialog open={isTeacherMessageOpen} onOpenChange={setIsTeacherMessageOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-blue-600 hover:bg-blue-700 w-full" data-testid="button-write-teacher">
+                    <User className="w-4 h-4 mr-2" />
+                    {t.writeToTeacher}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>{t.writeToTeacher}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">{t.selectTeacher}</label>
+                      <Select value={teacherForm.teacherId} onValueChange={(value) => setTeacherForm(prev => ({ ...prev, teacherId: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t.selectTeacher} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {teachers.map((teacher: any) => (
+                            <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                              {teacher.firstName} {teacher.lastName} - {teacher.subject}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">{t.messageSubject}</label>
+                      <Input
+                        value={teacherForm.subject}
+                        onChange={(e) => setTeacherForm(prev => ({ ...prev, subject: e.target.value }))}
+                        placeholder={t.subjectPlaceholder}
+                        data-testid="input-teacher-subject"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">{t.messageContent}</label>
+                      <Textarea
+                        value={teacherForm.message}
+                        onChange={(e) => setTeacherForm(prev => ({ ...prev, message: e.target.value }))}
+                        placeholder={t.contentPlaceholder}
+                        rows={4}
+                        data-testid="textarea-teacher-message"
+                      />
+                    </div>
+                    <div className="text-xs text-blue-600">
+                      {t.notificationInfo}
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <Button 
+                        onClick={handleSendToTeacher}
+                        disabled={sendTeacherMessageMutation.isPending || !teacherForm.teacherId || !teacherForm.subject || !teacherForm.message}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                        data-testid="button-send-teacher"
+                      >
+                        {sendTeacherMessageMutation.isPending ? t.sending : t.send}
+                      </Button>
+                      <Button variant="outline" onClick={() => setIsTeacherMessageOpen(false)}>
+                        {t.cancel}
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">{t.messageSubject}</label>
-                    <Input
-                      value={schoolForm.subject}
-                      onChange={(e) => setSchoolForm(prev => ({ ...prev, subject: e.target.value }))}
-                      placeholder={t.subjectPlaceholder}
-                      data-testid="input-school-subject"
-                    />
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="school" className="mt-4">
+          <Card>
+            <CardHeader>
+              <h3 className="text-lg font-semibold">
+                <School className="w-5 h-5 mr-2 inline" />
+                {t.writeToSchool}
+              </h3>
+            </CardHeader>
+            <CardContent>
+              <Dialog open={isSchoolMessageOpen} onOpenChange={setIsSchoolMessageOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-green-600 hover:bg-green-700 w-full" data-testid="button-write-school">
+                    <School className="w-4 h-4 mr-2" />
+                    {t.writeToSchool}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>{t.writeToSchool}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">{t.selectSchoolContact}</label>
+                      <Select value={schoolForm.recipientType} onValueChange={(value) => setSchoolForm(prev => ({ ...prev, recipientType: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t.selectSchoolContact} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="administration">{t.administration}</SelectItem>
+                          <SelectItem value="director">{t.director}</SelectItem>
+                          <SelectItem value="student_services">{t.studentServices}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">{t.messageSubject}</label>
+                      <Input
+                        value={schoolForm.subject}
+                        onChange={(e) => setSchoolForm(prev => ({ ...prev, subject: e.target.value }))}
+                        placeholder={t.subjectPlaceholder}
+                        data-testid="input-school-subject"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">{t.messageContent}</label>
+                      <Textarea
+                        value={schoolForm.message}
+                        onChange={(e) => setSchoolForm(prev => ({ ...prev, message: e.target.value }))}
+                        placeholder={t.contentPlaceholder}
+                        rows={4}
+                        data-testid="textarea-school-message"
+                      />
+                    </div>
+                    <div className="text-xs text-blue-600">
+                      {t.notificationInfo}
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <Button 
+                        onClick={handleSendToSchool}
+                        disabled={sendSchoolMessageMutation.isPending || !schoolForm.recipientType || !schoolForm.subject || !schoolForm.message}
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        data-testid="button-send-school"
+                      >
+                        {sendSchoolMessageMutation.isPending ? t.sending : t.send}
+                      </Button>
+                      <Button variant="outline" onClick={() => setIsSchoolMessageOpen(false)}>
+                        {t.cancel}
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">{t.messageContent}</label>
-                    <Textarea
-                      value={schoolForm.message}
-                      onChange={(e) => setSchoolForm(prev => ({ ...prev, message: e.target.value }))}
-                      placeholder={t.contentPlaceholder}
-                      rows={4}
-                      data-testid="textarea-school-message"
-                    />
-                  </div>
-                  <div className="text-xs text-blue-600">
-                    {t.notificationInfo}
-                  </div>
-                  <div className="flex gap-2 pt-4">
-                    <Button 
-                      onClick={handleSendToSchool}
-                      disabled={sendSchoolMessageMutation.isPending || !schoolForm.recipientType || !schoolForm.subject || !schoolForm.message}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      data-testid="button-send-school"
-                    >
-                      {sendSchoolMessageMutation.isPending ? t.sending : t.send}
-                    </Button>
-                    <Button variant="outline" onClick={() => setIsSchoolMessageOpen(false)}>
-                      {t.cancel}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
-      </div>
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Messages List */}
       {(Array.isArray(messages) ? messages.length : 0) === 0 ? (
