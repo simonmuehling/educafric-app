@@ -356,40 +356,6 @@ export default function ReportCardPreview({
             </div>
           </div>
 
-          {/* Ministry Performance Grid - EXACT from documents */}
-          <div className="mb-6">
-            <h3 className="text-sm font-bold text-center mb-3">{PERFORMANCE_GRID[language].title}</h3>
-            <table className="w-full text-[8px] border border-black">
-              <thead>
-                <tr className="bg-gray-100">
-                  {PERFORMANCE_GRID[language].headers.map((header, idx) => (
-                    <th key={idx} className="border border-black p-1 font-bold text-center">{header}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {PERFORMANCE_GRID[language].levels.map((level, levelIdx) => (
-                  level.ranges.map((range, rangeIdx) => (
-                    <tr key={`${levelIdx}-${rangeIdx}`}>
-                      {rangeIdx === 0 && (
-                        <td rowSpan={level.ranges.length} className="border border-black p-1 text-center font-semibold">
-                          {level.level}
-                        </td>
-                      )}
-                      <td className="border border-black p-1 text-center">{range}</td>
-                      <td className="border border-black p-1 text-center font-bold">{level.grades[rangeIdx]}</td>
-                      <td className="border border-black p-1 text-center">{level.percentages[rangeIdx]}</td>
-                      {rangeIdx === 0 && (
-                        <td rowSpan={level.ranges.length} className="border border-black p-1 text-[7px]">
-                          {level.appreciation}
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                ))}
-              </tbody>
-            </table>
-          </div>
 
           {/* EXACT Ministry Subject Table - MUST match documents precisely */}
           <div className="mt-6 overflow-auto">

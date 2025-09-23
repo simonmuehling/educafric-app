@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer, Users } from 'lucide-react';
+import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer, Users, Info } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -15,6 +15,30 @@ import ReportCardPreview from './ReportCardPreview';
 import AnnualReportSheet from './AnnualReportSheet';
 
 // Real school data fetching (useQuery already imported above)
+
+// Ministry Performance Grid - EXACT from documents for reference purposes
+const PERFORMANCE_GRID = {
+  fr: {
+    title: "GRILLE DE NOTATION",
+    headers: ["NIVEAU DE RENDEMENT", "NOTE/20", "COTE", "NOTE EN POURCENTAGE (%)", "APPRECIATION"],
+    levels: [
+      { level: "Niveau 4", ranges: ["18 → 20", "16 → 18"], grades: ["A+", "A"], percentages: ["De 90% à 100%", "De 80 à 89%"], appreciation: "Compétences très bien acquises (CTBA)" },
+      { level: "Niveau 3", ranges: ["15 → 16", "14 → 15"], grades: ["B+", "B"], percentages: ["De 75 à 79%", "De 70 à 74%"], appreciation: "Compétences bien acquises (CBA)" },
+      { level: "Niveau 2", ranges: ["12 → 14", "10 → 12"], grades: ["C+", "C"], percentages: ["De 60 à 69%", "De 50 à 59%"], appreciation: "Compétences acquises (CA)\nCompétences moyennement acquises (CMA)" },
+      { level: "Niveau 1", ranges: ["< 10"], grades: ["D"], percentages: ["< 50%"], appreciation: "Compétences non acquises (CNA)" }
+    ]
+  },
+  en: {
+    title: "PERFORMANCE GRID",
+    headers: ["LEVEL OF PERFORMANCE", "MARK/20", "GRADE", "MARK IN PERCENTAGE (%)", "REMARKS"],
+    levels: [
+      { level: "Level 4", ranges: ["18 → 20", "16 → 18"], grades: ["A+", "A"], percentages: ["From 90% to 100%", "From 80 to 89%"], appreciation: "Competences Very Well Acquired (CVWA)" },
+      { level: "Level 3", ranges: ["15 → 16", "14 → 15"], grades: ["B+", "B"], percentages: ["From 75 to 79%", "From 70 to 74%"], appreciation: "Competences Well Acquired (CWA)" },
+      { level: "Level 2", ranges: ["12 → 14", "10 → 12"], grades: ["C+", "C"], percentages: ["From 60 to 69%", "From 50 to 59%"], appreciation: "Competences Acquired (CA)\nCompetences Averagely Acquired (CAA)" },
+      { level: "Level 1", ranges: ["< 10"], grades: ["D"], percentages: ["< 50%"], appreciation: "Competences Not Acquired (CNA)" }
+    ]
+  }
+};
 
 interface Subject {
   id: string;
@@ -1324,6 +1348,52 @@ export default function BulletinCreationInterface() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Ministry Performance Grid - Reference for grading */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                <h3 className="text-sm font-bold text-blue-800 mb-3 flex items-center">
+                  <Info className="h-4 w-4 mr-2" />
+                  {PERFORMANCE_GRID[language].title}
+                </h3>
+                <p className="text-xs text-blue-600 mb-3">
+                  {language === 'fr' 
+                    ? 'Guide de référence pour l\'attribution des notes et cotes conformément au système CBA du Ministère'
+                    : 'Reference guide for grade assignment and grading according to the Ministry\'s CBA system'
+                  }
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs border border-blue-300 bg-white">
+                    <thead>
+                      <tr className="bg-blue-100">
+                        {PERFORMANCE_GRID[language].headers.map((header, idx) => (
+                          <th key={idx} className="border border-blue-300 p-2 font-bold text-center text-blue-800">{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {PERFORMANCE_GRID[language].levels.map((level, levelIdx) => (
+                        level.ranges.map((range, rangeIdx) => (
+                          <tr key={`${levelIdx}-${rangeIdx}`} className="hover:bg-blue-50">
+                            {rangeIdx === 0 && (
+                              <td rowSpan={level.ranges.length} className="border border-blue-300 p-2 text-center font-semibold text-blue-700">
+                                {level.level}
+                              </td>
+                            )}
+                            <td className="border border-blue-300 p-2 text-center">{range}</td>
+                            <td className="border border-blue-300 p-2 text-center font-bold text-green-700">{level.grades[rangeIdx]}</td>
+                            <td className="border border-blue-300 p-2 text-center">{level.percentages[rangeIdx]}</td>
+                            {rangeIdx === 0 && (
+                              <td rowSpan={level.ranges.length} className="border border-blue-300 p-2 text-xs text-gray-700">
+                                {level.appreciation}
+                              </td>
+                            )}
+                          </tr>
+                        ))
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
               {/* Table structure matching official Cameroon bulletin format */}
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse min-w-[800px]">
