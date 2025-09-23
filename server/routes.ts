@@ -4274,15 +4274,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== STUDENT COMMUNICATIONS API - FILTRAGE AUTOMATIQUE CLASSE/PARENTS =====
+  // ===== STUDENT COMMUNICATIONS API - RESTRICTION ÉCOLE/ENSEIGNANTS SEULEMENT =====
   
   app.get("/api/student/messages", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
       
-      // 🔄 SYNCHRONISATION AUTOMATIQUE AVEC FILTRAGE STRICT
-      console.log('[STUDENT_MESSAGES] 🔄 Filtering messages for student class and parents...');
-      console.log('[STUDENT_MESSAGES] 📡 Fetching messages from class teachers and parents only...');
+      // 🔄 RESTRICTION STRICTE: Uniquement école et enseignants (pas de parents)
+      console.log('[STUDENT_MESSAGES] 🔄 Filtering messages from school and teachers only...');
+      console.log('[STUDENT_MESSAGES] 📡 Fetching messages from class teachers and school administration only...');
       
       // Récupérer l'ID de l'école et la classe de l'étudiant
       const studentSchoolId = user.schoolId || 1;
@@ -4292,7 +4292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[STUDENT_MESSAGES] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
       console.log(`[STUDENT_MESSAGES] 👨‍🎓 Student ID: ${studentId}`);
       
-      // Messages filtrés STRICTEMENT : Uniquement enseignants de classe + parents de l'étudiant
+      // Messages filtrés STRICTEMENT : Uniquement enseignants de classe + administration école
       const filteredMessages = [
         // MESSAGES DES ENSEIGNANTS DE SA CLASSE UNIQUEMENT
         {
@@ -4343,54 +4343,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isClassTeacher: true,
           lastUpdated: '2025-09-08T11:30:00Z'
         },
-        // MESSAGES DE SES PARENTS UNIQUEMENT
+        // MESSAGES DE L'ADMINISTRATION ÉCOLE SEULEMENT
         {
           id: 4,
-          from: 'Papa Kouame',
-          fromRole: 'Parent',
-          fromId: 25,
-          subject: 'Félicitations pour tes notes',
-          message: 'Mon fils, ta maman et moi sommes très fiers de tes résultats en mathématiques ! Continue tes efforts. Nous croyons en toi.',
-          date: '2025-09-07T19:00:00Z',
-          read: false,
-          type: 'parent',
-          priority: 'normal',
-          parentRelation: 'Père',
-          studentId: studentId,
-          isStudentParent: true, // Confirme que c'est SON parent
-          lastUpdated: '2025-09-07T19:00:00Z'
-        },
-        {
-          id: 5,
-          from: 'Maman Kouame', 
-          fromRole: 'Parent',
-          fromId: 26,
-          subject: 'Rendez-vous médical demain',
-          message: 'Bonjour mon chéri, n\'oublie pas que tu as rendez-vous chez le dentiste demain à 14h. Je viendrai te chercher à l\'école.',
-          date: '2025-09-06T18:30:00Z',
-          read: true,
-          type: 'parent',
-          priority: 'high',
-          parentRelation: 'Mère',
-          studentId: studentId,
-          isStudentParent: true,
-          lastUpdated: '2025-09-06T18:30:00Z'
-        },
-        // MESSAGE ADMINISTRATION (autorisé car concerne TOUS les élèves)
-        {
-          id: 6,
           from: 'Direction École',
           fromRole: 'Admin',
           fromId: 1,
           subject: 'Tournoi de football inter-classes',
           message: 'Les inscriptions pour le tournoi de football inter-classes sont ouvertes jusqu\'au 15 septembre. Inscription auprès de votre professeur d\'EPS.',
-          date: '2025-09-05T10:00:00Z',
-          read: true,
+          date: '2025-09-07T10:00:00Z',
+          read: false,
           type: 'admin',
           priority: 'normal',
           targetAudience: 'all_students',
           schoolId: studentSchoolId,
-          lastUpdated: '2025-09-05T10:00:00Z'
+          lastUpdated: '2025-09-07T10:00:00Z'
+        },
+        {
+          id: 5,
+          from: 'Secrétariat École',
+          fromRole: 'Admin',
+          fromId: 2,
+          subject: 'Convocation réunion parents-professeurs',
+          message: 'La réunion parents-professeurs aura lieu le samedi 30 septembre de 9h à 12h. Merci d\'informer vos parents.',
+          date: '2025-09-06T14:30:00Z',
+          read: true,
+          type: 'admin',
+          priority: 'high',
+          targetAudience: 'all_students',
+          schoolId: studentSchoolId,
+          lastUpdated: '2025-09-06T14:30:00Z'
         }
       ];
       
@@ -4411,13 +4393,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // 📊 CALCUL STATISTIQUES FILTRAGE
       const teacherMessages = processedMessages.filter(m => m.type === 'teacher').length;
-      const parentMessages = processedMessages.filter(m => m.type === 'parent').length;
       const adminMessages = processedMessages.filter(m => m.type === 'admin').length;
       const unreadMessages = processedMessages.filter(m => !m.read).length;
       const recentMessages = processedMessages.filter(m => m.isNew).length;
       
-      console.log(`[STUDENT_MESSAGES] ✅ Filtered ${processedMessages.length} messages correctly`);
-      console.log(`[STUDENT_MESSAGES] 👨‍🏫 Class teachers: ${teacherMessages}, 👨‍👩‍👧‍👦 Parents: ${parentMessages}, 🏫 Admin: ${adminMessages}`);
+      console.log(`[STUDENT_MESSAGES] ✅ Filtered ${processedMessages.length} messages correctly (teachers: ${teacherMessages}, admin: ${adminMessages}, no parents)`);
+      console.log(`[STUDENT_MESSAGES] 👨‍🏫 Class teachers: ${teacherMessages}, 🏫 Admin: ${adminMessages}`);
       console.log(`[STUDENT_MESSAGES] 📬 Unread: ${unreadMessages}, 🔄 Recent (2h): ${recentMessages}`);
       console.log(`[STUDENT_MESSAGES] 🔄 Last sync: ${new Date().toISOString()}`);
       
@@ -4427,7 +4408,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stats: {
           total: processedMessages.length,
           teachers: teacherMessages,
-          parents: parentMessages,
           admin: adminMessages,
           unread: unreadMessages,
           recent: recentMessages
@@ -4436,10 +4416,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           studentClass,
           studentSchoolId,
           onlyClassTeachers: true,
-          onlyStudentParents: true
+          onlySchoolAdmin: true,
+          noParents: true
         },
         syncTime: new Date().toISOString(),
-        message: 'Messages filtered by class teachers and student parents only'
+        message: 'Messages filtered by class teachers and school administration only (no parents)'
       });
     } catch (error) {
       console.error('[STUDENT_MESSAGES] Error:', error);
