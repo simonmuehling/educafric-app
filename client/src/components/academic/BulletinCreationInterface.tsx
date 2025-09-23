@@ -64,14 +64,14 @@ const calculatePercentage = (grade: number): number => {
 };
 
 const calculateCote = (grade: number): string => {
-  const percentage = calculatePercentage(grade);
-  if (percentage >= 90) return 'A+';
-  if (percentage >= 80) return 'A';
-  if (percentage >= 75) return 'B+';
-  if (percentage >= 70) return 'B';
-  if (percentage >= 60) return 'C+';
-  if (percentage >= 50) return 'C';
-  return 'D';
+  // Official CBA grading system from Cameroon documents
+  if (grade >= 18) return 'A+';  // Level 4: 18-20 (90-100%)
+  if (grade >= 16) return 'A';   // Level 4: 16-18 (80-89%)
+  if (grade >= 15) return 'B+';  // Level 3: 15-16 (75-79%)
+  if (grade >= 14) return 'B';   // Level 3: 14-15 (70-74%)
+  if (grade >= 12) return 'C+';  // Level 2: 12-14 (60-69%)
+  if (grade >= 10) return 'C';   // Level 2: 10-12 (50-59%)
+  return 'D';                    // Level 1: <10 (<50%)
 };
 
 // Helper functions for Cameroon bulletin format
@@ -100,14 +100,17 @@ export default function BulletinCreationInterface() {
   const [selectedCompetencySystem, setSelectedCompetencySystem] = useState<any>(null);
 
   // Dynamic function to calculate competency level based on the selected system
+  // Updated to match exact CBA official Cameroon format from documents
   const calculateCompetencyLevel = (grade: number): string => {
     if (!selectedCompetencySystem?.levels) {
-      // Fallback to default system based on language
-      if (grade >= 16) return language === 'fr' ? 'CTBA' : 'CVWA';
-      if (grade >= 14) return language === 'fr' ? 'CBA' : 'CWA';
-      if (grade >= 12) return 'CA'; // Same in both systems
-      if (grade >= 10) return language === 'fr' ? 'CMA' : 'CAA';
-      return 'CNA'; // Same in both systems
+      // Official CBA system based on documents - exact grading scale
+      if (grade >= 18) return language === 'fr' ? 'CTBA' : 'CVWA'; // Level 4: 18-20 (A+)
+      if (grade >= 16) return language === 'fr' ? 'CTBA' : 'CVWA'; // Level 4: 16-18 (A)
+      if (grade >= 15) return language === 'fr' ? 'CBA' : 'CWA';   // Level 3: 15-16 (B+)
+      if (grade >= 14) return language === 'fr' ? 'CBA' : 'CWA';   // Level 3: 14-15 (B)
+      if (grade >= 12) return 'CA'; // Level 2: 12-14 (C+)
+      if (grade >= 10) return language === 'fr' ? 'CMA' : 'CAA';   // Level 2: 10-12 (C)
+      return 'CNA'; // Level 1: <10 (D)
     }
 
     // Sort levels by gradeRange.min descending to ensure proper classification
@@ -1269,6 +1272,126 @@ export default function BulletinCreationInterface() {
                     />
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section Disciplinaire - Format CBA Officiel */}
+          <Card className="border-orange-200">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2 text-orange-700">
+                📊 {language === 'fr' ? 'Assiduité et Discipline' : 'Attendance and Discipline'}
+              </CardTitle>
+              <p className="text-sm text-orange-600 mt-1">
+                {language === 'fr' ? 'Informations disciplinaires selon le format CBA officiel' : 'Disciplinary information according to official CBA format'}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">
+                    {language === 'fr' ? 'Absences justifiées (h)' : 'Justified Abs. (h)'}
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={discipline.absJ}
+                    onChange={(e) => setDiscipline({...discipline, absJ: parseInt(e.target.value) || 0})}
+                    className="border-orange-200 focus:border-orange-400"
+                    data-testid="input-abs-justified"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">
+                    {language === 'fr' ? 'Absences non justifiées (h)' : 'Unjustified Abs. (h)'}
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={discipline.absNJ}
+                    onChange={(e) => setDiscipline({...discipline, absNJ: parseInt(e.target.value) || 0})}
+                    className="border-orange-200 focus:border-orange-400"
+                    data-testid="input-abs-unjustified"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">
+                    {language === 'fr' ? 'Retards (nombre)' : 'Late (nbr of times)'}
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={discipline.late}
+                    onChange={(e) => setDiscipline({...discipline, late: parseInt(e.target.value) || 0})}
+                    className="border-orange-200 focus:border-orange-400"
+                    data-testid="input-late-count"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">
+                    {language === 'fr' ? 'Sanctions (heures)' : 'Punishment (hours)'}
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={discipline.sanctions}
+                    onChange={(e) => setDiscipline({...discipline, sanctions: parseInt(e.target.value) || 0})}
+                    className="border-orange-200 focus:border-orange-400"
+                    data-testid="input-sanctions"
+                  />
+                </div>
+              </div>
+
+              {/* Sanctions spécifiques selon format CBA */}
+              <div className="mt-4 pt-4 border-t border-orange-200">
+                <Label className="text-sm font-medium mb-3 block">
+                  {language === 'fr' ? 'Types de sanctions (format CBA)' : 'Sanction Types (CBA format)'}
+                </Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="conduct-warning" className="rounded" />
+                    <label htmlFor="conduct-warning" className="text-sm">
+                      {language === 'fr' ? 'Avertissement de conduite' : 'Conduct Warning'}
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="reprimand" className="rounded" />
+                    <label htmlFor="reprimand" className="text-sm">
+                      {language === 'fr' ? 'Blâme' : 'Reprimand'}
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="suspension" className="rounded" />
+                    <label htmlFor="suspension" className="text-sm">
+                      {language === 'fr' ? 'Suspension' : 'Suspension'}
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="dismissed" className="rounded" />
+                    <label htmlFor="dismissed" className="text-sm">
+                      {language === 'fr' ? 'Renvoyé' : 'Dismissed'}
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Calcul automatique button */}
+              <div className="mt-4 pt-4 border-t border-orange-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => calculateDisciplineData(student.id, trimester)}
+                  className="text-orange-700 border-orange-300 hover:bg-orange-50"
+                  data-testid="button-auto-calculate-discipline"
+                >
+                  📊 {language === 'fr' ? 'Calculer automatiquement' : 'Auto-calculate'}
+                </Button>
+                <p className="text-xs text-orange-600 mt-1">
+                  {language === 'fr' 
+                    ? 'Génère automatiquement les données d\'assiduité pour ce trimestre'
+                    : 'Automatically generates attendance data for this trimester'}
+                </p>
               </div>
             </CardContent>
           </Card>
