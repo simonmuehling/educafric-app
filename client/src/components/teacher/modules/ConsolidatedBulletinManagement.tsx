@@ -38,6 +38,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
   const queryClient = useQueryClient();
 
   // State management
+  const [selectedSchool, setSelectedSchool] = useState<string>('');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedTerm, setSelectedTerm] = useState<'T1' | 'T2' | 'T3'>('T1');
   const [academicYear, setAcademicYear] = useState('2024-2025');
@@ -51,6 +52,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
     fr: {
       title: 'Gestion des Bulletins - Format CBA',
       subtitle: 'Création et suivi des bulletins scolaires selon le format CBA officiel camerounais',
+      selectSchool: 'Sélectionner une école',
       selectClass: 'Sélectionner une classe',
       selectTerm: 'Sélectionner un trimestre',
       manualDataEntry: 'Saisie manuelle',
@@ -80,6 +82,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
     en: {
       title: 'Report Card Management - CBA Format',
       subtitle: 'Creation and tracking of report cards according to official Cameroonian CBA format',
+      selectSchool: 'Select a school',
       selectClass: 'Select a class',
       selectTerm: 'Select a term',
       manualDataEntry: 'Manual Entry',
@@ -122,15 +125,9 @@ const ConsolidatedBulletinManagement: React.FC = () => {
 
   // Extract schools and classes from response
   const schoolsWithClasses = useMemo(() => {
-    console.log('[CONSOLIDATED_BULLETIN] Raw classesData:', classesData);
-    
-    if (!classesData) {
-      console.log('[CONSOLIDATED_BULLETIN] No classesData available');
-      return [];
-    }
+    if (!classesData) return [];
     
     if (classesData.schoolsWithClasses && Array.isArray(classesData.schoolsWithClasses)) {
-      console.log('[CONSOLIDATED_BULLETIN] Using schoolsWithClasses:', classesData.schoolsWithClasses);
       return classesData.schoolsWithClasses;
     }
     
@@ -143,29 +140,39 @@ const ConsolidatedBulletinManagement: React.FC = () => {
     }
     
     if (allClasses.length > 0) {
-      console.log('[CONSOLIDATED_BULLETIN] Using fallback format with classes:', allClasses);
       return [{
         schoolId: user?.schoolId || 1,
         schoolName: 'École Principale',
         classes: allClasses
       }];
     }
-    
-    console.log('[CONSOLIDATED_BULLETIN] No classes found in any format');
     return [];
   }, [classesData, user]);
 
-  // Flatten classes for compatibility
+  // Extract schools list for dropdown
+  const schools = useMemo(() => {
+    return schoolsWithClasses.map((school: any) => ({
+      id: String(school.schoolId),
+      name: school.schoolName
+    }));
+  }, [schoolsWithClasses]);
+
+  // Extract classes for selected school
+  const availableClasses = useMemo(() => {
+    if (!selectedSchool) return [];
+    const school = schoolsWithClasses.find((s: any) => String(s.schoolId) === selectedSchool);
+    return school?.classes || [];
+  }, [schoolsWithClasses, selectedSchool]);
+
+  // Flatten classes for compatibility (used for stats)
   const classes = useMemo(() => {
-    const flatClasses = schoolsWithClasses.flatMap((school: any) => 
+    return schoolsWithClasses.flatMap((school: any) => 
       (school.classes || []).map((cls: any) => ({
         ...cls,
         schoolName: school.schoolName,
         schoolId: school.schoolId
       }))
     );
-    console.log('[CONSOLIDATED_BULLETIN] Flattened classes:', flatClasses);
-    return flatClasses;
   }, [schoolsWithClasses]);
 
   // Check sandbox mode and data availability  
@@ -212,6 +219,14 @@ const ConsolidatedBulletinManagement: React.FC = () => {
       student.matricule?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [students, searchQuery]);
+
+  // School change handler
+  const handleSchoolChange = useCallback((schoolId: string) => {
+    setSelectedSchool(schoolId);
+    setSelectedClass('');
+    setSelectedStudentForEntry(null);
+    setSearchQuery('');
+  }, []);
 
   // Class change handler
   const handleClassChange = useCallback((classId: string) => {
@@ -315,35 +330,50 @@ const ConsolidatedBulletinManagement: React.FC = () => {
         </Card>
       )}
 
-      {/* Class and Term Selection */}
+      {/* School, Class and Term Selection */}
       <Card>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* School Selection */}
             <div className="space-y-2">
-              <Label>{t.selectClass}</Label>
-              <Select value={selectedClass} onValueChange={handleClassChange} data-testid="select-class">
+              <Label>{t.selectSchool}</Label>
+              <Select value={selectedSchool} onValueChange={handleSchoolChange} data-testid="select-school">
                 <SelectTrigger>
-                  <SelectValue placeholder={t.selectClass} />
+                  <SelectValue placeholder={t.selectSchool} />
                 </SelectTrigger>
                 <SelectContent>
-                  {schoolsWithClasses.map((school: any) => (
-                    <div key={school.schoolId}>
-                      {schoolsWithClasses.length > 1 && (
-                        <div className="px-2 py-1.5 text-sm font-semibold text-gray-600 bg-gray-50">
-                          🏫 {school.schoolName}
-                        </div>
-                      )}
-                      {(school.classes || []).map((cls: any) => (
-                        <SelectItem key={cls.id} value={cls.id.toString()}>
-                          {cls.name} - {cls.level}
-                        </SelectItem>
-                      ))}
-                    </div>
+                  {schools.map((school: any) => (
+                    <SelectItem key={school.id} value={String(school.id)}>
+                      🏫 {school.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Class Selection */}
+            <div className="space-y-2">
+              <Label>{t.selectClass}</Label>
+              <Select 
+                value={selectedClass} 
+                onValueChange={handleClassChange} 
+                disabled={!selectedSchool}
+                data-testid="select-class"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={selectedSchool ? t.selectClass : "Sélectionnez d'abord une école"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableClasses.map((cls: any) => (
+                    <SelectItem key={cls.id} value={String(cls.id)}>
+                      {cls.name} - {cls.level}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             
+            {/* Term Selection */}
             <div className="space-y-2">
               <Label>{t.selectTerm}</Label>
               <Select value={selectedTerm} onValueChange={(value: 'T1' | 'T2' | 'T3') => setSelectedTerm(value)} data-testid="select-term">
@@ -544,16 +574,19 @@ const ConsolidatedBulletinManagement: React.FC = () => {
         </Tabs>
       )}
 
-      {/* No Class Selected State */}
-      {!selectedClass && !hasNoData && (
+      {/* No School/Class Selected State */}
+      {(!selectedSchool || !selectedClass) && !hasNoData && (
         <Card className="text-center py-12">
           <CardContent>
             <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-              {t.selectClass}
+              {!selectedSchool ? t.selectSchool : t.selectClass}
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Sélectionnez une classe pour commencer la gestion des bulletins CBA
+              {!selectedSchool 
+                ? "Sélectionnez une école pour commencer la gestion des bulletins CBA"
+                : "Sélectionnez une classe pour commencer la gestion des bulletins CBA"
+              }
             </p>
           </CardContent>
         </Card>
