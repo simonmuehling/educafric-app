@@ -620,8 +620,8 @@ export default function BulletinCreationInterface() {
         motto: ''
       };
 
-      // Call PDF generation API
-      const response = await fetch('/api/comprehensive-bulletin/generate-pdf', {
+      // Call simplified PDF generation API
+      const response = await fetch('/api/simple-bulletin/generate-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
