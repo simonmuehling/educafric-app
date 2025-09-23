@@ -472,12 +472,17 @@ const ConsolidatedBulletinManagement: React.FC = () => {
                 {/* Bulletin Creation Interface */}
                 {selectedStudentForEntry && (
                   <div className="border-t pt-6">
-                    <BulletinCreationInterface
-                      studentId={selectedStudentForEntry.toString()}
-                      initialTrimester={getTrimesterLabel(selectedTerm)}
-                      initialYear={academicYear}
-                      teacherMode={true}
-                    />
+                    <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                      <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                        Mode Enseignant - Bulletin CBA
+                      </h3>
+                      <p className="text-blue-700 dark:text-blue-300 text-sm">
+                        Élève sélectionné: {filteredStudents.find((s: any) => s.id === selectedStudentForEntry)?.firstName} {filteredStudents.find((s: any) => s.id === selectedStudentForEntry)?.lastName} | 
+                        Trimestre: {getTrimesterLabel(selectedTerm)} | 
+                        Année: {academicYear}
+                      </p>
+                    </div>
+                    <BulletinCreationInterface />
                   </div>
                 )}
               </CardContent>

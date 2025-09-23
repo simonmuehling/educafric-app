@@ -162,9 +162,9 @@ class FastModuleLoader {
       'teacher-attendance': () => import('@/components/teacher/modules/FunctionalTeacherAttendance'),
       'teacher-assignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
       'teacher-content': () => import('@/components/teacher/modules/CreateEducationalContent'),
-      'teacher-bulletins': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Unified bulletin system  
-      'teacher-reports': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Teacher reports/bulletins (same as bulletins)
-      'bulletins': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Teacher bulletin generator (overrides student version)
+      'teacher-bulletins': () => import('@/components/teacher/modules/ConsolidatedBulletinManagement'), // ✅ Système consolidé CBA 
+      'teacher-reports': () => import('@/components/teacher/modules/ConsolidatedBulletinManagement'), // ✅ Rapports et bulletins unifiés
+      'bulletins': () => import('@/components/teacher/modules/ConsolidatedBulletinManagement'), // ✅ Générateur de bulletins consolidé
       'teacher-communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
       'teacher.communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'), // Role-namespaced
       'teacher.messages': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'), // Role-namespaced
@@ -178,7 +178,7 @@ class FastModuleLoader {
       'FunctionalTeacherAssignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
       'CreateEducationalContent': () => import('@/components/teacher/modules/CreateEducationalContent'),
       'FunctionalTeacherCommunications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
-      'ReportCardManagement': () => import('@/components/teacher/modules/ReportCardManagement'),
+      'ReportCardManagement': () => import('@/components/teacher/modules/ConsolidatedBulletinManagement'),
       
       // =============================================
       // 🎓 FREELANCER MODULES - SEPARATE SECTION
