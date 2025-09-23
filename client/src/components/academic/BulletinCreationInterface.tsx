@@ -10,6 +10,7 @@ import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer, 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 // Print CSS approach for ministry-grade output quality
 import ReportCardPreview from './ReportCardPreview';
 import AnnualReportSheet from './AnnualReportSheet';
@@ -168,6 +169,7 @@ const coteFromNote = (note: number): string => {
 
 export default function BulletinCreationInterface() {
   const { language } = useLanguage();
+  const { toast } = useToast();
   
   // State for selected competency system
   const [selectedCompetencySystem, setSelectedCompetencySystem] = useState<any>(null);
@@ -581,13 +583,18 @@ export default function BulletinCreationInterface() {
     try {
       console.log('🔄 Generating PDF download...');
       
+      // Calculate overall average
+      const totalCoef = subjects.reduce((sum, s) => sum + (s.coefficient || 0), 0);
+      const totalMxCoef = subjects.reduce((sum, s) => sum + (s.moyenneFinale || 0) * (s.coefficient || 0), 0);
+      const overallAverage = totalCoef ? (totalMxCoef / totalCoef) : 0;
+      
       // Prepare bulletin data for PDF generation
       const bulletinData = {
         studentName: student.name,
         classLabel: student.classLabel,
         term: trimester,
         academicYear: year,
-        generalAverage: moyenne.toFixed(2),
+        generalAverage: overallAverage.toFixed(2),
         subjects: subjects.map(subject => ({
           id: subject.id,
           name: subject.name,
@@ -595,7 +602,7 @@ export default function BulletinCreationInterface() {
           moyenneFinale: subject.moyenneFinale,
           coefficient: subject.coefficient,
           remark: subject.remark,
-          teacher: subject.teacher || 'Enseignant'
+          teacher: (subject as any).teacher || 'Enseignant'
         }))
       };
 
@@ -604,7 +611,7 @@ export default function BulletinCreationInterface() {
         name: student.name,
         matricule: student.id,
         birthDate: student.birthDate,
-        classId: student.classId,
+        classId: (student as any).classId || student.id,
         classLabel: student.classLabel,
         photoUrl: studentPhotoUrl
       };
@@ -749,9 +756,13 @@ export default function BulletinCreationInterface() {
         setIsSigned(true);
         
         // Afficher message de succès avec instructions de vérification
-        toast.success(language === 'fr' 
-          ? `✅ Bulletin envoyé avec succès ! Vérifiez sur educafric.com/verify avec le code ${responseData.data.shortCode}`
-          : `✅ Bulletin sent successfully! Verify at educafric.com/verify with code ${responseData.data.shortCode}`);
+        toast({
+          title: "✅ " + (language === 'fr' ? 'Bulletin envoyé avec succès !' : 'Bulletin sent successfully!'),
+          description: language === 'fr' 
+            ? `Vérifiez sur educafric.com/verify avec le code ${responseData.data.shortCode}`
+            : `Verify at educafric.com/verify with code ${responseData.data.shortCode}`,
+          duration: 5000
+        });
         
         // Simuler les notifications aux élèves et parents
         console.log('📧 Notifications envoyées:');
@@ -760,9 +771,13 @@ export default function BulletinCreationInterface() {
         
         // Message additionnel pour les notifications
         setTimeout(() => {
-          toast.success(language === 'fr'
-            ? '📧 Notifications envoyées: Élève (email+push) et Parent (email+SMS)'
-            : '📧 Notifications sent: Student (email+push) and Parent (email+SMS)');
+          toast({
+            title: "📧 " + (language === 'fr' ? 'Notifications envoyées' : 'Notifications sent'),
+            description: language === 'fr'
+              ? 'Élève (email+push) et Parent (email+SMS)'
+              : 'Student (email+push) and Parent (email+SMS)',
+            duration: 4000
+          });
         }, 1500);
       } else {
         throw new Error(responseData.message || 'Erreur lors de la signature');
