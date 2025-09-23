@@ -786,13 +786,13 @@ export default function ManualBulletinForm({
       lignes: rows.map(r => ({
         matiere: r.matiere,
         enseignant: r.enseignant,
-        competences: r.competences,
-        n20: Number(r.n20) || null,
-        m20: Number(r.m20) || null,
+        competences: `${r.competence1 || ''}${r.competence2 ? '; ' + r.competence2 : ''}`,
+        n20: Number(r.note1) || null,
+        m20: Number(r.note2) || null,
         coef: Number(r.coef) || 0,
-        mxcoef: Number(r.m20 || 0) * Number(r.coef || 0),
-        cote: r.cote || (r.m20 !== '' && r.m20 != null ? coteFromNote(r.m20) : ''),
-        appreciation: r.appreciation || (r.m20 !== '' && r.m20 != null ? appreciationFromNote(r.m20, predefinedAppreciations) : ''),
+        mxcoef: Number(r.note2 || 0) * Number(r.coef || 0),
+        cote: r.cote || (r.note2 !== '' && r.note2 != null ? coteFromNote(r.note2) : ''),
+        appreciation: r.appreciation || (r.note2 !== '' && r.note2 != null ? appreciationFromNote(r.note2, predefinedAppreciations) : ''),
       })),
       totaux: totals,
       discipline: {
@@ -1116,7 +1116,7 @@ export default function ManualBulletinForm({
                           rows={2} 
                           value={r.appreciation} 
                           onChange={e=>updateRow(i,{appreciation:e.target.value})} 
-                          placeholder={appreciationFromNote(moyenneFinale, predefinedAppreciations)}
+                          placeholder={appreciationFromNote(r.moyenneFinale, predefinedAppreciations)}
                           data-testid={`textarea-appreciation-${i}`}
                         />
                         
@@ -1137,18 +1137,24 @@ export default function ManualBulletinForm({
                               📝 Appréciations suggérées
                             </div>
                             {predefinedAppreciations?.data?.filter((app: any) => 
-                              (!app.gradeRange || (Number(moyenneFinale) >= app.gradeRange.min && Number(moyenneFinale) < app.gradeRange.max))
+                              (!app.gradeRange || (Number(r.moyenneFinale) >= app.gradeRange.min && Number(r.moyenneFinale) < app.gradeRange.max))
                             ).slice(0, 8).map((appreciation: any) => (
                               <SelectItem 
                                 key={appreciation.id} 
-                                value={appreciation.appreciation}
+                                value={language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn}
                                 data-testid={`option-appreciation-${appreciation.id}`}
                                 className="cursor-pointer hover:bg-blue-50"
                               >
                                 <div className="text-xs leading-relaxed py-1">
-                                  {appreciation.appreciation?.length > 45 
-                                    ? appreciation.appreciation.substring(0, 45) + "..." 
-                                    : appreciation.appreciation}
+                                  <div className="font-medium text-gray-900 mb-1">{appreciation.name}</div>
+                                  <div className="text-gray-600">
+                                    {(language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn)?.length > 60 
+                                      ? (language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn).substring(0, 60) + "..." 
+                                      : (language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn)}
+                                  </div>
+                                  {appreciation.subjectContext && (
+                                    <div className="text-xs text-blue-600 font-medium mt-1">{appreciation.subjectContext}</div>
+                                  )}
                                 </div>
                               </SelectItem>
                             ))}
@@ -1353,15 +1359,14 @@ export default function ManualBulletinForm({
             <h3 className="font-semibold mb-2">Appréciations Générales</h3>
             <div className="grid gap-2">
               <LabeledTextArea 
-                label="Appréciation générale du trimestre" 
+                label={language === 'fr' ? "Appréciation générale du trimestre" : "General term appreciation"}
                 value={generalRemark} 
                 onChange={setGeneralRemark} 
                 rows={4}
-                placeholder="Appréciation générale sur le travail et le comportement de l'élève..."
                 data-testid="textarea-general-remark"
               />
               <LabeledTextArea 
-                label="Appréciation du travail de l'élève (points forts / à améliorer)" 
+                label={language === 'fr' ? "Appréciation du travail de l'élève (points forts / à améliorer)" : "Student work assessment (strengths / to improve)"}
                 value={meta.appEleve} 
                 onChange={v=>setMeta(m=>({...m,appEleve:v}))} 
                 rows={3}
@@ -1385,31 +1390,27 @@ export default function ManualBulletinForm({
               <h3 className="font-semibold mb-3 text-orange-800">Bilan Annuel - Troisième Trimestre</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                 <NumberField 
-                  label="Moyenne 1er Trimestre" 
+                  label={language === 'fr' ? "Moyenne 1er Trimestre" : "First Term Average"}
                   value={annualSummary.firstTrimesterAverage} 
                   onChange={v=>setAnnualSummary(prev=>({...prev,firstTrimesterAverage:Number(v)||0}))}
-                  step="0.01"
                   data-testid="input-first-trimester-average"
                 />
                 <NumberField 
-                  label="Moyenne 2ème Trimestre" 
+                  label={language === 'fr' ? "Moyenne 2ème Trimestre" : "Second Term Average"}
                   value={annualSummary.secondTrimesterAverage} 
                   onChange={v=>setAnnualSummary(prev=>({...prev,secondTrimesterAverage:Number(v)||0}))}
-                  step="0.01"
                   data-testid="input-second-trimester-average"
                 />
                 <NumberField 
-                  label="Moyenne 3ème Trimestre" 
+                  label={language === 'fr' ? "Moyenne 3ème Trimestre" : "Third Term Average"}
                   value={annualSummary.thirdTrimesterAverage} 
                   onChange={v=>setAnnualSummary(prev=>({...prev,thirdTrimesterAverage:Number(v)||0}))}
-                  step="0.01"
                   data-testid="input-third-trimester-average"
                 />
                 <NumberField 
-                  label="Moyenne Annuelle" 
+                  label={language === 'fr' ? "Moyenne Annuelle" : "Annual Average"}
                   value={annualSummary.annualAverage} 
                   onChange={v=>setAnnualSummary(prev=>({...prev,annualAverage:Number(v)||0}))}
-                  step="0.01"
                   data-testid="input-annual-average"
                 />
                 <NumberField 
