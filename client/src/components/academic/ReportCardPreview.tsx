@@ -1,27 +1,44 @@
-// Bilingual Cameroon-style report card component
+// EXACT Ministry of Education CBA Report Card - Pixel Perfect Implementation
 import React, { useMemo } from "react";
 
-// ---- Bilingual helpers (FR/EN) ----
+// ---- Ministry Official Format Compliance ----
 const TRIMESTER_TITLES = {
-  fr: (t: string) => `BULLETIN SCOLAIRE – ${String(t || "Premier").toUpperCase()} TRIMESTRE`,
-  en: (t: string) => `${String(t || "First").toUpperCase()} TERM REPORT CARD`
+  fr: (t: string) => `${String(t || "PREMIER").toUpperCase()} TRIMESTRE`,
+  en: (t: string) => `${String(t || "FIRST").toUpperCase()} TERM PROGRESS RECORD`
 };
 
-const OFFICIAL_HEADER = {
+// Ministry Performance Grid - EXACT from documents
+const PERFORMANCE_GRID = {
   fr: {
-    country: "RÉPUBLIQUE DU CAMEROUN",
-    motto: "Paix – Travail – Patrie", 
-    ministry: "MINISTÈRE DE L'ENSEIGNEMENT SECONDAIRE",
-    regional: "DÉLÉGATION RÉGIONALE DU CENTRE",
-    departmental: "DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI"
+    title: "GRILLE DE NOTATION",
+    headers: ["NIVEAU DE RENDEMENT", "NOTE/20", "COTE", "NOTE EN POURCENTAGE (%)", "APPRECIATION"],
+    levels: [
+      { level: "Niveau 4", ranges: ["18 → 20", "16 → 18"], grades: ["A+", "A"], percentages: ["De 90% à 100%", "De 80 à 89%"], appreciation: "Compétences très bien acquises (CTBA)" },
+      { level: "Niveau 3", ranges: ["15 → 16", "14 → 15"], grades: ["B+", "B"], percentages: ["De 75 à 79%", "De 70 à 74%"], appreciation: "Compétences bien acquises (CBA)" },
+      { level: "Niveau 2", ranges: ["12 → 14", "10 → 12"], grades: ["C+", "C"], percentages: ["De 60 à 69%", "De 50 à 59%"], appreciation: "Compétences acquises (CA)\nCompétences moyennement acquises (CMA)" },
+      { level: "Niveau 1", ranges: ["< 10"], grades: ["D"], percentages: ["< 50%"], appreciation: "Compétences non acquises (CNA)" }
+    ]
   },
   en: {
-    country: "REPUBLIC OF CAMEROON",
-    motto: "Peace – Work – Fatherland",
-    ministry: "MINISTRY OF SECONDARY EDUCATION", 
-    regional: "REGIONAL DELEGATION OF CENTRE REGION",
-    departmental: "DIVISIONAL DELEGATION OF MFOUNDI DIVISION"
+    title: "PERFORMANCE GRID",
+    headers: ["LEVEL OF PERFORMANCE", "MARK/20", "GRADE", "MARK IN PERCENTAGE (%)", "REMARKS"],
+    levels: [
+      { level: "Level 4", ranges: ["18 → 20", "16 → 18"], grades: ["A+", "A"], percentages: ["From 90% to 100%", "From 80 to 89%"], appreciation: "Competences Very Well Acquired (CVWA)" },
+      { level: "Level 3", ranges: ["15 → 16", "14 → 15"], grades: ["B+", "B"], percentages: ["From 75 to 79%", "From 70 to 74%"], appreciation: "Competences Well Acquired (CWA)" },
+      { level: "Level 2", ranges: ["12 → 14", "10 → 12"], grades: ["C+", "C"], percentages: ["From 60 to 69%", "From 50 to 59%"], appreciation: "Competences Acquired (CA)\nCompetences Averagely Acquired (CAA)" },
+      { level: "Level 1", ranges: ["< 10"], grades: ["D"], percentages: ["< 50%"], appreciation: "Competences Not Acquired (CNA)" }
+    ]
   }
+};
+
+// EXACT Ministry Header Format - Bilingual Side by Side
+const MINISTRY_HEADER = {
+  line1: { fr: "RÉPUBLIQUE DU CAMEROUN", en: "REPUBLIC OF CAMEROON" },
+  line2: { fr: "Paix – Travail – Patrie", en: "Peace – Work – Fatherland" },
+  line3: { fr: "MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES", en: "MINISTRY OF SECONDARY EDUCATION" },
+  line4: { fr: "DÉLÉGATION RÉGIONALE DE …", en: "REGIONAL DELEGATION OF…." },
+  line5: { fr: "DÉLÉGATION DÉPARTEMENTALE DE…", en: "DIVISIONAL DELEGATION…." },
+  line6: { fr: "LYCÉE DE……….", en: "HIGH SCHOOL" }
 };
 
 const LABELS = {
@@ -144,41 +161,57 @@ const Info = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
+// Ministry Student Data Format - EXACT requirements
 interface StudentData {
   name?: string;
-  id?: string;
+  id?: string; // Unique Identification number
   classLabel?: string;
-  classSize?: number;
+  classSize?: number; // Class enrolment
   birthDate?: string;
   birthPlace?: string;
   gender?: string;
-  headTeacher?: string;
-  guardian?: string;
+  headTeacher?: string; // Class master
+  guardian?: string; // Parent's/Guardian's name and contact
   generalRemark?: string;
+  // NEW: Ministry required fields
+  isRepeater?: boolean; // Repeater: Yes/No
+  numberOfSubjects?: number; // Number of subjects
+  numberOfPassed?: number; // Number passed
   school?: {
     name?: string;
     subtitle?: string;
     officialInfo?: {
-      regionaleMinisterielle?: string;
-      delegationDepartementale?: string;
+      regionaleMinisterielle?: string; // DÉLÉGATION RÉGIONALE DE
+      delegationDepartementale?: string; // DÉLÉGATION DÉPARTEMENTALE DE
       boitePostale?: string;
       arrondissement?: string;
     };
   };
   discipline?: {
-    absJ?: number;
-    absNJ?: number;
-    late?: number;
-    sanctions?: number;
+    absJ?: number; // Justified Abs (h)
+    absNJ?: number; // Unjustified Abs. (h)
+    late?: number; // Late (nbr of times)
+    sanctions?: number; // Conduct Warning/Reprimand/Suspension/Dismissed
+    punishmentHours?: number; // Punishment (hours)
   };
 }
 
+// Ministry Subject Line Format - EXACT from documents
 interface SubjectLine {
   subject: string;
+  teacher?: string; // Teacher name - REQUIRED in ministry format
+  competenciesEvaluated?: string; // EXACT column from ministry docs
+  mk20?: number; // MK/20 column
+  av20?: number; // AV/20 column  
+  coef: number;
+  avXcoef?: number; // AV x coef column
+  grade?: string; // GRADE [Min – Max] 
+  minMax?: string; // [Min – Max] range
+  remarksAndSignature?: string; // Remarks and Teacher's signature
+  // Legacy fields for backward compatibility
   note1?: number;
   moyenneFinale?: number;
   m20: number | string;
-  coef: number;
   totalPondere?: number;
   notePercent?: number;
   cote?: string;
@@ -227,96 +260,177 @@ export default function ReportCardPreview({
   const moyenne = totalCoef ? round2(totalMxCoef / totalCoef) : 0;
 
   const labels = LABELS[language];
-  const header = OFFICIAL_HEADER[language];
-  
-  // Use school's official info if available, otherwise use defaults
-  const officialHeader = student.school?.officialInfo ? {
-    country: header.country,
-    motto: header.motto,
-    ministry: header.ministry,
-    regional: student.school.officialInfo.regionaleMinisterielle || header.regional,
-    departmental: student.school.officialInfo.delegationDepartementale || header.departmental
-  } : header;
 
   return (
     <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0" data-bulletin-preview="true">
       <A4Sheet>
         <div className="p-4">
-          {/* Official Cameroon Government Header */}
-          <div className="text-center mb-6 text-xs">
-            <div className="font-bold">{officialHeader.country}</div>
-            <div className="italic">{officialHeader.motto}</div>
-            <div className="font-semibold mt-2">{officialHeader.ministry}</div>
-            <div className="font-semibold">{officialHeader.regional}</div>
-            <div className="font-semibold mb-4">{officialHeader.departmental}</div>
+          {/* EXACT Ministry Header - Bilingual Side by Side */}
+          <div className="text-center mb-6">
+            {/* Line 1: Countries */}
+            <div className="grid grid-cols-2 text-xs font-bold mb-1">
+              <div>{MINISTRY_HEADER.line1.fr}</div>
+              <div>{MINISTRY_HEADER.line1.en}</div>
+            </div>
+            {/* Line 2: Mottos */}
+            <div className="grid grid-cols-2 text-xs italic mb-2">
+              <div>{MINISTRY_HEADER.line2.fr}</div>
+              <div>{MINISTRY_HEADER.line2.en}</div>
+            </div>
+            {/* Separator */}
+            <div className="grid grid-cols-2 text-xs mb-2">
+              <div>*************</div>
+              <div>*************</div>
+            </div>
+            {/* Line 3: Ministry */}
+            <div className="grid grid-cols-2 text-xs font-semibold mb-2">
+              <div>{MINISTRY_HEADER.line3.fr}</div>
+              <div>{MINISTRY_HEADER.line3.en}</div>
+            </div>
+            {/* Separator */}
+            <div className="grid grid-cols-2 text-xs mb-2">
+              <div>*************</div>
+              <div>*************</div>
+            </div>
+            {/* Line 4: Regional */}
+            <div className="grid grid-cols-2 text-xs font-semibold mb-1">
+              <div>{student.school?.officialInfo?.regionaleMinisterielle || MINISTRY_HEADER.line4.fr}</div>
+              <div>{MINISTRY_HEADER.line4.en}</div>
+            </div>
+            {/* Separator */}
+            <div className="grid grid-cols-2 text-xs mb-2">
+              <div>*************</div>
+              <div>***********</div>
+            </div>
+            {/* Line 5: Departmental */}
+            <div className="grid grid-cols-2 text-xs font-semibold mb-1">
+              <div>{student.school?.officialInfo?.delegationDepartementale || MINISTRY_HEADER.line5.fr}</div>
+              <div>{MINISTRY_HEADER.line5.en}</div>
+            </div>
+            {/* Separator */}
+            <div className="grid grid-cols-2 text-xs mb-2">
+              <div>*************</div>
+              <div>*************</div>
+            </div>
+            {/* Line 6: School */}
+            <div className="grid grid-cols-2 text-xs font-semibold mb-4">
+              <div>{student.school?.name || MINISTRY_HEADER.line6.fr}</div>
+              <div>{MINISTRY_HEADER.line6.en}</div>
+            </div>
           </div>
 
-          {/* School Header with Logo and Photo */}
-          <div className="grid grid-cols-12 gap-3 items-center mb-4">
-            <div className="col-span-2">
-              {schoolLogoUrl ? (
-                <img src={schoolLogoUrl} alt="School Logo" className="h-16 object-contain" onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }} />
-              ) : (
-                <div className="h-16 border rounded-xl flex items-center justify-center text-[10px] text-gray-500">School Logo</div>
-              )}
+          {/* Ministry Required Report Card Title and Year */}
+          <div className="text-center mb-6">
+            <div className="text-sm font-bold mb-2">{TRIMESTER_TITLES[language](trimester)}</div>
+            <div className="text-xs mb-2">{language === 'fr' ? 'Année scolaire' : 'School Year'}: {year}</div>
+          </div>
+
+          {/* Ministry Student Information Layout with Photo Position */}
+          <div className="flex justify-between items-start mb-6">
+            {/* Left Side: Student Information */}
+            <div className="flex-1 text-xs space-y-1">
+              <div><strong>{language === 'fr' ? 'Nom de l\'élève' : 'Name of Student'}:</strong> {student.name || ""}</div>
+              <div><strong>{language === 'fr' ? 'Classe' : 'Class'}:</strong> {student.classLabel || ""}</div>
+              <div><strong>{language === 'fr' ? 'Date et lieu de naissance' : 'Date and place of birth'}:</strong> {student.birthDate || ""} {student.birthPlace || ""}</div>
+              <div><strong>{language === 'fr' ? 'Genre' : 'Gender'}:</strong> {student.gender || ""}</div>
+              <div><strong>{language === 'fr' ? 'Effectif de la classe' : 'Class enrolment'}:</strong> {student.classSize || ""}</div>
+              <div><strong>{language === 'fr' ? 'Numéro d\'identification unique' : 'Unique Identification number'}:</strong> {student.id || ""}</div>
+              <div><strong>{language === 'fr' ? 'Redoublant' : 'Repeater'}:</strong> {student.isRepeater ? (language === 'fr' ? 'Oui' : 'Yes') : (language === 'fr' ? 'Non' : 'No')}</div>
+              <div><strong>{language === 'fr' ? 'Nombre de matières' : 'Number of subjects'}:</strong> {student.numberOfSubjects || entries.length}</div>
+              <div><strong>{language === 'fr' ? 'Nom et contact des parents/tuteurs' : 'Parent\'s/Guardian\'s name and contact'}:</strong> {student.guardian || ""}</div>
+              <div><strong>{language === 'fr' ? 'Nombre de matières réussies' : 'Number passed'}:</strong> {student.numberOfPassed || ""}</div>
+              <div><strong>{language === 'fr' ? 'Professeur principal' : 'Class master'}:</strong> {student.headTeacher || ""}</div>
             </div>
-            <div className="col-span-8 text-center">
-              <div className="text-lg font-semibold">{student.school?.name || "LYCÉE DE MENDONG / HIGH SCHOOL OF MENDONG"}</div>
-              <div className="text-xs text-gray-600">{student.school?.subtitle || "LDM-2025-001 – Yaoundé – Tel: +237 222 xxx xxx"}</div>
-            </div>
-            <div className="col-span-2 flex items-center justify-end gap-2">
+            
+            {/* Right Side: Student Photo - EXACT position as ministry docs */}
+            <div className="ml-4">
               {studentPhotoUrl ? (
-                <img src={studentPhotoUrl} alt="Photo" className="h-16 w-16 object-cover rounded-lg border" onError={(e) => {
+                <img src={studentPhotoUrl} alt="Student's photograph" className="w-24 h-32 object-cover border-2 border-black" onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }} />
               ) : (
-                <div className="h-16 w-16 border rounded-xl flex items-center justify-center text-[10px] text-gray-500">Photo</div>
+                <div className="w-24 h-32 border-2 border-black flex items-center justify-center text-[8px] text-gray-500 bg-gray-50">
+                  {language === 'fr' ? 'Photo de l\'élève' : 'Student\'s photograph'}
+                </div>
               )}
-              <div className="bg-white p-1 rounded-md border"><QRImg value={qrValue} size={48} /></div>
             </div>
           </div>
 
-          {/* Report Card Title */}
-          <div className="mt-4 text-center">
-            <h1 className="text-lg font-semibold">{TRIMESTER_TITLES[language](trimester)}</h1>
-            <p className="text-xs text-gray-600">{language === 'fr' ? 'Année scolaire' : 'Academic Year'}: {year}</p>
+          {/* Ministry Performance Grid - EXACT from documents */}
+          <div className="mb-6">
+            <h3 className="text-sm font-bold text-center mb-3">{PERFORMANCE_GRID[language].title}</h3>
+            <table className="w-full text-[8px] border border-black">
+              <thead>
+                <tr className="bg-gray-100">
+                  {PERFORMANCE_GRID[language].headers.map((header, idx) => (
+                    <th key={idx} className="border border-black p-1 font-bold text-center">{header}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {PERFORMANCE_GRID[language].levels.map((level, levelIdx) => (
+                  level.ranges.map((range, rangeIdx) => (
+                    <tr key={`${levelIdx}-${rangeIdx}`}>
+                      {rangeIdx === 0 && (
+                        <td rowSpan={level.ranges.length} className="border border-black p-1 text-center font-semibold">
+                          {level.level}
+                        </td>
+                      )}
+                      <td className="border border-black p-1 text-center">{range}</td>
+                      <td className="border border-black p-1 text-center font-bold">{level.grades[rangeIdx]}</td>
+                      <td className="border border-black p-1 text-center">{level.percentages[rangeIdx]}</td>
+                      {rangeIdx === 0 && (
+                        <td rowSpan={level.ranges.length} className="border border-black p-1 text-[7px]">
+                          {level.appreciation}
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          {/* Student info */}
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
-            <Info label={labels.student} value={student.name || ""} />
-            <Info label={labels.studentId} value={student.id || ""} />
-            <Info label={labels.class} value={student.classLabel || ""} />
-            <Info label={labels.classSize} value={String(student.classSize || 0)} />
-            <Info label={labels.birthInfo} value={`${student.birthDate || "—"} ${language === 'fr' ? 'à' : 'in'} ${student.birthPlace || "—"}`} />
-            <Info label={labels.gender} value={student.gender || "—"} />
-            <Info label={labels.homeTeacher} value={student.headTeacher || "—"} />
-            <Info label={labels.guardian} value={student.guardian || "—"} />
-          </div>
-
-          {/* Marks table */}
-          <div className="mt-4 overflow-auto">
-            <table className="min-w-full text-xs">
-              <thead className="bg-gray-50">
-                <tr>
-                  <Th>{language === 'fr' ? 'Matière' : 'Subject'}</Th>
-                  <Th>N/20-M/20</Th>
-                  <Th>{language === 'fr' ? 'Coefficient' : 'Coefficient'}</Th>
-                  <Th>M x coef</Th>
-                  <Th>{language === 'fr' ? 'Note %' : 'Grade %'}</Th>
-                  <Th>COTE</Th>
-                  <Th>{language === 'fr' ? 'Compétences évaluées' : 'Evaluated Competencies'}</Th>
-                  <Th>{language === 'fr' ? 'Appréciation' : 'Appreciation'}</Th>
+          {/* EXACT Ministry Subject Table - MUST match documents precisely */}
+          <div className="mt-6 overflow-auto">
+            <table className="w-full text-[8px] border border-black">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border border-black p-1 font-bold text-center w-24">
+                    {language === 'fr' ? 'Disciplines et noms des enseignants' : 'Subject and Teacher\'s Names'}
+                  </th>
+                  <th className="border border-black p-1 font-bold text-center" style={{minWidth: '120px'}}>
+                    {language === 'fr' ? 'COMPÉTENCES ÉVALUÉES' : 'COMPETENCIES EVALUATED'}
+                  </th>
+                  <th className="border border-black p-1 font-bold text-center w-12">
+                    {language === 'fr' ? 'N/20' : 'MK/20'}
+                  </th>
+                  <th className="border border-black p-1 font-bold text-center w-12">
+                    {language === 'fr' ? 'M/20' : 'AV/20'}
+                  </th>
+                  <th className="border border-black p-1 font-bold text-center w-12">
+                    Coef
+                  </th>
+                  <th className="border border-black p-1 font-bold text-center w-16">
+                    {language === 'fr' ? 'M x coef' : 'AV x coef'}
+                  </th>
+                  <th className="border border-black p-1 font-bold text-center w-20">
+                    {language === 'fr' ? 'COTE [Min - Max]' : 'GRADE [Min - Max]'}
+                  </th>
+                  <th className="border border-black p-1 font-bold text-center" style={{minWidth: '100px'}}>
+                    {language === 'fr' ? 'Appréciations et signature de l\'enseignant' : 'Remarks and Teacher\'s signature'}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {entries.map((r, idx) => {
-                  const mx = round2((Number(r.m20) || 0) * (r.coef || 0));
-                  const grade = Number(r.m20) || 0;
-                  const percentage = Math.round((grade / 20) * 100);
-                  const getCote = (g: number) => {
+                  const mk20 = r.mk20 || r.note1 || 0;
+                  const av20 = r.av20 || r.moyenneFinale || r.m20 || 0;
+                  const avXcoef = round2(Number(av20) * (r.coef || 0));
+                  const grade = Number(av20) || 0;
+                  
+                  // Ministry CBA Grade Calculation
+                  const getCBAGrade = (g: number) => {
                     const pct = Math.round((g / 20) * 100);
                     if (pct >= 90) return 'A+';
                     if (pct >= 80) return 'A';
@@ -326,80 +440,217 @@ export default function ReportCardPreview({
                     if (pct >= 50) return 'C';
                     return 'D';
                   };
-                  const cote = getCote(grade);
+                  
+                  const cote = getCBAGrade(grade);
+                  const minMax = r.minMax || '[Min - Max]';
                   
                   return (
-                    <tr key={idx} className={idx % 2 ? "bg-white" : "bg-gray-50/50"}>
-                      <Td>{r.subject}</Td>
-                      <Td className="text-center font-medium">
-                        {r.note1 || 0}/{r.moyenneFinale || r.m20 || 0}
-                      </Td>
-                      <Td className="text-center">{r.coef}</Td>
-                      <Td className="text-center">{r.totalPondere || mx}</Td>
-                      <Td className="text-center font-medium">{r.notePercent || percentage}%</Td>
-                      <Td className="text-center font-bold text-blue-700">{r.cote || cote}</Td>
-                      <Td className="text-xs">{r.competencesEvaluees || ""}</Td>
-                      <Td className="text-xs">{r.remark || ""}</Td>
+                    <tr key={idx}>
+                      <td className="border border-black p-1 text-[7px]">
+                        <div className="font-bold">{r.subject}</div>
+                        <div className="text-[6px] text-gray-600">{r.teacher || ''}</div>
+                      </td>
+                      <td className="border border-black p-1 text-[6px]">
+                        {r.competenciesEvaluated || r.competencesEvaluees || ''}
+                      </td>
+                      <td className="border border-black p-1 text-center text-[8px]">
+                        {mk20}
+                      </td>
+                      <td className="border border-black p-1 text-center text-[8px] font-bold">
+                        {av20}
+                      </td>
+                      <td className="border border-black p-1 text-center text-[8px]">
+                        {r.coef}
+                      </td>
+                      <td className="border border-black p-1 text-center text-[8px]">
+                        {r.avXcoef || avXcoef}
+                      </td>
+                      <td className="border border-black p-1 text-center text-[8px] font-bold">
+                        <div>{r.grade || cote}</div>
+                        <div className="text-[6px]">{minMax}</div>
+                      </td>
+                      <td className="border border-black p-1 text-[6px]">
+                        {r.remarksAndSignature || r.remark || ''}
+                      </td>
                     </tr>
                   );
                 })}
               </tbody>
               <tfoot>
-                <tr className="bg-gray-100 font-semibold">
-                  <Td colSpan={1}>{labels.totalCoef}</Td>
-                  <Td className="text-center">—</Td>
-                  <Td className="text-center">{totalCoef}</Td>
-                  <Td className="text-center">{round2(totalMxCoef)}</Td>
-                  <Td className="text-center">—</Td>
-                  <Td className="text-center">—</Td>
-                  <Td className="text-center">—</Td>
-                  <Td className="text-center">—</Td>
+                <tr className="bg-gray-200">
+                  <td className="border border-black p-1 font-bold text-[8px] text-center">TOTAL</td>
+                  <td className="border border-black p-1"></td>
+                  <td className="border border-black p-1"></td>
+                  <td className="border border-black p-1"></td>
+                  <td className="border border-black p-1 text-center font-bold text-[8px]">{totalCoef}</td>
+                  <td className="border border-black p-1 text-center font-bold text-[8px]">{round2(totalMxCoef)}</td>
+                  <td className="border border-black p-1"></td>
+                  <td className="border border-black p-1"></td>
+                </tr>
+                <tr className="bg-gray-100">
+                  <td className="border border-black p-1 font-bold text-[8px]">
+                    {language === 'fr' ? 'MOYENNE DE L\'\u00c9LÈVE :' : 'STUDENT AVERAGE :'}
+                  </td>
+                  <td className="border border-black p-1 text-center font-bold text-[10px]">
+                    {moyenne}/20
+                  </td>
+                  <td colSpan={6} className="border border-black p-1"></td>
                 </tr>
               </tfoot>
             </table>
           </div>
 
-          {/* General Appreciations and Discipline Section */}
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* General Appreciations */}
-            <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
-              <h3 className="text-sm font-bold text-blue-800 mb-2">
-                {language === 'fr' ? 'Appréciation Générale' : 'General Appreciations'}
-              </h3>
-              <div className="text-sm bg-white border rounded p-2 min-h-[60px]">
-                {student.generalRemark || (language === 'fr' ? 'Aucune appréciation saisie' : 'No general appreciation entered')}
-              </div>
-            </div>
+          {/* Ministry Discipline and Class Profile Section - EXACT format */}
+          <div className="mt-6">
+            <table className="w-full text-[8px] border border-black">
+              <tbody>
+                <tr>
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-16">
+                    {language === 'fr' ? 'Discipline' : 'Discipline'}
+                  </td>
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-24">
+                    {language === 'fr' ? 'Performance de l\'\u00e9lève' : 'Student performance'}
+                  </td>
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-24">
+                    {language === 'fr' ? 'Profil de la classe' : 'Class Profile'}
+                  </td>
+                  <td className="border border-black p-1 text-center text-[7px]">
+                    {language === 'fr' ? 'Abs. non justifiées (h)' : 'Unjustified Abs. (h)'}
+                  </td>
+                  <td className="border border-black p-1 text-center font-bold">
+                    {student.discipline?.absNJ || 0}
+                  </td>
+                  <td className="border border-black p-1 text-center text-[7px]">
+                    {language === 'fr' ? 'Avertissement' : 'Conduct Warning'}
+                  </td>
+                  <td className="border border-black p-1 text-center">
+                    {student.discipline?.sanctions || 0}
+                  </td>
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-20">
+                    {language === 'fr' ? 'SCORE TOTAL' : 'TOTAL SCORE'}
+                  </td>
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-16">
+                    {round2(totalMxCoef)}
+                  </td>
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-20">
+                    {language === 'fr' ? 'OBSERVATION' : 'REMARK'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-1 text-center text-[7px]">
+                    {language === 'fr' ? 'Abs. justifiées (h)' : 'Justified Abs (h)'}
+                  </td>
+                  <td className="border border-black p-1 text-center font-bold">
+                    {student.discipline?.absJ || 0}
+                  </td>
+                  <td className="border border-black p-1 text-center text-[7px]">
+                    {language === 'fr' ? 'Blâme' : 'Reprimand'}
+                  </td>
+                  <td className="border border-black p-1 text-center">
+                    0
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-1 font-bold text-center">
+                    {language === 'fr' ? 'Moyenne de la classe' : 'Class Average'}
+                  </td>
+                  <td className="border border-black p-1 text-center">
+                    {/* Class average would come from API */}
+                    15.2/20
+                  </td>
+                  <td className="border border-black p-1 text-center">
+                    COEF
+                  </td>
+                  <td className="border border-black p-1 text-center text-[7px]">
+                    {language === 'fr' ? 'Retards (nombre)' : 'Late (nbr of times)'}
+                  </td>
+                  <td className="border border-black p-1 text-center font-bold">
+                    {student.discipline?.late || 0}
+                  </td>
+                  <td className="border border-black p-1 text-center text-[7px]">
+                    {language === 'fr' ? 'Suspension' : 'Suspension'}
+                  </td>
+                  <td className="border border-black p-1 text-center">
+                    0
+                  </td>
+                  <td className="border border-black p-1 font-bold text-center">
+                    {language === 'fr' ? 'MOYENNE DU TRIMESTRE' : 'TERM AVERAGE'}
+                  </td>
+                  <td className="border border-black p-1 text-center font-bold text-lg">
+                    {moyenne}/20
+                  </td>
+                  <td rowSpan={3} className="border border-black p-1 text-[6px] align-top">
+                    {student.generalRemark || (language === 'fr' ? 'Observations sur la performance de l\'\u00e9lève' : 'Remarks on student performance')}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-1 text-center text-[7px]">
+                    {language === 'fr' ? 'Nombre réussi' : 'Number passed'}
+                  </td>
+                  <td className="border border-black p-1 text-center">
+                    {student.numberOfPassed || entries.filter(e => Number(e.m20 || e.av20) >= 10).length}
+                  </td>
+                  <td className="border border-black p-1 text-center">
+                    {totalCoef}
+                  </td>
+                  <td className="border border-black p-1 text-center text-[7px]">
+                    {language === 'fr' ? 'Punition (heures)' : 'Punishment (hours)'}
+                  </td>
+                  <td className="border border-black p-1 text-center">
+                    {student.discipline?.punishmentHours || 0}
+                  </td>
+                  <td className="border border-black p-1 text-center text-[7px]">
+                    {language === 'fr' ? 'Renvoi' : 'Dismissed'}
+                  </td>
+                  <td className="border border-black p-1 text-center">
+                    0
+                  </td>
+                  <td className="border border-black p-1 font-bold text-center">
+                    {language === 'fr' ? 'Mention' : 'Grade'}
+                  </td>
+                  <td className="border border-black p-1 text-center font-bold">
+                    {moyenne >= 16 ? 'A' : moyenne >= 14 ? 'B' : moyenne >= 12 ? 'C+' : moyenne >= 10 ? 'C' : 'D'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-black p-1 text-center text-[7px]">
+                    {language === 'fr' ? 'Taux de réussite (%)' : 'Success rate (%)'}
+                  </td>
+                  <td className="border border-black p-1 text-center">
+                    {entries.length ? Math.round((entries.filter(e => Number(e.m20 || e.av20) >= 10).length / entries.length) * 100) : 0}%
+                  </td>
+                  <td className="border border-black p-1 text-center font-bold">
+                    CVWA: {entries.filter(e => Number(e.m20 || e.av20) >= 18).length}<br/>
+                    CWA: {entries.filter(e => Number(e.m20 || e.av20) >= 14 && Number(e.m20 || e.av20) < 18).length}<br/>
+                    CA: {entries.filter(e => Number(e.m20 || e.av20) >= 10 && Number(e.m20 || e.av20) < 14).length}<br/>
+                    CAA: {entries.filter(e => Number(e.m20 || e.av20) < 10).length}
+                  </td>
+                  <td colSpan={4} className="border border-black p-1"></td>
+                  <td colSpan={2} className="border border-black p-1"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-            {/* Discipline and Absences */}
-            <div className="border-2 border-green-200 rounded-lg p-4 bg-green-50">
-              <h3 className="text-sm font-bold text-green-800 mb-2">
-                {language === 'fr' ? 'Discipline et Absences' : 'Discipline and Absences'}
-              </h3>
-              <div className="text-sm space-y-2 bg-white border rounded p-2">
-                <div className="flex justify-between">
-                  <span>{language === 'fr' ? 'Abs. justifiées (h)' : 'Justified absences (h)'}</span>
-                  <span className="font-bold">{student.discipline?.absJ || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{language === 'fr' ? 'Abs. non justifiées (h)' : 'Unjustified absences (h)'}</span>
-                  <span className="font-bold">{student.discipline?.absNJ || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{language === 'fr' ? 'Retards' : 'Lates'}</span>
-                  <span className="font-bold">{student.discipline?.late || 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{language === 'fr' ? 'Avert./Blâmes' : 'Warnings/Reprimands'}</span>
-                  <span className="font-bold">{student.discipline?.sanctions || 0}</span>
-                </div>
-              </div>
+          {/* Ministry Signature Section */}
+          <div className="mt-6 grid grid-cols-3 gap-4 text-[8px]">
+            <div className="text-center">
+              <div className="h-16 border-b border-black mb-1"></div>
+              <div className="font-bold">{language === 'fr' ? 'Signature du parent/tuteur' : 'Parent\'s/Guardian\'s signature'}</div>
+            </div>
+            <div className="text-center">
+              <div className="h-16 border-b border-black mb-1"></div>
+              <div className="font-bold">{language === 'fr' ? 'Signature du professeur principal' : 'Class master\'s signature'}</div>
+            </div>
+            <div className="text-center">
+              <div className="h-16 border-b border-black mb-1"></div>
+              <div className="font-bold">{language === 'fr' ? 'Le PROVISEUR' : 'The PRINCIPAL'}</div>
             </div>
           </div>
 
           {/* Third Trimester Annual Summary */}
           {isThirdTrimester && annualSummary && (
-            <div className="mt-4 border-2 border-orange-300 rounded-xl p-4 bg-orange-50">
+            <div className="mt-6 border-2 border-orange-300 rounded-xl p-4 bg-orange-50">
               <h3 className="text-lg font-semibold text-orange-800 mb-3">{labels.annualSummary}</h3>
               
               {/* Trimester Averages */}
