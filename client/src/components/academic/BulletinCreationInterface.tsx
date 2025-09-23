@@ -2065,7 +2065,7 @@ function StudentSelector({ onStudentSelect, language }: StudentSelectorProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   
   // Fetch students from API
-  const { data: studentsData = [], isLoading } = useQuery({
+  const { data: apiResponse, isLoading } = useQuery({
     queryKey: ['/api/director/students'],
     queryFn: async () => {
       try {
@@ -2074,13 +2074,16 @@ function StudentSelector({ onStudentSelect, language }: StudentSelectorProps) {
         });
         if (!response.ok) throw new Error('Failed to fetch students');
         const data = await response.json();
-        return data.success ? data.students : [];
+        return data;
       } catch (error) {
         console.error('Error fetching students:', error);
-        return [];
+        return { success: false, students: [] };
       }
     }
   });
+
+  // Ensure studentsData is always an array
+  const studentsData = Array.isArray(apiResponse?.students) ? apiResponse.students : [];
 
   const handleStudentChange = async (studentId: string) => {
     setSelectedStudentId(studentId);
