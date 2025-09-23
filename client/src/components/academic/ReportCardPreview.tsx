@@ -266,10 +266,29 @@ export default function ReportCardPreview({
       <A4Sheet>
         <div className="p-4">
           {/* EXACT Ministry Header - Bilingual Side by Side with School Logo */}
-          <div className="text-center mb-6">
-            <div className="grid grid-cols-3 gap-4 items-center">
+          <div className="text-center mb-6 relative">
+            {/* School Logo - Positioned Above/Center */}
+            <div className="flex justify-center mb-4">
+              {schoolLogoUrl ? (
+                <img 
+                  src={schoolLogoUrl} 
+                  alt="Logo de l'école" 
+                  className="w-16 h-16 object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center text-[6px] text-gray-400">
+                  LOGO<br/>ÉCOLE
+                </div>
+              )}
+            </div>
+
+            {/* Bilingual Information - Full Width Side by Side */}
+            <div className="grid grid-cols-2 gap-8">
               {/* Left Column: French */}
-              <div className="text-xs">
+              <div className="text-xs text-center">
                 <div className="font-bold mb-1">{MINISTRY_HEADER.line1.fr}</div>
                 <div className="italic mb-2">{MINISTRY_HEADER.line2.fr}</div>
                 <div className="mb-2">*************</div>
@@ -282,26 +301,8 @@ export default function ReportCardPreview({
                 <div className="font-semibold mb-4">{student.school?.name || MINISTRY_HEADER.line6.fr}</div>
               </div>
 
-              {/* Center: School Logo */}
-              <div className="flex justify-center items-center">
-                {schoolLogoUrl ? (
-                  <img 
-                    src={schoolLogoUrl} 
-                    alt="Logo de l'école" 
-                    className="w-16 h-16 object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center text-[6px] text-gray-400">
-                    LOGO<br/>ÉCOLE
-                  </div>
-                )}
-              </div>
-
               {/* Right Column: English */}
-              <div className="text-xs">
+              <div className="text-xs text-center">
                 <div className="font-bold mb-1">{MINISTRY_HEADER.line1.en}</div>
                 <div className="italic mb-2">{MINISTRY_HEADER.line2.en}</div>
                 <div className="mb-2">*************</div>
