@@ -692,25 +692,25 @@ export default function ReportCardPreview({
             )}
           </div>
 
-          {/* Ministry Official Signature Section - EXACT Format */}
-          <div className="mt-8 grid grid-cols-3 gap-6 text-[8px]">
+          {/* Ministry Official Signature Section - Optimized for single page print */}
+          <div className="mt-4 grid grid-cols-3 gap-3 text-[8px]">
             {/* Left: Class Teacher */}
             <div className="text-left">
               <div className="mb-2">
                 <div className="font-bold">{language === 'fr' ? 'PROFESSEUR PRINCIPAL' : 'CLASS TEACHER'}</div>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <div>
-                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Nom:' : 'Name:'}</div>
-                  <div className="border-b border-black h-4"></div>
+                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Nom:' : 'Name:'}</div>
+                  <div className="border-b border-black h-2"></div>
                 </div>
                 <div>
-                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Signature:' : 'Signature:'}</div>
-                  <div className="border-b border-black h-4"></div>
+                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Signature:' : 'Signature:'}</div>
+                  <div className="border-b border-black h-2"></div>
                 </div>
                 <div>
-                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Date:' : 'Date:'}</div>
-                  <div className="border-b border-black h-4"></div>
+                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Date:' : 'Date:'}</div>
+                  <div className="border-b border-black h-2"></div>
                 </div>
               </div>
             </div>
@@ -726,8 +726,8 @@ export default function ReportCardPreview({
                   <div className="border-b border-black h-4"></div>
                 </div>
                 <div>
-                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Cachet Officiel/Sceau:' : 'Official Stamp/Seal:'}</div>
-                  <div className="border border-black h-12 flex items-center justify-center text-[6px] text-gray-400">
+                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Cachet Officiel/Sceau:' : 'Official Stamp/Seal:'}</div>
+                  <div className="border border-black h-6 flex items-center justify-center text-[6px] text-gray-400">
                     {language === 'fr' ? 'CACHET ÉCOLE' : 'SCHOOL STAMP'}
                   </div>
                 </div>
@@ -747,18 +747,18 @@ export default function ReportCardPreview({
               <div className="mb-2">
                 <div className="font-bold">{language === 'fr' ? 'PARENT/TUTEUR' : 'PARENT/GUARDIAN'}</div>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <div>
-                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Nom:' : 'Name:'}</div>
-                  <div className="border-b border-black h-4"></div>
+                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Nom:' : 'Name:'}</div>
+                  <div className="border-b border-black h-2"></div>
                 </div>
                 <div>
-                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Signature:' : 'Signature:'}</div>
-                  <div className="border-b border-black h-4"></div>
+                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Signature:' : 'Signature:'}</div>
+                  <div className="border-b border-black h-2"></div>
                 </div>
                 <div>
-                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Date:' : 'Date:'}</div>
-                  <div className="border-b border-black h-4"></div>
+                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Date:' : 'Date:'}</div>
+                  <div className="border-b border-black h-2"></div>
                 </div>
               </div>
             </div>
