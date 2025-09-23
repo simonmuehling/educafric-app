@@ -971,6 +971,9 @@ export default function BulletinCreationInterface() {
                     });
                     setSubjects(updatedSubjects);
                   }
+
+                  // Set student photo URL from profile
+                  setStudentPhotoUrl(selectedStudent.photoUrl || selectedStudent.photoURL || selectedStudent.profilePictureUrl || '');
                 }}
                 language={language}
               />
@@ -2279,6 +2282,8 @@ function StudentSelector({ onStudentSelect, language }: StudentSelectorProps) {
       // For now, we'll use mock data but structure it properly
       const studentWithGrades = {
         ...selectedStudent,
+        // Set the photo URL from user profile
+        photoUrl: selectedStudent.photoURL || selectedStudent.profilePictureUrl || '',
         grades: [
           { subjectName: 'FRANÇAIS', finalGrade: 15.5, note1: 14, remark: 'Bon travail' },
           { subjectName: 'ANGLAIS', finalGrade: 12.0, note1: 11, remark: 'Peut mieux faire' },
