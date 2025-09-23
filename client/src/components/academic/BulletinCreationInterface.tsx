@@ -754,7 +754,7 @@ export default function BulletinCreationInterface() {
       grade: "Grade /20",
       appreciation: "Appreciation",
       teacherAppreciation: "Teacher's appreciation",
-      disciplineAbsences: "Discipline and absences",
+      disciplineAbsences: "Attendance and Discipline",
       justifiedAbs: "Justified absences (h)",
       unjustifiedAbs: "Unjustified absences (h)",
       lates: "Lates",
@@ -1850,155 +1850,31 @@ export default function BulletinCreationInterface() {
             </CardContent>
           </Card>
 
-          {/* Discipline and Absences */}
+          {/* ✅ MINISTRY COMPLIANT: Single consolidated Attendance and Discipline section implemented above */}
+
+          {/* General Appreciations and Summary */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg flex items-center justify-between">
-                {labels[language].disciplineAbsences}
-                <Button 
-                  onClick={() => calculateDisciplineData(student.id || student.name, trimester)} 
-                  size="sm" 
-                  variant="outline"
-                  data-testid="button-calculate-discipline"
-                >
-                  <FileText className="h-4 w-4 mr-1" />
-                  {language === 'fr' ? 'Calculer Auto' : 'Auto Calculate'}
-                </Button>
+              <CardTitle className="text-lg">
+                📝 {language === 'fr' ? 'Appréciations et Observations Finales' : 'Final Appreciations and Observations'}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-4">
                 <div>
-                  <Label htmlFor="absJ" className="flex items-center">
-                    {labels[language].justifiedAbs}
-                    <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>
+                  <Label className="text-sm font-medium mb-2 block">
+                    {language === 'fr' ? 'Appréciation générale du travail de l\'élève' : 'General student work appreciation'}
                   </Label>
-                  <Input
-                    id="absJ"
-                    data-testid="input-abs-justified"
-                    type="number"
-                    min="0"
-                    value={discipline.absJ}
-                    onChange={(e) => setDiscipline({...discipline, absJ: parseInt(e.target.value) || 0})}
-                    className="bg-green-50 border-green-200"
+                  <textarea
+                    className="w-full border rounded-lg p-3 text-sm min-h-[100px] resize-y"
+                    placeholder={language === 'fr' ? 
+                      'Saisir l\'appréciation générale du travail, comportement et résultats...' : 
+                      'Enter general appreciation of work, behavior and results...'}
+                    value={generalRemark}
+                    onChange={(e) => setGeneralRemark(e.target.value)}
+                    data-testid="textarea-general-remark"
                   />
                 </div>
-
-                <div>
-                  <Label htmlFor="absNJ" className="flex items-center">
-                    {labels[language].unjustifiedAbs}
-                    <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>
-                  </Label>
-                  <Input
-                    id="absNJ"
-                    data-testid="input-abs-unjustified"
-                    type="number"
-                    min="0"
-                    value={discipline.absNJ}
-                    onChange={(e) => setDiscipline({...discipline, absNJ: parseInt(e.target.value) || 0})}
-                    className="bg-orange-50 border-orange-200"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="late" className="flex items-center">
-                    {labels[language].lates}
-                    <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>
-                  </Label>
-                  <Input
-                    id="late"
-                    data-testid="input-lates"
-                    type="number"
-                    min="0"
-                    value={discipline.late}
-                    onChange={(e) => setDiscipline({...discipline, late: parseInt(e.target.value) || 0})}
-                    className="bg-yellow-50 border-yellow-200"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="sanctions" className="flex items-center">
-                    {labels[language].warnings}
-                    <Badge variant="secondary" className="ml-2 text-xs">Auto</Badge>
-                  </Label>
-                  <Input
-                    id="sanctions"
-                    data-testid="input-sanctions"
-                    type="number"
-                    min="0"
-                    value={discipline.sanctions}
-                    onChange={(e) => setDiscipline({...discipline, sanctions: parseInt(e.target.value) || 0})}
-                    className="bg-red-50 border-red-200"
-                  />
-                </div>
-
-                {/* NEW: Extended Ministry-Required Discipline Fields */}
-                <div>
-                  <Label htmlFor="punishmentHours" className="flex items-center">
-                    {labels[language].punishmentHours}
-                    <Badge variant="outline" className="ml-2 text-xs bg-yellow-100">Ministry</Badge>
-                  </Label>
-                  <Input
-                    id="punishmentHours"
-                    data-testid="input-punishment-hours"
-                    type="number"
-                    min="0"
-                    value={discipline.punishmentHours}
-                    onChange={(e) => setDiscipline({...discipline, punishmentHours: parseInt(e.target.value) || 0})}
-                    className="bg-yellow-50 border-yellow-200"
-                    placeholder="0"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="suspension" className="flex items-center">
-                    {labels[language].suspension}
-                    <Badge variant="outline" className="ml-2 text-xs bg-yellow-100">Ministry</Badge>
-                  </Label>
-                  <Input
-                    id="suspension"
-                    data-testid="input-suspension"
-                    type="number"
-                    min="0"
-                    value={discipline.suspension}
-                    onChange={(e) => setDiscipline({...discipline, suspension: parseInt(e.target.value) || 0})}
-                    className="bg-orange-50 border-orange-200"
-                    placeholder="0"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="dismissal" className="flex items-center space-x-2">
-                    <Input
-                      id="dismissal"
-                      type="checkbox"
-                      checked={discipline.dismissal}
-                      onChange={(e) => setDiscipline({...discipline, dismissal: e.target.checked})}
-                      className="w-4 h-4"
-                      data-testid="input-dismissal"
-                    />
-                    <span>{labels[language].dismissal}</span>
-                    <Badge variant="outline" className="ml-2 text-xs bg-yellow-100">Ministry</Badge>
-                  </Label>
-                </div>
-              </div>
-
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-700">
-                  💡 <strong>{language === 'fr' ? 'Calcul Automatique :' : 'Automatic Calculation:'}</strong> {language === 'fr' ? 'Cliquez sur "Calculer Auto" pour récupérer automatiquement les données d\'assiduité de l\'élève pour le trimestre sélectionné. Les valeurs peuvent être modifiées manuellement si nécessaire.' : 'Click "Auto Calculate" to automatically retrieve student attendance data for the selected term. Values can be manually modified if necessary.'}
-                </p>
-              </div>
-
-              <div className="mt-4">
-                <Label htmlFor="generalRemark">{labels[language].generalAppreciation}</Label>
-                <Textarea
-                  id="generalRemark"
-                  data-testid="textarea-general-remark"
-                  value={generalRemark}
-                  onChange={(e) => setGeneralRemark(e.target.value)}
-                  placeholder={labels[language].generalAppreciationPlaceholder}
-                  rows={3}
-                />
               </div>
             </CardContent>
           </Card>
