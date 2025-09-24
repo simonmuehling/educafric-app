@@ -5148,6 +5148,10 @@ export class PDFGenerator {
       doc.setFontSize(9);
       doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'normal');
       
+      // Define column positions for class statistics
+      const leftCol = margin + 5;
+      const rightCol = pageWidth/2 + 10;
+      
       const classAvgText = language === 'fr' ? `Moyenne de la classe: ${bulletinData.classAverage || '12.85'}` : `Class average: ${bulletinData.classAverage || '12.85'}`;
       const highestText = language === 'fr' ? `Plus haute note: ${bulletinData.classMax || '18.25'}` : `Highest grade: ${bulletinData.classMax || '18.25'}`;
       this.renderTextWithUnicodeSupport(doc, classAvgText, leftCol, yPosition);

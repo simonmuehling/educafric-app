@@ -942,7 +942,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       selectPhoto: "Sélectionner photo"
     },
     en: {
-      title: "Create Term Report Card",
+      title: "Quarterly Report Creation",
       trimester: "Term",
       selectTrimester: "Select term",
       firstTerm: "First Term",
@@ -1080,7 +1080,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Création de Bulletin Trimestriel
+            {labels.title}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -2819,7 +2819,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       {showPreview && (
         <Card>
           <CardHeader>
-            <CardTitle>Aperçu du bulletin</CardTitle>
+            <CardTitle>{labels.bulletinPreview}</CardTitle>
           </CardHeader>
           <CardContent>
             <ReportCardPreview {...bulletinData} />
