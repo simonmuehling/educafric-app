@@ -418,6 +418,9 @@ export default function ReportCardPreview({
                   <th className="border border-black p-1 font-bold text-center" style={{minWidth: '100px'}}>
                     {language === 'fr' ? 'Appréciations' : 'Remarks'}
                   </th>
+                  <th className="border border-black p-1 font-bold text-center" style={{minWidth: '120px'}}>
+                    {language === 'fr' ? 'COMMENTAIRES' : 'COMMENTS'}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -470,31 +473,25 @@ export default function ReportCardPreview({
                       <td className="border border-black p-1 text-[6px]">
                         {r.remarksAndSignature || r.remark || ''}
                       </td>
+                      <td className="border border-black p-1 text-[6px] align-top">
+                        {selectedTeacherComments && selectedTeacherComments.length > 0 ? (
+                          <ul className="list-decimal list-inside space-y-0.5">
+                            {selectedTeacherComments.map((commentId, index) => {
+                              const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
+                              return comment ? (
+                                <li key={commentId} className="text-[5px]">{comment.text}</li>
+                              ) : null;
+                            })}
+                          </ul>
+                        ) : (
+                          <div className="text-[5px] text-gray-400 italic">
+                            {language === 'fr' ? 'Aucun commentaire sélectionné' : 'No comments selected'}
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
-                {/* Ministry Comments Row */}
-                <tr className="bg-yellow-50">
-                  <td className="border border-black p-1 font-bold text-[8px]">
-                    {language === 'fr' ? 'COMMENTAIRES' : 'COMMENTS'}
-                  </td>
-                  <td colSpan={7} className="border border-black p-1 text-[6px] align-top">
-                    {selectedTeacherComments && selectedTeacherComments.length > 0 ? (
-                      <ul className="list-decimal list-inside space-y-0.5">
-                        {selectedTeacherComments.map((commentId, index) => {
-                          const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
-                          return comment ? (
-                            <li key={commentId} className="text-[5px]">{comment.text}</li>
-                          ) : null;
-                        })}
-                      </ul>
-                    ) : (
-                      <div className="text-[5px] text-gray-400 italic">
-                        {language === 'fr' ? 'Aucun commentaire sélectionné' : 'No comments selected'}
-                      </div>
-                    )}
-                  </td>
-                </tr>
               </tbody>
               <tfoot>
                 <tr className="bg-gray-200">
@@ -506,6 +503,7 @@ export default function ReportCardPreview({
                   <td className="border border-black p-1 text-center font-bold text-[8px]">{round2(totalMxCoef)}</td>
                   <td className="border border-black p-1"></td>
                   <td className="border border-black p-1"></td>
+                  <td className="border border-black p-1"></td>
                 </tr>
                 <tr className="bg-gray-100">
                   <td className="border border-black p-1 font-bold text-[8px]">
@@ -514,7 +512,7 @@ export default function ReportCardPreview({
                   <td className="border border-black p-1 text-center font-bold text-[10px]">
                     {moyenne}/20
                   </td>
-                  <td colSpan={6} className="border border-black p-1"></td>
+                  <td colSpan={7} className="border border-black p-1"></td>
                 </tr>
               </tfoot>
             </table>
