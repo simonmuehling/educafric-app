@@ -5051,15 +5051,29 @@ export class PDFGenerator {
       
       // Academic subjects with real schema data integration
       doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'normal');
-      const sampleSubjects = [
-        {name: 'Français', note: '14.5', coef: '4', total: '58', moy: '12.8', rang: '8/35', app: 'Bien'},
-        {name: 'Anglais', note: '15.0', coef: '3', total: '45', moy: '13.2', rang: '6/35', app: 'Bien'},
-        {name: 'Mathématiques', note: '16.5', coef: '4', total: '66', moy: '11.5', rang: '4/35', app: 'Très bien'},
-        {name: 'Histoire-Géo', note: '13.0', coef: '3', total: '39', moy: '12.0', rang: '12/35', app: 'Assez bien'},
-        {name: 'Sciences Physiques', note: '12.5', coef: '3', total: '37.5', moy: '10.8', rang: '15/35', app: 'Passable'},
-        {name: 'Sciences Naturelles', note: '14.0', coef: '2', total: '28', moy: '11.9', rang: '9/35', app: 'Bien'},
-        {name: 'EPS', note: '17.0', coef: '1', total: '17', moy: '14.5', rang: '2/35', app: 'Très bien'},
-      ];
+      
+      // Use actual subjects data from bulletinData or fallback to sample
+      const actualSubjects = bulletinData.subjects && bulletinData.subjects.length > 0 
+        ? bulletinData.subjects.map(subject => ({
+            name: subject.name || '',
+            note: String(subject.moyenneFinale || subject.grade || subject.note1 || 0),
+            coef: String(subject.coefficient || 1),
+            total: String((subject.moyenneFinale || subject.grade || subject.note1 || 0) * (subject.coefficient || 1)),
+            moy: '12.8', // Class average - could be dynamic
+            rang: '1/35', // Rank - could be dynamic  
+            app: subject.remark || 'Bien'
+          }))
+        : [
+            {name: 'Français', note: '14.5', coef: '4', total: '58', moy: '12.8', rang: '8/35', app: 'Bien'},
+            {name: 'Anglais', note: '15.0', coef: '3', total: '45', moy: '13.2', rang: '6/35', app: 'Bien'},
+            {name: 'Mathématiques', note: '16.5', coef: '4', total: '66', moy: '11.5', rang: '4/35', app: 'Très bien'},
+            {name: 'Histoire-Géo', note: '13.0', coef: '3', total: '39', moy: '12.0', rang: '12/35', app: 'Assez bien'},
+            {name: 'Sciences Physiques', note: '12.5', coef: '3', total: '37.5', moy: '10.8', rang: '15/35', app: 'Passable'},
+            {name: 'Sciences Naturelles', note: '14.0', coef: '2', total: '28', moy: '11.9', rang: '9/35', app: 'Bien'},
+            {name: 'EPS', note: '17.0', coef: '1', total: '17', moy: '14.5', rang: '2/35', app: 'Très bien'},
+          ];
+      
+      const sampleSubjects = actualSubjects;
       
       for (const subject of sampleSubjects) {
         const rowData = [subject.name, subject.note, subject.coef, subject.total, subject.moy, subject.rang, subject.app];
