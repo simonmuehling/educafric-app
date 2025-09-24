@@ -182,6 +182,26 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   const { defaultClass, defaultTerm, defaultYear } = props;
   const { language } = useLanguage();
   const { toast } = useToast();
+  
+  // Ministry-required trimester titles
+  const TRIMESTER_TITLES = {
+    fr: (term: string) => {
+      const titles = {
+        'Premier': 'Bulletin du Premier Trimestre',
+        'Deuxième': 'Bulletin du Deuxième Trimestre', 
+        'Troisième': 'Bulletin du Troisième Trimestre'
+      };
+      return titles[term as keyof typeof titles] || 'Bulletin Scolaire';
+    },
+    en: (term: string) => {
+      const titles = {
+        'Premier': 'First Term Report Card',
+        'Deuxième': 'Second Term Report Card',
+        'Troisième': 'Third Term Report Card'
+      };
+      return titles[term as keyof typeof titles] || 'School Report Card';
+    }
+  };
 
   // Mobile detection hook
   const isMobile = useMemo(() => {
@@ -722,8 +742,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         motto: ''
       };
 
-      // Call simplified PDF generation API
-      const response = await fetch('/api/simple-bulletin/generate-pdf', {
+      // Call NEW creation bulletin PDF generation API
+      const response = await fetch('/api/bulletins/creation/pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1053,7 +1073,12 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       competencyLevel: s.competencyLevel,
       competencyEvaluation: s.competencyEvaluation,
       remark: s.remark,
-      teacherComments: Array.isArray(s.comments) ? s.comments : [], // Ensure array format
+      teacherComments: Array.isArray(s.comments) 
+        ? s.comments.map(commentId => {
+            const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
+            return comment ? comment.text : commentId;
+          })
+        : [], // Map comment IDs to localized text
     })),
     year,
     trimester,
@@ -1080,7 +1105,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            {labels.title}
+            {t.title}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -2819,7 +2844,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       {showPreview && (
         <Card>
           <CardHeader>
-            <CardTitle>{labels.bulletinPreview}</CardTitle>
+            <CardTitle>{TRIMESTER_TITLES[language](trimester)}</CardTitle>
           </CardHeader>
           <CardContent>
             <ReportCardPreview {...bulletinData} />

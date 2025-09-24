@@ -5246,6 +5246,172 @@ export class PDFGenerator {
   }
 
   /**
+   * CREATION BULLETIN PDF GENERATOR
+   * Generates PDFs specifically for BulletinCreationInterface
+   * - No QR codes
+   * - Uses creation interface data structure
+   * - Handles 20+ subjects with auto-pagination
+   * - Uses TRIMESTER_TITLES for headers
+   */
+  static async renderCreationReportCard(bulletinData: any, options: { includeQR?: boolean; autoPageBreak?: boolean; language?: string } = {}): Promise<Buffer> {
+    try {
+      console.log('[CREATION_PDF] 📋 Generating creation bulletin PDF...');
+      
+      const { includeQR = false, autoPageBreak = true, language = 'fr' } = options;
+      
+      // Import jsPDF
+      const jsPDFImport = await import('jspdf') as any;
+      const jsPDF = jsPDFImport.default || jsPDFImport.jsPDF || jsPDFImport;
+      const doc = new jsPDF();
+      
+      // ✅ Embed Unicode font for proper text rendering
+      await this.downloadAndEmbedUnicodeFont(doc);
+      
+      // Page dimensions
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - (2 * margin);
+      
+      // TRIMESTER_TITLES for headers (exact same as preview)
+      const TRIMESTER_TITLES = {
+        fr: (term: string) => {
+          const titles = {
+            'Premier': 'Bulletin du Premier Trimestre',
+            'Deuxième': 'Bulletin du Deuxième Trimestre', 
+            'Troisième': 'Bulletin du Troisième Trimestre'
+          };
+          return titles[term as keyof typeof titles] || 'Bulletin Scolaire';
+        },
+        en: (term: string) => {
+          const titles = {
+            'Premier': 'First Term Report Card',
+            'Deuxième': 'Second Term Report Card',
+            'Troisième': 'Third Term Report Card'
+          };
+          return titles[term as keyof typeof titles] || 'School Report Card';
+        }
+      };
+      
+      let yPosition = margin;
+      
+      // ===== HEADER SECTION =====
+      doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(0, 0, 0);
+      const title = TRIMESTER_TITLES[language](bulletinData.term || 'Premier');
+      this.renderTextWithUnicodeSupport(doc, title, pageWidth/2, yPosition, {align: 'center'});
+      
+      yPosition += 12;
+      doc.setFontSize(12);
+      this.renderTextWithUnicodeSupport(doc, `Année Scolaire: ${bulletinData.academicYear}`, pageWidth/2, yPosition, {align: 'center'});
+      
+      yPosition += 20;
+      
+      // ===== STUDENT INFORMATION =====
+      doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'bold');
+      doc.setFontSize(11);
+      this.renderTextWithUnicodeSupport(doc, 'INFORMATIONS DE L\'ÉLÈVE', margin, yPosition);
+      
+      yPosition += 8;
+      doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'normal');
+      doc.setFontSize(10);
+      
+      this.renderTextWithUnicodeSupport(doc, `Nom: ${bulletinData.studentName}`, margin, yPosition);
+      this.renderTextWithUnicodeSupport(doc, `Classe: ${bulletinData.classLabel}`, pageWidth/2, yPosition);
+      yPosition += 8;
+      this.renderTextWithUnicodeSupport(doc, `Moyenne Générale: ${bulletinData.generalAverage}/20`, margin, yPosition);
+      
+      yPosition += 20;
+      
+      // ===== SUBJECTS TABLE =====
+      doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'bold');
+      doc.setFontSize(11);
+      this.renderTextWithUnicodeSupport(doc, 'NOTES ET APPRÉCIATIONS', margin, yPosition);
+      
+      yPosition += 10;
+      
+      // Dynamic font size based on number of subjects (handle 20+ subjects)
+      const subjectsCount = bulletinData.subjects?.length || 0;
+      const tableFontSize = subjectsCount > 18 ? 7 : subjectsCount > 12 ? 8 : 9;
+      const rowHeight = subjectsCount > 18 ? 12 : subjectsCount > 12 ? 14 : 16;
+      
+      console.log(`[CREATION_PDF] 📊 Optimizing for ${subjectsCount} subjects: fontSize=${tableFontSize}, rowHeight=${rowHeight}`);
+      
+      // Table headers
+      const headers = ['Matière', 'Note/20', 'Coef', 'Total', 'Appréciation'];
+      const colWidths = [60, 25, 20, 25, 60];
+      const colPositions = [];
+      let xPos = margin;
+      for (let i = 0; i < colWidths.length; i++) {
+        colPositions.push(xPos);
+        xPos += colWidths[i];
+      }
+      
+      // Draw table headers
+      doc.setFontSize(tableFontSize);
+      doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'bold');
+      for (let i = 0; i < headers.length; i++) {
+        this.renderTextWithUnicodeSupport(doc, headers[i], colPositions[i], yPosition);
+      }
+      
+      // Draw line under headers
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition + 2, pageWidth - margin, yPosition + 2);
+      yPosition += 8;
+      
+      // Draw subjects with auto-pagination
+      doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'normal');
+      
+      for (const subject of bulletinData.subjects || []) {
+        // Check if we need a new page
+        if (autoPageBreak && yPosition > pageHeight - 50) {
+          doc.addPage();
+          yPosition = margin + 20;
+          
+          // Redraw headers on new page
+          doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'bold');
+          for (let i = 0; i < headers.length; i++) {
+            this.renderTextWithUnicodeSupport(doc, headers[i], colPositions[i], yPosition);
+          }
+          doc.line(margin, yPosition + 2, pageWidth - margin, yPosition + 2);
+          yPosition += 8;
+          doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'normal');
+        }
+        
+        const rowData = [
+          subject.name,
+          (subject.moyenneFinale || subject.note1 || 0).toString(),
+          (subject.coefficient || 1).toString(),
+          ((subject.moyenneFinale || subject.note1 || 0) * (subject.coefficient || 1)).toString(),
+          subject.remark || 'Bien'
+        ];
+        
+        for (let i = 0; i < rowData.length; i++) {
+          this.renderTextWithUnicodeSupport(doc, rowData[i], colPositions[i], yPosition);
+        }
+        yPosition += rowHeight;
+      }
+      
+      // ===== FOOTER =====
+      yPosition += 20;
+      doc.setFontSize(8);
+      doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'italic');
+      doc.setTextColor(100, 100, 100);
+      const footerText = 'Généré par EDUCAFRIC - Plateforme Éducative Camerounaise';
+      this.renderTextWithUnicodeSupport(doc, footerText, pageWidth/2, pageHeight - 15, {align: 'center'});
+      
+      console.log('[CREATION_PDF] ✅ Creation bulletin generated successfully');
+      return Buffer.from(doc.output('arraybuffer'));
+      
+    } catch (error) {
+      console.error('[CREATION_PDF] ❌ Error generating creation bulletin:', error);
+      throw new Error(`Failed to generate creation bulletin PDF: ${error.message}`);
+    }
+  }
+
+  /**
    * Helper method to draw section boxes for the official template
    * Uses precise measurements for 2mm compliance
    */
