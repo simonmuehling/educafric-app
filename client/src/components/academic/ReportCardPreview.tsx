@@ -7,6 +7,38 @@ const TRIMESTER_TITLES = {
   en: (t: string) => `${String(t || "FIRST").toUpperCase()} TERM PROGRESS RECORD`
 };
 
+// Ministry-required Teacher Comments - LISTE DES COMMENTAIRES POUR L'ENSEIGNANT
+const TEACHER_COMMENTS = {
+  fr: [
+    { id: 'excellent_work', text: 'Excellent travail. Félicitations.' },
+    { id: 'very_good', text: 'Très bon travail. Continuez ainsi.' },
+    { id: 'good_work', text: 'Bon travail. Peut mieux faire.' },
+    { id: 'satisfactory', text: 'Travail satisfaisant. Efforts à poursuivre.' },
+    { id: 'needs_improvement', text: 'Travail insuffisant. Beaucoup d\'efforts à fournir.' },
+    { id: 'weak_performance', text: 'Travail faible. Révision nécessaire.' },
+    { id: 'good_behavior', text: 'Bon comportement en classe.' },
+    { id: 'punctual', text: 'Élève ponctuel et assidu.' },
+    { id: 'participative', text: 'Participation active en cours.' },
+    { id: 'needs_attention', text: 'Nécessite plus d\'attention.' },
+    { id: 'homework_regular', text: 'Devoirs réguliers et soignés.' },
+    { id: 'progress_noted', text: 'Progrès remarqué ce trimestre.' }
+  ],
+  en: [
+    { id: 'excellent_work', text: 'Excellent work. Congratulations.' },
+    { id: 'very_good', text: 'Very good work. Keep it up.' },
+    { id: 'good_work', text: 'Good work. Can do better.' },
+    { id: 'satisfactory', text: 'Satisfactory work. Continue efforts.' },
+    { id: 'needs_improvement', text: 'Insufficient work. Much effort needed.' },
+    { id: 'weak_performance', text: 'Weak work. Review necessary.' },
+    { id: 'good_behavior', text: 'Good behavior in class.' },
+    { id: 'punctual', text: 'Punctual and diligent student.' },
+    { id: 'participative', text: 'Active participation in class.' },
+    { id: 'needs_attention', text: 'Needs more attention.' },
+    { id: 'homework_regular', text: 'Regular and neat homework.' },
+    { id: 'progress_noted', text: 'Progress noted this term.' }
+  ]
+};
+
 // Ministry Performance Grid - EXACT from documents
 const PERFORMANCE_GRID = {
   fr: {
@@ -229,6 +261,7 @@ interface ReportCardProps {
   qrValue?: string;
   language?: 'fr' | 'en'; // NEW: Language support
   isThirdTrimester?: boolean;
+  selectedTeacherComments?: string[]; // Ministry teacher comments
   annualSummary?: {
     firstTrimesterAverage: number;
     secondTrimesterAverage: number;
@@ -252,6 +285,7 @@ export default function ReportCardPreview({
   qrValue = "https://www.educafric.com",
   language = 'fr', // Default to French
   isThirdTrimester = false,
+  selectedTeacherComments = [],
   annualSummary = null,
 }: ReportCardProps) {
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
@@ -589,8 +623,34 @@ export default function ReportCardPreview({
                     CA: {entries.filter(e => Number(e.m20 || e.av20) >= 10 && Number(e.m20 || e.av20) < 14).length}<br/>
                     CAA: {entries.filter(e => Number(e.m20 || e.av20) < 10).length}
                   </td>
-                  <td colSpan={4} className="border border-black p-1"></td>
-                  <td colSpan={2} className="border border-black p-1"></td>
+                  <td colSpan={4} className="border border-black p-1 text-[6px] align-top">
+                    <div className="font-bold mb-1">
+                      {language === 'fr' ? 'LISTE DES COMMENTAIRES POUR L\'ENSEIGNANT (Ministère):' : 'LIST OF COMMENTS FOR TEACHERS (Ministry):'}
+                    </div>
+                    {selectedTeacherComments && selectedTeacherComments.length > 0 ? (
+                      <ul className="list-decimal list-inside space-y-0.5">
+                        {selectedTeacherComments.map((commentId, index) => {
+                          const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
+                          return comment ? (
+                            <li key={commentId} className="text-[5px]">{comment.text}</li>
+                          ) : null;
+                        })}
+                      </ul>
+                    ) : (
+                      <div className="text-[5px] text-gray-400 italic">
+                        {language === 'fr' ? 'Aucun commentaire sélectionné' : 'No comments selected'}
+                      </div>
+                    )}
+                  </td>
+                  <td colSpan={2} className="border border-black p-1 text-[6px] align-top">
+                    <div className="font-bold mb-1">
+                      {language === 'fr' ? 'Signatures:' : 'Signatures:'}
+                    </div>
+                    <div className="text-[5px] space-y-1">
+                      <div>{language === 'fr' ? 'Enseignant:' : 'Teacher:'} ____________</div>
+                      <div>{language === 'fr' ? 'Directeur:' : 'Principal:'} ____________</div>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>

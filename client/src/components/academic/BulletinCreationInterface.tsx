@@ -1032,6 +1032,7 @@ export default function BulletinCreationInterface() {
         }
       }
     },
+    selectedTeacherComments,
     lines: subjects.map(s => ({
       subject: s.name,
       note1: s.note1,
