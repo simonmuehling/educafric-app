@@ -362,14 +362,17 @@ export class PDFGenerator {
   /**
    * Enhanced text rendering with Unicode support and symbol normalization
    */
-  private static renderTextWithUnicodeSupport(doc: any, text: string, x: number, y: number, options?: any): void {
+  private static renderTextWithUnicodeSupport(doc: any, text: any, x: number, y: number, options?: any): void {
     // Ensure Unicode font is embedded
     if (!this.isFontEmbedded) {
       console.warn('[PDF_FONT] ⚠️ Unicode font not embedded, text may have rendering issues');
     }
 
+    // Convert any type to string first (fixes number rendering issue)
+    const textString = text === null || text === undefined ? '' : String(text);
+
     // Normalize symbols and bullets before rendering
-    const normalizedText = this.normalizeSymbolsAndBullets(text);
+    const normalizedText = this.normalizeSymbolsAndBullets(textString);
     
     // Render with current font (should be Unicode font if embedding succeeded)
     if (options) {
