@@ -468,11 +468,33 @@ export default function ReportCardPreview({
                         <div className="text-[6px]">{minMax}</div>
                       </td>
                       <td className="border border-black p-1 text-[6px]">
-                        {r.competencyLevel || r.remarksAndSignature || r.remark || ''}
+                        {r.remarksAndSignature || r.remark || ''}
                       </td>
                     </tr>
                   );
                 })}
+                {/* Ministry Comments Row */}
+                <tr className="bg-yellow-50">
+                  <td className="border border-black p-1 font-bold text-[8px]">
+                    {language === 'fr' ? 'COMMENTAIRES' : 'COMMENTS'}
+                  </td>
+                  <td colSpan={7} className="border border-black p-1 text-[6px] align-top">
+                    {selectedTeacherComments && selectedTeacherComments.length > 0 ? (
+                      <ul className="list-decimal list-inside space-y-0.5">
+                        {selectedTeacherComments.map((commentId, index) => {
+                          const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
+                          return comment ? (
+                            <li key={commentId} className="text-[5px]">{comment.text}</li>
+                          ) : null;
+                        })}
+                      </ul>
+                    ) : (
+                      <div className="text-[5px] text-gray-400 italic">
+                        {language === 'fr' ? 'Aucun commentaire sélectionné' : 'No comments selected'}
+                      </div>
+                    )}
+                  </td>
+                </tr>
               </tbody>
               <tfoot>
                 <tr className="bg-gray-200">
@@ -623,32 +645,20 @@ export default function ReportCardPreview({
                     CA: {entries.filter(e => Number(e.m20 || e.av20) >= 10 && Number(e.m20 || e.av20) < 14).length}<br/>
                     CAA: {entries.filter(e => Number(e.m20 || e.av20) < 10).length}
                   </td>
-                  <td colSpan={4} className="border border-black p-1 text-[6px] align-top">
+                  <td colSpan={3} className="border border-black p-1 text-[6px] align-top">
                     <div className="font-bold mb-1">
-                      {language === 'fr' ? 'LISTE DES COMMENTAIRES POUR L\'ENSEIGNANT (Ministère):' : 'LIST OF COMMENTS FOR TEACHERS (Ministry):'}
-                    </div>
-                    {selectedTeacherComments && selectedTeacherComments.length > 0 ? (
-                      <ul className="list-decimal list-inside space-y-0.5">
-                        {selectedTeacherComments.map((commentId, index) => {
-                          const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
-                          return comment ? (
-                            <li key={commentId} className="text-[5px]">{comment.text}</li>
-                          ) : null;
-                        })}
-                      </ul>
-                    ) : (
-                      <div className="text-[5px] text-gray-400 italic">
-                        {language === 'fr' ? 'Aucun commentaire sélectionné' : 'No comments selected'}
-                      </div>
-                    )}
-                  </td>
-                  <td colSpan={2} className="border border-black p-1 text-[6px] align-top">
-                    <div className="font-bold mb-1">
-                      {language === 'fr' ? 'Signatures:' : 'Signatures:'}
+                      {language === 'fr' ? 'Signatures Directeur:' : 'Principal Signatures:'}
                     </div>
                     <div className="text-[5px] space-y-1">
-                      <div>{language === 'fr' ? 'Enseignant:' : 'Teacher:'} ____________</div>
                       <div>{language === 'fr' ? 'Directeur:' : 'Principal:'} ____________</div>
+                    </div>
+                  </td>
+                  <td colSpan={3} className="border border-black p-1 text-[6px] align-top">
+                    <div className="font-bold mb-1">
+                      {language === 'fr' ? 'Signature Parent:' : 'Parent Signature:'}
+                    </div>
+                    <div className="text-[5px] space-y-1">
+                      <div>{language === 'fr' ? 'Parent:' : 'Parent:'} ____________</div>
                     </div>
                   </td>
                 </tr>
