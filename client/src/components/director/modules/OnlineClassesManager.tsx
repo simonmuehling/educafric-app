@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Video, Play, Users, Calendar, Settings, Plus, Clock, CheckCircle } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Video, Play, Users, Calendar, Settings, Plus, Clock, CheckCircle, BookOpen, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface OnlineClassesManagerProps {
   className?: string;
@@ -11,6 +17,10 @@ interface OnlineClassesManagerProps {
 const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }) => {
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
+  const [showCreateCourse, setShowCreateCourse] = useState(false);
+  const [showCreateSession, setShowCreateSession] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const text = {
     fr: {
@@ -59,6 +69,84 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
 
   const t = text[language as keyof typeof text];
 
+  // Fetch courses data
+  const { data: coursesData, isLoading: coursesLoading } = useQuery({
+    queryKey: ['/api/online-classes/courses'],
+    queryFn: async () => {
+      const response = await fetch('/api/online-classes/courses', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch courses');
+      return response.json();
+    }
+  });
+
+  // Create course mutation
+  const createCourseMutation = useMutation({
+    mutationFn: async (courseData: any) => {
+      return apiRequest('/api/online-classes/courses', 'POST', courseData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses'] });
+      setShowCreateCourse(false);
+      toast({
+        title: language === 'fr' ? 'Cours créé' : 'Course created',
+        description: language === 'fr' ? 'Le cours a été créé avec succès' : 'Course created successfully'
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: language === 'fr' ? 'Erreur lors de la création du cours' : 'Error creating course',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Create session mutation
+  const createSessionMutation = useMutation({
+    mutationFn: async ({ courseId, sessionData }: { courseId: number, sessionData: any }) => {
+      return apiRequest(`/api/online-classes/courses/${courseId}/sessions`, 'POST', sessionData);
+    },
+    onSuccess: () => {
+      setShowCreateSession(false);
+      toast({
+        title: language === 'fr' ? 'Session créée' : 'Session created',
+        description: language === 'fr' ? 'La session a été créée avec succès' : 'Session created successfully'
+      });
+    }
+  });
+
+  const handleCreateCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const courseData = {
+      title: formData.get('title'),
+      description: formData.get('description'),
+      language: language,
+      maxParticipants: 50,
+      allowRecording: true,
+      requireApproval: false
+    };
+    createCourseMutation.mutate(courseData);
+  };
+
+  const handleCreateSession = (e: React.FormEvent, courseId: number) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const now = new Date();
+    const sessionData = {
+      title: formData.get('title'),
+      description: formData.get('description'),
+      scheduledStart: new Date(now.getTime() + 5 * 60000).toISOString(), // Start in 5 minutes
+      maxDuration: 120,
+      lobbyEnabled: true,
+      chatEnabled: true,
+      screenShareEnabled: true
+    };
+    createSessionMutation.mutate({ courseId, sessionData });
+  };
+
   const features = [
     {
       icon: <Video className="w-6 h-6" />,
@@ -105,11 +193,14 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+            <Button 
+              onClick={() => setShowCreateCourse(true)}
+              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
               <Plus className="w-4 h-4 mr-2" />
-              {t.createSession}
+              {language === 'fr' ? 'Créer un cours' : 'Create Course'}
             </Button>
-            <Button variant="outline" className="flex-1">
+            <Button variant="outline" className="flex-1" onClick={() => setActiveTab('settings')}>
               <Settings className="w-4 h-4 mr-2" />
               {t.settings}
             </Button>
@@ -119,18 +210,110 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
 
       <Card>
         <CardHeader>
-          <CardTitle>{language === 'fr' ? 'Sessions actives' : 'Active Sessions'}</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>{language === 'fr' ? 'Mes cours' : 'My Courses'}</span>
+            <Button variant="outline" size="sm" onClick={() => setShowCreateCourse(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              {language === 'fr' ? 'Nouveau' : 'New'}
+            </Button>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>{t.noSessions}</p>
-            <p className="text-sm mt-2">{t.comingSoon}</p>
-          </div>
+          {coursesLoading ? (
+            <div className="text-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">{language === 'fr' ? 'Chargement...' : 'Loading...'}</p>
+            </div>
+          ) : coursesData?.courses?.length > 0 ? (
+            <div className="grid gap-4">
+              {coursesData.courses.map((course: any) => (
+                <div key={course.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center text-white">
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{course.title}</h3>
+                        <p className="text-sm text-gray-500">{course.description}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      onClick={() => {
+                        setActiveTab('create');
+                        // Set course ID for session creation
+                      }}
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      {language === 'fr' ? 'Session' : 'Session'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>{language === 'fr' ? 'Aucun cours créé' : 'No courses created'}</p>
+              <Button 
+                variant="outline" 
+                className="mt-4" 
+                onClick={() => setShowCreateCourse(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Créer votre premier cours' : 'Create your first course'}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
+
+  const renderCreateCourseModal = () => {
+    if (!showCreateCourse) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <h3 className="text-lg font-semibold mb-4">
+            {language === 'fr' ? 'Créer un nouveau cours' : 'Create New Course'}
+          </h3>
+          <form onSubmit={handleCreateCourse} className="space-y-4">
+            <div>
+              <Label htmlFor="title">{language === 'fr' ? 'Titre du cours' : 'Course Title'}</Label>
+              <Input name="title" id="title" required />
+            </div>
+            <div>
+              <Label htmlFor="description">{language === 'fr' ? 'Description' : 'Description'}</Label>
+              <Textarea name="description" id="description" />
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowCreateCourse(false)}
+                className="flex-1"
+              >
+                {language === 'fr' ? 'Annuler' : 'Cancel'}
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createCourseMutation.isPending}
+                className="flex-1"
+              >
+                {createCourseMutation.isPending 
+                  ? (language === 'fr' ? 'Création...' : 'Creating...') 
+                  : (language === 'fr' ? 'Créer' : 'Create')
+                }
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -170,35 +353,128 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'create' && (
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8 text-gray-500">
-                <Plus className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>{language === 'fr' ? 'Création de session - Bientôt disponible' : 'Session Creation - Coming Soon'}</p>
-              </div>
+            <CardHeader>
+              <CardTitle>{language === 'fr' ? 'Créer une session de cours' : 'Create Course Session'}</CardTitle>
+              <CardDescription>
+                {language === 'fr' 
+                  ? 'Créez une nouvelle session de visioconférence pour vos élèves'
+                  : 'Create a new video conference session for your students'
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {coursesData?.courses?.length > 0 ? (
+                <div className="space-y-4">
+                  {coursesData.courses.map((course: any) => (
+                    <div key={course.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium">{course.title}</h3>
+                          <p className="text-sm text-gray-500">{course.description}</p>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            const sessionData = {
+                              title: `Session ${course.title}`,
+                              description: `Session de cours pour ${course.title}`,
+                            };
+                            createSessionMutation.mutate({ 
+                              courseId: course.id, 
+                              sessionData 
+                            });
+                          }}
+                          disabled={createSessionMutation.isPending}
+                        >
+                          <Video className="w-4 h-4 mr-2" />
+                          {createSessionMutation.isPending 
+                            ? (language === 'fr' ? 'Création...' : 'Creating...') 
+                            : (language === 'fr' ? 'Créer session' : 'Create Session')
+                          }
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>{language === 'fr' ? 'Créez d\'abord un cours pour organiser des sessions' : 'Create a course first to organize sessions'}</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4" 
+                    onClick={() => {
+                      setActiveTab('overview');
+                      setShowCreateCourse(true);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Créer un cours' : 'Create Course'}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
         {activeTab === 'manage' && (
           <Card>
-            <CardContent className="pt-6">
+            <CardHeader>
+              <CardTitle>{language === 'fr' ? 'Gestion des sessions' : 'Session Management'}</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="text-center py-8 text-gray-500">
                 <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>{language === 'fr' ? 'Gestion des sessions - Bientôt disponible' : 'Session Management - Coming Soon'}</p>
+                <p>{language === 'fr' ? 'Gestion avancée des sessions - Fonctionnalité en développement' : 'Advanced session management - Feature in development'}</p>
               </div>
             </CardContent>
           </Card>
         )}
         {activeTab === 'settings' && (
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8 text-gray-500">
-                <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>{language === 'fr' ? 'Paramètres - Bientôt disponible' : 'Settings - Coming Soon'}</p>
+            <CardHeader>
+              <CardTitle>{language === 'fr' ? 'Paramètres des classes en ligne' : 'Online Classes Settings'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <span className="font-medium text-green-800">
+                      {language === 'fr' ? 'Jitsi Meet configuré' : 'Jitsi Meet configured'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-green-700 mt-1">
+                    {language === 'fr' 
+                      ? 'Domain: meet.educafric.com - Prêt pour les visioconférences sécurisées'
+                      : 'Domain: meet.educafric.com - Ready for secure video conferences'
+                    }
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-medium">{language === 'fr' ? 'Fonctionnalités activées' : 'Enabled Features'}</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      language === 'fr' ? 'Sessions illimitées' : 'Unlimited sessions',
+                      language === 'fr' ? 'Enregistrement' : 'Recording',
+                      language === 'fr' ? 'Partage d\'écran' : 'Screen sharing',
+                      language === 'fr' ? 'Chat intégré' : 'Integrated chat',
+                      language === 'fr' ? 'Salle d\'attente' : 'Waiting room',
+                      language === 'fr' ? 'Contrôle modérateur' : 'Moderator control'
+                    ].map((feature, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         )}
       </div>
+
+      {renderCreateCourseModal()}
     </div>
   );
 };
