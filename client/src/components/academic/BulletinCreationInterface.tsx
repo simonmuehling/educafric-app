@@ -82,6 +82,7 @@ const PERFORMANCE_GRID = {
 interface Subject {
   id: string;
   name: string;
+  teacher: string; // Teacher name - Ministry required under subject name
   coefficient: number;
   grade: number;
   remark: string;
@@ -389,7 +390,8 @@ export default function BulletinCreationInterface() {
   const [subjects, setSubjects] = useState<Subject[]>([
     { 
       id: '1', 
-      name: 'FRANÇAIS', 
+      name: 'FRANÇAIS',
+      teacher: '',
       coefficient: 6, 
       grade: 0, 
       remark: '', 
@@ -403,7 +405,8 @@ export default function BulletinCreationInterface() {
     },
     { 
       id: '2', 
-      name: 'ANGLAIS', 
+      name: 'ANGLAIS',
+      teacher: '',
       coefficient: 3, 
       grade: 0, 
       remark: '', 
@@ -417,7 +420,8 @@ export default function BulletinCreationInterface() {
     },
     { 
       id: '3', 
-      name: 'MATHÉMATIQUES', 
+      name: 'MATHÉMATIQUES',
+      teacher: '',
       coefficient: 4, 
       grade: 0, 
       remark: '', 
@@ -506,6 +510,7 @@ export default function BulletinCreationInterface() {
     const newSubject: Subject = {
       id: Date.now().toString(),
       name: '',
+      teacher: '',
       coefficient: 1,
       grade: 0,
       remark: '',
@@ -532,7 +537,7 @@ export default function BulletinCreationInterface() {
       const numValue = Number(value) || 0;
       const updatedSubject = { 
         ...s, 
-        [field]: (field === 'name' || field === 'remark' || field === 'cote' || field === 'competence1' || field === 'competence2') ? value : numValue 
+        [field]: (field === 'name' || field === 'remark' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'teacher') ? value : numValue 
       };
       
       // Always recalculate derived values
