@@ -5032,30 +5032,37 @@ export class PDFGenerator {
       
       yPosition += 12;
       
-      // ===== SECTION 3: STUDENT IDENTITY BOX =====
-      this.drawSection(doc, margin, yPosition, contentWidth, 35, t.identity);
-      yPosition += 8;
+      // ===== SECTION 3: STUDENT INFORMATION - 2 ROWS LAYOUT (matching "Aperçu du bulletin" exactly) =====
       
-      // Left column - Student basic info
-      doc.setFontSize(9);
-      doc.setFont(this.isFontEmbedded ? 'DejaVuSans' : 'helvetica', 'normal');
-      const leftCol = margin + 5;
-      const rightCol = pageWidth/2 + 10;
+      // Student Information in 2 rows layout (EXACT match to "Aperçu du bulletin" preview)
+      doc.setFont('DejaVuSans', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(0, 0, 0);
       
-      this.renderTextWithUnicodeSupport(doc, `${t.name}: ${bulletinData.studentFirstName || ''} ${bulletinData.studentLastName || ''}`, leftCol, yPosition);
-      this.renderTextWithUnicodeSupport(doc, `${t.matricule}: ${bulletinData.studentMatricule || 'N/A'}`, rightCol, yPosition);
-      yPosition += 6;
+      // First Row
+      const firstRowY = yPosition;
+      this.renderTextWithUnicodeSupport(doc, `Nom de l'élève: ${bulletinData.studentFirstName || ''} ${bulletinData.studentLastName || ''}`, margin + 5, firstRowY);
+      this.renderTextWithUnicodeSupport(doc, `Classe: ${bulletinData.className || 'Tle C'}`, margin + 80, firstRowY);
+      this.renderTextWithUnicodeSupport(doc, `Date et lieu de naissance: ${bulletinData.studentPlaceOfBirth || 'Douala'}`, margin + 140, firstRowY);
       
-      this.renderTextWithUnicodeSupport(doc, `${t.class}: ${bulletinData.className || 'N/A'}`, leftCol, yPosition);
-      this.renderTextWithUnicodeSupport(doc, `${t.gender}: ${bulletinData.studentGender || 'N/A'}`, rightCol, yPosition);
-      yPosition += 6;
+      // Second Row  
+      const secondRowY = firstRowY + 6;
+      this.renderTextWithUnicodeSupport(doc, `Genre: ${bulletinData.studentGender || 'F'}`, margin + 5, secondRowY);
+      this.renderTextWithUnicodeSupport(doc, `Effectif de la classe: ${bulletinData.classSize || ''}`, margin + 80, secondRowY);
+      this.renderTextWithUnicodeSupport(doc, `Numéro d'identification unique: ${bulletinData.studentId}`, margin + 140, secondRowY);
       
-      this.renderTextWithUnicodeSupport(doc, `${t.born}: ${bulletinData.studentDateOfBirth || 'N/A'}`, leftCol, yPosition);
-      this.renderTextWithUnicodeSupport(doc, `${t.place}: ${bulletinData.studentPlaceOfBirth || 'N/A'}`, rightCol, yPosition);
-      yPosition += 6;
+      // Third Row
+      const thirdRowY = secondRowY + 6;
+      this.renderTextWithUnicodeSupport(doc, `Redoublant: ${bulletinData.isRepeater ? 'Oui' : 'Non'}`, margin + 5, thirdRowY);
+      this.renderTextWithUnicodeSupport(doc, `Nombre de matières: ${bulletinData.subjects?.length || '3'}`, margin + 80, thirdRowY);
+      this.renderTextWithUnicodeSupport(doc, `Nom et contact des parents/tuteurs: ${bulletinData.guardian || 'Che Avuk'}`, margin + 140, thirdRowY);
       
-      this.renderTextWithUnicodeSupport(doc, `${t.nationality}: ${bulletinData.studentNationality || (language === 'fr' ? 'Camerounaise' : 'Cameroonian')}`, leftCol, yPosition);
-      this.renderTextWithUnicodeSupport(doc, `${t.capacity}: ${bulletinData.classSize || 'N/A'}`, rightCol, yPosition);
+      // Fourth Row
+      const fourthRowY = thirdRowY + 6;
+      this.renderTextWithUnicodeSupport(doc, `Nombre de matières réussies: ${bulletinData.numberOfPassed || ''}`, margin + 5, fourthRowY);
+      this.renderTextWithUnicodeSupport(doc, `Professeur principal: ${bulletinData.headTeacher || ''}`, margin + 120, fourthRowY);
+      
+      yPosition = fourthRowY + 6;
       
       yPosition += 15;
       
