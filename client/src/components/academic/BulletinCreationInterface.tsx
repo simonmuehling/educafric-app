@@ -747,60 +747,6 @@ export default function BulletinCreationInterface() {
     }
   };
 
-  // HIGH-QUALITY PRINT: Use browser's native print for ministry-grade output
-  const printBulletin = () => {
-    if (!showPreview) {
-      alert(language === 'fr' ? 'Veuillez d\'abord afficher l\'aperçu du bulletin' : 'Please show bulletin preview first');
-      return;
-    }
-
-    // Add print-specific styles for ministry-grade output
-    const printStyles = document.getElementById('ministry-print-styles');
-    if (!printStyles) {
-      const style = document.createElement('style');
-      style.id = 'ministry-print-styles';
-      style.textContent = `
-        @media print {
-          @page { 
-            size: A4; 
-            margin: 12mm; 
-            -webkit-print-color-adjust: exact;
-            color-adjust: exact;
-          }
-          body { 
-            font-family: 'Times New Roman', serif !important;
-            -webkit-print-color-adjust: exact;
-            color-adjust: exact;
-          }
-          /* Hide interface elements during print */
-          .print\\:hidden, .no-print { display: none !important; }
-          /* Ministry-grade text and borders */
-          table { border-collapse: collapse !important; }
-          th, td { 
-            border: 1px solid #000 !important; 
-            -webkit-print-color-adjust: exact;
-            color-adjust: exact;
-          }
-          /* Logo sizing for print - EXACT ministry dimensions */
-          .school-logo { 
-            width: 22mm !important; 
-            height: 22mm !important; 
-            object-fit: contain !important;
-          }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    try {
-      // Use browser's native high-quality print - much better than html2canvas
-      window.print();
-      console.log('✅ Ministry-grade print initiated');
-    } catch (error) {
-      console.error('Print error:', error);
-      alert(language === 'fr' ? 'Erreur lors de l\'impression' : 'Print error');
-    }
-  };
 
   const signBulletin = async () => {
     try {
@@ -2829,15 +2775,6 @@ export default function BulletinCreationInterface() {
             >
               <Download className="h-4 w-4 mr-2" />
               {language === 'fr' ? 'Imprimer PDF' : 'Print to PDF'}
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={printBulletin}
-              data-testid="button-print-bulletin"
-            >
-              <Printer className="h-4 w-4 mr-2" />
-              {language === 'fr' ? 'Imprimer (Qualité Ministère)' : 'Print (Ministry Grade)'}
             </Button>
             
             <Button 
