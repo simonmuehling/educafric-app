@@ -6,6 +6,22 @@ export interface DocumentData {
   content?: string;
 }
 
+// EXACT constants from ReportCardPreview to ensure PDF matches "Aperçu du bulletin"
+const TRIMESTER_TITLES = {
+  fr: (t: string) => `${String(t || "PREMIER").toUpperCase()} TRIMESTRE`,
+  en: (t: string) => `${String(t || "FIRST").toUpperCase()} TERM PROGRESS RECORD`
+};
+
+// EXACT Ministry Header Format - Bilingual Side by Side
+const MINISTRY_HEADER = {
+  line1: { fr: "RÉPUBLIQUE DU CAMEROUN", en: "REPUBLIC OF CAMEROON" },
+  line2: { fr: "Paix – Travail – Patrie", en: "Peace – Work – Fatherland" },
+  line3: { fr: "MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES", en: "MINISTRY OF SECONDARY EDUCATION" },
+  line4: { fr: "DÉLÉGATION RÉGIONALE DE …", en: "REGIONAL DELEGATION OF…." },
+  line5: { fr: "DÉLÉGATION DÉPARTEMENTALE DE…", en: "DIVISIONAL DELEGATION…." },
+  line6: { fr: "LYCÉE DE……….", en: "HIGH SCHOOL" }
+};
+
 export interface CameroonOfficialHeaderData {
   schoolName: string;
   region?: string;
@@ -4138,33 +4154,33 @@ export class PDFGenerator {
     
     yPosition += 10;
     
-    // Student Information in 2 rows layout (matching preview)
-    doc.setFont('DejaVuSans', 'bold');
-    doc.setFontSize(9);
+    // Student Information in 2 rows layout (EXACT match to "Aperçu du bulletin" preview)
+    doc.setFont('DejaVuSans', 'normal');
+    doc.setFontSize(8);
     doc.setTextColor(0, 0, 0);
     
     // First Row
     const firstRowY = yPosition;
-    doc.text(`Nom de l'élève: ${this.renderTextWithUnicodeSupport(headerData.student.name)}`, margin + 5, firstRowY);
-    doc.text(`Classe: ${this.renderTextWithUnicodeSupport(headerData.student.className || 'Tle C')}`, margin + 80, firstRowY);
-    doc.text(`Date et lieu de naissance: ${this.renderTextWithUnicodeSupport(headerData.student.birthPlace || 'Douala')}`, margin + 140, firstRowY);
+    doc.text(`${this.renderTextWithUnicodeSupport('Nom de l\'élève: ' + headerData.student.name)}`, margin + 5, firstRowY);
+    doc.text(`${this.renderTextWithUnicodeSupport('Classe: ' + (headerData.student.className || 'Tle C'))}`, margin + 80, firstRowY);
+    doc.text(`${this.renderTextWithUnicodeSupport('Date et lieu de naissance: ' + (headerData.student.birthPlace || 'Douala'))}`, margin + 140, firstRowY);
     
     // Second Row  
-    const secondRowY = firstRowY + 8;
-    doc.text(`Genre: ${this.renderTextWithUnicodeSupport(headerData.student.gender || 'F')}`, margin + 5, secondRowY);
-    doc.text(`Effectif de la classe: ${this.renderTextWithUnicodeSupport(headerData.student.classSize || '')}`, margin + 80, secondRowY);
-    doc.text(`Numéro d'identification unique: ${this.renderTextWithUnicodeSupport(headerData.student.id)}`, margin + 140, secondRowY);
+    const secondRowY = firstRowY + 6;
+    doc.text(`${this.renderTextWithUnicodeSupport('Genre: ' + (headerData.student.gender || 'F'))}`, margin + 5, secondRowY);
+    doc.text(`${this.renderTextWithUnicodeSupport('Effectif de la classe: ' + (headerData.student.classSize || ''))}`, margin + 80, secondRowY);
+    doc.text(`${this.renderTextWithUnicodeSupport('Numéro d\'identification unique: ' + headerData.student.id)}`, margin + 140, secondRowY);
     
     // Third Row
-    const thirdRowY = secondRowY + 8;
-    doc.text(`Redoublant: ${this.renderTextWithUnicodeSupport(headerData.student.isRepeater ? 'Oui' : 'Non')}`, margin + 5, thirdRowY);
-    doc.text(`Nombre de matières: ${this.renderTextWithUnicodeSupport(headerData.student.numberOfSubjects || '')}`, margin + 80, thirdRowY);
-    doc.text(`Nom et contact des parents/tuteurs: ${this.renderTextWithUnicodeSupport(headerData.student.guardian || 'Che Avuk')}`, margin + 140, thirdRowY);
+    const thirdRowY = secondRowY + 6;
+    doc.text(`${this.renderTextWithUnicodeSupport('Redoublant: ' + (headerData.student.isRepeater ? 'Oui' : 'Non'))}`, margin + 5, thirdRowY);
+    doc.text(`${this.renderTextWithUnicodeSupport('Nombre de matières: ' + (headerData.student.numberOfSubjects || '3'))}`, margin + 80, thirdRowY);
+    doc.text(`${this.renderTextWithUnicodeSupport('Nom et contact des parents/tuteurs: ' + (headerData.student.guardian || 'Che Avuk'))}`, margin + 140, thirdRowY);
     
     // Fourth Row
-    const fourthRowY = thirdRowY + 8;
-    doc.text(`Nombre de matières réussies: ${this.renderTextWithUnicodeSupport(headerData.student.numberOfPassed || '')}`, margin + 5, fourthRowY);
-    doc.text(`Professeur principal: ${this.renderTextWithUnicodeSupport(headerData.student.headTeacher || '')}`, margin + 120, fourthRowY);
+    const fourthRowY = thirdRowY + 6;
+    doc.text(`${this.renderTextWithUnicodeSupport('Nombre de matières réussies: ' + (headerData.student.numberOfPassed || ''))}`, margin + 5, fourthRowY);
+    doc.text(`${this.renderTextWithUnicodeSupport('Professeur principal: ' + (headerData.student.headTeacher || ''))}`, margin + 120, fourthRowY);
     
     // Matricule à droite
     doc.setFont('helvetica', 'normal');
