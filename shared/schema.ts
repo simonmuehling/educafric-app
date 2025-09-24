@@ -17,6 +17,7 @@ export * from "./schemas/sanctionsSchema"; // NEW: Disciplinary sanctions manage
 export * from "./schemas/librarySchema"; // NEW: Library books and recommendations management
 export * from "./schemas/predefinedAppreciationsSchema"; // NEW: Predefined appreciations and competency templates
 export * from "./schemas/archiveSchema"; // NEW: Archive system for bulletins and mastersheets
+export * from "./schemas/annualReportSchema"; // NEW: Annual report system with signature, workflow, and archiving
 
 // Import existing schema modules
 export * from "./tutorialSchema";
@@ -50,8 +51,11 @@ import {
   archivedDocuments,
   archiveAccessLogs
 } from "./schemas/archiveSchema";
+import {
+  annualReportComprehensive
+} from "./schemas/annualReportSchema";
 
-export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates, archivedDocuments, archiveAccessLogs };
+export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates, archivedDocuments, archiveAccessLogs, annualReportComprehensive };
 
 // Additional simplified tables for compatibility
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric, date, unique, foreignKey } from "drizzle-orm/pg-core";
