@@ -18,6 +18,7 @@ export * from "./schemas/librarySchema"; // NEW: Library books and recommendatio
 export * from "./schemas/predefinedAppreciationsSchema"; // NEW: Predefined appreciations and competency templates
 export * from "./schemas/archiveSchema"; // NEW: Archive system for bulletins and mastersheets
 export * from "./schemas/annualReportSchema"; // NEW: Annual report system with signature, workflow, and archiving
+export * from "./schemas/onlineClassesSchema"; // NEW: Online classes with Jitsi Meet integration (Premium feature)
 
 // Import existing schema modules
 export * from "./tutorialSchema";
