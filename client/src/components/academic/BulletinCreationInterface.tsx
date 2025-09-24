@@ -2295,21 +2295,21 @@ export default function BulletinCreationInterface() {
                         📋 {language === 'fr' ? 'LISTE DES COMMENTAIRES POUR L\'ENSEIGNANT (Ministère)' : 'LIST OF COMMENTS FOR TEACHERS (Ministry)'}
                       </h4>
                       <div className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                        {selectedTeacherComments.length}/3 {language === 'fr' ? 'sélectionnés' : 'selected'}
+                        {selectedTeacherComments.length}/2 {language === 'fr' ? 'sélectionnés' : 'selected'}
                       </div>
                     </div>
                     
                     <p className="text-xs text-green-600 mb-3">
                       {language === 'fr' 
-                        ? 'Sélectionnez jusqu\'à 3 commentaires officiels (obligatoire par le Ministère)'
-                        : 'Select up to 3 official comments (required by Ministry)'
+                        ? 'Sélectionnez jusqu\'à 2 commentaires officiels (obligatoire par le Ministère)'
+                        : 'Select up to 2 official comments (required by Ministry)'
                       }
                     </p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
                       {TEACHER_COMMENTS[language].map((comment) => {
                         const isSelected = selectedTeacherComments.includes(comment.id);
-                        const canSelect = selectedTeacherComments.length < 3 || isSelected;
+                        const canSelect = selectedTeacherComments.length < 2 || isSelected;
                         
                         return (
                           <button
@@ -2326,7 +2326,7 @@ export default function BulletinCreationInterface() {
                             onClick={() => {
                               if (isSelected) {
                                 setSelectedTeacherComments(prev => prev.filter(id => id !== comment.id));
-                              } else if (selectedTeacherComments.length < 3) {
+                              } else if (selectedTeacherComments.length < 2) {
                                 setSelectedTeacherComments(prev => [...prev, comment.id]);
                               }
                             }}
