@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer, Users, Info } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -173,6 +175,12 @@ const coteFromNote = (note: number): string => {
 export default function BulletinCreationInterface() {
   const { language } = useLanguage();
   const { toast } = useToast();
+
+  // Mobile detection hook
+  const isMobile = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(max-width: 768px)').matches;
+  }, []);
   
   // State for selected competency system
   const [selectedCompetencySystem, setSelectedCompetencySystem] = useState<any>(null);
@@ -1838,8 +1846,8 @@ export default function BulletinCreationInterface() {
                 </div>
               </div>
 
-              {/* Table structure matching official Cameroon bulletin format */}
-              <div className="overflow-x-auto">
+              {/* Desktop Table - Hidden on mobile */}
+              <div className="overflow-x-auto hidden md:block">
                 <table className="w-full border-collapse min-w-[800px]">
                   <thead>
                     <tr className="bg-blue-50 border-b-2 border-blue-200">
@@ -2099,6 +2107,237 @@ export default function BulletinCreationInterface() {
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Accordion - Shown only on mobile */}
+              <div className="block md:hidden">
+                <Accordion type="single" collapsible className="space-y-2">
+                  {subjects.map((subject, index) => {
+                    const moyenneFinale = subject.moyenneFinale || 0;
+                    const totalPondere = round2(moyenneFinale * subject.coefficient);
+                    const notePercent = round2((moyenneFinale / 20) * 100);
+                    const cote = coteFromNote(moyenneFinale);
+                    const competencesEvaluees = subject.competence1 && subject.competence2 ? `${subject.competence1}; ${subject.competence2}` : (subject.competence1 || subject.competence2 || '');
+                    
+                    return (
+                      <AccordionItem value={`subject-${index}`} key={subject.id} className="border rounded-lg">
+                        <AccordionTrigger className="px-4 py-3 hover:no-underline" data-testid={`accordion-subject-${index}`}>
+                          <div className="flex justify-between items-center w-full text-left">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{subject.name}</span>
+                              <span className="text-xs text-gray-500">{subject.teacher || language === 'fr' ? 'Enseignant' : 'Teacher'}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Badge variant="outline">{moyenneFinale}/20</Badge>
+                              <Badge variant="secondary">Coef: {subject.coefficient}</Badge>
+                              {(subject.comments || []).length > 0 && (
+                                <Badge variant="default">{(subject.comments || []).length}/2 📝</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        
+                        <AccordionContent className="px-4 pb-4">
+                          <div className="space-y-4">
+                            {/* Primary Inputs Grid */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">{language === 'fr' ? 'N/20' : 'N/20'}</Label>
+                                <Input
+                                  type="number"
+                                  inputMode="decimal"
+                                  className="h-10 text-right"
+                                  value={subject.note1}
+                                  onChange={(e) => updateSubject(subject.id, 'note1', parseFloat(e.target.value) || 0)}
+                                  data-testid={`mobile-input-note1-${index}`}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">{language === 'fr' ? 'M/20' : 'M/20'}</Label>
+                                <Input
+                                  type="number"
+                                  inputMode="decimal"
+                                  className="h-10 text-right font-medium"
+                                  value={subject.moyenneFinale}
+                                  onChange={(e) => updateSubject(subject.id, 'moyenneFinale', parseFloat(e.target.value) || 0)}
+                                  data-testid={`mobile-input-moyenne-${index}`}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">{language === 'fr' ? 'Coefficient' : 'Coefficient'}</Label>
+                                <Input
+                                  type="number"
+                                  inputMode="numeric"
+                                  className="h-10 text-center"
+                                  value={subject.coefficient}
+                                  onChange={(e) => updateSubject(subject.id, 'coefficient', parseInt(e.target.value) || 1)}
+                                  data-testid={`mobile-input-coef-${index}`}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">COTE</Label>
+                                <div className="h-10 px-3 border rounded-md bg-gray-50 flex items-center justify-center font-medium">
+                                  {cote}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Competencies */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">{language === 'fr' ? 'Compétence 1' : 'Competency 1'}</Label>
+                                <Input
+                                  className="h-10 text-sm"
+                                  value={subject.competence1}
+                                  onChange={(e) => updateSubject(subject.id, 'competence1', e.target.value)}
+                                  placeholder="Ex: Communication écrite"
+                                  data-testid={`mobile-input-comp1-${index}`}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">{language === 'fr' ? 'Compétence 2' : 'Competency 2'}</Label>
+                                <Input
+                                  className="h-10 text-sm"
+                                  value={subject.competence2}
+                                  onChange={(e) => updateSubject(subject.id, 'competence2', e.target.value)}
+                                  placeholder="Ex: Expression orale"
+                                  data-testid={`mobile-input-comp2-${index}`}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Appreciation */}
+                            <div className="space-y-1">
+                              <Label className="text-xs text-gray-600">{language === 'fr' ? 'Appréciation' : 'Appreciation'}</Label>
+                              <Select onValueChange={(value) => updateSubject(subject.id, 'remark', value)} value={subject.remark}>
+                                <SelectTrigger className="h-10">
+                                  <SelectValue placeholder={language === 'fr' ? "Sélectionnez..." : "Select..."} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="CTBA">
+                                    {language === 'fr' ? 'Compétences Très Bien Acquises (CTBA)' : 'Competences Very Well Acquired (CVWA)'}
+                                  </SelectItem>
+                                  <SelectItem value="CBA">
+                                    {language === 'fr' ? 'Compétences Bien Acquises (CBA)' : 'Competences Well Acquired (CWA)'}
+                                  </SelectItem>
+                                  <SelectItem value="CA">
+                                    {language === 'fr' ? 'Compétences Acquises (CA)' : 'Competences Acquired (CA)'}
+                                  </SelectItem>
+                                  <SelectItem value="CMA">
+                                    {language === 'fr' ? 'Compétences Moyennement Acquises (CMA)' : 'Competences Averagely Acquired (CAA)'}
+                                  </SelectItem>
+                                  <SelectItem value="CNA">
+                                    {language === 'fr' ? 'Compétences Non Acquises (CNA)' : 'Competences Not Acquired (CNA)'}
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Comments - Mobile Sheet */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-xs text-gray-600">{language === 'fr' ? 'Commentaires Ministère' : 'Ministry Comments'}</Label>
+                                <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                  {(subject.comments || []).length}/2
+                                </div>
+                              </div>
+                              
+                              <Sheet>
+                                <SheetTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full h-10"
+                                    data-testid={`mobile-button-comments-${index}`}
+                                  >
+                                    📝 {language === 'fr' ? 'Sélectionner commentaires' : 'Select comments'}
+                                  </Button>
+                                </SheetTrigger>
+                                <SheetContent side="bottom" className="h-[80vh]">
+                                  <SheetHeader className="pb-4">
+                                    <SheetTitle>{subject.name} - {language === 'fr' ? 'Commentaires' : 'Comments'}</SheetTitle>
+                                  </SheetHeader>
+                                  <div className="space-y-3 max-h-full overflow-y-auto">
+                                    <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded">
+                                      {language === 'fr' ? 'Sélectionnez jusqu\'à 2 commentaires officiels du Ministère' : 'Select up to 2 official Ministry comments'}
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                      {TEACHER_COMMENTS[language].map((comment) => {
+                                        const currentComments = subject.comments || [];
+                                        const isSelected = currentComments.includes(comment.id);
+                                        const canSelect = currentComments.length < 2 || isSelected;
+                                        
+                                        return (
+                                          <button
+                                            key={comment.id}
+                                            type="button"
+                                            disabled={!canSelect}
+                                            className={`w-full text-left p-4 rounded-lg border transition-all min-h-[60px] ${
+                                              isSelected 
+                                                ? 'bg-blue-100 border-blue-400 text-blue-800 font-medium'
+                                                : canSelect
+                                                  ? 'bg-white border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300'
+                                                  : 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed'
+                                            }`}
+                                            onClick={() => toggleSubjectComment(subject.id, comment.id)}
+                                          >
+                                            <div className="flex items-start gap-3">
+                                              <div className={`flex-shrink-0 w-5 h-5 mt-1 border rounded ${
+                                                isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                                              } flex items-center justify-center`}>
+                                                {isSelected && <span className="text-white text-xs">✓</span>}
+                                              </div>
+                                              <span className="flex-1 text-sm leading-relaxed">{comment.text}</span>
+                                            </div>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                    
+                                    {/* Selected Comments Preview */}
+                                    {(subject.comments || []).length > 0 && (
+                                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                        <div className="text-sm font-medium text-green-800 mb-2">
+                                          {language === 'fr' ? 'Commentaires sélectionnés:' : 'Selected comments:'}
+                                        </div>
+                                        <div className="space-y-1">
+                                          {(subject.comments || []).map((commentId, idx) => {
+                                            const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
+                                            return (
+                                              <div key={commentId} className="text-xs text-green-700">
+                                                {idx + 1}. {comment?.text}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </SheetContent>
+                              </Sheet>
+                            </div>
+
+                            {/* Remove Button */}
+                            <div className="pt-2 border-t">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removeSubject(subject.id)}
+                                className="w-full"
+                                data-testid={`mobile-button-remove-${index}`}
+                              >
+                                <Minus className="h-4 w-4 mr-2" />
+                                {language === 'fr' ? 'Supprimer matière' : 'Remove subject'}
+                              </Button>
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
               </div>
             </CardContent>
           </Card>
