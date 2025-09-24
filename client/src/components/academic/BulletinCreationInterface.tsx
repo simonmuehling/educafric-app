@@ -86,6 +86,7 @@ interface Subject {
   coefficient: number;
   grade: number;
   remark: string;
+  comments?: string[]; // Per-subject ministry teacher comments
   competencies?: string;
   competencyLevel?: 'CTBA' | 'CBA' | 'CA' | 'CMA' | 'CNA' | 'CVWA' | 'CWA' | 'CAA';
   competencyEvaluation?: string;
@@ -395,6 +396,7 @@ export default function BulletinCreationInterface() {
       coefficient: 6, 
       grade: 0, 
       remark: '', 
+      comments: [],
       note1: 0, 
  
       moyenneFinale: 0, 
@@ -410,6 +412,7 @@ export default function BulletinCreationInterface() {
       coefficient: 3, 
       grade: 0, 
       remark: '', 
+      comments: [],
       note1: 0, 
  
       moyenneFinale: 0, 
@@ -425,6 +428,7 @@ export default function BulletinCreationInterface() {
       coefficient: 4, 
       grade: 0, 
       remark: '', 
+      comments: [],
       note1: 0, 
  
       moyenneFinale: 0, 
@@ -504,7 +508,7 @@ export default function BulletinCreationInterface() {
     }
   };
   const [generalRemark, setGeneralRemark] = useState('');
-  const [selectedTeacherComments, setSelectedTeacherComments] = useState<string[]>([]);
+  // Per-subject comments are now stored in each Subject's comments field
 
   const addSubject = () => {
     const newSubject: Subject = {
@@ -537,7 +541,7 @@ export default function BulletinCreationInterface() {
       const numValue = Number(value) || 0;
       const updatedSubject = { 
         ...s, 
-        [field]: (field === 'name' || field === 'remark' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'teacher') ? value : numValue 
+        [field]: (field === 'name' || field === 'remark' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'teacher' || field === 'comments') ? value : numValue 
       };
       
       // Always recalculate derived values
@@ -567,6 +571,37 @@ export default function BulletinCreationInterface() {
       updatedSubject.competencyEvaluation = getCompetencyDescription(competencyLevel, language);
       
       return updatedSubject;
+    }));
+  };
+
+  // Function to update comments for a specific subject
+  const updateSubjectComments = (subjectId: string, comments: string[]) => {
+    setSubjects(prev => prev.map(s => 
+      s.id === subjectId ? { ...s, comments } : s
+    ));
+  };
+
+  // Function to toggle a comment for a specific subject
+  const toggleSubjectComment = (subjectId: string, commentId: string) => {
+    setSubjects(prev => prev.map(s => {
+      if (s.id !== subjectId) return s;
+      
+      const currentComments = s.comments || [];
+      const isSelected = currentComments.includes(commentId);
+      let newComments;
+      
+      if (isSelected) {
+        // Remove comment
+        newComments = currentComments.filter(id => id !== commentId);
+      } else if (currentComments.length < 2) {
+        // Add comment (max 2)
+        newComments = [...currentComments, commentId];
+      } else {
+        // Already at max, don't add
+        return s;
+      }
+      
+      return { ...s, comments: newComments };
     }));
   };
 
@@ -1037,7 +1072,6 @@ export default function BulletinCreationInterface() {
         }
       }
     },
-    selectedTeacherComments,
     lines: subjects.map(s => ({
       subject: s.name,
       note1: s.note1,
@@ -2288,82 +2322,19 @@ export default function BulletinCreationInterface() {
                     {language === 'fr' ? 'Appréciation générale du travail de l\'élève' : 'General student work appreciation'}
                   </Label>
                   
-                  {/* Ministry-required Teacher Comments List */}
-                  <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-semibold text-green-800 flex items-center gap-2">
-                        📋 {language === 'fr' ? 'LISTE DES COMMENTAIRES POUR L\'ENSEIGNANT (Ministère)' : 'LIST OF COMMENTS FOR TEACHERS (Ministry)'}
+                  {/* Ministry-required Teacher Comments - Now Per-Subject */}
+                  <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <h4 className="text-sm font-semibold text-blue-800 flex items-center gap-2">
+                        📋 {language === 'fr' ? 'COMMENTAIRES PAR MATIÈRE (Ministère)' : 'COMMENTS PER SUBJECT (Ministry)'}
                       </h4>
-                      <div className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                        {selectedTeacherComments.length}/2 {language === 'fr' ? 'sélectionnés' : 'selected'}
-                      </div>
                     </div>
-                    
-                    <p className="text-xs text-green-600 mb-3">
+                    <p className="text-xs text-blue-600">
                       {language === 'fr' 
-                        ? 'Sélectionnez jusqu\'à 2 commentaires officiels (obligatoire par le Ministère)'
-                        : 'Select up to 2 official comments (required by Ministry)'
+                        ? 'Les commentaires officiels du Ministère sont maintenant gérés par matière dans le tableau des notes ci-dessus. Chaque enseignant peut sélectionner jusqu\'à 2 commentaires spécifiques pour chaque élève.'
+                        : 'Ministry official comments are now managed per subject in the grade table above. Each teacher can select up to 2 specific comments for each student.'
                       }
                     </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
-                      {TEACHER_COMMENTS[language].map((comment) => {
-                        const isSelected = selectedTeacherComments.includes(comment.id);
-                        const canSelect = selectedTeacherComments.length < 2 || isSelected;
-                        
-                        return (
-                          <button
-                            key={comment.id}
-                            type="button"
-                            disabled={!canSelect}
-                            className={`text-left p-2 text-xs rounded border transition-all ${
-                              isSelected 
-                                ? 'bg-green-100 border-green-400 text-green-800 font-medium'
-                                : canSelect
-                                  ? 'bg-white border-gray-200 text-gray-700 hover:bg-green-50 hover:border-green-300'
-                                  : 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed'
-                            }`}
-                            onClick={() => {
-                              if (isSelected) {
-                                setSelectedTeacherComments(prev => prev.filter(id => id !== comment.id));
-                              } else if (selectedTeacherComments.length < 2) {
-                                setSelectedTeacherComments(prev => [...prev, comment.id]);
-                              }
-                            }}
-                            data-testid={`button-teacher-comment-${comment.id}`}
-                          >
-                            <span className="flex items-start gap-2">
-                              <span className={`flex-shrink-0 w-3 h-3 mt-0.5 border rounded-sm ${
-                                isSelected ? 'bg-green-500 border-green-500' : 'border-gray-300'
-                              }`}>
-                                {isSelected && <span className="block w-full h-full text-white text-center text-xs leading-3">✓</span>}
-                              </span>
-                              <span className="flex-1">{comment.text}</span>
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Selected Comments Display */}
-                    {selectedTeacherComments.length > 0 && (
-                      <div className="mt-3 p-3 bg-white border border-green-300 rounded">
-                        <p className="text-xs font-medium text-green-700 mb-2">
-                          {language === 'fr' ? 'Commentaires sélectionnés :' : 'Selected comments:'}
-                        </p>
-                        <ul className="space-y-1">
-                          {selectedTeacherComments.map((commentId, index) => {
-                            const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
-                            return (
-                              <li key={commentId} className="text-xs text-gray-700 flex items-start gap-2">
-                                <span className="text-green-600 font-bold">{index + 1}.</span>
-                                <span>{comment?.text}</span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
                   </div>
                   
                   {/* Additional Free Text (Optional) */}
