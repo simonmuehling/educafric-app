@@ -643,21 +643,7 @@ export default function ReportCardPreview({
                     CA: {entries.filter(e => Number(e.m20 || e.av20) >= 10 && Number(e.m20 || e.av20) < 14).length}<br/>
                     CAA: {entries.filter(e => Number(e.m20 || e.av20) < 10).length}
                   </td>
-                  <td colSpan={3} className="border border-black p-1 text-[6px] align-top">
-                    <div className="font-bold mb-1">
-                      {language === 'fr' ? 'Signatures Directeur:' : 'Principal Signatures:'}
-                    </div>
-                    <div className="text-[5px] space-y-1">
-                      <div>{language === 'fr' ? 'Directeur:' : 'Principal:'} ____________</div>
-                    </div>
-                  </td>
-                  <td colSpan={3} className="border border-black p-1 text-[6px] align-top">
-                    <div className="font-bold mb-1">
-                      {language === 'fr' ? 'Signature Parent:' : 'Parent Signature:'}
-                    </div>
-                    <div className="text-[5px] space-y-1">
-                      <div>{language === 'fr' ? 'Parent:' : 'Parent:'} ____________</div>
-                    </div>
+                  <td colSpan={6} className="border border-black p-1 text-[6px] align-top">
                   </td>
                 </tr>
               </tbody>
@@ -760,83 +746,9 @@ export default function ReportCardPreview({
             )}
           </div>
 
-          {/* Ministry Official Signature Section - Optimized for single page print */}
-          <div className="mt-4 grid grid-cols-3 gap-3 text-[8px]">
-            {/* Left: Class Teacher */}
-            <div className="text-left">
-              <div className="mb-2">
-                <div className="font-bold">{language === 'fr' ? 'PROFESSEUR PRINCIPAL' : 'CLASS TEACHER'}</div>
-              </div>
-              <div className="space-y-1">
-                <div>
-                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Nom:' : 'Name:'}</div>
-                  <div className="border-b border-black h-2"></div>
-                </div>
-                <div>
-                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Signature:' : 'Signature:'}</div>
-                  <div className="border-b border-black h-2"></div>
-                </div>
-                <div>
-                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Date:' : 'Date:'}</div>
-                  <div className="border-b border-black h-2"></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Center: Principal/Head Teacher with Official Stamp */}
-            <div className="text-center">
-              <div className="mb-2">
-                <div className="font-bold">{language === 'fr' ? 'CHEF D\'ÉTABLISSEMENT' : 'PRINCIPAL/HEAD TEACHER'}</div>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Nom:' : 'Name:'}</div>
-                  <div className="border-b border-black h-4"></div>
-                </div>
-                <div>
-                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Cachet Officiel/Sceau:' : 'Official Stamp/Seal:'}</div>
-                  <div className="border border-black h-6 flex items-center justify-center text-[6px] text-gray-400">
-                    {language === 'fr' ? 'CACHET ÉCOLE' : 'SCHOOL STAMP'}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Signature:' : 'Signature:'}</div>
-                  <div className="border-b border-black h-4"></div>
-                </div>
-                <div>
-                  <div className="text-[7px] mb-1">{language === 'fr' ? 'Date:' : 'Date:'}</div>
-                  <div className="border-b border-black h-4"></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Parent/Guardian */}
-            <div className="text-right">
-              <div className="mb-2">
-                <div className="font-bold">{language === 'fr' ? 'PARENT/TUTEUR' : 'PARENT/GUARDIAN'}</div>
-              </div>
-              <div className="space-y-1">
-                <div>
-                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Nom:' : 'Name:'}</div>
-                  <div className="border-b border-black h-2"></div>
-                </div>
-                <div>
-                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Signature:' : 'Signature:'}</div>
-                  <div className="border-b border-black h-2"></div>
-                </div>
-                <div>
-                  <div className="text-[7px] mb-0.5">{language === 'fr' ? 'Date:' : 'Date:'}</div>
-                  <div className="border-b border-black h-2"></div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </A4Sheet>
 
-      <div className="mt-3 flex justify-end gap-2 print:hidden no-print">
-        <button className="px-3 py-2 rounded-xl bg-gray-100 print:hidden no-print" onClick={() => window.print?.()}>{language === 'fr' ? 'Imprimer' : 'Print'}</button>
-      </div>
     </div>
   );
 }
