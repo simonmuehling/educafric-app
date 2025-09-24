@@ -4,7 +4,7 @@
 import { pgTable, text, serial, integer, boolean, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { schools, subjects, classes, users } from "../schema.js";
+import { schools, subjects, classes, users } from "../schema";
 
 // Online courses table (enhanced from existing structure if any)
 export const onlineCourses = pgTable("online_courses", {
