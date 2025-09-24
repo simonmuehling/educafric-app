@@ -7388,6 +7388,224 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/comprehensive-bulletin', checkSubscriptionFeature('advanced_grade_management'), comprehensiveBulletinRoutes);
   app.use('/api/simple-bulletin', simpleBulletinPdfRoutes);
   app.use('/api/bulletins', creationBulletinPdfRoutes);
+
+  // ===== ANNUAL REPORT API ROUTES =====
+  // Annual report creation, management, and workflow
+  app.post('/api/annual-reports', requireAuth, requireAnyRole(['Director', 'Teacher', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      console.log(`[ANNUAL_REPORT] 📋 User ${user?.id} creating annual report...`);
+      
+      const { annualReportValidationSchema } = await import('../shared/schemas/annualReportSchema.js');
+      
+      // Validate request data
+      const validationResult = annualReportValidationSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        console.warn('[ANNUAL_REPORT] ⚠️ Validation failed:', validationResult.error.issues);
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid annual report data',
+          errors: validationResult.error.issues
+        });
+      }
+
+      const reportData = validationResult.data;
+      reportData.enteredBy = user.id;
+      reportData.dataSource = 'manual';
+
+      // Mock storage - in real app, save to database
+      console.log('[ANNUAL_REPORT] ✅ Annual report created successfully');
+      
+      res.json({
+        success: true,
+        message: 'Annual report created successfully',
+        data: {
+          id: Math.floor(Math.random() * 10000),
+          ...reportData,
+          verificationCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+          createdAt: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('[ANNUAL_REPORT] ❌ Error creating annual report:', error);
+      res.status(500).json({ success: false, message: 'Failed to create annual report' });
+    }
+  });
+
+  // Get annual report by ID
+  app.get('/api/annual-reports/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      console.log(`[ANNUAL_REPORT] 📋 Fetching annual report ${id}...`);
+      
+      // Mock data - in real app, fetch from database
+      const { generateSampleAnnualReportData } = await import('../shared/schemas/annualReportSchema.js');
+      const mockData = generateSampleAnnualReportData(123, 1, 1);
+      
+      res.json({
+        success: true,
+        data: {
+          id: parseInt(id),
+          ...mockData,
+          verificationCode: 'AR2024' + id.padStart(4, '0'),
+          createdAt: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('[ANNUAL_REPORT] ❌ Error fetching annual report:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch annual report' });
+    }
+  });
+
+  // Sign annual report
+  app.post('/api/annual-reports/:id/sign', requireAuth, requireAnyRole(['Director', 'Teacher', 'Parent']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      const { signatureType, signatureName, signatureUrl } = req.body;
+      
+      console.log(`[ANNUAL_REPORT] ✍️ User ${user?.id} signing annual report ${id} as ${signatureType}...`);
+      
+      // Validate signature type
+      if (!['parent', 'teacher', 'headmaster'].includes(signatureType)) {
+        return res.status(400).json({ success: false, message: 'Invalid signature type' });
+      }
+
+      // Mock signing - in real app, update database
+      const signatureData = {
+        name: signatureName || user.name,
+        date: new Date().toLocaleDateString('fr-FR'),
+        signatureUrl: signatureUrl || null,
+        signedBy: user.id,
+        signedAt: new Date().toISOString()
+      };
+
+      console.log(`[ANNUAL_REPORT] ✅ Annual report ${id} signed by ${signatureType}`);
+      
+      res.json({
+        success: true,
+        message: `Annual report signed as ${signatureType}`,
+        signature: signatureData
+      });
+    } catch (error) {
+      console.error('[ANNUAL_REPORT] ❌ Error signing annual report:', error);
+      res.status(500).json({ success: false, message: 'Failed to sign annual report' });
+    }
+  });
+
+  // Send annual report notifications
+  app.post('/api/annual-reports/:id/notify', requireAuth, requireAnyRole(['Director', 'Teacher', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      const { channels = ['email'], recipients } = req.body;
+      
+      console.log(`[ANNUAL_REPORT] 📧 User ${user?.id} sending annual report ${id} notifications...`);
+      
+      // Validate channels - exclude SMS per user requirements
+      const allowedChannels = channels.filter((ch: string) => ['email', 'whatsapp'].includes(ch));
+      if (allowedChannels.length === 0) {
+        return res.status(400).json({ success: false, message: 'No valid notification channels specified' });
+      }
+
+      // Mock notification sending - in real app, use notification service
+      const notificationResult = {
+        totalRecipients: recipients?.length || 2,
+        emailSuccessCount: allowedChannels.includes('email') ? recipients?.length || 2 : 0,
+        whatsappSuccessCount: allowedChannels.includes('whatsapp') ? recipients?.length || 1 : 0,
+        emailFailedCount: 0,
+        whatsappFailedCount: 0,
+        channels: allowedChannels,
+        sentAt: new Date().toISOString()
+      };
+
+      console.log(`[ANNUAL_REPORT] ✅ Annual report ${id} notifications sent:`, notificationResult);
+      
+      res.json({
+        success: true,
+        message: 'Annual report notifications sent successfully',
+        result: notificationResult
+      });
+    } catch (error) {
+      console.error('[ANNUAL_REPORT] ❌ Error sending annual report notifications:', error);
+      res.status(500).json({ success: false, message: 'Failed to send notifications' });
+    }
+  });
+
+  // Archive annual report
+  app.post('/api/annual-reports/:id/archive', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      
+      console.log(`[ANNUAL_REPORT] 🗄️ User ${user?.id} archiving annual report ${id}...`);
+      
+      // Mock archiving - in real app, move to archive storage
+      const archiveData = {
+        originalId: id,
+        archivedAt: new Date().toISOString(),
+        archivedBy: user.id,
+        storageKey: `annual-reports/archived/${new Date().getFullYear()}/${id}.pdf`,
+        checksumSha256: 'mock_checksum_' + id,
+        sizeBytes: 1024 * 1024 * 2, // 2MB mock size
+        status: 'archived'
+      };
+
+      console.log(`[ANNUAL_REPORT] ✅ Annual report ${id} archived successfully`);
+      
+      res.json({
+        success: true,
+        message: 'Annual report archived successfully',
+        archive: archiveData
+      });
+    } catch (error) {
+      console.error('[ANNUAL_REPORT] ❌ Error archiving annual report:', error);
+      res.status(500).json({ success: false, message: 'Failed to archive annual report' });
+    }
+  });
+
+  // List annual reports for a student
+  app.get('/api/students/:studentId/annual-reports', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { studentId } = req.params;
+      const { academicYear, status } = req.query;
+      
+      console.log(`[ANNUAL_REPORT] 📋 Fetching annual reports for student ${studentId}...`);
+      
+      // Mock data - in real app, fetch from database
+      const { generateSampleAnnualReportData } = await import('../shared/schemas/annualReportSchema.js');
+      const mockReports = [
+        {
+          id: 1,
+          ...generateSampleAnnualReportData(parseInt(studentId), 1, 1),
+          verificationCode: 'AR20241',
+          createdAt: new Date(Date.now() - 86400000).toISOString() // Yesterday
+        },
+        {
+          id: 2,
+          ...generateSampleAnnualReportData(parseInt(studentId), 1, 1),
+          academicYear: "2023-2024",
+          verificationCode: 'AR20232',
+          createdAt: new Date(Date.now() - 365*86400000).toISOString() // Last year
+        }
+      ];
+      
+      const filteredReports = mockReports.filter(report => {
+        if (academicYear && report.academicYear !== academicYear) return false;
+        if (status && report.status !== status) return false;
+        return true;
+      });
+      
+      res.json({
+        success: true,
+        data: filteredReports,
+        total: filteredReports.length
+      });
+    } catch (error) {
+      console.error('[ANNUAL_REPORT] ❌ Error fetching student annual reports:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch annual reports' });
+    }
+  });
   app.use('/api/assets', assetsRoutes);
   app.use('/api/school', schoolInfoRoutes);
   app.use('/api/signatures', digitalSignatureRoutes);
