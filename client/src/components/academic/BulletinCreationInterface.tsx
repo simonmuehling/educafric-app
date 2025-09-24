@@ -2342,56 +2342,6 @@ export default function BulletinCreationInterface() {
             </CardContent>
           </Card>
 
-          {/* Appréciations générales */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                📝 {language === 'fr' ? 'Appréciations générales' : 'General Appreciations'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">
-                    {language === 'fr' ? 'Appréciation générale du travail de l\'élève' : 'General appreciation of student work'}
-                  </Label>
-                  <textarea
-                    className="w-full border rounded-lg p-3 text-sm min-h-[100px] resize-y"
-                    placeholder={language === 'fr' ? 
-                      'Saisir l\'appréciation générale du travail, comportement et résultats de l\'élève...' : 
-                      'Enter general appreciation of student work, behavior and results...'}
-                    value={generalRemark}
-                    onChange={(e) => setGeneralRemark(e.target.value)}
-                    data-testid="textarea-general-remarks"
-                  />
-                </div>
-                
-                <div className="flex gap-2 items-start">
-                  <div className="flex-1">
-                    <Label className="text-sm font-medium mb-2 block">
-                      {language === 'fr' ? 'Signature et observations' : 'Signature and observations'}
-                    </Label>
-                    <Input
-                      placeholder={language === 'fr' ? 'Nom et signature du directeur...' : 'Name and signature of director...'}
-                      className="border-blue-200 focus:border-blue-400"
-                      data-testid="input-director-signature"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Label className="text-sm font-medium mb-2 block">
-                      {language === 'fr' ? 'Date' : 'Date'}
-                    </Label>
-                    <Input
-                      type="date"
-                      defaultValue={new Date().toISOString().split('T')[0]}
-                      className="border-blue-200 focus:border-blue-400"
-                      data-testid="input-signature-date"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Section Disciplinaire - Format CBA Officiel */}
           <Card className="border-orange-200">
