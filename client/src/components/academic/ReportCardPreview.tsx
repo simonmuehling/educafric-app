@@ -357,21 +357,36 @@ export default function ReportCardPreview({
             <div className="text-xs mb-2">{language === 'fr' ? 'Année scolaire' : 'School Year'}: {year}</div>
           </div>
 
-          {/* Ministry Student Information Layout with Photo Position */}
+          {/* Ministry Student Information Layout - 2 Rows near Photo */}
           <div className="flex justify-between items-start mb-6">
-            {/* Left Side: Student Information */}
-            <div className="flex-1 text-xs space-y-1">
-              <div><strong>{language === 'fr' ? 'Nom de l\'élève' : 'Name of Student'}:</strong> {student.name || ""}</div>
-              <div><strong>{language === 'fr' ? 'Classe' : 'Class'}:</strong> {student.classLabel || ""}</div>
-              <div><strong>{language === 'fr' ? 'Date et lieu de naissance' : 'Date and place of birth'}:</strong> {student.birthDate || ""} {student.birthPlace || ""}</div>
-              <div><strong>{language === 'fr' ? 'Genre' : 'Gender'}:</strong> {student.gender || ""}</div>
-              <div><strong>{language === 'fr' ? 'Effectif de la classe' : 'Class enrolment'}:</strong> {student.classSize || ""}</div>
-              <div><strong>{language === 'fr' ? 'Numéro d\'identification unique' : 'Unique Identification number'}:</strong> {student.id || ""}</div>
-              <div><strong>{language === 'fr' ? 'Redoublant' : 'Repeater'}:</strong> {student.isRepeater ? (language === 'fr' ? 'Oui' : 'Yes') : (language === 'fr' ? 'Non' : 'No')}</div>
-              <div><strong>{language === 'fr' ? 'Nombre de matières' : 'Number of subjects'}:</strong> {student.numberOfSubjects || entries.length}</div>
-              <div><strong>{language === 'fr' ? 'Nom et contact des parents/tuteurs' : 'Parent\'s/Guardian\'s name and contact'}:</strong> {student.guardian || ""}</div>
-              <div><strong>{language === 'fr' ? 'Nombre de matières réussies' : 'Number passed'}:</strong> {student.numberOfPassed || ""}</div>
-              <div><strong>{language === 'fr' ? 'Professeur principal' : 'Class master'}:</strong> {student.headTeacher || ""}</div>
+            {/* Left Side: Student Information in 2 Rows */}
+            <div className="flex-1 text-xs">
+              {/* First Row */}
+              <div className="grid grid-cols-3 gap-4 mb-2">
+                <div><strong>{language === 'fr' ? 'Nom de l\'élève' : 'Name of Student'}:</strong> {student.name || ""}</div>
+                <div><strong>{language === 'fr' ? 'Classe' : 'Class'}:</strong> {student.classLabel || ""}</div>
+                <div><strong>{language === 'fr' ? 'Date et lieu de naissance' : 'Date and place of birth'}:</strong> {student.birthPlace || "Douala"}</div>
+              </div>
+              
+              {/* Second Row */}
+              <div className="grid grid-cols-3 gap-4 mb-2">
+                <div><strong>{language === 'fr' ? 'Genre' : 'Gender'}:</strong> {student.gender || "F"}</div>
+                <div><strong>{language === 'fr' ? 'Effectif de la classe' : 'Class enrolment'}:</strong> {student.classSize || ""}</div>
+                <div><strong>{language === 'fr' ? 'Numéro d\'identification unique' : 'Unique Identification number'}:</strong> {student.id || ""}</div>
+              </div>
+              
+              {/* Third Row */}
+              <div className="grid grid-cols-3 gap-4 mb-2">
+                <div><strong>{language === 'fr' ? 'Redoublant' : 'Repeater'}:</strong> {student.isRepeater ? (language === 'fr' ? 'Oui' : 'Yes') : (language === 'fr' ? 'Non' : 'No')}</div>
+                <div><strong>{language === 'fr' ? 'Nombre de matières' : 'Number of subjects'}:</strong> {entries.length}</div>
+                <div><strong>{language === 'fr' ? 'Nom et contact des parents/tuteurs' : 'Parent\'s/Guardian\'s name and contact'}:</strong> {student.guardian || "Che Avuk"}</div>
+              </div>
+              
+              {/* Fourth Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div><strong>{language === 'fr' ? 'Nombre de matières réussies' : 'Number passed'}:</strong> {student.numberOfPassed || ""}</div>
+                <div><strong>{language === 'fr' ? 'Professeur principal' : 'Class master'}:</strong> {student.headTeacher || ""}</div>
+              </div>
             </div>
             
             {/* Right Side: Student Photo - EXACT position as ministry docs */}
