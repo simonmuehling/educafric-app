@@ -1468,21 +1468,21 @@ export default function AcademicManagementSuite() {
       {/* Main Content Tabs */}
       <Tabs defaultValue="bulletins" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="bulletins" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            {language === 'fr' ? 'Création Bulletins' : 'Create Bulletins'}
+          <TabsTrigger value="bulletins" className="flex items-center justify-center gap-2 p-2">
+            <FileText className="h-5 w-5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline-block">{language === 'fr' ? 'Création Bulletins' : 'Create Bulletins'}</span>
           </TabsTrigger>
-          <TabsTrigger value="mastersheet" className="flex items-center gap-2">
-            <FileSpreadsheet className="h-4 w-4" />
-            {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
+          <TabsTrigger value="mastersheet" className="flex items-center justify-center gap-2 p-2">
+            <FileSpreadsheet className="h-5 w-5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline-block">{language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}</span>
           </TabsTrigger>
-          <TabsTrigger value="transcript" className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            {language === 'fr' ? 'Relevé de Notes' : 'Transcript'}
+          <TabsTrigger value="transcript" className="flex items-center justify-center gap-2 p-2">
+            <BookOpen className="h-5 w-5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline-block">{language === 'fr' ? 'Relevé de Notes' : 'Transcript'}</span>
           </TabsTrigger>
-          <TabsTrigger value="archives" className="flex items-center gap-2">
-            <Archive className="h-4 w-4" />
-            {language === 'fr' ? 'Archives' : 'Archives'}
+          <TabsTrigger value="archives" className="flex items-center justify-center gap-2 p-2">
+            <Archive className="h-5 w-5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline-block">{language === 'fr' ? 'Archives' : 'Archives'}</span>
           </TabsTrigger>
         </TabsList>
 
