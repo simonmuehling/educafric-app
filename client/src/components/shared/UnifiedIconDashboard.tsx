@@ -135,8 +135,8 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
             >
               {/* Compact mobile layout */}
               <div className="flex flex-col items-center text-center space-y-1 sm:space-y-2 h-full justify-center">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 ${module.color} rounded-lg sm:rounded-xl flex items-center justify-center text-white shadow-sm transition-all duration-300 group-hover:scale-110`}>
-                  <div className="scale-75 sm:scale-85 md:scale-100">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 ${module.color} rounded-lg sm:rounded-xl flex items-center justify-center text-white shadow-sm transition-all duration-300 group-hover:scale-110 dashboard-icon`}>
+                  <div className="scale-75 sm:scale-85 md:scale-100 module-icon">
                     {module.icon}
                   </div>
                 </div>

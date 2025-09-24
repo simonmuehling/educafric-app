@@ -5,6 +5,46 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== LUCIDE REACT ICONS OPTIMIZATION ===== */
+/* Ensure all lucide-react icons display correctly across all browsers */
+[data-lucide] {
+  display: inline-block !important;
+  width: 1em !important;
+  height: 1em !important;
+  vertical-align: middle !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  fill: none !important;
+  flex-shrink: 0 !important;
+}
+
+/* Force visibility for all SVG icons */
+svg {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  flex-shrink: 0 !important;
+}
+
+/* Specific fixes for dashboard icons */
+.dashboard-icon,
+.module-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.dashboard-icon svg,
+.module-icon svg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
 /* ===== CENTRALIZED PRINT CSS ===== */
 @page { 
   size: A4; 
