@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,9 +119,22 @@ const Td = ({ children, sticky = false, className = "", ...props }: any) => (
   </td>
 );
 
+/**************************** PRINT HANDLER ****************************/
+const handlePrint = (el: HTMLElement | null) => {
+  if (!el) return;
+  const cleanup = () => { 
+    el.removeAttribute('data-print-active'); 
+    window.removeEventListener('afterprint', cleanup); 
+  };
+  el.setAttribute('data-print-active', 'true');
+  window.addEventListener('afterprint', cleanup, { once: true });
+  requestAnimationFrame(() => window.print());
+};
+
 /**************************** MASTER SHEET COMPONENT ****************************/
 export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: string; selectedTerm: string }) {
   const { language } = useLanguage();
+  const printRef = useRef<HTMLDivElement>(null);
   
   // Fetch students for the selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
@@ -376,7 +389,7 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
       </Card>
 
       {/* Main Master Sheet with Ministry Header */}
-      <Card className="w-full">
+      <Card className="w-full" ref={printRef}>
         <CardHeader className="print:hidden">
           <div className="flex items-center justify-between">
             <div>
@@ -395,7 +408,7 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.print?.()}
+                onClick={() => handlePrint(printRef.current)}
               >
                 <Printer className="h-4 w-4 mr-2" />
                 {language === 'fr' ? 'Imprimer' : 'Print'}
@@ -496,6 +509,7 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
 /**************************** TRANSCRIPT COMPONENT ****************************/
 export function Transcript({ selectedStudentId }: { selectedStudentId: string }) {
   const { language } = useLanguage();
+  const transcriptPrintRef = useRef<HTMLDivElement>(null);
 
   // Fetch student data
   const { data: studentData, isLoading: studentLoading } = useQuery({
@@ -606,7 +620,7 @@ export function Transcript({ selectedStudentId }: { selectedStudentId: string })
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full" ref={transcriptPrintRef}>
       <CardHeader className="print:hidden">
         <div className="flex items-center justify-between">
           <div>
@@ -622,7 +636,7 @@ export function Transcript({ selectedStudentId }: { selectedStudentId: string })
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.print?.()}
+              onClick={() => handlePrint(transcriptPrintRef.current)}
             >
               <Printer className="h-4 w-4 mr-2" />
               {language === 'fr' ? 'Imprimer' : 'Print'}

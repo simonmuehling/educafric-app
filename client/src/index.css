@@ -1336,16 +1336,23 @@ select:focus-visible {
   }
 }
 
-/* Print media queries - Hide print buttons and actions when printing to PDF */
+/* Print isolation - hide everything except explicitly marked printable content */
 @media print {
-  [data-testid="button-print-pdf"],
-  button[onClick*="print"],
-  button:contains("Print"),
-  button:contains("Imprimer"),
-  .print\\:hidden,
-  [class*="print:hidden"] {
-    display: none !important;
+  body * {
     visibility: hidden !important;
+  }
+  
+  [data-print-active="true"],
+  [data-print-active="true"] * {
+    visibility: visible !important;
+  }
+  
+  [data-print-active="true"] {
+    position: absolute !important;
+    inset: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
   }
   
   /* Ensure proper page breaks for report cards */
@@ -1353,9 +1360,8 @@ select:focus-visible {
     page-break-after: always;
   }
   
-  /* Hide any UI elements that shouldn't appear in printed documents */
-  .no-print,
-  [class*="no-print"] {
-    display: none !important;
+  @page {
+    size: A4;
+    margin: 12mm;
   }
 }
