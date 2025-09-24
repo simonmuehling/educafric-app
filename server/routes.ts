@@ -7473,7 +7473,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Mock signing - in real app, update database
       const signatureData = {
-        name: signatureName || user.name,
+        name: signatureName || (user as any).name || 'Unknown User',
         date: new Date().toLocaleDateString('fr-FR'),
         signatureUrl: signatureUrl || null,
         signedBy: user.id,
@@ -7591,8 +7591,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
       
       const filteredReports = mockReports.filter(report => {
-        if (academicYear && report.academicYear !== academicYear) return false;
-        if (status && report.status !== status) return false;
+        if (academicYear && (report as any).academicYear !== academicYear) return false;
+        if (status && (report as any).status !== status) return false;
         return true;
       });
       
