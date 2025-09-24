@@ -181,9 +181,9 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
   const t = labels[language];
 
   return (
-    <div className="max-w-4xl mx-auto bg-white p-6 text-black print:p-2" data-annual-report="true">
+    <div className="annual-report-compact max-w-4xl mx-auto bg-white p-6 text-black print:p-2" data-annual-report="true">
       {/* Ministry Official Header - Bilingual */}
-      <div className="text-center mb-6 border-b-2 border-black pb-4">
+      <div className="ministry-header text-center mb-6 border-b-2 border-black pb-4">
         <div className="grid grid-cols-2 gap-8 mb-4">
           {/* French Side */}
           <div className="text-xs leading-tight">
@@ -228,7 +228,7 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
       </div>
 
       {/* Student Information - Bilingual */}
-      <div className="mb-6">
+      <div className="student-header mb-6">
         <h3 className="font-bold text-sm mb-3 bg-gray-100 p-2">
           {t.studentInfo}
         </h3>
@@ -274,7 +274,7 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
       </div>
 
       {/* Trimester Progression Table */}
-      <div className="mb-6">
+      <div className="trimester-section mb-6">
         <h3 className="font-bold text-sm mb-3 bg-gray-100 p-2">
           {t.trimesterProgression}
         </h3>
@@ -311,7 +311,7 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
       </div>
 
       {/* Discipline Summary Table */}
-      <div className="mb-6">
+      <div className="trimester-section mb-6">
         <h3 className="font-bold text-sm mb-3 bg-gray-100 p-2">
           {t.discipline}
         </h3>
@@ -354,20 +354,20 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
       </div>
 
       {/* Annual Summary */}
-      <div className="mb-6">
+      <div className="annual-summary mb-6">
         <h3 className="font-bold text-sm mb-3 bg-orange-100 p-2">
           {t.annualSummary}
         </h3>
-        <div className="grid grid-cols-3 gap-4 text-sm">
-          <div className="text-center border border-black p-3">
+        <div className="stats-row grid grid-cols-3 gap-4 text-sm">
+          <div className="decision-section text-center border border-black p-3">
             <div className="font-bold">{t.annualAverage}</div>
             <div className="text-2xl font-bold text-blue-700">{annualSummary.annualAverage.toFixed(2)}/20</div>
           </div>
-          <div className="text-center border border-black p-3">
+          <div className="decision-section text-center border border-black p-3">
             <div className="font-bold">{t.annualRank}</div>
             <div className="text-xl font-bold text-green-700">{annualSummary.annualRank}</div>
           </div>
-          <div className="text-center border border-black p-3">
+          <div className="decision-section text-center border border-black p-3">
             <div className="font-bold">{t.finalDecision}</div>
             <div className={`text-xl font-bold ${
               annualSummary.finalDecision === 'PASSE' ? 'text-green-700' : 
@@ -380,7 +380,7 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
       </div>
 
       {/* Observations */}
-      <div className="mb-6 space-y-4">
+      <div className="observations mb-6 space-y-4">
         <div>
           <h4 className="font-bold text-sm mb-2">{t.principalObservations}</h4>
           <div className="border border-black p-3 min-h-[80px] text-sm">
@@ -404,22 +404,22 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
       </div>
 
       {/* Signatures Section */}
-      <div className="mt-8">
+      <div className="signatures-section mt-8">
         <h3 className="font-bold text-sm mb-4 bg-gray-100 p-2">
           {t.signatures}
         </h3>
         <div className="grid grid-cols-3 gap-6 text-xs">
-          <div className="text-center">
+          <div className="signature-box text-center">
             <div className="h-20 border-b border-black mb-2"></div>
             <div className="font-bold">{t.parentSignature}</div>
             <div className="mt-1">{t.date}: ___________</div>
           </div>
-          <div className="text-center">
+          <div className="signature-box text-center">
             <div className="h-20 border-b border-black mb-2"></div>
             <div className="font-bold">{t.principalSignature}</div>
             <div className="mt-1">{t.date}: ___________</div>
           </div>
-          <div className="text-center">
+          <div className="signature-box text-center">
             <div className="h-20 border border-black mb-2 flex items-center justify-center">
               <span className="text-gray-500">{t.schoolStamp}</span>
             </div>
