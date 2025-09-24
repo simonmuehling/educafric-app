@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
-  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare, FileSpreadsheet
+  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare, FileSpreadsheet, Video
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -161,7 +161,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       'switchToAdministrators': 'administrators',
       'switchToStudent-management': 'students',
       'switchToAttendance-management': 'attendance',
-      'switchToSubscription': 'subscription'
+      'switchToSubscription': 'subscription',
+      'switchToOnlineClasses': 'online-classes'
     };
     
     const moduleId = moduleMap[event.type];
@@ -218,7 +219,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       reports: 'Rapports', 
       help: 'Aide',
       configGuide: 'Guide Configuration',
-      schoolSettings: 'Paramètres École'
+      schoolSettings: 'Paramètres École',
+      onlineClasses: 'Classes en ligne'
     },
     en: {
       title: 'Director Dashboard',
@@ -244,7 +246,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       reports: 'Reports',
       help: 'Help',
       configGuide: 'Configuration Guide',
-      schoolSettings: 'School Settings'
+      schoolSettings: 'School Settings',
+      onlineClasses: 'Online Classes'
     }
   };
 
@@ -450,6 +453,27 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-blue-500 to-cyan-500',
       component: createDynamicModule('academic-management')
+    },
+    {
+      id: 'online-classes',
+      label: t.onlineClasses,
+      icon: <Video className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
+      component: (
+        <PremiumFeatureGate
+          featureName="Classes en ligne avec Jitsi Meet"
+          userType="School"
+          features={[
+            "Visioconférences illimitées avec Jitsi Meet",
+            "Gestion avancée des sessions de cours",
+            "Enregistrement et suivi de présence",
+            "Interface bilingue FR/EN optimisée",
+            "Support technique dédié 24/7"
+          ]}
+        >
+          {createDynamicModule('online-classes')}
+        </PremiumFeatureGate>
+      )
     },
   ];
 
