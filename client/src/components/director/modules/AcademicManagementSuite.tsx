@@ -119,6 +119,291 @@ const Td = ({ children, sticky = false, className = "", ...props }: any) => (
   </td>
 );
 
+/**************************** ARCHIVE MANAGEMENT COMPONENT ****************************/
+function ArchiveManagementContent() {
+  const { language } = useLanguage();
+  const [filters, setFilters] = useState({
+    academicYear: '',
+    classId: '',
+    term: '',
+    type: '',
+    search: '',
+    page: 1,
+    limit: 20
+  });
+
+  // Fetch archives with filters
+  const { data: archivesData, isLoading: archivesLoading, refetch } = useQuery({
+    queryKey: ['/api/director/archives', filters],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value.toString());
+      });
+      return fetch(`/api/director/archives?${params}`).then(res => res.json());
+    },
+  });
+
+  // Fetch archive statistics
+  const { data: statsData } = useQuery({
+    queryKey: ['/api/director/archives/stats', filters.academicYear],
+    queryFn: () => {
+      const url = filters.academicYear 
+        ? `/api/director/archives/stats?academicYear=${filters.academicYear}`
+        : '/api/director/archives/stats';
+      return fetch(url).then(res => res.json());
+    },
+  });
+
+  const archives = archivesData?.documents || archivesData?.data?.documents || [];
+  const stats = statsData?.data || statsData || {};
+  
+  const handleDownload = async (archiveId: number, filename: string) => {
+    try {
+      const response = await fetch(`/api/director/archives/${archiveId}/download`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 Bytes';
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return language === 'fr' 
+      ? date.toLocaleDateString('fr-FR')
+      : date.toLocaleDateString('en-US');
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Archive className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  {language === 'fr' ? 'Total Archives' : 'Total Archives'}
+                </p>
+                <p className="text-lg font-semibold" data-testid="stat-total-archives">
+                  {stats.totalArchives || 0}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <FileText className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  {language === 'fr' ? 'Bulletins' : 'Report Cards'}
+                </p>
+                <p className="text-lg font-semibold" data-testid="stat-bulletins">
+                  {stats.bulletinCount || 0}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <BookOpen className="h-5 w-5 text-purple-600" />
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  {language === 'fr' ? 'Relevés' : 'Transcripts'}
+                </p>
+                <p className="text-lg font-semibold" data-testid="stat-transcripts">
+                  {stats.transcriptCount || 0}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="h-5 w-5 text-orange-600" />
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  {language === 'fr' ? 'Taille Total' : 'Total Size'}
+                </p>
+                <p className="text-lg font-semibold" data-testid="stat-total-size">
+                  {formatFileSize(stats.totalSize || 0)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{language === 'fr' ? 'Filtres' : 'Filters'}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+            <div>
+              <Label>{language === 'fr' ? 'Année Scolaire' : 'Academic Year'}</Label>
+              <Select value={filters.academicYear} onValueChange={(value) => setFilters(prev => ({ ...prev, academicYear: value }))}>
+                <SelectTrigger data-testid="select-academic-year-filter">
+                  <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Toutes</SelectItem>
+                  <SelectItem value="2024-2025">2024-2025</SelectItem>
+                  <SelectItem value="2023-2024">2023-2024</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>{language === 'fr' ? 'Type' : 'Type'}</Label>
+              <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
+                <SelectTrigger data-testid="select-type-filter">
+                  <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tous</SelectItem>
+                  <SelectItem value="bulletin">Bulletins</SelectItem>
+                  <SelectItem value="transcript">Relevés</SelectItem>
+                  <SelectItem value="annual-report">Rapports Annuels</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>{language === 'fr' ? 'Recherche' : 'Search'}</Label>
+              <Input
+                placeholder={language === 'fr' ? 'Nom du fichier...' : 'Filename...'}
+                value={filters.search}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                data-testid="input-search-filter"
+              />
+            </div>
+            
+            <Button onClick={() => refetch()} data-testid="button-search-archives">
+              <Search className="h-4 w-4 mr-2" />
+              {language === 'fr' ? 'Actualiser' : 'Refresh'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Archives List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Archive className="h-5 w-5" />
+            {language === 'fr' ? 'Archives des Documents' : 'Document Archives'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {archivesLoading ? (
+            <div className="p-8 text-center" data-testid="loading-archives">
+              <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              {language === 'fr' ? 'Chargement des archives...' : 'Loading archives...'}
+            </div>
+          ) : archives.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground" data-testid="empty-archives">
+              <Archive className="h-12 w-12 mx-auto mb-4" />
+              <p>{language === 'fr' ? 'Aucune archive trouvée' : 'No archives found'}</p>
+              <p className="text-sm mt-2">
+                {language === 'fr' 
+                  ? 'Les documents archivés apparaîtront ici après envoi'
+                  : 'Archived documents will appear here after sending'
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <Th>{language === 'fr' ? 'Nom du Fichier' : 'Filename'}</Th>
+                    <Th>{language === 'fr' ? 'Type' : 'Type'}</Th>
+                    <Th>{language === 'fr' ? 'Taille' : 'Size'}</Th>
+                    <Th>{language === 'fr' ? 'Année' : 'Year'}</Th>
+                    <Th>{language === 'fr' ? 'Envoyé le' : 'Sent Date'}</Th>
+                    <Th>{language === 'fr' ? 'Actions' : 'Actions'}</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {archives.map((archive: any, index: number) => (
+                    <tr key={archive.id} className={index % 2 ? "bg-white" : "bg-gray-50/50"} data-testid={`row-archive-${archive.id}`}>
+                      <Td className="font-medium" data-testid={`text-filename-${archive.id}`}>{archive.filename}</Td>
+                      <Td data-testid={`badge-type-${archive.id}`}>
+                        <Badge variant={archive.type === 'bulletin' ? 'default' : 'secondary'}>
+                          {archive.type === 'bulletin' 
+                            ? (language === 'fr' ? 'Bulletin' : 'Report Card')
+                            : archive.type === 'transcript'
+                            ? (language === 'fr' ? 'Relevé' : 'Transcript')
+                            : (language === 'fr' ? 'Rapport Annuel' : 'Annual Report')
+                          }
+                        </Badge>
+                      </Td>
+                      <Td data-testid={`text-filesize-${archive.id}`}>{formatFileSize(archive.fileSize || 0)}</Td>
+                      <Td data-testid={`text-year-${archive.id}`}>{archive.academicYear}</Td>
+                      <Td data-testid={`text-date-${archive.id}`}>{formatDate(archive.sentAt || archive.createdAt)}</Td>
+                      <Td>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDownload(archive.id, archive.filename)}
+                            data-testid={`button-download-${archive.id}`}
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            {language === 'fr' ? 'Télécharger' : 'Download'}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => window.open(archive.previewUrl, '_blank')}
+                            data-testid={`button-preview-${archive.id}`}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            {language === 'fr' ? 'Voir' : 'View'}
+                          </Button>
+                        </div>
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 /**************************** PRINT HANDLER ****************************/
 const handlePrint = (el: HTMLElement | null) => {
   if (!el) return;
@@ -870,114 +1155,7 @@ export function TimeTable({ selectedClass }: { selectedClass: string }) {
   );
 }
 
-/**************************** ARCHIVE MANAGEMENT COMPONENT ****************************/
-export function ArchiveManagement() {
-  const { language } = useLanguage();
-  const [filters, setFilters] = useState({
-    academicYear: '',
-    classId: '',
-    term: '',
-    type: '',
-    search: '',
-    page: 1,
-    limit: 20
-  });
-
-  // Fetch archives with filters
-  const { data: archivesData, isLoading: archivesLoading, refetch } = useQuery({
-    queryKey: ['/api/director/archives', filters],
-    queryFn: () => {
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value.toString());
-      });
-      return fetch(`/api/director/archives?${params}`).then(res => res.json());
-    },
-  });
-
-  // Fetch archive statistics
-  const { data: statsData } = useQuery({
-    queryKey: ['/api/director/archives/stats', filters.academicYear],
-    queryFn: () => {
-      const url = filters.academicYear 
-        ? `/api/director/archives/stats?academicYear=${filters.academicYear}`
-        : '/api/director/archives/stats';
-      return fetch(url).then(res => res.json());
-    },
-  });
-
-  const archives = archivesData?.documents || archivesData?.data?.documents || [];
-  const stats = statsData?.data || statsData || {};
-  
-  const handleDownload = async (archiveId: number, filename: string) => {
-    try {
-      const response = await fetch(`/api/director/archives/${archiveId}/download`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
-    } catch (error) {
-      console.error('Download failed:', error);
-    }
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    if (bytes === 0) return '0 Bytes';
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
-  };
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return language === 'fr' 
-      ? date.toLocaleDateString('fr-FR')
-      : date.toLocaleDateString('en-US');
-  };
-
-  const getTermLabel = (termCode: string): string => {
-    const termMap = {
-      'T1': language === 'fr' ? 'Premier' : 'First',
-      'T2': language === 'fr' ? 'Deuxième' : 'Second', 
-      'T3': language === 'fr' ? 'Troisième' : 'Third',
-      'Premier': language === 'fr' ? 'Premier' : 'First',
-      'Deuxième': language === 'fr' ? 'Deuxième' : 'Second',
-      'Troisième': language === 'fr' ? 'Troisième' : 'Third'
-    };
-    return termMap[termCode as keyof typeof termMap] || termCode;
-  };
-
-  const handleViewDetails = (archive: any) => {
-    // TODO: Implement archive details modal
-    console.log('View archive details:', archive);
-    alert(`Archive: ${archive.filename}\nType: ${archive.type}\nClass: ${archive.classId}\nTerm: ${getTermLabel(archive.term)}\nYear: ${archive.academicYear}`);
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Archive className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {language === 'fr' ? 'Total Documents' : 'Total Documents'}
-                </p>
-                <p className="text-2xl font-bold">{stats.totalDocuments || 0}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+/**************************** PRINT HANDLER ****************************/
         
         <Card>
           <CardContent className="p-4">
@@ -1770,7 +1948,7 @@ export default function AcademicManagementSuite() {
         </TabsContent>
 
         <TabsContent value="archives" className="space-y-4">
-          <ArchiveManagement />
+          <ArchiveManagementContent />
         </TabsContent>
       </Tabs>
     </div>
