@@ -1086,7 +1086,8 @@ export default function BulletinCreationInterface() {
       competencesEvaluees: s.competence1 && s.competence2 ? `${s.competence1}; ${s.competence2}` : (s.competence1 || s.competence2 || ''),
       competencyLevel: s.competencyLevel,
       competencyEvaluation: s.competencyEvaluation,
-      remark: s.remark
+      remark: s.remark,
+      teacherComments: s.comments, // Per-subject teacher comments
     })),
     year,
     trimester,
@@ -1849,6 +1850,7 @@ export default function BulletinCreationInterface() {
                       <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">COTE</th>
                       <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Compétences évaluées' : 'Evaluated Competencies'}</th>
                       <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Appréciation' : 'Appreciation'}</th>
+                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'COMMENTAIRES' : 'COMMENTS'}</th>
                       <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Actions' : 'Actions'}</th>
                     </tr>
                   </thead>
@@ -1994,6 +1996,87 @@ export default function BulletinCreationInterface() {
                                   </SelectItem>
                                 </SelectContent>
                               </Select>
+                            </div>
+                          </td>
+
+                          {/* COMMENTAIRES - Per-subject ministry teacher comments */}
+                          <td className="px-2 py-2 border min-w-[120px]" data-testid={`cell-comments-${index}`}>
+                            <div className="space-y-1">
+                              {/* Display selected comments count */}
+                              <div className="text-xs text-center text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                {(subject.comments || []).length}/2 {language === 'fr' ? 'sélectionnés' : 'selected'}
+                              </div>
+                              
+                              {/* Comment selection button */}
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button 
+                                    type="button"
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full text-xs h-8"
+                                    data-testid={`button-select-comments-${index}`}
+                                  >
+                                    📝 {language === 'fr' ? 'Commentaires' : 'Comments'}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 max-h-60 overflow-y-auto">
+                                  <div className="space-y-2">
+                                    <h4 className="text-sm font-semibold text-gray-800">
+                                      {language === 'fr' ? 'Commentaires Ministère' : 'Ministry Comments'}
+                                    </h4>
+                                    <p className="text-xs text-gray-600">
+                                      {language === 'fr' ? 'Max 2 commentaires' : 'Max 2 comments'}
+                                    </p>
+                                    <div className="grid gap-1">
+                                      {TEACHER_COMMENTS[language].map((comment) => {
+                                        const currentComments = subject.comments || [];
+                                        const isSelected = currentComments.includes(comment.id);
+                                        const canSelect = currentComments.length < 2 || isSelected;
+                                        
+                                        return (
+                                          <button
+                                            key={comment.id}
+                                            type="button"
+                                            disabled={!canSelect}
+                                            className={`text-left p-2 text-xs rounded border transition-all ${
+                                              isSelected 
+                                                ? 'bg-blue-100 border-blue-400 text-blue-800 font-medium'
+                                                : canSelect
+                                                  ? 'bg-white border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300'
+                                                  : 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed'
+                                            }`}
+                                            onClick={() => toggleSubjectComment(subject.id, comment.id)}
+                                          >
+                                            <span className="flex items-start gap-2">
+                                              <span className={`flex-shrink-0 w-3 h-3 mt-0.5 border rounded-sm ${
+                                                isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                                              }`}>
+                                                {isSelected && <span className="block w-full h-full text-white text-center text-xs leading-3">✓</span>}
+                                              </span>
+                                              <span className="flex-1">{comment.text}</span>
+                                            </span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                              
+                              {/* Display selected comments */}
+                              {(subject.comments || []).length > 0 && (
+                                <div className="mt-1 text-xs text-gray-600 bg-gray-50 p-1 rounded">
+                                  {(subject.comments || []).map((commentId, idx) => {
+                                    const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
+                                    return (
+                                      <div key={commentId} className="truncate">
+                                        {idx + 1}. {comment?.text.substring(0, 30)}...
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           </td>
 

@@ -240,6 +240,7 @@ interface SubjectLine {
   grade?: string; // GRADE [Min – Max] 
   minMax?: string; // [Min – Max] range
   remarksAndSignature?: string; // Remarks and Teacher's signature
+  teacherComments?: string[]; // Per-subject teacher comments (Ministry)
   // Legacy fields for backward compatibility
   note1?: number;
   moyenneFinale?: number;
@@ -261,7 +262,7 @@ interface ReportCardProps {
   qrValue?: string;
   language?: 'fr' | 'en'; // NEW: Language support
   isThirdTrimester?: boolean;
-  selectedTeacherComments?: string[]; // Ministry teacher comments
+  // selectedTeacherComments removed - now using per-subject comments in SubjectLine
   annualSummary?: {
     firstTrimesterAverage: number;
     secondTrimesterAverage: number;
@@ -285,7 +286,6 @@ export default function ReportCardPreview({
   qrValue = "https://www.educafric.com",
   language = 'fr', // Default to French
   isThirdTrimester = false,
-  selectedTeacherComments = [],
   annualSummary = null,
 }: ReportCardProps) {
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
@@ -474,9 +474,9 @@ export default function ReportCardPreview({
                         {r.remarksAndSignature || r.remark || ''}
                       </td>
                       <td className="border border-black p-1 text-[6px] align-top">
-                        {selectedTeacherComments && selectedTeacherComments.length > 0 ? (
+                        {r.teacherComments && r.teacherComments.length > 0 ? (
                           <ul className="list-decimal list-inside space-y-0.5">
-                            {selectedTeacherComments.map((commentId, index) => {
+                            {r.teacherComments.map((commentId, index) => {
                               const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
                               return comment ? (
                                 <li key={commentId} className="text-[5px]">{comment.text}</li>
