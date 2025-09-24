@@ -361,9 +361,9 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
         </CardContent>
       </Card>
 
-      {/* Main Master Sheet */}
+      {/* Main Master Sheet with Ministry Header */}
       <Card className="w-full">
-        <CardHeader>
+        <CardHeader className="print:hidden">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -397,15 +397,54 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
             </div>
           </div>
         </CardHeader>
+        
+        {/* Ministry Official Header for Print */}
+        <div className="hidden print:block p-4 border-b-2 border-black">
+          <div className="text-center space-y-1">
+            {/* Bilingual Header */}
+            <div className="grid grid-cols-2 gap-4 text-xs font-bold uppercase">
+              <div className="text-left">
+                <div>RÉPUBLIQUE DU CAMEROUN</div>
+                <div className="italic">Paix – Travail – Patrie</div>
+                <div className="mt-2">MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
+                <div>DÉLÉGATION RÉGIONALE DE {school?.officialInfo?.regionaleMinisterielle || '…'}</div>
+                <div>DÉLÉGATION DÉPARTEMENTALE DE {school?.officialInfo?.delegationDepartementale || '…'}</div>
+                <div className="mt-1 font-bold">{school?.name || 'LYCÉE DE……….'}</div>
+              </div>
+              <div className="text-right">
+                <div>REPUBLIC OF CAMEROON</div>
+                <div className="italic">Peace – Work – Fatherland</div>
+                <div className="mt-2">MINISTRY OF SECONDARY EDUCATION</div>
+                <div>REGIONAL DELEGATION OF {school?.officialInfo?.regionaleMinisterielle || '….'}</div>
+                <div>DIVISIONAL DELEGATION {school?.officialInfo?.delegationDepartementale || '….'}</div>
+                <div className="mt-1 font-bold">HIGH SCHOOL</div>
+              </div>
+            </div>
+            
+            {/* Title */}
+            <div className="mt-6 pt-4 border-t-2 border-black">
+              <h1 className="text-lg font-bold uppercase">
+                {language === 'fr' ? 'FEUILLE MAÎTRESSE' : 'MASTER SHEET'}
+              </h1>
+              <p className="text-sm font-semibold mt-2">
+                {language === 'fr' 
+                  ? `Classe: ${selectedClass} • ${termLabel} • Année ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
+                  : `Class: ${selectedClass} • ${termLabel} • Year ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+        
       <CardContent>
         <div className="overflow-x-auto">
-          <table className="min-w-full text-xs">
-            <thead className="bg-gray-50">
+          <table className="min-w-full text-xs border border-black print:border-2">
+            <thead className="bg-gray-50 print:bg-gray-200">
               <tr>
-                <Th sticky>{language === 'fr' ? 'Matricule' : 'Student ID'}</Th>
-                <Th sticky>{language === 'fr' ? 'Nom & Prénoms' : 'Full Name'}</Th>
+                <Th sticky className="border-r border-black">{language === 'fr' ? 'Matricule' : 'Student ID'}</Th>
+                <Th sticky className="border-r border-black">{language === 'fr' ? 'Nom & Prénoms' : 'Full Name'}</Th>
                 {subjects.map((subject: any) => (
-                  <Th key={subject.id} className="text-center">
+                  <Th key={subject.id} className="text-center border-r border-black">
                     {language === 'fr' ? subject.name : subject.nameEN || subject.name}
                     <br />
                     <span className="text-[10px] text-gray-500">
@@ -413,21 +452,21 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
                     </span>
                   </Th>
                 ))}
-                <Th className="text-center">{language === 'fr' ? 'MOY /20' : 'AVG /20'}</Th>
+                <Th className="text-center border-r border-black">{language === 'fr' ? 'MOY /20' : 'AVG /20'}</Th>
                 <Th className="text-center">{language === 'fr' ? 'RANG' : 'RANK'}</Th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row: any, idx: number) => (
                 <tr key={row.studentId} className={idx % 2 ? "bg-white" : "bg-gray-50/50"}>
-                  <Td sticky>{row.studentId}</Td>
-                  <Td sticky className="font-medium">{row.name}</Td>
+                  <Td sticky className="border-r border-black">{row.studentId}</Td>
+                  <Td sticky className="font-medium border-r border-black">{row.name}</Td>
                   {subjects.map((subject: any) => (
-                    <Td key={subject.id} className="text-center">
+                    <Td key={subject.id} className="text-center border-r border-black">
                       {row[subject.name] ?? "—"}
                     </Td>
                   ))}
-                  <Td className="text-center font-semibold">{row.avg}</Td>
+                  <Td className="text-center font-semibold border-r border-black">{row.avg}</Td>
                   <Td className="text-center">{ranksAvg[idx]}</Td>
                 </tr>
               ))}
