@@ -737,7 +737,7 @@ export default function ReportCardPreview({
               <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-3 w-48">
                 <div className="text-xs text-blue-700 text-center font-medium">{language === 'fr' ? 'Code de Vérification' : 'Verification Code'}</div>
                 <div className="text-lg font-bold text-blue-800 text-center">{(student as any).verificationCode}</div>
-                <div className="text-xs text-blue-600 text-center mt-1">{language === 'fr' ? 'Vérifiez sur /verify' : 'Verify on /verify'}</div>
+                <div className="text-xs text-blue-600 text-center mt-1">{language === 'fr' ? 'Vérifiez sur educafric.com/verify' : 'Verify on educafric.com/verify'}</div>
               </div>
             )}
           </div>
