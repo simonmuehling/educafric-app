@@ -65,10 +65,13 @@ router.post('/generate-pdf', requireAuth, async (req, res) => {
 
   } catch (error: any) {
     console.error('[SIMPLE_PDF] ❌ Error:', error);
+    console.error('[SIMPLE_PDF] ❌ Stack:', error.stack);
+    console.error('[SIMPLE_PDF] ❌ Full error object:', JSON.stringify(error, null, 2));
     res.status(500).json({
       success: false,
       message: 'PDF generation failed',
-      error: error.message
+      error: error.message,
+      stack: error.stack
     });
   }
 });
