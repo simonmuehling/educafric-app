@@ -461,12 +461,9 @@ export default function ReportCardPreview({
                       <td className="border border-black p-1 text-[6px] align-top">
                         {r.teacherComments && r.teacherComments.length > 0 ? (
                           <ul className="list-decimal list-inside space-y-0.5">
-                            {r.teacherComments.map((commentId, index) => {
-                              const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
-                              return comment ? (
-                                <li key={commentId} className="text-[5px]">{comment.text}</li>
-                              ) : null;
-                            })}
+                            {r.teacherComments.map((commentText, index) => (
+                              <li key={index} className="text-[5px]">{commentText}</li>
+                            ))}
                           </ul>
                         ) : (
                           <div className="text-[5px] text-gray-400 italic">
