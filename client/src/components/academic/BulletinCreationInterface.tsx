@@ -1829,15 +1829,24 @@ export default function BulletinCreationInterface() {
                       
                       return (
                         <tr key={subject.id} className={index % 2 ? "bg-white" : "bg-gray-50/30"}>
-                          {/* Matière */}
-                          <td className="px-2 py-2 border min-w-[120px]" data-testid={`cell-subject-${index}`}>
-                            <Input
-                              className="w-full border-0 bg-transparent text-sm"
-                              value={subject.name}
-                              onChange={(e) => updateSubject(subject.id, 'name', e.target.value)}
-                              placeholder="Matière..."
-                              data-testid={`input-subject-name-${index}`}
-                            />
+                          {/* Matière + Enseignant */}
+                          <td className="px-2 py-2 border min-w-[150px]" data-testid={`cell-subject-${index}`}>
+                            <div className="space-y-1">
+                              <Input
+                                className="w-full border-0 bg-transparent text-sm font-semibold"
+                                value={subject.name}
+                                onChange={(e) => updateSubject(subject.id, 'name', e.target.value)}
+                                placeholder="Matière..."
+                                data-testid={`input-subject-name-${index}`}
+                              />
+                              <Input
+                                className="w-full border-0 bg-transparent text-xs text-gray-600 italic"
+                                value={subject.teacher}
+                                onChange={(e) => updateSubject(subject.id, 'teacher', e.target.value)}
+                                placeholder="Nom enseignant..."
+                                data-testid={`input-teacher-name-${index}`}
+                              />
+                            </div>
                           </td>
 
                           {/* N/20-M/20 */}

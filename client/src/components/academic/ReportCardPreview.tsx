@@ -416,7 +416,7 @@ export default function ReportCardPreview({
                     {language === 'fr' ? 'COTE [Min - Max]' : 'GRADE [Min - Max]'}
                   </th>
                   <th className="border border-black p-1 font-bold text-center" style={{minWidth: '100px'}}>
-                    {language === 'fr' ? 'Appréciations et signature de l\'enseignant' : 'Remarks and Teacher\'s signature'}
+                    {language === 'fr' ? 'Appréciations' : 'Remarks'}
                   </th>
                 </tr>
               </thead>
@@ -468,7 +468,7 @@ export default function ReportCardPreview({
                         <div className="text-[6px]">{minMax}</div>
                       </td>
                       <td className="border border-black p-1 text-[6px]">
-                        {r.remarksAndSignature || r.remark || ''}
+                        {r.competencyLevel || r.remarksAndSignature || r.remark || ''}
                       </td>
                     </tr>
                   );
