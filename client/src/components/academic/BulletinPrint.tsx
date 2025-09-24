@@ -34,8 +34,10 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
   const handlePrint = useReactToPrint({
     contentRef,            // 👈 v3 expects this
     documentTitle,
-    removeAfterPrint: true,
     pageStyle,
+    onAfterPrint: () => {
+      console.log('✅ Print dialog closed');
+    }
   });
 
   return (
