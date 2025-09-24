@@ -122,6 +122,8 @@ export const annualReportComprehensive = pgTable("annual_report_comprehensive", 
   
   // ===== NOTIFICATIONS TRACKING (matching bulletin notifications) =====
   notificationsSent: jsonb("notifications_sent"), // Same structure as bulletins
+  lastNotifiedAt: timestamp("last_notified_at"),
+  notificationMeta: jsonb("notification_meta"), // Additional notification metadata
   
   // ===== METADATA & TRACKING =====
   enteredBy: integer("entered_by"),
