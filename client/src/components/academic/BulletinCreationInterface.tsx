@@ -666,6 +666,7 @@ export default function BulletinCreationInterface() {
 
     try {
       console.log('🔄 Generating PDF download...');
+      console.log('📊 Current student state:', student.name, 'ID:', student.id);
       
       // Calculate overall average
       const totalCoef = subjects.reduce((sum, s) => sum + (s.coefficient || 0), 0);
@@ -1138,6 +1139,7 @@ export default function BulletinCreationInterface() {
             <CardContent>
               <StudentSelector 
                 onStudentSelect={(selectedStudent: any) => {
+                  console.log('🎯 Student selected:', selectedStudent.name, 'ID:', selectedStudent.id);
                   // Auto-fill student information
                   setStudent({
                     name: selectedStudent.name || '',
@@ -2811,6 +2813,7 @@ export default function BulletinCreationInterface() {
             <CardTitle>Aperçu du bulletin</CardTitle>
           </CardHeader>
           <CardContent>
+            {console.log('📺 Preview rendering for:', bulletinData.student?.name, 'vs PDF student:', student.name)}
             <ReportCardPreview {...bulletinData} />
           </CardContent>
         </Card>
