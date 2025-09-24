@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import ReportCardPreview from '../academic/ReportCardPreview';
+// Preview functionality removed - only Academic Management bulletins should be previewed
 
 // Ministry-required Teacher Comments - LISTE DES COMMENTAIRES POUR L'ENSEIGNANT
 const TEACHER_COMMENTS = {
@@ -762,32 +762,18 @@ const TeacherBulletinInterface: React.FC = () => {
               </Card>
             </div>
 
-            {/* Right Column - Preview */}
+            {/* Preview removed - Only Academic Management bulletins should have preview */}
             <div>
               <Card>
                 <CardHeader>
-                  <CardTitle>{t.preview}</CardTitle>
+                  <CardTitle>{language === 'fr' ? 'Bulletin supprimé' : 'Preview Removed'}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {student.name && subjects.length > 0 && (
-                    <ReportCardPreview
-                      student={{
-                        name: student.name,
-                        id: student.id,
-                        classLabel: student.classLabel
-                      }}
-                      lines={subjects.map(subject => ({
-                        subject: subject.name,
-                        m20: subject.grade,
-                        coef: subject.coefficient,
-                        remark: subject.remark,
-                        cote: subject.competencyLevel || ''
-                      }))}
-                      year={academicYear}
-                      trimester={selectedTerm === 'T1' ? 'Premier' : selectedTerm === 'T2' ? 'Deuxième' : 'Troisième'}
-                      language={language as 'fr' | 'en'}
-                    />
-                  )}
+                  <p className="text-sm text-gray-600">
+                    {language === 'fr' 
+                      ? 'Aperçu disponible uniquement dans Gestion Académique → Créer Bulletins' 
+                      : 'Preview only available in Academic Management → Create Bulletins'}
+                  </p>
                 </CardContent>
               </Card>
             </div>

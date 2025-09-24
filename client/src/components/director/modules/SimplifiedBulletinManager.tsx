@@ -48,12 +48,7 @@ interface ClassInfo {
   name: string;
 }
 
-interface BulletinPreview {
-  subjects: Subject[];
-  generalAverage: number;
-  totalCoefficient: number;
-  totalPoints: number;
-}
+// Preview functionality removed - only Academic Management should have bulletin preview
 
 export default function SimplifiedBulletinManager() {
   const { language } = useLanguage();
@@ -69,7 +64,7 @@ export default function SimplifiedBulletinManager() {
   const [students, setStudents] = useState<StudentInfo[]>([]);
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [bulletinPreview, setBulletinPreview] = useState<BulletinPreview | null>(null);
+  // Preview state removed - only Academic Management should have bulletin preview
   
   const [loading, setLoading] = useState(false);
   const [savingGrades, setSavingGrades] = useState(false);
@@ -290,7 +285,7 @@ export default function SimplifiedBulletinManager() {
         setSelectedStudent(''); // Reset student selection
         setStudentInfo(null);
         setSubjects([]);
-        setBulletinPreview(null);
+        // Preview reset removed
         
         console.log('[BULLETIN] ✅ Students loaded successfully:', filteredStudents.length);
         toast({
@@ -366,7 +361,7 @@ export default function SimplifiedBulletinManager() {
         }));
         
         setSubjects(loadedSubjects);
-        updatePreview(loadedSubjects);
+        // Preview update removed
         
         toast({
           title: t.success,
@@ -415,7 +410,7 @@ export default function SimplifiedBulletinManager() {
         }));
         
         setSubjects(realSubjects);
-        updatePreview(realSubjects);
+        // Preview update removed
         
         console.log(`Loaded ${realSubjects.length} real subjects for class ${selectedClassId}`);
       } else {
@@ -442,7 +437,7 @@ export default function SimplifiedBulletinManager() {
     ];
     
     setSubjects(fallbackSubjects);
-    updatePreview(fallbackSubjects);
+    // Preview update removed
     
     console.log('Using fallback subjects as no real subjects were available');
   };
@@ -456,29 +451,10 @@ export default function SimplifiedBulletinManager() {
     );
     
     setSubjects(updatedSubjects);
-    updatePreview(updatedSubjects);
+    // Preview update removed - only Academic Management should have preview
   };
 
-  // Update preview calculation
-  const updatePreview = (subjectsToCalculate: Subject[]) => {
-    const validSubjects = subjectsToCalculate.filter(s => s.grade > 0);
-    
-    if (validSubjects.length === 0) {
-      setBulletinPreview(null);
-      return;
-    }
-
-    const totalPoints = validSubjects.reduce((sum, s) => sum + (s.grade * s.coefficient), 0);
-    const totalCoefficient = validSubjects.reduce((sum, s) => sum + s.coefficient, 0);
-    const generalAverage = totalCoefficient > 0 ? totalPoints / totalCoefficient : 0;
-
-    setBulletinPreview({
-      subjects: validSubjects,
-      generalAverage: Math.round(generalAverage * 100) / 100,
-      totalPoints: Math.round(totalPoints * 100) / 100,
-      totalCoefficient
-    });
-  };
+  // Preview calculation removed - only Academic Management should have bulletin preview
 
   // Save grades to database with proper authentication and validation
   const saveGrades = async () => {
@@ -562,7 +538,7 @@ export default function SimplifiedBulletinManager() {
 
   // Generate and download PDF with proper end-to-end flow
   const generatePdf = async () => {
-    if (!selectedStudent || !selectedClassId || !studentInfo || !bulletinPreview) {
+    if (!selectedStudent || !selectedClassId || !studentInfo) {
       toast({
         title: t.error,
         description: t.selectStudentFirst,
@@ -595,7 +571,7 @@ export default function SimplifiedBulletinManager() {
         academicYear,
         term: selectedTerm,
         subjects: subjects.filter(s => s.grade > 0),
-        generalAverage: bulletinPreview.generalAverage
+        generalAverage: 0 // Preview functionality removed
       });
 
       const bulletinData = await createResponse.json();
@@ -669,7 +645,7 @@ export default function SimplifiedBulletinManager() {
                 {t.step2}
               </Badge>
               <div className="w-8 border-t border-muted-foreground" />
-              <Badge variant={bulletinPreview ? "default" : "outline"}>
+              <Badge variant="outline">
                 <FileText className="h-4 w-4 mr-1" />
                 {t.step3}
               </Badge>
@@ -815,7 +791,7 @@ export default function SimplifiedBulletinManager() {
                     <div className="flex gap-2 pt-4">
                       <Button 
                         onClick={saveGrades} 
-                        disabled={savingGrades || !bulletinPreview}
+                        disabled={savingGrades}
                         className="flex-1"
                         data-testid="button-save-grades"
                       >
@@ -846,7 +822,7 @@ export default function SimplifiedBulletinManager() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Eye className="h-5 w-5" />
-                {t.bulletinPreview}
+{language === 'fr' ? 'Aperçu supprimé' : 'Preview Removed'}
               </CardTitle>
             </CardHeader>
             <CardContent>

@@ -4138,11 +4138,33 @@ export class PDFGenerator {
     
     yPosition += 10;
     
-    // Nom de l'élève
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(13);
+    // Student Information in 2 rows layout (matching preview)
+    doc.setFont('DejaVuSans', 'bold');
+    doc.setFontSize(9);
     doc.setTextColor(0, 0, 0);
-    doc.text(`ÉLÈVE: ${headerData.student.name.toUpperCase()}`, margin + 10, yPosition);
+    
+    // First Row
+    const firstRowY = yPosition;
+    doc.text(`Nom de l'élève: ${this.renderTextWithUnicodeSupport(headerData.student.name)}`, margin + 5, firstRowY);
+    doc.text(`Classe: ${this.renderTextWithUnicodeSupport(headerData.student.className || 'Tle C')}`, margin + 80, firstRowY);
+    doc.text(`Date et lieu de naissance: ${this.renderTextWithUnicodeSupport(headerData.student.birthPlace || 'Douala')}`, margin + 140, firstRowY);
+    
+    // Second Row  
+    const secondRowY = firstRowY + 8;
+    doc.text(`Genre: ${this.renderTextWithUnicodeSupport(headerData.student.gender || 'F')}`, margin + 5, secondRowY);
+    doc.text(`Effectif de la classe: ${this.renderTextWithUnicodeSupport(headerData.student.classSize || '')}`, margin + 80, secondRowY);
+    doc.text(`Numéro d'identification unique: ${this.renderTextWithUnicodeSupport(headerData.student.id)}`, margin + 140, secondRowY);
+    
+    // Third Row
+    const thirdRowY = secondRowY + 8;
+    doc.text(`Redoublant: ${this.renderTextWithUnicodeSupport(headerData.student.isRepeater ? 'Oui' : 'Non')}`, margin + 5, thirdRowY);
+    doc.text(`Nombre de matières: ${this.renderTextWithUnicodeSupport(headerData.student.numberOfSubjects || '')}`, margin + 80, thirdRowY);
+    doc.text(`Nom et contact des parents/tuteurs: ${this.renderTextWithUnicodeSupport(headerData.student.guardian || 'Che Avuk')}`, margin + 140, thirdRowY);
+    
+    // Fourth Row
+    const fourthRowY = thirdRowY + 8;
+    doc.text(`Nombre de matières réussies: ${this.renderTextWithUnicodeSupport(headerData.student.numberOfPassed || '')}`, margin + 5, fourthRowY);
+    doc.text(`Professeur principal: ${this.renderTextWithUnicodeSupport(headerData.student.headTeacher || '')}`, margin + 120, fourthRowY);
     
     // Matricule à droite
     doc.setFont('helvetica', 'normal');
