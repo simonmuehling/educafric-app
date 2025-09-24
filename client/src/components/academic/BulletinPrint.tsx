@@ -1,6 +1,5 @@
 'use client';
 import React, { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import { Printer } from "lucide-react";
 
 type Props = {
@@ -11,40 +10,54 @@ type Props = {
 export default function BulletinPrint({ documentTitle = 'bulletin', children }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const pageStyle = `
-    @page { size: A4; margin: 10mm; }
-    @media print {
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .no-print { display: none !important; }
-
-      /* Better tables for multi-page */
-      table { border-collapse: collapse; width: 100%; }
-      table, th, td { border: 1px solid #000; }
-      thead { display: table-header-group; }
-      tfoot { display: table-footer-group; }
-      tr, th, td { break-inside: avoid; page-break-inside: avoid; }
-      .avoid-break { break-inside: avoid; }
-      .page-break { break-before: page; }
+  // Native print handler with image and font loading
+  const handlePrint = async () => {
+    try {
+      console.log('🖨️ Preparing to print...');
+      
+      // Wait for fonts to load
+      await (document.fonts?.ready ?? Promise.resolve());
+      console.log('✅ Fonts loaded');
+      
+      // Wait for all images in the print area to load
+      const printArea = document.getElementById('print-root');
+      if (printArea) {
+        const imgs = Array.from(printArea.querySelectorAll('img')) as HTMLImageElement[];
+        const unloadedImgs = imgs.filter(img => !img.complete);
+        
+        if (unloadedImgs.length > 0) {
+          console.log(`⏳ Waiting for ${unloadedImgs.length} images to load...`);
+          await Promise.all(
+            unloadedImgs.map(img => 
+              new Promise(resolve => {
+                img.onload = img.onerror = resolve;
+              })
+            )
+          );
+        }
+        console.log('✅ All images loaded');
+      }
+      
+      // Small delay to ensure layout is settled
+      await new Promise(resolve => 
+        requestAnimationFrame(() => setTimeout(resolve, 100))
+      );
+      
+      console.log('🖨️ Opening print dialog...');
+      window.print();
+    } catch (error) {
+      console.error('❌ Print error:', error);
+      // Fallback - just try to print anyway
+      window.print();
     }
-    /* Screen width that matches printed content */
-    .print-a4 { width: 190mm; margin: 0 auto; background: #fff; }
-    img { max-width: 100%; height: auto; }
-  `;
+  };
 
-  const handlePrint = useReactToPrint({
-    contentRef,            // 👈 v3 expects this
-    documentTitle,
-    pageStyle,
-    onAfterPrint: () => {
-      console.log('✅ Print dialog closed');
-    }
-  });
 
   return (
     <div>
       <div className="no-print flex items-center gap-2 mb-4">
         <button
-          onClick={() => handlePrint()}
+          onClick={handlePrint}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
           data-testid="button-print-pdf"
         >
@@ -53,8 +66,8 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
         </button>
       </div>
 
-      {/* ⬇️ Your current preview goes inside THIS div */}
-      <div ref={contentRef} className="print-a4">
+      {/* ⬇️ Print-ready content with unique ID for targeting */}
+      <div id="print-root" ref={contentRef} className="w-full max-w-4xl mx-auto bg-white">
         {children}
       </div>
     </div>

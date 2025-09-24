@@ -5,6 +5,82 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== CENTRALIZED PRINT CSS ===== */
+@page { 
+  size: A4; 
+  margin: 10mm; 
+}
+
+@media print {
+  /* Hide everything except print content */
+  body * { 
+    visibility: hidden !important; 
+  }
+  
+  /* Show only the print area and its children */
+  #print-root, 
+  #print-root * { 
+    visibility: visible !important; 
+  }
+  
+  /* Position print content at top-left */
+  #print-root { 
+    position: absolute !important; 
+    left: 0 !important; 
+    top: 0 !important; 
+    width: 210mm !important; 
+    margin: 0 !important; 
+    padding: 0 !important;
+    transform: none !important;
+    overflow: visible !important;
+  }
+  
+  /* Hide print buttons and toolbars */
+  .no-print { 
+    display: none !important; 
+  }
+  
+  /* Ensure colors print correctly */
+  body { 
+    -webkit-print-color-adjust: exact !important; 
+    print-color-adjust: exact !important; 
+  }
+  
+  /* Better table printing */
+  table { 
+    border-collapse: collapse !important; 
+    width: 100% !important; 
+  }
+  
+  thead { 
+    display: table-header-group !important; 
+  }
+  
+  tfoot { 
+    display: table-footer-group !important; 
+  }
+  
+  tr, th, td { 
+    break-inside: avoid !important; 
+    page-break-inside: avoid !important; 
+  }
+  
+  /* Avoid breaks on important elements */
+  .avoid-break { 
+    break-inside: avoid !important; 
+  }
+  
+  .page-break { 
+    break-before: page !important; 
+  }
+  
+  /* Ensure images print properly */
+  img { 
+    max-width: 100% !important; 
+    height: auto !important; 
+  }
+}
+
 :root {
   /* Modern Vibrant Color Palette */
   --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

@@ -151,7 +151,6 @@ const QRImg = ({ value = "https://www.educafric.com", size = 64 }: { value?: str
 );
 const A4Sheet = ({ children }: { children: React.ReactNode }) => (
   <div className="mx-auto bg-white" style={{ width: "210mm", minHeight: "297mm" }}>
-    <style>{`@page { size: A4; margin: 12mm; } @media print { .print\\:hidden{ display:none } }`}</style>
     {children}
   </div>
 );
