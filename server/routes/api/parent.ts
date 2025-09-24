@@ -1069,6 +1069,114 @@ router.post('/children/:childId/bulletins/:bulletinId/mark-seen', requireAuth, a
   }
 });
 
+// GET /api/parent/children/bulletins - Get all bulletins for all children (consolidated)
+router.get('/children/bulletins', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Check if user is authenticated  
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const parentId = req.user.id;
+    const user = req.user as any;
+
+    // Mock consolidated bulletins data for all children
+    const allChildrenBulletins = [
+      {
+        id: 1,
+        childId: 9004,
+        childName: 'Junior Kamga',
+        childClass: '3ème A',
+        period: '1er Trimestre',
+        year: '2024-2025',
+        overallGrade: 15.8,
+        rank: 3,
+        totalStudents: 25,
+        status: 'published',
+        publishedAt: '2024-11-15',
+        grades: [
+          { subject: 'Mathématiques', grade: 16.5, coefficient: 4, average: 14.2, rank: 2, comments: 'Très bon travail, continuez ainsi.' },
+          { subject: 'Français', grade: 14.8, coefficient: 4, average: 13.5, rank: 4, comments: 'Expression écrite à améliorer.' },
+          { subject: 'Sciences', grade: 17.2, coefficient: 3, average: 15.1, rank: 1, comments: 'Excellent niveau en sciences.' },
+          { subject: 'Histoire-Géo', grade: 15.5, coefficient: 3, average: 14.8, rank: 3, comments: 'Bonne maîtrise du programme.' }
+        ],
+        teacherComments: 'Élève sérieux et appliqué. Très bons résultats dans l\'ensemble.',
+        conduct: 'Très Bien',
+        absences: 2,
+        delays: 1,
+        verificationCode: user?.isSandbox ? 'EDU2024-JKG-3A-X7B9K2' : 'EDU2024-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+      },
+      {
+        id: 2,
+        childId: 9004,
+        childName: 'Junior Kamga',
+        childClass: '3ème A',
+        period: '2ème Trimestre',
+        year: '2023-2024',
+        overallGrade: 14.9,
+        rank: 4,
+        totalStudents: 25,
+        status: 'published',
+        publishedAt: '2024-03-20',
+        grades: [
+          { subject: 'Mathématiques', grade: 15.2, coefficient: 4, average: 13.8, rank: 3, comments: 'Progrès constants.' },
+          { subject: 'Français', grade: 13.5, coefficient: 4, average: 13.2, rank: 5, comments: 'Effort en expression.' },
+          { subject: 'Sciences', grade: 16.8, coefficient: 3, average: 14.9, rank: 1, comments: 'Toujours excellent.' },
+          { subject: 'Histoire-Géo', grade: 14.7, coefficient: 3, average: 14.5, rank: 4, comments: 'Bon niveau maintenu.' }
+        ],
+        teacherComments: 'Bon trimestre malgré quelques difficultés en français.',
+        conduct: 'Bien',
+        absences: 3,
+        delays: 2,
+        verificationCode: user?.isSandbox ? 'EDU2024-JKG-3A-M4N8P1' : 'EDU2024-' + Math.random().toString(36).substring(2, 8).toUpperCase()
+      }
+    ];
+
+    // If user has multiple children, add more mock data
+    if (user?.isSandbox && Math.random() > 0.5) {
+      allChildrenBulletins.push({
+        id: 3,
+        childId: 9005,
+        childName: 'Marie Kamga',
+        childClass: '6ème B',
+        period: '1er Trimestre',
+        year: '2024-2025',
+        overallGrade: 17.1,
+        rank: 1,
+        totalStudents: 22,
+        status: 'published',
+        publishedAt: '2024-11-10',
+        grades: [
+          { subject: 'Mathématiques', grade: 18.0, coefficient: 4, average: 15.2, rank: 1, comments: 'Excellente maîtrise.' },
+          { subject: 'Français', grade: 16.8, coefficient: 4, average: 14.8, rank: 1, comments: 'Très belle expression.' },
+          { subject: 'Sciences', grade: 17.5, coefficient: 3, average: 15.5, rank: 1, comments: 'Remarquable.' },
+          { subject: 'Histoire-Géo', grade: 16.2, coefficient: 3, average: 14.9, rank: 2, comments: 'Très bon travail.' }
+        ],
+        teacherComments: 'Élève exceptionnelle. Félicitations !',
+        conduct: 'Très Bien',
+        absences: 0,
+        delays: 0,
+        verificationCode: 'EDU2024-MKG-6B-Z9X4Y7'
+      });
+    }
+
+    console.log('[PARENT_BULLETINS] ✅ Serving', allChildrenBulletins.length, 'bulletins for parent', parentId);
+    
+    res.json({
+      success: true,
+      data: allChildrenBulletins,
+      message: 'Children bulletins retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('[PARENT_BULLETINS] Error fetching all children bulletins:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching children bulletins'
+    });
+  }
+});
+
 // GET /api/parent/bulletins-status - Get status of all children's bulletins for tracking
 router.get('/bulletins-status', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
