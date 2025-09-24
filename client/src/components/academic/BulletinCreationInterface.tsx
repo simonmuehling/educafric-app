@@ -3022,6 +3022,43 @@ export default function BulletinCreationInterface() {
           </CardContent>
         </Card>
       )}
+
+      {/* Sticky Bottom Navigation - Mobile Optimized */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50 md:hidden safe-area-pb">
+        <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
+          {/* Subject Navigation */}
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>{language === 'fr' ? 'Matière' : 'Subject'}</span>
+            <span className="font-mono text-blue-600">1/{subjects.length}</span>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSaveBulletin}
+              className="min-h-[44px] px-4"
+              data-testid="mobile-save-bulletin"
+            >
+              💾 {language === 'fr' ? 'Sauver' : 'Save'}
+            </Button>
+            
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={() => setShowPreview(true)}
+              className="min-h-[44px] px-4 bg-blue-600 hover:bg-blue-700"
+              data-testid="mobile-preview-bulletin"
+            >
+              👁️ {language === 'fr' ? 'Aperçu' : 'Preview'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Padding for Mobile - Ensures content isn't hidden by sticky nav */}
+      <div className="h-20 md:hidden"></div>
     </div>
   );
 }
