@@ -172,7 +172,14 @@ const coteFromNote = (note: number): string => {
 
 // Dynamic Competency evaluation functions that work with backend data
 
-export default function BulletinCreationInterface() {
+interface BulletinCreationInterfaceProps {
+  defaultClass?: string;
+  defaultTerm?: string;
+  defaultYear?: string;
+}
+
+export default function BulletinCreationInterface(props: BulletinCreationInterfaceProps = {}) {
+  const { defaultClass, defaultTerm, defaultYear } = props;
   const { language } = useLanguage();
   const { toast } = useToast();
 
@@ -324,9 +331,13 @@ export default function BulletinCreationInterface() {
     }
   });
 
-  const [trimester, setTrimester] = useState('Premier');
-  const [selectedClassId, setSelectedClassId] = useState<string>('');
-  const [year, setYear] = useState('2025/2026');
+  const [trimester, setTrimester] = useState(
+    defaultTerm === 'T1' ? 'Premier' : 
+    defaultTerm === 'T2' ? 'Deuxième' : 
+    defaultTerm === 'T3' ? 'Troisième' : 'Premier'
+  );
+  const [selectedClassId, setSelectedClassId] = useState<string>(defaultClass || '');
+  const [year, setYear] = useState(defaultYear || '2025/2026');
 
   // Fetch available classes
   const { data: classesData, isLoading: loadingClasses } = useQuery({
@@ -1042,7 +1053,7 @@ export default function BulletinCreationInterface() {
       competencyLevel: s.competencyLevel,
       competencyEvaluation: s.competencyEvaluation,
       remark: s.remark,
-      teacherComments: s.comments, // Per-subject teacher comments
+      teacherComments: Array.isArray(s.comments) ? s.comments : [], // Ensure array format
     })),
     year,
     trimester,

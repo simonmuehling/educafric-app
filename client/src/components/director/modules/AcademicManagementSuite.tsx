@@ -1726,7 +1726,11 @@ export default function AcademicManagementSuite() {
           <TeacherSubmissionsManager selectedClass={selectedClass} selectedTerm={selectedTerm} />
           
           {/* Director Bulletin Creation Interface */}
-          <BulletinCreationInterface />
+          <BulletinCreationInterface 
+            defaultClass={selectedClass}
+            defaultTerm={selectedTerm}
+            defaultYear="2025/2026"
+          />
         </TabsContent>
 
         <TabsContent value="mastersheet" className="space-y-4">
