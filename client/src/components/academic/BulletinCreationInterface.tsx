@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 // Print CSS approach for ministry-grade output quality
 import ReportCardPreview from './ReportCardPreview';
 import AnnualReportSheet from './AnnualReportSheet';
+import BulletinPrint from './BulletinPrint';
 
 // Real school data fetching (useQuery already imported above)
 
@@ -688,95 +689,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     }
   };
 
-  // DOWNLOAD PDF: Generate and download actual PDF file
-  const downloadBulletinPDF = async () => {
-    if (!showPreview) {
-      alert(language === 'fr' ? 'Veuillez d\'abord afficher l\'aperçu du bulletin' : 'Please show bulletin preview first');
-      return;
-    }
-
-    try {
-      console.log('🔄 Generating PDF download...');
-      
-      // Calculate overall average
-      const totalCoef = subjects.reduce((sum, s) => sum + (s.coefficient || 0), 0);
-      const totalMxCoef = subjects.reduce((sum, s) => sum + (s.moyenneFinale || 0) * (s.coefficient || 0), 0);
-      const overallAverage = totalCoef ? (totalMxCoef / totalCoef) : 0;
-      
-      // Prepare bulletin data for PDF generation
-      const bulletinData = {
-        studentName: student.name,
-        classLabel: student.classLabel,
-        term: trimester,
-        academicYear: year,
-        generalAverage: overallAverage.toFixed(2),
-        subjects: subjects.map(subject => ({
-          id: subject.id,
-          name: subject.name,
-          note1: subject.note1,
-          moyenneFinale: subject.moyenneFinale,
-          coefficient: subject.coefficient,
-          remark: subject.remark,
-          teacher: (subject as any).teacher || 'Enseignant'
-        }))
-      };
-
-      const studentInfo = {
-        id: student.id,
-        name: student.name,
-        matricule: student.id,
-        birthDate: student.birthDate,
-        classId: (student as any).classId || student.id,
-        classLabel: student.classLabel,
-        photoUrl: studentPhotoUrl
-      };
-
-      const schoolInfo = {
-        id: 999,
-        name: student.schoolName || 'École',
-        address: '',
-        phone: '',
-        email: '',
-        logoUrl: realSchoolLogoUrl,
-        directorName: '',
-        motto: ''
-      };
-
-      // Call NEW creation bulletin PDF generation API
-      const response = await fetch('/api/bulletins/creation/pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          bulletinData,
-          studentInfo,
-          schoolInfo,
-          language
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`PDF generation failed: ${response.status}`);
-      }
-
-      // Download the PDF
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `bulletin_${student.name.replace(/\s+/g, '_')}_${trimester}_${year.replace('/', '-')}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-
-      console.log('✅ PDF downloaded successfully');
-    } catch (error) {
-      console.error('PDF generation error:', error);
-      alert(language === 'fr' ? 'Erreur lors de la génération du PDF' : 'PDF generation error');
-    }
-  };
+  // PDF functionality is now handled by react-to-print in BulletinPrint component
 
 
   const signBulletin = async () => {
@@ -2804,14 +2717,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
               {language === 'fr' ? 'Rapport Annuel' : 'Annual Report'}
             </Button>
             
-            <Button 
-              variant="outline" 
-              onClick={downloadBulletinPDF}
-              data-testid="button-download-pdf"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {language === 'fr' ? 'Imprimer PDF' : 'Print to PDF'}
-            </Button>
+            {/* PDF printing is now handled by BulletinPrint component in the preview */}
             
             <Button 
               variant={isSigned ? "default" : "outline"}
@@ -2840,14 +2746,16 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         </CardContent>
       </Card>
 
-      {/* Preview */}
+      {/* Preview with Print Functionality */}
       {showPreview && (
         <Card>
           <CardHeader>
             <CardTitle>{TRIMESTER_TITLES[language](trimester)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <ReportCardPreview {...bulletinData} />
+            <BulletinPrint documentTitle={`${student.name?.replace(/\s+/g, '_')}_${trimester}_${year}`}>
+              <ReportCardPreview {...bulletinData} />
+            </BulletinPrint>
           </CardContent>
         </Card>
       )}
