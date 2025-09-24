@@ -1,5 +1,6 @@
 // EXACT Ministry of Education CBA Report Card - Pixel Perfect Implementation
 import React, { useMemo } from "react";
+import { TEACHER_COMMENTS } from './BulletinCreationInterface';
 
 // ---- Ministry Official Format Compliance ----
 const TRIMESTER_TITLES = {
@@ -7,37 +8,7 @@ const TRIMESTER_TITLES = {
   en: (t: string) => `${String(t || "FIRST").toUpperCase()} TERM PROGRESS RECORD`
 };
 
-// Ministry-required Teacher Comments - LISTE DES COMMENTAIRES POUR L'ENSEIGNANT
-const TEACHER_COMMENTS = {
-  fr: [
-    { id: 'excellent_work', text: 'Excellent travail. Félicitations.' },
-    { id: 'very_good', text: 'Très bon travail. Continuez ainsi.' },
-    { id: 'good_work', text: 'Bon travail. Peut mieux faire.' },
-    { id: 'satisfactory', text: 'Travail satisfaisant. Efforts à poursuivre.' },
-    { id: 'needs_improvement', text: 'Travail insuffisant. Beaucoup d\'efforts à fournir.' },
-    { id: 'weak_performance', text: 'Travail faible. Révision nécessaire.' },
-    { id: 'good_behavior', text: 'Bon comportement en classe.' },
-    { id: 'punctual', text: 'Élève ponctuel et assidu.' },
-    { id: 'participative', text: 'Participation active en cours.' },
-    { id: 'needs_attention', text: 'Nécessite plus d\'attention.' },
-    { id: 'homework_regular', text: 'Devoirs réguliers et soignés.' },
-    { id: 'progress_noted', text: 'Progrès remarqué ce trimestre.' }
-  ],
-  en: [
-    { id: 'excellent_work', text: 'Excellent work. Congratulations.' },
-    { id: 'very_good', text: 'Very good work. Keep it up.' },
-    { id: 'good_work', text: 'Good work. Can do better.' },
-    { id: 'satisfactory', text: 'Satisfactory work. Continue efforts.' },
-    { id: 'needs_improvement', text: 'Insufficient work. Much effort needed.' },
-    { id: 'weak_performance', text: 'Weak work. Review necessary.' },
-    { id: 'good_behavior', text: 'Good behavior in class.' },
-    { id: 'punctual', text: 'Punctual and diligent student.' },
-    { id: 'participative', text: 'Active participation in class.' },
-    { id: 'needs_attention', text: 'Needs more attention.' },
-    { id: 'homework_regular', text: 'Regular and neat homework.' },
-    { id: 'progress_noted', text: 'Progress noted this term.' }
-  ]
-};
+// Ministry-required Teacher Comments - imported from BulletinCreationInterface to avoid duplication
 
 // Ministry Performance Grid - EXACT from documents
 const PERFORMANCE_GRID = {

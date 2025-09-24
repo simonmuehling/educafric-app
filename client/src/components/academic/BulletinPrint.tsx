@@ -40,7 +40,7 @@ export default function BulletinPrint({ documentTitle = "bulletin", children }: 
   `;
 
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
+    contentRef: printRef,
     documentTitle,
     removeAfterPrint: true,
     pageStyle,

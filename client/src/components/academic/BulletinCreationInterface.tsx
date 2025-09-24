@@ -22,7 +22,7 @@ import BulletinPrint from './BulletinPrint';
 // Real school data fetching (useQuery already imported above)
 
 // Ministry-required Teacher Comments - LISTE DES COMMENTAIRES POUR L'ENSEIGNANT
-const TEACHER_COMMENTS = {
+export const TEACHER_COMMENTS = {
   fr: [
     { id: 'excellent_work', text: 'Excellent travail. Félicitations.' },
     { id: 'very_good', text: 'Très bon travail. Continuez ainsi.' },
