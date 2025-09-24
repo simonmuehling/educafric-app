@@ -1464,6 +1464,106 @@ export default function AcademicManagementSuite() {
         </div>
       </div>
 
+      {/* Selectors for Class, Term, and Academic Year */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Class Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="class-select" className="text-sm font-medium">
+                {language === 'fr' ? 'Classe' : 'Class'}
+              </Label>
+              <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <SelectTrigger id="class-select" data-testid="select-class">
+                  <SelectValue placeholder={
+                    language === 'fr' ? 'Sélectionner une classe...' : 'Select a class...'
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  {classesLoading ? (
+                    <SelectItem value="loading" disabled>
+                      {language === 'fr' ? 'Chargement...' : 'Loading...'}
+                    </SelectItem>
+                  ) : classes.length === 0 ? (
+                    <SelectItem value="no-classes" disabled>
+                      {language === 'fr' ? 'Aucune classe trouvée' : 'No classes found'}
+                    </SelectItem>
+                  ) : (
+                    classes.map((cls: any) => (
+                      <SelectItem key={cls.id} value={cls.id.toString()}>
+                        {cls.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Term Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="term-select" className="text-sm font-medium">
+                {language === 'fr' ? 'Trimestre' : 'Term'}
+              </Label>
+              <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+                <SelectTrigger id="term-select" data-testid="select-term">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TRIMESTERS.map((term) => (
+                    <SelectItem key={term.key} value={term.key}>
+                      {language === 'fr' ? term.labelFR : term.labelEN}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Academic Year Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="year-select" className="text-sm font-medium">
+                {language === 'fr' ? 'Année Académique' : 'Academic Year'}
+              </Label>
+              <Select value="2024-2025" onValueChange={() => {}}>
+                <SelectTrigger id="year-select" data-testid="select-year">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2024-2025">2024-2025</SelectItem>
+                  <SelectItem value="2023-2024">2023-2024</SelectItem>
+                  <SelectItem value="2022-2023">2022-2023</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Student Selector for Transcript (only show on transcript tab) */}
+          <div className="mt-4 space-y-2">
+            <Label htmlFor="student-select" className="text-sm font-medium">
+              {language === 'fr' ? 'Élève (pour relevé de notes)' : 'Student (for transcript)'}
+            </Label>
+            <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+              <SelectTrigger id="student-select" data-testid="select-student">
+                <SelectValue placeholder={
+                  language === 'fr' ? 'Sélectionner un élève...' : 'Select a student...'
+                } />
+              </SelectTrigger>
+              <SelectContent>
+                {students.length === 0 ? (
+                  <SelectItem value="no-students" disabled>
+                    {language === 'fr' ? 'Aucun élève trouvé' : 'No students found'}
+                  </SelectItem>
+                ) : (
+                  students.map((student: any) => (
+                    <SelectItem key={student.id} value={student.id.toString()}>
+                      {student.name} - {student.className || student.class || 'Classe inconnue'}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="bulletins" className="w-full">
