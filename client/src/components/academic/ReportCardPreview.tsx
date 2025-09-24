@@ -266,11 +266,11 @@ export default function ReportCardPreview({
   const labels = LABELS[language];
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0" data-bulletin-preview="true">
+    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0 bulletin-compact" data-bulletin-preview="true">
       <A4Sheet>
-        <div className="p-4">
+        <div className="p-2">
           {/* EXACT Ministry Header - Bilingual Side by Side with School Logo */}
-          <div className="text-center mb-6 relative">
+          <div className="text-center mb-3 relative header-section">
             {/* School Logo - Positioned Above/Center */}
             <div className="flex justify-center mb-4">
               {schoolLogoUrl ? (
@@ -322,13 +322,13 @@ export default function ReportCardPreview({
           </div>
 
           {/* Ministry Required Report Card Title and Year */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-3">
             <div className="text-sm font-bold mb-2">{TRIMESTER_TITLES[language](trimester)}</div>
             <div className="text-xs mb-2">{language === 'fr' ? 'Année scolaire' : 'School Year'}: {year}</div>
           </div>
 
           {/* Ministry Student Information Layout - 2 Rows near Photo */}
-          <div className="flex justify-between items-start mb-6">
+          <div className="flex justify-between items-start mb-3 student-info">
             {/* Left Side: Student Information in 2 Rows */}
             <div className="flex-1 text-xs">
               {/* First Row */}
@@ -375,35 +375,35 @@ export default function ReportCardPreview({
 
 
           {/* EXACT Ministry Subject Table - MUST match documents precisely */}
-          <div className="mt-6 overflow-auto">
-            <table className="w-full text-[8px] border border-black">
+          <div className="mt-2 overflow-auto">
+            <table className="w-full text-[6px] border border-black" style={{lineHeight: '1.0'}}>
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border border-black p-1 font-bold text-center w-24">
+                  <th className="border border-black p-0.5 font-bold text-center w-24">
                     {language === 'fr' ? 'Disciplines et noms des enseignants' : 'Subject and Teacher\'s Names'}
                   </th>
-                  <th className="border border-black p-1 font-bold text-center" style={{minWidth: '120px'}}>
+                  <th className="border border-black p-0.5 font-bold text-center" style={{minWidth: '120px'}}>
                     {language === 'fr' ? 'COMPÉTENCES ÉVALUÉES' : 'COMPETENCIES EVALUATED'}
                   </th>
-                  <th className="border border-black p-1 font-bold text-center w-12">
+                  <th className="border border-black p-0.5 font-bold text-center w-12">
                     {language === 'fr' ? 'N/20' : 'MK/20'}
                   </th>
-                  <th className="border border-black p-1 font-bold text-center w-12">
+                  <th className="border border-black p-0.5 font-bold text-center w-12">
                     {language === 'fr' ? 'M/20' : 'AV/20'}
                   </th>
-                  <th className="border border-black p-1 font-bold text-center w-12">
+                  <th className="border border-black p-0.5 font-bold text-center w-12">
                     Coef
                   </th>
-                  <th className="border border-black p-1 font-bold text-center w-16">
+                  <th className="border border-black p-0.5 font-bold text-center w-16">
                     {language === 'fr' ? 'M x coef' : 'AV x coef'}
                   </th>
-                  <th className="border border-black p-1 font-bold text-center w-20">
+                  <th className="border border-black p-0.5 font-bold text-center w-20">
                     {language === 'fr' ? 'COTE [Min - Max]' : 'GRADE [Min - Max]'}
                   </th>
                   <th className="border border-black p-1 font-bold text-center" style={{minWidth: '100px'}}>
                     {language === 'fr' ? 'Appréciations' : 'Remarks'}
                   </th>
-                  <th className="border border-black p-1 font-bold text-center" style={{minWidth: '120px'}}>
+                  <th className="border border-black p-0.5 font-bold text-center" style={{minWidth: '120px'}}>
                     {language === 'fr' ? 'COMMENTAIRES' : 'COMMENTS'}
                   </th>
                 </tr>
@@ -432,41 +432,41 @@ export default function ReportCardPreview({
                   
                   return (
                     <tr key={idx}>
-                      <td className="border border-black p-1 text-[7px]">
+                      <td className="border border-black p-0.5 text-[6px]">
                         <div className="font-bold">{r.subject}</div>
                         <div className="text-[6px] text-gray-600">{r.teacher || ''}</div>
                       </td>
-                      <td className="border border-black p-1 text-[6px]">
+                      <td className="border border-black p-0.5 text-[5px]">
                         {r.competenciesEvaluated || r.competencesEvaluees || ''}
                       </td>
-                      <td className="border border-black p-1 text-center text-[8px]">
+                      <td className="border border-black p-0.5 text-center text-[6px]">
                         {mk20}
                       </td>
-                      <td className="border border-black p-1 text-center text-[8px] font-bold">
+                      <td className="border border-black p-0.5 text-center text-[6px] font-bold">
                         {av20}
                       </td>
-                      <td className="border border-black p-1 text-center text-[8px]">
+                      <td className="border border-black p-0.5 text-center text-[6px]">
                         {r.coef}
                       </td>
-                      <td className="border border-black p-1 text-center text-[8px]">
+                      <td className="border border-black p-0.5 text-center text-[6px]">
                         {r.avXcoef || avXcoef}
                       </td>
-                      <td className="border border-black p-1 text-center text-[8px] font-bold">
+                      <td className="border border-black p-0.5 text-center text-[6px] font-bold">
                         <div>{r.grade || cote}</div>
-                        <div className="text-[6px]">{minMax}</div>
+                        <div className="text-[5px]">{minMax}</div>
                       </td>
-                      <td className="border border-black p-1 text-[6px]">
+                      <td className="border border-black p-0.5 text-[5px]">
                         {r.remarksAndSignature || r.remark || ''}
                       </td>
-                      <td className="border border-black p-1 text-[6px] align-top">
+                      <td className="border border-black p-0.5 text-[5px] align-top">
                         {r.teacherComments && r.teacherComments.length > 0 ? (
                           <ul className="list-decimal list-inside space-y-0.5">
                             {r.teacherComments.map((commentText, index) => (
-                              <li key={index} className="text-[5px]">{commentText}</li>
+                              <li key={index} className="text-[4px]">{commentText}</li>
                             ))}
                           </ul>
                         ) : (
-                          <div className="text-[5px] text-gray-400 italic">
+                          <div className="text-[4px] text-gray-400 italic">
                             {language === 'fr' ? 'Aucun commentaire sélectionné' : 'No comments selected'}
                           </div>
                         )}
@@ -477,12 +477,12 @@ export default function ReportCardPreview({
               </tbody>
               <tfoot>
                 <tr className="bg-gray-200">
-                  <td className="border border-black p-1 font-bold text-[8px] text-center">TOTAL</td>
+                  <td className="border border-black p-0.5 font-bold text-[6px] text-center">TOTAL</td>
                   <td className="border border-black p-1"></td>
                   <td className="border border-black p-1"></td>
                   <td className="border border-black p-1"></td>
-                  <td className="border border-black p-1 text-center font-bold text-[8px]">{totalCoef}</td>
-                  <td className="border border-black p-1 text-center font-bold text-[8px]">{round2(totalMxCoef)}</td>
+                  <td className="border border-black p-0.5 text-center font-bold text-[6px]">{totalCoef}</td>
+                  <td className="border border-black p-0.5 text-center font-bold text-[6px]">{round2(totalMxCoef)}</td>
                   <td className="border border-black p-1"></td>
                   <td className="border border-black p-1"></td>
                   <td className="border border-black p-1"></td>

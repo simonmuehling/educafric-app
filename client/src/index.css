@@ -8,7 +8,7 @@
 /* ===== CENTRALIZED PRINT CSS ===== */
 @page { 
   size: A4; 
-  margin: 10mm; 
+  margin: 5mm; 
 }
 
 @media print {
@@ -63,6 +63,32 @@
   tr, th, td { 
     break-inside: avoid !important; 
     page-break-inside: avoid !important; 
+    line-height: 1.1 !important;
+    padding: 1px !important;
+  }
+  
+  /* Compact bulletin layout for 20+ subjects */
+  .bulletin-compact {
+    line-height: 1.0 !important;
+  }
+  
+  .bulletin-compact table {
+    font-size: 6px !important;
+    margin-bottom: 2px !important;
+  }
+  
+  .bulletin-compact th,
+  .bulletin-compact td {
+    padding: 0.5px !important;
+    line-height: 1.0 !important;
+  }
+  
+  .bulletin-compact .header-section {
+    margin-bottom: 2px !important;
+  }
+  
+  .bulletin-compact .student-info {
+    margin-bottom: 3px !important;
   }
   
   /* Avoid breaks on important elements */
