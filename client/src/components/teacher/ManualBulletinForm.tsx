@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Minus, Save, Archive, Send, Info } from 'lucide-react';
+import { Plus, Minus, Save, Archive, Send } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // Ministry-required Teacher Comments - EXACT from academic interface
@@ -127,7 +127,41 @@ const performanceGrid = [
   { min: 0, max: 10, grade: "D", label: "CNA", remark: "Compétences non acquises" },
 ];
 
-// Note: Helper functions moved to top to avoid duplicates and match academic interface exactly
+// Helper functions (EXACT from academic interface)
+function appreciationFromNote(note20: string | number, predefinedAppreciations?: any): string {
+  if (note20 == null || note20 === '' || (typeof note20 === 'string' && note20.trim() === '') || isNaN(Number(note20))) return "";
+  const n = Number(note20);
+  
+  // Try to use predefined appreciations first
+  if (predefinedAppreciations?.data) {
+    const matching = predefinedAppreciations.data.find((app: any) => 
+      app.gradeRange && n >= app.gradeRange.min && n < app.gradeRange.max
+    );
+    if (matching) {
+      return matching.appreciation;
+    }
+  }
+  
+  // Fallback to hard-coded values if no predefined appreciations
+  const r = performanceGrid.find(g => n >= g.min && n < g.max);
+  return r ? r.remark : "";
+}
+
+// Bilingual labels for ministry compliance
+const BILINGUAL_LABELS = {
+  fr: {
+    subject: 'Matière',
+    coefficient: 'Coefficient',
+    grade: 'Note',
+    appreciation: 'Appréciation'
+  },
+  en: {
+    subject: 'Subject',
+    coefficient: 'Coefficient', 
+    grade: 'Grade',
+    appreciation: 'Appreciation'
+  }
+};
 
 /**************************** DONNÉES ****************************/
 // Matières récupérées dynamiquement via l'API pour les matières assignées à l'enseignant
@@ -303,6 +337,8 @@ interface SubjectRow {
   totalPondere: number;  // M/20 * coefficient
   cote: string;
   appreciation: string;
+  remark?: string;  // Academic interface appreciation
+  comments?: string[];  // Ministry teacher comments
 }
 
 // Extended student information interface (matching director interface)
