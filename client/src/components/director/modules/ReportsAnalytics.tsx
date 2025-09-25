@@ -317,17 +317,17 @@ const ReportsAnalytics: React.FC = () => {
       status: 'ready' 
     },
     { 
-      name: `Performance ${teacherCount} Enseignants`, 
+      name: `Analyse Comparative ${classCount} Classes`, 
       date: '2025-09-01', 
-      size: `${(teacherCount * 0.25).toFixed(1)} MB`, 
-      type: 'teachers', 
+      size: `${(classCount * 0.25).toFixed(1)} MB`, 
+      type: 'comparative', 
       status: 'generating' 
     },
     { 
-      name: `Rapport Capacité ${occupancyRate}% Occupation`, 
+      name: `Procès Verbal - Classes ${occupancyRate}% Occupation`, 
       date: '2025-08-31', 
       size: `${(totalCapacity * 0.002).toFixed(1)} MB`, 
-      type: 'performance', 
+      type: 'procesVerbal', 
       status: 'ready' 
     }
   ];
