@@ -11,6 +11,7 @@ import {
   Building2, Calendar, FileText, Filter
 } from 'lucide-react';
 import { EnhancedImage } from '@/components/ui/enhanced-image';
+import StandardFormHeader from '@/components/shared/StandardFormHeader';
 
 interface ClassReport {
   id: number;
@@ -227,51 +228,33 @@ const ClassReports: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-6 space-y-6">
-        {/* Header with School Logo */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {classReportsData.school.logoUrl && (
-                <EnhancedImage 
-                  src={classReportsData.school.logoUrl} 
-                  alt={classReportsData.school.name}
-                  fallbackType="logo"
-                  className="w-16 h-16 object-contain rounded-lg border"
-                  data-testid="img-school-logo"
-                />
-              )}
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                  <Users className="w-8 h-8 text-blue-600" />
-                  {t.title}
-                </h1>
-                <p className="text-gray-600 mt-1">{classReportsData.school.name}</p>
-                <p className="text-sm text-gray-500">
-                  {classReportsData.school.academicYear} - {classReportsData.school.currentTerm}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant={viewMode === 'summary' ? 'default' : 'outline'}
-                onClick={() => setViewMode('summary')}
-                size="sm"
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                {t.viewModes.summary}
-              </Button>
-              <Button 
-                variant={viewMode === 'detailed' ? 'default' : 'outline'}
-                onClick={() => setViewMode('detailed')}
-                size="sm"
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                {t.viewModes.detailed}
-              </Button>
-            </div>
-          </div>
+      <StandardFormHeader
+        title={language === 'fr' ? 'Rapports par Classe' : 'Class Reports'}
+        documentType={language === 'fr' ? 'Analyse détaillée des performances par classe' : 'Detailed class performance analysis'}
+        showLogo={true}
+        showOfficialInfo={true}
+        className="mb-6"
+      >
+        <div className="flex justify-end gap-2 mt-4">
+          <Button 
+            variant={viewMode === 'summary' ? 'default' : 'outline'}
+            onClick={() => setViewMode('summary')}
+            size="sm"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            {t.viewModes.summary}
+          </Button>
+          <Button 
+            variant={viewMode === 'detailed' ? 'default' : 'outline'}
+            onClick={() => setViewMode('detailed')}
+            size="sm"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            {t.viewModes.detailed}
+          </Button>
         </div>
+      </StandardFormHeader>
+      <div className="p-6 space-y-6">
 
         {/* Summary Statistics */}
         <div className="grid gap-6 md:grid-cols-4">

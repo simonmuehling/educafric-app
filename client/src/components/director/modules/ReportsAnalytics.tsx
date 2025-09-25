@@ -13,6 +13,7 @@ import {
   Target, Clock, CheckCircle, Filter, X
 } from 'lucide-react';
 import ClassReports from './ClassReports';
+import StandardFormHeader from '@/components/shared/StandardFormHeader';
 
 const ReportsAnalytics: React.FC = () => {
   const { language } = useLanguage();
@@ -55,12 +56,7 @@ const ReportsAnalytics: React.FC = () => {
       },
       reports: {
         academic: 'Rapport Académique',
-        financial: 'Rapport Financier',
         attendance: 'Rapport Présence',
-        performance: 'Analyse Performance',
-        teachers: 'Évaluation Enseignants',
-        students: 'Progression Élèves',
-        parent: 'Engagement Parents',
         comparative: 'Analyse Comparative',
         classReports: 'Rapports par Classe'
       },
@@ -101,12 +97,7 @@ const ReportsAnalytics: React.FC = () => {
       },
       reports: {
         academic: 'Academic Report',
-        financial: 'Financial Report',
         attendance: 'Attendance Report',
-        performance: 'Performance Analysis',
-        teachers: 'Teacher Evaluation',
-        students: 'Student Progress',
-        parent: 'Parent Engagement',
         comparative: 'Comparative Analysis',
         classReports: 'Class Reports'
       },
@@ -303,12 +294,7 @@ const ReportsAnalytics: React.FC = () => {
 
   const reportTypes = [
     { id: 'academic', name: t?.reports?.academic, icon: BookOpen, color: 'bg-blue-500', description: language === 'fr' ? 'Performance académique générale' : 'General academic performance' },
-    { id: 'financial', name: t?.reports?.financial, icon: BarChart3, color: 'bg-green-500', description: language === 'fr' ? 'Analyse financière complète' : 'Complete financial analysis' },
     { id: 'attendance', name: t?.reports?.attendance, icon: Calendar, color: 'bg-orange-500', description: language === 'fr' ? 'Statistiques de présence' : 'Attendance statistics' },
-    { id: 'performance', name: t?.reports?.performance, icon: TrendingUp, color: 'bg-purple-500', description: language === 'fr' ? 'Analyse de performance détaillée' : 'Detailed performance analysis' },
-    { id: 'teachers', name: t?.reports?.teachers, icon: Award, color: 'bg-indigo-500', description: language === 'fr' ? 'Évaluation des enseignants' : 'Teacher evaluation' },
-    { id: 'students', name: t?.reports?.students, icon: Users, color: 'bg-pink-500', description: language === 'fr' ? 'Progression des élèves' : 'Student progress' },
-    { id: 'parent', name: t?.reports?.parent, icon: Activity, color: 'bg-teal-500', description: language === 'fr' ? 'Engagement parental' : 'Parent engagement' },
     { id: 'comparative', name: t?.reports?.comparative, icon: PieChart, color: 'bg-cyan-500', description: language === 'fr' ? 'Comparaison avec autres établissements' : 'Comparison with other institutions' },
     { id: 'procesVerbal', name: language === 'fr' ? 'Procès Verbal/Master' : 'Master Report/Minutes', icon: FileText, color: 'bg-amber-600', description: language === 'fr' ? 'Document périodique complet avec notes, comportement et matricules par classe' : 'Complete periodic document with grades, behavior and student IDs by class' },
     { id: 'classReports', name: t?.reports?.classReports, icon: Users, color: 'bg-red-500', description: language === 'fr' ? 'Rapports détaillés par classe avec notes' : 'Detailed class reports with grades' }
