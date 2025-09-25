@@ -90,18 +90,18 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     }
   });
 
-  // Subjects/Matières data (predefined list)
+  // Subjects/Matières data (predefined list with numeric IDs)
   const subjects = [
-    { id: 'maths', name: language === 'fr' ? 'Mathématiques' : 'Mathematics' },
-    { id: 'french', name: language === 'fr' ? 'Français' : 'French' },
-    { id: 'english', name: language === 'fr' ? 'Anglais' : 'English' },
-    { id: 'science', name: language === 'fr' ? 'Sciences' : 'Science' },
-    { id: 'history', name: language === 'fr' ? 'Histoire' : 'History' },
-    { id: 'geography', name: language === 'fr' ? 'Géographie' : 'Geography' },
-    { id: 'physics', name: language === 'fr' ? 'Physique' : 'Physics' },
-    { id: 'chemistry', name: language === 'fr' ? 'Chimie' : 'Chemistry' },
-    { id: 'biology', name: language === 'fr' ? 'Biologie' : 'Biology' },
-    { id: 'philosophy', name: language === 'fr' ? 'Philosophie' : 'Philosophy' }
+    { id: 1, name: language === 'fr' ? 'Mathématiques' : 'Mathematics' },
+    { id: 2, name: language === 'fr' ? 'Français' : 'French' },
+    { id: 3, name: language === 'fr' ? 'Anglais' : 'English' },
+    { id: 4, name: language === 'fr' ? 'Sciences' : 'Science' },
+    { id: 5, name: language === 'fr' ? 'Histoire' : 'History' },
+    { id: 6, name: language === 'fr' ? 'Géographie' : 'Geography' },
+    { id: 7, name: language === 'fr' ? 'Physique' : 'Physics' },
+    { id: 8, name: language === 'fr' ? 'Chimie' : 'Chemistry' },
+    { id: 9, name: language === 'fr' ? 'Biologie' : 'Biology' },
+    { id: 10, name: language === 'fr' ? 'Philosophie' : 'Philosophy' }
   ];
 
   // Fetch courses data only after selection is complete
@@ -122,10 +122,11 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     mutationFn: async (courseData: any) => {
       const enrichedCourseData = {
         ...courseData,
-        classId: selectedClass,
-        teacherId: selectedTeacher,
-        subjectId: selectedSubject
+        classId: parseInt(selectedClass, 10), // Convert string to number
+        teacherId: parseInt(selectedTeacher, 10), // Convert string to number
+        subjectId: parseInt(selectedSubject, 10) // Convert string to number
       };
+      console.log('[ONLINE_CLASSES] Creating course with data:', enrichedCourseData);
       return apiRequest('POST', '/api/online-classes/courses', enrichedCourseData);
     },
     onSuccess: () => {
@@ -248,7 +249,7 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
               </SelectTrigger>
               <SelectContent>
                 {subjects.map((subject) => (
-                  <SelectItem key={subject.id} value={subject.id}>
+                  <SelectItem key={subject.id} value={subject.id.toString()}>
                     {subject.name}
                   </SelectItem>
                 ))}
@@ -287,8 +288,8 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
           </CardTitle>
           <CardDescription>
             {language === 'fr' ? 
-              `Classe: ${classesData?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Enseignant: ${teachersData?.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName || ''} | Matière: ${subjects.find(s => s.id === selectedSubject)?.name || ''}` :
-              `Class: ${classesData?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Teacher: ${teachersData?.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName || ''} | Subject: ${subjects.find(s => s.id === selectedSubject)?.name || ''}`
+              `Classe: ${classesData?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Enseignant: ${teachersData?.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName || ''} | Matière: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}` :
+              `Class: ${classesData?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Teacher: ${teachersData?.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName || ''} | Subject: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}`
             }
           </CardDescription>
         </CardHeader>
