@@ -99,6 +99,7 @@ interface Subject {
   moyenneFinale: number;
   competence1: string;
   competence2: string;
+  competence3: string;
   totalPondere: number;
   cote: string;
 }
@@ -443,6 +444,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       moyenneFinale: 0, 
       competence1: '', 
       competence2: '', 
+      competence3: '',
       totalPondere: 0, 
       cote: '' 
     },
@@ -459,6 +461,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       moyenneFinale: 0, 
       competence1: '', 
       competence2: '', 
+      competence3: '',
       totalPondere: 0, 
       cote: '' 
     },
@@ -475,6 +478,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       moyenneFinale: 0, 
       competence1: '', 
       competence2: '', 
+      competence3: '',
       totalPondere: 0, 
       cote: '' 
     },
@@ -564,6 +568,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       moyenneFinale: 0,
       competence1: '',
       competence2: '',
+      competence3: '',
       totalPondere: 0,
       cote: ''
     };
@@ -582,7 +587,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       const numValue = Number(value) || 0;
       const updatedSubject = { 
         ...s, 
-        [field]: (field === 'name' || field === 'remark' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'teacher' || field === 'comments') ? value : numValue 
+        [field]: (field === 'name' || field === 'remark' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'competence3' || field === 'teacher' || field === 'comments') ? value : numValue 
       };
       
       // Always recalculate derived values
@@ -984,7 +989,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       cote: s.cote,
       competence1: s.competence1,
       competence2: s.competence2,
-      competencesEvaluees: s.competence1 && s.competence2 ? `${s.competence1}; ${s.competence2}` : (s.competence1 || s.competence2 || ''),
+      competence3: s.competence3,
+      competencesEvaluees: [s.competence1, s.competence2, s.competence3].filter(c => c?.trim()).join('; '),
       competencyLevel: s.competencyLevel,
       competencyEvaluation: s.competencyEvaluation,
       remark: s.remark,
@@ -1767,7 +1773,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                       const totalPondere = round2(moyenneFinale * subject.coefficient);
                       const notePercent = round2((moyenneFinale / 20) * 100);
                       const cote = coteFromNote(moyenneFinale);
-                      const competencesEvaluees = subject.competence1 && subject.competence2 ? `${subject.competence1}; ${subject.competence2}` : (subject.competence1 || subject.competence2 || '');
+                      const competencesEvaluees = [subject.competence1, subject.competence2, subject.competence3].filter(c => c?.trim()).join('; ');
                       
                       return (
                         <tr key={subject.id} className={index % 2 ? "bg-white" : "bg-gray-50/30"}>
@@ -1861,18 +1867,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                           </td>
 
                           {/* Compétences évaluées */}
-                          <td className="px-3 py-2 border" data-testid={`cell-competences-${index}`}>
+                          <td className="px-3 py-2 border print:px-2 print:py-1" data-testid={`cell-competences-${index}`}>
                             <textarea
-                              className="w-full border-0 bg-transparent text-xs resize-none"
-                              rows={2}
+                              className="w-full border-0 bg-transparent text-xs resize-none print:text-[11px] print:leading-tight"
+                              rows={3}
                               value={competencesEvaluees}
                               onChange={(e) => {
                                 const newCompetences = e.target.value;
                                 const parts = newCompetences.split(';');
                                 updateSubject(subject.id, 'competence1', parts[0]?.trim() || '');
                                 updateSubject(subject.id, 'competence2', parts[1]?.trim() || '');
+                                updateSubject(subject.id, 'competence3', parts[2]?.trim() || '');
                               }}
-                              placeholder="Compétences séparées par ;"
+                              placeholder={language === 'fr' ? "3 compétences séparées par ; (ex: Communication; Expression; Analyse)" : "3 competencies separated by ; (ex: Communication; Expression; Analysis)"}
                               data-testid={`input-competences-${index}`}
                             />
                           </td>
@@ -2014,7 +2021,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                     const totalPondere = round2(moyenneFinale * subject.coefficient);
                     const notePercent = round2((moyenneFinale / 20) * 100);
                     const cote = coteFromNote(moyenneFinale);
-                    const competencesEvaluees = subject.competence1 && subject.competence2 ? `${subject.competence1}; ${subject.competence2}` : (subject.competence1 || subject.competence2 || '');
+                    const competencesEvaluees = [subject.competence1, subject.competence2, subject.competence3].filter(c => c?.trim()).join('; ');
                     
                     return (
                       <AccordionItem value={`subject-${index}`} key={subject.id} className="border rounded-lg">
@@ -2080,25 +2087,35 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                             </div>
 
                             {/* Competencies */}
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-3 gap-2">
                               <div className="space-y-1">
                                 <Label className="text-xs text-gray-600">{language === 'fr' ? 'Compétence 1' : 'Competency 1'}</Label>
                                 <Input
-                                  className="h-10 text-sm"
+                                  className="h-8 text-xs"
                                   value={subject.competence1}
                                   onChange={(e) => updateSubject(subject.id, 'competence1', e.target.value)}
-                                  placeholder="Ex: Communication écrite"
+                                  placeholder="Ex: Communication"
                                   data-testid={`mobile-input-comp1-${index}`}
                                 />
                               </div>
                               <div className="space-y-1">
                                 <Label className="text-xs text-gray-600">{language === 'fr' ? 'Compétence 2' : 'Competency 2'}</Label>
                                 <Input
-                                  className="h-10 text-sm"
+                                  className="h-8 text-xs"
                                   value={subject.competence2}
                                   onChange={(e) => updateSubject(subject.id, 'competence2', e.target.value)}
-                                  placeholder="Ex: Expression orale"
+                                  placeholder="Ex: Expression"
                                   data-testid={`mobile-input-comp2-${index}`}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">{language === 'fr' ? 'Compétence 3' : 'Competency 3'}</Label>
+                                <Input
+                                  className="h-8 text-xs"
+                                  value={subject.competence3}
+                                  onChange={(e) => updateSubject(subject.id, 'competence3', e.target.value)}
+                                  placeholder="Ex: Analyse"
+                                  data-testid={`mobile-input-comp3-${index}`}
                                 />
                               </div>
                             </div>
