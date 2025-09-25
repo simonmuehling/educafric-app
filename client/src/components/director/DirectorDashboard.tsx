@@ -216,7 +216,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
 
       finances: 'Finances',
       reports: 'Rapports', 
-      help: 'Aide',
       configGuide: 'Guide Configuration',
       schoolSettings: 'Paramètres École',
       onlineClasses: 'Classes en ligne'
@@ -242,7 +241,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
 
       finances: 'Finances',
       reports: 'Reports',
-      help: 'Help',
       configGuide: 'Configuration Guide',
       schoolSettings: 'School Settings',
       onlineClasses: 'Online Classes'
@@ -415,13 +413,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-violet-500',
       component: createDynamicModule('reports')
-    },
-    {
-      id: 'help',
-      label: t.help,
-      icon: <HelpCircle className="w-6 h-6" />,
-      color: 'bg-rose-500',
-      component: createDynamicModule('help')
     },
     {
       id: 'config-guide',

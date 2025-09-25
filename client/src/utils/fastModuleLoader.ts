@@ -38,11 +38,6 @@ class FastModuleLoader {
       'school-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'delegated-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
-      'help': () => import('@/components/director/modules/SchoolConfigurationGuide'),
-      'director.help': () => import('@/components/director/modules/SchoolConfigurationGuide'), // Role-namespaced
-      'student.help': () => import('@/components/director/modules/SchoolConfigurationGuide'), // Role-namespaced
-      'parent.help': () => import('@/components/director/modules/SchoolConfigurationGuide'), // Role-namespaced
-      'teacher.help': () => import('@/components/director/modules/SchoolConfigurationGuide'), // Role-namespaced
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
       // Removed comprehensive-bulletins module - now integrated in academic-management
