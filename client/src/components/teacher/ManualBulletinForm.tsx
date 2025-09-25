@@ -847,7 +847,9 @@ export default function ManualBulletinForm({
       lignes: rows.map(r => ({
         matiere: r.matiere,
         enseignant: r.enseignant,
-        competences: `${r.competence1 || ''}${r.competence2 ? '; ' + r.competence2 : ''}`,
+        competence1: r.competence1 || '',
+        competence2: r.competence2 || '',
+        competence3: r.competence3 || '',
         n20: Number(r.note1) || null,
         m20: Number(r.note2) || null,
         coef: Number(r.coef) || 0,
@@ -1081,7 +1083,7 @@ export default function ManualBulletinForm({
                 const totalPondere = round2(moyenneFinale * (Number(r.coef) || 0));
                 const notePercent = round2((moyenneFinale / 20) * 100);
                 const cote = coteFromNote(moyenneFinale);
-                const competencesEvaluees = r.competence1 && r.competence2 ? `${r.competence1}; ${r.competence2}` : (r.competence1 || r.competence2 || '');
+                // Compétences en 3 blocs séparés (plus de concaténation)
                 
                 return (
                   <tr key={i} className={i % 2 ? "bg-white" : "bg-gray-50/30"}>
@@ -1182,23 +1184,51 @@ export default function ManualBulletinForm({
                       />
                     </td>
 
-                    {/* Compétences évaluées (EXACT from academic interface) */}
-                    <td className="px-3 py-2 border" data-testid={`cell-competences-${i}`}>
-                      <textarea
-                        className="w-full border-0 bg-transparent text-xs resize-none"
-                        rows={2}
-                        value={competencesEvaluees}
-                        onChange={(e) => {
-                          const newCompetences = e.target.value;
-                          const parts = newCompetences.split(';');
-                          updateRow(i, {
-                            competence1: parts[0]?.trim() || '',
-                            competence2: parts[1]?.trim() || ''
-                          });
-                        }}
-                        placeholder="Compétences séparées par ;"
-                        data-testid={`input-competences-${i}`}
-                      />
+                    {/* Compétences évaluées - 3 BLOCS SÉPARÉS (harmonisé avec système académique) */}
+                    <td className="px-2 py-2 border min-w-[200px]" data-testid={`cell-competences-${i}`}>
+                      <div className="space-y-1">
+                        {/* Compétence 1 */}
+                        <div className="bg-blue-50 p-1 rounded">
+                          <div className="text-xs font-semibold text-blue-700 mb-1">
+                            {language === 'fr' ? 'Compétence 1:' : 'Competency 1:'}
+                          </div>
+                          <Input
+                            className="w-full border-0 bg-transparent text-xs"
+                            value={r.competence1 || ''}
+                            onChange={(e) => updateRow(i, { competence1: e.target.value })}
+                            placeholder={language === 'fr' ? 'Première compétence...' : 'First competency...'}
+                            data-testid={`input-competence1-${i}`}
+                          />
+                        </div>
+                        
+                        {/* Compétence 2 */}
+                        <div className="bg-green-50 p-1 rounded">
+                          <div className="text-xs font-semibold text-green-700 mb-1">
+                            {language === 'fr' ? 'Compétence 2:' : 'Competency 2:'}
+                          </div>
+                          <Input
+                            className="w-full border-0 bg-transparent text-xs"
+                            value={r.competence2 || ''}
+                            onChange={(e) => updateRow(i, { competence2: e.target.value })}
+                            placeholder={language === 'fr' ? 'Deuxième compétence...' : 'Second competency...'}
+                            data-testid={`input-competence2-${i}`}
+                          />
+                        </div>
+                        
+                        {/* Compétence 3 */}
+                        <div className="bg-purple-50 p-1 rounded">
+                          <div className="text-xs font-semibold text-purple-700 mb-1">
+                            {language === 'fr' ? 'Compétence 3:' : 'Competency 3:'}
+                          </div>
+                          <Input
+                            className="w-full border-0 bg-transparent text-xs"
+                            value={r.competence3 || ''}
+                            onChange={(e) => updateRow(i, { competence3: e.target.value })}
+                            placeholder={language === 'fr' ? 'Troisième compétence...' : 'Third competency...'}
+                            data-testid={`input-competence3-${i}`}
+                          />
+                        </div>
+                      </div>
                     </td>
 
                     {/* Appréciation (EXACT from academic interface) */}
