@@ -15,6 +15,17 @@ interface OnlineClassesManagerProps {
   className?: string;
 }
 
+// Type for created course
+type Course = {
+  id: number;
+  title: string;
+  description?: string;
+  language: string;
+  classId: number;
+  teacherId: number;
+  subjectId: number;
+};
+
 const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }) => {
   const { language } = useLanguage();
   const [step, setStep] = useState('selection'); // 'selection' | 'course-creation' | 'session-management'
@@ -22,6 +33,7 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
   const [selectedTeacher, setSelectedTeacher] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [showCreateCourse, setShowCreateCourse] = useState(false);
+  const [createdCourse, setCreatedCourse] = useState<Course | null>(null); // Store created course
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -129,7 +141,10 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
       console.log('[ONLINE_CLASSES] Creating course with data:', enrichedCourseData);
       return apiRequest('POST', '/api/online-classes/courses', enrichedCourseData);
     },
-    onSuccess: () => {
+    onSuccess: (response: any) => {
+      // Store the created course in state for use by handlers
+      const course = response.course || response;
+      setCreatedCourse(course);
       queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses'] });
       setStep('session-management');
       toast({
@@ -328,34 +343,52 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
   );
 
   // Handle start session immediately
-  const handleStartNow = () => {
+  const handleStartNow = React.useCallback(() => {
     console.log('[ONLINE_CLASSES] Starting session immediately...');
-    if (createdCourse) {
-      // For now, log the action. In a full implementation, this would:
-      // 1. Create a new session
-      // 2. Generate Jitsi room
-      // 3. Open meeting window
-      alert(language === 'fr' ? 
-        `Démarrage de la session pour le cours "${createdCourse.title}"...` :
-        `Starting session for course "${createdCourse.title}"...`
-      );
+    if (!createdCourse) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Veuillez d\'abord créer un cours' : 'Please create a course first',
+        variant: 'destructive'
+      });
+      return;
     }
-  };
+    
+    // For now, show success message. In a full implementation, this would:
+    // 1. Create a new session
+    // 2. Generate Jitsi room
+    // 3. Open meeting window
+    toast({
+      title: language === 'fr' ? 'Session démarrée' : 'Session started',
+      description: language === 'fr' ? 
+        `Session lancée pour le cours "${createdCourse.title}"` :
+        `Session started for course "${createdCourse.title}"`
+    });
+  }, [createdCourse, language, toast]);
 
   // Handle schedule course
-  const handleScheduleCourse = () => {
+  const handleScheduleCourse = React.useCallback(() => {
     console.log('[ONLINE_CLASSES] Opening schedule interface...');
-    if (createdCourse) {
-      // For now, log the action. In a full implementation, this would:
-      // 1. Open scheduling modal
-      // 2. Allow teacher to set date/time
-      // 3. Send invitations
-      alert(language === 'fr' ? 
-        `Programmation du cours "${createdCourse.title}"...` :
-        `Scheduling course "${createdCourse.title}"...`
-      );
+    if (!createdCourse) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Veuillez d\'abord créer un cours' : 'Please create a course first',
+        variant: 'destructive'
+      });
+      return;
     }
-  };
+    
+    // For now, show success message. In a full implementation, this would:
+    // 1. Open scheduling modal
+    // 2. Allow teacher to set date/time
+    // 3. Send invitations
+    toast({
+      title: language === 'fr' ? 'Programmation du cours' : 'Course scheduling',
+      description: language === 'fr' ? 
+        `Interface de programmation ouverte pour "${createdCourse.title}"` :
+        `Scheduling interface opened for "${createdCourse.title}"`
+    });
+  }, [createdCourse, language, toast]);
 
   // Render session management (after course creation)
   const renderSessionManagement = () => (
@@ -381,7 +414,8 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
         <CardContent className="space-y-4">
           <Button 
             onClick={handleStartNow}
-            className="w-full bg-green-500 hover:bg-green-600"
+            disabled={!createdCourse}
+            className="w-full bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-start-now"
           >
             <Play className="w-4 h-4 mr-2" />
@@ -389,8 +423,9 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
           </Button>
           <Button 
             onClick={handleScheduleCourse}
+            disabled={!createdCourse}
             variant="outline" 
-            className="w-full"
+            className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-schedule-course"
           >
             <Calendar className="w-4 h-4 mr-2" />
