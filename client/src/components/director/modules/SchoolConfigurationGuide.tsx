@@ -1,9 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { Progress } from '../../ui/progress';
-import { CheckCircle, Clock, AlertCircle, ChevronRight, Settings, Users, BookOpen, Calendar, MessageSquare, UserCheck, MapPin, CreditCard, Sparkles, Star, Trophy, Target, FileText, Eye, Download } from 'lucide-react';
+import { 
+  CheckCircle, Clock, AlertCircle, ChevronRight, Settings, Users, BookOpen, Calendar, MessageSquare, UserCheck, MapPin, CreditCard, Sparkles, Star, Trophy, Target, FileText, Eye, Download,
+  Search, Mail, Phone, ExternalLink, HelpCircle, Globe, Headphones, Home, GraduationCap, Shield, Bell
+} from 'lucide-react';
 
 interface ConfigStep {
   id: string;
