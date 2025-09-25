@@ -211,9 +211,12 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
           'La session a été supprimée avec succès' :
           'Session has been deleted successfully'
       });
-      // Refresh both queries
+      // Refresh all related queries
       refetchAllSessions();
       queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses'] });
+      if (createdCourse?.id) {
+        queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses', createdCourse.id, 'sessions'] });
+      }
     },
     onError: (error: any) => {
       toast({
@@ -914,10 +917,75 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>{language === 'fr' ? 'Aucune session programmée' : 'No scheduled sessions'}</p>
-              <p className="text-sm">{language === 'fr' ? 'Utilisez les boutons ci-dessus pour créer une session' : 'Use the buttons above to create a session'}</p>
+            <div className="space-y-4">
+              {courseSessions?.sessions?.map((session: any) => (
+                <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h4 className="font-medium">{session.title}</h4>
+                    <p className="text-sm text-gray-600 mb-1">{session.description}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span className="flex items-center">
+                        <User className="w-4 h-4 mr-1" />
+                        {t.teacher}: {session.teacherName}
+                      </span>
+                      <span className="flex items-center">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {new Date(session.scheduledStart).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
+                        session.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        session.status === 'live' ? 'bg-green-100 text-green-800' :
+                        session.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {session.status === 'scheduled' ? (language === 'fr' ? 'Programmé' : 'Scheduled') :
+                         session.status === 'live' ? (language === 'fr' ? 'En cours' : 'Live') :
+                         session.status === 'completed' ? (language === 'fr' ? 'Terminé' : 'Completed') :
+                         session.status
+                        }
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {session.status === 'scheduled' && (
+                      <Button 
+                        size="sm" 
+                        className="bg-green-500 hover:bg-green-600"
+                        onClick={() => handleJoinSession(session)}
+                        data-testid={`button-join-session-${session.id}`}
+                      >
+                        <Video className="w-4 h-4 mr-1" />
+                        {t.join}
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleSessionSettings(session)}
+                      data-testid={`button-settings-session-${session.id}`}
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleDeleteSession(session)}
+                      disabled={session.status === 'live'}
+                      data-testid={`button-delete-session-${session.id}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )) || (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>{language === 'fr' ? 'Aucune session programmée' : 'No scheduled sessions'}</p>
+                  <p className="text-sm">{language === 'fr' ? 'Utilisez les boutons ci-dessus pour créer une session' : 'Use the buttons above to create a session'}</p>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
