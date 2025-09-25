@@ -55,8 +55,20 @@ router.post('/generate', requireAuth, requireAnyRole(['director', 'teacher', 'st
       );
     }
     
+    // Ensure all required options have default values
+    const transcriptOptions: TranscriptOptions = {
+      language: options.language || 'fr',
+      format: options.format || 'A4',
+      includePhoto: options.includePhoto !== undefined ? options.includePhoto : true,
+      includeCertifications: options.includeCertifications !== undefined ? options.includeCertifications : true,
+      includeStatistics: options.includeStatistics !== undefined ? options.includeStatistics : true,
+      officialSeal: options.officialSeal !== undefined ? options.officialSeal : true,
+      watermark: options.watermark,
+      colorScheme: options.colorScheme || 'official'
+    };
+
     // Generate PDF
-    const pdfBytes = await TranscriptGenerator.generateTranscript(transcriptData, options);
+    const pdfBytes = await TranscriptGenerator.generateTranscript(transcriptData, transcriptOptions);
     
     // Set response headers
     const filename = `transcript-${transcriptData.firstName}-${transcriptData.lastName}-${new Date().getFullYear()}.pdf`;

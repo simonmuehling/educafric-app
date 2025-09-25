@@ -56,8 +56,19 @@ router.post('/generate', requireAuth, requireAnyRole(['director', 'teacher', 'si
       } : undefined
     };
     
+    // Ensure all required options have default values
+    const masterSheetOptions: MasterSheetOptions = {
+      language: options.language || 'fr',
+      format: options.format || 'A4',
+      orientation: options.orientation || 'landscape',
+      includeStatistics: options.includeStatistics !== undefined ? options.includeStatistics : true,
+      includeAbsences: options.includeAbsences !== undefined ? options.includeAbsences : true,
+      showRankings: options.showRankings !== undefined ? options.showRankings : true,
+      colorScheme: options.colorScheme || 'standard'
+    };
+
     // Generate PDF
-    const pdfBytes = await MasterSheetGenerator.generateMasterSheet(masterSheetData, options);
+    const pdfBytes = await MasterSheetGenerator.generateMasterSheet(masterSheetData, masterSheetOptions);
     
     // Set response headers
     const filename = `master-sheet-${masterSheetData.className}-${academicYear}-${term}.pdf`;
