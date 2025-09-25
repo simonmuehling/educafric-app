@@ -440,7 +440,7 @@ export default function ReportCardPreview({
                         <div className="text-[6px] text-gray-600">{r.teacher || ''}</div>
                       </td>
                       <td className="border border-black p-0.5 text-[6px] leading-tight">
-                        <div className="space-y-0.5">
+                        <div className="space-y-1">
                           {(() => {
                             // Use individual competencies if available, fallback to splitting concatenated string
                             const comp1 = r.competence1;
@@ -452,9 +452,21 @@ export default function ReportCardPreview({
                             
                             return (
                               <>
-                                {(comp1 || fallbackParts[0]) && <div className="text-[6px] font-medium">1. {comp1 || fallbackParts[0]}</div>}
-                                {(comp2 || fallbackParts[1]) && <div className="text-[6px] font-medium">2. {comp2 || fallbackParts[1]}</div>}
-                                {(comp3 || fallbackParts[2]) && <div className="text-[6px] font-medium">3. {comp3 || fallbackParts[2]}</div>}
+                                {(comp1 || fallbackParts[0]) && (
+                                  <div className="text-[6px] font-medium border-b border-gray-200 pb-0.5">
+                                    {comp1 || fallbackParts[0]}
+                                  </div>
+                                )}
+                                {(comp2 || fallbackParts[1]) && (
+                                  <div className="text-[6px] font-medium border-b border-gray-200 pb-0.5">
+                                    {comp2 || fallbackParts[1]}
+                                  </div>
+                                )}
+                                {(comp3 || fallbackParts[2]) && (
+                                  <div className="text-[6px] font-medium">
+                                    {comp3 || fallbackParts[2]}
+                                  </div>
+                                )}
                               </>
                             );
                           })()}
