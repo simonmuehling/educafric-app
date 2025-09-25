@@ -1488,7 +1488,7 @@ function TeacherSubmissionsManager({ selectedClass, selectedTerm }: { selectedCl
                         {language === 'fr' ? 'Approuver' : 'Approve'}
                       </Button>
                       <Button
-                        onClick={() => handleRejectSubmission(submission.id, 'Needs revision')}
+                        onClick={() => handleRejectSubmission(submission.id, language === 'fr' ? 'Nécessite une révision' : 'Needs revision')}
                         variant="outline"
                         className="border-red-300 text-red-600 hover:bg-red-50"
                         size="sm"
