@@ -1259,11 +1259,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get students for director (with optional class filter)
+  // Get students for director (with optional class filter or specific student)
   app.get("/api/director/students", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      const { classId } = req.query;
+      const { classId, studentId } = req.query;
       
       // ✅ ÉTUDIANTS SANDBOX POUR TOUTES LES CLASSES : PRIMAIRE → LYCÉE
       const allStudents = [
@@ -1342,7 +1342,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 38, name: 'William Fokou', firstName: 'William', lastName: 'Fokou', classId: 18, className: 'Tle D', email: 'william.fokou@test.educafric.com', isActive: true }
       ];
       
-      // Filter by class if provided
+      // Handle specific student request
+      if (studentId) {
+        const student = allStudents.find(s => s.id === parseInt(studentId as string, 10));
+        if (!student) {
+          return res.status(404).json({ success: false, message: 'Student not found' });
+        }
+        console.log(`[DIRECTOR_STUDENTS_API] Returning specific student: ${student.name} (ID: ${student.id})`);
+        return res.json({ success: true, student });
+      }
+
+      // Filter by class if provided, otherwise return all students
       const students = classId ? allStudents.filter(s => s.classId === parseInt(classId as string, 10)) : allStudents;
       
       res.json({ success: true, students });
