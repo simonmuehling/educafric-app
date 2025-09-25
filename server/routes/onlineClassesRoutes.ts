@@ -45,7 +45,8 @@ const createSessionSchema = z.object({
   maxDuration: z.number().default(120),
   lobbyEnabled: z.boolean().default(true),
   chatEnabled: z.boolean().default(true),
-  screenShareEnabled: z.boolean().default(true)
+  screenShareEnabled: z.boolean().default(true),
+  startNow: z.boolean().optional() // For immediate session start
 });
 
 const enrollmentSchema = z.object({
@@ -300,12 +301,38 @@ router.post('/courses/:courseId/sessions',
 
       console.log(`[ONLINE_CLASSES_API] ✅ Created session "${validated.title}" for course ${courseId}`);
 
+      // Generate join URL if starting immediately
+      let joinUrl = undefined;
+      if (validated.startNow) {
+        try {
+          const jwtToken = jitsiService.generateJwtToken({
+            room: roomName,
+            displayName: user.email?.split('@')[0] || `${user.role} ${user.id}`,
+            userId: user.id,
+            role: 'teacher',
+            email: user.email
+          });
+          
+          joinUrl = jitsiService.createJoinUrl(roomName, jwtToken, {
+            startWithAudioMuted: false, // Teacher starts unmuted
+            startWithVideoMuted: false,
+            requireDisplayName: false
+          });
+          
+          console.log(`[JITSI_MEET] ✅ Generated join URL for immediate session start`);
+        } catch (jwtError) {
+          console.error('[JITSI_MEET] Failed to generate join URL:', jwtError);
+          // Don't fail the session creation if JWT fails
+        }
+      }
+
       // TODO: Send notifications to enrolled students
       // notifySessionCreated(courseId, newSession[0]);
 
       res.status(201).json({
         success: true,
-        session: newSession[0]
+        session: newSession[0],
+        joinUrl
       });
     } catch (error) {
       console.error('[ONLINE_CLASSES_API] Error creating session:', error);

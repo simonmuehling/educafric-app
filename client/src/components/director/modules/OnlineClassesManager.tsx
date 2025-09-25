@@ -166,24 +166,8 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     },
     onSuccess: (response: any) => {
       // Store the created course in state for use by handlers
-      console.log('[ONLINE_CLASSES] Course creation response:', response);
       const course = response.course || response;
-      console.log('[ONLINE_CLASSES] Extracted course:', course);
-      console.log('[ONLINE_CLASSES] Course ID:', course?.id);
-      console.log('[ONLINE_CLASSES] Course ID type:', typeof course?.id);
-      
-      // Verify the course object structure
-      if (course) {
-        console.log('[ONLINE_CLASSES] Course keys:', Object.keys(course));
-        console.log('[ONLINE_CLASSES] Full course object:', JSON.stringify(course, null, 2));
-      }
-      
       setCreatedCourse(course);
-      
-      // Debug state after setting
-      setTimeout(() => {
-        console.log('[ONLINE_CLASSES] State after setting:', course);
-      }, 100);
       
       queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses'] });
       setStep('session-management');
@@ -387,10 +371,7 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
   
   const handleStartNow = React.useCallback(async () => {
     console.log('[ONLINE_CLASSES] Starting session immediately...');
-    console.log('[ONLINE_CLASSES] Current createdCourse state:', createdCourse);
-    console.log('[ONLINE_CLASSES] Course ID from state:', createdCourse?.id);
     if (!createdCourse) {
-      console.warn('[ONLINE_CLASSES] No course in state yet');
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Veuillez d\'abord créer un cours' : 'Please create a course first',
@@ -404,8 +385,6 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
 
     try {
       console.log('[ONLINE_CLASSES] Creating session for course', createdCourse.id);
-      console.log('[ONLINE_CLASSES] Course ID type in URL:', typeof createdCourse.id);
-      console.log('[ONLINE_CLASSES] Full URL will be:', `/api/online-classes/courses/${createdCourse.id}/sessions`);
 
       // Validate courseId before making request
       if (!createdCourse.id || typeof createdCourse.id === 'undefined') {
@@ -445,13 +424,35 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
       const sessionData = JSON.parse(text);
       console.log('[ONLINE_CLASSES] Session created:', sessionData);
 
-      // For now, show success message. In full implementation, would open Jitsi room
-      toast({
-        title: language === 'fr' ? 'Session créée !' : 'Session created!',
-        description: language === 'fr' ? 
-          `Session "${sessionData.session?.title}" créée avec succès` :
-          `Session "${sessionData.session?.title}" created successfully`
-      });
+      // Open Jitsi meeting room if join URL is provided
+      if (sessionData.joinUrl) {
+        console.log('[ONLINE_CLASSES] Opening Jitsi meeting room:', sessionData.joinUrl);
+        
+        // Open in new tab/window
+        const meetingWindow = window.open(sessionData.joinUrl, '_blank', 'noopener,noreferrer');
+        
+        if (!meetingWindow) {
+          // Pop-up blocked - fallback to current tab
+          console.warn('[ONLINE_CLASSES] Pop-up blocked, redirecting in current tab');
+          window.location.href = sessionData.joinUrl;
+          return; // Don't show toast if redirecting
+        }
+        
+        toast({
+          title: language === 'fr' ? 'Classe démarrée !' : 'Class started!',
+          description: language === 'fr' ? 
+            `La salle de classe virtuelle est maintenant ouverte` :
+            `Virtual classroom is now open`
+        });
+      } else {
+        // Fallback if no join URL
+        toast({
+          title: language === 'fr' ? 'Session créée !' : 'Session created!',
+          description: language === 'fr' ? 
+            `Session "${sessionData.session?.title}" créée avec succès` :
+            `Session "${sessionData.session?.title}" created successfully`
+        });
+      }
 
     } catch (error) {
       console.error('[ONLINE_CLASSES] handleStartNow error', error);
