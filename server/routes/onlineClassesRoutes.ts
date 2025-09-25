@@ -99,6 +99,21 @@ router.get('/courses',
 );
 
 /**
+ * POST /api/online-classes/courses/echo
+ * Debug route to verify request body parsing
+ */
+router.post('/courses/echo', requireAuth, (req, res) => {
+  console.log('[DEBUG_ECHO] Headers:', req.headers);
+  console.log('[DEBUG_ECHO] Body:', req.body);
+  res.status(200).json({ 
+    got: req.body, 
+    headers: req.headers['content-type'],
+    userAgent: req.headers['user-agent'],
+    message: 'Echo endpoint working'
+  });
+});
+
+/**
  * POST /api/online-classes/courses
  * Create a new online course
  */
@@ -111,7 +126,21 @@ router.post('/courses',
       const user = req.user!;
       const schoolId = user.schoolId!;
       
-      const validated = createCourseSchema.parse(req.body);
+      console.log('[ONLINE_CLASSES_API] 📥 Received request body:', JSON.stringify(req.body, null, 2));
+      console.log('[ONLINE_CLASSES_API] 📥 Content-Type:', req.headers['content-type']);
+      
+      const parsed = createCourseSchema.safeParse(req.body);
+      if (!parsed.success) {
+        console.error('[ONLINE_CLASSES_API] ❌ Validation failed:', parsed.error.flatten());
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid payload - check field types and requirements',
+          details: parsed.error.flatten(),
+          received: req.body
+        });
+      }
+      
+      const validated = parsed.data;
       
       const newCourse = await db
         .insert(onlineCourses)
@@ -136,17 +165,10 @@ router.post('/courses',
     } catch (error) {
       console.error('[ONLINE_CLASSES_API] Error creating course:', error);
       
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          success: false,
-          error: 'Validation failed',
-          details: error.errors
-        });
-      }
-      
       res.status(500).json({
         success: false,
-        error: 'Failed to create course'
+        error: 'Failed to create course',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
