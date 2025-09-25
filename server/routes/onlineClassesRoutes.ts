@@ -21,7 +21,8 @@ import {
   insertClassSessionSchema,
   insertCourseEnrollmentSchema
 } from '../../shared/schemas/onlineClassesSchema.js';
-import { eq, and, desc, gte, lte } from 'drizzle-orm';
+import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
+import { users } from '../../shared/schema.js';
 
 const router = Router();
 
@@ -810,6 +811,151 @@ router.post('/sessions/:sessionId/join',
       res.status(500).json({
         success: false,
         error: 'Failed to generate join URL',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/online-classes/school/sessions
+ * Get all scheduled sessions for the school
+ */
+router.get('/school/sessions',
+  requireAuth,
+  requireOnlineClassesSubscription,
+  async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      // Get all sessions for this school
+      const sessions = await db
+        .select({
+          id: classSessions.id,
+          title: classSessions.title,
+          description: classSessions.description,
+          scheduledStart: classSessions.scheduledStart,
+          scheduledEnd: classSessions.scheduledEnd,
+          status: classSessions.status,
+          roomName: classSessions.roomName,
+          courseId: classSessions.courseId,
+          courseName: onlineCourses.title,
+          teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+          teacherId: onlineCourses.teacherId,
+          createdAt: classSessions.createdAt
+        })
+        .from(classSessions)
+        .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
+        .innerJoin(users, eq(onlineCourses.teacherId, users.id))
+        .where(eq(onlineCourses.schoolId, user.schoolId!))
+        .orderBy(classSessions.scheduledStart);
+
+      console.log(`[ONLINE_CLASSES_API] ✅ Listed ${sessions.length} school sessions for user ${user.id}`);
+
+      res.json({
+        success: true,
+        sessions
+      });
+
+    } catch (error) {
+      console.error('[ONLINE_CLASSES_API] Error fetching school sessions:', error);
+      
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch school sessions',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+);
+
+/**
+ * DELETE /api/online-classes/sessions/:sessionId
+ * Delete a scheduled session
+ */
+router.delete('/sessions/:sessionId',
+  requireAuth,
+  requireOnlineClassesSubscription,
+  async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      const user = req.user!;
+      
+      // Get session details first to verify access
+      const session = await db
+        .select({
+          sessionId: classSessions.id,
+          courseId: classSessions.courseId,
+          teacherId: onlineCourses.teacherId,
+          schoolId: onlineCourses.schoolId,
+          status: classSessions.status
+        })
+        .from(classSessions)
+        .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
+        .where(eq(classSessions.id, sessionId))
+        .limit(1);
+
+      if (session.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Session not found'
+        });
+      }
+
+      const sessionData = session[0];
+
+      // SECURITY: Verify access to this session
+      if (user.role === 'Teacher') {
+        // Teachers can delete their own sessions
+        if (sessionData.teacherId !== user.id || sessionData.schoolId !== user.schoolId) {
+          return res.status(403).json({
+            success: false,
+            error: 'You can only delete your own sessions'
+          });
+        }
+      } else if (user.role === 'Director') {
+        // Directors can delete any session in their school
+        if (sessionData.schoolId !== user.schoolId) {
+          return res.status(403).json({
+            success: false,
+            error: 'You can only delete sessions in your school'
+          });
+        }
+      } else {
+        return res.status(403).json({
+          success: false,
+          error: 'Access denied - insufficient permissions'
+        });
+      }
+
+      // Prevent deletion of live sessions
+      if (sessionData.status === 'live') {
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot delete a live session'
+        });
+      }
+
+      // Delete the session
+      const deletedSession = await db
+        .delete(classSessions)
+        .where(eq(classSessions.id, sessionId))
+        .returning();
+
+      console.log(`[ONLINE_CLASSES_API] ✅ Session ${sessionId} deleted by user ${user.id}`);
+
+      res.json({
+        success: true,
+        message: 'Session deleted successfully',
+        session: deletedSession[0]
+      });
+
+    } catch (error) {
+      console.error('[ONLINE_CLASSES_API] Error deleting session:', error);
+      
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete session',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
