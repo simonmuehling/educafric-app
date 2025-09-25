@@ -99,21 +99,6 @@ router.get('/courses',
 );
 
 /**
- * POST /api/online-classes/courses/echo
- * Debug route to verify request body parsing
- */
-router.post('/courses/echo', requireAuth, (req, res) => {
-  console.log('[DEBUG_ECHO] Headers:', req.headers);
-  console.log('[DEBUG_ECHO] Body:', req.body);
-  res.status(200).json({ 
-    got: req.body, 
-    headers: req.headers['content-type'],
-    userAgent: req.headers['user-agent'],
-    message: 'Echo endpoint working'
-  });
-});
-
-/**
  * POST /api/online-classes/courses
  * Create a new online course
  */
