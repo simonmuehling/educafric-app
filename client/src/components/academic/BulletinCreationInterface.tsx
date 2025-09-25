@@ -799,6 +799,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     fr: {
       title: "Création de Bulletin Trimestriel",
       trimester: "Trimestre",
+      selectClass: "Sélectionner la classe",
       selectTrimester: "Sélectionner le trimestre",
       firstTerm: "Premier Trimestre",
       secondTerm: "Deuxième Trimestre", 
@@ -877,6 +878,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     en: {
       title: "Quarterly Report Creation",
       trimester: "Term",
+      selectClass: "Select class",
       selectTrimester: "Select term",
       firstTerm: "First Term",
       secondTerm: "Second Term",
@@ -1028,7 +1030,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
               <Label htmlFor="class">{t.class}</Label>
               <Select value={selectedClassId} onValueChange={setSelectedClassId}>
                 <SelectTrigger data-testid="select-class">
-                  <SelectValue placeholder={language === 'fr' ? 'Sélectionner la classe' : 'Select class'} />
+                  <SelectValue placeholder={t.selectClass} />
                 </SelectTrigger>
                 <SelectContent>
                   {classesData?.classes?.map((cls: any) => (
