@@ -19,7 +19,7 @@ class FastModuleLoader {
       // 🏢 DIRECTOR/SCHOOL MODULES - DO NOT MODIFY WITHOUT TESTING
       // =============================================
       // CORE DIRECTOR MODULES (exact IDs from DirectorDashboard.tsx)
-      'overview': () => import('@/components/director/modules/FunctionalDirectorOverview'),
+      // 'overview' module removed as per user request
       'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'), // Director profile, not settings
       'teachers': () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'),
       'students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'), // ⚠️ CRITICAL: Must point to Director module!
