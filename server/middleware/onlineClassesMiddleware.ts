@@ -32,20 +32,25 @@ export const requireOnlineClassesSubscription = async (
       });
     }
 
-    // Premium exemption for sandbox/test users (DEVELOPMENT ONLY)
-    const isDevelopment = process.env.NODE_ENV !== 'production';
+    // EXEMPTION PREMIUM PERMANENTE pour comptes sandbox et test
+    // Patterns d'exemption : @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@
     const exemptPatterns = [
       '@test.educafric.com',
-      'sandbox@educafric.demo', 
-      'demo@educafric.demo'
+      'sandbox@',
+      'demo@', 
+      'test@',
+      '.sandbox@',
+      '.demo@',
+      '.test@'
     ];
     
-    const isExempt = isDevelopment && exemptPatterns.some(pattern => 
-      user.email === pattern || user.email?.endsWith(pattern)
+    const isExempt = user.email && exemptPatterns.some(pattern => 
+      user.email!.includes(pattern)
     );
     
     if (isExempt) {
-      console.log(`[ONLINE_CLASSES_EXEMPT] ✅ User ${user.email} (${user.role}) is exempt from online classes subscription requirements`);
+      console.log(`[PREMIUM_EXEMPT] ✅ User ${user.email} (${user.role}) permanently exempt from online classes subscription`);
+      console.log(`[LIMITS_EXEMPT] ✅ Online classes unlimited access granted`);
       return next();
     }
 
