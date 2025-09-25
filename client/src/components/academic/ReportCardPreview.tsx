@@ -24,7 +24,15 @@ const compressName = (name: string): string => {
 // ---- Ministry Official Format Compliance ----
 const TRIMESTER_TITLES = {
   fr: (t: string) => `${String(t || "PREMIER").toUpperCase()} TRIMESTRE`,
-  en: (t: string) => `${String(t || "FIRST").toUpperCase()} TERM PROGRESS RECORD`
+  en: (t: string) => {
+    const termMap: Record<string, string> = {
+      'PREMIER': 'FIRST',
+      'DEUXIÈME': 'SECOND', 
+      'TROISIÈME': 'THIRD'
+    };
+    const englishTerm = termMap[String(t || "PREMIER").toUpperCase()] || 'FIRST';
+    return `${englishTerm} TERM PROGRESS RECORD`;
+  }
 };
 
 // Ministry-required Teacher Comments - imported from BulletinCreationInterface to avoid duplication
