@@ -280,7 +280,7 @@ class FastModuleLoader {
     }
 
     // Validate critical director modules
-    const criticalDirectorModules = ['overview', 'students', 'teachers', 'classes'];
+    const criticalDirectorModules = ['students', 'teachers', 'classes'];
     const missingCritical = criticalDirectorModules.filter(module => !moduleMap[module]);
     
     if (missingCritical.length > 0) {
@@ -389,7 +389,7 @@ class FastModuleLoader {
     // Now load other modules in background
     const otherModules = [
       // Director modules
-      'timetable', 'director-timetable', 'settings', 'overview', 'notifications', 'help',
+      'timetable', 'director-timetable', 'settings', 'notifications', 'help',
       'teachers', 'students', 'classes', 'school-administrators', 'reports',
       
       // Student modules  
