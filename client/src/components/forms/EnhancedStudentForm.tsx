@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import StandardFormHeader from '@/components/shared/StandardFormHeader';
 
 interface Parent {
   id?: string;
@@ -335,17 +336,17 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="w-5 h-5" />
-            {t.title || ''}
-          </DialogTitle>
-          <DialogDescription>
-            {mode === 'create' 
-              ? (language === 'fr' ? 'Remplissez les informations pour ajouter un nouvel étudiant' : 'Fill in the information to add a new student')
-              : (language === 'fr' ? 'Modifiez les informations de l\'étudiant' : 'Edit the student information')}
-          </DialogDescription>
-        </DialogHeader>
+        <StandardFormHeader
+          title={mode === 'create' 
+            ? (language === 'fr' ? 'Inscription Nouvel Étudiant' : 'New Student Registration')
+            : (language === 'fr' ? 'Modification Étudiant' : 'Student Modification')}
+          documentType={mode === 'create' 
+            ? (language === 'fr' ? 'Formulaire d\'inscription' : 'Registration Form')
+            : (language === 'fr' ? 'Formulaire de modification' : 'Modification Form')}
+          showLogo={true}
+          showOfficialInfo={true}
+          className="mb-4"
+        />
 
         <div className="space-y-6">
           {/* Student Information */}

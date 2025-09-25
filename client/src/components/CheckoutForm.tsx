@@ -4,6 +4,7 @@ import { useStableCallback } from '@/hooks/useStableCallback';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CreditCard, Lock, Zap } from 'lucide-react';
+import StandardFormHeader from '@/components/shared/StandardFormHeader';
 
 interface CheckoutFormProps {
   planId: string;
