@@ -995,9 +995,9 @@ export default function ManualBulletinForm({
                 onChange={e=>setMeta(m=>({...m,trimestre:e.target.value}))}
                 data-testid="select-trimester"
               >
-                <option value="Premier">{language === 'fr' ? 'Premier' : 'First'}</option>
-                <option value="Deuxième">{language === 'fr' ? 'Deuxième' : 'Second'}</option>
-                <option value="Troisième">{language === 'fr' ? 'Troisième' : 'Third'}</option>
+                <option value="Premier">{language === 'fr' ? 'Premier Trimestre' : 'First Term'}</option>
+                <option value="Deuxième">{language === 'fr' ? 'Deuxième Trimestre' : 'Second Term'}</option>
+                <option value="Troisième">{language === 'fr' ? 'Troisième Trimestre' : 'Third Term'}</option>
               </select>
             </div>
             <button 
