@@ -3,7 +3,9 @@
 
 import { db } from "../db";
 import { academicConfiguration } from "../../shared/schema";
-import { eq } from "drizzle-orm";
+import { homework, homeworkSubmissions } from "../../shared/schemas/academicSchema";
+import { classes, subjects } from "../../shared/schema";
+import { eq, desc, sql } from "drizzle-orm";
 
 export interface IAcademicStorage {
   getAcademicConfiguration(schoolId: number): Promise<any | null>;
@@ -11,6 +13,7 @@ export interface IAcademicStorage {
   updateAcademicTerms(schoolId: number, terms: any[], userId: number): Promise<any>;
   updateAcademicYear(schoolId: number, year: any, userId: number): Promise<any>;
   initializeNewAcademicYear(schoolId: number, year: any, promotionSettings: any, userId: number): Promise<any>;
+  getHomeworkByTeacher(teacherId: number): Promise<any[]>;
 }
 
 export class AcademicStorage implements IAcademicStorage {
@@ -64,7 +67,7 @@ export class AcademicStorage implements IAcademicStorage {
 
       if (existingConfig) {
         const [updatedConfig] = await db.update(academicConfiguration)
-          .set({ ...configData, updatedAt: new Date() })
+          .set(configData)
           .where(eq(academicConfiguration.schoolId, schoolId))
           .returning();
         console.log('[ACADEMIC_STORAGE] ✅ Configuration mise à jour');
@@ -234,5 +237,51 @@ export class AcademicStorage implements IAcademicStorage {
         return startDate;
     }
     return start.toISOString().split('T')[0];
+  }
+
+  async getHomeworkByTeacher(teacherId: number): Promise<any[]> {
+    try {
+      console.log('[ACADEMIC_STORAGE] 📚 Fetching homework assignments for teacher:', teacherId);
+      
+      const assignments = await db
+        .select({
+          id: homework.id,
+          title: homework.title,
+          description: homework.description,
+          dueDate: homework.dueDate,
+          assignedDate: homework.assignedDate,
+          classId: homework.classId,
+          className: classes.name,
+          subjectId: homework.subjectId,
+          subjectName: subjects.nameFr,
+          isActive: homework.isActive,
+          submissionsCount: sql<number>`count(${homeworkSubmissions.id})`,
+          totalStudents: sql<number>`count(distinct case when ${homeworkSubmissions.id} is not null then ${homeworkSubmissions.studentId} end)`
+        })
+        .from(homework)
+        .leftJoin(homeworkSubmissions, eq(homeworkSubmissions.homeworkId, homework.id))
+        .leftJoin(classes, eq(classes.id, homework.classId))
+        .leftJoin(subjects, eq(subjects.id, homework.subjectId))
+        .where(eq(homework.teacherId, teacherId))
+        .groupBy(
+          homework.id, 
+          homework.title, 
+          homework.description, 
+          homework.dueDate, 
+          homework.assignedDate, 
+          homework.classId, 
+          homework.subjectId, 
+          homework.isActive, 
+          classes.name, 
+          subjects.nameFr
+        )
+        .orderBy(desc(homework.dueDate));
+
+      console.log('[ACADEMIC_STORAGE] ✅ Found', assignments.length, 'homework assignments for teacher:', teacherId);
+      return assignments;
+    } catch (error) {
+      console.error('[ACADEMIC_STORAGE] ❌ Error fetching teacher homework:', error);
+      return [];
+    }
   }
 }

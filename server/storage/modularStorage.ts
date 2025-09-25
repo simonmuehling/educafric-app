@@ -181,6 +181,7 @@ export class ModularStorage {
   async updateAcademicTerms(schoolId: number, terms: any[], userId: number) { return this.academicStorage.updateAcademicTerms(schoolId, terms, userId); }
   async updateAcademicYear(schoolId: number, year: any, userId: number) { return this.academicStorage.updateAcademicYear(schoolId, year, userId); }
   async initializeNewAcademicYear(schoolId: number, year: any, promotionSettings: any, userId: number) { return this.academicStorage.initializeNewAcademicYear(schoolId, year, promotionSettings, userId); }
+  async getHomeworkByTeacher(teacherId: number) { return this.academicStorage.getHomeworkByTeacher(teacherId); }
 
   // === PWA METHODS ===
   async trackPwaSession(data: any) { return this.pwaStorage.trackPwaSession(data); }
