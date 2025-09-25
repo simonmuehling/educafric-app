@@ -466,6 +466,65 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     }
   }, [createdCourse, language, toast, starting]);
 
+  // Handle join session
+  const handleJoinSession = React.useCallback(async (session: any) => {
+    console.log('[ONLINE_CLASSES] Joining session:', session.id, session.roomName);
+    
+    try {
+      // Generate JWT token for this session
+      const jwtResponse = await fetch(`/api/online-classes/sessions/${session.id}/join`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const jwtData = await jwtResponse.json();
+      
+      if (!jwtResponse.ok || !jwtData.joinUrl) {
+        throw new Error(jwtData.error || 'Failed to generate join URL');
+      }
+      
+      console.log('[ONLINE_CLASSES] Opening Jitsi meeting room:', jwtData.joinUrl);
+      
+      // Open meeting room in new tab
+      const meetingWindow = window.open(jwtData.joinUrl, '_blank', 'noopener,noreferrer');
+      
+      if (!meetingWindow) {
+        // Pop-up blocked - fallback to current tab
+        window.location.href = jwtData.joinUrl;
+        return;
+      }
+      
+      toast({
+        title: language === 'fr' ? 'Session rejointe !' : 'Session joined!',
+        description: language === 'fr' ? 
+          'La salle de classe virtuelle est maintenant ouverte' :
+          'Virtual classroom is now open'
+      });
+      
+    } catch (error) {
+      console.error('[ONLINE_CLASSES] Join session error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 
+          'Erreur lors de la connexion à la session' : 
+          'Error joining the session',
+        variant: 'destructive'
+      });
+    }
+  }, [language, toast]);
+
+  // Handle session settings
+  const handleSessionSettings = React.useCallback((session: any) => {
+    console.log('[ONLINE_CLASSES] Opening settings for session:', session.id);
+    
+    // TODO: Open session settings modal
+    toast({
+      title: language === 'fr' ? 'Paramètres de session' : 'Session Settings',
+      description: language === 'fr' ? 'Fonctionnalité bientôt disponible' : 'Feature coming soon'
+    });
+  }, [language, toast]);
+
   // Handle schedule course
   const handleScheduleCourse = React.useCallback(() => {
     console.log('[ONLINE_CLASSES] Opening schedule interface...');
@@ -599,12 +658,22 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
                   </div>
                   <div className="flex items-center space-x-2">
                     {session.status === 'scheduled' && (
-                      <Button size="sm" className="bg-green-500 hover:bg-green-600">
+                      <Button 
+                        size="sm" 
+                        className="bg-green-500 hover:bg-green-600"
+                        onClick={() => handleJoinSession(session)}
+                        data-testid={`button-join-session-${session.id}`}
+                      >
                         <Video className="w-4 h-4 mr-1" />
                         {language === 'fr' ? 'Rejoindre' : 'Join'}
                       </Button>
                     )}
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleSessionSettings(session)}
+                      data-testid={`button-settings-session-${session.id}`}
+                    >
                       <Settings className="w-4 h-4" />
                     </Button>
                   </div>

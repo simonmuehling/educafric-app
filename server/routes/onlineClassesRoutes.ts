@@ -707,4 +707,109 @@ router.post('/sessions/:sessionId/attendance',
   }
 );
 
+/**
+ * POST /api/online-classes/sessions/:sessionId/join
+ * Generate join URL for an existing session
+ */
+router.post('/sessions/:sessionId/join',
+  requireAuth,
+  requireOnlineClassesSubscription,
+  async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      const user = req.user!;
+      
+      // Get session details
+      const session = await db
+        .select()
+        .from(classSessions)
+        .where(eq(classSessions.id, sessionId))
+        .limit(1);
+
+      if (session.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Session not found'
+        });
+      }
+
+      const sessionData = session[0];
+
+      // Get course to verify access
+      const course = await db
+        .select()
+        .from(onlineCourses)
+        .where(eq(onlineCourses.id, sessionData.courseId))
+        .limit(1);
+
+      if (course.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Course not found'
+        });
+      }
+
+      const courseData = course[0];
+
+      // SECURITY: Verify access to this session
+      if (user.role === 'Teacher') {
+        // Teachers can join their own courses
+        if (courseData.teacherId !== user.id || courseData.schoolId !== user.schoolId) {
+          return res.status(403).json({
+            success: false,
+            error: 'You can only join your own course sessions'
+          });
+        }
+      } else if (user.role === 'Director') {
+        // Directors can join any session in their school
+        if (courseData.schoolId !== user.schoolId) {
+          return res.status(403).json({
+            success: false,
+            error: 'You can only join sessions in your school'
+          });
+        }
+      } else {
+        // Students/Parents need enrollment check (TODO: implement enrollment verification)
+        return res.status(403).json({
+          success: false,
+          error: 'Access denied - enrollment required'
+        });
+      }
+
+      // Generate JWT token
+      const jwtToken = jitsiService.generateJwtToken({
+        room: sessionData.roomName,
+        displayName: user.email?.split('@')[0] || `${user.role} ${user.id}`,
+        userId: user.id,
+        role: user.role === 'Teacher' || user.role === 'Director' ? 'teacher' : 'student',
+        email: user.email
+      });
+      
+      // Create join URL
+      const joinUrl = jitsiService.createJoinUrl(sessionData.roomName, jwtToken, {
+        startWithAudioMuted: user.role === 'Teacher' || user.role === 'Director' ? false : true,
+        startWithVideoMuted: false,
+        requireDisplayName: false
+      });
+
+      console.log(`[JITSI_MEET] ✅ Generated join URL for session ${sessionId} by user ${user.id}`);
+
+      res.json({
+        success: true,
+        joinUrl,
+        session: sessionData
+      });
+
+    } catch (error) {
+      console.error('[ONLINE_CLASSES_API] Error generating join URL:', error);
+      
+      res.status(500).json({
+        success: false,
+        error: 'Failed to generate join URL',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+);
+
 export default router;
