@@ -370,50 +370,57 @@ router.post('/grade-entries', requireAuth, requireRole('Teacher'), async (req: a
           continue;
         }
 
-        // Check if grade entry already exists
+        // Check if teacher grade submission already exists
         const [existingEntry] = await db
           .select()
-          .from(gradeEntries)
+          .from(teacherGradeSubmissions)
           .where(
             and(
-              eq(gradeEntries.studentId, gradeData.studentId),
-              eq(gradeEntries.classId, gradeData.classId),
-              eq(gradeEntries.subjectId, gradeData.subjectId),
-              eq(gradeEntries.term, gradeData.term), // FIXED: termId -> term
-              eq(gradeEntries.teacherId, teacherId)
+              eq(teacherGradeSubmissions.studentId, gradeData.studentId),
+              eq(teacherGradeSubmissions.classId, gradeData.classId),
+              eq(teacherGradeSubmissions.subjectId, gradeData.subjectId),
+              eq(teacherGradeSubmissions.term, gradeData.term),
+              eq(teacherGradeSubmissions.teacherId, teacherId),
+              eq(teacherGradeSubmissions.schoolId, schoolId)
             )
           )
           .limit(1);
 
         if (existingEntry) {
-          // Update existing entry
+          // Update existing teacher grade submission
           const [updatedEntry] = await db
-            .update(gradeEntries)
+            .update(teacherGradeSubmissions)
             .set({
-              grade: gradeData.grade.toString(), // FIXED: score -> grade
-              comments: gradeData.comments, // FIXED: comment -> comments
-              updatedAt: new Date()
+              firstEvaluation: gradeData.grade, // Map grade to firstEvaluation
+              termAverage: gradeData.grade, // Also set termAverage to same value
+              coefficient: gradeData.coefficient || 1,
+              subjectComments: gradeData.comments, // Map comments to subjectComments
+              updatedAt: new Date(),
+              isSubmitted: false, // Reset submission status when grades are updated
+              reviewStatus: 'draft' // Reset to draft when updated
             })
-            .where(eq(gradeEntries.id, existingEntry.id))
+            .where(eq(teacherGradeSubmissions.id, existingEntry.id))
             .returning();
 
           results.push({ action: 'updated', gradeEntry: updatedEntry });
         } else {
-          // Create new entry
+          // Create new teacher grade submission
           const [newEntry] = await db
-            .insert(gradeEntries)
+            .insert(teacherGradeSubmissions)
             .values({
               schoolId,
               studentId: gradeData.studentId,
               classId: gradeData.classId,
               subjectId: gradeData.subjectId,
-              term: gradeData.term, // FIXED: termId -> term
+              term: gradeData.term,
               teacherId,
-              grade: gradeData.grade.toString(), // FIXED: score -> grade
-              coefficient: gradeData.coefficient || 1,
-              examType: 'evaluation',
               academicYear: '2024-2025', // TODO: Get from context
-              comments: gradeData.comments // FIXED: comment -> comments
+              firstEvaluation: gradeData.grade, // Map grade to firstEvaluation
+              termAverage: gradeData.grade, // Set termAverage to same value
+              coefficient: gradeData.coefficient || 1,
+              subjectComments: gradeData.comments, // Map comments to subjectComments
+              isSubmitted: false, // Default to not submitted
+              reviewStatus: 'draft' // Default to draft status
             })
             .returning();
 
@@ -471,15 +478,15 @@ router.patch('/grade-entries/:id', requireAuth, requireRole('Teacher'), async (r
 
     const updates = validation.data;
 
-    // Get existing grade entry
+    // Get existing teacher grade submission
     const [existingEntry] = await db
       .select()
-      .from(gradeEntries)
+      .from(teacherGradeSubmissions)
       .where(
         and(
-          eq(gradeEntries.id, gradeEntryId),
-          eq(gradeEntries.teacherId, teacherId),
-          eq(gradeEntries.schoolId, schoolId)
+          eq(teacherGradeSubmissions.id, gradeEntryId),
+          eq(teacherGradeSubmissions.teacherId, teacherId),
+          eq(teacherGradeSubmissions.schoolId, schoolId)
         )
       )
       .limit(1);
@@ -487,7 +494,7 @@ router.patch('/grade-entries/:id', requireAuth, requireRole('Teacher'), async (r
     if (!existingEntry) {
       return res.status(404).json({
         success: false,
-        message: 'Grade entry not found or access denied'
+        message: 'Teacher grade submission not found or access denied'
       });
     }
 
@@ -508,20 +515,25 @@ router.patch('/grade-entries/:id', requireAuth, requireRole('Teacher'), async (r
       });
     }
 
-    // Update grade entry
+    // Update teacher grade submission with proper field mapping
     const updateData: any = {
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      isSubmitted: false, // Reset submission status when updated
+      reviewStatus: 'draft' // Reset to draft when updated
     };
 
-    if (updates.grade !== undefined) updateData.grade = updates.grade.toString(); // FIXED: score -> grade
+    if (updates.grade !== undefined) {
+      updateData.firstEvaluation = updates.grade; // Map grade to firstEvaluation
+      updateData.termAverage = updates.grade; // Also update termAverage
+    }
     if (updates.coefficient !== undefined) updateData.coefficient = updates.coefficient;
-    if (updates.comments !== undefined) updateData.comments = updates.comments; // FIXED: comment -> comments
-    if (updates.examType !== undefined) updateData.examType = updates.examType;
+    if (updates.comments !== undefined) updateData.subjectComments = updates.comments; // Map comments to subjectComments
+    // examType is not supported in teacherGradeSubmissions - skip it
 
     const [updatedEntry] = await db
-      .update(gradeEntries)
+      .update(teacherGradeSubmissions)
       .set(updateData)
-      .where(eq(gradeEntries.id, gradeEntryId))
+      .where(eq(teacherGradeSubmissions.id, gradeEntryId))
       .returning();
 
     res.json({
