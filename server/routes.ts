@@ -2022,7 +2022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[COMMERCIAL_NOTIFICATIONS] 📋 Marking notification ${id} as ${isRead ? 'read' : 'unread'} for user ${user.id}`);
       
       // Update notification in storage
-      await storage.markNotificationAsRead(parseInt(id), isRead);
+      await storage.markNotificationAsRead(parseInt(id));
       
       console.log(`[COMMERCIAL_NOTIFICATIONS] ✅ Notification ${id} marked as ${isRead ? 'read' : 'unread'}`);
       
@@ -2063,7 +2063,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const notification of notifications) {
         if (!notification.isRead) {
-          await storage.markNotificationAsRead(notification.id, true);
+          await storage.markNotificationAsRead(notification.id);
         }
       }
       
@@ -8089,135 +8089,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ============= SCHOOL CONFIGURATION STATUS API =============
-  // Route pour obtenir le statut de configuration de l'école
-  app.get('/api/director/configuration-status', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
-    try {
-      const user = req.user as any;
-      console.log('[SCHOOL_CONFIG] Configuration status request for user:', user.id, 'email:', user.email, 'role:', user.role, 'school:', user.schoolId);
-      
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || 
-                           user.email?.includes('sandbox@') || 
-                           user.email?.includes('demo@') || 
-                           user.email?.includes('.sandbox@') ||
-                           user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@') ||
-                           user.email?.startsWith('sandbox.');
-
-      let configStatus;
-      
-      if (isSandboxUser) {
-        console.log('[SCHOOL_CONFIG] Sandbox user detected - using mock configuration status');
-        // Mock configuration status for sandbox users
-        configStatus = {
-          schoolId: user.schoolId || 999,
-          overallProgress: 85,
-          steps: {
-            'director-profile': 'completed',
-            'classes': 'completed', 
-            'teachers': 'completed',
-            'students': 'completed',
-            'timetable': 'pending',
-            'attendance': 'completed',
-            'communications': 'pending',
-            'teacher-absences': 'pending',
-            'parent-requests': 'completed',
-            'educational-content': 'pending',
-            'notifications': 'completed',
-            'administrators': 'pending',
-            'school-settings': 'completed',
-            'reports': 'pending',
-            'academic-management': 'completed',
-            'online-classes': 'pending'
-          },
-          missingElements: [
-            'timetable',
-            'communications', 
-            'teacher-absences',
-            'educational-content',
-            'administrators',
-            'reports',
-            'online-classes'
-          ],
-          nextRecommendedStep: 'timetable'
-        };
-      } else {
-        console.log('[SCHOOL_CONFIG] Real user detected - using database-based configuration status');
-        // Real configuration status for actual users
-        const { db } = await import('./db');
-        const { users, classes, schools } = await import('@shared/schema');
-        const { count, eq, and } = await import('drizzle-orm');
-        
-        const userSchoolId = user.schoolId || 1;
-        
-        // Count real data to determine configuration status
-        const studentsCount = await db.select({ count: count() })
-          .from(users)
-          .where(and(eq(users.role, 'Student'), eq(users.schoolId, userSchoolId)));
-        
-        const teachersCount = await db.select({ count: count() })
-          .from(users)
-          .where(and(eq(users.role, 'Teacher'), eq(users.schoolId, userSchoolId)));
-          
-        const classesCount = await db.select({ count: count() })
-          .from(classes)
-          .where(eq(classes.schoolId, userSchoolId));
-        
-        const totalStudents = studentsCount[0]?.count || 0;
-        const totalTeachers = teachersCount[0]?.count || 0;
-        const totalClasses = classesCount[0]?.count || 0;
-        
-        // Calculate configuration progress based on actual data
-        let completedSteps = 0;
-        const totalSteps = 16;
-        
-        const stepStatus = {
-          'director-profile': totalTeachers > 0 ? 'completed' : 'pending',
-          'classes': totalClasses > 0 ? 'completed' : 'missing',
-          'teachers': totalTeachers > 0 ? 'completed' : 'missing',
-          'students': totalStudents > 0 ? 'completed' : 'missing',
-          'timetable': 'pending',
-          'attendance': 'pending',
-          'communications': 'pending',
-          'teacher-absences': 'pending',
-          'parent-requests': 'pending',
-          'educational-content': 'pending',
-          'notifications': 'completed',
-          'administrators': 'pending',
-          'school-settings': 'completed',
-          'reports': 'pending',
-          'academic-management': 'pending',
-          'online-classes': 'pending'
-        };
-        
-        // Count completed steps
-        Object.values(stepStatus).forEach(status => {
-          if (status === 'completed') completedSteps++;
-        });
-        
-        const overallProgress = Math.round((completedSteps / totalSteps) * 100);
-        
-        configStatus = {
-          schoolId: userSchoolId,
-          overallProgress,
-          steps: stepStatus,
-          missingElements: Object.keys(stepStatus).filter(key => stepStatus[key] === 'missing'),
-          nextRecommendedStep: totalClasses === 0 ? 'classes' : totalTeachers === 0 ? 'teachers' : totalStudents === 0 ? 'students' : 'timetable'
-        };
-      }
-      
-      res.json(configStatus);
-    } catch (error) {
-      console.error('[SCHOOL_CONFIG] Error fetching configuration status:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: 'Failed to fetch school configuration status',
-        error: error.message 
-      });
-    }
-  });
 
   // ============= PREDEFINED APPRECIATIONS API ROUTES =============
   // Route pour récupérer les appréciations prédéfinies pour les enseignants
