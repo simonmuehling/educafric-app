@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface OnlineClassesManagerProps {
   className?: string;
@@ -525,9 +525,9 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     });
   }, [language, toast]);
 
-  // Handle schedule course
-  const handleScheduleCourse = React.useCallback(() => {
-    console.log('[ONLINE_CLASSES] Opening schedule interface...');
+  // Handle schedule course - Create a real scheduled session
+  const handleScheduleCourse = React.useCallback(async () => {
+    console.log('[ONLINE_CLASSES] Creating scheduled session...');
     if (!createdCourse) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
@@ -537,17 +537,60 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
       return;
     }
     
-    // For now, show success message. In a full implementation, this would:
-    // 1. Open scheduling modal
-    // 2. Allow teacher to set date/time
-    // 3. Send invitations
-    toast({
-      title: language === 'fr' ? 'Programmation du cours' : 'Course scheduling',
-      description: language === 'fr' ? 
-        `Interface de programmation ouverte pour "${createdCourse.title}"` :
-        `Scheduling interface opened for "${createdCourse.title}"`
-    });
-  }, [createdCourse, language, toast]);
+    try {
+      // Create a session scheduled for tomorrow at 10:00 AM (for demo)
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(10, 0, 0, 0);
+      
+      const sessionEnd = new Date(tomorrow);
+      sessionEnd.setHours(11, 0, 0, 0); // 1 hour duration
+      
+      const sessionData = {
+        title: `Session: ${createdCourse.title}`,
+        description: `Session programmée pour le cours "${createdCourse.title}"`,
+        scheduledStart: tomorrow.toISOString(),
+        scheduledEnd: sessionEnd.toISOString(),
+      };
+      
+      console.log('[ONLINE_CLASSES] Creating session with data:', sessionData);
+      
+      const response = await fetch(`/api/online-classes/courses/${createdCourse.id}/sessions`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData)
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create session');
+      }
+      
+      toast({
+        title: language === 'fr' ? 'Session programmée !' : 'Session scheduled!',
+        description: language === 'fr' ? 
+          `Session créée pour demain à 10h00` :
+          `Session created for tomorrow at 10:00 AM`
+      });
+      
+      // Refresh sessions list
+      await queryClient.invalidateQueries({ 
+        queryKey: ['/api/online-classes/courses', createdCourse.id, 'sessions'] 
+      });
+      
+    } catch (error) {
+      console.error('[ONLINE_CLASSES] Schedule session error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 
+          'Erreur lors de la programmation de la session' : 
+          'Error scheduling the session',
+        variant: 'destructive'
+      });
+    }
+  }, [createdCourse, language, toast, queryClient]);
 
   // Render session management (after course creation)
   const renderSessionManagement = () => (
