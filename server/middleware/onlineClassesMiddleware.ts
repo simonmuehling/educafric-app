@@ -34,6 +34,8 @@ export const requireOnlineClassesSubscription = async (
 
     // EXEMPTION PREMIUM PERMANENTE pour comptes sandbox et test
     // Patterns d'exemption : @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@
+    console.log(`[ONLINE_CLASSES_DEBUG] 🔍 Checking exemption for user: ${user.email} (${user.role})`);
+    
     const exemptPatterns = [
       '@test.educafric.com',
       'sandbox@',
@@ -44,9 +46,15 @@ export const requireOnlineClassesSubscription = async (
       '.test@'
     ];
     
-    const isExempt = user.email && exemptPatterns.some(pattern => 
-      user.email!.includes(pattern)
-    );
+    console.log(`[ONLINE_CLASSES_DEBUG] 🔍 Exemption patterns: ${exemptPatterns.join(', ')}`);
+    
+    const isExempt = user.email && exemptPatterns.some(pattern => {
+      const matches = user.email!.includes(pattern);
+      console.log(`[ONLINE_CLASSES_DEBUG] 🔍 Pattern '${pattern}' in '${user.email}': ${matches}`);
+      return matches;
+    });
+    
+    console.log(`[ONLINE_CLASSES_DEBUG] 🔍 Final exemption result: ${isExempt}`);
     
     if (isExempt) {
       console.log(`[PREMIUM_EXEMPT] ✅ User ${user.email} (${user.role}) permanently exempt from online classes subscription`);
