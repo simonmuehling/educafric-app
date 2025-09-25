@@ -327,6 +327,36 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     </div>
   );
 
+  // Handle start session immediately
+  const handleStartNow = () => {
+    console.log('[ONLINE_CLASSES] Starting session immediately...');
+    if (createdCourse) {
+      // For now, log the action. In a full implementation, this would:
+      // 1. Create a new session
+      // 2. Generate Jitsi room
+      // 3. Open meeting window
+      alert(language === 'fr' ? 
+        `Démarrage de la session pour le cours "${createdCourse.title}"...` :
+        `Starting session for course "${createdCourse.title}"...`
+      );
+    }
+  };
+
+  // Handle schedule course
+  const handleScheduleCourse = () => {
+    console.log('[ONLINE_CLASSES] Opening schedule interface...');
+    if (createdCourse) {
+      // For now, log the action. In a full implementation, this would:
+      // 1. Open scheduling modal
+      // 2. Allow teacher to set date/time
+      // 3. Send invitations
+      alert(language === 'fr' ? 
+        `Programmation du cours "${createdCourse.title}"...` :
+        `Scheduling course "${createdCourse.title}"...`
+      );
+    }
+  };
+
   // Render session management (after course creation)
   const renderSessionManagement = () => (
     <div className="space-y-6">
@@ -350,6 +380,7 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
         </CardHeader>
         <CardContent className="space-y-4">
           <Button 
+            onClick={handleStartNow}
             className="w-full bg-green-500 hover:bg-green-600"
             data-testid="button-start-now"
           >
@@ -357,6 +388,7 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
             {t.startNow}
           </Button>
           <Button 
+            onClick={handleScheduleCourse}
             variant="outline" 
             className="w-full"
             data-testid="button-schedule-course"
