@@ -116,7 +116,12 @@ router.post('/courses',
       const newCourse = await db
         .insert(onlineCourses)
         .values({
-          ...validated,
+          title: validated.title,
+          description: validated.description,
+          language: validated.language,
+          maxParticipants: validated.maxParticipants,
+          allowRecording: validated.allowRecording,
+          requireApproval: validated.requireApproval,
           schoolId,
           teacherId: user.id
         })
@@ -272,7 +277,14 @@ router.post('/courses/:courseId/sessions',
       const newSession = await db
         .insert(classSessions)
         .values({
-          ...validated,
+          title: validated.title,
+          description: validated.description,
+          scheduledStart: validated.scheduledStart,
+          scheduledEnd: validated.scheduledEnd,
+          maxDuration: validated.maxDuration,
+          lobbyEnabled: validated.lobbyEnabled,
+          chatEnabled: validated.chatEnabled,
+          screenShareEnabled: validated.screenShareEnabled,
           courseId,
           roomName,
           createdBy: user.id

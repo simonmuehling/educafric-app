@@ -25,13 +25,13 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
   const text = {
     fr: {
       title: 'Classes en ligne',
-      subtitle: 'Gestion complète des sessions de visioconférence avec Jitsi Meet',
+      subtitle: 'Gestion complète des sessions de visioconférence éducatives',
       overview: 'Vue d\'ensemble',
       create: 'Créer une session',
       manage: 'Gérer les sessions',
       settings: 'Paramètres',
       welcomeTitle: 'Bienvenue dans le module Classes en ligne',
-      welcomeDesc: 'Créez et gérez des sessions de cours en visioconférence avec la technologie Jitsi Meet. Interface sécurisée et optimisée pour l\'éducation.',
+      welcomeDesc: 'Créez et gérez des sessions de cours en visioconférence avec une technologie moderne. Interface sécurisée et optimisée pour l\'éducation.',
       features: {
         unlimited: 'Sessions illimitées',
         secure: 'Connexions sécurisées',
@@ -46,13 +46,13 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     },
     en: {
       title: 'Online Classes',
-      subtitle: 'Complete management of video conference sessions with Jitsi Meet',
+      subtitle: 'Complete management of educational video conference sessions',
       overview: 'Overview',
       create: 'Create session',
       manage: 'Manage sessions',
       settings: 'Settings',
       welcomeTitle: 'Welcome to Online Classes Module',
-      welcomeDesc: 'Create and manage video conference course sessions with Jitsi Meet technology. Secure and education-optimized interface.',
+      welcomeDesc: 'Create and manage video conference course sessions with modern technology. Secure and education-optimized interface.',
       features: {
         unlimited: 'Unlimited sessions',
         secure: 'Secure connections',
@@ -439,7 +439,7 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <span className="font-medium text-green-800">
-                      {language === 'fr' ? 'Jitsi Meet configuré' : 'Jitsi Meet configured'}
+                      {language === 'fr' ? 'Visioconférence configurée' : 'Video conferencing configured'}
                     </span>
                   </div>
                   <p className="text-sm text-green-700 mt-1">
