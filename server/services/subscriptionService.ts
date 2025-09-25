@@ -42,18 +42,28 @@ export class SubscriptionService {
     
     const email = userEmail.toLowerCase();
     
-    // Exemptions permanentes pour comptes sandbox et test
-    const exemptPatterns = [
-      '@test.educafric.com',
-      'sandbox@',
-      'demo@',
-      'test@',
-      '.sandbox@',
-      '.demo@',
-      '.test@'
+    // Vérifier les domaines exemptés (suffixes)
+    const exemptDomains = [
+      '@educafric.demo',
+      '@educafric.test', 
+      '@test.educafric.com'
     ];
     
-    return exemptPatterns.some(pattern => email.includes(pattern));
+    if (exemptDomains.some(domain => email.endsWith(domain))) {
+      console.log('[PREMIUM_EXEMPT] Domain exemption for:', email);
+      return true;
+    }
+    
+    // Vérifier les préfixes exemptés (avant le @)
+    const localPart = email.split('@')[0];
+    const exemptPrefixes = ['sandbox', 'demo', 'test'];
+    
+    if (exemptPrefixes.some(prefix => localPart.startsWith(prefix))) {
+      console.log('[PREMIUM_EXEMPT] Prefix exemption for:', email);
+      return true;
+    }
+    
+    return false;
   }
   
   /**
