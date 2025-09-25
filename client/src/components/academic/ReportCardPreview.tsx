@@ -203,6 +203,9 @@ interface SubjectLine {
   subject: string;
   teacher?: string; // Teacher name - REQUIRED in ministry format
   competenciesEvaluated?: string; // EXACT column from ministry docs
+  competence1?: string; // Individual competency 1
+  competence2?: string; // Individual competency 2
+  competence3?: string; // Individual competency 3
   mk20?: number; // MK/20 column
   av20?: number; // AV/20 column  
   coef: number;
@@ -436,8 +439,26 @@ export default function ReportCardPreview({
                         <div className="font-bold">{r.subject}</div>
                         <div className="text-[6px] text-gray-600">{r.teacher || ''}</div>
                       </td>
-                      <td className="border border-black p-0.5 text-[5px]">
-                        {r.competenciesEvaluated || r.competencesEvaluees || ''}
+                      <td className="border border-black p-0.5 text-[6px] leading-tight">
+                        <div className="space-y-0.5">
+                          {(() => {
+                            // Use individual competencies if available, fallback to splitting concatenated string
+                            const comp1 = r.competence1;
+                            const comp2 = r.competence2;
+                            const comp3 = r.competence3;
+                            const fallbackParts = !comp1 && !comp2 && !comp3 
+                              ? (r.competenciesEvaluated || r.competencesEvaluees || '').split(/;|,/).map(p => p.trim()).filter(Boolean)
+                              : [];
+                            
+                            return (
+                              <>
+                                {(comp1 || fallbackParts[0]) && <div className="text-[6px] font-medium">1. {comp1 || fallbackParts[0]}</div>}
+                                {(comp2 || fallbackParts[1]) && <div className="text-[6px] font-medium">2. {comp2 || fallbackParts[1]}</div>}
+                                {(comp3 || fallbackParts[2]) && <div className="text-[6px] font-medium">3. {comp3 || fallbackParts[2]}</div>}
+                              </>
+                            );
+                          })()}
+                        </div>
                       </td>
                       <td className="border border-black p-0.5 text-center text-[6px]">
                         {mk20}
