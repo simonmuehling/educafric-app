@@ -1025,10 +1025,10 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
           {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <Label htmlFor="class">Classe</Label>
+              <Label htmlFor="class">{t.class}</Label>
               <Select value={selectedClassId} onValueChange={setSelectedClassId}>
                 <SelectTrigger data-testid="select-class">
-                  <SelectValue placeholder="Sélectionner la classe" />
+                  <SelectValue placeholder={language === 'fr' ? 'Sélectionner la classe' : 'Select class'} />
                 </SelectTrigger>
                 <SelectContent>
                   {classesData?.classes?.map((cls: any) => (
@@ -1041,21 +1041,21 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             </div>
 
             <div>
-              <Label htmlFor="trimester">Trimestre</Label>
+              <Label htmlFor="trimester">{t.trimester}</Label>
               <Select value={trimester} onValueChange={setTrimester}>
                 <SelectTrigger data-testid="select-trimester">
-                  <SelectValue placeholder="Sélectionner le trimestre" />
+                  <SelectValue placeholder={t.selectTrimester} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Premier">Premier Trimestre</SelectItem>
-                  <SelectItem value="Deuxième">Deuxième Trimestre</SelectItem>
-                  <SelectItem value="Troisième">Troisième Trimestre</SelectItem>
+                  <SelectItem value="Premier">{t.firstTerm}</SelectItem>
+                  <SelectItem value="Deuxième">{t.secondTerm}</SelectItem>
+                  <SelectItem value="Troisième">{t.thirdTerm}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div>
-              <Label htmlFor="year">Année scolaire</Label>
+              <Label htmlFor="year">{t.academicYear}</Label>
               <Input
                 id="year"
                 data-testid="input-year"
@@ -1066,7 +1066,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             </div>
 
             <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-sm text-gray-600">Moyenne générale</div>
+              <div className="text-sm text-gray-600">{t.generalAverage}</div>
               <div className="text-2xl font-bold text-blue-600">{calculateAverage()}/20</div>
             </div>
           </div>
