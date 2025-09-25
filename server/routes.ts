@@ -1377,12 +1377,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[DIRECTOR_TEACHERS_API] Sandbox user detected - using mock data');
         // Mock teachers data for sandbox/demo users
         teachers = [
-          { id: 1, firstName: 'Jean Paul', lastName: 'Mbarga', subject: 'Mathématiques', email: 'jp.mbarga@saintjoseph.edu', isActive: true, experience: 8 },
-          { id: 2, firstName: 'Marie Claire', lastName: 'Essono', subject: 'Français', email: 'mc.essono@saintjoseph.edu', isActive: true, experience: 12 },
-          { id: 3, firstName: 'Paul', lastName: 'Atangana', subject: 'Histoire-Géographie', email: 'p.atangana@saintjoseph.edu', isActive: true, experience: 6 },
-          { id: 4, firstName: 'Sophie', lastName: 'Mengue', subject: 'Anglais', email: 's.mengue@saintjoseph.edu', isActive: true, experience: 5 },
-          { id: 5, firstName: 'André', lastName: 'Bikanda', subject: 'Sciences Physiques', email: 'a.bikanda@saintjoseph.edu', isActive: true, experience: 10 },
-          { id: 6, firstName: 'Claire', lastName: 'Owono', subject: 'Sciences Naturelles', email: 'c.owono@saintjoseph.edu', isActive: true, experience: 7 }
+          { id: 1, firstName: 'Catherine', lastName: 'Essola', subject: 'Mathématiques', email: 'catherine.essola@test.educafric.com', isActive: true, experience: 8, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['6ème A', '5ème A'] },
+          { id: 2, firstName: 'François', lastName: 'Biya', subject: 'Français', email: 'francois.biya@test.educafric.com', isActive: true, experience: 12, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['5ème B', '4ème B'] },
+          { id: 3, firstName: 'Vincent', lastName: 'Ondoa', subject: 'Histoire-Géographie', email: 'vincent.ondoa@test.educafric.com', isActive: true, experience: 6, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['4ème C', '3ème C'] },
+          { id: 4, firstName: 'Jennifer', lastName: 'Smith', subject: 'Anglais', email: 'jennifer.smith@test.educafric.com', isActive: true, experience: 5, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['3ème D', '2nde A'] },
+          { id: 5, firstName: 'André', lastName: 'Bikanda', subject: 'Sciences Physiques', email: 'a.bikanda@saintjoseph.edu', isActive: true, experience: 10, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['2nde B', '1ère S'] },
+          { id: 6, firstName: 'Claire', lastName: 'Owono', subject: 'Sciences Naturelles', email: 'c.owono@saintjoseph.edu', isActive: true, experience: 7, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['1ère S', 'Terminale S'] }
         ];
       } else {
         console.log('[DIRECTOR_TEACHERS_API] Real user detected - using database data');
