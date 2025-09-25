@@ -413,31 +413,31 @@ export default function ReportCardPreview({
               </colgroup>
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border border-black p-0.5 font-bold text-center">
+                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'Disciplines et noms des enseignants' : 'Subject and Teacher\'s Names'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center" style={{minWidth: '120px'}}>
+                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'COMPÉTENCES ÉVALUÉES' : 'COMPETENCIES EVALUATED'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center w-12">
+                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'N/20' : 'MK/20'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center w-12">
+                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'M/20' : 'AV/20'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center w-12">
+                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     Coef
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center w-16">
+                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'M x coef' : 'AV x coef'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center w-20">
+                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'COTE [Min - Max]' : 'GRADE [Min - Max]'}
                   </th>
-                  <th className="border border-black p-1 font-bold text-center" style={{minWidth: '100px'}}>
+                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'Appréciations' : 'Remarks'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center" style={{minWidth: '120px'}}>
+                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'COMMENTAIRES' : 'COMMENTS'}
                   </th>
                 </tr>
