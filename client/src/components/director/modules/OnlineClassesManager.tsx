@@ -138,6 +138,19 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     enabled: step !== 'selection' // Only fetch when we're past the selection step
   });
 
+  // Query to fetch sessions for the created course
+  const { data: courseSessions, isLoading: isLoadingSessions } = useQuery({
+    queryKey: ['/api/online-classes/courses', createdCourse?.id, 'sessions'],
+    queryFn: async () => {
+      const response = await fetch(`/api/online-classes/courses/${createdCourse?.id}/sessions`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch sessions');
+      return response.json();
+    },
+    enabled: !!createdCourse?.id
+  });
+
   // Create course mutation with selected data
   const createCourseMutation = useMutation({
     mutationFn: async (courseData: any) => {
@@ -526,6 +539,84 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
             <Calendar className="w-4 h-4 mr-2" />
             {t.scheduleCourse}
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Scheduled Sessions Display */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Calendar className="w-5 h-5" />
+            <span>{language === 'fr' ? 'Sessions programmées' : 'Scheduled Sessions'}</span>
+          </CardTitle>
+          <CardDescription>
+            {language === 'fr' ? 
+              'Toutes les sessions créées pour ce cours apparaissent ici.' :
+              'All sessions created for this course appear here.'
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingSessions ? (
+            <div className="text-center py-4">
+              <Clock className="w-6 h-6 animate-spin mx-auto mb-2" />
+              <p>{language === 'fr' ? 'Chargement des sessions...' : 'Loading sessions...'}</p>
+            </div>
+          ) : courseSessions?.sessions?.length > 0 ? (
+            <div className="space-y-3">
+              {courseSessions.sessions.map((session: any) => (
+                <div key={session.id} className="border rounded-lg p-4 flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-medium">{session.title}</h3>
+                    <p className="text-sm text-gray-600">{session.description}</p>
+                    <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                      <span className="flex items-center space-x-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>
+                          {new Date(session.scheduledStart).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
+                        </span>
+                      </span>
+                      <span className="flex items-center space-x-1">
+                        <Clock className="w-4 h-4" />
+                        <span>
+                          {new Date(session.scheduledStart).toLocaleTimeString(language === 'fr' ? 'fr-FR' : 'en-US')}
+                        </span>
+                      </span>
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        session.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        session.status === 'live' ? 'bg-green-100 text-green-800' :
+                        session.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {session.status === 'scheduled' ? (language === 'fr' ? 'Programmé' : 'Scheduled') :
+                         session.status === 'live' ? (language === 'fr' ? 'En cours' : 'Live') :
+                         session.status === 'completed' ? (language === 'fr' ? 'Terminé' : 'Completed') :
+                         session.status
+                        }
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {session.status === 'scheduled' && (
+                      <Button size="sm" className="bg-green-500 hover:bg-green-600">
+                        <Video className="w-4 h-4 mr-1" />
+                        {language === 'fr' ? 'Rejoindre' : 'Join'}
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline">
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>{language === 'fr' ? 'Aucune session programmée' : 'No scheduled sessions'}</p>
+              <p className="text-sm">{language === 'fr' ? 'Utilisez les boutons ci-dessus pour créer une session' : 'Use the buttons above to create a session'}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
