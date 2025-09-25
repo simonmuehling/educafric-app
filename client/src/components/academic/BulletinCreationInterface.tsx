@@ -442,9 +442,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       note1: 0, 
  
       moyenneFinale: 0, 
-      competence1: '', 
-      competence2: '', 
-      competence3: '',
+      competence1: 'Communication orale et écrite', 
+      competence2: 'Raisonnement mathématique', 
+      competence3: 'Résolution de problèmes',
       totalPondere: 0, 
       cote: '' 
     },
@@ -459,9 +459,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       note1: 0, 
  
       moyenneFinale: 0, 
-      competence1: '', 
-      competence2: '', 
-      competence3: '',
+      competence1: 'Communication orale et écrite', 
+      competence2: 'Raisonnement mathématique', 
+      competence3: 'Résolution de problèmes',
       totalPondere: 0, 
       cote: '' 
     },
@@ -476,9 +476,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       note1: 0, 
  
       moyenneFinale: 0, 
-      competence1: '', 
-      competence2: '', 
-      competence3: '',
+      competence1: 'Communication orale et écrite', 
+      competence2: 'Raisonnement mathématique', 
+      competence3: 'Résolution de problèmes',
       totalPondere: 0, 
       cote: '' 
     },
