@@ -342,10 +342,13 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     </div>
   );
 
-  // Handle start session immediately
-  const handleStartNow = React.useCallback(() => {
+  // Handle start session immediately  
+  const [starting, setStarting] = useState(false);
+  
+  const handleStartNow = React.useCallback(async () => {
     console.log('[ONLINE_CLASSES] Starting session immediately...');
     if (!createdCourse) {
+      console.warn('[ONLINE_CLASSES] No course in state yet');
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Veuillez d\'abord créer un cours' : 'Please create a course first',
@@ -354,17 +357,64 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
       return;
     }
     
-    // For now, show success message. In a full implementation, this would:
-    // 1. Create a new session
-    // 2. Generate Jitsi room
-    // 3. Open meeting window
-    toast({
-      title: language === 'fr' ? 'Session démarrée' : 'Session started',
-      description: language === 'fr' ? 
-        `Session lancée pour le cours "${createdCourse.title}"` :
-        `Session started for course "${createdCourse.title}"`
-    });
-  }, [createdCourse, language, toast]);
+    if (starting) return; // Prevent multiple clicks
+    setStarting(true);
+
+    try {
+      console.log('[ONLINE_CLASSES] Creating session for course', createdCourse.id);
+
+      // Call the sessions endpoint
+      const response = await fetch(`/api/online-classes/courses/${createdCourse.id}/sessions`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          title: `Session - ${createdCourse.title}`,
+          description: `Session immédiate pour le cours ${createdCourse.title}`,
+          scheduledStart: new Date().toISOString(),
+          startNow: true,
+          maxDuration: 120,
+          lobbyEnabled: true,
+          chatEnabled: true,
+          screenShareEnabled: true
+        })
+      });
+
+      const text = await response.text();
+      if (!response.ok) {
+        console.error('[ONLINE_CLASSES] StartNow failed', response.status, text);
+        toast({
+          title: language === 'fr' ? 'Erreur' : 'Error',
+          description: `${language === 'fr' ? 'Impossible de démarrer la session' : 'Could not start session'}: ${response.status}`,
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const sessionData = JSON.parse(text);
+      console.log('[ONLINE_CLASSES] Session created:', sessionData);
+
+      // For now, show success message. In full implementation, would open Jitsi room
+      toast({
+        title: language === 'fr' ? 'Session créée !' : 'Session created!',
+        description: language === 'fr' ? 
+          `Session "${sessionData.session?.title}" créée avec succès` :
+          `Session "${sessionData.session?.title}" created successfully`
+      });
+
+    } catch (error) {
+      console.error('[ONLINE_CLASSES] handleStartNow error', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Erreur inattendue lors du démarrage de la session' : 'Unexpected error starting session',
+        variant: 'destructive'
+      });
+    } finally {
+      setStarting(false);
+    }
+  }, [createdCourse, language, toast, starting]);
 
   // Handle schedule course
   const handleScheduleCourse = React.useCallback(() => {
@@ -414,12 +464,21 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
         <CardContent className="space-y-4">
           <Button 
             onClick={handleStartNow}
-            disabled={!createdCourse}
+            disabled={!createdCourse || starting}
             className="w-full bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="button-start-now"
           >
-            <Play className="w-4 h-4 mr-2" />
-            {t.startNow}
+            {starting ? (
+              <>
+                <Clock className="w-4 h-4 mr-2 animate-spin" />
+                {language === 'fr' ? 'Démarrage...' : 'Starting...'}
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4 mr-2" />
+                {t.startNow}
+              </>
+            )}
           </Button>
           <Button 
             onClick={handleScheduleCourse}
