@@ -3,73 +3,110 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Minus, Save, Archive, Send, Info } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-// Support bilingue FR/EN
-const BILINGUAL_LABELS = {
+// Ministry-required Teacher Comments - EXACT from academic interface
+export const TEACHER_COMMENTS = {
+  fr: [
+    { id: 'excellent_work', text: 'Excellent travail. Félicitations.' },
+    { id: 'very_good', text: 'Très bon travail. Continuez ainsi.' },
+    { id: 'satisfactory', text: 'Travail satisfaisant. Bien.' },
+    { id: 'can_do_better', text: 'Peut mieux faire. Travaillez davantage.' },
+    { id: 'effort_needed', text: 'Un effort supplémentaire est nécessaire.' },
+    { id: 'good_progress', text: 'Bons progrès constatés.' },
+    { id: 'irregular_work', text: 'Travail irrégulier. Soyez plus assidu(e).' },
+    { id: 'weak_results', text: 'Résultats faibles. Redoublez d\'efforts.' },
+    { id: 'good_behavior', text: 'Bon comportement en classe.' },
+    { id: 'participation', text: 'Participation active appréciée.' },
+    { id: 'homework_regular', text: 'Devoirs régulièrement faits.' },
+    { id: 'homework_irregular', text: 'Devoirs irréguliers.' },
+    { id: 'concentrate_more', text: 'Concentrez-vous davantage.' },
+    { id: 'good_attitude', text: 'Bonne attitude de travail.' },
+    { id: 'leadership', text: 'Esprit de leadership remarquable.' }
+  ],
+  en: [
+    { id: 'excellent_work', text: 'Excellent work. Congratulations.' },
+    { id: 'very_good', text: 'Very good work. Keep it up.' },
+    { id: 'satisfactory', text: 'Satisfactory work. Good.' },
+    { id: 'can_do_better', text: 'Can do better. Work harder.' },
+    { id: 'effort_needed', text: 'Additional effort is needed.' },
+    { id: 'good_progress', text: 'Good progress observed.' },
+    { id: 'irregular_work', text: 'Irregular work. Be more diligent.' },
+    { id: 'weak_results', text: 'Weak results. Double your efforts.' },
+    { id: 'good_behavior', text: 'Good classroom behavior.' },
+    { id: 'participation', text: 'Active participation appreciated.' },
+    { id: 'homework_regular', text: 'Homework regularly done.' },
+    { id: 'homework_irregular', text: 'Irregular homework.' },
+    { id: 'concentrate_more', text: 'Concentrate more.' },
+    { id: 'good_attitude', text: 'Good work attitude.' },
+    { id: 'leadership', text: 'Remarkable leadership spirit.' }
+  ]
+};
+
+// Ministry Performance Grid - EXACT from academic interface
+const PERFORMANCE_GRID = {
   fr: {
-    bulletinTitle: "BULLETIN SCOLAIRE",
-    trimester: "TRIMESTRE",
-    academicYear: "Année scolaire",
-    student: "Élève",
-    class: "Classe",
-    subject: "MATIÈRE",
-    teacher: "Enseignant",
-    competencies: "Compétences évaluées",
-    grade1: "N/20",
-    grade2: "M/20",
-    coefficient: "Coef",
-    total: "M x coef",
-    cote: "COTE",
-    appreciation: "Appréciations (visa enseignant)",
-    generalAverage: "Moyenne générale",
-    discipline: "Discipline",
-    parameters: "Paramètres",
-    prefillCompetencies: "Préremplir les compétences du trimestre",
-    addSubject: "Ajouter une matière",
-    save: "Enregistrer",
-    print: "Imprimer",
-    firstName: "Nom & Prénoms",
-    birthInfo: "Date & Lieu de naissance",
-    gender: "Genre",
-    uniqueId: "Identifiant Unique",
-    repeater: "Redoublant",
-    classSize: "Effectif",
-    mainTeacher: "Professeur principal",
-    parents: "Parents / Tuteurs"
+    title: "GRILLE DE NOTATION",
+    headers: ["NIVEAU DE RENDEMENT", "NOTE/20", "COTE", "NOTE EN POURCENTAGE (%)", "APPRECIATION"],
+    levels: [
+      { level: "Niveau 4", ranges: ["18 → 20", "16 → 18"], grades: ["A+", "A"], percentages: ["De 90% à 100%", "De 80 à 89%"], appreciation: "Compétences très bien acquises (CTBA)" },
+      { level: "Niveau 3", ranges: ["15 → 16", "14 → 15"], grades: ["B+", "B"], percentages: ["De 75 à 79%", "De 70 à 74%"], appreciation: "Compétences bien acquises (CBA)" },
+      { level: "Niveau 2", ranges: ["12 → 14", "10 → 12"], grades: ["C+", "C"], percentages: ["De 60 à 69%", "De 50 à 59%"], appreciation: "Compétences acquises (CA)\nCompétences moyennement acquises (CMA)" },
+      { level: "Niveau 1", ranges: ["< 10"], grades: ["D"], percentages: ["< 50%"], appreciation: "Compétences non acquises (CNA)" }
+    ]
   },
   en: {
-    bulletinTitle: "SCHOOL REPORT CARD",
-    trimester: "TERM",
-    academicYear: "Academic year",
-    student: "Student",
-    class: "Class",
-    subject: "SUBJECT",
-    teacher: "Teacher",
-    competencies: "Skills assessed",
-    grade1: "G1/20",
-    grade2: "G2/20",
-    coefficient: "Coef",
-    total: "Total",
-    cote: "GRADE",
-    appreciation: "Comments (teacher signature)",
-    generalAverage: "Overall average",
-    discipline: "Discipline",
-    parameters: "Settings",
-    prefillCompetencies: "Prefill term competencies",
-    addSubject: "Add subject",
-    save: "Save",
-    print: "Print",
-    firstName: "Full Name",
-    birthInfo: "Date & Place of birth",
-    gender: "Gender",
-    uniqueId: "Student ID",
-    repeater: "Repeater",
-    classSize: "Class size",
-    mainTeacher: "Main teacher",
-    parents: "Parents / Guardians"
+    title: "PERFORMANCE GRID",
+    headers: ["LEVEL OF PERFORMANCE", "MARK/20", "GRADE", "MARK IN PERCENTAGE (%)", "REMARKS"],
+    levels: [
+      { level: "Level 4", ranges: ["18 → 20", "16 → 18"], grades: ["A+", "A"], percentages: ["From 90% to 100%", "From 80 to 89%"], appreciation: "Competences Very Well Acquired (CVWA)" },
+      { level: "Level 3", ranges: ["15 → 16", "14 → 15"], grades: ["B+", "B"], percentages: ["From 75 to 79%", "From 70 to 74%"], appreciation: "Competences Well Acquired (CWA)" },
+      { level: "Level 2", ranges: ["12 → 14", "10 → 12"], grades: ["C+", "C"], percentages: ["From 60 to 69%", "From 50 to 59%"], appreciation: "Competences Acquired (CA)\nCompetences Averagely Acquired (CAA)" },
+      { level: "Level 1", ranges: ["< 10"], grades: ["D"], percentages: ["< 50%"], appreciation: "Competences Not Acquired (CNA)" }
+    ]
   }
 };
+
+// Helper functions - EXACT from academic interface
+const round2 = (n: number): number => Math.round(n * 100) / 100;
+
+const coteFromNote = (note: number): string => {
+  if (note >= 18) return 'A+';
+  if (note >= 16) return 'A';  
+  if (note >= 15) return 'B+';
+  if (note >= 14) return 'B';
+  if (note >= 12) return 'C+';
+  if (note >= 10) return 'C';
+  return 'D';
+};
+
+// Subject interface - EXACT from academic interface
+interface Subject {
+  id: string;
+  name: string;
+  teacher: string;
+  coefficient: number;
+  grade: number;
+  remark: string;
+  comments?: string[];
+  competencies?: string;
+  competencyLevel?: 'CTBA' | 'CBA' | 'CA' | 'CMA' | 'CNA' | 'CVWA' | 'CWA' | 'CAA';
+  competencyEvaluation?: string;
+  note1: number;
+  moyenneFinale: number;
+  competence1: string;
+  competence2: string;
+  totalPondere: number;
+  cote: string;
+}
 
 interface ManualBulletinFormProps {
   studentId?: string;
@@ -959,156 +996,188 @@ export default function ManualBulletinForm({
         </div>
       </div>
 
-      {/* Table de saisie */}
+      {/* Ministry Performance Grid - Reference for grading */}
+      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+        <h3 className="text-sm font-bold text-blue-800 mb-3 flex items-center">
+          <Info className="h-4 w-4 mr-2" />
+          {PERFORMANCE_GRID[language].title}
+        </h3>
+        <p className="text-xs text-blue-600 mb-3">
+          {language === 'fr' 
+            ? 'Guide de référence pour l\'attribution des notes et cotes conformément au système CBA du Ministère'
+            : 'Reference guide for grade assignment and grading according to the Ministry\'s CBA system'
+          }
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs border border-blue-300 bg-white">
+            <thead>
+              <tr className="bg-blue-100">
+                {PERFORMANCE_GRID[language].headers.map((header, idx) => (
+                  <th key={idx} className="border border-blue-300 p-2 font-bold text-center text-blue-800">{header}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {PERFORMANCE_GRID[language].levels.map((level, levelIdx) => (
+                level.ranges.map((range, rangeIdx) => (
+                  <tr key={`${levelIdx}-${rangeIdx}`} className="hover:bg-blue-50">
+                    {rangeIdx === 0 && (
+                      <td rowSpan={level.ranges.length} className="border border-blue-300 p-2 text-center font-semibold text-blue-700">
+                        {level.level}
+                      </td>
+                    )}
+                    <td className="border border-blue-300 p-2 text-center">{range}</td>
+                    <td className="border border-blue-300 p-2 text-center font-bold text-green-700">{level.grades[rangeIdx]}</td>
+                    <td className="border border-blue-300 p-2 text-center">{level.percentages[rangeIdx]}</td>
+                    {rangeIdx === 0 && (
+                      <td rowSpan={level.ranges.length} className="border border-blue-300 p-2 text-xs text-gray-700">
+                        {level.appreciation}
+                      </td>
+                    )}
+                  </tr>
+                ))
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ACADEMIC INTERFACE TABLE - EXACT MATCH */}
       <form onSubmit={onSave} className="mt-6 bg-white rounded-2xl shadow overflow-hidden">
-        <div className="overflow-auto">
-          <table className="min-w-full text-xs sm:text-sm">
-            <thead className="bg-gray-50">
-              <tr className="text-left">
-                <Th className="w-40">{language === 'fr' ? 'Matière' : 'Subject'}</Th>
-                <Th className="w-32">{language === 'fr' ? 'N/20-M/20' : 'Mark/20-Avg/20'}</Th>
-                <Th className="w-20">{language === 'fr' ? 'Coef' : 'Coeff'}</Th>
-                <Th className="w-24">{language === 'fr' ? 'M x coef' : 'M x coeff'}</Th>
-                <Th className="w-20">{language === 'fr' ? 'Note %' : 'Mark %'}</Th>
-                <Th className="w-20">{language === 'fr' ? 'COTE' : 'GRADE'}</Th>
-                <Th className="w-80">{language === 'fr' ? 'Compétences évaluées' : 'Competencies assessed'}</Th>
-                <Th className="w-64">{language === 'fr' ? 'Appréciation' : 'Comments'}</Th>
-                <Th>Actions</Th>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse min-w-[800px]">
+            <thead>
+              <tr className="bg-blue-50 border-b-2 border-blue-200">
+                <th className="px-3 py-2 text-left text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Matière' : 'Subject'}</th>
+                <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'N/20-M/20' : 'N/20-M/20'}</th>
+                <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Coefficient' : 'Coefficient'}</th>
+                <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'M x coef' : 'M x coef'}</th>
+                <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Note %' : 'Grade %'}</th>
+                <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">COTE</th>
+                <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Compétences évaluées' : 'Evaluated Competencies'}</th>
+                <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Appréciation' : 'Appreciation'}</th>
+                <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'COMMENTAIRES' : 'COMMENTS'}</th>
+                <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Actions' : 'Actions'}</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r, i) => {
-                // Calcul automatique de la moyenne finale des 2 compétences
-                const moyenneCalculee = calculateMoyenneFinale(r.note1, r.note2);
-                const moyenneFinale = Number(r.moyenneFinale) || moyenneCalculee;
-                const totalPondere = round2(moyenneFinale * (Number(r.coef)||0));
-                const cote = r.cote || coteFromNote(moyenneFinale);
+                // Use manually entered values - no automatic calculation (EXACT from academic interface)
+                const moyenneFinale = r.moyenneFinale || 0;
+                const totalPondere = round2(moyenneFinale * (Number(r.coef) || 0));
                 const notePercent = round2((moyenneFinale / 20) * 100);
+                const cote = coteFromNote(moyenneFinale);
                 const competencesEvaluees = r.competence1 && r.competence2 ? `${r.competence1}; ${r.competence2}` : (r.competence1 || r.competence2 || '');
                 
                 return (
                   <tr key={i} className={i % 2 ? "bg-white" : "bg-gray-50/30"}>
-                    {/* Matière */}
-                    <Td data-testid={`cell-subject-${i}`}>
-                      <input 
-                        className="w-36 border rounded-lg px-2 py-1 text-sm" 
-                        value={r.matiere} 
-                        onChange={e=>{
-                          const newMatiere = e.target.value;
-                          const autoCoef = getCoefficientForSubject(newMatiere);
-                          updateRow(i,{
-                            matiere: newMatiere,
-                            coef: autoCoef
-                          });
-                        }}
-                        list="class-subjects-list"
-                        placeholder="Matière..."
-                        data-testid={`input-subject-${i}`}
-                      />
-                    </Td>
-
-                    {/* N/20-M/20 */}
-                    <Td data-testid={`cell-nm20-${i}`}>
-                      <div className="flex items-center gap-1 text-sm">
-                        <input 
-                          type="number" 
-                          step="0.01" 
-                          min="0" 
-                          max="20" 
-                          className="w-12 border rounded px-1 py-1 text-center text-xs" 
-                          value={r.note1} 
-                          onChange={e=>{
-                            const newNote1 = e.target.value;
-                            const newMoyenne = calculateMoyenneFinale(newNote1, r.note2);
-                            updateRow(i,{
-                              note1: newNote1,
-                              moyenneFinale: newMoyenne,
-                              totalPondere: round2(newMoyenne * (Number(r.coef)||0))
+                    {/* Matière + Enseignant (EXACT from academic interface) */}
+                    <td className="px-2 py-2 border min-w-[150px]" data-testid={`cell-subject-${i}`}>
+                      <div className="space-y-1">
+                        <Input
+                          className="w-full border-0 bg-transparent text-sm font-semibold"
+                          value={r.matiere}
+                          onChange={(e) => {
+                            const newMatiere = e.target.value;
+                            const autoCoef = getCoefficientForSubject(newMatiere);
+                            updateRow(i, {
+                              matiere: newMatiere,
+                              coef: autoCoef
                             });
                           }}
-                          placeholder="N"
+                          placeholder="Matière..."
+                          data-testid={`input-subject-name-${i}`}
+                          list="class-subjects-list"
+                        />
+                        <Input
+                          className="w-full border-0 bg-transparent text-xs text-gray-600 italic"
+                          value={r.enseignant || ''}
+                          onChange={(e) => updateRow(i, { enseignant: e.target.value })}
+                          placeholder="Nom enseignant..."
+                          data-testid={`input-teacher-name-${i}`}
+                        />
+                      </div>
+                    </td>
+
+                    {/* N/20-M/20 (EXACT from academic interface - manual moyenne finale) */}
+                    <td className="px-2 py-2 border" data-testid={`cell-nm20-${i}`}>
+                      <div className="flex flex-wrap items-center gap-1 text-sm">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="20"
+                          className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm"
+                          value={r.note1 === 0 ? '' : r.note1}
+                          onChange={(e) => updateRow(i, { note1: parseFloat(e.target.value) || 0 })}
+                          placeholder="N/20"
                           data-testid={`input-note1-${i}`}
                         />
                         <span className="text-gray-500">-</span>
-                        <span className="w-12 text-center text-xs font-bold bg-blue-50 px-1 py-1 rounded border">
-                          {moyenneFinale || '0'}
-                        </span>
-                        <input 
-                          type="number" 
-                          step="0.01" 
-                          min="0" 
-                          max="20" 
-                          className="w-12 border rounded px-1 py-1 text-center text-xs ml-1" 
-                          value={r.note2} 
-                          onChange={e=>{
-                            const newNote2 = e.target.value;
-                            const newMoyenne = calculateMoyenneFinale(r.note1, newNote2);
-                            updateRow(i,{
-                              note2: newNote2,
-                              moyenneFinale: newMoyenne,
-                              totalPondere: round2(newMoyenne * (Number(r.coef)||0))
-                            });
-                          }}
-                          placeholder="N2"
-                          data-testid={`input-note2-${i}`}
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="20"
+                          className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm font-bold bg-blue-50"
+                          value={r.moyenneFinale === 0 ? '' : r.moyenneFinale}
+                          onChange={(e) => updateRow(i, { moyenneFinale: parseFloat(e.target.value) || 0 })}
+                          placeholder="M/20"
+                          data-testid={`input-moyenne-${i}`}
                         />
                       </div>
-                    </Td>
+                    </td>
 
-                    {/* Coefficient */}
-                    <Td data-testid={`cell-coef-${i}`}>
-                      <input 
-                        type="number" 
-                        step="1" 
-                        min="0" 
-                        className="w-14 border rounded-lg px-2 py-1 text-center text-sm" 
-                        value={r.coef} 
-                        onChange={e=>{
+                    {/* Coefficient (EXACT from academic interface) */}
+                    <td className="px-3 py-2 border" data-testid={`cell-coef-${i}`}>
+                      <Input
+                        type="number"
+                        step="1"
+                        min="0"
+                        className="w-14 border-0 bg-transparent text-center text-sm"
+                        value={r.coef === 0 ? '' : r.coef}
+                        onChange={(e) => {
                           const newCoef = parseInt(e.target.value) || 0;
-                          updateRow(i,{
-                            coef: newCoef,
-                            totalPondere: round2(moyenneFinale * newCoef)
-                          });
+                          updateRow(i, { coef: newCoef });
                         }}
                         data-testid={`input-coef-${i}`}
                       />
-                    </Td>
+                    </td>
 
-                    {/* M x coef */}
-                    <Td data-testid={`cell-mxcoef-${i}`}>
+                    {/* M x coef (EXACT from academic interface) */}
+                    <td className="px-3 py-2 border text-center" data-testid={`cell-mxcoef-${i}`}>
                       <span className="px-2 py-1 inline-block bg-green-50 rounded-lg font-semibold text-green-800 text-sm">
                         {totalPondere}
                       </span>
-                    </Td>
+                    </td>
 
-                    {/* Note % */}
-                    <Td data-testid={`cell-percent-${i}`}>
+                    {/* Note % (EXACT from academic interface) */}
+                    <td className="px-3 py-2 border text-center" data-testid={`cell-percent-${i}`}>
                       <span className="px-2 py-1 inline-block bg-purple-50 rounded-lg font-semibold text-purple-800 text-sm">
                         {notePercent}%
                       </span>
-                    </Td>
+                    </td>
 
-                    {/* COTE */}
-                    <Td data-testid={`cell-cote-${i}`}>
-                      <input 
-                        className="w-12 border rounded-lg px-2 py-1 text-center font-bold text-sm" 
-                        value={cote} 
-                        onChange={e=>updateRow(i,{cote:e.target.value})}
+                    {/* COTE (EXACT from academic interface) */}
+                    <td className="px-3 py-2 border text-center" data-testid={`cell-cote-${i}`}>
+                      <Input
+                        className="w-16 md:w-20 border-0 bg-transparent text-center font-bold text-sm"
+                        value={cote}
+                        onChange={(e) => updateRow(i, { cote: e.target.value })}
                         data-testid={`input-cote-${i}`}
                       />
-                    </Td>
+                    </td>
 
-                    {/* Compétences évaluées */}
-                    <Td data-testid={`cell-competences-${i}`}>
-                      <textarea 
-                        className="w-full border rounded-lg px-2 py-1 text-xs" 
-                        rows={2} 
+                    {/* Compétences évaluées (EXACT from academic interface) */}
+                    <td className="px-3 py-2 border" data-testid={`cell-competences-${i}`}>
+                      <textarea
+                        className="w-full border-0 bg-transparent text-xs resize-none"
+                        rows={2}
                         value={competencesEvaluees}
-                        onChange={e=>{
+                        onChange={(e) => {
                           const newCompetences = e.target.value;
-                          // Split by semicolon and update both competencies
                           const parts = newCompetences.split(';');
-                          updateRow(i,{
+                          updateRow(i, {
                             competence1: parts[0]?.trim() || '',
                             competence2: parts[1]?.trim() || ''
                           });
@@ -1116,82 +1185,137 @@ export default function ManualBulletinForm({
                         placeholder="Compétences séparées par ;"
                         data-testid={`input-competences-${i}`}
                       />
-                    </Td>
+                    </td>
 
-                    {/* Appréciation */}
-                    <Td data-testid={`cell-appreciation-${i}`}>
+                    {/* Appréciation (EXACT from academic interface) */}
+                    <td className="px-3 py-2 border" data-testid={`cell-appreciation-${i}`}>
                       <div className="flex gap-1 items-start">
-                        <textarea 
-                          className="flex-1 border rounded-lg px-2 py-1 text-xs min-h-[2.5rem]" 
-                          rows={2} 
-                          value={r.appreciation} 
-                          onChange={e=>updateRow(i,{appreciation:e.target.value})} 
-                          placeholder={appreciationFromNote(r.moyenneFinale, predefinedAppreciations)}
-                          data-testid={`textarea-appreciation-${i}`}
-                        />
-                        
-                        {/* Compact Predefined Appreciations Selector - Mobile Optimized */}
-                        <Select 
-                          onValueChange={(value) => updateRow(i, {appreciation: value})}
-                        >
-                          <SelectTrigger 
-                            className="w-6 h-6 p-0 border-2 border-blue-300 hover:border-blue-500 flex items-center justify-center shrink-0 text-xs"
-                            disabled={!predefinedAppreciations?.data}
-                            data-testid={`button-open-appreciations-${i}`}
-                            title={predefinedAppreciations?.data ? "Choisir une appréciation" : "Chargement..."}
-                          >
-                            <SelectValue placeholder="📝" />
+                        <Select onValueChange={(value) => updateRow(i, { remark: value })} value={r.remark || ''}>
+                          <SelectTrigger className="flex-1 border-0 bg-transparent text-xs min-h-[2.5rem] text-left">
+                            <SelectValue placeholder={language === 'fr' ? "Sélectionnez une appréciation..." : "Select an appreciation..."} />
                           </SelectTrigger>
-                          <SelectContent className="max-w-[280px] max-h-[200px] overflow-y-auto">
-                            <div className="p-2 border-b bg-slate-50 text-xs font-medium text-slate-600">
-                              📝 {language === 'fr' ? 'Commentaires Ministère' : 'Ministry Comments'}
-                            </div>
-                            {predefinedAppreciations?.data?.filter((app: any) => 
-                              (!app.gradeRange || (Number(r.moyenneFinale) >= app.gradeRange.min && Number(r.moyenneFinale) < app.gradeRange.max))
-                            ).slice(0, 8).map((appreciation: any) => (
-                              <SelectItem 
-                                key={appreciation.id} 
-                                value={language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn}
-                                data-testid={`option-appreciation-${appreciation.id}`}
-                                className="cursor-pointer hover:bg-blue-50"
-                              >
-                                <div className="text-xs leading-relaxed py-1">
-                                  <div className="font-medium text-gray-900 mb-1">{appreciation.name}</div>
-                                  <div className="text-gray-600">
-                                    {(language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn)?.length > 60 
-                                      ? (language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn).substring(0, 60) + "..." 
-                                      : (language === 'fr' ? appreciation.appreciationFr : appreciation.appreciationEn)}
-                                  </div>
-                                  {appreciation.subjectContext && (
-                                    <div className="text-xs text-blue-600 font-medium mt-1">{appreciation.subjectContext}</div>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            ))}
-                            <div className="px-2 py-1 text-xs text-blue-600 border-t bg-blue-50">
-                              {language === 'fr' 
-                                ? `💬 ${predefinedAppreciations?.data?.length || 0} commentaires disponibles` 
-                                : `💬 ${predefinedAppreciations?.data?.length || 0} comments available`}
-                            </div>
-                            {!predefinedAppreciations?.data?.length && (
-                              <div className="p-2 text-xs text-slate-500 italic">
-                                {language === 'fr' ? 'Aucun commentaire disponible' : 'No comments available'}
-                              </div>
-                            )}
+                          <SelectContent>
+                            <SelectItem value="CTBA">
+                              {language === 'fr' ? 'Compétences Très Bien Acquises (CTBA)' : 'Competences Very Well Acquired (CVWA)'}
+                            </SelectItem>
+                            <SelectItem value="CBA">
+                              {language === 'fr' ? 'Compétences Bien Acquises (CBA)' : 'Competences Well Acquired (CWA)'}
+                            </SelectItem>
+                            <SelectItem value="CA">
+                              {language === 'fr' ? 'Compétences Acquises (CA)' : 'Competences Acquired (CA)'}
+                            </SelectItem>
+                            <SelectItem value="CMA">
+                              {language === 'fr' ? 'Compétences Moyennement Acquises (CMA)' : 'Competences Averagely Acquired (CAA)'}
+                            </SelectItem>
+                            <SelectItem value="CNA">
+                              {language === 'fr' ? 'Compétences Non Acquises (CNA)' : 'Competences Not Acquired (CNA)'}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
-                    </Td>
-                    <Td>
-                      <button 
-                        type="button" 
-                        onClick={()=>removeRow(i)} 
-                        className="text-red-600 hover:underline"
+                    </td>
+
+                    {/* COMMENTAIRES - Ministry teacher comments (EXACT from academic interface) */}
+                    <td className="px-2 py-2 border min-w-[120px]" data-testid={`cell-comments-${i}`}>
+                      <div className="space-y-1">
+                        {/* Display selected comments count */}
+                        <div className="text-xs text-center text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                          {(r.comments || []).length}/2 {language === 'fr' ? 'sélectionnés' : 'selected'}
+                        </div>
+                        
+                        {/* Comment selection button */}
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button 
+                              type="button"
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full text-xs h-8"
+                              data-testid={`button-select-comments-${i}`}
+                            >
+                              📝 {language === 'fr' ? 'Commentaires' : 'Comments'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 max-h-60 overflow-y-auto">
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-semibold text-gray-800">
+                                {language === 'fr' ? 'Commentaires Ministère' : 'Ministry Comments'}
+                              </h4>
+                              <p className="text-xs text-gray-600">
+                                {language === 'fr' ? 'Max 2 commentaires' : 'Max 2 comments'}
+                              </p>
+                              <div className="grid gap-1">
+                                {TEACHER_COMMENTS[language].map((comment) => {
+                                  const currentComments = r.comments || [];
+                                  const isSelected = currentComments.includes(comment.id);
+                                  const canSelect = currentComments.length < 2 || isSelected;
+                                  
+                                  return (
+                                    <button
+                                      key={comment.id}
+                                      type="button"
+                                      disabled={!canSelect}
+                                      className={`text-left p-2 text-xs rounded border transition-all ${
+                                        isSelected 
+                                          ? 'bg-blue-100 border-blue-400 text-blue-800 font-medium'
+                                          : canSelect
+                                            ? 'bg-white border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300'
+                                            : 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed'
+                                      }`}
+                                      onClick={() => {
+                                        const newComments = isSelected
+                                          ? currentComments.filter(id => id !== comment.id)
+                                          : currentComments.length < 2
+                                            ? [...currentComments, comment.id]
+                                            : currentComments;
+                                        updateRow(i, { comments: newComments });
+                                      }}
+                                    >
+                                      <span className="flex items-start gap-2">
+                                        <span className={`flex-shrink-0 w-3 h-3 mt-0.5 border rounded-sm ${
+                                          isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                                        }`}>
+                                          {isSelected && <span className="block w-full h-full text-white text-center text-xs leading-3">✓</span>}
+                                        </span>
+                                        <span className="flex-1">{comment.text}</span>
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        
+                        {/* Display selected comments */}
+                        {(r.comments || []).length > 0 && (
+                          <div className="mt-1 text-xs text-gray-600 bg-gray-50 p-1 rounded">
+                            {(r.comments || []).map((commentId, idx) => {
+                              const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
+                              return (
+                                <div key={commentId} className="truncate">
+                                  {idx + 1}. {comment?.text.substring(0, 30)}...
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Actions (Teacher mode - NO sign/print features) */}
+                    <td className="px-3 py-2 border text-center">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeRow(i)}
+                        className="h-6 w-6 p-0"
                         data-testid={`button-remove-${i}`}
                       >
-                        Suppr.
-                      </button>
-                    </Td>
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                    </td>
                   </tr>
                 );
               })}
