@@ -76,7 +76,8 @@ const PERFORMANCE_GRID = {
 };
 
 // Helper functions - EXACT from academic interface
-const round2 = (n: number): number => Math.round(n * 100) / 100;
+// Enhanced helper functions (EXACT from academic interface)
+const round2 = (n: number): number => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
 const coteFromNote = (note: number): string => {
   if (note >= 18) return 'A+';
@@ -126,35 +127,7 @@ const performanceGrid = [
   { min: 0, max: 10, grade: "D", label: "CNA", remark: "Compétences non acquises" },
 ];
 
-function coteFromNote(note20: string | number): string {
-  if (note20 == null || note20 === '' || (typeof note20 === 'string' && note20.trim() === '') || isNaN(Number(note20))) return "";
-  const n = Number(note20);
-  const r = performanceGrid.find(g => n >= g.min && n < g.max);
-  return r ? r.grade : "";
-}
-
-function appreciationFromNote(note20: string | number, predefinedAppreciations?: any): string {
-  if (note20 == null || note20 === '' || (typeof note20 === 'string' && note20.trim() === '') || isNaN(Number(note20))) return "";
-  const n = Number(note20);
-  
-  // Try to use predefined appreciations first
-  if (predefinedAppreciations?.data) {
-    const matching = predefinedAppreciations.data.find((app: any) => 
-      app.gradeRange && n >= app.gradeRange.min && n < app.gradeRange.max
-    );
-    if (matching) {
-      return matching.appreciation;
-    }
-  }
-  
-  // Fallback to hard-coded values if no predefined appreciations
-  const r = performanceGrid.find(g => n >= g.min && n < g.max);
-  return r ? r.remark : "";
-}
-
-function round2(x: number): number { 
-  return Math.round((Number(x) + Number.EPSILON) * 100) / 100; 
-}
+// Note: Helper functions moved to top to avoid duplicates and match academic interface exactly
 
 /**************************** DONNÉES ****************************/
 // Matières récupérées dynamiquement via l'API pour les matières assignées à l'enseignant
@@ -1769,47 +1742,104 @@ export default function ManualBulletinForm({
           </div>
         </div>
 
-        {/* Print Preview (Reference only - no direct print action) */}
-        <div className="p-4">
-          <div className="text-center">
-            <Button
-              type="button"
-              variant="ghost" 
-              size="sm"
-              onClick={() => window.print()}
-              className="text-gray-500"
-              data-testid="button-print-preview"
-            >
-              🖨️ {language === 'fr' ? 'Aperçu d\'impression' : 'Print Preview'}
-            </Button>
-            <p className="text-xs text-gray-500 mt-1">
-              {language === 'fr' 
-                ? 'Pour référence uniquement - l\'école gère l\'impression officielle'
-                : 'For reference only - school manages official printing'}
-            </p>
-          </div>
-        </div>
-            </div>
-          </div>
-        </div>
+        {/* Teacher Workflow Action Buttons (RESTORE REQUIRED FUNCTIONALITY) */}
+        <div className="p-4 flex gap-3 justify-end bg-gray-50 border-t">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              // Save current state as draft
+              const draftData = {
+                studentId: selectedStudent?.id,
+                studentName: selectedStudent?.fullName,
+                className: selectedClass?.name,
+                term: currentTerm,
+                year: currentYear,
+                rows,
+                extendedStudent,
+                extendedDiscipline,
+                meta,
+                savedAt: new Date().toISOString(),
+                status: 'draft'
+              };
+              
+              // Store in localStorage for now
+              const existingDrafts = JSON.parse(localStorage.getItem('teacher_bulletin_drafts') || '[]');
+              const updatedDrafts = [...existingDrafts.filter((d: any) => 
+                !(d.studentId === draftData.studentId && d.term === draftData.term && d.year === draftData.year)
+              ), draftData];
+              localStorage.setItem('teacher_bulletin_drafts', JSON.stringify(updatedDrafts));
+              
+              toast({
+                title: language === 'fr' ? 'Brouillon sauvegardé' : 'Draft saved',
+                description: language === 'fr' 
+                  ? `Notes sauvegardées pour ${selectedStudent?.fullName || 'Élève'}`
+                  : `Grades saved for ${selectedStudent?.fullName || 'Student'}`,
+              });
+            }}
+            data-testid="button-save-draft"
+          >
+            💾 {language === 'fr' ? 'Sauvegarder Brouillon' : 'Save Draft'}
+          </Button>
 
-        <div className="p-4 flex gap-3 justify-end">
-          <button 
-            type="button" 
-            className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200" 
-            onClick={()=>window.print?.()}
-            data-testid="button-print"
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              // Archive organized by class and student
+              const archiveData = {
+                studentId: selectedStudent?.id,
+                studentName: selectedStudent?.fullName,
+                className: selectedClass?.name,
+                term: currentTerm,
+                year: currentYear,
+                rows,
+                extendedStudent,
+                extendedDiscipline,
+                meta,
+                archivedAt: new Date().toISOString(),
+                status: 'archived'
+              };
+              
+              // Store in organized archive
+              const existingArchives = JSON.parse(localStorage.getItem('teacher_bulletin_archives') || '{}');
+              const classKey = `${selectedClass?.name}-${currentYear}`;
+              if (!existingArchives[classKey]) {
+                existingArchives[classKey] = [];
+              }
+              
+              // Remove existing archive for same student/term
+              existingArchives[classKey] = existingArchives[classKey].filter((a: any) => 
+                !(a.studentId === archiveData.studentId && a.term === archiveData.term)
+              );
+              existingArchives[classKey].push(archiveData);
+              
+              localStorage.setItem('teacher_bulletin_archives', JSON.stringify(existingArchives));
+              
+              toast({
+                title: language === 'fr' ? 'Archivé avec succès' : 'Successfully archived',
+                description: language === 'fr' 
+                  ? `Notes archivées dans ${selectedClass?.name || 'la classe'}`
+                  : `Grades archived in ${selectedClass?.name || 'class'}`,
+              });
+            }}
+            data-testid="button-archive"
           >
-            {t('print')}
-          </button>
-          <button 
-            type="submit" 
-            className="px-4 py-2 rounded-xl bg-black text-white hover:opacity-90"
-            disabled={saveMutation.isPending}
-            data-testid="button-save"
+            📁 {language === 'fr' ? 'Archiver' : 'Archive'}
+          </Button>
+
+          <Button
+            type="submit"
+            className="bg-green-600 hover:bg-green-700 text-white"
+            disabled={saveBulletinMutation.isPending || rows.length === 0}
+            data-testid="button-submit-to-school"
           >
-            {saveMutation.isPending ? (language === 'fr' ? 'Sauvegarde...' : 'Saving...') : t('save')}
-          </button>
+            {saveBulletinMutation.isPending ? (
+              <>🔄 {language === 'fr' ? 'Envoi...' : 'Sending...'}</>
+            ) : (
+              <>📤 {language === 'fr' ? 'Soumettre à l\'École' : 'Submit to School'}</>
+            )}
+          </Button>
         </div>
       </form>
 
