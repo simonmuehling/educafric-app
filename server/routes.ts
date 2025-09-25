@@ -1352,6 +1352,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get student transcript data (all terms/years for specific student)
+  app.get("/api/director/student-transcript", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { studentId } = req.query;
+      
+      if (!studentId) {
+        return res.status(400).json({ success: false, message: 'Student ID is required' });
+      }
+
+      console.log(`[DIRECTOR_STUDENT_TRANSCRIPT] Fetching transcript for student ID: ${studentId}`);
+
+      // ✅ SANDBOX MOCK DATA - Complete academic history for transcript
+      const mockTranscriptData = {
+        success: true,
+        grades: [
+          // === 2023-2024 Academic Year ===
+          // Premier Trimestre
+          { id: 1, studentId: parseInt(studentId as string), subjectId: 1, grade: 16.5, term: 'T1', academicYear: '2023-2024', createdAt: '2023-12-15' },
+          { id: 2, studentId: parseInt(studentId as string), subjectId: 2, grade: 14.2, term: 'T1', academicYear: '2023-2024', createdAt: '2023-12-15' },
+          { id: 3, studentId: parseInt(studentId as string), subjectId: 3, grade: 18.0, term: 'T1', academicYear: '2023-2024', createdAt: '2023-12-15' },
+          { id: 4, studentId: parseInt(studentId as string), subjectId: 4, grade: 15.8, term: 'T1', academicYear: '2023-2024', createdAt: '2023-12-15' },
+          { id: 5, studentId: parseInt(studentId as string), subjectId: 5, grade: 13.5, term: 'T1', academicYear: '2023-2024', createdAt: '2023-12-15' },
+          
+          // Deuxième Trimestre
+          { id: 6, studentId: parseInt(studentId as string), subjectId: 1, grade: 15.8, term: 'T2', academicYear: '2023-2024', createdAt: '2024-03-15' },
+          { id: 7, studentId: parseInt(studentId as string), subjectId: 2, grade: 15.0, term: 'T2', academicYear: '2023-2024', createdAt: '2024-03-15' },
+          { id: 8, studentId: parseInt(studentId as string), subjectId: 3, grade: 17.2, term: 'T2', academicYear: '2023-2024', createdAt: '2024-03-15' },
+          { id: 9, studentId: parseInt(studentId as string), subjectId: 4, grade: 16.5, term: 'T2', academicYear: '2023-2024', createdAt: '2024-03-15' },
+          { id: 10, studentId: parseInt(studentId as string), subjectId: 5, grade: 14.2, term: 'T2', academicYear: '2023-2024', createdAt: '2024-03-15' },
+          
+          // Troisième Trimestre
+          { id: 11, studentId: parseInt(studentId as string), subjectId: 1, grade: 16.2, term: 'T3', academicYear: '2023-2024', createdAt: '2024-06-15' },
+          { id: 12, studentId: parseInt(studentId as string), subjectId: 2, grade: 14.8, term: 'T3', academicYear: '2023-2024', createdAt: '2024-06-15' },
+          { id: 13, studentId: parseInt(studentId as string), subjectId: 3, grade: 17.8, term: 'T3', academicYear: '2023-2024', createdAt: '2024-06-15' },
+          { id: 14, studentId: parseInt(studentId as string), subjectId: 4, grade: 16.0, term: 'T3', academicYear: '2023-2024', createdAt: '2024-06-15' },
+          { id: 15, studentId: parseInt(studentId as string), subjectId: 5, grade: 14.5, term: 'T3', academicYear: '2023-2024', createdAt: '2024-06-15' },
+
+          // === 2024-2025 Academic Year (Current) ===
+          // Premier Trimestre
+          { id: 16, studentId: parseInt(studentId as string), subjectId: 1, grade: 17.0, term: 'T1', academicYear: '2024-2025', createdAt: '2024-12-15' },
+          { id: 17, studentId: parseInt(studentId as string), subjectId: 2, grade: 15.5, term: 'T1', academicYear: '2024-2025', createdAt: '2024-12-15' },
+          { id: 18, studentId: parseInt(studentId as string), subjectId: 3, grade: 18.5, term: 'T1', academicYear: '2024-2025', createdAt: '2024-12-15' },
+          { id: 19, studentId: parseInt(studentId as string), subjectId: 4, grade: 16.8, term: 'T1', academicYear: '2024-2025', createdAt: '2024-12-15' },
+          { id: 20, studentId: parseInt(studentId as string), subjectId: 5, grade: 15.0, term: 'T1', academicYear: '2024-2025', createdAt: '2024-12-15' }
+        ],
+        totalRecords: 20,
+        academicYears: ['2023-2024', '2024-2025'],
+        student: {
+          id: parseInt(studentId as string),
+          firstName: 'Marie',
+          lastName: 'Fosso',
+          className: '6ème A',
+          matricule: `MAT-${studentId}-2024`
+        }
+      };
+
+      console.log(`[DIRECTOR_STUDENT_TRANSCRIPT] ✅ Returning ${mockTranscriptData.grades.length} grade records for student ${studentId}`);
+      
+      res.json(mockTranscriptData);
+    } catch (error) {
+      console.error('[DIRECTOR_STUDENT_TRANSCRIPT] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch student transcript' });
+    }
+  });
+
   // Get teachers for school (accessible by director and admin)
   app.get("/api/school/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
