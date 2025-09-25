@@ -37,6 +37,15 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Silence Replit dev noise
+  React.useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (typeof e.origin === 'string' && e.origin.includes('.replit.dev')) return;
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
   const text = {
     fr: {
       title: 'Classes en ligne',
@@ -139,12 +148,30 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
         subjectId: parseInt(selectedSubject, 10) // Convert string to number
       };
       console.log('[ONLINE_CLASSES] Creating course with data:', enrichedCourseData);
-      return apiRequest('POST', '/api/online-classes/courses', enrichedCourseData);
+      const response = await apiRequest('POST', '/api/online-classes/courses', enrichedCourseData);
+      return await response.json(); // Parse JSON response
     },
     onSuccess: (response: any) => {
       // Store the created course in state for use by handlers
+      console.log('[ONLINE_CLASSES] Course creation response:', response);
       const course = response.course || response;
+      console.log('[ONLINE_CLASSES] Extracted course:', course);
+      console.log('[ONLINE_CLASSES] Course ID:', course?.id);
+      console.log('[ONLINE_CLASSES] Course ID type:', typeof course?.id);
+      
+      // Verify the course object structure
+      if (course) {
+        console.log('[ONLINE_CLASSES] Course keys:', Object.keys(course));
+        console.log('[ONLINE_CLASSES] Full course object:', JSON.stringify(course, null, 2));
+      }
+      
       setCreatedCourse(course);
+      
+      // Debug state after setting
+      setTimeout(() => {
+        console.log('[ONLINE_CLASSES] State after setting:', course);
+      }, 100);
+      
       queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses'] });
       setStep('session-management');
       toast({
@@ -347,6 +374,8 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
   
   const handleStartNow = React.useCallback(async () => {
     console.log('[ONLINE_CLASSES] Starting session immediately...');
+    console.log('[ONLINE_CLASSES] Current createdCourse state:', createdCourse);
+    console.log('[ONLINE_CLASSES] Course ID from state:', createdCourse?.id);
     if (!createdCourse) {
       console.warn('[ONLINE_CLASSES] No course in state yet');
       toast({
@@ -362,6 +391,13 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
 
     try {
       console.log('[ONLINE_CLASSES] Creating session for course', createdCourse.id);
+      console.log('[ONLINE_CLASSES] Course ID type in URL:', typeof createdCourse.id);
+      console.log('[ONLINE_CLASSES] Full URL will be:', `/api/online-classes/courses/${createdCourse.id}/sessions`);
+
+      // Validate courseId before making request
+      if (!createdCourse.id || typeof createdCourse.id === 'undefined') {
+        throw new Error(`Invalid course ID: ${createdCourse.id}`);
+      }
 
       // Call the sessions endpoint
       const response = await fetch(`/api/online-classes/courses/${createdCourse.id}/sessions`, {
