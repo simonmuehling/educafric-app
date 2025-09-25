@@ -580,42 +580,45 @@ router.post('/submissions', requireAuth, requireRole('Teacher'), async (req: any
       });
     }
 
-    // Get all draft grade entries for this submission
+    // Get all draft teacher grade submissions for this submission
     const draftEntries = await db
       .select()
-      .from(gradeEntries)
+      .from(teacherGradeSubmissions)
       .where(
         and(
-          eq(gradeEntries.teacherId, teacherId),
-          eq(gradeEntries.schoolId, schoolId),
-          eq(gradeEntries.classId, classId),
-          eq(gradeEntries.subjectId, subjectId),
-          eq(gradeEntries.term, term), // FIXED: termId -> term
-          eq(gradeEntries.examType, 'draft') // FIXED: status -> examType
+          eq(teacherGradeSubmissions.teacherId, teacherId),
+          eq(teacherGradeSubmissions.schoolId, schoolId),
+          eq(teacherGradeSubmissions.classId, classId),
+          eq(teacherGradeSubmissions.subjectId, subjectId),
+          eq(teacherGradeSubmissions.term, term),
+          eq(teacherGradeSubmissions.reviewStatus, 'draft') // Use reviewStatus instead of examType
         )
       );
 
     if (draftEntries.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No draft grade entries found to submit'
+        message: 'No draft grade submissions found to submit'
       });
     }
 
-    // Update all draft entries to submitted status
+    // Update all draft submissions to submitted status
     await db
-      .update(gradeEntries)
+      .update(teacherGradeSubmissions)
       .set({
-        examType: 'submitted' // FIXED: status -> examType
+        isSubmitted: true,
+        submittedAt: new Date(),
+        reviewStatus: 'pending', // Set to pending review
+        lastStatusChange: new Date()
       })
       .where(
         and(
-          eq(gradeEntries.teacherId, teacherId),
-          eq(gradeEntries.schoolId, schoolId),
-          eq(gradeEntries.classId, classId),
-          eq(gradeEntries.subjectId, subjectId),
-          eq(gradeEntries.term, term), // FIXED: termId -> term
-          eq(gradeEntries.examType, 'draft') // FIXED: status -> examType
+          eq(teacherGradeSubmissions.teacherId, teacherId),
+          eq(teacherGradeSubmissions.schoolId, schoolId),
+          eq(teacherGradeSubmissions.classId, classId),
+          eq(teacherGradeSubmissions.subjectId, subjectId),
+          eq(teacherGradeSubmissions.term, term),
+          eq(teacherGradeSubmissions.reviewStatus, 'draft')
         )
       );
 
@@ -659,17 +662,17 @@ router.get('/submissions/status', requireAuth, requireRole('Teacher'), async (re
     // Get submission status for all class-subject combinations for this teacher and term
     const submissionStatus = await db
       .select({
-        classId: gradeEntries.classId,
-        subjectId: gradeEntries.subjectId,
-        examType: gradeEntries.examType, // Fixed: status -> examType
-        count: gradeEntries.id
+        classId: teacherGradeSubmissions.classId,
+        subjectId: teacherGradeSubmissions.subjectId,
+        reviewStatus: teacherGradeSubmissions.reviewStatus, // Use reviewStatus instead of examType
+        count: teacherGradeSubmissions.id
       })
-      .from(gradeEntries)
+      .from(teacherGradeSubmissions)
       .where(
         and(
-          eq(gradeEntries.teacherId, teacherId),
-          eq(gradeEntries.schoolId, schoolId),
-          eq(gradeEntries.term, termString) // Fixed: termId -> term (string)
+          eq(teacherGradeSubmissions.teacherId, teacherId),
+          eq(teacherGradeSubmissions.schoolId, schoolId),
+          eq(teacherGradeSubmissions.term, termString)
         )
       );
 
@@ -681,13 +684,13 @@ router.get('/submissions/status', requireAuth, requireRole('Teacher'), async (re
           classId: entry.classId,
           subjectId: entry.subjectId,
           draft: 0,
-          submitted: 0,
+          pending: 0,
           approved: 0,
-          published: 0,
+          rejected: 0,
           returned: 0
         };
       }
-      acc[key][entry.examType as keyof typeof acc[typeof key]]++; // FIXED: status -> examType
+      acc[key][entry.reviewStatus as keyof typeof acc[typeof key]]++; // Use reviewStatus instead of examType
       return acc;
     }, {} as Record<string, any>);
 
