@@ -142,82 +142,82 @@ const SchoolConfigurationGuide: React.FC = () => {
   // Fonctions de configuration spécifiques pour chaque module
   const configureSchoolInfo = () => {
     console.log('[CONFIG_GUIDE] Configuring school information');
-    window.location.hash = 'settings';
-    alert(language === 'fr' 
-      ? 'Redirection vers la configuration des informations de l\'école' 
-      : 'Redirecting to school information configuration');
+    const event = new CustomEvent('switchModule', {
+      detail: { moduleId: 'settings', source: 'config-guide' }
+    });
+    window.dispatchEvent(event);
   };
 
   const configureAdminAccounts = () => {
     console.log('[CONFIG_GUIDE] Configuring admin accounts');
-    window.location.hash = 'administrators';
-    alert(language === 'fr' 
-      ? 'Redirection vers la gestion des comptes administrateurs' 
-      : 'Redirecting to administrator accounts management');
+    const event = new CustomEvent('switchModule', {
+      detail: { moduleId: 'school-administrators', source: 'config-guide' }
+    });
+    window.dispatchEvent(event);
   };
 
   const configureTeachers = () => {
     console.log('[CONFIG_GUIDE] Configuring teachers');
-    window.location.hash = 'teacher-management';
-    alert(language === 'fr' 
-      ? 'Redirection vers la gestion des enseignants' 
-      : 'Redirecting to teacher management');
+    const event = new CustomEvent('switchModule', {
+      detail: { moduleId: 'teachers', source: 'config-guide' }
+    });
+    window.dispatchEvent(event);
   };
 
   const configureClasses = () => {
     console.log('[CONFIG_GUIDE] Configuring classes');
-    window.location.hash = 'class-management';
-    alert(language === 'fr' 
-      ? 'Redirection vers la gestion des classes' 
-      : 'Redirecting to class management');
+    const event = new CustomEvent('switchModule', {
+      detail: { moduleId: 'classes', source: 'config-guide' }
+    });
+    window.dispatchEvent(event);
   };
 
   const configureStudents = () => {
     console.log('[CONFIG_GUIDE] Configuring students');
-    window.location.hash = 'student-management';
-    alert(language === 'fr' 
-      ? 'Redirection vers la gestion des élèves' 
-      : 'Redirecting to student management');
+    const event = new CustomEvent('switchModule', {
+      detail: { moduleId: 'students', source: 'config-guide' }
+    });
+    window.dispatchEvent(event);
   };
 
   const configureTimetable = () => {
     console.log('[CONFIG_GUIDE] Configuring timetable');
-    window.location.hash = 'timetable';
-    alert(language === 'fr' 
-      ? 'Redirection vers la gestion des emplois du temps' 
-      : 'Redirecting to timetable management');
+    const event = new CustomEvent('switchModule', {
+      detail: { moduleId: 'director-timetable', source: 'config-guide' }
+    });
+    window.dispatchEvent(event);
   };
 
   const configureCommunications = () => {
     console.log('[CONFIG_GUIDE] Configuring communications');
-    window.location.hash = 'communications';
-    alert(language === 'fr' 
-      ? 'Redirection vers la configuration des communications' 
-      : 'Redirecting to communications setup');
+    const event = new CustomEvent('switchModule', {
+      detail: { moduleId: 'director-communications', source: 'config-guide' }
+    });
+    window.dispatchEvent(event);
   };
 
   const configureAttendance = () => {
     console.log('[CONFIG_GUIDE] Configuring attendance');
-    window.location.hash = 'attendance-management';
-    alert(language === 'fr' 
-      ? 'Redirection vers la gestion des présences' 
-      : 'Redirecting to attendance management');
+    const event = new CustomEvent('switchModule', {
+      detail: { moduleId: 'director-attendance', source: 'config-guide' }
+    });
+    window.dispatchEvent(event);
   };
 
   const configureGeolocation = () => {
     console.log('[CONFIG_GUIDE] Configuring geolocation');
-    window.location.hash = 'geolocation';
-    alert(language === 'fr' 
-      ? 'Redirection vers la configuration de la géolocalisation' 
-      : 'Redirecting to geolocation configuration');
+    const event = new CustomEvent('switchToNotifications', {
+      detail: { source: 'config-guide' }
+    });
+    window.dispatchEvent(event);
   };
 
   const configureSubscription = () => {
     console.log('[CONFIG_GUIDE] Configuring subscription');
-    window.location.hash = 'premium-services';
-    alert(language === 'fr' 
-      ? 'Redirection vers la gestion des abonnements' 
-      : 'Redirecting to subscription management');
+    const event = new CustomEvent('switchToSubscription', {
+      detail: { source: 'config-guide' }
+    });
+    window.dispatchEvent(event);
   };
 
   // Function to open PDF presentation
