@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Video, Play, Users, Calendar, Settings, Plus, Clock, CheckCircle, BookOpen, UserCheck, GraduationCap, User, Book } from 'lucide-react';
+import { Video, Play, Users, Calendar, Settings, Plus, Clock, CheckCircle, BookOpen, UserCheck, GraduationCap, User, Book, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -28,6 +29,7 @@ type Course = {
 
 const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }) => {
   const { language } = useLanguage();
+  const [activeTab, setActiveTab] = useState('create-course'); // 'create-course' | 'scheduled-sessions'
   const [step, setStep] = useState('selection'); // 'selection' | 'course-creation' | 'session-management'
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedTeacher, setSelectedTeacher] = useState('');
@@ -50,11 +52,15 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     fr: {
       title: 'Classes en ligne',
       subtitle: 'Créez des sessions de cours en visioconférence',
+      createCourseTab: 'Créer un cours',
+      scheduledSessionsTab: 'Sessions programmées',
       selectClass: 'Sélectionner une classe',
       selectTeacher: 'Sélectionner un enseignant',
       selectSubject: 'Sélectionner une matière',
       selectionTitle: 'Configuration du cours en ligne',
       selectionDesc: 'Choisissez la classe, l\'enseignant et la matière pour créer votre session de cours en ligne',
+      scheduledSessionsTitle: 'Toutes les sessions programmées',
+      scheduledSessionsDesc: 'Gérez toutes les sessions de cours programmées dans votre école',
       continue: 'Continuer',
       back: 'Retour',
       createCourse: 'Créer le cours',
@@ -62,17 +68,29 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
       courseDescription: 'Description du cours',
       scheduleCourse: 'Programmer le cours',
       startNow: 'Démarrer maintenant',
+      join: 'Rejoindre',
+      delete: 'Supprimer',
+      confirm: 'Confirmer',
+      cancel: 'Annuler',
+      deleteConfirm: 'Êtes-vous sûr de vouloir supprimer cette session ?',
+      teacher: 'Enseignant',
+      course: 'Cours',
+      noSessions: 'Aucune session programmée',
       loading: 'Chargement...',
       noData: 'Aucune donnée disponible'
     },
     en: {
       title: 'Online Classes',
       subtitle: 'Create video conference course sessions',
+      createCourseTab: 'Create Course',
+      scheduledSessionsTab: 'Scheduled Sessions',
       selectClass: 'Select a class',
       selectTeacher: 'Select a teacher',
       selectSubject: 'Select a subject',
       selectionTitle: 'Online Course Setup',
       selectionDesc: 'Choose class, teacher and subject to create your online course session',
+      scheduledSessionsTitle: 'All Scheduled Sessions',
+      scheduledSessionsDesc: 'Manage all scheduled course sessions in your school',
       continue: 'Continue',
       back: 'Back',
       createCourse: 'Create Course',
@@ -80,6 +98,14 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
       courseDescription: 'Course Description',
       scheduleCourse: 'Schedule Course',
       startNow: 'Start Now',
+      join: 'Join',
+      delete: 'Delete',
+      confirm: 'Confirm',
+      cancel: 'Cancel',
+      deleteConfirm: 'Are you sure you want to delete this session?',
+      teacher: 'Teacher',
+      course: 'Course',
+      noSessions: 'No scheduled sessions',
       loading: 'Loading...',
       noData: 'No data available'
     }
@@ -149,6 +175,55 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
       return response.json();
     },
     enabled: !!createdCourse?.id
+  });
+
+  // Query to fetch ALL school sessions (for the "Scheduled Sessions" tab)
+  const { data: allSchoolSessions, isLoading: isLoadingAllSessions, refetch: refetchAllSessions } = useQuery({
+    queryKey: ['/api/online-classes/school/sessions'],
+    queryFn: async () => {
+      const response = await fetch('/api/online-classes/school/sessions', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch school sessions');
+      return response.json();
+    },
+    enabled: activeTab === 'scheduled-sessions' // Only fetch when on scheduled sessions tab
+  });
+
+  // Delete session mutation
+  const deleteSessionMutation = useMutation({
+    mutationFn: async (sessionId: number) => {
+      const response = await fetch(`/api/online-classes/sessions/${sessionId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete session');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'fr' ? 'Session supprimée !' : 'Session deleted!',
+        description: language === 'fr' ? 
+          'La session a été supprimée avec succès' :
+          'Session has been deleted successfully'
+      });
+      // Refresh both queries
+      refetchAllSessions();
+      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 
+          'Erreur lors de la suppression de la session' : 
+          'Error deleting the session'),
+        variant: 'destructive'
+      });
+    }
   });
 
   // Create course mutation with selected data
@@ -525,6 +600,22 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
     });
   }, [language, toast]);
 
+  // Handle delete session
+  const handleDeleteSession = React.useCallback((session: any) => {
+    console.log('[ONLINE_CLASSES] Delete session:', session.id);
+    
+    // Show confirmation dialog
+    const confirmDelete = window.confirm(
+      language === 'fr' ? 
+        `Êtes-vous sûr de vouloir supprimer la session "${session.title}" ?` :
+        `Are you sure you want to delete the session "${session.title}"?`
+    );
+    
+    if (confirmDelete) {
+      deleteSessionMutation.mutate(session.id);
+    }
+  }, [language, deleteSessionMutation]);
+
   // Handle schedule course - Create a real scheduled session
   const handleScheduleCourse = React.useCallback(async () => {
     console.log('[ONLINE_CLASSES] Creating scheduled session...');
@@ -591,6 +682,105 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
       });
     }
   }, [createdCourse, language, toast, queryClient]);
+
+  // Render scheduled sessions tab
+  const renderScheduledSessionsTab = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Calendar className="w-5 h-5" />
+            <span>{t.scheduledSessionsTitle}</span>
+          </CardTitle>
+          <CardDescription>
+            {t.scheduledSessionsDesc}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingAllSessions ? (
+            <div className="flex items-center justify-center py-8">
+              <Clock className="w-6 h-6 animate-spin mr-2" />
+              <span>{t.loading}</span>
+            </div>
+          ) : allSchoolSessions?.sessions?.length === 0 ? (
+            <div className="text-center py-8">
+              <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <p className="text-gray-500">{t.noSessions}</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {allSchoolSessions?.sessions?.map((session: any) => (
+                <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h4 className="font-medium">{session.title}</h4>
+                    <p className="text-sm text-gray-600 mb-1">{session.description}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span className="flex items-center">
+                        <User className="w-4 h-4 mr-1" />
+                        {t.teacher}: {session.teacherName}
+                      </span>
+                      <span className="flex items-center">
+                        <Book className="w-4 h-4 mr-1" />
+                        {t.course}: {session.courseName}
+                      </span>
+                      <span className="flex items-center">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {new Date(session.scheduledStart).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
+                        session.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        session.status === 'live' ? 'bg-green-100 text-green-800' :
+                        session.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {session.status === 'scheduled' ? (language === 'fr' ? 'Programmé' : 'Scheduled') :
+                         session.status === 'live' ? (language === 'fr' ? 'En cours' : 'Live') :
+                         session.status === 'completed' ? (language === 'fr' ? 'Terminé' : 'Completed') :
+                         session.status
+                        }
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {session.status === 'scheduled' && (
+                      <Button 
+                        size="sm" 
+                        className="bg-green-500 hover:bg-green-600"
+                        onClick={() => handleJoinSession(session)}
+                        data-testid={`button-join-session-${session.id}`}
+                      >
+                        <Video className="w-4 h-4 mr-1" />
+                        {t.join}
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleSessionSettings(session)}
+                      data-testid={`button-settings-session-${session.id}`}
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleDeleteSession(session)}
+                      disabled={session.status === 'live'}
+                      data-testid={`button-delete-session-${session.id}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   // Render session management (after course creation)
   const renderSessionManagement = () => (
@@ -745,11 +935,32 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
         <p className="text-gray-600">{t.subtitle}</p>
       </div>
 
-      <div className="min-h-[400px]">
-        {step === 'selection' && renderSelection()}
-        {step === 'course-creation' && renderCourseCreation()}
-        {step === 'session-management' && renderSessionManagement()}
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="create-course" className="flex items-center space-x-2">
+            <Plus className="w-4 h-4" />
+            <span>{t.createCourseTab}</span>
+          </TabsTrigger>
+          <TabsTrigger value="scheduled-sessions" className="flex items-center space-x-2">
+            <Calendar className="w-4 h-4" />
+            <span>{t.scheduledSessionsTab}</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="create-course" className="mt-6">
+          <div className="min-h-[400px]">
+            {step === 'selection' && renderSelection()}
+            {step === 'course-creation' && renderCourseCreation()}
+            {step === 'session-management' && renderSessionManagement()}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="scheduled-sessions" className="mt-6">
+          <div className="min-h-[400px]">
+            {renderScheduledSessionsTab()}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
