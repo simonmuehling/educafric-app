@@ -268,10 +268,10 @@ const COMPETENCES_BY_TRIMESTER_AND_SUBJECT = {
 };
 
 // ====== FONCTIONS HELPER POUR LES COMPÉTENCES ======
-function getCompetencesByTrimester(matiere: string, trimestre: string): { competence1: string; competence2: string } {
+function getCompetencesByTrimester(matiere: string, trimestre: string): { competence1: string; competence2: string; competence3: string } {
   // Handle null/undefined matiere gracefully
   if (!matiere) {
-    return { competence1: "", competence2: "" };
+    return { competence1: "", competence2: "", competence3: "" };
   }
   
   const normalizedMatiere = normalizeSubjectKey(matiere.toUpperCase());
@@ -280,11 +280,12 @@ function getCompetencesByTrimester(matiere: string, trimestre: string): { compet
   if (competences && typeof competences === 'object') {
     return {
       competence1: competences.competence1 || "",
-      competence2: competences.competence2 || ""
+      competence2: competences.competence2 || "",
+      competence3: "" // 3ème compétence par défaut vide
     };
   }
   
-  return { competence1: "", competence2: "" };
+  return { competence1: "", competence2: "", competence3: "" };
 }
 
 function calculateMoyenneFinale(note1: string | number, note2: string | number): number {
@@ -308,7 +309,8 @@ function prefillCompetencesFor(trimester: string) {
     return {
       ...r,
       competence1: competences.competence1,
-      competence2: competences.competence2
+      competence2: competences.competence2,
+      competence3: competences.competence3
     };
   });
 }
@@ -500,7 +502,7 @@ export default function ManualBulletinForm({
         enseignant: "",
         competence1: getCompetencesByTrimester(s.matiere, meta.trimestre).competence1 || "",
         competence2: getCompetencesByTrimester(s.matiere, meta.trimestre).competence2 || "",
-        competence3: "", // 3ème compétence vide par défaut
+        competence3: getCompetencesByTrimester(s.matiere, meta.trimestre).competence3 || "",
         note1: "",
         note2: "",
         moyenneFinale: "",
