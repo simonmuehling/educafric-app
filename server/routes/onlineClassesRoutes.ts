@@ -354,164 +354,6 @@ router.post('/courses/:courseId/sessions',
   }
 );
 
-/**
- * POST /api/online-classes/sessions/:sessionId/join
- * Generate join credentials for a session
- */
-router.post('/sessions/:sessionId/join',
-  requireAuth,
-  requireOnlineClassesSubscription, // SECURITY: Premium subscription required
-  requireOnlineClassesAccess,
-  async (req, res) => {
-    try {
-      const sessionId = parseInt(req.params.sessionId);
-      const user = req.user!;
-      
-      // Get session details
-      const session = await db
-        .select()
-        .from(classSessions)
-        .where(eq(classSessions.id, sessionId))
-        .limit(1);
-
-      if (session.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Session not found'
-        });
-      }
-
-      const sessionData = session[0];
-      
-      // Check if session is joinable
-      if (sessionData.status === 'canceled') {
-        return res.status(400).json({
-          success: false,
-          error: 'This session has been canceled'
-        });
-      }
-
-      if (sessionData.status === 'ended') {
-        return res.status(400).json({
-          success: false,
-          error: 'This session has already ended'
-        });
-      }
-
-      // SECURITY: Strict access control with school boundary check
-      const [enrollment, course] = await Promise.all([
-        db.select()
-          .from(courseEnrollments)
-          .where(and(
-            eq(courseEnrollments.courseId, sessionData.courseId),
-            eq(courseEnrollments.userId, user.id),
-            eq(courseEnrollments.isActive, true)
-          ))
-          .limit(1),
-        db.select()
-          .from(onlineCourses)
-          .where(eq(onlineCourses.id, sessionData.courseId))
-          .limit(1)
-      ]);
-
-      if (course.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Course not found'
-        });
-      }
-
-      const courseData = course[0];
-
-      // SECURITY: Cross-tenant protection - verify same school
-      if (courseData.schoolId !== user.schoolId) {
-        return res.status(403).json({
-          success: false,
-          error: 'Access denied: Course belongs to different school'
-        });
-      }
-
-      // SECURITY: Verify authorization before token generation
-      const hasEnrollment = enrollment.length > 0;
-      const isAdmin = ['SiteAdmin', 'Admin', 'Director'].includes(user.role);
-      const isOwner = user.role === 'Teacher' && courseData.teacherId === user.id;
-
-      if (!hasEnrollment && !isAdmin && !isOwner) {
-        return res.status(403).json({
-          success: false,
-          error: 'Access denied: You are not enrolled in this course and are not authorized to join'
-        });
-      }
-
-      // Determine user role for Jitsi
-      let userRole: 'teacher' | 'student' | 'observer' | 'parent' = 'observer';
-      
-      if (hasEnrollment) {
-        userRole = enrollment[0].role as any;
-      } else if (isAdmin || isOwner) {
-        userRole = 'teacher'; // Admins and owners join as teachers
-      }
-
-      // Generate JWT token
-      const displayName = `${user.firstName} ${user.lastName}`;
-      const jwtToken = jitsiService.generateJwtToken({
-        room: sessionData.roomName,
-        displayName,
-        userId: user.id,
-        role: userRole,
-        email: user.email
-      });
-
-      // Generate Jitsi configuration
-      const jitsiConfig = jitsiService.generateJitsiConfig(
-        sessionData.roomName,
-        jwtToken,
-        {
-          prejoinPageEnabled: userRole !== 'teacher',
-          startWithAudioMuted: userRole !== 'teacher',
-          startWithVideoMuted: userRole === 'parent'
-        }
-      );
-
-      // TODO: Log attendance attempt (temporarily disabled due to DB sync)
-      // await db
-      //   .insert(sessionAttendance)
-      //   .values({
-      //     sessionId,
-      //     userId: user.id
-      //   })
-      //   .onConflictDoNothing();
-
-      console.log(`[ONLINE_CLASSES_API] ✅ Generated join credentials for user ${user.id} (${userRole}) in session ${sessionId}`);
-
-      res.json({
-        success: true,
-        session: {
-          id: sessionData.id,
-          title: sessionData.title,
-          roomName: sessionData.roomName,
-          status: sessionData.status,
-          scheduledStart: sessionData.scheduledStart,
-          scheduledEnd: sessionData.scheduledEnd
-        },
-        joinData: {
-          domain: jitsiConfig.domain,
-          roomName: jitsiConfig.roomName,
-          jwt: jwtToken,
-          userRole,
-          displayName
-        },
-        config: jitsiConfig
-      });
-    } catch (error) {
-      console.error('[ONLINE_CLASSES_API] Error generating join credentials:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to generate join credentials'
-      });
-    }
-  }
-);
 
 /**
  * POST /api/online-classes/sessions/:sessionId/start
@@ -828,7 +670,7 @@ router.get('/school/sessions',
     try {
       const user = req.user!;
       
-      // Get all sessions for this school
+      // Get all sessions for this school with LEFT JOINs for sandbox compatibility
       const sessions = await db
         .select({
           id: classSessions.id,
@@ -840,17 +682,17 @@ router.get('/school/sessions',
           roomName: classSessions.roomName,
           courseId: classSessions.courseId,
           courseName: onlineCourses.title,
-          teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+          teacherName: sql<string>`COALESCE(CONCAT(${users.firstName}, ' ', ${users.lastName}), 'Enseignant')`,
           teacherId: onlineCourses.teacherId,
           createdAt: classSessions.createdAt
         })
         .from(classSessions)
         .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
-        .innerJoin(users, eq(onlineCourses.teacherId, users.id))
+        .leftJoin(users, eq(onlineCourses.teacherId, users.id))
         .where(eq(onlineCourses.schoolId, user.schoolId!))
         .orderBy(classSessions.scheduledStart);
 
-      console.log(`[ONLINE_CLASSES_API] ✅ Listed ${sessions.length} school sessions for user ${user.id}`);
+      console.log(`[ONLINE_CLASSES_API] ✅ Listed ${sessions.length} school sessions for user ${user.id} (schoolId: ${user.schoolId})`);
 
       res.json({
         success: true,
