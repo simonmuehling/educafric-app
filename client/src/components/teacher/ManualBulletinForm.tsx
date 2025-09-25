@@ -224,6 +224,11 @@ const COMPETENCES_BY_TRIMESTER_AND_SUBJECT = {
 
 // ====== FONCTIONS HELPER POUR LES COMPÉTENCES ======
 function getCompetencesByTrimester(matiere: string, trimestre: string): { competence1: string; competence2: string } {
+  // Handle null/undefined matiere gracefully
+  if (!matiere) {
+    return { competence1: "", competence2: "" };
+  }
+  
   const normalizedMatiere = normalizeSubjectKey(matiere.toUpperCase());
   const competences = COMPETENCES_BY_TRIMESTER_AND_SUBJECT[trimestre as keyof typeof COMPETENCES_BY_TRIMESTER_AND_SUBJECT]?.[normalizedMatiere as keyof typeof COMPETENCES_BY_TRIMESTER_AND_SUBJECT.Premier];
   
@@ -405,29 +410,34 @@ export default function ManualBulletinForm({
   // Extract subjects from API response, fallback to empty array if no data
   const assignedSubjects = useMemo(() => {
     if (!teacherSubjectsData || !teacherSubjectsData.subjects) return [];
-    return teacherSubjectsData.subjects.map((subject: any) => ({
-      matiere: subject.name || subject.matiere || subject.subject,
-      coef: subject.coefficient || subject.coef || 1
-    }));
+    return teacherSubjectsData.subjects
+      .map((subject: any) => ({
+        matiere: subject.name || subject.matiere || subject.subject || 'Matière inconnue',
+        coef: subject.coefficient || subject.coef || 1
+      }))
+      .filter(s => s.matiere && s.matiere !== 'Matière inconnue'); // Filter out invalid subjects
   }, [teacherSubjectsData]);
 
   // Extract all class subjects with coefficients for subject selection
   const allClassSubjects = useMemo(() => {
     if (!classSubjectsData || !classSubjectsData.subjects) return [];
-    return classSubjectsData.subjects.map((subject: any) => ({
-      matiere: subject.nameFr || subject.name || subject.matiere,
-      matiereEn: subject.nameEn || subject.name || subject.matiere,
-      coef: Number(subject.coefficient) || 1,
-      code: subject.code || ''
-    }));
+    return classSubjectsData.subjects
+      .map((subject: any) => ({
+        matiere: subject.nameFr || subject.name || subject.matiere || 'Matière inconnue',
+        matiereEn: subject.nameEn || subject.name || subject.matiere || 'Unknown Subject',
+        coef: Number(subject.coefficient) || 1,
+        code: subject.code || ''
+      }))
+      .filter(s => s.matiere && s.matiere !== 'Matière inconnue'); // Filter out invalid subjects
   }, [classSubjectsData]);
 
   // Helper function to get coefficient for a subject from class configuration
   const getCoefficientForSubject = (subjectName: string): number => {
+    if (!subjectName) return 1;
     const subject = allClassSubjects.find(s => 
-      s.matiere.toLowerCase().includes(subjectName.toLowerCase()) ||
-      s.matiereEn.toLowerCase().includes(subjectName.toLowerCase()) ||
-      normalizeSubjectKey(s.matiere) === normalizeSubjectKey(subjectName)
+      s.matiere?.toLowerCase().includes(subjectName.toLowerCase()) ||
+      s.matiereEn?.toLowerCase().includes(subjectName.toLowerCase()) ||
+      normalizeSubjectKey(s.matiere || '') === normalizeSubjectKey(subjectName)
     );
     return subject?.coef || 1;
   };
