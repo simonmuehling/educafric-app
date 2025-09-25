@@ -147,9 +147,9 @@ router.get('/subjects', requireAuth, requireRole('Teacher'), async (req: any, re
     const assignedSubjects = await db
       .select({
         subjectId: classSubjects.subjectId,
-        subjectName: subjects.name,
+        subjectName: subjects.nameFr,
         subjectCode: subjects.code,
-        description: subjects.description
+        subjectNameEn: subjects.nameEn
       })
       .from(teacherSubjectAssignments)
       .innerJoin(classSubjects, eq(classSubjects.id, teacherSubjectAssignments.classSubjectId))
@@ -391,8 +391,8 @@ router.post('/grade-entries', requireAuth, requireRole('Teacher'), async (req: a
           const [updatedEntry] = await db
             .update(teacherGradeSubmissions)
             .set({
-              firstEvaluation: gradeData.grade, // Map grade to firstEvaluation
-              termAverage: gradeData.grade, // Also set termAverage to same value
+              firstEvaluation: gradeData.grade.toString(), // Map grade to firstEvaluation
+              termAverage: gradeData.grade.toString(), // Also set termAverage to same value
               coefficient: gradeData.coefficient || 1,
               subjectComments: gradeData.comments, // Map comments to subjectComments
               updatedAt: new Date(),
@@ -415,8 +415,8 @@ router.post('/grade-entries', requireAuth, requireRole('Teacher'), async (req: a
               term: gradeData.term,
               teacherId,
               academicYear: '2024-2025', // TODO: Get from context
-              firstEvaluation: gradeData.grade, // Map grade to firstEvaluation
-              termAverage: gradeData.grade, // Set termAverage to same value
+              firstEvaluation: gradeData.grade.toString(), // Map grade to firstEvaluation
+              termAverage: gradeData.grade.toString(), // Set termAverage to same value
               coefficient: gradeData.coefficient || 1,
               subjectComments: gradeData.comments, // Map comments to subjectComments
               isSubmitted: false, // Default to not submitted
@@ -523,8 +523,8 @@ router.patch('/grade-entries/:id', requireAuth, requireRole('Teacher'), async (r
     };
 
     if (updates.grade !== undefined) {
-      updateData.firstEvaluation = updates.grade; // Map grade to firstEvaluation
-      updateData.termAverage = updates.grade; // Also update termAverage
+      updateData.firstEvaluation = updates.grade.toString(); // Map grade to firstEvaluation
+      updateData.termAverage = updates.grade.toString(); // Also update termAverage
     }
     if (updates.coefficient !== undefined) updateData.coefficient = updates.coefficient;
     if (updates.comments !== undefined) updateData.subjectComments = updates.comments; // Map comments to subjectComments
@@ -709,6 +709,235 @@ router.get('/submissions/status', requireAuth, requireRole('Teacher'), async (re
     res.status(500).json({
       success: false,
       message: 'Failed to fetch submission status'
+    });
+  }
+});
+
+// ===== TEACHER ARCHIVE ENDPOINTS =====
+
+// GET /api/teacher/archive - Get teacher's saved work organized by class and student
+router.get('/archive', requireAuth, requireRole('Teacher'), async (req: any, res: Response) => {
+  try {
+    const teacherId = req.user.id;
+    const schoolId = req.user.schoolId;
+    const { classId, studentId, term, status } = req.query;
+
+    let whereConditions = and(
+      eq(teacherGradeSubmissions.teacherId, teacherId),
+      eq(teacherGradeSubmissions.schoolId, schoolId)
+    );
+
+    // Add optional filters
+    if (classId) {
+      whereConditions = and(whereConditions, eq(teacherGradeSubmissions.classId, parseInt(classId as string)));
+    }
+    if (studentId) {
+      whereConditions = and(whereConditions, eq(teacherGradeSubmissions.studentId, parseInt(studentId as string)));
+    }
+    if (term) {
+      whereConditions = and(whereConditions, eq(teacherGradeSubmissions.term, term as string));
+    }
+    if (status) {
+      whereConditions = and(whereConditions, eq(teacherGradeSubmissions.reviewStatus, status as string));
+    }
+
+    // Get archived teacher submissions with student and subject details
+    const archiveData = await db
+      .select({
+        id: teacherGradeSubmissions.id,
+        studentId: teacherGradeSubmissions.studentId,
+        classId: teacherGradeSubmissions.classId,
+        subjectId: teacherGradeSubmissions.subjectId,
+        term: teacherGradeSubmissions.term,
+        academicYear: teacherGradeSubmissions.academicYear,
+        firstEvaluation: teacherGradeSubmissions.firstEvaluation,
+        termAverage: teacherGradeSubmissions.termAverage,
+        coefficient: teacherGradeSubmissions.coefficient,
+        subjectComments: teacherGradeSubmissions.subjectComments,
+        reviewStatus: teacherGradeSubmissions.reviewStatus,
+        isSubmitted: teacherGradeSubmissions.isSubmitted,
+        submittedAt: teacherGradeSubmissions.submittedAt,
+        reviewedAt: teacherGradeSubmissions.reviewedAt,
+        createdAt: teacherGradeSubmissions.createdAt,
+        updatedAt: teacherGradeSubmissions.updatedAt,
+        // Student info
+        studentFirstName: users.firstName,
+        studentLastName: users.lastName,
+        studentEmail: users.email,
+        // Subject info  
+        subjectName: subjects.nameFr,
+        subjectNameEn: subjects.nameEn,
+        subjectCode: subjects.code,
+        // Class info
+        className: classes.name
+      })
+      .from(teacherGradeSubmissions)
+      .leftJoin(users, eq(users.id, teacherGradeSubmissions.studentId))
+      .leftJoin(subjects, eq(subjects.id, teacherGradeSubmissions.subjectId))
+      .leftJoin(classes, eq(classes.id, teacherGradeSubmissions.classId))
+      .where(whereConditions)
+      .orderBy(teacherGradeSubmissions.updatedAt);
+
+    // Group by class and student for organized archive view
+    const organizedArchive = archiveData.reduce((acc, item) => {
+      const classKey = `${item.classId}-${item.className}`;
+      const studentKey = `${item.studentId}-${item.studentFirstName} ${item.studentLastName}`;
+      
+      if (!acc[classKey]) {
+        acc[classKey] = {
+          classId: item.classId,
+          className: item.className,
+          students: {}
+        };
+      }
+      
+      if (!acc[classKey].students[studentKey]) {
+        acc[classKey].students[studentKey] = {
+          studentId: item.studentId,
+          studentName: `${item.studentFirstName} ${item.studentLastName}`,
+          studentEmail: item.studentEmail,
+          submissions: []
+        };
+      }
+      
+      acc[classKey].students[studentKey].submissions.push(item);
+      
+      return acc;
+    }, {} as any);
+
+    res.json({
+      success: true,
+      archive: organizedArchive,
+      totalItems: archiveData.length,
+      filters: { classId, studentId, term, status },
+      message: `Found ${archiveData.length} archived submissions`
+    });
+
+  } catch (error) {
+    console.error('[TEACHER_ARCHIVE] Error fetching archive:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch teacher archive'
+    });
+  }
+});
+
+// POST /api/teacher/save-draft - Save grade work as draft without submitting
+router.post('/save-draft', requireAuth, requireRole('Teacher'), async (req: any, res: Response) => {
+  try {
+    const teacherId = req.user.id;
+    const schoolId = req.user.schoolId;
+
+    // Validate request body (same as grade-entries but explicitly for drafts)
+    const validation = bulkGradeEntriesSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid request data',
+        errors: validation.error.errors
+      });
+    }
+
+    const { grades } = validation.data;
+    const results = [];
+    const errors = [];
+
+    for (const gradeData of grades) {
+      try {
+        // Verify teacher has permission for each class and subject
+        const hasPermission = await verifyTeacherPermission(
+          teacherId, 
+          schoolId, 
+          gradeData.classId, 
+          gradeData.subjectId
+        );
+
+        if (!hasPermission) {
+          errors.push({
+            studentId: gradeData.studentId,
+            error: 'Access denied for this class and subject combination'
+          });
+          continue;
+        }
+
+        // Check if draft already exists
+        const [existingDraft] = await db
+          .select()
+          .from(teacherGradeSubmissions)
+          .where(
+            and(
+              eq(teacherGradeSubmissions.studentId, gradeData.studentId),
+              eq(teacherGradeSubmissions.classId, gradeData.classId),
+              eq(teacherGradeSubmissions.subjectId, gradeData.subjectId),
+              eq(teacherGradeSubmissions.term, gradeData.term),
+              eq(teacherGradeSubmissions.teacherId, teacherId),
+              eq(teacherGradeSubmissions.schoolId, schoolId)
+            )
+          )
+          .limit(1);
+
+        if (existingDraft) {
+          // Update existing draft
+          const [updatedDraft] = await db
+            .update(teacherGradeSubmissions)
+            .set({
+              firstEvaluation: gradeData.grade.toString(),
+              termAverage: gradeData.grade.toString(),
+              coefficient: gradeData.coefficient || 1,
+              subjectComments: gradeData.comments,
+              updatedAt: new Date(),
+              isSubmitted: false, // Always false for drafts
+              reviewStatus: 'draft' // Explicitly set as draft
+            })
+            .where(eq(teacherGradeSubmissions.id, existingDraft.id))
+            .returning();
+
+          results.push({ action: 'draft_updated', gradeEntry: updatedDraft });
+        } else {
+          // Create new draft
+          const [newDraft] = await db
+            .insert(teacherGradeSubmissions)
+            .values({
+              schoolId,
+              studentId: gradeData.studentId,
+              classId: gradeData.classId,
+              subjectId: gradeData.subjectId,
+              term: gradeData.term,
+              teacherId,
+              academicYear: '2024-2025', // TODO: Get from context
+              firstEvaluation: gradeData.grade.toString(),
+              termAverage: gradeData.grade.toString(),
+              coefficient: gradeData.coefficient || 1,
+              subjectComments: gradeData.comments,
+              isSubmitted: false, // Always false for drafts
+              reviewStatus: 'draft' // Explicitly set as draft
+            })
+            .returning();
+
+          results.push({ action: 'draft_created', gradeEntry: newDraft });
+        }
+
+      } catch (itemError) {
+        console.error('[TEACHER_SAVE_DRAFT] Error processing item:', itemError);
+        errors.push({
+          studentId: gradeData.studentId,
+          error: 'Failed to save draft for this student'
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      results,
+      errors,
+      message: `Saved ${results.length} draft(s), ${errors.length} error(s)`
+    });
+
+  } catch (error) {
+    console.error('[TEACHER_SAVE_DRAFT] Error saving drafts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save drafts'
     });
   }
 });
