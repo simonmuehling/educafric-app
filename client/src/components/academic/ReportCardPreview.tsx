@@ -2,6 +2,25 @@
 import React, { useMemo } from "react";
 import { TEACHER_COMMENTS } from './BulletinCreationInterface';
 
+// Smart text compression utilities for single-page fit with 20 subjects
+const compressCompetence = (text: string): string => {
+  if (!text) return '';
+  return text
+    .toUpperCase()
+    .replace(/\b(DE|DU|LA|LE|LES|UN|UNE|ET|OU|DANS|AVEC|POUR|PAR)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .substring(0, 14);
+};
+
+const compressName = (name: string): string => {
+  if (!name) return '';
+  const parts = name.split(' ');
+  if (parts.length === 1) return parts[0].substring(0, 12);
+  const initials = parts.slice(0, -1).map(p => p[0]).join('.');
+  return `${initials} ${parts[parts.length - 1]}`.substring(0, 12);
+};
+
 // ---- Ministry Official Format Compliance ----
 const TRIMESTER_TITLES = {
   fr: (t: string) => `${String(t || "PREMIER").toUpperCase()} TRIMESTRE`,
@@ -269,7 +288,7 @@ export default function ReportCardPreview({
   const labels = LABELS[language];
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0 bulletin-compact" data-bulletin-preview="true">
+    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0 bulletin-compact print:w-[210mm] print:h-[297mm] print:overflow-hidden print:text-[8px]" data-bulletin-preview="true">
       <A4Sheet>
         <div className="p-2">
           {/* EXACT Ministry Header - Bilingual Side by Side with School Logo */}
@@ -379,10 +398,22 @@ export default function ReportCardPreview({
 
           {/* EXACT Ministry Subject Table - MUST match documents precisely */}
           <div className="mt-2 overflow-auto">
-            <table className="w-full text-[6px] border border-black" style={{lineHeight: '1.0'}}>
+            <table className="w-full print:text-[7px] border border-black" style={{lineHeight: '1.0', tableLayout: 'fixed'}}>
+              {/* Fixed Column Widths for A4 Fit */}
+              <colgroup>
+                <col style={{ width: '34mm' }} /> {/* Subject+Teacher */}
+                <col style={{ width: '54mm' }} /> {/* Competencies */}
+                <col style={{ width: '10mm' }} /> {/* MK/20 */}
+                <col style={{ width: '10mm' }} /> {/* AV/20 */}
+                <col style={{ width: '8mm' }} />  {/* Coef */}
+                <col style={{ width: '12mm' }} /> {/* AV×Coef */}
+                <col style={{ width: '10mm' }} /> {/* Grade */}
+                <col style={{ width: '16mm' }} /> {/* Min-Max */}
+                <col style={{ width: '34mm' }} /> {/* Remarks */}
+              </colgroup>
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border border-black p-0.5 font-bold text-center w-24">
+                  <th className="border border-black p-0.5 font-bold text-center">
                     {language === 'fr' ? 'Disciplines et noms des enseignants' : 'Subject and Teacher\'s Names'}
                   </th>
                   <th className="border border-black p-0.5 font-bold text-center" style={{minWidth: '120px'}}>
