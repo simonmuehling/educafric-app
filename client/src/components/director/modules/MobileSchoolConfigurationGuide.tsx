@@ -60,14 +60,27 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
   const fetchConfigurationStatus = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/school/configuration-status', {
-        credentials: 'include'
+      const response = await fetch('/api/director/configuration-status', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.ok) {
         const data = await response.json();
         setConfigStatus(data);
         console.log('[MOBILE_CONFIG_GUIDE] Status loaded:', data);
+      } else {
+        console.error('[MOBILE_CONFIG_GUIDE] HTTP Error:', response.status, response.statusText);
+        // Pour le debugging, tentons de lire la réponse d'erreur
+        try {
+          const errorData = await response.text();
+          console.error('[MOBILE_CONFIG_GUIDE] Error response:', errorData);
+        } catch (e) {
+          console.error('[MOBILE_CONFIG_GUIDE] Could not read error response');
+        }
       }
     } catch (error) {
       console.error('[MOBILE_CONFIG_GUIDE] Error fetching status:', error);

@@ -8091,10 +8091,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= SCHOOL CONFIGURATION STATUS API =============
   // Route pour obtenir le statut de configuration de l'école
-  app.get('/api/school/configuration-status', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+  app.get('/api/director/configuration-status', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[SCHOOL_CONFIG] Configuration status request for user:', user.id, 'school:', user.schoolId);
+      console.log('[SCHOOL_CONFIG] Configuration status request for user:', user.id, 'email:', user.email, 'role:', user.role, 'school:', user.schoolId);
       
       // Check if user is in sandbox/demo mode
       const isSandboxUser = user.email?.includes('@test.educafric.com') || 
