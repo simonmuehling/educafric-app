@@ -84,7 +84,7 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
   // Create course mutation
   const createCourseMutation = useMutation({
     mutationFn: async (courseData: any) => {
-      return apiRequest('/api/online-classes/courses', 'POST', courseData);
+      return apiRequest('POST', '/api/online-classes/courses', courseData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses'] });
@@ -106,7 +106,7 @@ const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }
   // Create session mutation
   const createSessionMutation = useMutation({
     mutationFn: async ({ courseId, sessionData }: { courseId: number, sessionData: any }) => {
-      return apiRequest(`/api/online-classes/courses/${courseId}/sessions`, 'POST', sessionData);
+      return apiRequest('POST', `/api/online-classes/courses/${courseId}/sessions`, sessionData);
     },
     onSuccess: () => {
       setShowCreateSession(false);
