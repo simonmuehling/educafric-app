@@ -40,7 +40,7 @@ class UnifiedModuleLoader {
     
     // Shared Components - Medium priority
     { component: () => import('@/components/shared/NotificationCenter'), strategy: 'preload', priority: 3 },
-    { component: () => import('@/components/help/HelpCenter'), strategy: 'preload', priority: 3 },
+    { component: () => import('@/components/director/modules/SchoolConfigurationGuide'), strategy: 'preload', priority: 3 },
   ];
 
   // SECONDARY MODULES - Load on demand (true lazy loading)

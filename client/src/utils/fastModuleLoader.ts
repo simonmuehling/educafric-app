@@ -38,11 +38,11 @@ class FastModuleLoader {
       'school-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'delegated-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
-      'help': () => import('@/components/help/HelpCenter'),
-      'director.help': () => import('@/components/help/HelpCenter'), // Role-namespaced
-      'student.help': () => import('@/components/help/HelpCenter'), // Role-namespaced
-      'parent.help': () => import('@/components/help/HelpCenter'), // Role-namespaced
-      'teacher.help': () => import('@/components/help/HelpCenter'), // Role-namespaced
+      'help': () => import('@/components/director/modules/SchoolConfigurationGuide'),
+      'director.help': () => import('@/components/director/modules/SchoolConfigurationGuide'), // Role-namespaced
+      'student.help': () => import('@/components/director/modules/SchoolConfigurationGuide'), // Role-namespaced
+      'parent.help': () => import('@/components/director/modules/SchoolConfigurationGuide'), // Role-namespaced
+      'teacher.help': () => import('@/components/director/modules/SchoolConfigurationGuide'), // Role-namespaced
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
       // Removed comprehensive-bulletins module - now integrated in academic-management
@@ -389,7 +389,7 @@ class FastModuleLoader {
     // Now load other modules in background
     const otherModules = [
       // Director modules
-      'timetable', 'director-timetable', 'settings', 'notifications', 'help',
+      'timetable', 'director-timetable', 'settings', 'notifications', 'config-guide',
       'teachers', 'students', 'classes', 'school-administrators', 'reports',
       
       // Student modules  

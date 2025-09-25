@@ -26,10 +26,32 @@ interface ConfigStatus {
   nextRecommendedStep: string;
 }
 
+// Interfaces pour la section d'aide intégrée
+interface HelpSection {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  topics: HelpTopic[];
+}
+
+interface HelpTopic {
+  id: string;
+  title: string;
+  description: string;
+  category: 'getting-started' | 'features' | 'troubleshooting' | 'advanced';
+  readTime: number;
+  content: string;
+  downloadLinks?: { title: string; url: string }[];
+}
+
 const SchoolConfigurationGuide: React.FC = () => {
   const { language, t } = useLanguage();
   const [configStatus, setConfigStatus] = useState<ConfigStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  // États pour la section d'aide intégrée
+  const [activeTab, setActiveTab] = useState('configuration');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTopic, setSelectedTopic] = useState<HelpTopic | null>(null);
 
   useEffect(() => {
     fetchConfigurationStatus();
@@ -82,6 +104,144 @@ const SchoolConfigurationGuide: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Fonctions pour la section d'aide intégrée
+  const getSchoolHelpSections = (): HelpSection[] => {
+    return [
+      {
+        id: 'getting-started',
+        title: language === 'fr' ? 'Démarrage' : 'Getting Started',
+        icon: <BookOpen className="w-5 h-5" />,
+        topics: [
+          {
+            id: 'school-setup',
+            title: language === 'fr' ? 'Configuration initiale' : 'Initial setup',
+            description: language === 'fr' ? 'Configurer votre établissement scolaire' : 'Set up your educational institution',
+            category: 'getting-started',
+            readTime: 10,
+            content: language === 'fr'
+              ? 'La configuration de votre école dans EDUCAFRIC comprend plusieurs étapes essentielles : création du profil école, ajout des classes, gestion des enseignants et élèves, configuration de l\'emploi du temps, paramétrage des communications avec les parents, et activation des fonctionnalités avancées comme la géolocalisation et les rapports automatisés.'
+              : 'Setting up your school in EDUCAFRIC involves several essential steps: creating the school profile, adding classes, managing teachers and students, configuring timetables, setting up parent communications, and activating advanced features like geolocation and automated reports.'
+          },
+          {
+            id: 'user-management',
+            title: language === 'fr' ? 'Gestion des utilisateurs' : 'User management',
+            description: language === 'fr' ? 'Ajouter et gérer enseignants, élèves et parents' : 'Add and manage teachers, students and parents',
+            category: 'getting-started',
+            readTime: 8,
+            content: language === 'fr'
+              ? 'La gestion des utilisateurs est centralisée dans votre tableau de bord directeur. Vous pouvez ajouter des enseignants avec leurs matières, inscrire des élèves dans leurs classes respectives, et faciliter les connexions parent-enfant pour le suivi scolaire.'
+              : 'User management is centralized in your director dashboard. You can add teachers with their subjects, enroll students in their respective classes, and facilitate parent-child connections for academic monitoring.'
+          }
+        ]
+      },
+      {
+        id: 'features',
+        title: language === 'fr' ? 'Fonctionnalités' : 'Features',
+        icon: <Settings className="w-5 h-5" />,
+        topics: [
+          {
+            id: 'academic-management',
+            title: language === 'fr' ? 'Gestion académique' : 'Academic management',
+            description: language === 'fr' ? 'Bulletins, notes et évaluations' : 'Report cards, grades and assessments',
+            category: 'features',
+            readTime: 12,
+            content: language === 'fr'
+              ? 'Le système de gestion académique d\'EDUCAFRIC permet la création de bulletins personnalisés, la saisie de notes par trimestre, le suivi des comportements, et la génération automatique de rapports de classe avec signatures numériques.'
+              : 'EDUCAFRIC\'s academic management system enables creation of personalized report cards, term-based grade entry, behavior tracking, and automatic generation of class reports with digital signatures.'
+          },
+          {
+            id: 'communications',
+            title: language === 'fr' ? 'Communications' : 'Communications',
+            description: language === 'fr' ? 'Messagerie multicanal avec parents' : 'Multi-channel messaging with parents',
+            category: 'features',
+            readTime: 6,
+            content: language === 'fr'
+              ? 'Communiquez avec les parents via SMS, WhatsApp, email et notifications push. Envoyez des alertes automatiques pour les absences, retards, et résultats scolaires.'
+              : 'Communicate with parents via SMS, WhatsApp, email and push notifications. Send automatic alerts for absences, delays, and academic results.'
+          },
+          {
+            id: 'geolocation',
+            title: language === 'fr' ? 'Géolocalisation' : 'Geolocation',
+            description: language === 'fr' ? 'Suivi de position et zones de sécurité' : 'Position tracking and safety zones',
+            category: 'features',
+            readTime: 8,
+            content: language === 'fr'
+              ? 'Activez le suivi GPS pour la sécurité des élèves avec zones de sécurité personnalisables, alertes en temps réel, et historique des déplacements.'
+              : 'Enable GPS tracking for student safety with customizable safety zones, real-time alerts, and movement history.'
+          }
+        ]
+      },
+      {
+        id: 'troubleshooting',
+        title: language === 'fr' ? 'Dépannage' : 'Troubleshooting',
+        icon: <HelpCircle className="w-5 h-5" />,
+        topics: [
+          {
+            id: 'login-issues',
+            title: language === 'fr' ? 'Problèmes de connexion' : 'Login issues',
+            description: language === 'fr' ? 'Résoudre les difficultés de connexion' : 'Resolve login difficulties',
+            category: 'troubleshooting',
+            readTime: 3,
+            content: language === 'fr'
+              ? 'Si vous ne parvenez pas à vous connecter, vérifiez votre connexion internet, votre email et mot de passe. Contactez le support si le problème persiste.'
+              : 'If you cannot log in, check your internet connection, email and password. Contact support if the problem persists.'
+          },
+          {
+            id: 'module-errors',
+            title: language === 'fr' ? 'Erreurs de modules' : 'Module errors',
+            description: language === 'fr' ? 'Résoudre les problèmes de chargement' : 'Resolve loading issues',
+            category: 'troubleshooting',
+            readTime: 4,
+            content: language === 'fr'
+              ? 'Si un module ne se charge pas correctement, actualisez la page ou videz le cache de votre navigateur. Vérifiez également vos permissions d\'accès.'
+              : 'If a module does not load correctly, refresh the page or clear your browser cache. Also check your access permissions.'
+          }
+        ]
+      },
+      {
+        id: 'support',
+        title: language === 'fr' ? 'Contact & Support' : 'Contact & Support',
+        icon: <Headphones className="w-5 h-5" />,
+        topics: [
+          {
+            id: 'contact-support',
+            title: language === 'fr' ? 'Contacter le support' : 'Contact support',
+            description: language === 'fr' ? 'Obtenir de l\'aide personnalisée' : 'Get personalized help',
+            category: 'advanced',
+            readTime: 2,
+            content: language === 'fr'
+              ? 'Notre équipe support est disponible pour vous aider. Contactez-nous par email à support@educafric.com ou par téléphone au +237 6 57 00 40 11.'
+              : 'Our support team is available to help you. Contact us by email at support@educafric.com or by phone at +237 6 57 00 40 11.'
+          }
+        ]
+      }
+    ];
+  };
+
+  const getCategoryBadge = (category: string) => {
+    switch (category) {
+      case 'getting-started':
+        return <Badge className="bg-green-100 text-green-800">{language === 'fr' ? 'Démarrage' : 'Getting Started'}</Badge>;
+      case 'features':
+        return <Badge className="bg-blue-100 text-blue-800">{language === 'fr' ? 'Fonctionnalités' : 'Features'}</Badge>;
+      case 'troubleshooting':
+        return <Badge className="bg-orange-100 text-orange-800">{language === 'fr' ? 'Dépannage' : 'Troubleshooting'}</Badge>;
+      case 'advanced':
+        return <Badge className="bg-purple-100 text-purple-800">{language === 'fr' ? 'Avancé' : 'Advanced'}</Badge>;
+      default:
+        return <Badge>{category}</Badge>;
+    }
+  };
+
+  const helpSections = getSchoolHelpSections();
+  const filteredSections = helpSections.map(section => ({
+    ...section,
+    topics: section.topics.filter(topic =>
+      topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      topic.description.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })).filter(section => section.topics.length > 0);
 
   const stepConfig = {
     'school-info': {
@@ -304,6 +464,60 @@ const SchoolConfigurationGuide: React.FC = () => {
     );
   }
 
+  // Gestion du contenu de l'aide sélectionnée
+  if (selectedTopic) {
+    return (
+      <div className="w-full space-y-6">
+        <Button 
+          onClick={() => setSelectedTopic(null)}
+          variant="outline"
+          className="mb-4"
+        >
+          ← {language === 'fr' ? 'Retour à l\'aide' : 'Back to Help'}
+        </Button>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <HelpCircle className="w-6 h-6" />
+              {selectedTopic.title}
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {getCategoryBadge(selectedTopic.category)}
+              <div className="flex items-center gap-1 text-sm text-gray-500">
+                <Clock className="w-4 h-4" />
+                {selectedTopic.readTime} min
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="prose max-w-none">
+              <p className="text-gray-700">{selectedTopic.content}</p>
+              {selectedTopic.downloadLinks && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold mb-2">
+                    {language === 'fr' ? 'Téléchargements' : 'Downloads'}
+                  </h4>
+                  {selectedTopic.downloadLinks.map((link, index) => (
+                    <a 
+                      key={index}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+                    >
+                      <Download className="w-4 h-4" />
+                      {link.title}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full space-y-6">
       {/* Header inspiré de la présentation Educafric */}
@@ -330,8 +544,21 @@ const SchoolConfigurationGuide: React.FC = () => {
         </div>
       </div>
 
+      {/* Tabs pour Configuration et Aide */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="configuration" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            {language === 'fr' ? 'Configuration' : 'Configuration'}
+          </TabsTrigger>
+          <TabsTrigger value="help" className="flex items-center gap-2">
+            <HelpCircle className="w-4 h-4" />
+            {language === 'fr' ? 'Aide' : 'Help'}
+          </TabsTrigger>
+        </TabsList>
 
-      <Card className="w-full">
+        <TabsContent value="configuration" className="mt-6">
+          <Card className="w-full">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2">
             <Settings className="w-6 h-6 text-blue-600" />
@@ -589,6 +816,119 @@ const SchoolConfigurationGuide: React.FC = () => {
         )}
       </CardContent>
     </Card>
+        </TabsContent>
+
+        <TabsContent value="help" className="mt-6">
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HelpCircle className="w-6 h-6 text-blue-600" />
+                {language === 'fr' ? 'Centre d\'aide École' : 'School Help Center'}
+              </CardTitle>
+              <CardDescription>
+                {language === 'fr'
+                  ? 'Documentation complète pour l\'administration scolaire'
+                  : 'Complete documentation for school administration'
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Barre de recherche */}
+              <div className="mb-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder={language === 'fr' ? 'Rechercher dans l\'aide...' : 'Search help...'}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* Cartes de contact rapide */}
+              <div className="grid md:grid-cols-3 gap-4 mb-8">
+                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Phone className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="font-semibold text-sm">
+                      {language === 'fr' ? 'Support Téléphone' : 'Phone Support'}
+                    </p>
+                    <p className="text-xs text-gray-600">+237 6 57 00 40 11</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Globe className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="font-semibold text-sm">
+                      {language === 'fr' ? 'Site Web' : 'Website'}
+                    </p>
+                    <p className="text-xs text-gray-600">www.educafric.com</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Mail className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="font-semibold text-sm">
+                      {language === 'fr' ? 'Support Email' : 'Email Support'}
+                    </p>
+                    <p className="text-xs text-gray-600">support@educafric.com</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Sections d'aide */}
+              <div className="space-y-8">
+                {filteredSections.map(section => (
+                  <Card key={section.id}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-3 text-xl">
+                        {section.icon}
+                        {section.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {section.topics.map(topic => (
+                          <Card 
+                            key={topic.id}
+                            className="cursor-pointer hover:shadow-md transition-shadow"
+                            onClick={() => setSelectedTopic(topic)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  {getCategoryBadge(topic.category)}
+                                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                                    <Clock className="w-3 h-3" />
+                                    {topic.readTime} min
+                                  </div>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-gray-400" />
+                              </div>
+                              <h3 className="font-semibold mb-2">{topic.title}</h3>
+                              <p className="text-sm text-gray-600">{topic.description}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
