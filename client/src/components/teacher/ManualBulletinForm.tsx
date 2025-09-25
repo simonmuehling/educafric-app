@@ -1608,66 +1608,187 @@ export default function ManualBulletinForm({
 
         {/* Digital Signature and Actions Section (matching director interface) */}
         <hr/>
-        <div className="p-4 bg-green-50 rounded-xl">
-          <h3 className="font-semibold mb-3 text-green-800">Signature Numérique et Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <button
+        
+        {/* Teacher Actions - Role-restricted workflow (EXACT from requirements) */}
+        <div className="p-4 bg-blue-50 rounded-xl">
+          <h3 className="font-semibold mb-3 text-blue-800">
+            {language === 'fr' ? 'Actions Enseignant' : 'Teacher Actions'}
+          </h3>
+          <p className="text-sm text-blue-600 mb-4">
+            {language === 'fr' 
+              ? 'Les enseignants soumettent les notes uniquement à l\'école. L\'école gère la signature et l\'envoi aux parents.'
+              : 'Teachers submit grades only to the school. The school manages signing and sending to parents.'}
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Save Draft */}
+            <div className="space-y-2">
+              <Button
                 type="button"
+                variant="outline"
+                className="w-full"
                 onClick={() => {
-                  setIsSigned(!isSigned);
-                  if (!isSigned) {
-                    setSignatureData({
-                      verificationCode: `EDU${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-                      timestamp: new Date().toISOString(),
-                      signedBy: "Enseignant",
-                      status: 'signed'
-                    });
-                  }
+                  // Save current state as draft
+                  const draftData = {
+                    studentId: selectedStudent?.id,
+                    studentName: selectedStudent?.fullName,
+                    className: selectedClass?.name,
+                    term: currentTerm,
+                    year: currentYear,
+                    rows,
+                    extendedStudent,
+                    extendedDiscipline,
+                    meta,
+                    savedAt: new Date().toISOString(),
+                    status: 'draft'
+                  };
+                  
+                  // Store in localStorage for now
+                  const existingDrafts = JSON.parse(localStorage.getItem('teacher_bulletin_drafts') || '[]');
+                  const updatedDrafts = [...existingDrafts.filter((d: any) => 
+                    !(d.studentId === draftData.studentId && d.term === draftData.term && d.year === draftData.year)
+                  ), draftData];
+                  localStorage.setItem('teacher_bulletin_drafts', JSON.stringify(updatedDrafts));
+                  
+                  toast({
+                    title: language === 'fr' ? 'Brouillon sauvegardé' : 'Draft saved',
+                    description: language === 'fr' 
+                      ? `Notes sauvegardées pour ${selectedStudent?.fullName || 'Élève'}`
+                      : `Grades saved for ${selectedStudent?.fullName || 'Student'}`,
+                  });
                 }}
-                className={`w-full px-4 py-2 rounded-xl font-medium ${
-                  isSigned 
-                    ? 'bg-green-600 text-white' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                }`}
-                data-testid="button-sign-bulletin"
+                data-testid="button-save-draft"
               >
-                {isSigned ? '✓ Bulletin Signé' : 'Signer le Bulletin'}
-              </button>
-              
-              {isSigned && signatureData && (
-                <div className="text-xs text-green-700 bg-white p-2 rounded border">
-                  <div><strong>Code:</strong> {signatureData.verificationCode}</div>
-                  <div><strong>Signé par:</strong> {signatureData.signedBy}</div>
-                  <div><strong>Date:</strong> {new Date(signatureData.timestamp).toLocaleString('fr-FR')}</div>
-                </div>
-              )}
+                💾 {language === 'fr' ? 'Sauvegarder Brouillon' : 'Save Draft'}
+              </Button>
+              <p className="text-xs text-gray-600 text-center">
+                {language === 'fr' ? 'Travail temporaire' : 'Temporary work'}
+              </p>
             </div>
-            
-            <div className="space-y-3">
-              <button
+
+            {/* Archive for Class */}
+            <div className="space-y-2">
+              <Button
                 type="button"
+                variant="secondary"
+                className="w-full"
                 onClick={() => {
-                  if (!isSigned) {
-                    alert('Le bulletin doit d\'abord être signé avant l\'envoi');
-                    return;
+                  // Archive organized by class and student
+                  const archiveData = {
+                    studentId: selectedStudent?.id,
+                    studentName: selectedStudent?.fullName,
+                    className: selectedClass?.name,
+                    term: currentTerm,
+                    year: currentYear,
+                    rows,
+                    extendedStudent,
+                    extendedDiscipline,
+                    meta,
+                    archivedAt: new Date().toISOString(),
+                    status: 'archived'
+                  };
+                  
+                  // Store in organized archive
+                  const existingArchives = JSON.parse(localStorage.getItem('teacher_bulletin_archives') || '{}');
+                  const classKey = `${selectedClass?.name}-${currentYear}`;
+                  if (!existingArchives[classKey]) {
+                    existingArchives[classKey] = [];
                   }
-                  alert(`Bulletin envoyé avec succès!\n\n📧 Élève: Email + SMS\n📱 Parents: Email + WhatsApp\n\nCode de vérification: ${signatureData?.verificationCode}`);
+                  
+                  // Remove existing archive for same student/term
+                  existingArchives[classKey] = existingArchives[classKey].filter((a: any) => 
+                    !(a.studentId === archiveData.studentId && a.term === archiveData.term)
+                  );
+                  existingArchives[classKey].push(archiveData);
+                  
+                  localStorage.setItem('teacher_bulletin_archives', JSON.stringify(existingArchives));
+                  
+                  toast({
+                    title: language === 'fr' ? 'Archivé avec succès' : 'Successfully archived',
+                    description: language === 'fr' 
+                      ? `Notes archivées dans ${selectedClass?.name || 'la classe'}`
+                      : `Grades archived in ${selectedClass?.name || 'class'}`,
+                  });
                 }}
-                disabled={!isSigned}
-                className={`w-full px-4 py-2 rounded-xl font-medium ${
-                  isSigned 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-                data-testid="button-send-bulletin"
+                data-testid="button-archive"
               >
-                Envoyer aux Élèves/Parents
-              </button>
-              
-              <div className="text-xs text-gray-600">
-                Envoi automatique par Email, SMS et WhatsApp
+                📁 {language === 'fr' ? 'Archiver par Classe' : 'Archive by Class'}
+              </Button>
+              <p className="text-xs text-gray-600 text-center">
+                {language === 'fr' ? 'Organisation par classe' : 'Organize by class'}
+              </p>
+            </div>
+
+            {/* Submit to School */}
+            <div className="space-y-2">
+              <Button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                disabled={saveBulletinMutation.isPending || rows.length === 0}
+                data-testid="button-submit-to-school"
+              >
+                {saveBulletinMutation.isPending ? (
+                  <>🔄 {language === 'fr' ? 'Envoi...' : 'Sending...'}</>
+                ) : (
+                  <>📤 {language === 'fr' ? 'Soumettre à l\'École' : 'Submit to School'}</>
+                )}
+              </Button>
+              <p className="text-xs text-gray-600 text-center">
+                {language === 'fr' ? 'Validation finale par l\'école' : 'Final validation by school'}
+              </p>
+            </div>
+          </div>
+          
+          {/* Teacher Role Reminder */}
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <span className="text-yellow-600">ℹ️</span>
+              <div className="text-xs text-yellow-800">
+                <strong>
+                  {language === 'fr' ? 'Rappel du rôle enseignant :' : 'Teacher role reminder:'}
+                </strong>
+                <ul className="mt-1 list-disc list-inside space-y-1">
+                  <li>
+                    {language === 'fr' 
+                      ? 'Les enseignants soumettent les notes uniquement à l\'école'
+                      : 'Teachers submit grades only to the school'}
+                  </li>
+                  <li>
+                    {language === 'fr' 
+                      ? 'L\'école valide, signe et envoie aux parents'
+                      : 'School validates, signs and sends to parents'}
+                  </li>
+                  <li>
+                    {language === 'fr' 
+                      ? 'Aucune communication directe enseignant ↔ parents via cette interface'
+                      : 'No direct teacher ↔ parent communication via this interface'}
+                  </li>
+                </ul>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Print Preview (Reference only - no direct print action) */}
+        <div className="p-4">
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="ghost" 
+              size="sm"
+              onClick={() => window.print()}
+              className="text-gray-500"
+              data-testid="button-print-preview"
+            >
+              🖨️ {language === 'fr' ? 'Aperçu d\'impression' : 'Print Preview'}
+            </Button>
+            <p className="text-xs text-gray-500 mt-1">
+              {language === 'fr' 
+                ? 'Pour référence uniquement - l\'école gère l\'impression officielle'
+                : 'For reference only - school manages official printing'}
+            </p>
+          </div>
+        </div>
             </div>
           </div>
         </div>
