@@ -8,10 +8,11 @@ import { grades } from '../../../shared/schemas/academicSchema';
 import { teacherClassSubjects, classSubjects } from '../../../shared/schemas/classSubjectsSchema';
 import { classEnrollments } from '../../../shared/schemas/classEnrollmentSchema';
 
-// Map table references to actual available tables
-// gradeEntries -> grades (existing table with proper columns)
+// Import teacher grade submissions table for bulletin workflow
+import { teacherGradeSubmissions } from '../../../shared/schemas/bulletinSchema';
+
+// Map table references to actual available tables  
 // teacherSubjectAssignments -> teacherClassSubjects (existing teacher assignment table)
-const gradeEntries = grades;
 const teacherSubjectAssignments = teacherClassSubjects;
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { z } from 'zod';
@@ -288,30 +289,30 @@ router.get('/grade-entries', requireAuth, requireRole('Teacher'), async (req: an
       });
     }
 
-    // Get grade entries for this class, subject, and term
+    // Get teacher grade submissions for this class, subject, and term
     const gradeEntriesData = await db
       .select({
-        id: gradeEntries.id,
-        studentId: gradeEntries.studentId,
-        score: gradeEntries.grade, // FIXED: score -> grade column
-        coefficient: gradeEntries.coefficient,
-        examType: gradeEntries.examType, // Fixed: status -> examType
-        term: gradeEntries.term, // Fixed: version -> term
-        comments: gradeEntries.comments, // Fixed: comment -> comments
-        createdAt: gradeEntries.createdAt,
-        updatedAt: gradeEntries.updatedAt,
+        id: teacherGradeSubmissions.id,
+        studentId: teacherGradeSubmissions.studentId,
+        score: teacherGradeSubmissions.termAverage, // Map termAverage to score
+        coefficient: teacherGradeSubmissions.coefficient,
+        examType: teacherGradeSubmissions.reviewStatus, // Map reviewStatus to examType
+        term: teacherGradeSubmissions.term,
+        comments: teacherGradeSubmissions.subjectComments, // Map subjectComments to comments
+        createdAt: teacherGradeSubmissions.createdAt,
+        updatedAt: teacherGradeSubmissions.updatedAt,
         studentFirstName: users.firstName,
         studentLastName: users.lastName
       })
-      .from(gradeEntries)
-      .leftJoin(users, eq(users.id, gradeEntries.studentId))
+      .from(teacherGradeSubmissions)
+      .leftJoin(users, eq(users.id, teacherGradeSubmissions.studentId))
       .where(
         and(
-          eq(gradeEntries.teacherId, teacherId),
-          eq(gradeEntries.schoolId, schoolId),
-          eq(gradeEntries.classId, classIdNum),
-          eq(gradeEntries.subjectId, subjectIdNum),
-          eq(gradeEntries.term, termString) // Fixed: termId -> term (string)
+          eq(teacherGradeSubmissions.teacherId, teacherId),
+          eq(teacherGradeSubmissions.schoolId, schoolId),
+          eq(teacherGradeSubmissions.classId, classIdNum),
+          eq(teacherGradeSubmissions.subjectId, subjectIdNum),
+          eq(teacherGradeSubmissions.term, termString)
         )
       );
 
