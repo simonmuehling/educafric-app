@@ -65,6 +65,7 @@ interface Subject {
   moyenneFinale: number;
   competence1: string;
   competence2: string;
+  competence3: string; // Ajout de la 3ème compétence comme dans le système académique
   totalPondere: number;
   cote: string;
 }
@@ -305,11 +306,11 @@ const TeacherBulletinInterface: React.FC = () => {
         // Initialize default subjects
         if (subjects.length === 0) {
           setSubjects([
-            { id: '1', name: 'Mathématiques', coefficient: 4, grade: 0, remark: '', note1: 0, moyenneFinale: 0, competence1: '', competence2: '', totalPondere: 0, cote: '' },
-            { id: '2', name: 'Français', coefficient: 4, grade: 0, remark: '', note1: 0, moyenneFinale: 0, competence1: '', competence2: '', totalPondere: 0, cote: '' },
-            { id: '3', name: 'Anglais', coefficient: 3, grade: 0, remark: '', note1: 0, moyenneFinale: 0, competence1: '', competence2: '', totalPondere: 0, cote: '' },
-            { id: '4', name: 'Sciences', coefficient: 3, grade: 0, remark: '', note1: 0, moyenneFinale: 0, competence1: '', competence2: '', totalPondere: 0, cote: '' },
-            { id: '5', name: 'Histoire-Géographie', coefficient: 2, grade: 0, remark: '', note1: 0, moyenneFinale: 0, competence1: '', competence2: '', totalPondere: 0, cote: '' }
+            { id: '1', name: 'Mathématiques', coefficient: 4, grade: 0, remark: '', note1: 0, moyenneFinale: 0, competence1: '', competence2: '', competence3: '', totalPondere: 0, cote: '' },
+            { id: '2', name: 'Français', coefficient: 4, grade: 0, remark: '', note1: 0, moyenneFinale: 0, competence1: '', competence2: '', competence3: '', totalPondere: 0, cote: '' },
+            { id: '3', name: 'Anglais', coefficient: 3, grade: 0, remark: '', note1: 0, moyenneFinale: 0, competence1: '', competence2: '', competence3: '', totalPondere: 0, cote: '' },
+            { id: '4', name: 'Sciences', coefficient: 3, grade: 0, remark: '', note1: 0, moyenneFinale: 0, competence1: '', competence2: '', competence3: '', totalPondere: 0, cote: '' },
+            { id: '5', name: 'Histoire-Géographie', coefficient: 2, grade: 0, remark: '', note1: 0, moyenneFinale: 0, competence1: '', competence2: '', competence3: '', totalPondere: 0, cote: '' }
           ]);
         }
       }
@@ -386,6 +387,7 @@ const TeacherBulletinInterface: React.FC = () => {
       moyenneFinale: 0,
       competence1: '',
       competence2: '',
+      competence3: '',
       totalPondere: 0,
       cote: ''
     }]);

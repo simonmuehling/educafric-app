@@ -105,6 +105,7 @@ interface Subject {
   moyenneFinale: number;
   competence1: string;
   competence2: string;
+  competence3: string; // Ajout de la 3ème compétence
   totalPondere: number;
   cote: string;
 }
@@ -330,6 +331,7 @@ interface SubjectRow {
   enseignant: string;
   competence1: string;  // Première compétence
   competence2: string;  // Deuxième compétence
+  competence3: string;  // Troisième compétence (ajout pour harmonisation)
   note1: string | number;  // Note première compétence /20
   note2: string | number;  // Note deuxième compétence /20
   moyenneFinale: string | number;  // M/20 - Moyenne des deux compétences
@@ -498,6 +500,7 @@ export default function ManualBulletinForm({
         enseignant: "",
         competence1: getCompetencesByTrimester(s.matiere, meta.trimestre).competence1 || "",
         competence2: getCompetencesByTrimester(s.matiere, meta.trimestre).competence2 || "",
+        competence3: "", // 3ème compétence vide par défaut
         note1: "",
         note2: "",
         moyenneFinale: "",
