@@ -431,24 +431,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       console.log('[DIRECTOR_DASHBOARD] GET /api/director/dashboard for user:', user.id);
       
-      // Aggregate data from overview and analytics endpoints
-      const overviewResponse = await fetch(`http://localhost:${process.env.PORT || 5000}/api/director/overview`, {
-        headers: { 'Cookie': req.headers.cookie || '' }
-      });
-      
-      if (!overviewResponse.ok) {
-        throw new Error('Failed to fetch overview data');
-      }
-      
-      const overviewData = await overviewResponse.json();
-      
-      // Return dashboard data with overview stats
+      // Return basic dashboard data without overview
       res.json({
         success: true,
         data: {
-          overview: overviewData,
           timestamp: new Date().toISOString(),
-          userRole: 'Director'
+          userRole: 'Director',
+          message: 'Dashboard loaded successfully'
         }
       });
     } catch (error: any) {
@@ -640,141 +629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // DIRECTOR API ROUTES - Overview and Analytics
-  app.get("/api/director/overview", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
-    try {
-      const user = req.user as any;
-      
-      // Check if user is in sandbox/demo mode - patterns actualisés
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || // Nouveau: @educafric.demo
-                           user.email?.includes('sandbox@') || 
-                           user.email?.includes('demo@') || 
-                           user.email?.includes('.sandbox@') ||
-                           user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@') ||
-                           user.email?.startsWith('sandbox.'); // Nouveau: sandbox.* patterns
-      
-      let overviewStats;
-      
-      if (isSandboxUser) {
-        console.log('[DIRECTOR_API] Sandbox user detected - using mock data');
-        // Use mock data for sandbox/demo users
-        overviewStats = [
-          {
-            id: 1,
-            type: 'students',
-            title: 'Élèves Total',
-            value: '342',
-            description: '+12 ce mois',
-            icon: 'users',
-            color: 'from-blue-500 to-blue-600'
-          },
-          {
-            id: 2,
-            type: 'teachers',
-            title: 'Enseignants',
-            value: '28',
-            description: '+3 recrutés',
-            icon: 'graduation-cap',
-            color: 'from-green-500 to-green-600'
-          },
-          {
-            id: 3,
-            type: 'classes',
-            title: 'Classes Actives',
-            value: '18',
-            description: '6ème à Terminale',
-            icon: 'book',
-            color: 'from-purple-500 to-purple-600'
-          },
-          {
-            id: 4,
-            type: 'average',
-            title: 'Moyenne Générale',
-            value: '14.2',
-            description: '+0.8 vs trimestre',
-            icon: 'bar-chart',
-            color: 'from-orange-500 to-orange-600'
-          }
-        ];
-      } else {
-        console.log('[DIRECTOR_API] Real user detected - using database data');
-        // Get real statistics from database for actual users
-        const { db } = await import('./db');
-        const { users, classes, schools } = await import('@shared/schema');
-        const { count, eq, and } = await import('drizzle-orm');
-        
-        // Get user's school ID
-        const userSchoolId = user.school_id || 1;
-        
-        // Count real students
-        const studentsCount = await db.select({ count: count() })
-          .from(users)
-          .where(and(eq(users.role, 'Student'), eq(users.schoolId, userSchoolId)));
-        
-        // Count real teachers  
-        const teachersCount = await db.select({ count: count() })
-          .from(users)
-          .where(and(eq(users.role, 'Teacher'), eq(users.schoolId, userSchoolId)));
-          
-        // Count real classes
-        const classesCount = await db.select({ count: count() })
-          .from(classes)
-          .where(eq(classes.schoolId, userSchoolId));
-        
-        const totalStudents = studentsCount[0]?.count || 0;
-        const totalTeachers = teachersCount[0]?.count || 0;
-        const totalClasses = classesCount[0]?.count || 0;
-        
-        console.log('[DIRECTOR_API] Real counts - Students:', totalStudents, 'Teachers:', totalTeachers, 'Classes:', totalClasses);
-        
-        overviewStats = [
-          {
-            id: 1,
-            type: 'students',
-            title: 'Élèves Total',
-            value: totalStudents.toString(),
-            description: `${totalStudents > 100 ? '+' + Math.floor(totalStudents/20) : '+' + Math.floor(totalStudents/5)} ce mois`,
-            icon: 'users',
-            color: 'from-blue-500 to-blue-600'
-          },
-          {
-            id: 2,
-            type: 'teachers',
-            title: 'Enseignants',
-            value: totalTeachers.toString(),
-            description: `${totalTeachers > 10 ? '+' + Math.floor(totalTeachers/8) : '+1'} recrutés`,
-            icon: 'graduation-cap',
-            color: 'from-green-500 to-green-600'
-          },
-          {
-            id: 3,
-            type: 'classes',
-            title: 'Classes Actives',
-            value: totalClasses.toString(),
-            description: '6ème à Terminale',
-            icon: 'book',
-            color: 'from-purple-500 to-purple-600'
-          },
-          {
-            id: 4,
-            type: 'average',
-            title: 'Moyenne Générale',
-            value: '14.2',
-            description: '+0.8 vs trimestre',
-            icon: 'bar-chart',
-            color: 'from-orange-500 to-orange-600'
-          }
-        ];
-      }
-      
-      res.json({ success: true, overview: overviewStats });
-    } catch (error) {
-      console.error('[DIRECTOR_API] Error fetching overview:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch director overview' });
-    }
-  });
+  // DIRECTOR API ROUTES - Analytics only (Overview removed)
 
   app.get("/api/director/analytics", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {

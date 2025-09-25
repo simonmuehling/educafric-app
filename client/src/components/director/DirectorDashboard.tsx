@@ -80,7 +80,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   
   // FORCE IMMEDIATE preload of critical slow modules - Director specific
   React.useEffect(() => {
-    const criticalModules = ['overview', 'teachers', 'students', 'classes', 'director-timetable', 'director-attendance', 'director-communications'];
+    const criticalModules = ['teachers', 'students', 'classes', 'director-timetable', 'director-attendance', 'director-communications'];
     
     const forceLoadCriticalModules = async () => {
       
@@ -198,7 +198,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     fr: {
       title: 'Tableau de Bord Directeur',
       subtitle: 'Administration complète de votre établissement scolaire',
-      overview: 'Vue d\'ensemble',
       settings: 'Profil Directeur',
       teachers: 'Enseignants',
       students: 'Élèves',
@@ -225,7 +224,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     en: {
       title: 'Director Dashboard',
       subtitle: 'Complete administration of your educational institution',
-      overview: 'Overview',
       settings: 'Director Profile',
       teachers: 'Teachers',
       students: 'Students',
@@ -254,13 +252,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   const t = text[language as keyof typeof text];
 
   const modules = [
-    {
-      id: 'overview',
-      label: t.overview,
-      icon: <BarChart3 className="w-6 h-6" />,
-      color: 'bg-blue-500',
-      component: createDynamicModule('overview')
-    },
     {
       id: 'subscription',
       label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
