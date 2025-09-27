@@ -37,7 +37,7 @@ import {
   UserX,
   Clock,
   CreditCard,
-  Block,
+  Ban,
   Unlock,
   Save,
   X
@@ -84,6 +84,28 @@ const SchoolManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSchools, setSelectedSchools] = useState<number[]>([]);
+  
+  // New state for school management functionality
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  const [selectedSchoolForSubscription, setSelectedSchoolForSubscription] = useState<School | null>(null);
+  const [newSchoolData, setNewSchoolData] = useState({
+    name: '',
+    address: '',
+    city: '',
+    country: 'Cameroun',
+    phone: '',
+    email: '',
+    website: '',
+    type: 'public' as 'public' | 'private',
+    level: 'mixed'
+  });
+  const [subscriptionData, setSubscriptionData] = useState({
+    planId: '',
+    action: 'extend' as 'extend' | 'activate' | 'cancel',
+    duration: '1',
+    notes: ''
+  });
 
   const text = {
     fr: {
@@ -133,7 +155,39 @@ const SchoolManagement = () => {
       primary: 'Primaire',
       secondary: 'Secondaire',
       university: 'Universitaire',
-      mixed: 'Mixte'
+      mixed: 'Mixte',
+      // New strings for subscription management
+      manageSubscription: 'Gérer Abonnement',
+      blockSchool: 'Bloquer École',
+      unblockSchool: 'Débloquer École',
+      createNewSchool: 'Créer Nouvelle École',
+      subscriptionManagement: 'Gestion Abonnement',
+      extendSubscription: 'Prolonger Abonnement',
+      activateSubscription: 'Activer Abonnement',
+      cancelSubscription: 'Annuler Abonnement',
+      selectPlan: 'Sélectionner Plan',
+      duration: 'Durée (mois)',
+      notes: 'Notes',
+      save: 'Enregistrer',
+      cancel: 'Annuler',
+      schoolName: 'Nom École',
+      address: 'Adresse',
+      city: 'Ville',
+      country: 'Pays',
+      phone: 'Téléphone',
+      email: 'Email',
+      website: 'Site Web',
+      level: 'Niveau',
+      schoolCreated: 'École créée avec succès',
+      subscriptionUpdated: 'Abonnement mis à jour',
+      schoolBlocked: 'École bloquée',
+      schoolUnblocked: 'École débloquée',
+      confirmBlock: 'Confirmer blocage',
+      confirmUnblock: 'Confirmer déblocage',
+      blockSchoolConfirm: 'Êtes-vous sûr de vouloir bloquer cette école ?',
+      unblockSchoolConfirm: 'Êtes-vous sûr de vouloir débloquer cette école ?',
+      blocked: 'Bloquée',
+      unblocked: 'Active'
     },
     en: {
       title: 'School Management',
@@ -205,6 +259,12 @@ const SchoolManagement = () => {
     queryFn: () => apiRequest('GET', '/api/admin/school-stats')
   });
 
+  // Fetch subscription plans
+  const { data: subscriptionPlans } = useQuery({
+    queryKey: ['/api/admin/subscription-plans'],
+    queryFn: () => apiRequest('GET', '/api/admin/subscription-plans')
+  });
+
   // Delete school mutation
   const deleteSchoolMutation = useMutation({
     mutationFn: (schoolId: number) => apiRequest('DELETE', `/api/admin/schools/${schoolId}`),
@@ -220,6 +280,85 @@ const SchoolManagement = () => {
       toast({
         title: t.error,
         description: 'Failed to delete school',
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Create school mutation
+  const createSchoolMutation = useMutation({
+    mutationFn: (schoolData: typeof newSchoolData) => apiRequest('POST', '/api/admin/schools', schoolData),
+    onSuccess: () => {
+      toast({
+        title: t.success,
+        description: t.schoolCreated
+      });
+      setShowCreateDialog(false);
+      setNewSchoolData({
+        name: '',
+        address: '',
+        city: '',
+        country: 'Cameroun',
+        phone: '',
+        email: '',
+        website: '',
+        type: 'public',
+        level: 'mixed'
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/schools'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/school-stats'] });
+    },
+    onError: () => {
+      toast({
+        title: t.error,
+        description: 'Failed to create school',
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Manage subscription mutation
+  const manageSubscriptionMutation = useMutation({
+    mutationFn: ({ schoolId, action, planId, duration, notes }: {
+      schoolId: number;
+      action: string;
+      planId?: string;
+      duration?: string;
+      notes?: string;
+    }) => apiRequest('POST', `/api/admin/schools/${schoolId}/subscription`, { action, planId, duration, notes }),
+    onSuccess: () => {
+      toast({
+        title: t.success,
+        description: t.subscriptionUpdated
+      });
+      setShowSubscriptionDialog(false);
+      setSelectedSchoolForSubscription(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/schools'] });
+    },
+    onError: () => {
+      toast({
+        title: t.error,
+        description: 'Failed to update subscription',
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Block/Unblock school mutation
+  const blockSchoolMutation = useMutation({
+    mutationFn: ({ schoolId, block }: { schoolId: number; block: boolean }) => 
+      apiRequest('PATCH', `/api/admin/schools/${schoolId}/block`, { isBlocked: block }),
+    onSuccess: (_, { block }) => {
+      toast({
+        title: t.success,
+        description: block ? t.schoolBlocked : t.schoolUnblocked
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/schools'] });
+    },
+    onError: () => {
+      toast({
+        title: t.error,
+        description: 'Failed to update school status',
         variant: "destructive"
       });
     }
