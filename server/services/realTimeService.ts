@@ -86,6 +86,32 @@ export interface BulletinProgressUpdate extends RealTimeEvent {
   };
 }
 
+export interface TimetableNotification extends RealTimeEvent {
+  type: 'TIMETABLE_NOTIFICATION';
+  payload: {
+    id: number;
+    type: 'created' | 'updated' | 'deleted' | 'conflict';
+    message: string;
+    teacherId: number;
+    teacherName: string;
+    classId?: number;
+    className?: string;
+    subject?: string;
+    dayOfWeek?: string;
+    startTime?: string;
+    endTime?: string;
+    room?: string;
+    changes?: {
+      field: string;
+      oldValue: string;
+      newValue: string;
+    }[];
+    priority: 'low' | 'normal' | 'high' | 'urgent';
+    actionRequired?: boolean;
+    schoolId: number;
+  };
+}
+
 // Connected user session management
 interface UserSession {
   userId: number;
@@ -428,6 +454,66 @@ export class RealTimeService {
 
     } catch (error) {
       console.error('[REALTIME] ❌ Error broadcasting bulletin progress:', error);
+    }
+  }
+
+  // Handle timetable notifications in real-time
+  public async broadcastTimetableNotification(notificationData: {
+    notificationId: number;
+    type: 'created' | 'updated' | 'deleted' | 'conflict';
+    message: string;
+    teacherId: number;
+    teacherName: string;
+    schoolId: number;
+    classId?: number;
+    className?: string;
+    subject?: string;
+    dayOfWeek?: string;
+    startTime?: string;
+    endTime?: string;
+    room?: string;
+    changes?: { field: string; oldValue: string; newValue: string; }[];
+    priority?: 'low' | 'normal' | 'high' | 'urgent';
+    actionRequired?: boolean;
+  }): Promise<void> {
+    try {
+      const event: TimetableNotification = {
+        type: 'TIMETABLE_NOTIFICATION',
+        payload: {
+          id: notificationData.notificationId,
+          type: notificationData.type,
+          message: notificationData.message,
+          teacherId: notificationData.teacherId,
+          teacherName: notificationData.teacherName,
+          classId: notificationData.classId,
+          className: notificationData.className,
+          subject: notificationData.subject,
+          dayOfWeek: notificationData.dayOfWeek,
+          startTime: notificationData.startTime,
+          endTime: notificationData.endTime,
+          room: notificationData.room,
+          changes: notificationData.changes || [],
+          priority: notificationData.priority || 'normal',
+          actionRequired: notificationData.actionRequired || false,
+          schoolId: notificationData.schoolId
+        },
+        userId: 0,
+        schoolId: notificationData.schoolId,
+        timestamp: new Date(),
+        eventId: this.generateEventId()
+      };
+
+      // Send specific notification to the affected teacher
+      this.sendToSpecificUser(notificationData.teacherId, event);
+
+      // Also broadcast to directors and admins for visibility
+      this.broadcastToRole(notificationData.schoolId, 'Director', event);
+      this.broadcastToRole(notificationData.schoolId, 'Admin', event);
+
+      console.log(`[REALTIME] 📅 Timetable notification sent: ${notificationData.type} for teacher ${notificationData.teacherName}`);
+
+    } catch (error) {
+      console.error('[REALTIME] ❌ Error broadcasting timetable notification:', error);
     }
   }
 

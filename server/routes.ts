@@ -122,6 +122,7 @@ import timetablesRouter from "./routes/api/timetables";
 // Import connection tracking
 import { trackConnection, trackPageVisit } from "./middleware/connectionTrackingMiddleware";
 import { ConnectionTrackingService } from "./services/connectionTrackingService";
+import { realTimeService } from "./services/realTimeService";
 
 // Import services
 import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes";
@@ -8196,7 +8197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .returning();
       
       // Create notification for teacher
-      await db
+      const [newNotification] = await db
         .insert(timetableNotifications)
         .values({
           teacherId: parseInt(teacherId),
@@ -8204,10 +8205,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           changeType: 'created',
           message: `Nouvel emploi du temps: ${subjectName} - ${['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][dayOfWeek]} ${startTime}-${endTime}`,
           createdBy: user.id
+        })
+        .returning();
+
+      // Get teacher and class information for real-time notification
+      const [teacherInfo] = await db
+        .select({
+          firstName: users.firstName,
+          lastName: users.lastName
+        })
+        .from(users)
+        .where(eq(users.id, parseInt(teacherId)))
+        .limit(1);
+
+      const [classInfo] = await db
+        .select({
+          name: classes.name
+        })
+        .from(classes)
+        .where(eq(classes.id, parseInt(classId)))
+        .limit(1);
+
+      // Send real-time notification
+      if (teacherInfo && classInfo) {
+        await realTimeService.broadcastTimetableNotification({
+          notificationId: newNotification.id,
+          type: 'created',
+          message: `Nouvel emploi du temps créé: ${subjectName} - ${classInfo.name}`,
+          teacherId: parseInt(teacherId),
+          teacherName: `${teacherInfo.firstName} ${teacherInfo.lastName}`,
+          schoolId: schoolId,
+          classId: parseInt(classId),
+          className: classInfo.name,
+          subject: subjectName,
+          dayOfWeek: ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][dayOfWeek],
+          startTime: startTime,
+          endTime: endTime,
+          room: room,
+          priority: 'normal',
+          actionRequired: false
         });
+      }
       
       console.log('[TIMETABLES_API] ✅ Timetable slot created:', newTimetableSlot.id);
-      console.log('[TIMETABLES_API] 🔔 Notification sent to teacher:', teacherId);
+      console.log('[TIMETABLES_API] 🔔 Database notification created for teacher:', teacherId);
+      console.log('[TIMETABLES_API] 📡 Real-time notification sent via WebSocket');
       
       res.json({
         success: true,
@@ -8271,8 +8313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create notification for teacher
+      let newNotification = null;
       if (teacherId) {
-        await db
+        [newNotification] = await db
           .insert(timetableNotifications)
           .values({
             teacherId: parseInt(teacherId),
@@ -8280,10 +8323,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
             changeType: 'updated',
             message: `Emploi du temps modifié: ${subjectName} - ${['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][dayOfWeek]} ${startTime}-${endTime}`,
             createdBy: user.id
+          })
+          .returning();
+
+        // Get teacher and class information for real-time notification
+        const [teacherInfo] = await db
+          .select({
+            firstName: users.firstName,
+            lastName: users.lastName
+          })
+          .from(users)
+          .where(eq(users.id, parseInt(teacherId)))
+          .limit(1);
+
+        const [classInfo] = classId ? await db
+          .select({
+            name: classes.name
+          })
+          .from(classes)
+          .where(eq(classes.id, parseInt(classId)))
+          .limit(1) : [];
+
+        // Send real-time notification
+        if (teacherInfo && newNotification) {
+          await realTimeService.broadcastTimetableNotification({
+            notificationId: newNotification.id,
+            type: 'updated',
+            message: `Emploi du temps modifié: ${subjectName}${classInfo ? ` - ${classInfo.name}` : ''}`,
+            teacherId: parseInt(teacherId),
+            teacherName: `${teacherInfo.firstName} ${teacherInfo.lastName}`,
+            schoolId: schoolId,
+            classId: classId ? parseInt(classId) : undefined,
+            className: classInfo?.name,
+            subject: subjectName,
+            dayOfWeek: dayOfWeek ? ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][dayOfWeek] : undefined,
+            startTime: startTime,
+            endTime: endTime,
+            room: room,
+            priority: 'normal',
+            actionRequired: true
           });
+        }
       }
       
       console.log('[TIMETABLES_API] ✅ Timetable slot updated:', timetableId);
+      if (newNotification) {
+        console.log('[TIMETABLES_API] 🔔 Database notification created for teacher:', teacherId);
+        console.log('[TIMETABLES_API] 📡 Real-time notification sent via WebSocket');
+      }
       
       res.json({
         success: true,
@@ -8334,7 +8421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(timetables.id, timetableId));
       
       // Create notification for teacher
-      await db
+      const [newNotification] = await db
         .insert(timetableNotifications)
         .values({
           teacherId: timetableSlot.teacherId,
@@ -8342,9 +8429,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           changeType: 'deleted',
           message: `Cours supprimé: ${timetableSlot.subjectName} - ${['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][timetableSlot.dayOfWeek]} ${timetableSlot.startTime}-${timetableSlot.endTime}`,
           createdBy: user.id
+        })
+        .returning();
+
+      // Get teacher and class information for real-time notification
+      const [teacherInfo] = await db
+        .select({
+          firstName: users.firstName,
+          lastName: users.lastName
+        })
+        .from(users)
+        .where(eq(users.id, timetableSlot.teacherId))
+        .limit(1);
+
+      const [classInfo] = timetableSlot.classId ? await db
+        .select({
+          name: classes.name
+        })
+        .from(classes)
+        .where(eq(classes.id, timetableSlot.classId))
+        .limit(1) : [];
+
+      // Send real-time notification
+      if (teacherInfo && newNotification) {
+        await realTimeService.broadcastTimetableNotification({
+          notificationId: newNotification.id,
+          type: 'deleted',
+          message: `Cours supprimé: ${timetableSlot.subjectName}${classInfo ? ` - ${classInfo.name}` : ''}`,
+          teacherId: timetableSlot.teacherId,
+          teacherName: `${teacherInfo.firstName} ${teacherInfo.lastName}`,
+          schoolId: schoolId,
+          classId: timetableSlot.classId,
+          className: classInfo?.name,
+          subject: timetableSlot.subjectName,
+          dayOfWeek: ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][timetableSlot.dayOfWeek],
+          startTime: timetableSlot.startTime,
+          endTime: timetableSlot.endTime,
+          room: timetableSlot.room,
+          priority: 'high',
+          actionRequired: true
         });
+      }
       
       console.log('[TIMETABLES_API] ✅ Timetable slot deleted:', timetableId);
+      console.log('[TIMETABLES_API] 🔔 Database notification created for teacher:', timetableSlot.teacherId);
+      console.log('[TIMETABLES_API] 📡 Real-time notification sent via WebSocket');
       
       res.json({
         success: true,
