@@ -901,8 +901,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       console.log('[SITE_ADMIN_API] All Educafric documents requested');
       
       // Get all documents from the document mapping system
-      const fs = require('fs');
-      const path = require('path');
+      const fs = (await import('node:fs')).default;
+      const path = (await import('node:path')).default;
       const documentsPath = path.join(process.cwd(), 'public', 'documents');
       
       let documents = [];
@@ -1649,8 +1649,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     try {
       console.log(`[SITE_ADMIN_API] 2FA setup requested by: ${req.user?.email}`);
       
-      const speakeasy = require('speakeasy');
-      const qrcode = require('qrcode');
+      const speakeasy = (await import('speakeasy')).default;
+      const qrcode = (await import('qrcode')).default;
       
       const secret = speakeasy.generateSecret({
         name: `EDUCAFRIC:${req.user?.email}`,
@@ -1690,7 +1690,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       console.log(`[SITE_ADMIN_API] 2FA verification requested by: ${req.user?.email}`);
       const { token, secret } = req.body;
       
-      const speakeasy = require('speakeasy');
+      const speakeasy = (await import('speakeasy')).default;
       
       const verified = speakeasy.totp.verify({
         secret: secret,

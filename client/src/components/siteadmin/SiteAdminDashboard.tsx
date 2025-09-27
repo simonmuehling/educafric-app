@@ -55,7 +55,10 @@ const SiteAdminDashboard: React.FC = () => {
   
   // AGGRESSIVE API DATA PRELOADING - SiteAdmin APIs
   React.useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setApiDataPreloaded(false);
+      return;
+    }
     
     const preloadSiteAdminApiData = async () => {
       
