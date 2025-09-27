@@ -54,6 +54,19 @@ const FunctionalTeacherAttendance: React.FC = () => {
     enabled: !!user
   });
 
+  // Fetch teacher profile to get assigned subjects from school interface
+  const { data: teacherProfile = {}, isLoading: profileLoading } = useQuery<any>({
+    queryKey: ['/api/teacher/profile'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/profile', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch teacher profile');
+      return response.json();
+    },
+    enabled: !!user
+  });
+
   // Fetch students for selected class
   const { data: classStudents = [], isLoading: studentsLoading } = useQuery<any[]>({
     queryKey: ['/api/teacher/students', attendanceForm.classId],
@@ -147,6 +160,87 @@ const FunctionalTeacherAttendance: React.FC = () => {
           : student
       )
     }));
+  };
+
+  // Get teacher's assigned subjects from school interface
+  const getAssignedSubjects = () => {
+    const subjects = new Set<string>();
+    
+    // Get subjects from teacher profile (assigned by school)
+    if (teacherProfile?.teachingSubjects && Array.isArray(teacherProfile.teachingSubjects)) {
+      teacherProfile.teachingSubjects.forEach((subject: string) => subjects.add(subject));
+    }
+    
+    // Also get subjects from classes (backup/alternative source)
+    if (Array.isArray(teacherClasses)) {
+      teacherClasses.forEach((cls: any) => {
+        if (cls.subject) subjects.add(cls.subject);
+        if (cls.subjects && Array.isArray(cls.subjects)) {
+          cls.subjects.forEach((subj: string) => subjects.add(subj));
+        }
+      });
+    }
+    
+    // Fallback subjects if none found
+    if (subjects.size === 0) {
+      return ['Mathématiques', 'Français', 'Sciences', 'Histoire-Géographie', 'Anglais', 'Éducation Physique'];
+    }
+    
+    return Array.from(subjects).sort();
+  };
+
+  // Export attendance data function
+  const handleExportAttendance = () => {
+    try {
+      const exportData = Array.isArray(attendance) ? attendance : [];
+      
+      if (exportData.length === 0) {
+        toast({
+          title: language === 'fr' ? 'Aucune donnée' : 'No data',
+          description: language === 'fr' ? 'Aucune donnée de présence à exporter' : 'No attendance data to export',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Create CSV content
+      const headers = ['Élève', 'Classe', 'Date', 'Statut', 'Motif', 'Marqué le'];
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map(record => [
+          record.studentName,
+          record.className,
+          record.date,
+          record.status,
+          record.reason || '',
+          record.markedAt
+        ].join(','))
+      ].join('\n');
+
+      // Download CSV file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `presences-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: language === 'fr' ? 'Export réussi' : 'Export successful',
+        description: language === 'fr' ? 
+          `${exportData.length} enregistrements exportés` : 
+          `${exportData.length} records exported`
+      });
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur d\'export' : 'Export error',
+        description: language === 'fr' ? 'Erreur lors de l\'export' : 'Error during export',
+        variant: 'destructive'
+      });
+    }
   };
 
   const text = {
@@ -287,11 +381,19 @@ const FunctionalTeacherAttendance: React.FC = () => {
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => handleExportAttendance()}
+            data-testid="button-export-attendance"
+          >
             <Download className="w-4 h-4 mr-2" />
             {t?.actions?.export}
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={() => setIsMarkAttendanceOpen(true)}
+            data-testid="button-blue-mark-attendance"
+          >
             <CheckCircle className="w-4 h-4 mr-2" />
             {t?.actions?.markAttendance}
           </Button>
@@ -420,14 +522,29 @@ const FunctionalTeacherAttendance: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Matière</label>
-                    <input
-                      type="text"
-                      value={attendanceForm.subject}
-                      onChange={(e) => setAttendanceForm(prev => ({ ...prev, subject: e.target.value }))}
-                      placeholder="Ex: Mathématiques"
-                      className="w-full border rounded-md px-3 py-2"
-                    />
+                    <label className="text-sm font-medium">Matière Assignée</label>
+                    {profileLoading ? (
+                      <div className="w-full border rounded-md px-3 py-2 bg-gray-50">
+                        Chargement des matières...
+                      </div>
+                    ) : (
+                      <select
+                        value={attendanceForm.subject}
+                        onChange={(e) => setAttendanceForm(prev => ({ ...prev, subject: e.target.value }))}
+                        className="w-full border rounded-md px-3 py-2"
+                        data-testid="select-assigned-subject"
+                      >
+                        <option value="">Sélectionner une matière</option>
+                        {getAssignedSubjects().map((subject) => (
+                          <option key={subject} value={subject}>
+                            {subject}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <div className="text-xs text-gray-500 mt-1">
+                      Matières assignées par l'école lors de la création de votre compte
+                    </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Notes (optionnel)</label>
