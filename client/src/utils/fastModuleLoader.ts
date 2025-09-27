@@ -213,15 +213,15 @@ class FastModuleLoader {
       // SiteAdmin modules - Using shared components for now until specific modules are created
       'siteadmin-overview': () => import('@/components/shared/UnifiedProfileManager'),
       
-      // SiteAdmin modules - Consolidated 9 modules only
-      'users': () => import('@/components/siteadmin/modules/UserManagement'),
-      'schools': () => import('@/components/siteadmin/modules/SchoolManagement'),
-      'payments': () => import('@/components/siteadmin/modules/PaymentAdministration'),
-      'commercial': () => import('@/components/siteadmin/modules/UnifiedCommercialManagement'),
-      'documents': () => import('@/components/siteadmin/modules/FunctionalSiteAdminDocuments'),
-      'security': () => import('@/components/siteadmin/modules/SecurityAudit'),
-      'system': () => import('@/components/siteadmin/modules/FunctionalSiteAdminSystemHealth'),
-      'settings': () => import('@/components/siteadmin/modules/FunctionalSiteAdminSettings'),
+      // SiteAdmin modules - Consolidated 9 modules only (prefixed to avoid conflicts)
+      'siteadmin-users': () => import('@/components/siteadmin/modules/UserManagement'),
+      'siteadmin-schools': () => import('@/components/siteadmin/modules/SchoolManagement'),
+      'siteadmin-payments': () => import('@/components/siteadmin/modules/PaymentAdministration'),
+      'siteadmin-commercial': () => import('@/components/siteadmin/modules/UnifiedCommercialManagement'),
+      'siteadmin-documents': () => import('@/components/siteadmin/modules/FunctionalSiteAdminDocuments'),
+      'siteadmin-security': () => import('@/components/siteadmin/modules/SecurityAudit'),
+      'siteadmin-system': () => import('@/components/siteadmin/modules/FunctionalSiteAdminSystemHealth'),
+      'siteadmin-settings': () => import('@/components/siteadmin/modules/FunctionalSiteAdminSettings'),
       
       // ROLE-NAMESPACED SETTINGS - PREVENT CONFLICTS
       'director.settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),

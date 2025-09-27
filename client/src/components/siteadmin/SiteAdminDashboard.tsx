@@ -570,7 +570,7 @@ const SiteAdminDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="schools" className="mt-6">
-            {createDynamicModule('school-mgmt')}
+            {createDynamicModule('siteadmin-schools')}
           </TabsContent>
 
 
@@ -583,7 +583,7 @@ const SiteAdminDashboard: React.FC = () => {
 
 
           <TabsContent value="commercial" className="mt-6">
-            {createDynamicModule('commercial')}
+            {createDynamicModule('siteadmin-commercial')}
           </TabsContent>
 
           <TabsContent value="payments" className="mt-6">
@@ -593,18 +593,18 @@ const SiteAdminDashboard: React.FC = () => {
 
 
           <TabsContent value="security" className="mt-6">
-            {createDynamicModule('security')}
+            {createDynamicModule('siteadmin-security')}
           </TabsContent>
 
 
 
 
           <TabsContent value="system" className="mt-6">
-            {createDynamicModule('health')}
+            {createDynamicModule('siteadmin-system')}
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
-            {createDynamicModule('siteadmin-config')}
+            {createDynamicModule('siteadmin-settings')}
           </TabsContent>
         </Tabs>
       </div>
