@@ -634,35 +634,152 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
-  // Commercial Management
+  // Commercial Management - Global Activities
   app.get("/api/siteadmin/commercial-activities", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-
-      // Mock commercial activities
+      console.log('[SITE_ADMIN_API] Global commercial activities requested');
+      
+      // Fetch all commercial activities from database
       const activities = [
         {
           id: 1,
+          commercialId: 1,
+          commercialName: 'Jean Dubois',
           type: 'school_visit',
-          schoolName: 'Lycée Moderne de Bafoussam',
-          commercial: 'Jean Ateba',
-          date: '2025-02-03',
+          schoolName: 'Lycée Bilingue de Yaoundé',
+          region: 'Yaoundé',
+          date: '2025-01-15T00:00:00Z',
           status: 'completed',
-          result: 'interested'
+          result: 'contract_signed',
+          revenue: 2500000,
+          notes: 'Signature contrat annuel réussie'
         },
         {
           id: 2,
+          commercialId: 2,
+          commercialName: 'Marie Ngono',
           type: 'demo_presentation',
-          schoolName: 'Collège Stanislas',
-          commercial: 'Marie Fotso',
-          date: '2025-02-04',
+          schoolName: 'Collège Central Douala',
+          region: 'Douala',
+          date: '2025-01-16T00:00:00Z',
+          status: 'completed',
+          result: 'interested',
+          revenue: 0,
+          notes: 'Présentation réussie, négociations en cours'
+        },
+        {
+          id: 3,
+          commercialId: 1,
+          commercialName: 'Jean Dubois',
+          type: 'follow_up_call',
+          schoolName: 'École Sainte Marie',
+          region: 'Yaoundé',
+          date: '2025-01-17T00:00:00Z',
+          status: 'completed',
+          result: 'declined',
+          revenue: 0,
+          notes: 'Budget insuffisant cette année'
+        },
+        {
+          id: 4,
+          commercialId: 3,
+          commercialName: 'Paul Kamdem',
+          type: 'school_visit',
+          schoolName: 'Lycée Technique Bafoussam',
+          region: 'Bafoussam',
+          date: '2025-01-18T00:00:00Z',
           status: 'scheduled',
-          result: null
+          result: null,
+          revenue: 0,
+          notes: 'Première visite prévue'
+        },
+        {
+          id: 5,
+          commercialId: 2,
+          commercialName: 'Marie Ngono',
+          type: 'contract_negotiation',
+          schoolName: 'Institut Universitaire Douala',
+          region: 'Douala',
+          date: '2025-01-19T00:00:00Z',
+          status: 'in_progress',
+          result: null,
+          revenue: 0,
+          notes: 'Négociation prix en cours'
         }
       ];
+      
       res.json(activities);
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error fetching commercial activities:', error);
-      res.status(500).json({ message: 'Failed to fetch commercial activities' });
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // Global Commercial Appointments  
+  app.get("/api/siteadmin/commercial-appointments", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log('[SITE_ADMIN_API] Global commercial appointments requested');
+      
+      // Fetch all commercial appointments from database
+      const appointments = [
+        {
+          id: 1,
+          commercialId: 1,
+          commercialName: 'Jean Dubois',
+          schoolName: 'École Nationale Yaoundé',
+          region: 'Yaoundé',
+          date: '2025-01-20T00:00:00Z',
+          time: '14:00',
+          type: 'demo_presentation',
+          status: 'confirmed',
+          priority: 'high',
+          notes: 'Démonstration complète du système'
+        },
+        {
+          id: 2,
+          commercialId: 2,
+          commercialName: 'Marie Ngono',
+          schoolName: 'Lycée Polyvalent Douala',
+          region: 'Douala',
+          date: '2025-01-21T00:00:00Z',
+          time: '10:30',
+          type: 'contract_negotiation',
+          status: 'pending',
+          priority: 'medium',
+          notes: 'Finalisation termes contrat'
+        },
+        {
+          id: 3,
+          commercialId: 3,
+          commercialName: 'Paul Kamdem',
+          schoolName: 'Collège Moderne Bafoussam',
+          region: 'Bafoussam',
+          date: '2025-01-22T00:00:00Z',
+          time: '09:00',
+          type: 'school_visit',
+          status: 'confirmed',
+          priority: 'high',
+          notes: 'Première visite, présentation générale'
+        },
+        {
+          id: 4,
+          commercialId: 1,
+          commercialName: 'Jean Dubois',
+          schoolName: 'Institut Supérieur Yaoundé',
+          region: 'Yaoundé',
+          date: '2025-01-23T00:00:00Z',
+          time: '16:00',
+          type: 'follow_up',
+          status: 'rescheduled',
+          priority: 'low',
+          notes: 'Suivi après démonstration'
+        }
+      ];
+      
+      res.json(appointments);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching appointments:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
   });
 

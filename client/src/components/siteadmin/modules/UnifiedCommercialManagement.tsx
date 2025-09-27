@@ -60,22 +60,28 @@ interface Commercial {
 interface CommercialActivity {
   id: number;
   commercialId: number;
-  type: 'call' | 'visit' | 'proposal' | 'demo' | 'negotiation';
-  description: string;
+  commercialName: string;
+  type: 'school_visit' | 'demo_presentation' | 'follow_up_call' | 'contract_negotiation';
   schoolName: string;
+  region: string;
   date: string;
-  status: 'completed' | 'pending' | 'cancelled';
+  status: 'completed' | 'in_progress' | 'scheduled' | 'cancelled';
+  result?: string;
+  revenue: number;
+  notes: string;
 }
 
 interface CommercialAppointment {
   id: number;
   commercialId: number;
+  commercialName: string;
   schoolName: string;
-  contactPerson: string;
+  region: string;
   date: string;
   time: string;
-  type: 'demo' | 'negotiation' | 'meeting' | 'presentation';
-  status: 'scheduled' | 'completed' | 'cancelled';
+  type: 'demo_presentation' | 'contract_negotiation' | 'school_visit' | 'follow_up';
+  status: 'confirmed' | 'pending' | 'rescheduled' | 'cancelled';
+  priority: 'high' | 'medium' | 'low';
   notes: string;
 }
 
@@ -111,26 +117,24 @@ const UnifiedCommercialManagement: React.FC = () => {
     }
   });
 
+  // Global activities for all commercials
   const { data: activities = [], isLoading: loadingActivities } = useQuery({
-    queryKey: ['/api/site-admin/commercial-activities', selectedCommercial?.id],
+    queryKey: ['/api/siteadmin/commercial-activities'],
     queryFn: async () => {
-      if (!selectedCommercial?.id) return [];
-      const response = await fetch(`/api/site-admin/commercial-activities/${selectedCommercial.id}`, { credentials: 'include' });
+      const response = await fetch('/api/siteadmin/commercial-activities', { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch activities');
       return response.json();
-    },
-    enabled: !!selectedCommercial
+    }
   });
 
+  // Global appointments for all commercials  
   const { data: appointments = [], isLoading: loadingAppointments } = useQuery({
-    queryKey: ['/api/site-admin/commercial-appointments', selectedCommercial?.id],
+    queryKey: ['/api/siteadmin/commercial-appointments'],
     queryFn: async () => {
-      if (!selectedCommercial?.id) return [];
-      const response = await fetch(`/api/site-admin/commercial-appointments/${selectedCommercial.id}`, { credentials: 'include' });
+      const response = await fetch('/api/siteadmin/commercial-appointments', { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch appointments');
       return response.json();
-    },
-    enabled: !!selectedCommercial
+    }
   });
 
   const { data: documents = [], isLoading: loadingDocuments } = useQuery({
@@ -568,112 +572,157 @@ const UnifiedCommercialManagement: React.FC = () => {
 
         {/* Activities Tab */}
         <TabsContent value="activities" className="mt-6">
-          {selectedCommercial ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  Activités de {selectedCommercial.firstName} {selectedCommercial.lastName}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingActivities ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <span className="ml-2">Chargement des activités...</span>
-                  </div>
-                ) : activities.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">Aucune activité trouvée</p>
-                ) : (
-                  <div className="space-y-4">
-                    {activities.map((activity: CommercialActivity) => (
-                      <div key={activity.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                        <div className="flex-shrink-0">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Activity className="w-5 h-5" />
+                <span>Résumé des Activités Commerciales</span>
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Vue d'ensemble des activités de tous les commerciaux de la plateforme Educafric
+              </p>
+            </CardHeader>
+            <CardContent>
+              {loadingActivities ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  <span className="ml-2">Chargement des activités...</span>
+                </div>
+              ) : activities.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">Aucune activité trouvée</p>
+              ) : (
+                <div className="space-y-4">
+                  {activities.map((activity: CommercialActivity) => (
+                    <div key={activity.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 font-semibold text-sm">
+                              {activity.commercialName.split(' ').map(n => n[0]).join('')}
+                            </span>
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">{activity.commercialName}</h4>
+                            <p className="text-sm text-gray-600">{activity.region}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
                           <Badge className={getTypeBadge(activity.type)}>
-                            {activity.type}
+                            {activity.type.replace('_', ' ')}
+                          </Badge>
+                          <Badge className={getStatusBadge(activity.status)}>
+                            {activity.status}
                           </Badge>
                         </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium">{activity.description}</h4>
-                          <p className="text-sm text-gray-600">{activity.schoolName}</p>
-                          <p className="text-xs text-gray-500">{formatDate(activity.date)}</p>
-                        </div>
-                        <Badge className={getStatusBadge(activity.status)}>
-                          {activity.status}
-                        </Badge>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Sélectionner un Commercial</h3>
-                <p className="text-gray-600">Choisissez un commercial dans l'onglet Équipe pour voir ses activités</p>
-              </CardContent>
-            </Card>
-          )}
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <p className="text-sm"><strong>École:</strong> {activity.schoolName}</p>
+                          <p className="text-sm"><strong>Date:</strong> {formatDate(activity.date)}</p>
+                        </div>
+                        <div>
+                          {activity.result && (
+                            <p className="text-sm"><strong>Résultat:</strong> {activity.result}</p>
+                          )}
+                          {activity.revenue > 0 && (
+                            <p className="text-sm"><strong>Revenue:</strong> {formatCurrency(activity.revenue)}</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {activity.notes && (
+                        <div className="mt-3 p-3 bg-gray-100 rounded text-sm">
+                          <strong>Notes:</strong> {activity.notes}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Appointments Tab */}
         <TabsContent value="appointments" className="mt-6">
-          {selectedCommercial ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  Rendez-vous de {selectedCommercial.firstName} {selectedCommercial.lastName}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingAppointments ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <span className="ml-2">Chargement des rendez-vous...</span>
-                  </div>
-                ) : appointments.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">Aucun rendez-vous trouvé</p>
-                ) : (
-                  <div className="space-y-4">
-                    {appointments.map((appointment: CommercialAppointment) => (
-                      <div key={appointment.id} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium">{appointment.schoolName}</h4>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Calendar className="w-5 h-5" />
+                <span>Calendrier des Rendez-vous Commerciaux</span>
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Planning global des rendez-vous de tous les commerciaux Educafric
+              </p>
+            </CardHeader>
+            <CardContent>
+              {loadingAppointments ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  <span className="ml-2">Chargement des rendez-vous...</span>
+                </div>
+              ) : appointments.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">Aucun rendez-vous trouvé</p>
+              ) : (
+                <div className="space-y-4">
+                  {appointments.map((appointment: CommercialAppointment) => (
+                    <div key={appointment.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <span className="text-green-600 font-semibold text-sm">
+                              {appointment.commercialName.split(' ').map(n => n[0]).join('')}
+                            </span>
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">{appointment.commercialName}</h4>
+                            <p className="text-sm text-gray-600">{appointment.region}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
                           <Badge className={getStatusBadge(appointment.status)}>
                             {appointment.status}
                           </Badge>
+                          <Badge className={`${appointment.priority === 'high' ? 'bg-red-100 text-red-800' : 
+                            appointment.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-green-100 text-green-800'}`}>
+                            {appointment.priority}
+                          </Badge>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                          <div>
-                            <p><strong>Contact:</strong> {appointment.contactPerson}</p>
-                            <p><strong>Type:</strong> {appointment.type}</p>
-                          </div>
-                          <div>
-                            <p><strong>Date:</strong> {formatDate(appointment.date)}</p>
-                            <p><strong>Heure:</strong> {appointment.time}</p>
-                          </div>
-                        </div>
-                        {appointment.notes && (
-                          <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
-                            <strong>Notes:</strong> {appointment.notes}
-                          </div>
-                        )}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Sélectionner un Commercial</h3>
-                <p className="text-gray-600">Choisissez un commercial dans l'onglet Équipe pour voir ses rendez-vous</p>
-              </CardContent>
-            </Card>
-          )}
+
+                      <div className="mb-3">
+                        <h5 className="font-medium text-gray-900">{appointment.schoolName}</h5>
+                        <p className="text-sm text-gray-600">{appointment.type.replace('_', ' ')}</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                        <div>
+                          <p><strong>Date:</strong> {formatDate(appointment.date)}</p>
+                          <p><strong>Heure:</strong> {appointment.time}</p>
+                        </div>
+                        <div>
+                          <p><strong>Type:</strong> {appointment.type.replace('_', ' ')}</p>
+                          <p><strong>Priorité:</strong> <span className={`font-medium ${
+                            appointment.priority === 'high' ? 'text-red-600' : 
+                            appointment.priority === 'medium' ? 'text-yellow-600' : 
+                            'text-green-600'
+                          }`}>{appointment.priority}</span></p>
+                        </div>
+                      </div>
+                      
+                      {appointment.notes && (
+                        <div className="mt-3 p-3 bg-gray-100 rounded text-sm">
+                          <strong>Notes:</strong> {appointment.notes}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Documents Tab */}
