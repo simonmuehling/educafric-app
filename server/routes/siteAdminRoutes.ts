@@ -1,14 +1,19 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 
+// Security middleware for SiteAdmin features
+const requireSiteAdminAccess = (req: any, res: any, next: any) => {
+  if (!req.user || !['SiteAdmin', 'SuperAdmin'].includes(req.user.role)) {
+    return res.status(403).json({ message: 'Site Admin or Super Admin access required' });
+  }
+  next();
+};
+
 export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   
   // Platform Statistics (Overview)
-  app.get("/api/admin/platform-stats", requireAuth, async (req, res) => {
+  app.get("/api/siteadmin/stats", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       // Mock data with realistic African educational platform statistics
       const stats = {
@@ -33,11 +38,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Platform Users Management
-  app.get("/api/admin/platform-users", requireAuth, async (req, res) => {
+  app.get("/api/siteadmin/users", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       // Mock platform users data
       const users = [
