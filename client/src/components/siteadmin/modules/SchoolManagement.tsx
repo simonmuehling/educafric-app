@@ -398,6 +398,40 @@ const SchoolManagement = () => {
     }
   };
 
+  // Handler functions for new functionality
+  const handleCreateSchool = () => {
+    createSchoolMutation.mutate(newSchoolData);
+  };
+
+  const handleManageSubscription = (school: School) => {
+    setSelectedSchoolForSubscription(school);
+    setShowSubscriptionDialog(true);
+  };
+
+  const handleSubscriptionAction = () => {
+    if (!selectedSchoolForSubscription) return;
+    
+    manageSubscriptionMutation.mutate({
+      schoolId: selectedSchoolForSubscription.id,
+      action: subscriptionData.action,
+      planId: subscriptionData.planId,
+      duration: subscriptionData.duration,
+      notes: subscriptionData.notes
+    });
+  };
+
+  const handleBlockSchool = (school: School) => {
+    const isBlocked = school.isBlocked || false;
+    const confirmMsg = isBlocked ? t.unblockSchoolConfirm : t.blockSchoolConfirm;
+    
+    if (confirm(confirmMsg)) {
+      blockSchoolMutation.mutate({
+        schoolId: school.id,
+        block: !isBlocked
+      });
+    }
+  };
+
   const renderSchoolStats = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
       <ModernCard className="p-6">
@@ -480,10 +514,114 @@ const SchoolManagement = () => {
             {t.exportSchools}
           </Button>
 
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            {t.addSchool}
-          </Button>
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                {t.addSchool}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{t.createNewSchool}</DialogTitle>
+                <DialogDescription>
+                  Créer une nouvelle école dans le système Educafric
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">{t.schoolName}</Label>
+                  <Input
+                    id="name"
+                    value={newSchoolData.name}
+                    onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})}
+                    placeholder="Nom de l'école"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="address">{t.address}</Label>
+                  <Input
+                    id="address"
+                    value={newSchoolData.address}
+                    onChange={(e) => setNewSchoolData({...newSchoolData, address: e.target.value})}
+                    placeholder="Adresse complète"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="city">{t.city}</Label>
+                    <Input
+                      id="city"
+                      value={newSchoolData.city}
+                      onChange={(e) => setNewSchoolData({...newSchoolData, city: e.target.value})}
+                      placeholder="Ville"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="country">{t.country}</Label>
+                    <Select value={newSchoolData.country} onValueChange={(value) => setNewSchoolData({...newSchoolData, country: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Cameroun">Cameroun</SelectItem>
+                        <SelectItem value="Gabon">Gabon</SelectItem>
+                        <SelectItem value="République Centrafricaine">République Centrafricaine</SelectItem>
+                        <SelectItem value="Tchad">Tchad</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="email">{t.email}</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={newSchoolData.email}
+                    onChange={(e) => setNewSchoolData({...newSchoolData, email: e.target.value})}
+                    placeholder="contact@ecole.com"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="type">Type</Label>
+                    <Select value={newSchoolData.type} onValueChange={(value: 'public' | 'private') => setNewSchoolData({...newSchoolData, type: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">{t.public}</SelectItem>
+                        <SelectItem value="private">{t.private}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="level">{t.level}</Label>
+                    <Select value={newSchoolData.level} onValueChange={(value) => setNewSchoolData({...newSchoolData, level: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="primary">{t.primary}</SelectItem>
+                        <SelectItem value="secondary">{t.secondary}</SelectItem>
+                        <SelectItem value="university">{t.university}</SelectItem>
+                        <SelectItem value="mixed">{t.mixed}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                  {t.cancel}
+                </Button>
+                <Button onClick={handleCreateSchool} disabled={createSchoolMutation.isPending}>
+                  {createSchoolMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  {t.save}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </ModernCard>
@@ -597,8 +735,22 @@ const SchoolManagement = () => {
                       <Button size="sm" variant="outline">
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
-                        <Edit className="w-4 h-4" />
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleManageSubscription(school)}
+                        disabled={manageSubscriptionMutation.isPending}
+                      >
+                        <CreditCard className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleBlockSchool(school)}
+                        disabled={blockSchoolMutation.isPending}
+                        className={school.isBlocked ? 'text-green-600' : 'text-red-600'}
+                      >
+                        {school.isBlocked ? <Unlock className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
                       </Button>
                       <Button 
                         size="sm" 
@@ -672,6 +824,85 @@ const SchoolManagement = () => {
 
       {/* School Table */}
       {renderSchoolTable()}
+
+      {/* Subscription Management Dialog */}
+      <Dialog open={showSubscriptionDialog} onOpenChange={setShowSubscriptionDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t.subscriptionManagement}</DialogTitle>
+            <DialogDescription>
+              Gérer l'abonnement de {selectedSchoolForSubscription?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="action">Action</Label>
+              <Select value={subscriptionData.action} onValueChange={(value: 'extend' | 'activate' | 'cancel') => setSubscriptionData({...subscriptionData, action: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="extend">{t.extendSubscription}</SelectItem>
+                  <SelectItem value="activate">{t.activateSubscription}</SelectItem>
+                  <SelectItem value="cancel">{t.cancelSubscription}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(subscriptionData.action === 'extend' || subscriptionData.action === 'activate') && (
+              <>
+                <div>
+                  <Label htmlFor="plan">{t.selectPlan}</Label>
+                  <Select value={subscriptionData.planId} onValueChange={(value) => setSubscriptionData({...subscriptionData, planId: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ecole_500_plus">École 500+ élèves (EDUCAFRIC paie 150.000 CFA/an)</SelectItem>
+                      <SelectItem value="ecole_500_moins">École moins de 500 élèves (EDUCAFRIC paie 200.000 CFA/an)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="duration">{t.duration}</Label>
+                  <Select value={subscriptionData.duration} onValueChange={(value) => setSubscriptionData({...subscriptionData, duration: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3">3 mois</SelectItem>
+                      <SelectItem value="6">6 mois</SelectItem>
+                      <SelectItem value="12">12 mois</SelectItem>
+                      <SelectItem value="24">24 mois</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            <div>
+              <Label htmlFor="notes">{t.notes}</Label>
+              <Textarea
+                id="notes"
+                value={subscriptionData.notes}
+                onChange={(e) => setSubscriptionData({...subscriptionData, notes: e.target.value})}
+                placeholder="Notes additionnelles sur cette action..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSubscriptionDialog(false)}>
+              {t.cancel}
+            </Button>
+            <Button onClick={handleSubscriptionAction} disabled={manageSubscriptionMutation.isPending}>
+              {manageSubscriptionMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              {t.save}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
