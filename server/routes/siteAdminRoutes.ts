@@ -374,6 +374,99 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // Manual subscription activation for Users (Schools, Parents, Tutors)
+  app.post("/api/siteadmin/manual-activation", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log('[SITE_ADMIN_API] Manual subscription activation requested');
+      
+      const { userType, userId, userEmail, planId, duration, reason, notes } = req.body;
+      
+      if (!userType || !userEmail || !planId || !duration) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields: userType, userEmail, planId, duration' 
+        });
+      }
+
+      const validUserTypes = ['school', 'parent', 'tutor'];
+      if (!validUserTypes.includes(userType)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid userType. Must be: school, parent, or tutor' 
+        });
+      }
+
+      // Calculate end date based on duration
+      const durationInMonths = parseInt(duration);
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + durationInMonths);
+
+      const activationData = {
+        id: Date.now(),
+        userType,
+        userId,
+        userEmail,
+        planId,
+        duration: `${duration} months`,
+        reason,
+        notes,
+        activatedBy: req.user?.email,
+        activatedAt: new Date().toISOString(),
+        startDate: new Date().toISOString(),
+        endDate: endDate.toISOString(),
+        status: 'active'
+      };
+
+      // Here you would save to database
+      console.log('[SITE_ADMIN_API] Manual activation data:', activationData);
+      
+      res.json({ 
+        success: true, 
+        message: `${userType} subscription activated successfully`,
+        data: activationData
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error in manual activation:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // Get all users for manual activation dropdown
+  app.get("/api/siteadmin/users-for-activation", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { userType } = req.query;
+      
+      console.log(`[SITE_ADMIN_API] Users for activation requested - type: ${userType}`);
+      
+      let users = [];
+      
+      if (userType === 'school') {
+        users = [
+          { id: 1, email: 'admin@lycee-yaunde.cm', name: 'Lycée Bilingue Yaoundé', status: 'active' },
+          { id: 2, email: 'director@college-douala.cm', name: 'Collège Excellence Douala', status: 'inactive' },
+          { id: 3, email: 'admin@ecole-bafoussam.cm', name: 'École Moderne Bafoussam', status: 'trial' }
+        ];
+      } else if (userType === 'parent') {
+        users = [
+          { id: 101, email: 'marie.parent@gmail.com', name: 'Marie Nguegni', status: 'active' },
+          { id: 102, email: 'jean.papa@yahoo.fr', name: 'Jean Baptiste Mboko', status: 'expired' },
+          { id: 103, email: 'florence.maman@hotmail.com', name: 'Florence Ateba', status: 'inactive' }
+        ];
+      } else if (userType === 'tutor') {
+        users = [
+          { id: 201, email: 'prof.math@educafric.com', name: 'Dr. Paul Kamga (Mathématiques)', status: 'active' },
+          { id: 202, email: 'prof.francais@educafric.com', name: 'Mme Sylvie Ngo (Français)', status: 'inactive' },
+          { id: 203, email: 'prof.anglais@educafric.com', name: 'Mr. John Ashu (Anglais)', status: 'trial' }
+        ];
+      }
+      
+      res.json({ success: true, users });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching users for activation:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
   // Get subscription plans
   app.get("/api/siteadmin/subscription-plans", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {

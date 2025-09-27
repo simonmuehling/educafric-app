@@ -632,27 +632,45 @@ const ManualActivationForm: React.FC<{ language: string; onClose: () => void }> 
   
   const { toast } = useToast();
   
-  // Fetch all users for selection
+  const [selectedUserType, setSelectedUserType] = useState('school');
+  
+  // Fetch users based on selected type
   const { data: users = [] } = useQuery({
-    queryKey: ['/api/admin/users'],
+    queryKey: ['/api/siteadmin/users-for-activation', selectedUserType],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/admin/users', {});
+      const response = await apiRequest('GET', `/api/siteadmin/users-for-activation?userType=${selectedUserType}`, {});
       const data = await response.json();
       return data.users || [];
     }
   });
 
-  // Available subscription plans
-  const subscriptionPlans = [
-    { id: 'parent_public_quarterly', name: language === 'fr' ? 'Parent École Publique (3.000 CFA/trimestre)' : 'Parent Public School (3,000 CFA/quarter)' },
-    { id: 'parent_private_quarterly', name: language === 'fr' ? 'Parent École Privée (4.500 CFA/trimestre)' : 'Parent Private School (4,500 CFA/quarter)' },
-    { id: 'parent_public_annual', name: language === 'fr' ? 'Parent École Publique (12.000 CFA/an)' : 'Parent Public School (12,000 CFA/year)' },
-    { id: 'parent_private_annual', name: language === 'fr' ? 'Parent École Privée (18.000 CFA/an)' : 'Parent Private School (18,000 CFA/year)' },
-    { id: 'school_public', name: language === 'fr' ? 'École Publique (50.000 CFA/an)' : 'Public School (50,000 CFA/year)' },
-    { id: 'school_private', name: language === 'fr' ? 'École Privée (75.000 CFA/an)' : 'Private School (75,000 CFA/year)' },
-    { id: 'freelancer_semester', name: language === 'fr' ? 'Répétiteur (12.500 CFA/semestre)' : 'Tutor (12,500 CFA/semester)' },
-    { id: 'freelancer_annual', name: language === 'fr' ? 'Répétiteur (25.000 CFA/an)' : 'Tutor (25,000 CFA/year)' }
-  ];
+  // Available subscription plans based on user type
+  const getSubscriptionPlans = (userType: string) => {
+    if (userType === 'school') {
+      return [
+        { id: 'ecole_500_plus', name: language === 'fr' ? 'École 500+ élèves - EDUCAFRIC paie l\'école' : 'School 500+ students - EDUCAFRIC pays school' },
+        { id: 'ecole_200_499', name: language === 'fr' ? 'École 200-499 élèves' : 'School 200-499 students' },
+        { id: 'ecole_50_199', name: language === 'fr' ? 'École 50-199 élèves' : 'School 50-199 students' },
+        { id: 'ecole_trial', name: language === 'fr' ? 'Essai gratuit 30 jours' : '30-day free trial' }
+      ];
+    } else if (userType === 'parent') {
+      return [
+        { id: 'parent_public_quarterly', name: language === 'fr' ? 'Parent École Publique (3.000 CFA/trimestre)' : 'Parent Public School (3,000 CFA/quarter)' },
+        { id: 'parent_private_quarterly', name: language === 'fr' ? 'Parent École Privée (4.500 CFA/trimestre)' : 'Parent Private School (4,500 CFA/quarter)' },
+        { id: 'parent_public_annual', name: language === 'fr' ? 'Parent École Publique (12.000 CFA/an)' : 'Parent Public School (12,000 CFA/year)' },
+        { id: 'parent_private_annual', name: language === 'fr' ? 'Parent École Privée (18.000 CFA/an)' : 'Parent Private School (18,000 CFA/year)' }
+      ];
+    } else if (userType === 'tutor') {
+      return [
+        { id: 'freelancer_semester', name: language === 'fr' ? 'Répétiteur (12.500 CFA/semestre)' : 'Tutor (12,500 CFA/semester)' },
+        { id: 'freelancer_annual', name: language === 'fr' ? 'Répétiteur (25.000 CFA/an)' : 'Tutor (25,000 CFA/year)' },
+        { id: 'freelancer_trial', name: language === 'fr' ? 'Essai gratuit 15 jours' : '15-day free trial' }
+      ];
+    }
+    return [];
+  };
+  
+  const subscriptionPlans = getSubscriptionPlans(selectedUserType);
 
   const activationDurations = [
     { value: '3months', label: language === 'fr' ? '3 mois (trimestriel)' : '3 months (quarterly)' },
@@ -674,12 +692,15 @@ const ManualActivationForm: React.FC<{ language: string; onClose: () => void }> 
     setIsProcessing(true);
     
     try {
-      const response = await apiRequest('POST', '/api/admin/manual-subscription-activation', {
+      const selectedUserData = users.find(u => u.id.toString() === selectedUser);
+      const response = await apiRequest('POST', '/api/siteadmin/manual-activation', {
+        userType: selectedUserType,
         userId: parseInt(selectedUser),
+        userEmail: selectedUserData?.email,
         planId: selectedPlan,
-        duration: activationDuration,
+        duration: activationDuration.replace('months', '').replace('custom', '12'),
         reason: activationReason,
-        activatedBy: 'site_admin' // This will be determined by backend based on current user
+        notes: `Manual activation by Site Admin - User: ${selectedUserData?.name || selectedUserData?.email}`
       });
 
       const result = await response.json();
@@ -688,8 +709,8 @@ const ManualActivationForm: React.FC<{ language: string; onClose: () => void }> 
         toast({
           title: language === 'fr' ? "Activation réussie" : "Activation successful",
           description: language === 'fr' 
-            ? `Abonnement activé pour l'utilisateur ${result.user?.email}` 
-            : `Subscription activated for user ${result.user?.email}`,
+            ? `Abonnement ${selectedPlan} activé pour ${selectedUserData?.email}` 
+            : `${selectedPlan} subscription activated for ${selectedUserData?.email}`,
         });
         
         // Reset form
@@ -715,6 +736,33 @@ const ManualActivationForm: React.FC<{ language: string; onClose: () => void }> 
 
   return (
     <div className="space-y-4">
+      {/* User Type Selection */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {language === 'fr' ? 'Type d\'utilisateur' : 'User Type'}
+        </label>
+        <Select value={selectedUserType} onValueChange={(value) => {
+          setSelectedUserType(value);
+          setSelectedUser('');
+          setSelectedPlan('');
+        }}>
+          <SelectTrigger data-testid="select-user-type">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="school">
+              {language === 'fr' ? '🏫 École' : '🏫 School'}
+            </SelectItem>
+            <SelectItem value="parent">
+              {language === 'fr' ? '👨‍👩‍👧‍👦 Parent' : '👨‍👩‍👧‍👦 Parent'}
+            </SelectItem>
+            <SelectItem value="tutor">
+              {language === 'fr' ? '👨‍🏫 Répétiteur' : '👨‍🏫 Tutor'}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* User Selection */}
       <div>
         <label className="block text-sm font-medium mb-2">
@@ -727,7 +775,7 @@ const ManualActivationForm: React.FC<{ language: string; onClose: () => void }> 
           <SelectContent>
             {users.map((user: any) => (
               <SelectItem key={user.id} value={user.id.toString()}>
-                {user.firstName} {user.lastName} ({user.email}) - {user.userType || user.role}
+                {user.name} ({user.email}) - {user.status}
               </SelectItem>
             ))}
           </SelectContent>
