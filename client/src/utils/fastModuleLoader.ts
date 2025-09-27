@@ -252,7 +252,9 @@ class FastModuleLoader {
       'student-library': () => import('@/components/student/modules/LibraryRelatedBooks'),
       'parent-library': () => import('@/components/parent/modules/LibraryRelatedBooks'),
       
-      // Online Classes modules
+      // =============================================
+      // 📹 ONLINE CLASSES MODULES - VIDEO CONFERENCING
+      // =============================================
       'teacher-online-classes': () => import('@/components/teacher/modules/TeacherOnlineClasses'),
       'student-online-classes': () => import('@/components/student/modules/StudentOnlineClasses'),
       'online-classes': () => import('@/components/teacher/modules/TeacherOnlineClasses'), // Default to teacher

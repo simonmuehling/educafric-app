@@ -214,7 +214,7 @@ const TeacherOnlineClasses: React.FC = () => {
   const createCourseMutation = useMutation({
     mutationFn: (courseData: typeof newCourseData) => 
       apiRequest('POST', '/api/online-classes/courses', courseData),
-    onSuccess: () => {
+    onSuccess: (response: any) => {
       toast({
         title: 'Succès',
         description: t.courseCreated
@@ -243,7 +243,7 @@ const TeacherOnlineClasses: React.FC = () => {
   const createSessionMutation = useMutation({
     mutationFn: ({ courseId, sessionData }: { courseId: number; sessionData: typeof newSessionData }) => 
       apiRequest('POST', `/api/online-classes/courses/${courseId}/sessions`, sessionData),
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
       toast({
         title: 'Succès',
         description: t.sessionCreated
@@ -264,7 +264,7 @@ const TeacherOnlineClasses: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/online-classes/school/sessions'] });
 
       // If session was started immediately, open join URL
-      if (response.joinUrl) {
+      if (response?.joinUrl) {
         window.open(response.joinUrl, '_blank');
       }
     },
@@ -301,8 +301,8 @@ const TeacherOnlineClasses: React.FC = () => {
   const joinSessionMutation = useMutation({
     mutationFn: (sessionId: number) => 
       apiRequest('POST', `/api/online-classes/sessions/${sessionId}/join`),
-    onSuccess: (response) => {
-      if (response.joinUrl) {
+    onSuccess: (response: any) => {
+      if (response?.joinUrl) {
         window.open(response.joinUrl, '_blank');
       }
     },
@@ -356,10 +356,10 @@ const TeacherOnlineClasses: React.FC = () => {
     <div className="space-y-4">
       {coursesLoading ? (
         <div className="text-center py-8">{t.loading}</div>
-      ) : coursesData?.courses?.length === 0 ? (
+      ) : !coursesData?.courses || coursesData.courses.length === 0 ? (
         <div className="text-center py-8 text-gray-500">{t.noCourses}</div>
       ) : (
-        coursesData?.courses?.map((course: OnlineCourse) => (
+        coursesData.courses.map((course: OnlineCourse) => (
           <ModernCard key={course.id} className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -402,10 +402,10 @@ const TeacherOnlineClasses: React.FC = () => {
     <div className="space-y-4">
       {sessionsLoading ? (
         <div className="text-center py-8">{t.loading}</div>
-      ) : sessionsData?.sessions?.length === 0 ? (
+      ) : !sessionsData?.sessions || sessionsData.sessions.length === 0 ? (
         <div className="text-center py-8 text-gray-500">{t.noSessions}</div>
       ) : (
-        sessionsData?.sessions?.map((session: ClassSession) => (
+        sessionsData.sessions.map((session: ClassSession) => (
           <ModernCard key={session.id} className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

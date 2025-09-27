@@ -130,8 +130,8 @@ const StudentOnlineClasses: React.FC = () => {
   const joinSessionMutation = useMutation({
     mutationFn: (sessionId: number) => 
       apiRequest('POST', `/api/online-classes/sessions/${sessionId}/join`),
-    onSuccess: (response) => {
-      if (response.joinUrl) {
+    onSuccess: (response: any) => {
+      if (response?.joinUrl) {
         window.open(response.joinUrl, '_blank');
       }
     },
@@ -413,7 +413,7 @@ const StudentOnlineClasses: React.FC = () => {
       </div>
 
       {/* Live sessions notification */}
-      {activeTab === 'upcoming' && sessionsData?.sessions?.some((s: ClassSession) => s.status === 'live') && (
+      {activeTab === 'upcoming' && sessionsData?.sessions && sessionsData.sessions.some((s: ClassSession) => s.status === 'live') && (
         <ModernCard className="p-4 bg-green-50 border-green-200">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 rounded-lg">
