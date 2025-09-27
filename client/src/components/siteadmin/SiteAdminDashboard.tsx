@@ -174,7 +174,6 @@ const SiteAdminDashboard: React.FC = () => {
   // Platform statistics query
   const { data: platformStats, isLoading: statsLoading } = useQuery<PlatformStats>({
     queryKey: ['/api/siteadmin/stats'],
-    queryFn: () => apiRequest('GET', '/api/siteadmin/stats'),
     refetchInterval: 60000 // Refresh every minute
   });
 

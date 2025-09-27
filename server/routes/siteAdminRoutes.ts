@@ -104,11 +104,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Delete Platform User
-  app.delete("/api/admin/platform-users/:userId", requireAuth, async (req, res) => {
+  app.delete("/api/siteadmin/users/:userId", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       const { userId } = req.params;
       // Mock user deletion - in real implementation, would delete from database
@@ -121,11 +118,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Enhanced Schools Management with comprehensive functionality
-  app.get("/api/admin/schools", requireAuth, async (req, res) => {
+  app.get("/api/siteadmin/schools", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       const { search = '', type = 'all', status = 'all', page = 1, limit = 20 } = req.query;
 
@@ -250,11 +244,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // School statistics
-  app.get("/api/admin/school-stats", requireAuth, async (req, res) => {
+  app.get("/api/siteadmin/school-stats", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       // Mock school statistics
       const stats = {
@@ -273,11 +264,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Create new school
-  app.post("/api/admin/schools", requireAuth, async (req, res) => {
+  app.post("/api/siteadmin/schools", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       const schoolData = req.body;
       
@@ -304,11 +292,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Delete school
-  app.delete("/api/admin/schools/:schoolId", requireAuth, async (req, res) => {
+  app.delete("/api/siteadmin/schools/:schoolId", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       const { schoolId } = req.params;
       
@@ -322,11 +307,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Block/Unblock school
-  app.patch("/api/admin/schools/:schoolId/block", requireAuth, async (req, res) => {
+  app.patch("/api/siteadmin/schools/:schoolId/block", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       const { schoolId } = req.params;
       const { isBlocked } = req.body;
@@ -345,17 +327,14 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Manage school subscription
-  app.post("/api/admin/schools/:schoolId/subscription", requireAuth, async (req, res) => {
+  app.post("/api/siteadmin/schools/:schoolId/subscription", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       const { schoolId } = req.params;
       const { action, planId, duration, notes } = req.body;
       
       // Mock subscription management
-      let result = {
+      let result: any = {
         schoolId: parseInt(schoolId),
         action,
         adminUser: req.user?.email,
