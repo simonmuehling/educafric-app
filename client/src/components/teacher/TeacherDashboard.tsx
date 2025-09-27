@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   Users, Calendar, CheckSquare, BarChart3, BookOpen, FileText,
-  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star, Mail, UserX, Grid, PenTool, Video
+  MessageSquare, User, Clock, Settings, HelpCircle, Bell, Star, Mail, UserX, Grid, PenTool, Video
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -284,31 +284,6 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       icon: <UserX className="w-6 h-6" />,
       color: 'bg-orange-600',
       component: createDynamicModule('teacher-absence-declaration')
-    },
-
-    {
-      id: 'geolocation',
-      label: 'Géolocalisation',
-      icon: <MapPin className="w-6 h-6" />,
-      color: 'bg-emerald-500',
-      component: <div className="p-3 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Géolocalisation Élèves</h3>
-        <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
-          <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
-            Suivi de localisation de vos élèves pour leur sécurité.
-          </p>
-          <div className="space-y-2 sm:space-y-3">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-              <span className="text-xs sm:text-sm font-medium">Junior Kamga (6ème A)</span>
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded w-fit">À l'école</span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-              <span className="text-xs sm:text-sm font-medium">Marie Nkomo (5ème B)</span>
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded w-fit">En route</span>
-            </div>
-          </div>
-        </div>
-      </div>
     },
     {
       id: 'notifications',
