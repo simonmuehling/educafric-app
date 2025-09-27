@@ -170,7 +170,6 @@ const SchoolManagement = () => {
       notes: 'Notes',
       save: 'Enregistrer',
       cancel: 'Annuler',
-      schoolName: 'Nom École',
       address: 'Adresse',
       city: 'Ville',
       country: 'Pays',

@@ -173,23 +173,8 @@ const SiteAdminDashboard: React.FC = () => {
 
   // Platform statistics query
   const { data: platformStats, isLoading: statsLoading } = useQuery<PlatformStats>({
-    queryKey: ['/api/admin/platform-stats'],
-    queryFn: async () => {
-      // Mock data for demonstration - replace with real API
-      return {
-        totalUsers: 2547,
-        totalSchools: 89,
-        activeSubscriptions: 156,
-        monthlyRevenue: 45780000,
-        newRegistrations: 23,
-        systemUptime: 99.8,
-        storageUsed: 68,
-        apiCalls: 1256789,
-        activeAdmins: 12,
-        pendingAdminRequests: 4,
-        lastUpdated: new Date().toISOString()
-      };
-    },
+    queryKey: ['/api/siteadmin/platform-stats'],
+    queryFn: () => apiRequest('GET', '/api/siteadmin/platform-stats'),
     refetchInterval: 60000 // Refresh every minute
   });
 
@@ -656,7 +641,7 @@ const SiteAdminDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="schools" className="mt-6">
-            {createDynamicModule('siteadmin-schools')}
+            {createDynamicModule('school-mgmt')}
           </TabsContent>
 
           <TabsContent value="user-mgmt" className="mt-6">
@@ -664,7 +649,7 @@ const SiteAdminDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="school-mgmt" className="mt-6">
-            {createDynamicModule('school-mgmt')}
+            {createDynamicModule('siteadmin-schools')}
           </TabsContent>
 
           <TabsContent value="documents" className="mt-6">
