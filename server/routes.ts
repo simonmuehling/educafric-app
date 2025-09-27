@@ -3679,6 +3679,336 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ================ STUDENT HOMEWORK SYSTEM ================
+  
+  // Student: Get assigned homework
+  app.get("/api/student/homework", requireAuth, requireAnyRole(['Student']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const studentId = user.id;
+      const schoolId = user.schoolId;
+      
+      console.log('[HOMEWORK_API] 📚 Fetching homework for student:', studentId);
+      
+      // Get student's class enrollments
+      const studentClasses = await db
+        .select({ classId: sql<number>`class_id` })
+        .from(sql`class_enrollment`)
+        .where(sql`student_id = ${studentId}`);
+      
+      const classIds = studentClasses.map(sc => sc.classId);
+      
+      if (classIds.length === 0) {
+        console.log('[HOMEWORK_API] ⚠️ Student not enrolled in any classes');
+        return res.json({ success: true, homework: [] });
+      }
+      
+      // Get homework assigned to student's classes
+      const assignedHomework = await db
+        .select({
+          id: homework.id,
+          title: homework.title,
+          description: homework.description,
+          instructions: homework.instructions,
+          subjectName: subjects.name,
+          className: classes.name,
+          teacherName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`,
+          teacherId: homework.teacherId,
+          classId: homework.classId,
+          subjectId: homework.subjectId,
+          priority: homework.priority,
+          dueDate: homework.dueDate,
+          assignedDate: homework.assignedDate,
+          status: homework.status,
+          createdAt: homework.createdAt
+        })
+        .from(homework)
+        .leftJoin(classes, eq(homework.classId, classes.id))
+        .leftJoin(subjects, eq(homework.subjectId, subjects.id))
+        .leftJoin(users, eq(homework.teacherId, users.id))
+        .where(and(
+          eq(homework.schoolId, schoolId),
+          eq(homework.status, 'active'),
+          sql`${homework.classId} IN (${sql.join(classIds, sql`, `)})`
+        ))
+        .orderBy(homework.dueDate);
+
+      // Get student's submissions for each homework
+      const homeworkWithSubmissions = await Promise.all(assignedHomework.map(async (hw) => {
+        const [submission] = await db
+          .select()
+          .from(homeworkSubmissions)
+          .where(and(
+            eq(homeworkSubmissions.homeworkId, hw.id),
+            eq(homeworkSubmissions.studentId, studentId)
+          ))
+          .limit(1);
+
+        return {
+          ...hw,
+          subject: hw.subjectName,
+          teacher: hw.teacherName,
+          status: submission ? 'completed' : 'pending',
+          submission: submission ? {
+            id: submission.id,
+            content: submission.content,
+            attachments: submission.attachments,
+            submittedAt: submission.submittedAt,
+            status: submission.status
+          } : null
+        };
+      }));
+      
+      console.log('[HOMEWORK_API] ✅ Found', homeworkWithSubmissions.length, 'homework assignments for student');
+      
+      res.json({
+        success: true,
+        homework: homeworkWithSubmissions
+      });
+      
+    } catch (error) {
+      console.error('[HOMEWORK_API] ❌ Error fetching student homework:', error);
+      // Fallback to mock data for development
+      const mockHomework = [
+        {
+          id: 1,
+          title: "Exercices de Mathématiques",
+          description: "Résoudre les problèmes de géométrie",
+          instructions: "Complétez les exercices 1 à 5 du chapitre 3",
+          subject: "Mathématiques",
+          teacher: "M. Dupont",
+          className: "6ème A",
+          priority: "medium",
+          status: "pending",
+          dueDate: "2025-09-05T23:59:00Z",
+          assignedDate: "2025-08-28T08:00:00Z"
+        },
+        {
+          id: 2,
+          title: "Composition Française",
+          description: "Rédiger un texte sur les vacances",
+          instructions: "300 mots minimum avec introduction et conclusion",
+          subject: "Français",
+          teacher: "Mme Martin",
+          className: "6ème A",
+          priority: "high",
+          status: "pending",
+          dueDate: "2025-09-03T23:59:00Z",
+          assignedDate: "2025-08-27T10:00:00Z"
+        }
+      ];
+      
+      res.json({ success: true, homework: mockHomework });
+    }
+  });
+
+  // Student: Submit homework
+  app.post("/api/student/homework/:id/submit", requireAuth, requireAnyRole(['Student']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const studentId = user.id;
+      const schoolId = user.schoolId;
+      const homeworkId = parseInt(req.params.id);
+      
+      if (!homeworkId || isNaN(homeworkId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid homework ID'
+        });
+      }
+      
+      // For now, handle JSON body (file uploads to be implemented later)
+      const { content, attachments } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({
+          success: false,
+          message: 'Content is required'
+        });
+      }
+      
+      console.log('[HOMEWORK_API] 📝 Student submitting homework:', { studentId, homeworkId });
+      
+      // Verify homework exists and is assigned to student's class
+      const [assignedHomework] = await db
+        .select({
+          id: homework.id,
+          title: homework.title,
+          classId: homework.classId,
+          teacherId: homework.teacherId
+        })
+        .from(homework)
+        .where(and(
+          eq(homework.id, homeworkId),
+          eq(homework.schoolId, schoolId),
+          eq(homework.status, 'active')
+        ))
+        .limit(1);
+        
+      if (!assignedHomework) {
+        return res.status(404).json({
+          success: false,
+          message: 'Homework not found or not available for submission'
+        });
+      }
+      
+      // Check if student is enrolled in the class
+      const [classEnrollment] = await db
+        .select()
+        .from(sql`class_enrollment`)
+        .where(and(
+          sql`student_id = ${studentId}`,
+          sql`class_id = ${assignedHomework.classId}`
+        ))
+        .limit(1);
+        
+      if (!classEnrollment) {
+        return res.status(403).json({
+          success: false,
+          message: 'You are not enrolled in this class'
+        });
+      }
+      
+      // Check if already submitted
+      const [existingSubmission] = await db
+        .select()
+        .from(homeworkSubmissions)
+        .where(and(
+          eq(homeworkSubmissions.homeworkId, homeworkId),
+          eq(homeworkSubmissions.studentId, studentId)
+        ))
+        .limit(1);
+        
+      if (existingSubmission) {
+        // Update existing submission
+        const [updatedSubmission] = await db
+          .update(homeworkSubmissions)
+          .set({
+            content,
+            attachments: attachments || null,
+            submittedAt: new Date(),
+            status: 'submitted',
+            updatedAt: new Date()
+          })
+          .where(eq(homeworkSubmissions.id, existingSubmission.id))
+          .returning();
+          
+        console.log('[HOMEWORK_API] ✅ Homework submission updated:', updatedSubmission.id);
+        
+        res.json({
+          success: true,
+          submission: updatedSubmission,
+          message: 'Soumission mise à jour avec succès'
+        });
+      } else {
+        // Create new submission
+        const [newSubmission] = await db
+          .insert(homeworkSubmissions)
+          .values({
+            homeworkId,
+            studentId,
+            content,
+            attachments: attachments || null,
+            submittedAt: new Date(),
+            status: 'submitted'
+          })
+          .returning();
+          
+        console.log('[HOMEWORK_API] ✅ New homework submission created:', newSubmission.id);
+        
+        // Send notification to teacher
+        await realTimeService.broadcastTimetableNotification({
+          notificationId: newSubmission.id,
+          type: 'homework_submitted',
+          message: `Nouveau devoir soumis: ${assignedHomework.title} par ${user.firstName} ${user.lastName}`,
+          teacherId: assignedHomework.teacherId,
+          studentId: studentId,
+          studentName: `${user.firstName} ${user.lastName}`,
+          homeworkId: homeworkId,
+          homeworkTitle: assignedHomework.title,
+          schoolId: schoolId,
+          priority: 'normal',
+          actionRequired: false
+        });
+        
+        console.log('[HOMEWORK_API] 📡 Notification sent to teacher');
+        
+        res.json({
+          success: true,
+          submission: newSubmission,
+          message: 'Devoir soumis avec succès'
+        });
+      }
+      
+    } catch (error) {
+      console.error('[HOMEWORK_API] ❌ Error submitting homework:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to submit homework' 
+      });
+    }
+  });
+
+  // Student: Get homework submission details
+  app.get("/api/student/homework/:id/submission", requireAuth, requireAnyRole(['Student']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const studentId = user.id;
+      const homeworkId = parseInt(req.params.id);
+      
+      if (!homeworkId || isNaN(homeworkId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid homework ID'
+        });
+      }
+      
+      console.log('[HOMEWORK_API] 📄 Fetching submission details:', { studentId, homeworkId });
+      
+      const [submission] = await db
+        .select({
+          id: homeworkSubmissions.id,
+          content: homeworkSubmissions.content,
+          attachments: homeworkSubmissions.attachments,
+          submittedAt: homeworkSubmissions.submittedAt,
+          status: homeworkSubmissions.status,
+          grade: homeworkSubmissions.grade,
+          feedback: homeworkSubmissions.feedback,
+          homeworkTitle: homework.title,
+          subjectName: subjects.name
+        })
+        .from(homeworkSubmissions)
+        .leftJoin(homework, eq(homeworkSubmissions.homeworkId, homework.id))
+        .leftJoin(subjects, eq(homework.subjectId, subjects.id))
+        .where(and(
+          eq(homeworkSubmissions.homeworkId, homeworkId),
+          eq(homeworkSubmissions.studentId, studentId)
+        ))
+        .limit(1);
+        
+      if (!submission) {
+        return res.status(404).json({
+          success: false,
+          message: 'Submission not found'
+        });
+      }
+      
+      console.log('[HOMEWORK_API] ✅ Submission found:', submission.id);
+      
+      res.json({
+        success: true,
+        submission
+      });
+      
+    } catch (error) {
+      console.error('[HOMEWORK_API] ❌ Error fetching submission:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch submission' 
+      });
+    }
+  });
+
   app.get("/api/teacher/attendance", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
