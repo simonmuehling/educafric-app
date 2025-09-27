@@ -47,9 +47,8 @@ export default function SandboxBanner() {
                 window.location.href = '/sandbox-demo';
               }
             }}
-            className="bg-white text-green-600 hover:bg-gray-100 font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
+            className="bg-white text-green-600 hover:bg-gray-100 font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
           >
-            <Play className="w-4 h-4" />
             <span>{t.testNow}</span>
           </Button>
         </div>
