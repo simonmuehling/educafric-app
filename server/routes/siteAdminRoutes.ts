@@ -40,43 +40,39 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Platform Users Management
   app.get("/api/siteadmin/users", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
+      console.log('[SITE_ADMIN_API] Fetching real platform users from database');
 
-      // Mock platform users data
-      const users = [
-        {
-          id: 1,
-          firstName: 'Marie',
-          lastName: 'Ngono',
-          email: 'marie.ngono@educafric.com',
-          role: 'Director',
-          schoolName: 'Lycée Bilingue de Yaoundé',
-          status: 'active',
-          lastLogin: '2025-02-03 14:30',
-          createdAt: '2024-09-15T10:00:00Z'
-        },
-        {
-          id: 2,
-          firstName: 'Paul',
-          lastName: 'Kamdem',
-          email: 'paul.kamdem@educafric.com',
-          role: 'Teacher',
-          schoolName: 'École Primaire Central',
-          status: 'active',
-          lastLogin: '2025-02-03 16:45',
-          createdAt: '2024-10-20T08:00:00Z'
-        },
-        {
-          id: 3,
-          firstName: 'Jean',
-          lastName: 'Ateba',
-          email: 'jean.ateba@educafric.com',
-          role: 'Commercial',
-          schoolName: null,
-          status: 'active',
-          lastLogin: '2025-02-03 11:20',
-          createdAt: '2024-11-05T14:30:00Z'
-        }
-      ];
+      // Fetch real users from database with school information
+      const usersWithSchools = await storage.db
+        .select({
+          id: storage.users.id,
+          firstName: storage.users.firstName,
+          lastName: storage.users.lastName,
+          email: storage.users.email,
+          role: storage.users.role,
+          subscriptionStatus: storage.users.subscriptionStatus,
+          lastLoginAt: storage.users.lastLoginAt,
+          createdAt: storage.users.createdAt,
+          schoolName: storage.schools.name
+        })
+        .from(storage.users)
+        .leftJoin(storage.schools, storage.eq(storage.users.schoolId, storage.schools.id))
+        .orderBy(storage.desc(storage.users.createdAt));
+
+      // Transform the data to match the expected format
+      const users = usersWithSchools.map(user => ({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        schoolName: user.schoolName,
+        status: user.subscriptionStatus || 'inactive',
+        lastLogin: user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('fr-FR') : 'Jamais',
+        createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : null
+      }));
+
+      console.log(`[SITE_ADMIN_API] ✅ Retrieved ${users.length} real users from database`);
       res.json(users);
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error fetching platform users:', error);
@@ -87,12 +83,21 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Update Platform User
   app.put("/api/siteadmin/users/:userId", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
+      console.log(`[SITE_ADMIN_API] Updating user ${req.params.userId}`);
 
       const { userId } = req.params;
       const updates = req.body;
       
-      // Mock user update - in real implementation, would update database
-      console.log(`[MOCK] Updating user ${userId} with:`, updates);
+      // Update user in database
+      await storage.db
+        .update(storage.users)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(storage.eq(storage.users.id, parseInt(userId)));
+
+      console.log(`[SITE_ADMIN_API] ✅ User ${userId} updated successfully`);
       res.json({ message: 'User updated successfully' });
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error updating user:', error);
@@ -103,10 +108,16 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Delete Platform User
   app.delete("/api/siteadmin/users/:userId", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
+      console.log(`[SITE_ADMIN_API] Deleting user ${req.params.userId}`);
 
       const { userId } = req.params;
-      // Mock user deletion - in real implementation, would delete from database
-      console.log(`[MOCK] Deleting user ${userId}`);
+      
+      // Delete user from database
+      await storage.db
+        .delete(storage.users)
+        .where(storage.eq(storage.users.id, parseInt(userId)));
+
+      console.log(`[SITE_ADMIN_API] ✅ User ${userId} deleted successfully`);
       res.json({ message: 'User deleted successfully' });
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error deleting user:', error);
@@ -117,128 +128,90 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Enhanced Schools Management with comprehensive functionality
   app.get("/api/siteadmin/schools", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
+      console.log('[SITE_ADMIN_API] Fetching real schools from database');
 
       const { search = '', type = 'all', status = 'all', page = 1, limit = 20 } = req.query;
 
-      // Enhanced mock schools data with subscription details
-      const allSchools = [
-        {
-          id: 1,
-          name: 'Lycée Bilingue de Yaoundé',
-          address: 'BP 1234, Quartier Bastos',
-          city: 'Yaoundé',
-          country: 'Cameroun',
-          phone: '+237677001122',
-          email: 'contact@lyceeyaounde.cm',
-          website: 'https://lyceeyaounde.cm',
-          type: 'public',
-          level: 'secondary',
-          studentCount: 450,
-          teacherCount: 32,
-          subscriptionStatus: 'active',
-          subscriptionPlan: 'ecole_500_moins',
-          subscriptionEndDate: '2025-12-31T23:59:59Z',
-          isBlocked: false,
-          createdAt: '2024-09-01T10:00:00Z',
-          lastActiveAt: '2025-09-27T06:00:00Z'
-        },
-        {
-          id: 2,
-          name: 'École Primaire Central Douala',
-          address: 'Rue de la République, Akwa',
-          city: 'Douala',
-          country: 'Cameroun',
-          phone: '+237699334455',
-          email: 'admin@ecoledouala.cm',
-          website: null,
-          type: 'private',
-          level: 'primary',
-          studentCount: 280,
-          teacherCount: 18,
-          subscriptionStatus: 'active',
-          subscriptionPlan: 'ecole_500_moins',
-          subscriptionEndDate: '2025-08-15T23:59:59Z',
-          isBlocked: false,
-          createdAt: '2024-10-15T14:30:00Z',
-          lastActiveAt: '2025-09-26T18:30:00Z'
-        },
-        {
-          id: 3,
-          name: 'Complexe Scolaire Saint-Michel',
-          address: 'Carrefour Warda, Bafoussam',
-          city: 'Bafoussam',
-          country: 'Cameroun',
-          phone: '+237655667788',
-          email: 'info@saintmlchel.cm',
-          website: 'https://saintmichel.educafric.com',
-          type: 'private',
-          level: 'mixed',
-          studentCount: 650,
-          teacherCount: 45,
-          subscriptionStatus: 'active',
-          subscriptionPlan: 'ecole_500_plus',
-          subscriptionEndDate: '2026-01-30T23:59:59Z',
-          isBlocked: false,
-          createdAt: '2024-08-20T09:15:00Z',
-          lastActiveAt: '2025-09-27T07:45:00Z'
-        },
-        {
-          id: 4,
-          name: 'Institut Technique de Garoua',
-          address: 'Avenue Ahmadou Ahidjo',
-          city: 'Garoua',
-          country: 'Cameroun',
-          phone: '+237644556677',
-          email: 'direction@itgaroua.cm',
-          website: null,
-          type: 'public',
-          level: 'secondary',
-          studentCount: 320,
-          teacherCount: 28,
-          subscriptionStatus: 'expired',
-          subscriptionPlan: 'ecole_500_moins',
-          subscriptionEndDate: '2024-12-31T23:59:59Z',
-          isBlocked: true,
-          createdAt: '2024-07-10T11:00:00Z',
-          lastActiveAt: '2025-01-15T14:20:00Z'
-        }
-      ];
+      // Fetch real schools from database with user statistics
+      const schoolsWithStats = await storage.db
+        .select({
+          id: storage.schools.id,
+          name: storage.schools.name,
+          address: storage.schools.address,
+          phone: storage.schools.phone,
+          email: storage.schools.email,
+          city: storage.schools.city,
+          region: storage.schools.region,
+          schoolType: storage.schools.schoolType,
+          createdAt: storage.schools.createdAt
+        })
+        .from(storage.schools)
+        .orderBy(storage.desc(storage.schools.createdAt));
 
-      // Apply filters
-      let filteredSchools = allSchools.filter(school => {
-        const matchesSearch = search === '' || 
+      // Get user counts for each school
+      const schoolsWithCounts = await Promise.all(
+        schoolsWithStats.map(async (school) => {
+          // Count students
+          const studentCount = await storage.db
+            .select({ count: storage.sql`count(*)::int` })
+            .from(storage.users)
+            .where(storage.and(
+              storage.eq(storage.users.schoolId, school.id),
+              storage.eq(storage.users.role, 'Student')
+            ));
+
+          // Count teachers
+          const teacherCount = await storage.db
+            .select({ count: storage.sql`count(*)::int` })
+            .from(storage.users)
+            .where(storage.and(
+              storage.eq(storage.users.schoolId, school.id),
+              storage.eq(storage.users.role, 'Teacher')
+            ));
+
+          return {
+            id: school.id,
+            name: school.name,
+            address: school.address || `${school.city || ''}, ${school.region || ''}`.trim(),
+            phone: school.phone,
+            email: school.email,
+            city: school.city,
+            region: school.region,
+            schoolType: school.schoolType,
+            studentCount: studentCount[0]?.count || 0,
+            teacherCount: teacherCount[0]?.count || 0,
+            subscriptionStatus: 'active', // Could be calculated based on active users with subscriptions
+            monthlyRevenue: 0, // Would need to be calculated from subscription data
+            createdAt: school.createdAt,
+            contactEmail: school.email,
+            location: `${school.city || ''}, ${school.region || ''}`.trim()
+          };
+        })
+      );
+
+      // Apply search filter if provided
+      let filteredSchools = schoolsWithCounts;
+      if (search) {
+        filteredSchools = schoolsWithCounts.filter(school => 
           school.name.toLowerCase().includes(search.toString().toLowerCase()) ||
-          school.city.toLowerCase().includes(search.toString().toLowerCase());
-        
-        const matchesType = type === 'all' || school.type === type;
-        
-        const matchesStatus = status === 'all' || school.subscriptionStatus === status;
-        
-        return matchesSearch && matchesType && matchesStatus;
-      });
+          school.address?.toLowerCase().includes(search.toString().toLowerCase()) ||
+          school.city?.toLowerCase().includes(search.toString().toLowerCase())
+        );
+      }
 
-      // Apply pagination
-      const pageNum = parseInt(page.toString());
-      const limitNum = parseInt(limit.toString());
-      const startIndex = (pageNum - 1) * limitNum;
-      const endIndex = startIndex + limitNum;
-      
-      const paginatedSchools = filteredSchools.slice(startIndex, endIndex);
-      const totalPages = Math.ceil(filteredSchools.length / limitNum);
-
-      res.json({
-        schools: paginatedSchools,
-        totalSchools: filteredSchools.length,
-        currentPage: pageNum,
-        totalPages: totalPages,
-        hasNextPage: pageNum < totalPages,
-        hasPreviousPage: pageNum > 1
+      console.log(`[SITE_ADMIN_API] ✅ Retrieved ${filteredSchools.length} real schools from database`);
+      res.json({ 
+        schools: filteredSchools,
+        totalCount: filteredSchools.length,
+        page: parseInt(page.toString()),
+        limit: parseInt(limit.toString())
       });
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error fetching schools:', error);
       res.status(500).json({ message: 'Failed to fetch schools' });
     }
   });
+
 
   // School statistics
   app.get("/api/siteadmin/school-stats", requireAuth, requireSiteAdminAccess, async (req, res) => {

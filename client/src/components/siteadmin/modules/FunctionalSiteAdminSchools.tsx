@@ -25,38 +25,19 @@ const FunctionalSiteAdminSchools: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: schools, isLoading, error } = useQuery({
-    queryKey: ['/api/admin/platform-schools'],
+  const { data: schoolsData, isLoading, error } = useQuery({
+    queryKey: ['/api/siteadmin/schools'],
     queryFn: async () => {
-      // Mock data for demonstration - replace with real API
-      return [
-        {
-          id: 1,
-          name: 'Lycée Bilingue de Yaoundé',
-          location: 'Yaoundé, Cameroun',
-          studentCount: 1250,
-          teacherCount: 85,
-          subscriptionStatus: 'active',
-          monthlyRevenue: 2500000,
-          createdAt: '2024-01-15T00:00:00Z',
-          contactEmail: 'admin@lycee-yaounde.cm',
-          phone: '+237698765432'
-        },
-        {
-          id: 2,
-          name: 'École Primaire Central Douala',
-          location: 'Douala, Cameroun',
-          studentCount: 680,
-          teacherCount: 42,
-          subscriptionStatus: 'active',
-          monthlyRevenue: 1800000,
-          createdAt: '2024-03-10T00:00:00Z',
-          contactEmail: 'direction@epc-douala.cm',
-          phone: '+237677123456'
-        }
-      ];
+      const response = await fetch('/api/siteadmin/schools', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch schools');
+      return response.json();
     }
   });
+
+  // Extract schools from the response structure
+  const schools = schoolsData?.schools || [];
 
   const deleteSchoolMutation = useMutation({
     mutationFn: async (schoolId: number) => {
