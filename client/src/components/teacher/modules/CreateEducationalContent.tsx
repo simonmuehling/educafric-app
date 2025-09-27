@@ -384,58 +384,66 @@ const CreateEducationalContent = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {(Array.isArray(filteredContent) ? filteredContent : []).map(content => {
                   const Icon = getContentTypeIcon(content.type);
                   const colorClass = getContentTypeColor(content.type);
                   
                   return (
-                    <div key={content.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                    <div key={content.id} className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-2 mb-2">
-                        <Icon className={`w-5 h-5 text-${colorClass}-600`} />
-                        <Badge className={getStatusColor(content.status)}>
+                        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 text-${colorClass}-600`} />
+                        <Badge className={`text-xs ${getStatusColor(content.status)}`}>
                           {content.status}
                         </Badge>
                       </div>
                       
-                      <h4 className="font-semibold mb-2 line-clamp-2">{content.title || ''}</h4>
+                      <h4 className="font-semibold mb-2 text-sm sm:text-base line-clamp-2">{content.title || ''}</h4>
                       
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <p>{content.subject} - {content.level}</p>
+                      <div className="text-xs sm:text-sm text-gray-600 space-y-1 mb-3">
+                        <p className="truncate">{content.subject} - {content.level}</p>
                         <p className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {content.duration} min
+                          <Clock className="w-3 h-3 flex-shrink-0" />
+                          <span>{content.duration} min</span>
                         </p>
-                        <p>{content.lastModified}</p>
+                        <p className="text-xs">{content.lastModified}</p>
                       </div>
                       
-                      <div className="flex gap-2 mt-3">
-                        <Button size="sm" variant="outline" className="flex-1">
-                          <Eye className="w-3 h-3 mr-1" />
-                          {t.preview}
-                        </Button>
-                        <Button size="sm" variant="outline" className="flex-1">
-                          <Edit className="w-3 h-3 mr-1" />
-                          {t.edit}
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => shareContent(content.id)}
-                          className="text-blue-600"
-                        >
-                          <Share2 className="w-3 h-3 mr-1" />
-                          {language === 'fr' ? 'Partager' : 'Share'}
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => submitForApproval(content.id)}
-                          className="text-green-600"
-                        >
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          {language === 'fr' ? 'Soumettre' : 'Submit'}
-                        </Button>
+                      {/* Actions responsive */}
+                      <div className="space-y-2">
+                        {/* Première ligne d'actions */}
+                        <div className="flex gap-1 sm:gap-2">
+                          <Button size="sm" variant="outline" className="flex-1 text-xs sm:text-sm px-2 sm:px-3">
+                            <Eye className="w-3 h-3 sm:mr-1" />
+                            <span className="hidden sm:inline">{t.preview}</span>
+                          </Button>
+                          <Button size="sm" variant="outline" className="flex-1 text-xs sm:text-sm px-2 sm:px-3">
+                            <Edit className="w-3 h-3 sm:mr-1" />
+                            <span className="hidden sm:inline">{t.edit}</span>
+                          </Button>
+                        </div>
+                        
+                        {/* Deuxième ligne d'actions */}
+                        <div className="flex gap-1 sm:gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => shareContent(content.id)}
+                            className="flex-1 text-xs sm:text-sm px-2 sm:px-3 text-blue-600 hover:text-blue-700"
+                          >
+                            <Share2 className="w-3 h-3 sm:mr-1" />
+                            <span className="hidden sm:inline">{language === 'fr' ? 'Partager' : 'Share'}</span>
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => submitForApproval(content.id)}
+                            className="flex-1 text-xs sm:text-sm px-2 sm:px-3 text-green-600 hover:text-green-700"
+                          >
+                            <CheckCircle className="w-3 h-3 sm:mr-1" />
+                            <span className="hidden sm:inline">{language === 'fr' ? 'Soumettre' : 'Submit'}</span>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -509,33 +517,33 @@ const CreateEducationalContent = () => {
             <ModernCard className="p-4">
               <h3 className="text-lg font-semibold mb-4">{t.popularTemplates}</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {(Array.isArray(popularTemplates) ? popularTemplates : []).map(template => (
-                  <div key={template.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                  <div key={template.id} className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-2 mb-2">
-                      <FileText className="w-5 h-5 text-blue-600" />
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-medium">{template.rating}</span>
+                        <span className="text-xs sm:text-sm font-medium">{template.rating}</span>
                       </div>
                     </div>
                     
-                    <h4 className="font-semibold mb-2">{template.title || ''}</h4>
-                    <p className="text-sm text-gray-600 mb-3">{template.description || ''}</p>
+                    <h4 className="font-semibold mb-2 text-sm sm:text-base line-clamp-2">{template.title || ''}</h4>
+                    <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-3">{template.description || ''}</p>
                     
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                      <span>{template.downloads} téléchargements</span>
-                      <Badge variant="outline">{template.type}</Badge>
+                    <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500 mb-3">
+                      <span className="truncate">{template.downloads} téléchargements</span>
+                      <Badge variant="outline" className="text-xs ml-2">{template.type}</Badge>
                     </div>
                     
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <Eye className="w-3 h-3 mr-1" />
-                        Aperçu
+                    <div className="flex gap-1 sm:gap-2">
+                      <Button size="sm" variant="outline" className="flex-1 text-xs sm:text-sm px-2 sm:px-3">
+                        <Eye className="w-3 h-3 sm:mr-1" />
+                        <span className="hidden sm:inline">Aperçu</span>
                       </Button>
-                      <Button size="sm" className="flex-1">
-                        <Download className="w-3 h-3 mr-1" />
-                        Utiliser
+                      <Button size="sm" className="flex-1 text-xs sm:text-sm px-2 sm:px-3 bg-blue-600 hover:bg-blue-700">
+                        <Download className="w-3 h-3 sm:mr-1" />
+                        <span className="hidden sm:inline">Utiliser</span>
                       </Button>
                     </div>
                   </div>
@@ -553,7 +561,101 @@ const CreateEducationalContent = () => {
                 {language === 'fr' ? 'Contenu Partagé par les Collègues' : 'Content Shared by Colleagues'}
               </h3>
               
-              <SharedContentGrid language={language} toast={toast} />
+              {/* Contenu partagé par les collègues */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  {
+                    id: 1,
+                    title: "Leçon sur les probabilités",
+                    author: "Marie Dubois",
+                    subject: "Mathématiques",
+                    level: "3ème",
+                    type: "lesson",
+                    downloads: 45,
+                    rating: 4.5,
+                    sharedAt: "2025-09-20"
+                  },
+                  {
+                    id: 2,
+                    title: "Exercices d'orthographe",
+                    author: "Jean Martin",
+                    subject: "Français",
+                    level: "5ème",
+                    type: "exercise",
+                    downloads: 32,
+                    rating: 4.7,
+                    sharedAt: "2025-09-18"
+                  },
+                  {
+                    id: 3,
+                    title: "Évaluation Sciences Physiques",
+                    author: "Sophie Laurent",
+                    subject: "Physique",
+                    level: "4ème",
+                    type: "assessment",
+                    downloads: 28,
+                    rating: 4.3,
+                    sharedAt: "2025-09-15"
+                  }
+                ].map(content => {
+                  const Icon = getContentTypeIcon(content.type);
+                  const colorClass = getContentTypeColor(content.type);
+                  
+                  return (
+                    <div key={content.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Icon className={`w-5 h-5 text-${colorClass}-600`} />
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                          <span className="text-sm font-medium">{content.rating}</span>
+                        </div>
+                        <Badge variant="outline" className="ml-auto text-xs">
+                          {content.type === 'lesson' ? 'Leçon' : 
+                           content.type === 'exercise' ? 'Exercice' : 'Évaluation'}
+                        </Badge>
+                      </div>
+                      
+                      <h4 className="font-semibold mb-2 text-sm sm:text-base line-clamp-2">{content.title}</h4>
+                      
+                      <div className="text-xs sm:text-sm text-gray-600 space-y-1 mb-3">
+                        <p><strong>Auteur:</strong> {content.author}</p>
+                        <p><strong>Matière:</strong> {content.subject} - {content.level}</p>
+                        <p><strong>Partagé le:</strong> {new Date(content.sharedAt).toLocaleDateString('fr-FR')}</p>
+                        <p className="flex items-center gap-1">
+                          <Download className="w-3 h-3" />
+                          {content.downloads} téléchargements
+                        </p>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="flex-1 text-xs sm:text-sm">
+                          <Eye className="w-3 h-3 mr-1" />
+                          <span className="hidden sm:inline">{t.preview}</span>
+                          <span className="sm:hidden">Voir</span>
+                        </Button>
+                        <Button size="sm" className="flex-1 text-xs sm:text-sm bg-green-600 hover:bg-green-700">
+                          <Download className="w-3 h-3 mr-1" />
+                          <span className="hidden sm:inline">Télécharger</span>
+                          <span className="sm:hidden">DL</span>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Message si aucun contenu partagé */}
+              <div className="text-center py-8 text-gray-500">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <h4 className="font-medium mb-2">
+                  {language === 'fr' ? 'Espace de Collaboration' : 'Collaboration Space'}
+                </h4>
+                <p className="text-sm">
+                  {language === 'fr' 
+                    ? 'Découvrez et téléchargez le contenu partagé par vos collègues enseignants.' 
+                    : 'Discover and download content shared by your fellow teachers.'}
+                </p>
+              </div>
             </ModernCard>
           </div>
         );
@@ -577,44 +679,56 @@ const CreateEducationalContent = () => {
         </Button>
       </div>
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <ModernCard className="p-4 text-center activity-card-blue">
-          <div className="text-2xl font-bold text-gray-800">24</div>
-          <div className="text-sm text-gray-600">Leçons créées</div>
+      {/* Statistiques - Responsive amélioré */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+        <ModernCard className="p-3 sm:p-4 text-center activity-card-blue">
+          <div className="text-xl sm:text-2xl font-bold text-gray-800">24</div>
+          <div className="text-xs sm:text-sm text-gray-600 leading-tight">Leçons créées</div>
         </ModernCard>
-        <ModernCard className="p-4 text-center activity-card-green">
-          <div className="text-2xl font-bold text-gray-800">18</div>
-          <div className="text-sm text-gray-600">Exercices</div>
+        <ModernCard className="p-3 sm:p-4 text-center activity-card-green">
+          <div className="text-xl sm:text-2xl font-bold text-gray-800">18</div>
+          <div className="text-xs sm:text-sm text-gray-600 leading-tight">Exercices</div>
         </ModernCard>
-        <ModernCard className="p-4 text-center activity-card-purple">
-          <div className="text-2xl font-bold text-gray-800">12</div>
-          <div className="text-sm text-gray-600">Évaluations</div>
+        <ModernCard className="p-3 sm:p-4 text-center activity-card-purple">
+          <div className="text-xl sm:text-2xl font-bold text-gray-800">12</div>
+          <div className="text-xs sm:text-sm text-gray-600 leading-tight">Évaluations</div>
         </ModernCard>
-        <ModernCard className="p-4 text-center activity-card-orange">
-          <div className="text-2xl font-bold text-gray-800">156</div>
-          <div className="text-sm text-gray-600">Ressources</div>
+        <ModernCard className="p-3 sm:p-4 text-center activity-card-orange">
+          <div className="text-xl sm:text-2xl font-bold text-gray-800">156</div>
+          <div className="text-xs sm:text-sm text-gray-600 leading-tight">Ressources</div>
         </ModernCard>
       </div>
 
-      {/* Onglets */}
+      {/* Onglets - Version Mobile Améliorée */}
       <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+        <nav className="-mb-px flex space-x-2 sm:space-x-4 md:space-x-8 overflow-x-auto scrollbar-hide">
           {(Array.isArray(tabs) ? tabs : []).map(tab => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-3 sm:py-4 px-2 sm:px-3 md:px-4 border-b-2 font-medium text-xs sm:text-sm md:text-base whitespace-nowrap flex-shrink-0 transition-colors ${
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
                   <Icon className="w-4 h-4" />
-                  {tab.name || ''}
+                  <span className="text-xs sm:text-sm leading-tight">
+                    {/* Texte adaptatif pour mobile */}
+                    <span className="block sm:hidden">
+                      {tab.id === 'lessons' ? 'Leçons' :
+                       tab.id === 'exercises' ? 'Exercices' :
+                       tab.id === 'resources' ? 'Ressources' :
+                       tab.id === 'templates' ? 'Modèles' :
+                       tab.id === 'shared' ? 'Partagé' : tab.name}
+                    </span>
+                    <span className="hidden sm:block">
+                      {tab.name || ''}
+                    </span>
+                  </span>
                 </div>
               </button>
             );

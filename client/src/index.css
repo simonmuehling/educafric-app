@@ -5,6 +5,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== SCROLLBAR OPTIMIZATION FOR MOBILE TABS ===== */
+/* Hide scrollbar for tabs on mobile while keeping functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Smooth scrolling behavior for tab navigation */
+.scrollbar-hide {
+  scroll-behavior: smooth;
+}
+
+/* Ensure proper tab layout on mobile */
+.tab-scroll-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab-scroll-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
 /* ===== LUCIDE REACT ICONS OPTIMIZATION ===== */
 /* Ensure all lucide-react icons display correctly across all browsers */
 [data-lucide] {
