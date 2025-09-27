@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import ContractGenerator from '@/components/commercial/ContractGenerator';
 import { 
   Briefcase, 
@@ -52,6 +54,7 @@ interface Commercial {
   activeDeals: number;
   revenue: number;
   lastActivity: string;
+  role: string;
 }
 
 interface CommercialActivity {
@@ -93,6 +96,10 @@ const UnifiedCommercialManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [editingCommercial, setEditingCommercial] = useState<Commercial | null>(null);
+  const [newRole, setNewRole] = useState('');
 
   // Queries
   const { data: commercials = [], isLoading: loadingCommercials } = useQuery({
@@ -143,6 +150,70 @@ const UnifiedCommercialManagement: React.FC = () => {
       const response = await fetch('/api/site-admin/all-commercial-documents', { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch all documents');
       return response.json();
+    }
+  });
+
+  // Mutations for commercial management
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const response = await fetch(`/api/site-admin/commercials/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status })
+      });
+      if (!response.ok) throw new Error('Failed to update status');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/site-admin/commercials'] });
+      toast({ title: "Succès", description: "Statut du commercial mis à jour" });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "Impossible de mettre à jour le statut", variant: "destructive" });
+    }
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ id, role }: { id: number; role: string }) => {
+      const response = await fetch(`/api/site-admin/commercials/${id}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ role })
+      });
+      if (!response.ok) throw new Error('Failed to update role');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/site-admin/commercials'] });
+      setIsEditDialogOpen(false);
+      setEditingCommercial(null);
+      setNewRole('');
+      toast({ title: "Succès", description: "Rôle du commercial mis à jour" });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "Impossible de mettre à jour le rôle", variant: "destructive" });
+    }
+  });
+
+  const deleteCommercialMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/site-admin/commercials/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete commercial');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/site-admin/commercials'] });
+      setIsDeleteDialogOpen(false);
+      setEditingCommercial(null);
+      toast({ title: "Succès", description: "Commercial supprimé avec succès" });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "Impossible de supprimer le commercial", variant: "destructive" });
     }
   });
 
@@ -431,15 +502,64 @@ const UnifiedCommercialManagement: React.FC = () => {
                     </div>
                   </div>
 
-                  <Button 
-                    className="w-full" 
-                    variant="outline"
-                    onClick={() => setSelectedCommercial(commercial)}
-                    data-testid={`button-view-commercial-${commercial.id}`}
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Voir Détails
-                  </Button>
+                  <div className="space-y-2">
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={() => setSelectedCommercial(commercial)}
+                      data-testid={`button-view-commercial-${commercial.id}`}
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Voir Détails
+                    </Button>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Status Toggle Button */}
+                      <Button
+                        size="sm"
+                        variant={commercial.status === 'active' ? "destructive" : "default"}
+                        onClick={() => updateStatusMutation.mutate({
+                          id: commercial.id,
+                          status: commercial.status === 'active' ? 'inactive' : 'active'
+                        })}
+                        disabled={updateStatusMutation.isPending}
+                        data-testid={`button-toggle-status-${commercial.id}`}
+                      >
+                        {commercial.status === 'active' ? 'Bloquer' : 'Activer'}
+                      </Button>
+
+                      {/* Edit Role Button */}
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          setEditingCommercial(commercial);
+                          setNewRole(commercial.role);
+                          setIsEditDialogOpen(true);
+                        }}
+                        data-testid={`button-edit-role-${commercial.id}`}
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        Rôle
+                      </Button>
+                    </div>
+
+                    {/* Delete Button */}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="w-full"
+                      onClick={() => {
+                        setEditingCommercial(commercial);
+                        setIsDeleteDialogOpen(true);
+                      }}
+                      disabled={deleteCommercialMutation.isPending}
+                      data-testid={`button-delete-commercial-${commercial.id}`}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Supprimer
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -622,7 +742,7 @@ const UnifiedCommercialManagement: React.FC = () => {
                               });
                             }}
                           >
-                            <Link className="w-3 h-3 mr-1" />
+                            <Calendar className="w-3 h-3 mr-1" />
                             Copier
                           </Button>
                         </div>
@@ -753,6 +873,84 @@ const UnifiedCommercialManagement: React.FC = () => {
           // Ici vous pouvez ajouter la logique pour sauvegarder en base
         }}
       />
+
+      {/* Edit Role Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier le Rôle</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {editingCommercial && (
+              <div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Modifier le rôle de <strong>{editingCommercial.firstName} {editingCommercial.lastName}</strong>
+                </p>
+                <Label htmlFor="role-select">Nouveau Rôle</Label>
+                <Select value={newRole} onValueChange={setNewRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un rôle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Commercial">Commercial</SelectItem>
+                    <SelectItem value="Director">Directeur</SelectItem>
+                    <SelectItem value="Teacher">Enseignant</SelectItem>
+                    <SelectItem value="SuperAdmin">Super Admin</SelectItem>
+                    <SelectItem value="SiteAdmin">Site Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button 
+              onClick={() => {
+                if (editingCommercial && newRole) {
+                  updateRoleMutation.mutate({ id: editingCommercial.id, role: newRole });
+                }
+              }}
+              disabled={updateRoleMutation.isPending || !newRole}
+            >
+              {updateRoleMutation.isPending ? 'Mise à jour...' : 'Confirmer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la Suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              {editingCommercial && (
+                <>
+                  Êtes-vous sûr de vouloir supprimer <strong>{editingCommercial.firstName} {editingCommercial.lastName}</strong> ?
+                  <br />
+                  <span className="text-red-600 font-medium">Cette action est irréversible.</span>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (editingCommercial) {
+                  deleteCommercialMutation.mutate(editingCommercial.id);
+                }
+              }}
+              disabled={deleteCommercialMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteCommercialMutation.isPending ? 'Suppression...' : 'Supprimer'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

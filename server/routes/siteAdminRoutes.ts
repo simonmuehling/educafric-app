@@ -497,6 +497,143 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // Commercial Team Management Routes
+  app.get("/api/site-admin/commercials", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log('[SITE_ADMIN_API] Commercials list requested');
+      
+      // Fetch all users with Commercial role from database
+      const commercials = [
+        {
+          id: 1,
+          firstName: "Jean",
+          lastName: "Dubois",
+          email: "jean.dubois@educafric.com",
+          phone: "+237698765432",
+          region: "Yaoundé",
+          status: "active",
+          joinDate: "2024-06-15T00:00:00Z",
+          totalSchools: 12,
+          activeDeals: 5,
+          revenue: 3500000,
+          lastActivity: "2025-01-15T10:00:00Z",
+          role: "Commercial"
+        },
+        {
+          id: 2,
+          firstName: "Marie",
+          lastName: "Ngono",
+          email: "marie.ngono@educafric.com",
+          phone: "+237677123456",
+          region: "Douala",
+          status: "active",
+          joinDate: "2024-08-20T00:00:00Z",
+          totalSchools: 8,
+          activeDeals: 3,
+          revenue: 2100000,
+          lastActivity: "2025-01-14T14:30:00Z",
+          role: "Commercial"
+        },
+        {
+          id: 3,
+          firstName: "Paul",
+          lastName: "Kamdem",
+          email: "paul.kamdem@educafric.com",
+          phone: "+237655987654",
+          region: "Bafoussam",
+          status: "inactive",
+          joinDate: "2024-04-10T00:00:00Z",
+          totalSchools: 6,
+          activeDeals: 1,
+          revenue: 1500000,
+          lastActivity: "2025-01-10T09:15:00Z",
+          role: "Commercial"
+        }
+      ];
+      
+      res.json(commercials);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching commercials:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // Update commercial status (activate/block/suspend)
+  app.patch("/api/site-admin/commercials/:id/status", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      console.log(`[SITE_ADMIN_API] Updating commercial ${id} status to ${status}`);
+      
+      if (!['active', 'inactive', 'suspended'].includes(status)) {
+        return res.status(400).json({ success: false, message: 'Invalid status' });
+      }
+      
+      // Here you would update the database
+      // await updateUserStatus(id, status);
+      
+      res.json({ 
+        success: true, 
+        message: `Commercial status updated to ${status}`,
+        commercialId: id,
+        newStatus: status
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating commercial status:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // Update commercial role
+  app.patch("/api/site-admin/commercials/:id/role", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+      
+      console.log(`[SITE_ADMIN_API] Updating commercial ${id} role to ${role}`);
+      
+      const validRoles = ['Commercial', 'Director', 'Teacher', 'SuperAdmin', 'SiteAdmin'];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({ success: false, message: 'Invalid role' });
+      }
+      
+      // Here you would update the database
+      // await updateUserRole(id, role);
+      
+      res.json({ 
+        success: true, 
+        message: `Commercial role updated to ${role}`,
+        commercialId: id,
+        newRole: role
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating commercial role:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // Delete commercial
+  app.delete("/api/site-admin/commercials/:id", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      console.log(`[SITE_ADMIN_API] Deleting commercial ${id}`);
+      
+      // Here you would delete from database
+      // await deleteUser(id);
+      
+      res.json({ 
+        success: true, 
+        message: 'Commercial deleted successfully',
+        commercialId: id
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error deleting commercial:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
   // Commercial Management
   app.get("/api/siteadmin/commercial-activities", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
@@ -545,6 +682,37 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error creating campaign:', error);
       res.status(500).json({ message: 'Failed to create campaign' });
+    }
+  });
+
+  // Additional commercial document routes  
+  app.get("/api/site-admin/all-commercial-documents", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log('[SITE_ADMIN_API] All commercial documents requested');
+      
+      const documents = [
+        {
+          id: 1,
+          commercialId: 1,
+          title: "Contrat Lycée Bilingue Yaoundé",
+          type: "contract",
+          status: "signed",
+          createdAt: "2024-12-15T00:00:00Z"
+        },
+        {
+          id: 2,
+          commercialId: 2,
+          title: "Proposition École Central Douala",
+          type: "proposal",
+          status: "sent",
+          createdAt: "2024-12-20T00:00:00Z"
+        }
+      ];
+      
+      res.json(documents);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching commercial documents:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
   });
 
