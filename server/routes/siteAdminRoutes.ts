@@ -85,11 +85,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Update Platform User
-  app.put("/api/admin/platform-users/:userId", requireAuth, async (req, res) => {
+  app.put("/api/siteadmin/users/:userId", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       const { userId } = req.params;
       const updates = req.body;
@@ -378,11 +375,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Get subscription plans
-  app.get("/api/admin/subscription-plans", requireAuth, async (req, res) => {
+  app.get("/api/siteadmin/subscription-plans", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       // Mock subscription plans from SubscriptionService
       const plans = [
@@ -433,11 +427,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Documents Management
-  app.get("/api/admin/documents", requireAuth, async (req, res) => {
+  app.get("/api/siteadmin/documents", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       // Mock documents data
       const documents = [
@@ -473,11 +464,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
-  app.post("/api/admin/documents", requireAuth, async (req, res) => {
+  app.post("/api/siteadmin/documents", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       const documentData = req.body;
       // Mock document creation
@@ -496,11 +484,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
-  app.delete("/api/admin/documents/:docId", requireAuth, async (req, res) => {
+  app.delete("/api/siteadmin/documents/:docId", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       const { docId } = req.params;
       // Mock document deletion
@@ -513,11 +498,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Commercial Management
-  app.get("/api/admin/commercial-activities", requireAuth, async (req, res) => {
+  app.get("/api/siteadmin/commercial-activities", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       // Mock commercial activities
       const activities = [
@@ -547,11 +529,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
-  app.post("/api/admin/commercial-campaigns", requireAuth, async (req, res) => {
+  app.post("/api/siteadmin/commercial-campaigns", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       const campaignData = req.body;
       // Mock campaign creation
@@ -570,11 +549,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Analytics and Business Intelligence
-  app.get("/api/admin/business-analytics", requireAuth, async (req, res) => {
+  app.get("/api/siteadmin/analytics", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       // Mock business analytics
       const analytics = {
@@ -593,11 +569,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Payment Administration
-  app.get("/api/admin/payment-stats", requireAuth, async (req, res) => {
+  app.get("/api/siteadmin/payment-stats", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       // Mock payment statistics
       const paymentStats = {
@@ -620,11 +593,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   });
 
   // Security Audit
-  app.get("/api/admin/security-audit", requireAuth, async (req, res) => {
+  app.get("/api/siteadmin/security-audit", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      if (!req.user || req.user.role !== 'SiteAdmin') {
-        return res.status(403).json({ message: 'Site Admin access required' });
-      }
 
       // Mock security audit data
       const auditData = {
