@@ -307,7 +307,7 @@ const SandboxLogin = () => {
                 >
                   {isLogging === profile.id ? (
                     <>
-                      <TestTube className="w-4 h-4 mr-2 animate-spin" />
+                      <GraduationCap className="w-4 h-4 mr-2 animate-spin" />
                       {language === 'fr' ? 'Connexion...' : 'Connecting...'}
                     </>
                   ) : profile.id === 'notifications' ? (
