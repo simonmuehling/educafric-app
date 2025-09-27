@@ -49,14 +49,22 @@ interface PerformanceMetrics {
 
 const FunctionalSiteAdminSystemHealth: React.FC = () => {
   const { data: systemHealth, isLoading: healthLoading } = useQuery<SystemHealth>({
-    queryKey: ['/api/admin/system-health'],
-    queryFn: () => apiRequest('/api/admin/system-health'),
+    queryKey: ['/api/siteadmin/system-health'],
+    queryFn: async () => {
+      const response = await fetch('/api/siteadmin/system-health', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch system health');
+      return response.json();
+    },
     refetchInterval: 30000 // Refresh every 30 seconds
   });
 
   const { data: performanceMetrics, isLoading: metricsLoading } = useQuery<PerformanceMetrics>({
     queryKey: ['/api/admin/performance-metrics'],
-    queryFn: () => apiRequest('/api/admin/performance-metrics'),
+    queryFn: async () => {
+      const response = await fetch('/api/admin/performance-metrics', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch performance metrics');
+      return response.json();
+    },
     refetchInterval: 30000
   });
 
