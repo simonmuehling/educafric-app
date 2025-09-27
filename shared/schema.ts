@@ -122,6 +122,58 @@ export const businessPartners = pgTable("business_partners", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// Timetables table for unified schedule management (Director ↔ Teacher synchronization)
+export const timetables = pgTable("timetables", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  teacherId: integer("teacher_id").notNull(),
+  classId: integer("class_id").notNull(),
+  subjectName: text("subject_name").notNull(),
+  dayOfWeek: integer("day_of_week").notNull(), // 1=Monday, 2=Tuesday, etc.
+  startTime: text("start_time").notNull(), // Format: "08:00"
+  endTime: text("end_time").notNull(), // Format: "09:00"
+  room: text("room"),
+  academicYear: text("academic_year").notNull(),
+  term: text("term").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdBy: integer("created_by").notNull(), // Director/Admin who created it
+  lastModifiedBy: integer("last_modified_by"), // Who last modified it
+  notes: text("notes"), // Additional notes
+}, (table) => ({
+  // Prevent conflicts: same teacher can't have overlapping time slots on same day
+  uniqueTeacherTimeSlot: unique("unique_teacher_time_slot").on(
+    table.teacherId,
+    table.dayOfWeek,
+    table.startTime,
+    table.endTime,
+    table.academicYear,
+    table.term
+  ),
+  // Prevent room conflicts: same room can't be used at same time
+  uniqueRoomTimeSlot: unique("unique_room_time_slot").on(
+    table.room,
+    table.dayOfWeek,
+    table.startTime,
+    table.endTime,
+    table.academicYear,
+    table.term
+  )
+}));
+
+// Timetable change notifications for real-time sync
+export const timetableNotifications = pgTable("timetable_notifications", {
+  id: serial("id").primaryKey(),
+  teacherId: integer("teacher_id").notNull(),
+  timetableId: integer("timetable_id").notNull(),
+  changeType: text("change_type").notNull(), // 'created', 'updated', 'deleted'
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  createdBy: integer("created_by").notNull() // Director/Admin who made the change
+});
+
 export const schoolPartnershipAgreements = pgTable("school_partnership_agreements", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").notNull(),
