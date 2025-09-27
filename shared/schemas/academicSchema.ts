@@ -63,13 +63,19 @@ export const homework = pgTable("homework", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
+  instructions: text("instructions"), // Detailed instructions for students
   teacherId: integer("teacher_id").notNull(),
   subjectId: integer("subject_id").notNull(),
   classId: integer("class_id").notNull(),
   schoolId: integer("school_id").notNull(),
+  priority: text("priority").default("medium"), // low, medium, high
   dueDate: timestamp("due_date"),
   assignedDate: timestamp("assigned_date").defaultNow(),
-  isActive: boolean("is_active").default(true),
+  status: text("status").default("active"), // active, archived, draft
+  archivedAt: timestamp("archived_at"), // When archived
+  archivedBy: integer("archived_by"), // Who archived
+  notifyChannels: jsonb("notify_channels"), // {email: true, sms: false, whatsapp: true}
+  isActive: boolean("is_active").default(true), // Keep for compatibility
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -82,11 +88,13 @@ export const homeworkSubmissions = pgTable("homework_submissions", {
   attachmentUrl: text("attachment_url"), // Legacy single file support
   attachmentUrls: jsonb("attachment_urls"), // New multiple files support
   submissionSource: text("submission_source").default("web"), // web, mobile, etc.
+  status: text("status").default("pending"), // pending, submitted, graded, returned
   submittedAt: timestamp("submitted_at").defaultNow(),
   score: decimal("score", { precision: 5, scale: 2 }),
   feedback: text("feedback"),
   gradeBy: integer("grade_by"), // Teacher who graded
   gradedAt: timestamp("graded_at"),
+  parentNotified: boolean("parent_notified").default(false), // Track parent notification
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });

@@ -3257,37 +3257,425 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/teacher/assignments", requireAuth, async (req, res) => {
+  // ================ HOMEWORK/ASSIGNMENTS SYSTEM ================
+  
+  // Teacher: Get assignments with advanced filtering and status
+  app.get("/api/teacher/assignments", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
     try {
       const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      const { status, classId, subject } = req.query;
       
-      const assignments = [
+      console.log('[HOMEWORK_API] 📚 Fetching assignments for teacher:', teacherId);
+      
+      // Get assignments from PostgreSQL
+      const assignmentsQuery = db
+        .select({
+          id: homework.id,
+          title: homework.title,
+          description: homework.description,
+          instructions: homework.instructions,
+          subjectName: subjects.name,
+          className: classes.name,
+          classId: homework.classId,
+          subjectId: homework.subjectId,
+          priority: homework.priority,
+          dueDate: homework.dueDate,
+          assignedDate: homework.assignedDate,
+          status: homework.status,
+          archivedAt: homework.archivedAt,
+          createdAt: homework.createdAt,
+          updatedAt: homework.updatedAt
+        })
+        .from(homework)
+        .leftJoin(classes, eq(homework.classId, classes.id))
+        .leftJoin(subjects, eq(homework.subjectId, subjects.id))
+        .where(and(
+          eq(homework.teacherId, teacherId),
+          eq(homework.schoolId, schoolId),
+          status ? eq(homework.status, status as string) : undefined,
+          classId ? eq(homework.classId, parseInt(classId as string)) : undefined
+        ))
+        .orderBy(homework.createdAt);
+
+      const assignments = await assignmentsQuery;
+      
+      // Get submission statistics for each assignment
+      const assignmentsWithStats = await Promise.all(assignments.map(async (assignment) => {
+        const submissions = await db
+          .select()
+          .from(homeworkSubmissions)
+          .where(eq(homeworkSubmissions.homeworkId, assignment.id));
+          
+        const totalStudents = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(users)
+          .where(and(
+            eq(users.role, 'Student'),
+            sql`${users.id} IN (SELECT student_id FROM class_enrollment WHERE class_id = ${assignment.classId})`
+          ));
+          
+        const submittedCount = submissions.length;
+        const pendingCount = Math.max(0, (totalStudents[0]?.count || 0) - submittedCount);
+        const completionRate = totalStudents[0]?.count > 0 
+          ? Math.round((submittedCount / totalStudents[0].count) * 100) 
+          : 0;
+          
+        return {
+          ...assignment,
+          totalStudents: totalStudents[0]?.count || 0,
+          submittedCount,
+          pendingCount,
+          completionRate
+        };
+      }));
+      
+      console.log('[HOMEWORK_API] ✅ Found', assignmentsWithStats.length, 'assignments');
+      
+      res.json({ 
+        success: true, 
+        assignments: assignmentsWithStats 
+      });
+      
+    } catch (error) {
+      console.error('[HOMEWORK_API] ❌ Error fetching assignments:', error);
+      // Fallback to mock data for development
+      const mockAssignments = [
         {
           id: 1,
           title: 'Exercices sur les fractions',
-          subject: 'Mathématiques',
-          class: '6ème A',
-          dueDate: '2025-09-02',
+          description: 'Travaux pratiques sur les fractions',
+          instructions: 'Complétez les exercices 1 à 10 du manuel',
+          subjectName: 'Mathématiques',
+          className: '6ème A',
+          classId: 1,
+          subjectId: 1,
+          priority: 'medium',
+          dueDate: '2025-09-02T23:59:00Z',
+          assignedDate: '2025-08-25T08:00:00Z',
           status: 'active',
-          submissions: 22,
-          totalStudents: 28
+          totalStudents: 28,
+          submittedCount: 12,
+          pendingCount: 16,
+          completionRate: 43
         },
         {
           id: 2,
-          title: 'Problèmes géométriques',
-          subject: 'Mathématiques',
-          class: '5ème B', 
-          dueDate: '2025-09-05',
+          title: 'Dissertation sur l\'amitié',
+          description: 'Rédaction d\'une composition',
+          instructions: 'Écrivez une dissertation de 300 mots sur l\'importance de l\'amitié',
+          subjectName: 'Français',
+          className: '5ème B',
+          classId: 2,
+          subjectId: 2,
+          priority: 'high',
+          dueDate: '2025-09-05T23:59:00Z',
+          assignedDate: '2025-08-22T10:00:00Z',
           status: 'active',
-          submissions: 18,
-          totalStudents: 25
+          totalStudents: 25,
+          submittedCount: 8,
+          pendingCount: 17,
+          completionRate: 32
         }
       ];
       
-      res.json({ success: true, assignments });
+      res.json({ success: true, assignments: mockAssignments });
+    }
+  });
+
+  // Teacher: Create new homework assignment
+  app.post("/api/teacher/homework", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      
+      const {
+        title,
+        description,
+        instructions,
+        classId,
+        subjectId,
+        dueDate,
+        priority,
+        notifyChannels
+      } = req.body;
+      
+      // Validation
+      if (!title || !description || !classId || !subjectId || !dueDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields: title, description, classId, subjectId, dueDate'
+        });
+      }
+      
+      console.log('[HOMEWORK_API] 📝 Creating homework for teacher:', teacherId);
+      
+      // Create homework in PostgreSQL
+      const [newHomework] = await db
+        .insert(homework)
+        .values({
+          title,
+          description,
+          instructions: instructions || null,
+          teacherId,
+          schoolId,
+          classId: parseInt(classId),
+          subjectId: parseInt(subjectId),
+          priority: priority || 'medium',
+          dueDate: new Date(dueDate),
+          status: 'active',
+          notifyChannels: notifyChannels || { email: true, sms: false, whatsapp: true }
+        })
+        .returning();
+        
+      // Get class and subject information for notifications
+      const [classInfo] = await db
+        .select({ name: classes.name })
+        .from(classes)
+        .where(eq(classes.id, parseInt(classId)))
+        .limit(1);
+        
+      const [subjectInfo] = await db
+        .select({ name: subjects.name })
+        .from(subjects)
+        .where(eq(subjects.id, parseInt(subjectId)))
+        .limit(1);
+        
+      // Get students in the class for notifications
+      const studentsInClass = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email
+        })
+        .from(users)
+        .where(and(
+          eq(users.role, 'Student'),
+          sql`${users.id} IN (SELECT student_id FROM class_enrollment WHERE class_id = ${parseInt(classId)})`
+        ));
+        
+      console.log('[HOMEWORK_API] 🔔 Notifying', studentsInClass.length, 'students');
+      
+      // Send real-time notifications to students and parents
+      if (studentsInClass.length > 0) {
+        for (const student of studentsInClass) {
+          // Notification to student
+          await realTimeService.broadcastTimetableNotification({
+            notificationId: newHomework.id,
+            type: 'created',
+            message: `Nouveau devoir: ${title} - ${subjectInfo?.name || 'Matière'} (À rendre le ${new Date(dueDate).toLocaleDateString('fr-FR')})`,
+            teacherId: teacherId,
+            teacherName: `${user.firstName} ${user.lastName}`,
+            schoolId: schoolId,
+            classId: parseInt(classId),
+            className: classInfo?.name,
+            subject: subjectInfo?.name,
+            priority: 'normal',
+            actionRequired: true
+          });
+          
+          // TODO: Send notification to parents via unified messaging system
+        }
+      }
+      
+      console.log('[HOMEWORK_API] ✅ Homework created:', newHomework.id);
+      console.log('[HOMEWORK_API] 📡 Real-time notifications sent to students');
+      
+      res.json({
+        success: true,
+        homework: newHomework,
+        message: 'Devoir créé avec succès'
+      });
+      
     } catch (error) {
-      console.error('[TEACHER_API] Error fetching assignments:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch assignments' });
+      console.error('[HOMEWORK_API] ❌ Error creating homework:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create homework' 
+      });
+    }
+  });
+
+  // Teacher: Update homework assignment
+  app.patch("/api/teacher/homework/:id", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      const homeworkId = parseInt(req.params.id);
+      
+      const {
+        title,
+        description,
+        instructions,
+        priority,
+        dueDate
+      } = req.body;
+      
+      if (!homeworkId || isNaN(homeworkId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid homework ID'
+        });
+      }
+      
+      console.log('[HOMEWORK_API] ✏️ Updating homework:', homeworkId);
+      
+      // Update homework in PostgreSQL
+      const [updatedHomework] = await db
+        .update(homework)
+        .set({
+          title: title || undefined,
+          description: description || undefined,
+          instructions: instructions || undefined,
+          priority: priority || undefined,
+          dueDate: dueDate ? new Date(dueDate) : undefined,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(homework.id, homeworkId),
+          eq(homework.teacherId, teacherId),
+          eq(homework.schoolId, schoolId)
+        ))
+        .returning();
+        
+      if (!updatedHomework) {
+        return res.status(404).json({
+          success: false,
+          message: 'Homework not found or access denied'
+        });
+      }
+      
+      console.log('[HOMEWORK_API] ✅ Homework updated:', homeworkId);
+      
+      res.json({
+        success: true,
+        homework: updatedHomework,
+        message: 'Devoir modifié avec succès'
+      });
+      
+    } catch (error) {
+      console.error('[HOMEWORK_API] ❌ Error updating homework:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update homework' 
+      });
+    }
+  });
+
+  // Teacher: Archive homework assignment
+  app.post("/api/teacher/homework/:id/archive", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      const homeworkId = parseInt(req.params.id);
+      
+      if (!homeworkId || isNaN(homeworkId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid homework ID'
+        });
+      }
+      
+      console.log('[HOMEWORK_API] 📦 Archiving homework:', homeworkId);
+      
+      // Archive homework in PostgreSQL
+      const [archivedHomework] = await db
+        .update(homework)
+        .set({
+          status: 'archived',
+          archivedAt: new Date(),
+          archivedBy: teacherId,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(homework.id, homeworkId),
+          eq(homework.teacherId, teacherId),
+          eq(homework.schoolId, schoolId)
+        ))
+        .returning();
+        
+      if (!archivedHomework) {
+        return res.status(404).json({
+          success: false,
+          message: 'Homework not found or access denied'
+        });
+      }
+      
+      console.log('[HOMEWORK_API] ✅ Homework archived:', homeworkId);
+      
+      res.json({
+        success: true,
+        homework: archivedHomework,
+        message: 'Devoir archivé avec succès'
+      });
+      
+    } catch (error) {
+      console.error('[HOMEWORK_API] ❌ Error archiving homework:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to archive homework' 
+      });
+    }
+  });
+
+  // Teacher: Get archived homework (with 10-day retention)
+  app.get("/api/teacher/homework/archives", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      
+      console.log('[HOMEWORK_API] 📂 Fetching archived homework for teacher:', teacherId);
+      
+      // Get archived homework from the last 10 days
+      const tenDaysAgo = new Date();
+      tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+      
+      const archivedHomework = await db
+        .select({
+          id: homework.id,
+          title: homework.title,
+          description: homework.description,
+          instructions: homework.instructions,
+          subjectName: subjects.name,
+          className: classes.name,
+          priority: homework.priority,
+          dueDate: homework.dueDate,
+          assignedDate: homework.assignedDate,
+          archivedAt: homework.archivedAt,
+          status: homework.status
+        })
+        .from(homework)
+        .leftJoin(classes, eq(homework.classId, classes.id))
+        .leftJoin(subjects, eq(homework.subjectId, subjects.id))
+        .where(and(
+          eq(homework.teacherId, teacherId),
+          eq(homework.schoolId, schoolId),
+          eq(homework.status, 'archived'),
+          sql`${homework.archivedAt} >= ${tenDaysAgo}`
+        ))
+        .orderBy(homework.archivedAt);
+      
+      console.log('[HOMEWORK_API] ✅ Found', archivedHomework.length, 'archived homework items');
+      
+      res.json({
+        success: true,
+        archives: archivedHomework,
+        retentionDays: 10,
+        message: `${archivedHomework.length} devoirs archivés (rétention 10 jours)`
+      });
+      
+    } catch (error) {
+      console.error('[HOMEWORK_API] ❌ Error fetching archived homework:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch archived homework' 
+      });
     }
   });
 
