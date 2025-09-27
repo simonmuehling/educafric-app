@@ -118,42 +118,336 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
-  // Platform Schools Management
-  app.get("/api/admin/platform-schools", requireAuth, async (req, res) => {
+  // Enhanced Schools Management with comprehensive functionality
+  app.get("/api/admin/schools", requireAuth, async (req, res) => {
     try {
       if (!req.user || req.user.role !== 'SiteAdmin') {
         return res.status(403).json({ message: 'Site Admin access required' });
       }
 
-      // Mock platform schools data
-      const schools = [
+      const { search = '', type = 'all', status = 'all', page = 1, limit = 20 } = req.query;
+
+      // Enhanced mock schools data with subscription details
+      const allSchools = [
         {
           id: 1,
           name: 'Lycée Bilingue de Yaoundé',
+          address: 'BP 1234, Quartier Bastos',
           city: 'Yaoundé',
-          region: 'Centre',
-          students: 450,
-          teachers: 32,
-          status: 'active',
-          subscription: 'Premium',
-          createdAt: '2024-09-01T10:00:00Z'
+          country: 'Cameroun',
+          phone: '+237677001122',
+          email: 'contact@lyceeyaounde.cm',
+          website: 'https://lyceeyaounde.cm',
+          type: 'public',
+          level: 'secondary',
+          studentCount: 450,
+          teacherCount: 32,
+          subscriptionStatus: 'active',
+          subscriptionPlan: 'ecole_500_moins',
+          subscriptionEndDate: '2025-12-31T23:59:59Z',
+          isBlocked: false,
+          createdAt: '2024-09-01T10:00:00Z',
+          lastActiveAt: '2025-09-27T06:00:00Z'
         },
         {
           id: 2,
-          name: 'École Primaire Central',
+          name: 'École Primaire Central Douala',
+          address: 'Rue de la République, Akwa',
           city: 'Douala',
-          region: 'Littoral',
-          students: 280,
-          teachers: 18,
-          status: 'active',
-          subscription: 'Basic',
-          createdAt: '2024-10-15T14:30:00Z'
+          country: 'Cameroun',
+          phone: '+237699334455',
+          email: 'admin@ecoledouala.cm',
+          website: null,
+          type: 'private',
+          level: 'primary',
+          studentCount: 280,
+          teacherCount: 18,
+          subscriptionStatus: 'active',
+          subscriptionPlan: 'ecole_500_moins',
+          subscriptionEndDate: '2025-08-15T23:59:59Z',
+          isBlocked: false,
+          createdAt: '2024-10-15T14:30:00Z',
+          lastActiveAt: '2025-09-26T18:30:00Z'
+        },
+        {
+          id: 3,
+          name: 'Complexe Scolaire Saint-Michel',
+          address: 'Carrefour Warda, Bafoussam',
+          city: 'Bafoussam',
+          country: 'Cameroun',
+          phone: '+237655667788',
+          email: 'info@saintmlchel.cm',
+          website: 'https://saintmichel.educafric.com',
+          type: 'private',
+          level: 'mixed',
+          studentCount: 650,
+          teacherCount: 45,
+          subscriptionStatus: 'active',
+          subscriptionPlan: 'ecole_500_plus',
+          subscriptionEndDate: '2026-01-30T23:59:59Z',
+          isBlocked: false,
+          createdAt: '2024-08-20T09:15:00Z',
+          lastActiveAt: '2025-09-27T07:45:00Z'
+        },
+        {
+          id: 4,
+          name: 'Institut Technique de Garoua',
+          address: 'Avenue Ahmadou Ahidjo',
+          city: 'Garoua',
+          country: 'Cameroun',
+          phone: '+237644556677',
+          email: 'direction@itgaroua.cm',
+          website: null,
+          type: 'public',
+          level: 'secondary',
+          studentCount: 320,
+          teacherCount: 28,
+          subscriptionStatus: 'expired',
+          subscriptionPlan: 'ecole_500_moins',
+          subscriptionEndDate: '2024-12-31T23:59:59Z',
+          isBlocked: true,
+          createdAt: '2024-07-10T11:00:00Z',
+          lastActiveAt: '2025-01-15T14:20:00Z'
         }
       ];
-      res.json(schools);
+
+      // Apply filters
+      let filteredSchools = allSchools.filter(school => {
+        const matchesSearch = search === '' || 
+          school.name.toLowerCase().includes(search.toString().toLowerCase()) ||
+          school.city.toLowerCase().includes(search.toString().toLowerCase());
+        
+        const matchesType = type === 'all' || school.type === type;
+        
+        const matchesStatus = status === 'all' || school.subscriptionStatus === status;
+        
+        return matchesSearch && matchesType && matchesStatus;
+      });
+
+      // Apply pagination
+      const pageNum = parseInt(page.toString());
+      const limitNum = parseInt(limit.toString());
+      const startIndex = (pageNum - 1) * limitNum;
+      const endIndex = startIndex + limitNum;
+      
+      const paginatedSchools = filteredSchools.slice(startIndex, endIndex);
+      const totalPages = Math.ceil(filteredSchools.length / limitNum);
+
+      res.json({
+        schools: paginatedSchools,
+        totalSchools: filteredSchools.length,
+        currentPage: pageNum,
+        totalPages: totalPages,
+        hasNextPage: pageNum < totalPages,
+        hasPreviousPage: pageNum > 1
+      });
     } catch (error: any) {
-      console.error('[SITE_ADMIN_API] Error fetching platform schools:', error);
-      res.status(500).json({ message: 'Failed to fetch platform schools' });
+      console.error('[SITE_ADMIN_API] Error fetching schools:', error);
+      res.status(500).json({ message: 'Failed to fetch schools' });
+    }
+  });
+
+  // School statistics
+  app.get("/api/admin/school-stats", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+
+      // Mock school statistics
+      const stats = {
+        totalSchools: 89,
+        activeSchools: 76,
+        newThisMonth: 8,
+        blockedSchools: 3,
+        expiredSubscriptions: 10
+      };
+
+      res.json(stats);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching school stats:', error);
+      res.status(500).json({ message: 'Failed to fetch school statistics' });
+    }
+  });
+
+  // Create new school
+  app.post("/api/admin/schools", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+
+      const schoolData = req.body;
+      
+      // Mock school creation
+      const newSchool = {
+        id: Date.now(),
+        ...schoolData,
+        studentCount: 0,
+        teacherCount: 0,
+        subscriptionStatus: 'trial',
+        subscriptionPlan: null,
+        subscriptionEndDate: null,
+        isBlocked: false,
+        createdAt: new Date().toISOString(),
+        lastActiveAt: null
+      };
+
+      console.log('[MOCK] Created school:', newSchool);
+      res.json({ message: 'School created successfully', school: newSchool });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error creating school:', error);
+      res.status(500).json({ message: 'Failed to create school' });
+    }
+  });
+
+  // Delete school
+  app.delete("/api/admin/schools/:schoolId", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+
+      const { schoolId } = req.params;
+      
+      // Mock school deletion
+      console.log(`[MOCK] Deleting school ${schoolId}`);
+      res.json({ message: 'School deleted successfully' });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error deleting school:', error);
+      res.status(500).json({ message: 'Failed to delete school' });
+    }
+  });
+
+  // Block/Unblock school
+  app.patch("/api/admin/schools/:schoolId/block", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+
+      const { schoolId } = req.params;
+      const { isBlocked } = req.body;
+      
+      // Mock school block/unblock
+      console.log(`[MOCK] ${isBlocked ? 'Blocking' : 'Unblocking'} school ${schoolId}`);
+      res.json({ 
+        message: `School ${isBlocked ? 'blocked' : 'unblocked'} successfully`,
+        schoolId: parseInt(schoolId),
+        isBlocked 
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating school status:', error);
+      res.status(500).json({ message: 'Failed to update school status' });
+    }
+  });
+
+  // Manage school subscription
+  app.post("/api/admin/schools/:schoolId/subscription", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+
+      const { schoolId } = req.params;
+      const { action, planId, duration, notes } = req.body;
+      
+      // Mock subscription management
+      let result = {
+        schoolId: parseInt(schoolId),
+        action,
+        adminUser: req.user?.email,
+        timestamp: new Date().toISOString(),
+        notes
+      };
+
+      switch (action) {
+        case 'extend':
+          result = {
+            ...result,
+            planId,
+            duration: `${duration} months`,
+            newEndDate: new Date(Date.now() + parseInt(duration) * 30 * 24 * 60 * 60 * 1000).toISOString()
+          };
+          break;
+        case 'activate':
+          result = {
+            ...result,
+            planId,
+            duration: `${duration} months`,
+            startDate: new Date().toISOString(),
+            newEndDate: new Date(Date.now() + parseInt(duration) * 30 * 24 * 60 * 60 * 1000).toISOString()
+          };
+          break;
+        case 'cancel':
+          result = {
+            ...result,
+            cancelDate: new Date().toISOString(),
+            reason: 'Manual cancellation by admin'
+          };
+          break;
+      }
+
+      console.log('[MOCK] Subscription management:', result);
+      res.json({ message: 'Subscription updated successfully', details: result });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error managing subscription:', error);
+      res.status(500).json({ message: 'Failed to manage subscription' });
+    }
+  });
+
+  // Get subscription plans
+  app.get("/api/admin/subscription-plans", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+
+      // Mock subscription plans from SubscriptionService
+      const plans = [
+        {
+          id: 'ecole_500_plus',
+          name: 'École 500+ élèves',
+          price: -150000, // EDUCAFRIC pays the school
+          currency: 'XAF',
+          billing: 'annual',
+          features: [
+            'EDUCAFRIC verse 150.000 CFA/an à l\'école',
+            'Paiement trimestriel: 50.000 CFA',
+            'Gestion académique complète',
+            'Bulletins personnalisés',
+            'Communication parents-enseignants',
+            'Géolocalisation des élèves',
+            'Notifications SMS/Email',
+            'Support prioritaire',
+            'Formation équipe gratuite'
+          ]
+        },
+        {
+          id: 'ecole_500_moins',
+          name: 'École moins de 500 élèves',
+          price: -200000, // EDUCAFRIC pays the school
+          currency: 'XAF',
+          billing: 'annual',
+          features: [
+            'EDUCAFRIC verse 200.000 CFA/an à l\'école',
+            'Paiement trimestriel: 66.670 CFA',
+            'Gestion académique complète',
+            'Bulletins personnalisés',
+            'Communication parents-enseignants',
+            'Géolocalisation des élèves',
+            'Notifications SMS/Email',
+            'Support prioritaire',
+            'Formation équipe gratuite',
+            'Bonus école petite taille'
+          ]
+        }
+      ];
+
+      res.json(plans);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching subscription plans:', error);
+      res.status(500).json({ message: 'Failed to fetch subscription plans' });
     }
   });
 
