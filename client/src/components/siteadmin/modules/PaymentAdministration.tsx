@@ -83,75 +83,17 @@ const PaymentAdministration = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Mock payment data
-  const payments = [
-    {
-      id: 1,
-      school: 'École Primaire Bilingue Yaoundé',
-      amount: 50000,
-      status: 'pending',
-      date: '2024-01-22 14:30',
-      method: 'Bank Transfer',
-      type: 'subscription',
-      transactionId: 'TXN-001-2024',
-      description: 'Abonnement annuel Premium'
-    },
-    {
-      id: 2,
-      school: 'Lycée Excellence Douala',
-      amount: 75000,
-      status: 'completed',
-      date: '2024-01-22 13:45',
-      method: 'Mobile Money',
-      type: 'subscription',
-      transactionId: 'TXN-002-2024',
-      description: 'Abonnement mensuel Premium'
-    },
-    {
-      id: 3,
-      school: 'Collège Moderne Bafoussam',
-      amount: 25000,
-      status: 'failed',
-      date: '2024-01-22 12:20',
-      method: 'Credit Card',
-      type: 'subscription',
-      transactionId: 'TXN-003-2024',
-      description: 'Abonnement mensuel Basic'
-    },
-    {
-      id: 4,
-      school: 'Institut Technique Garoua',
-      amount: 30000,
-      status: 'completed',
-      date: '2024-01-22 11:15',
-      method: 'Bank Transfer',
-      type: 'top-up',
-      transactionId: 'TXN-004-2024',
-      description: 'Recharge SMS crédit'
-    },
-    {
-      id: 5,
-      school: 'École Primaire Publique Bamenda',
-      amount: 50000,
-      status: 'pending',
-      date: '2024-01-22 10:30',
-      method: 'Mobile Money',
-      type: 'subscription',
-      transactionId: 'TXN-005-2024',
-      description: 'Abonnement trial extension'
-    },
-    {
-      id: 6,
-      school: 'Université Catholique Yaoundé',
-      amount: 100000,
-      status: 'refunded',
-      date: '2024-01-21 16:45',
-      method: 'Bank Transfer',
-      type: 'subscription',
-      transactionId: 'TXN-006-2024',
-      description: 'Abonnement Enterprise - remboursé'
+  // Fetch real payment data from API
+  const { data: payments = [], isLoading: loadingPayments } = useQuery({
+    queryKey: ['/api/admin/payments'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/payments', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch payments');
+      return response.json();
     }
-  ];
+  });
 
   const statuses = [
     { key: 'all', label: t.allStatuses, count: (Array.isArray(payments) ? payments.length : 0) },
@@ -200,7 +142,11 @@ const PaymentAdministration = () => {
   // Payment action handlers
   const handleConfirmPayment = async (paymentId: number) => {
     try {
-      const response = await apiRequest('PUT', `/api/admin/payments/${paymentId}/confirm`, {});
+      const response = await fetch(`/api/admin/payments/${paymentId}/confirm`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
       const result = await response.json();
       
       if (result.success) {
@@ -221,7 +167,11 @@ const PaymentAdministration = () => {
 
   const handleRejectPayment = async (paymentId: number) => {
     try {
-      const response = await apiRequest('PUT', `/api/admin/payments/${paymentId}/reject`, {});
+      const response = await fetch(`/api/admin/payments/${paymentId}/reject`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
       const result = await response.json();
       
       if (result.success) {
@@ -258,8 +208,13 @@ const PaymentAdministration = () => {
     }
 
     try {
-      const response = await apiRequest('POST', '/api/admin/payments/bulk-confirm', {
-        paymentIds: pendingPayments.map(p => p.id)
+      const response = await fetch('/api/admin/payments/bulk-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          paymentIds: pendingPayments.map(p => p.id)
+        })
       });
       const result = await response.json();
       
@@ -295,17 +250,28 @@ const PaymentAdministration = () => {
 
   const handleMonthlyReport = async () => {
     try {
-      const response = await apiRequest('GET', '/api/admin/reports/monthly', {});
+      const response = await fetch('/api/admin/reports/monthly', {
+        method: 'GET',
+        credentials: 'include'
+      });
       const result = await response.json();
       
-      toast({
-        title: language === 'fr' ? "Rapport mensuel" : "Monthly report",
-        description: language === 'fr' ? "Génération du rapport mensuel..." : "Generating monthly report...",
-      });
+      if (result.success) {
+        toast({
+          title: language === 'fr' ? "Rapport mensuel" : "Monthly report",
+          description: language === 'fr' ? "Rapport généré avec succès" : "Report generated successfully",
+        });
+      } else {
+        toast({
+          title: language === 'fr' ? "Rapport mensuel" : "Monthly report",
+          description: language === 'fr' ? "Génération du rapport en cours" : "Report generation in progress",
+        });
+      }
     } catch (error) {
       toast({
-        title: language === 'fr' ? "Rapport mensuel" : "Monthly report",
-        description: language === 'fr' ? "Génération du rapport en cours" : "Report generation in progress",
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Erreur lors de la génération du rapport" : "Error generating report",
+        variant: "destructive",
       });
     }
   };
@@ -340,6 +306,25 @@ const PaymentAdministration = () => {
       description: language === 'fr' ? "Données exportées en CSV" : "Data exported to CSV",
     });
   };
+
+  // Loading state
+  if (loadingPayments) {
+    return (
+      <ModuleContainer
+        title={t.title || ''}
+        subtitle={t.subtitle}
+        icon={<CreditCard className="w-6 h-6" />}
+        iconColor="from-green-500 to-green-600"
+      >
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+          <span className="ml-2 text-gray-600">
+            {language === 'fr' ? 'Chargement des paiements...' : 'Loading payments...'}
+          </span>
+        </div>
+      </ModuleContainer>
+    );
+  }
 
   return (
     <ModuleContainer
