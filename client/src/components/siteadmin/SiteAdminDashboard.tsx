@@ -421,13 +421,6 @@ const SiteAdminDashboard: React.FC = () => {
               <Users className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
-              value="user-mgmt" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 rounded-md" 
-              title="Gestion Utilisateurs"
-            >
-              <UserCheck className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
               value="schools" 
               className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
               title="Écoles"
@@ -435,39 +428,11 @@ const SiteAdminDashboard: React.FC = () => {
               <School className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
-              value="school-mgmt" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 rounded-md" 
-              title="Management Écoles"
-            >
-              <Building2 className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
               value="documents" 
               className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 rounded-md" 
               title="Documents"
             >
               <FileText className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="doc-permissions" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 rounded-md" 
-              title="Permissions Documents"
-            >
-              <Shield className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="content" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-cyan-50 data-[state=active]:text-cyan-700 rounded-md" 
-              title="Contenu"
-            >
-              <Megaphone className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="communication" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-pink-50 data-[state=active]:text-pink-700 rounded-md" 
-              title="Communication"
-            >
-              <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
               value="commercial" 
@@ -486,20 +451,6 @@ const SiteAdminDashboard: React.FC = () => {
               <CreditCard className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
-              value="analytics" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 rounded-md" 
-              title="Analytics"
-            >
-              <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="multi-role" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 rounded-md" 
-              title="Multi-Rôles"
-            >
-              <Network className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
               value="security" 
               className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-red-50 data-[state=active]:text-red-700 rounded-md" 
               title="Sécurité"
@@ -507,30 +458,9 @@ const SiteAdminDashboard: React.FC = () => {
               <Lock className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
-              value="firebase" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 rounded-md" 
-              title="Firebase"
-            >
-              <Zap className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="platform" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-slate-50 data-[state=active]:text-slate-700 rounded-md" 
-              title="Plateforme"
-            >
-              <Database className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="preview" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-teal-50 data-[state=active]:text-teal-700 rounded-md" 
-              title="Aperçu"
-            >
-              <Eye className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
-              value="health" 
-              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
-              title="Système"
+              value="system" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 rounded-md" 
+              title="Audit & Santé Système"
             >
               <Activity className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
@@ -643,29 +573,14 @@ const SiteAdminDashboard: React.FC = () => {
             {createDynamicModule('school-mgmt')}
           </TabsContent>
 
-          <TabsContent value="user-mgmt" className="mt-6">
-            {createDynamicModule('user-mgmt')}
-          </TabsContent>
 
-          <TabsContent value="school-mgmt" className="mt-6">
-            {createDynamicModule('siteadmin-schools')}
-          </TabsContent>
 
           <TabsContent value="documents" className="mt-6">
             {createDynamicModule('siteadmin-documents')}
           </TabsContent>
 
-          <TabsContent value="doc-permissions" className="mt-6">
-            {createDynamicModule('doc-permissions')}
-          </TabsContent>
 
-          <TabsContent value="content" className="mt-6">
-            {createDynamicModule('siteadmin-content-mgmt')}
-          </TabsContent>
 
-          <TabsContent value="communication" className="mt-6">
-            {createDynamicModule('communication')}
-          </TabsContent>
 
           <TabsContent value="commercial" className="mt-6">
             {createDynamicModule('commercial')}
@@ -675,31 +590,16 @@ const SiteAdminDashboard: React.FC = () => {
             {createDynamicModule('siteadmin-payments')}
           </TabsContent>
 
-          <TabsContent value="analytics" className="mt-6">
-            {createDynamicModule('analytics')}
-          </TabsContent>
 
-          <TabsContent value="multi-role" className="mt-6">
-            {createDynamicModule('multi-role')}
-          </TabsContent>
 
           <TabsContent value="security" className="mt-6">
             {createDynamicModule('security')}
           </TabsContent>
 
-          <TabsContent value="firebase" className="mt-6">
-            {createDynamicModule('firebase')}
-          </TabsContent>
 
-          <TabsContent value="platform" className="mt-6">
-            {createDynamicModule('platform')}
-          </TabsContent>
 
-          <TabsContent value="preview" className="mt-6">
-            {createDynamicModule('preview')}
-          </TabsContent>
 
-          <TabsContent value="health" className="mt-6">
+          <TabsContent value="system" className="mt-6">
             {createDynamicModule('health')}
           </TabsContent>
 
