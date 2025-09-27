@@ -43,6 +43,9 @@ const FunctionalTeacherCommunications: React.FC = () => {
     message: ''
   });
 
+  const [selectedParent, setSelectedParent] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState('');
+
   // Fetch teacher communications data - REAL API implementation without mock fallbacks
   const { data: communications = [], isLoading, error } = useQuery<Communication[]>({
     queryKey: ['/api/teacher/messages'],
@@ -72,6 +75,63 @@ const FunctionalTeacherCommunications: React.FC = () => {
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
+
+  // Fetch teacher's assigned classes and their students/parents
+  const { data: teacherClasses = [] } = useQuery({
+    queryKey: ['/api/teacher/classes-with-parents'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/classes-with-parents', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch classes: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data.classes || [];
+    },
+    enabled: !!user
+  });
+
+  // Fetch teacher's assigned schools
+  const { data: assignedSchools = [] } = useQuery({
+    queryKey: ['/api/teacher/assigned-schools'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/assigned-schools', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch assigned schools: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data.schools || [];
+    },
+    enabled: !!user
+  });
+
+  // Get all available parents from teacher's classes
+  const availableParents = teacherClasses.flatMap((classItem: any) => 
+    (classItem.students || []).flatMap((student: any) => 
+      (student.parents || []).map((parent: any) => ({
+        id: parent.id,
+        name: parent.name || `${parent.firstName} ${parent.lastName}`,
+        email: parent.email,
+        studentName: student.name || `${student.firstName} ${student.lastName}`,
+        className: classItem.name
+      }))
+    )
+  );
 
   // Mutation pour envoyer des messages - REAL API for teacher-administration communication  
   const sendMessageMutation = useMutation({
@@ -561,10 +621,11 @@ const FunctionalTeacherCommunications: React.FC = () => {
                     className="w-full justify-start" 
                     variant="outline"
                     onClick={() => {
+                      setSelectedParent('');
                       setShowCompose(true);
                       setComposeData({
                         type: 'parent-message',
-                        to: 'parent@example.com',
+                        to: '',
                         subject: '',
                         message: ''
                       });
@@ -582,52 +643,11 @@ const FunctionalTeacherCommunications: React.FC = () => {
                     className="w-full justify-start" 
                     variant="outline"
                     onClick={() => {
-                      setShowCompose(true);
-                      setComposeData({
-                        type: 'class-announcement',
-                        to: 'classe@example.com',
-                        subject: '',
-                        message: ''
-                      });
-                      toast({
-                        title: language === 'fr' ? 'Annonce classe' : 'Class announcement',
-                        description: language === 'fr' ? 'Créer une annonce pour la classe' : 'Create class announcement'
-                      });
-                    }}
-                    data-testid="button-compose-class-announcement"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Annonce classe
-                  </Button>
-                  <Button 
-                    className="w-full justify-start" 
-                    variant="outline"
-                    onClick={() => {
-                      setShowCompose(true);
-                      setComposeData({
-                        type: 'colleague-message',
-                        to: 'collegue@example.com',
-                        subject: '',
-                        message: ''
-                      });
-                      toast({
-                        title: language === 'fr' ? 'Message collègue' : 'Colleague message',
-                        description: language === 'fr' ? 'Envoyer un message à un collègue' : 'Send message to colleague'
-                      });
-                    }}
-                    data-testid="button-compose-colleague-message"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Message collègue
-                  </Button>
-                  <Button 
-                    className="w-full justify-start" 
-                    variant="outline"
-                    onClick={() => {
+                      setSelectedSchool('');
                       setShowCompose(true);
                       setComposeData({
                         type: 'director-report',
-                        to: 'direction@example.com',
+                        to: '',
                         subject: '',
                         message: ''
                       });
@@ -668,18 +688,90 @@ const FunctionalTeacherCommunications: React.FC = () => {
               </div>
               
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    {language === 'fr' ? 'À:' : 'To:'}
-                  </label>
-                  <input
-                    type="text"
-                    value={composeData.to}
-                    onChange={(e) => setComposeData({...composeData, to: e.target.value})}
-                    className="w-full border rounded-md p-2"
-                    data-testid="input-compose-to"
-                  />
-                </div>
+                {/* Parent Selection for parent messages */}
+                {composeData.type === 'parent-message' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      {language === 'fr' ? 'Sélectionner un parent:' : 'Select a parent:'}
+                    </label>
+                    <select
+                      value={selectedParent}
+                      onChange={(e) => {
+                        setSelectedParent(e.target.value);
+                        const parent = availableParents.find(p => String(p.id) === e.target.value);
+                        setComposeData({
+                          ...composeData, 
+                          to: parent ? parent.email : ''
+                        });
+                      }}
+                      className="w-full border rounded-md p-2"
+                      data-testid="select-parent"
+                    >
+                      <option value="">
+                        {language === 'fr' ? '-- Choisir un parent --' : '-- Choose a parent --'}
+                      </option>
+                      {availableParents.map((parent) => (
+                        <option key={parent.id} value={String(parent.id)}>
+                          {parent.name} - Élève: {parent.studentName} ({parent.className})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* School Selection for director reports */}
+                {composeData.type === 'director-report' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      {language === 'fr' ? 'Sélectionner une école:' : 'Select a school:'}
+                    </label>
+                    <select
+                      value={selectedSchool}
+                      onChange={(e) => {
+                        setSelectedSchool(e.target.value);
+                        const school = assignedSchools.find((s: any) => String(s.id) === e.target.value);
+                        setComposeData({
+                          ...composeData, 
+                          to: school ? school.directorEmail || `direction@${school.name.toLowerCase().replace(/\s+/g, '')}.com` : ''
+                        });
+                      }}
+                      className="w-full border rounded-md p-2"
+                      data-testid="select-school"
+                    >
+                      <option value="">
+                        {language === 'fr' ? '-- Choisir une école --' : '-- Choose a school --'}
+                      </option>
+                      {assignedSchools.map((school: any) => (
+                        <option key={school.id} value={String(school.id)}>
+                          {school.name} - {school.address || school.location || ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Standard "To" field for other message types */}
+                {!['parent-message', 'director-report'].includes(composeData.type) && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      {language === 'fr' ? 'À:' : 'To:'}
+                    </label>
+                    <input
+                      type="text"
+                      value={composeData.to}
+                      onChange={(e) => setComposeData({...composeData, to: e.target.value})}
+                      className="w-full border rounded-md p-2"
+                      data-testid="input-compose-to"
+                    />
+                  </div>
+                )}
+                
+                {/* Display selected recipient info */}
+                {composeData.to && (
+                  <div className="p-2 bg-blue-50 rounded-md text-sm text-blue-800">
+                    <strong>{language === 'fr' ? 'Destinataire:' : 'Recipient:'}</strong> {composeData.to}
+                  </div>
+                )}
                 
                 <div>
                   <label className="block text-sm font-medium mb-2">
@@ -718,6 +810,16 @@ const FunctionalTeacherCommunications: React.FC = () => {
                   </Button>
                   <Button
                     onClick={() => {
+                      // Validation before sending
+                      if (!composeData.to) {
+                        toast({
+                          title: language === 'fr' ? 'Erreur' : 'Error',
+                          description: language === 'fr' ? 'Veuillez sélectionner un destinataire' : 'Please select a recipient',
+                          variant: 'destructive'
+                        });
+                        return;
+                      }
+
                       sendMessageMutation.mutate({
                         to: composeData.to,
                         subject: composeData.subject,
@@ -727,8 +829,8 @@ const FunctionalTeacherCommunications: React.FC = () => {
                         sendNotifications: true
                       });
                     }}
-                    disabled={sendMessageMutation.isPending}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    disabled={sendMessageMutation.isPending || !composeData.to || !composeData.subject.trim()}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                     data-testid="button-send-compose"
                   >
                     <Send className="w-4 h-4 mr-2" />
