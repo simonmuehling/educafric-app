@@ -6,7 +6,7 @@ import {
   Calendar, Clock, Users, Plus, Edit, Eye, Save, 
   Download, Upload, Filter, Search, CheckSquare,
   Send, AlertTriangle, CheckCircle, XCircle, 
-  MessageSquare, Bell
+  MessageSquare, Bell, RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,9 +51,45 @@ const TeacherTimetable = () => {
   });
 
   // Fetch teacher timetable from API
-  const { data: timetableData, isLoading: timetableLoading } = useQuery({
+  const { data: timetableData, isLoading: timetableLoading, refetch: refetchTimetable } = useQuery({
     queryKey: ['/api/teacher/timetable'],
-    enabled: !!user
+    enabled: !!user,
+    queryFn: async () => {
+      console.log('[TEACHER_TIMETABLE] 🔍 Fetching teacher timetable from unified API...');
+      const response = await fetch('/api/teacher/timetable', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.log('[TEACHER_TIMETABLE] ⚠️ Failed to fetch timetable, status:', response.status);
+        throw new Error('Failed to fetch teacher timetable');
+      }
+      const data = await response.json();
+      console.log('[TEACHER_TIMETABLE] ✅ Timetable fetched:', data?.success ? 'success' : 'no data');
+      return data;
+    },
+    retry: 2,
+    retryDelay: 1000
+  });
+
+  // Fetch timetable notifications for teacher
+  const { data: notificationsData, isLoading: notificationsLoading } = useQuery({
+    queryKey: ['/api/teacher/timetable/notifications'],
+    enabled: !!user,
+    queryFn: async () => {
+      console.log('[TEACHER_TIMETABLE] 🔔 Fetching timetable notifications...');
+      const response = await fetch('/api/teacher/timetable/notifications', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.log('[TEACHER_TIMETABLE] ⚠️ No notifications API available');
+        return { notifications: [], unreadCount: 0 };
+      }
+      const data = await response.json();
+      console.log('[TEACHER_TIMETABLE] ✅ Notifications fetched:', data?.unreadCount || 0, 'unread');
+      return data;
+    },
+    retry: 1,
+    retryDelay: 500
   });
 
   // Fetch timetable change requests
@@ -387,7 +423,7 @@ const TeacherTimetable = () => {
   };
 
   // Use real data if available, otherwise fall back to mock data
-  const schedule = timetableData?.timetable?.schedule || {
+  const schedule = (timetableData as any)?.timetable?.schedule || {
     monday: [
       { time: '08:00-09:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
       { time: '09:00-10:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
@@ -420,9 +456,9 @@ const TeacherTimetable = () => {
     ]
   };
 
-  const changeRequests = changeRequestsData?.changeRequests || [];
-  const adminResponses = adminResponsesData?.responses || [];
-  const unreadResponsesCount = adminResponsesData?.unreadCount || 0;
+  const changeRequests = (changeRequestsData as any)?.changeRequests || [];
+  const adminResponses = (adminResponsesData as any)?.responses || [];
+  const unreadResponsesCount = (adminResponsesData as any)?.unreadCount || 0;
 
   const handleSubmitChangeRequest = () => {
     if (!changeRequestData.changeType || !changeRequestData.reason) {
@@ -470,8 +506,38 @@ const TeacherTimetable = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
+          {/* Synchronization Status */}
+          <div className="flex items-center mt-2 space-x-2">
+            {timetableLoading ? (
+              <div className="flex items-center text-sm text-blue-600">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                Synchronisation en cours...
+              </div>
+            ) : (
+              <div className="flex items-center text-sm text-green-600">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                {(timetableData as any)?.success ? 'Synchronisé avec l\'école' : 'Données locales'}
+              </div>
+            )}
+            
+            {/* Notifications indicator */}
+            {(notificationsData as any)?.unreadCount > 0 && (
+              <Badge variant="destructive" className="text-xs">
+                <Bell className="w-3 h-3 mr-1" />
+                {(notificationsData as any).unreadCount} notification{(notificationsData as any).unreadCount > 1 ? 's' : ''}
+              </Badge>
+            )}
+          </div>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => refetchTimetable()}
+            disabled={timetableLoading}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${timetableLoading ? 'animate-spin' : ''}`} />
+            Synchroniser
+          </Button>
           <Button variant="outline" onClick={handleExportPdf}>
             <Download className="w-4 h-4 mr-2" />
             {t.exportPdf}
