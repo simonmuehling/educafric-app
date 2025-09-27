@@ -623,7 +623,10 @@ const ManualActivationForm: React.FC<{ language: string; onClose: () => void }> 
   const { data: users = [] } = useQuery({
     queryKey: ['/api/siteadmin/users-for-activation', selectedUserType],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/siteadmin/users-for-activation?userType=${selectedUserType}`, {});
+      const response = await fetch(`/api/siteadmin/users-for-activation?userType=${selectedUserType}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
       return data.users || [];
     }
@@ -678,14 +681,19 @@ const ManualActivationForm: React.FC<{ language: string; onClose: () => void }> 
     
     try {
       const selectedUserData = users.find(u => u.id.toString() === selectedUser);
-      const response = await apiRequest('POST', '/api/siteadmin/manual-activation', {
-        userType: selectedUserType,
-        userId: parseInt(selectedUser),
-        userEmail: selectedUserData?.email,
-        planId: selectedPlan,
-        duration: activationDuration.replace('months', '').replace('custom', '12'),
-        reason: activationReason,
-        notes: `Manual activation by Site Admin - User: ${selectedUserData?.name || selectedUserData?.email}`
+      const response = await fetch('/api/siteadmin/manual-activation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          userType: selectedUserType,
+          userId: parseInt(selectedUser),
+          userEmail: selectedUserData?.email,
+          planId: selectedPlan,
+          duration: activationDuration.replace('months', '').replace('custom', '12'),
+          reason: activationReason,
+          notes: `Manual activation by Site Admin - User: ${selectedUserData?.name || selectedUserData?.email}`
+        })
       });
 
       const result = await response.json();
