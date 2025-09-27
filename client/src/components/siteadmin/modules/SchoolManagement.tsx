@@ -8,6 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   School, 
   Building2, 
@@ -28,7 +32,15 @@ import {
   Eye,
   Download,
   Search,
-  Filter
+  Filter,
+  UserCheck,
+  UserX,
+  Clock,
+  CreditCard,
+  Block,
+  Unlock,
+  Save,
+  X
 } from 'lucide-react';
 
 interface School {
@@ -45,8 +57,20 @@ interface School {
   studentCount: number;
   teacherCount: number;
   subscriptionStatus: string;
+  subscriptionPlan?: string;
+  subscriptionEndDate?: string;
   createdAt: string;
   lastActiveAt: string | null;
+  isBlocked?: boolean;
+}
+
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  billing: string;
+  features: string[];
 }
 
 const SchoolManagement = () => {
