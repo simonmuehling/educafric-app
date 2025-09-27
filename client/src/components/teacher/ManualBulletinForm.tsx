@@ -374,7 +374,7 @@ export default function ManualBulletinForm({
   classId,
   academicYear = "2024-2025" 
 }: ManualBulletinFormProps) {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false to allow manual entry
   const [eleve, setEleve] = useState<any>(null);
   const [language, setLanguage] = useState<'fr' | 'en'>('fr'); // État de la langue
   
@@ -517,6 +517,18 @@ export default function ManualBulletinForm({
   // Check if this is third trimester for annual summary
   const isThirdTrimester = meta.trimestre === 'Troisième';
 
+  // Define missing variables that are used in the form - allow manual entry even without complete student data
+  const selectedStudent = eleve || { 
+    id: studentId, 
+    fullName: `Élève ${studentId}`, 
+    firstName: 'Prénom', 
+    lastName: 'Nom',
+    className: classId || 'Classe inconnue'
+  };
+  const selectedClass = { name: eleve?.className || classId || 'Classe inconnue' };
+  const currentTerm = meta.trimestre;
+  const currentYear = meta.annee;
+
   // Helper pour obtenir les labels dans la langue courante
   const t = (key: keyof typeof BILINGUAL_LABELS.fr) => BILINGUAL_LABELS[language][key];
 
@@ -532,6 +544,15 @@ export default function ManualBulletinForm({
     },
     enabled: !!studentId
   });
+
+  // Update eleve state when student profile loads
+  useEffect(() => {
+    if (studentProfile?.data) {
+      setEleve(studentProfile.data);
+    }
+    // Always allow manual entry - don't block on profile loading
+    setLoading(false);
+  }, [studentProfile]);
 
   // Fetch competency evaluation systems
   const { data: competencySystems } = useQuery({
@@ -884,10 +905,12 @@ export default function ManualBulletinForm({
     );
   }
 
-  if (!eleve) {
+  // Only show loading if explicitly loading - allow manual entry without profile
+  if (loading) {
     return (
-      <div className="p-6 text-sm text-red-600" data-testid="error-state">
-        Erreur: Impossible de charger le profil de l'élève
+      <div className="p-6 text-center" data-testid="loading-state">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-gray-600">Chargement du profil de l'élève...</p>
       </div>
     );
   }
