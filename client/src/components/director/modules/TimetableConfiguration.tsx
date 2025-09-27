@@ -238,54 +238,19 @@ const TimetableConfiguration: React.FC = () => {
     }));
   };
 
-  // Load timetables
+  // Load timetables - Now handled by React Query
   useEffect(() => {
-    fetchTimetables();
-  }, []);
-
-  const fetchTimetables = async () => {
-    try {
-      const response = await fetch('/api/sandbox/timetable/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ class: '6ème A' })
-      });
-      if (response.ok) {
-        const data = await response.json();
-        // Convert sandbox format to table format
-        const tableData: any[] = [];
-        if (data.schedule) {
-          Object.entries(data.schedule).forEach(([day, slots]: [string, any]) => {
-            if (slots && Array.isArray(slots)) {
-              slots.forEach((slot: any, index: number) => {
-                tableData.push({
-                  id: `${day}-${index}`,
-                  className: data.class,
-                  day: day,
-                  timeSlot: slot.time,
-                  subject: slot.subject,
-                  teacher: slot.teacher,
-                  room: slot.room
-                });
-              });
-            }
-          });
-        }
-        setTimetables(tableData);
-      }
-    } catch (error) {
-      console.error('Error fetching timetables:', error);
-    } finally {
-      setLoading(false);
+    if (!isLoadingTimetables && existingTimetables.length === 0) {
+      console.log('[TIMETABLE_CONFIG] 📊 No existing timetables found - system ready for new entries');
     }
-  };
+    setLoading(false);
+  }, [isLoadingTimetables, existingTimetables]);
 
   const handleSubmit = useStableCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate required fields
-    if (!formData.className || !formData.day || !formData.subject || !formData.teacher || !formData.room) {
+    if (!formData.className || !formData.day || !formData.subject || !formData.teacher || !formData.room || !formData.startTime || !formData.endTime) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Tous les champs sont requis' : 'All fields are required',
@@ -305,38 +270,67 @@ const TimetableConfiguration: React.FC = () => {
       return;
     }
 
-    // Ensure timeSlot is formatted correctly
-    const finalFormData = {
-      ...formData,
-      timeSlot: formatTimeSlot(formData.startTime, formData.endTime)
-    };
-
     try {
-      const method = editingEntry ? 'PATCH' : 'POST';
-      const url = editingEntry ? `/api/timetables/${editingEntry.id}` : '/api/timetables';
+      // Map day names to numbers for API (1=Monday, 2=Tuesday, etc.)
+      const dayMapping: { [key: string]: number } = {
+        'Lundi': 1, 'Mardi': 2, 'Mercredi': 3, 'Jeudi': 4, 'Vendredi': 5, 'Samedi': 6,
+        'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4, 'friday': 5, 'saturday': 6
+      };
+      
+      // Find teacher and class IDs
+      const selectedTeacher = availableTeachers.find((t: any) => t.name === formData.teacher);
+      const selectedClass = availableClasses.find((c: any) => c.name === formData.className);
+      
+      const apiData = {
+        teacherId: selectedTeacher?.id || 1, // fallback ID if not found
+        classId: selectedClass?.id || 1, // fallback ID if not found  
+        subjectName: formData.subject,
+        dayOfWeek: dayMapping[formData.day] || 1,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        room: formData.room,
+        academicYear: '2024-2025', // TODO: Get from context or settings
+        term: 'Term 1', // TODO: Get from context or settings
+        notes: ''
+      };
+
+      console.log('[TIMETABLE_CONFIG] 📝 Submitting timetable data:', apiData);
+
+      const method = editingEntry ? 'PUT' : 'POST';
+      const url = editingEntry ? `/api/director/timetables/${editingEntry.id}` : '/api/director/timetables';
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(finalFormData)
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(apiData)
       });
 
-      if (response.ok) {
+      const responseData = await response.json();
+
+      if (response.ok && responseData.success) {
         toast({
-          title: language === 'fr' ? 'Succès' : 'Success',
+          title: language === 'fr' ? '✅ Succès' : '✅ Success',
           description: editingEntry 
             ? (language === 'fr' ? 'Créneaux modifié avec succès' : 'Slot updated successfully')
             : (language === 'fr' ? 'Créneaux créé avec succès' : 'Slot created successfully')
         });
         
-        fetchTimetables();
+        // Refresh timetables using React Query
+        refetchTimetables();
         resetForm();
+        
+        console.log('[TIMETABLE_CONFIG] ✅ Timetable saved successfully:', responseData);
       } else {
-        throw new Error('Failed to save timetable entry');
+        console.error('[TIMETABLE_CONFIG] ❌ API Error:', responseData);
+        throw new Error(responseData.message || 'Failed to save timetable entry');
       }
     } catch (error) {
+      console.error('[TIMETABLE_CONFIG] ❌ Error saving timetable:', error);
       toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
+        title: language === 'fr' ? '❌ Erreur' : '❌ Error',
         description: language === 'fr' ? 'Erreur lors de la sauvegarde' : 'Error saving timetable entry',
         variant: 'destructive'
       });
@@ -361,17 +355,33 @@ const TimetableConfiguration: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`/api/timetables/${id}`, { method: 'DELETE' });
-      if (response.ok) {
+      console.log('[TIMETABLE_CONFIG] 🗑️ Deleting timetable slot:', id);
+      
+      const response = await fetch(`/api/director/timetables/${id}`, { 
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      
+      const responseData = await response.json();
+      
+      if (response.ok && responseData.success) {
         toast({
-          title: language === 'fr' ? 'Succès' : 'Success',
-          description: language === 'fr' ? 'Créneaux supprimé' : 'Slot deleted successfully'
+          title: language === 'fr' ? '✅ Succès' : '✅ Success',
+          description: language === 'fr' ? 'Créneaux supprimé avec succès' : 'Slot deleted successfully'
         });
-        fetchTimetables();
+        
+        // Refresh timetables using React Query
+        refetchTimetables();
+        
+        console.log('[TIMETABLE_CONFIG] ✅ Timetable deleted successfully');
+      } else {
+        console.error('[TIMETABLE_CONFIG] ❌ Delete API Error:', responseData);
+        throw new Error(responseData.message || 'Failed to delete timetable slot');
       }
     } catch (error) {
+      console.error('[TIMETABLE_CONFIG] ❌ Error deleting timetable:', error);
       toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
+        title: language === 'fr' ? '❌ Erreur' : '❌ Error',
         description: language === 'fr' ? 'Erreur lors de la suppression' : 'Error deleting slot',
         variant: 'destructive'
       });
@@ -632,7 +642,7 @@ const TimetableConfiguration: React.FC = () => {
                 id: 'refresh-data',
                 label: language === 'fr' ? 'Actualiser' : 'Refresh',
                 icon: <RefreshCw className="w-5 h-5" />,
-                onClick: () => fetchTimetables(),
+                onClick: () => refetchTimetables(),
                 color: 'bg-teal-600 hover:bg-teal-700'
               }
             ]}
