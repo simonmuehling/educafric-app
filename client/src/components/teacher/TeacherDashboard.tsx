@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   Users, Calendar, CheckSquare, BarChart3, BookOpen, FileText,
-  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star, Mail, UserX, Grid, PenTool
+  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star, Mail, UserX, Grid, PenTool, Video
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -185,6 +185,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       content: 'Contenu Pédagogique',
       reports: 'Bulletins',
       communications: 'Communications',
+      onlineClasses: 'Cours en Ligne',
       absenceDeclaration: 'Déclarer Absence',
       profile: 'Profil',
       multirole: 'Multi-Rôles',
@@ -202,6 +203,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       content: 'Educational Content',
       reports: 'Report Cards',
       communications: 'Communications',
+      onlineClasses: 'Online Classes',
       absenceDeclaration: 'Declare Absence',
       profile: 'Profile',
       notifications: 'Notifications',
@@ -268,6 +270,13 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-red-500',
       component: createDynamicModule('teacher-communications')
+    },
+    {
+      id: 'online-classes',
+      label: t.onlineClasses,
+      icon: <Video className="w-6 h-6" />,
+      color: 'bg-purple-600',
+      component: createDynamicModule('teacher-online-classes')
     },
     {
       id: 'absence-declaration',

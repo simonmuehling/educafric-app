@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   BookOpen, Calendar, FileText, MessageSquare, User, Clock, 
-  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart
+  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart, Video
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: All modules loaded dynamically for ultra-fast loading
@@ -182,6 +182,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       progress: 'Mon Progrès',
       messages: 'Messages',
       achievements: 'Réussites',
+      onlineClasses: 'Cours en Ligne',
       profile: 'Profil',
       notifications: 'Notifications',
       settings: 'Paramètres',
@@ -199,6 +200,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       progress: 'My Progress',
       messages: 'Messages',
       achievements: 'Achievements',
+      onlineClasses: 'Online Classes',
       profile: 'Profile',
       notifications: 'Notifications',
       settings: 'Settings',
@@ -265,6 +267,13 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-indigo-500',
       component: createDynamicModule('messages')
+    },
+    {
+      id: 'online-classes',
+      label: t.onlineClasses,
+      icon: <Video className="w-6 h-6" />,
+      color: 'bg-purple-600',
+      component: createDynamicModule('student-online-classes')
     },
     {
       id: 'parentConnection',
