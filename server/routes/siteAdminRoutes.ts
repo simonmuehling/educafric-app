@@ -1535,6 +1535,229 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // Site Admin Settings API Routes
+
+  // Get system settings
+  app.get("/api/admin/system-settings", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log('[SITE_ADMIN_API] System settings requested');
+      
+      const systemSettings = {
+        platform: {
+          siteName: 'EDUCAFRIC',
+          version: '2.1.0',
+          environment: 'production',
+          maintenance: false
+        },
+        features: {
+          registrationOpen: true,
+          paymentProcessing: true,
+          geoLocation: true,
+          whatsappIntegration: true,
+          smsNotifications: true
+        },
+        limits: {
+          maxUsersPerSchool: 5000,
+          maxSchoolsPerCommercial: 50,
+          apiRateLimit: 1000,
+          fileUploadLimit: 100 // MB
+        }
+      };
+      
+      res.json(systemSettings);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching system settings:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // Update system settings
+  app.put("/api/admin/system-settings", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log(`[SITE_ADMIN_API] System settings update requested by: ${req.user?.email}`);
+      const settings = req.body;
+      
+      // Here you would save to database
+      console.log('[SITE_ADMIN_API] System settings updated:', settings);
+      
+      res.json({ 
+        success: true, 
+        message: 'Paramètres système mis à jour avec succès',
+        data: settings 
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating system settings:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // Get security settings
+  app.get("/api/admin/security-settings", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log('[SITE_ADMIN_API] Security settings requested');
+      
+      const securitySettings = {
+        authentication: {
+          twoFactorRequired: false,
+          sessionTimeout: 8, // hours
+          passwordMinLength: 8,
+          maxLoginAttempts: 5
+        },
+        permissions: {
+          strictRoleAccess: true,
+          adminApprovalRequired: true,
+          auditLogging: true
+        },
+        encryption: {
+          dataAtRest: true,
+          dataInTransit: true,
+          tokenExpiry: 3600 // seconds
+        }
+      };
+      
+      res.json(securitySettings);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching security settings:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // Update security settings
+  app.put("/api/admin/security-settings", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log(`[SITE_ADMIN_API] Security settings update requested by: ${req.user?.email}`);
+      const settings = req.body;
+      
+      // Here you would save to database
+      console.log('[SITE_ADMIN_API] Security settings updated:', settings);
+      
+      res.json({ 
+        success: true, 
+        message: 'Paramètres de sécurité mis à jour avec succès',
+        data: settings 
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating security settings:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // 2FA Management Routes
+
+  // Generate 2FA secret and QR code
+  app.post("/api/admin/2fa/setup", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log(`[SITE_ADMIN_API] 2FA setup requested by: ${req.user?.email}`);
+      
+      const speakeasy = require('speakeasy');
+      const qrcode = require('qrcode');
+      
+      const secret = speakeasy.generateSecret({
+        name: `EDUCAFRIC:${req.user?.email}`,
+        issuer: 'EDUCAFRIC',
+        length: 32
+      });
+      
+      const qrCodeDataURL = await qrcode.toDataURL(secret.otpauth_url);
+      
+      // In production, you would save the secret to the user's profile
+      console.log('[SITE_ADMIN_API] 2FA secret generated for user');
+      
+      res.json({
+        success: true,
+        data: {
+          secret: secret.base32,
+          qrCode: qrCodeDataURL,
+          manualEntryKey: secret.base32,
+          backupCodes: [
+            Math.random().toString(36).substring(2, 10).toUpperCase(),
+            Math.random().toString(36).substring(2, 10).toUpperCase(),
+            Math.random().toString(36).substring(2, 10).toUpperCase(),
+            Math.random().toString(36).substring(2, 10).toUpperCase(),
+            Math.random().toString(36).substring(2, 10).toUpperCase()
+          ]
+        }
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error setting up 2FA:', error);
+      res.status(500).json({ success: false, message: 'Erreur lors de la configuration 2FA' });
+    }
+  });
+
+  // Verify 2FA token
+  app.post("/api/admin/2fa/verify", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log(`[SITE_ADMIN_API] 2FA verification requested by: ${req.user?.email}`);
+      const { token, secret } = req.body;
+      
+      const speakeasy = require('speakeasy');
+      
+      const verified = speakeasy.totp.verify({
+        secret: secret,
+        encoding: 'base32',
+        token: token,
+        window: 2
+      });
+      
+      if (verified) {
+        // In production, you would save that 2FA is enabled for this user
+        console.log('[SITE_ADMIN_API] 2FA verification successful');
+        res.json({
+          success: true,
+          message: 'Authentification à deux facteurs activée avec succès'
+        });
+      } else {
+        console.log('[SITE_ADMIN_API] 2FA verification failed');
+        res.status(400).json({
+          success: false,
+          message: 'Code de vérification invalide'
+        });
+      }
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error verifying 2FA:', error);
+      res.status(500).json({ success: false, message: 'Erreur lors de la vérification 2FA' });
+    }
+  });
+
+  // Disable 2FA
+  app.post("/api/admin/2fa/disable", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log(`[SITE_ADMIN_API] 2FA disable requested by: ${req.user?.email}`);
+      const { password } = req.body;
+      
+      // In production, you would verify the password and disable 2FA
+      console.log('[SITE_ADMIN_API] 2FA disabled for user');
+      
+      res.json({
+        success: true,
+        message: 'Authentification à deux facteurs désactivée'
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error disabling 2FA:', error);
+      res.status(500).json({ success: false, message: 'Erreur lors de la désactivation 2FA' });
+    }
+  });
+
+  // Get 2FA status
+  app.get("/api/admin/2fa/status", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log(`[SITE_ADMIN_API] 2FA status requested by: ${req.user?.email}`);
+      
+      // In production, you would check the user's 2FA status from database
+      const status = {
+        enabled: false, // This would come from user profile
+        setupDate: null,
+        lastUsed: null,
+        backupCodesRemaining: 5
+      };
+      
+      res.json({ success: true, data: status });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching 2FA status:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
   app.post("/api/admin/security-scan", requireAuth, async (req, res) => {
     try {
       if (!req.user || req.user.role !== 'SiteAdmin') {

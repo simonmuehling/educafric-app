@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Settings, Shield, Database, Globe, Bell, Save, RotateCcw } from 'lucide-react';
+import { Settings, Shield, Database, Globe, Bell, Save, RotateCcw, QrCode, Key, Check, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +53,225 @@ interface SecuritySettings {
     tokenExpiry: number;
   };
 }
+
+// 2FA Management Component
+const TwoFactorAuthenticationManager: React.FC = () => {
+  const [showSetup, setShowSetup] = useState(false);
+  const [setupData, setSetupData] = useState<any>(null);
+  const [verificationCode, setVerificationCode] = useState('');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Get 2FA status
+  const { data: twoFAStatus, isLoading: loadingStatus } = useQuery({
+    queryKey: ['/api/admin/2fa/status'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/2fa/status', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch 2FA status');
+      return response.json();
+    }
+  });
+
+  // Setup 2FA mutation
+  const setupMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/admin/2fa/setup', {});
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setSetupData(data.data);
+      setShowSetup(true);
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de configurer l'authentification à deux facteurs",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Verify 2FA mutation
+  const verifyMutation = useMutation({
+    mutationFn: async ({ token, secret }: { token: string; secret: string }) => {
+      const response = await apiRequest('POST', '/api/admin/2fa/verify', { token, secret });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "2FA Activé",
+        description: "L'authentification à deux facteurs a été activée avec succès",
+      });
+      setShowSetup(false);
+      setSetupData(null);
+      setVerificationCode('');
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/2fa/status'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Code Invalide",
+        description: "Le code de vérification est incorrect",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Disable 2FA mutation
+  const disableMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/admin/2fa/disable', {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "2FA Désactivé",
+        description: "L'authentification à deux facteurs a été désactivée",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/2fa/status'] });
+    }
+  });
+
+  const handleSetup = () => {
+    setupMutation.mutate();
+  };
+
+  const handleVerify = () => {
+    if (!verificationCode || !setupData?.secret) return;
+    verifyMutation.mutate({ token: verificationCode, secret: setupData.secret });
+  };
+
+  const handleDisable = () => {
+    disableMutation.mutate();
+  };
+
+  if (loadingStatus) {
+    return <div className="animate-pulse bg-gray-200 h-20 rounded"></div>;
+  }
+
+  const isEnabled = twoFAStatus?.data?.enabled;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="font-medium">Statut 2FA</h4>
+          <p className="text-sm text-gray-600">
+            {isEnabled ? "L'authentification à deux facteurs est activée" : "L'authentification à deux facteurs n'est pas configurée"}
+          </p>
+        </div>
+        <Badge variant={isEnabled ? "default" : "destructive"}>
+          {isEnabled ? "Activé" : "Désactivé"}
+        </Badge>
+      </div>
+
+      {!isEnabled ? (
+        <Button 
+          onClick={handleSetup} 
+          disabled={setupMutation.isPending}
+          className="w-full"
+          data-testid="button-setup-2fa"
+        >
+          <QrCode className="h-4 w-4 mr-2" />
+          {setupMutation.isPending ? "Configuration..." : "Configurer 2FA"}
+        </Button>
+      ) : (
+        <div className="space-y-2">
+          <div className="text-sm text-gray-600">
+            <p>2FA configuré le: {twoFAStatus?.data?.setupDate || "N/A"}</p>
+            <p>Codes de secours restants: {twoFAStatus?.data?.backupCodesRemaining || 0}</p>
+          </div>
+          <Button 
+            onClick={handleDisable} 
+            disabled={disableMutation.isPending}
+            variant="destructive"
+            size="sm"
+            data-testid="button-disable-2fa"
+          >
+            <X className="h-4 w-4 mr-2" />
+            {disableMutation.isPending ? "Désactivation..." : "Désactiver 2FA"}
+          </Button>
+        </div>
+      )}
+
+      {/* Setup Dialog */}
+      <Dialog open={showSetup} onOpenChange={setShowSetup}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configuration 2FA</DialogTitle>
+            <DialogDescription>
+              Scannez le QR code avec votre application d'authentification (Google Authenticator, Authy, etc.)
+            </DialogDescription>
+          </DialogHeader>
+          
+          {setupData && (
+            <div className="space-y-4">
+              {/* QR Code */}
+              <div className="flex justify-center">
+                <img 
+                  src={setupData.qrCode} 
+                  alt="QR Code 2FA" 
+                  className="border rounded-lg"
+                  data-testid="img-qr-code"
+                />
+              </div>
+              
+              {/* Manual Entry */}
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <Label className="text-xs font-medium">Clé manuelle:</Label>
+                <code className="text-xs break-all">{setupData.manualEntryKey}</code>
+              </div>
+              
+              {/* Backup Codes */}
+              <div className="bg-yellow-50 p-3 rounded-lg">
+                <Label className="text-xs font-medium">Codes de récupération:</Label>
+                <div className="grid grid-cols-1 gap-1 mt-1">
+                  {setupData.backupCodes?.map((code: string, index: number) => (
+                    <code key={index} className="text-xs">{code}</code>
+                  ))}
+                </div>
+                <p className="text-xs text-yellow-700 mt-2">
+                  Sauvegardez ces codes dans un endroit sûr. Ils permettent d'accéder à votre compte si vous perdez votre téléphone.
+                </p>
+              </div>
+              
+              {/* Verification */}
+              <div className="space-y-2">
+                <Label htmlFor="verificationCode">Code de vérification:</Label>
+                <Input
+                  id="verificationCode"
+                  placeholder="000000"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  maxLength={6}
+                  data-testid="input-verification-code"
+                />
+              </div>
+              
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={handleVerify} 
+                  disabled={verifyMutation.isPending || !verificationCode}
+                  className="flex-1"
+                  data-testid="button-verify-2fa"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  {verifyMutation.isPending ? "Vérification..." : "Vérifier"}
+                </Button>
+                <Button 
+                  onClick={() => setShowSetup(false)} 
+                  variant="outline"
+                  data-testid="button-cancel-2fa"
+                >
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
 
 const FunctionalSiteAdminSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('system');
@@ -324,6 +545,41 @@ const FunctionalSiteAdminSettings: React.FC = () => {
                       data-testid="input-session-timeout"
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="passwordMinLength">Longueur Min. Mot de Passe</Label>
+                    <Input
+                      id="passwordMinLength"
+                      type="number"
+                      value={localSecuritySettings?.authentication?.passwordMinLength || 8}
+                      onChange={(e) => setLocalSecuritySettings(prev => prev ? {
+                        ...prev,
+                        authentication: { ...prev.authentication, passwordMinLength: parseInt(e.target.value) }
+                      } : null)}
+                      data-testid="input-password-length"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="maxLoginAttempts">Max. Tentatives Connexion</Label>
+                    <Input
+                      id="maxLoginAttempts"
+                      type="number"
+                      value={localSecuritySettings?.authentication?.maxLoginAttempts || 5}
+                      onChange={(e) => setLocalSecuritySettings(prev => prev ? {
+                        ...prev,
+                        authentication: { ...prev.authentication, maxLoginAttempts: parseInt(e.target.value) }
+                      } : null)}
+                      data-testid="input-max-login-attempts"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Authentification à Deux Facteurs (2FA)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TwoFactorAuthenticationManager />
                 </CardContent>
               </Card>
             </div>
