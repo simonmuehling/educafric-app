@@ -566,57 +566,44 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Commercial Team Management Routes
   app.get("/api/site-admin/commercials", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      console.log('[SITE_ADMIN_API] Commercials list requested');
+      console.log('[SITE_ADMIN_API] Fetching real commercial users from database');
       
       // Fetch all users with Commercial role from database
-      const commercials = [
-        {
-          id: 1,
-          firstName: "Jean",
-          lastName: "Dubois",
-          email: "jean.dubois@educafric.com",
-          phone: "+237698765432",
-          region: "Yaoundé",
-          status: "active",
-          joinDate: "2024-06-15T00:00:00Z",
-          totalSchools: 12,
-          activeDeals: 5,
-          revenue: 3500000,
-          lastActivity: "2025-01-15T10:00:00Z",
-          role: "Commercial"
-        },
-        {
-          id: 2,
-          firstName: "Marie",
-          lastName: "Ngono",
-          email: "marie.ngono@educafric.com",
-          phone: "+237677123456",
-          region: "Douala",
-          status: "active",
-          joinDate: "2024-08-20T00:00:00Z",
-          totalSchools: 8,
-          activeDeals: 3,
-          revenue: 2100000,
-          lastActivity: "2025-01-14T14:30:00Z",
-          role: "Commercial"
-        },
-        {
-          id: 3,
-          firstName: "Paul",
-          lastName: "Kamdem",
-          email: "paul.kamdem@educafric.com",
-          phone: "+237655987654",
-          region: "Bafoussam",
-          status: "inactive",
-          joinDate: "2024-04-10T00:00:00Z",
-          totalSchools: 6,
-          activeDeals: 1,
-          revenue: 1500000,
-          lastActivity: "2025-01-10T09:15:00Z",
-          role: "Commercial"
-        }
-      ];
+      const commercialUsers = await storage.db
+        .select({
+          id: storage.users.id,
+          firstName: storage.users.firstName,
+          lastName: storage.users.lastName,
+          email: storage.users.email,
+          phone: storage.users.phone,
+          role: storage.users.role,
+          subscriptionStatus: storage.users.subscriptionStatus,
+          lastLoginAt: storage.users.lastLoginAt,
+          createdAt: storage.users.createdAt,
+          schoolId: storage.users.schoolId
+        })
+        .from(storage.users)
+        .where(storage.eq(storage.users.role, 'commercial'))
+        .orderBy(storage.desc(storage.users.createdAt));
+
+      // Transform the data to match expected Commercial interface
+      const commercials = commercialUsers.map(user => ({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone || '+237600000000',
+        region: 'Cameroun', // Default region since not in schema
+        status: user.subscriptionStatus === 'active' ? 'active' : 'inactive',
+        joinDate: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString(),
+        totalSchools: 0, // Will be calculated from relationships
+        activeDeals: 0, // Will be calculated from relationships
+        revenue: 0, // Will be calculated from business data
+        lastActivity: user.lastLoginAt ? new Date(user.lastLoginAt).toISOString() : new Date().toISOString(),
+        role: user.role
+      }));
       
+      console.log(`[SITE_ADMIN_API] ✅ Retrieved ${commercials.length} real commercial users from database`);
       res.json(commercials);
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error fetching commercials:', error);
@@ -636,9 +623,16 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
         return res.status(400).json({ success: false, message: 'Invalid status' });
       }
       
-      // Here you would update the database
-      // await updateUserStatus(id, status);
+      // Update user status in database
+      await storage.db
+        .update(storage.users)
+        .set({
+          subscriptionStatus: status,
+          updatedAt: new Date()
+        })
+        .where(storage.eq(storage.users.id, parseInt(id)));
       
+      console.log(`[SITE_ADMIN_API] ✅ Commercial ${id} status updated to ${status} in database`);
       res.json({ 
         success: true, 
         message: `Commercial status updated to ${status}`,
@@ -659,13 +653,21 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       
       console.log(`[SITE_ADMIN_API] Updating commercial ${id} role to ${role}`);
       
-      const validRoles = ['Commercial', 'Director', 'Teacher', 'SuperAdmin', 'SiteAdmin'];
-      if (!validRoles.includes(role)) {
+      const validRoles = ['commercial', 'director', 'teacher', 'superadmin', 'siteadmin'];
+      if (!validRoles.includes(role.toLowerCase())) {
         return res.status(400).json({ success: false, message: 'Invalid role' });
       }
       
-      // Here you would update the database
-      // await updateUserRole(id, role);
+      // Update user role in database
+      await storage.db
+        .update(storage.users)
+        .set({
+          role: role.toLowerCase(),
+          updatedAt: new Date()
+        })
+        .where(storage.eq(storage.users.id, parseInt(id)));
+      
+      console.log(`[SITE_ADMIN_API] ✅ Commercial ${id} role updated to ${role} in database`);
       
       res.json({ 
         success: true, 
@@ -686,9 +688,12 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       
       console.log(`[SITE_ADMIN_API] Deleting commercial ${id}`);
       
-      // Here you would delete from database
-      // await deleteUser(id);
+      // Delete user from database
+      await storage.db
+        .delete(storage.users)
+        .where(storage.eq(storage.users.id, parseInt(id)));
       
+      console.log(`[SITE_ADMIN_API] ✅ Commercial ${id} deleted from database`);
       res.json({ 
         success: true, 
         message: 'Commercial deleted successfully',

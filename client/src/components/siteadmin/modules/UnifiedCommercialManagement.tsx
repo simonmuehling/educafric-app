@@ -38,7 +38,8 @@ import {
   BarChart3,
   FileText,
   Clock,
-  Activity
+  Activity,
+  Lock
 } from 'lucide-react';
 
 interface Commercial {
