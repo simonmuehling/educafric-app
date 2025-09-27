@@ -256,7 +256,7 @@ class FastModuleLoader {
       // 📹 ONLINE CLASSES MODULES - VIDEO CONFERENCING
       // =============================================
       'teacher-online-classes': () => import('@/components/teacher/modules/TeacherOnlineClasses'),
-      'student-online-classes': () => import('@/components/student/modules/StudentOnlineClasses')
+      'student-online-classes': () => import('@/components/student/modules/StudentOnlineClasses'),
       
       // Role-namespaced library modules
       'teacher.library': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
