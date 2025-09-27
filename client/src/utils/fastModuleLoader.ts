@@ -212,7 +212,26 @@ class FastModuleLoader {
       
       // SiteAdmin modules - Using shared components for now until specific modules are created
       'siteadmin-overview': () => import('@/components/shared/UnifiedProfileManager'),
-      'siteadmin-settings': () => import('@/components/shared/UnifiedProfileManager'),
+      
+      // SiteAdmin specific modules
+      'school-mgmt': () => import('@/components/siteadmin/modules/SchoolManagement'),
+      'siteadmin-users': () => import('@/components/siteadmin/modules/FunctionalSiteAdminUsers'),
+      'user-mgmt': () => import('@/components/siteadmin/modules/UserManagement'),
+      'siteadmin-schools': () => import('@/components/siteadmin/modules/FunctionalSiteAdminSchools'),
+      'siteadmin-documents': () => import('@/components/siteadmin/modules/FunctionalSiteAdminDocuments'),
+      'doc-permissions': () => import('@/components/siteadmin/DocumentPermissionsManager'),
+      'siteadmin-content-mgmt': () => import('@/components/siteadmin/modules/ContentManagement'),
+      'communication': () => import('@/components/siteadmin/modules/AdminCommunication'),
+      'commercial': () => import('@/components/siteadmin/modules/UnifiedCommercialManagement'),
+      'siteadmin-payments': () => import('@/components/siteadmin/modules/PaymentAdministration'),
+      'analytics': () => import('@/components/siteadmin/modules/AnalyticsBusiness'),
+      'multi-role': () => import('@/components/siteadmin/modules/MultiRoleManagement'),
+      'security': () => import('@/components/siteadmin/modules/SecurityAudit'),
+      'firebase': () => import('@/components/siteadmin/modules/FirebaseIntegration'),
+      'platform': () => import('@/components/siteadmin/modules/PlatformManagement'),
+      'preview': () => import('@/components/siteadmin/modules/PreviewModule'),
+      'health': () => import('@/components/siteadmin/modules/FunctionalSiteAdminSystemHealth'),
+      'siteadmin-config': () => import('@/components/siteadmin/modules/FunctionalSiteAdminSettings'),
       
       // ROLE-NAMESPACED SETTINGS - PREVENT CONFLICTS
       'director.settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
