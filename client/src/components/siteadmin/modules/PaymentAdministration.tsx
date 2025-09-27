@@ -22,6 +22,9 @@ const PaymentAdministration = () => {
   const [selectedPlan, setSelectedPlan] = useState('');
   const [activationReason, setActivationReason] = useState('');
   const [activationDuration, setActivationDuration] = useState('');
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportData, setReportData] = useState<any>(null);
+  const [reportLoading, setReportLoading] = useState(false);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -249,6 +252,7 @@ const PaymentAdministration = () => {
   };
 
   const handleMonthlyReport = async () => {
+    setReportLoading(true);
     try {
       const response = await fetch('/api/admin/reports/monthly', {
         method: 'GET',
@@ -257,6 +261,8 @@ const PaymentAdministration = () => {
       const result = await response.json();
       
       if (result.success) {
+        setReportData(result.report);
+        setShowReportModal(true);
         toast({
           title: language === 'fr' ? "Rapport mensuel" : "Monthly report",
           description: language === 'fr' ? "Rapport généré avec succès" : "Report generated successfully",
@@ -273,6 +279,8 @@ const PaymentAdministration = () => {
         description: language === 'fr' ? "Erreur lors de la génération du rapport" : "Error generating report",
         variant: "destructive",
       });
+    } finally {
+      setReportLoading(false);
     }
   };
 
@@ -603,6 +611,40 @@ const PaymentAdministration = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Monthly Report Modal */}
+      {showReportModal && reportData && (
+        <Card className="mt-6 border-2 border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between text-green-800">
+              <span className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                {language === 'fr' ? 'Rapport Mensuel des Paiements' : 'Monthly Payment Report'}
+              </span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowReportModal(false)}
+                data-testid="button-close-report"
+              >
+                {language === 'fr' ? 'Fermer' : 'Close'}
+              </Button>
+            </CardTitle>
+            <CardDescription>
+              {language === 'fr' 
+                ? `Rapport généré le ${new Date().toLocaleDateString('fr-FR')}`
+                : `Report generated on ${new Date().toLocaleDateString('en-US')}`
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MonthlyReportDisplay 
+              reportData={reportData}
+              language={language}
+            />
+          </CardContent>
+        </Card>
+      )}
     </ModuleContainer>
   );
 };
@@ -858,6 +900,143 @@ const ManualActivationForm: React.FC<{ language: string; onClose: () => void }> 
         >
           {language === 'fr' ? 'Annuler' : 'Cancel'}
         </Button>
+      </div>
+    </div>
+  );
+};
+
+// Monthly Report Display Component
+const MonthlyReportDisplay: React.FC<{ reportData: any; language: string }> = ({ reportData, language }) => {
+  const formatCurrency = (amount: number) => {
+    return `${amount.toLocaleString()} CFA`;
+  };
+
+  const formatPercentage = (value: number, total: number) => {
+    return `${((value / total) * 100).toFixed(1)}%`;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Overview Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg border border-green-200">
+          <h4 className="text-sm font-medium text-gray-600 mb-2">
+            {language === 'fr' ? 'Revenus Totaux' : 'Total Revenue'}
+          </h4>
+          <p className="text-2xl font-bold text-green-700">
+            {formatCurrency(reportData.totalRevenue)}
+          </p>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border border-blue-200">
+          <h4 className="text-sm font-medium text-gray-600 mb-2">
+            {language === 'fr' ? 'Transactions Totales' : 'Total Transactions'}
+          </h4>
+          <p className="text-2xl font-bold text-blue-700">
+            {reportData.totalTransactions}
+          </p>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border border-emerald-200">
+          <h4 className="text-sm font-medium text-gray-600 mb-2">
+            {language === 'fr' ? 'Transactions Réussies' : 'Successful Transactions'}
+          </h4>
+          <p className="text-2xl font-bold text-emerald-700">
+            {reportData.successfulTransactions}
+          </p>
+          <p className="text-xs text-emerald-600">
+            {formatPercentage(reportData.successfulTransactions, reportData.totalTransactions)}
+          </p>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border border-red-200">
+          <h4 className="text-sm font-medium text-gray-600 mb-2">
+            {language === 'fr' ? 'Transactions Échouées' : 'Failed Transactions'}
+          </h4>
+          <p className="text-2xl font-bold text-red-700">
+            {reportData.failedTransactions}
+          </p>
+          <p className="text-xs text-red-600">
+            {formatPercentage(reportData.failedTransactions, reportData.totalTransactions)}
+          </p>
+        </div>
+      </div>
+
+      {/* Top Schools */}
+      <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">
+          {language === 'fr' ? 'Top Écoles par Revenus' : 'Top Schools by Revenue'}
+        </h3>
+        <div className="space-y-3">
+          {reportData.topSchools?.map((school: any, index: number) => (
+            <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold">
+                  {index + 1}
+                </div>
+                <span className="font-medium text-gray-800">{school.name}</span>
+              </div>
+              <span className="font-bold text-green-600">
+                {formatCurrency(school.revenue)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Payment Methods */}
+      <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">
+          {language === 'fr' ? 'Répartition par Méthode de Paiement' : 'Payment Method Distribution'}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Object.entries(reportData.paymentMethods || {}).map(([method, count]: [string, any]) => (
+            <div key={method} className="text-center p-4 bg-gray-50 rounded-lg">
+              <p className="text-2xl font-bold text-blue-600">{count}</p>
+              <p className="text-sm text-gray-600">{method}</p>
+              <p className="text-xs text-gray-500">
+                {formatPercentage(count, reportData.totalTransactions)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Export Options */}
+      <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg border border-blue-200">
+        <h4 className="font-semibold text-gray-800 mb-2">
+          {language === 'fr' ? 'Options d\'Export' : 'Export Options'}
+        </h4>
+        <div className="flex gap-2">
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => {
+              const csvData = [
+                ['Metric', 'Value'],
+                ['Total Revenue', reportData.totalRevenue],
+                ['Total Transactions', reportData.totalTransactions],
+                ['Successful Transactions', reportData.successfulTransactions],
+                ['Failed Transactions', reportData.failedTransactions],
+                ['Pending Transactions', reportData.pendingTransactions],
+                ...reportData.topSchools?.map((school: any) => [`${school.name} Revenue`, school.revenue]) || [],
+                ...Object.entries(reportData.paymentMethods || {}).map(([method, count]) => [`${method} Count`, count])
+              ];
+              
+              const csv = csvData.map(row => row.join(',')).join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `monthly-report-${new Date().toISOString().split('T')[0]}.csv`;
+              a.click();
+              window.URL.revokeObjectURL(url);
+            }}
+            data-testid="button-export-report-csv"
+          >
+            {language === 'fr' ? 'Export CSV' : 'Export CSV'}
+          </Button>
+        </div>
       </div>
     </div>
   );
