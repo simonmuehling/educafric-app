@@ -270,16 +270,16 @@ const SchoolManagement = () => {
     mutationFn: (schoolId: number) => apiRequest('DELETE', `/api/admin/schools/${schoolId}`),
     onSuccess: () => {
       toast({
-        title: t.success,
-        description: t.schoolDeleted
+        title: 'Succès',
+        description: 'École supprimée'
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/schools'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/school-stats'] });
     },
     onError: () => {
       toast({
-        title: t.error,
-        description: 'Failed to delete school',
+        title: 'Erreur',
+        description: 'Échec de la suppression de l\'école',
         variant: "destructive"
       });
     }
@@ -290,8 +290,8 @@ const SchoolManagement = () => {
     mutationFn: (schoolData: typeof newSchoolData) => apiRequest('POST', '/api/admin/schools', schoolData),
     onSuccess: () => {
       toast({
-        title: t.success,
-        description: t.schoolCreated
+        title: 'Succès',
+        description: 'École créée avec succès'
       });
       setShowCreateDialog(false);
       setNewSchoolData({
@@ -310,8 +310,8 @@ const SchoolManagement = () => {
     },
     onError: () => {
       toast({
-        title: t.error,
-        description: 'Failed to create school',
+        title: 'Erreur',
+        description: 'Échec de la création de l\'école',
         variant: "destructive"
       });
     }
@@ -328,8 +328,8 @@ const SchoolManagement = () => {
     }) => apiRequest('POST', `/api/admin/schools/${schoolId}/subscription`, { action, planId, duration, notes }),
     onSuccess: () => {
       toast({
-        title: t.success,
-        description: t.subscriptionUpdated
+        title: 'Succès',
+        description: 'Abonnement mis à jour'
       });
       setShowSubscriptionDialog(false);
       setSelectedSchoolForSubscription(null);
@@ -337,8 +337,8 @@ const SchoolManagement = () => {
     },
     onError: () => {
       toast({
-        title: t.error,
-        description: 'Failed to update subscription',
+        title: 'Erreur',
+        description: 'Échec de la mise à jour de l\'abonnement',
         variant: "destructive"
       });
     }
@@ -350,15 +350,15 @@ const SchoolManagement = () => {
       apiRequest('PATCH', `/api/admin/schools/${schoolId}/block`, { isBlocked: block }),
     onSuccess: (_, { block }) => {
       toast({
-        title: t.success,
-        description: block ? t.schoolBlocked : t.schoolUnblocked
+        title: 'Succès',
+        description: block ? 'École bloquée' : 'École débloquée'
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/schools'] });
     },
     onError: () => {
       toast({
-        title: t.error,
-        description: 'Failed to update school status',
+        title: 'Erreur',
+        description: 'Échec de la mise à jour du statut de l\'école',
         variant: "destructive"
       });
     }
@@ -393,7 +393,7 @@ const SchoolManagement = () => {
   };
 
   const handleDeleteSchool = (schoolId: number) => {
-    if (confirm(t.deleteSchoolConfirm)) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette école ?')) {
       deleteSchoolMutation.mutate(schoolId);
     }
   };
@@ -422,7 +422,7 @@ const SchoolManagement = () => {
 
   const handleBlockSchool = (school: School) => {
     const isBlocked = school.isBlocked || false;
-    const confirmMsg = isBlocked ? t.unblockSchoolConfirm : t.blockSchoolConfirm;
+    const confirmMsg = isBlocked ? 'Êtes-vous sûr de vouloir débloquer cette école ?' : 'Êtes-vous sûr de vouloir bloquer cette école ?';
     
     if (confirm(confirmMsg)) {
       blockSchoolMutation.mutate({
@@ -523,14 +523,14 @@ const SchoolManagement = () => {
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>{t.createNewSchool}</DialogTitle>
+                <DialogTitle>Créer une nouvelle école</DialogTitle>
                 <DialogDescription>
                   Créer une nouvelle école dans le système Educafric
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name">{t.schoolName}</Label>
+                  <Label htmlFor="name">Nom de l'école</Label>
                   <Input
                     id="name"
                     value={newSchoolData.name}
@@ -539,7 +539,7 @@ const SchoolManagement = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="address">{t.address}</Label>
+                  <Label htmlFor="address">Adresse</Label>
                   <Input
                     id="address"
                     value={newSchoolData.address}
@@ -549,7 +549,7 @@ const SchoolManagement = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="city">{t.city}</Label>
+                    <Label htmlFor="city">Ville</Label>
                     <Input
                       id="city"
                       value={newSchoolData.city}
@@ -558,7 +558,7 @@ const SchoolManagement = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="country">{t.country}</Label>
+                    <Label htmlFor="country">Pays</Label>
                     <Select value={newSchoolData.country} onValueChange={(value) => setNewSchoolData({...newSchoolData, country: value})}>
                       <SelectTrigger>
                         <SelectValue />
@@ -573,7 +573,7 @@ const SchoolManagement = () => {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="email">{t.email}</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -590,22 +590,22 @@ const SchoolManagement = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="public">{t.public}</SelectItem>
-                        <SelectItem value="private">{t.private}</SelectItem>
+                        <SelectItem value="public">Public</SelectItem>
+                        <SelectItem value="private">Privé</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="level">{t.level}</Label>
+                    <Label htmlFor="level">Niveau</Label>
                     <Select value={newSchoolData.level} onValueChange={(value) => setNewSchoolData({...newSchoolData, level: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="primary">{t.primary}</SelectItem>
-                        <SelectItem value="secondary">{t.secondary}</SelectItem>
-                        <SelectItem value="university">{t.university}</SelectItem>
-                        <SelectItem value="mixed">{t.mixed}</SelectItem>
+                        <SelectItem value="primary">Primaire</SelectItem>
+                        <SelectItem value="secondary">Secondaire</SelectItem>
+                        <SelectItem value="university">Université</SelectItem>
+                        <SelectItem value="mixed">Mixte</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -613,11 +613,11 @@ const SchoolManagement = () => {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-                  {t.cancel}
+                  Annuler
                 </Button>
                 <Button onClick={handleCreateSchool} disabled={createSchoolMutation.isPending}>
                   {createSchoolMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                  {t.save}
+                  Enregistrer
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -829,7 +829,7 @@ const SchoolManagement = () => {
       <Dialog open={showSubscriptionDialog} onOpenChange={setShowSubscriptionDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t.subscriptionManagement}</DialogTitle>
+            <DialogTitle>Gestion des abonnements</DialogTitle>
             <DialogDescription>
               Gérer l'abonnement de {selectedSchoolForSubscription?.name}
             </DialogDescription>
@@ -842,9 +842,9 @@ const SchoolManagement = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="extend">{t.extendSubscription}</SelectItem>
-                  <SelectItem value="activate">{t.activateSubscription}</SelectItem>
-                  <SelectItem value="cancel">{t.cancelSubscription}</SelectItem>
+                  <SelectItem value="extend">Prolonger Abonnement</SelectItem>
+                  <SelectItem value="activate">Activer Abonnement</SelectItem>
+                  <SelectItem value="cancel">Annuler Abonnement</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -852,7 +852,7 @@ const SchoolManagement = () => {
             {(subscriptionData.action === 'extend' || subscriptionData.action === 'activate') && (
               <>
                 <div>
-                  <Label htmlFor="plan">{t.selectPlan}</Label>
+                  <Label htmlFor="plan">Sélectionner Plan</Label>
                   <Select value={subscriptionData.planId} onValueChange={(value) => setSubscriptionData({...subscriptionData, planId: value})}>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner un plan" />
@@ -865,7 +865,7 @@ const SchoolManagement = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="duration">{t.duration}</Label>
+                  <Label htmlFor="duration">Durée (mois)</Label>
                   <Select value={subscriptionData.duration} onValueChange={(value) => setSubscriptionData({...subscriptionData, duration: value})}>
                     <SelectTrigger>
                       <SelectValue />
@@ -882,7 +882,7 @@ const SchoolManagement = () => {
             )}
 
             <div>
-              <Label htmlFor="notes">{t.notes}</Label>
+              <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
                 value={subscriptionData.notes}
@@ -894,11 +894,11 @@ const SchoolManagement = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSubscriptionDialog(false)}>
-              {t.cancel}
+              Annuler
             </Button>
             <Button onClick={handleSubscriptionAction} disabled={manageSubscriptionMutation.isPending}>
               {manageSubscriptionMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-              {t.save}
+              Enregistrer
             </Button>
           </DialogFooter>
         </DialogContent>
