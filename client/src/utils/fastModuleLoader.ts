@@ -252,6 +252,11 @@ class FastModuleLoader {
       'student-library': () => import('@/components/student/modules/LibraryRelatedBooks'),
       'parent-library': () => import('@/components/parent/modules/LibraryRelatedBooks'),
       
+      // Online Classes modules
+      'teacher-online-classes': () => import('@/components/teacher/modules/TeacherOnlineClasses'),
+      'student-online-classes': () => import('@/components/student/modules/StudentOnlineClasses'),
+      'online-classes': () => import('@/components/teacher/modules/TeacherOnlineClasses'), // Default to teacher
+      
       // Role-namespaced library modules
       'teacher.library': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
       'student.library': () => import('@/components/student/modules/LibraryRelatedBooks'),
