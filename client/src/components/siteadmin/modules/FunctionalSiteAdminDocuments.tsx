@@ -8,15 +8,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Document {
   id: number;
-  name: string;
+  filename: string;
+  title: string;
   type: string;
   category: string;
-  size: string;
-  createdAt: string;
-  updatedAt: string;
-  status: string;
-  uploadedBy: string;
-  downloads: number;
+  size: number;
+  lastModified: string;
+  isVisible: boolean;
+  visibilityLevel: string;
+  downloadCount: number;
+  path: string;
 }
 
 const FunctionalSiteAdminDocuments: React.FC = () => {
@@ -26,59 +27,13 @@ const FunctionalSiteAdminDocuments: React.FC = () => {
   const queryClient = useQueryClient();
 
   const { data: documents, isLoading, error } = useQuery({
-    queryKey: ['/api/admin/documents'],
+    queryKey: ['/api/site-admin/all-documents'],
     queryFn: async () => {
-      // Mock data for demonstration - replace with real API
-      return [
-        {
-          id: 1,
-          name: 'Contrat École Primaire Central.pdf',
-          type: 'PDF',
-          category: 'Contrats',
-          size: '2.4 MB',
-          createdAt: '2025-01-15T10:30:00Z',
-          updatedAt: '2025-01-15T10:30:00Z',
-          status: 'active',
-          uploadedBy: 'Marie Ngono',
-          downloads: 156
-        },
-        {
-          id: 2,
-          name: 'Rapport Financier Q4 2024.xlsx',
-          type: 'Excel',
-          category: 'Finances',
-          size: '1.8 MB',
-          createdAt: '2024-12-31T16:45:00Z',
-          updatedAt: '2025-01-02T09:15:00Z',
-          status: 'active',
-          uploadedBy: 'Simon Admin',
-          downloads: 89
-        },
-        {
-          id: 3,
-          name: 'Politique Confidentialité EDUCAFRIC.docx',
-          type: 'Word',
-          category: 'Légal',
-          size: '856 KB',
-          createdAt: '2024-11-20T14:20:00Z',
-          updatedAt: '2024-12-15T11:30:00Z',
-          status: 'active',
-          uploadedBy: 'Paul Kamdem',
-          downloads: 234
-        },
-        {
-          id: 4,
-          name: 'Guide Utilisateur Parent.pdf',
-          type: 'PDF',
-          category: 'Documentation',
-          size: '3.2 MB',
-          createdAt: '2024-10-10T08:00:00Z',
-          updatedAt: '2024-11-05T13:45:00Z',
-          status: 'active',
-          uploadedBy: 'Marie Ngono',
-          downloads: 421
-        }
-      ];
+      const response = await fetch('/api/site-admin/all-documents', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch documents');
+      return response.json();
     }
   });
 
@@ -97,16 +52,39 @@ const FunctionalSiteAdminDocuments: React.FC = () => {
   });
 
   const filteredDocuments = documents?.filter((doc: Document) => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.filename.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || doc.category === filterCategory;
     return matchesSearch && matchesCategory;
   }) || [];
 
+  // Document action handlers
   const handleDeleteDocument = (docId: number) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce document ?')) {
       deleteDocumentMutation.mutate(docId);
     }
+  };
+
+  const handleDownloadDocument = (document: Document) => {
+    // Download document using the path
+    const downloadUrl = document.path;
+    const link = window.document.createElement('a');
+    link.href = downloadUrl;
+    link.download = document.filename;
+    window.document.body.appendChild(link);
+    link.click();
+    window.document.body.removeChild(link);
+  };
+
+  const handleViewDocument = (document: Document) => {
+    // Open document in new tab
+    window.open(document.path, '_blank');
+  };
+
+  const handleEditDocument = (document: Document) => {
+    // TODO: Implement edit functionality
+    alert(`Édition de ${document.title} - Fonctionnalité à implémenter`);
   };
 
   const getCategoryBadgeColor = (category: string) => {
@@ -242,10 +220,10 @@ const FunctionalSiteAdminDocuments: React.FC = () => {
                       {getFileTypeIcon(document.type)}
                       <div>
                         <div className="font-medium text-gray-900">
-                          {document.name}
+                          {document.title}
                         </div>
                         <div className="text-sm text-gray-500">
-                          par {document.uploadedBy}
+                          {document.filename}
                         </div>
                       </div>
                     </div>
@@ -256,19 +234,20 @@ const FunctionalSiteAdminDocuments: React.FC = () => {
                     </Badge>
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600">
-                    {document.size}
+                    {document.size} KB
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600">
-                    {document.downloads}
+                    {document.downloadCount}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600">
-                    {formatDate(document.updatedAt)}
+                    {formatDate(document.lastModified)}
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center justify-end space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => handleViewDocument(document)}
                         className="h-8 w-8 p-0"
                         data-testid={`button-view-${document.id}`}
                       >
@@ -277,6 +256,7 @@ const FunctionalSiteAdminDocuments: React.FC = () => {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => handleDownloadDocument(document)}
                         className="h-8 w-8 p-0"
                         data-testid={`button-download-${document.id}`}
                       >
@@ -285,6 +265,7 @@ const FunctionalSiteAdminDocuments: React.FC = () => {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => handleEditDocument(document)}
                         className="h-8 w-8 p-0"
                         data-testid={`button-edit-${document.id}`}
                       >
