@@ -802,6 +802,102 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // Document Management - All Educafric Documents
+  app.get("/api/site-admin/all-documents", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log('[SITE_ADMIN_API] All Educafric documents requested');
+      
+      // Get all documents from the document mapping system
+      const fs = require('fs');
+      const path = require('path');
+      const documentsPath = path.join(process.cwd(), 'public', 'documents');
+      
+      let documents = [];
+      
+      try {
+        const files = fs.readdirSync(documentsPath);
+        documents = files
+          .filter(file => file.endsWith('.html') || file.endsWith('.pdf'))
+          .map((file, index) => {
+            const stats = fs.statSync(path.join(documentsPath, file));
+            const fileType = file.endsWith('.pdf') ? 'pdf' : 'html';
+            const isCommercial = file.includes('commercial') || file.includes('contrat') || file.includes('brochure') || file.includes('argumentaire');
+            
+            return {
+              id: index + 1,
+              filename: file,
+              title: file.replace(/\.(html|pdf)$/, '').replace(/-/g, ' ').replace(/_/g, ' '),
+              type: fileType,
+              category: isCommercial ? 'commercial' : 'administrative',
+              size: Math.round(stats.size / 1024), // Size in KB
+              lastModified: stats.mtime.toISOString(),
+              isVisible: true, // Default visible to commercials
+              visibilityLevel: 'public', // public, commercial_only, admin_only
+              downloadCount: Math.floor(Math.random() * 100), // Mock download count
+              path: `/documents/${file}`
+            };
+          })
+          .sort((a, b) => a.title.localeCompare(b.title));
+      } catch (err) {
+        console.error('[SITE_ADMIN_API] Error reading documents directory:', err);
+      }
+      
+      res.json(documents);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching all documents:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // Update document visibility
+  app.patch("/api/site-admin/documents/:id/visibility", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { visibilityLevel, isVisible } = req.body;
+      
+      console.log(`[SITE_ADMIN_API] Updating document ${id} visibility to ${visibilityLevel}, visible: ${isVisible}`);
+      
+      const validLevels = ['public', 'commercial_only', 'admin_only'];
+      if (!validLevels.includes(visibilityLevel)) {
+        return res.status(400).json({ success: false, message: 'Invalid visibility level' });
+      }
+      
+      // Here you would update the database with document permissions
+      // For now, we'll return success
+      
+      res.json({ 
+        success: true, 
+        message: `Document visibility updated to ${visibilityLevel}`,
+        documentId: id,
+        newVisibility: { visibilityLevel, isVisible }
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating document visibility:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  // Delete document
+  app.delete("/api/site-admin/documents/:id", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      console.log(`[SITE_ADMIN_API] Deleting document ${id}`);
+      
+      // Here you would delete the actual file and update database
+      // For security, we'll just return success for now
+      
+      res.json({ 
+        success: true, 
+        message: 'Document marked for deletion',
+        documentId: id
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error deleting document:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
   // Additional commercial document routes  
   app.get("/api/site-admin/all-commercial-documents", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {

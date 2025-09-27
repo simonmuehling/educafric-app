@@ -94,6 +94,20 @@ interface CommercialDocument {
   createdAt: string;
 }
 
+interface EducafricDocument {
+  id: number;
+  filename: string;
+  title: string;
+  type: 'pdf' | 'html';
+  category: 'commercial' | 'administrative';
+  size: number;
+  lastModified: string;
+  isVisible: boolean;
+  visibilityLevel: 'public' | 'commercial_only' | 'admin_only';
+  downloadCount: number;
+  path: string;
+}
+
 const UnifiedCommercialManagement: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -148,10 +162,11 @@ const UnifiedCommercialManagement: React.FC = () => {
     enabled: !!selectedCommercial
   });
 
+  // All Educafric documents
   const { data: allDocuments = [], isLoading: loadingAllDocuments } = useQuery({
-    queryKey: ['/api/site-admin/all-commercial-documents'],
+    queryKey: ['/api/site-admin/all-documents'],
     queryFn: async () => {
-      const response = await fetch('/api/site-admin/all-commercial-documents', { credentials: 'include' });
+      const response = await fetch('/api/site-admin/all-documents', { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch all documents');
       return response.json();
     }
@@ -218,6 +233,46 @@ const UnifiedCommercialManagement: React.FC = () => {
     },
     onError: () => {
       toast({ title: "Erreur", description: "Impossible de supprimer le commercial", variant: "destructive" });
+    }
+  });
+
+  // Document visibility mutation
+  const updateDocumentVisibilityMutation = useMutation({
+    mutationFn: async ({ id, visibilityLevel, isVisible }: { id: number; visibilityLevel: string; isVisible: boolean }) => {
+      const response = await fetch(`/api/site-admin/documents/${id}/visibility`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ visibilityLevel, isVisible })
+      });
+      if (!response.ok) throw new Error('Failed to update document visibility');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/site-admin/all-documents'] });
+      toast({ title: "Succès", description: "Visibilité du document mise à jour" });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "Impossible de mettre à jour la visibilité", variant: "destructive" });
+    }
+  });
+
+  // Delete document mutation
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/site-admin/documents/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete document');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/site-admin/all-documents'] });
+      toast({ title: "Succès", description: "Document supprimé avec succès" });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "Impossible de supprimer le document", variant: "destructive" });
     }
   });
 
@@ -727,148 +782,200 @@ const UnifiedCommercialManagement: React.FC = () => {
 
         {/* Documents Tab */}
         <TabsContent value="documents" className="mt-6">
-          <div className="space-y-6">
-            {/* Document Library Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Bibliothèque des Documents Commerciaux
-                </CardTitle>
-                <p className="text-sm text-gray-600">
-                  Tous les documents commerciaux disponibles pour l'équipe EDUCAFRIC
-                </p>
-              </CardHeader>
-              <CardContent>
-                {loadingAllDocuments ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <span className="ml-2">Chargement de la bibliothèque...</span>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {allDocuments.map((document: any) => (
-                      <div key={document.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center space-x-2">
-                            <FileText className="w-6 h-6 text-blue-600" />
-                            <div className="flex items-center space-x-1">
-                              <Badge className={getTypeBadge(document.type)}>
-                                {document.type}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="w-5 h-5" />
+                <span>Gestion des Documents Educafric</span>
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Gérez tous les documents de la plateforme et contrôlez leur visibilité pour les commerciaux
+              </p>
+            </CardHeader>
+            <CardContent>
+              {loadingAllDocuments ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  <span className="ml-2">Chargement des documents...</span>
+                </div>
+              ) : allDocuments.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Aucun document trouvé</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Documents Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b bg-gray-50">
+                          <th className="text-left p-3 font-medium">Document</th>
+                          <th className="text-left p-3 font-medium">Type</th>
+                          <th className="text-left p-3 font-medium">Catégorie</th>
+                          <th className="text-left p-3 font-medium">Taille</th>
+                          <th className="text-left p-3 font-medium">Visibilité</th>
+                          <th className="text-left p-3 font-medium">Téléchargements</th>
+                          <th className="text-left p-3 font-medium">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {allDocuments.map((document: EducafricDocument) => (
+                          <tr key={document.id} className="border-b hover:bg-gray-50 transition-colors">
+                            <td className="p-3">
+                              <div className="flex items-center space-x-3">
+                                <FileText className="w-5 h-5 text-blue-600" />
+                                <div>
+                                  <h4 className="font-medium text-gray-900">{document.title}</h4>
+                                  <p className="text-sm text-gray-600">{document.filename}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <Badge className={`${document.type === 'pdf' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
+                                {document.type.toUpperCase()}
                               </Badge>
-                              <Badge 
-                                variant="outline" 
-                                className={document.language === 'fr' ? 'border-blue-500 text-blue-700' : 'border-green-500 text-green-700'}
+                            </td>
+                            <td className="p-3">
+                              <Badge className={`${document.category === 'commercial' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                {document.category === 'commercial' ? 'Commercial' : 'Administratif'}
+                              </Badge>
+                            </td>
+                            <td className="p-3">
+                              <span className="text-sm text-gray-600">{document.size} KB</span>
+                            </td>
+                            <td className="p-3">
+                              <Select 
+                                value={document.visibilityLevel} 
+                                onValueChange={(value) => updateDocumentVisibilityMutation.mutate({
+                                  id: document.id,
+                                  visibilityLevel: value,
+                                  isVisible: value !== 'admin_only'
+                                })}
                               >
-                                {document.language.toUpperCase()}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                        <h4 className="font-medium text-sm mb-2 line-clamp-2">{document.title}</h4>
-                        <p className="text-xs text-gray-500 mb-3">
-                          Créé le {formatDate(document.createdAt)}
-                        </p>
-                        <div className="flex space-x-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="flex-1"
-                            onClick={() => window.open(document.path, '_blank')}
-                            data-testid={`button-view-document-${document.id}`}
-                          >
-                            <Eye className="w-3 h-3 mr-1" />
-                            Voir
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="bg-blue-600 hover:bg-blue-700 flex-1"
-                            onClick={() => {
-                              navigator.clipboard.writeText(window.location.origin + document.path);
-                              toast({
-                                title: 'Lien copié',
-                                description: 'Le lien du document a été copié dans le presse-papier',
-                              });
-                            }}
-                          >
-                            <Calendar className="w-3 h-3 mr-1" />
-                            Copier
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                                <SelectTrigger className="w-40">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="public">Public</SelectItem>
+                                  <SelectItem value="commercial_only">Commerciaux uniquement</SelectItem>
+                                  <SelectItem value="admin_only">Admin uniquement</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-600">{document.downloadCount}</span>
+                                <div className={`w-2 h-2 rounded-full ${
+                                  document.downloadCount > 50 ? 'bg-green-500' : 
+                                  document.downloadCount > 20 ? 'bg-yellow-500' : 'bg-gray-400'
+                                }`}></div>
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => window.open(document.path, '_blank')}
+                                  data-testid={`button-view-document-${document.id}`}
+                                >
+                                  <Eye className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(window.location.origin + document.path);
+                                    toast({
+                                      title: 'Lien copié',
+                                      description: 'Le lien du document a été copié',
+                                    });
+                                  }}
+                                  data-testid={`button-copy-document-${document.id}`}
+                                >
+                                  <Calendar className="w-3 h-3" />
+                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      data-testid={`button-delete-document-${document.id}`}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Confirmer la Suppression</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Êtes-vous sûr de vouloir supprimer le document "{document.title}" ?
+                                        <br />
+                                        <span className="text-red-600 font-medium">Cette action est irréversible.</span>
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => deleteDocumentMutation.mutate(document.id)}
+                                        disabled={deleteDocumentMutation.isPending}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        {deleteDocumentMutation.isPending ? 'Suppression...' : 'Supprimer'}
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                )}
-              </CardContent>
-            </Card>
 
-            {/* Commercial-specific Documents Section */}
-            {selectedCommercial && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    Documents personnels - {selectedCommercial.firstName} {selectedCommercial.lastName}
-                  </CardTitle>
-                  <p className="text-sm text-gray-600">
-                    Documents créés ou utilisés spécifiquement par ce commercial
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  {loadingDocuments ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                      <span className="ml-2">Chargement des documents...</span>
+                  {/* Statistics */}
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                        <span className="font-medium text-blue-900">Total Documents</span>
+                      </div>
+                      <p className="text-2xl font-bold text-blue-600 mt-1">{allDocuments.length}</p>
                     </div>
-                  ) : documents.length === 0 ? (
-                    <div className="text-center py-8">
-                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">Aucun document personnalisé trouvé</p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        Ce commercial utilise les documents de la bibliothèque générale
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-5 h-5 text-green-600" />
+                        <span className="font-medium text-green-900">Publics</span>
+                      </div>
+                      <p className="text-2xl font-bold text-green-600 mt-1">
+                        {allDocuments.filter((d: EducafricDocument) => d.visibilityLevel === 'public').length}
                       </p>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {documents.map((document: CommercialDocument) => (
-                        <div key={document.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center space-x-4">
-                            <FileText className="w-8 h-8 text-blue-600" />
-                            <div>
-                              <h4 className="font-medium">{document.title}</h4>
-                              <p className="text-sm text-gray-600">Créé le {formatDate(document.createdAt)}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge className={getTypeBadge(document.type)}>
-                              {document.type}
-                            </Badge>
-                            <Badge className={getStatusBadge(document.status)}>
-                              {document.status}
-                            </Badge>
-                            <Button size="sm" variant="outline">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Briefcase className="w-5 h-5 text-yellow-600" />
+                        <span className="font-medium text-yellow-900">Commerciaux</span>
+                      </div>
+                      <p className="text-2xl font-bold text-yellow-600 mt-1">
+                        {allDocuments.filter((d: EducafricDocument) => d.category === 'commercial').length}
+                      </p>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {!selectedCommercial && (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Documents Personnalisés</h3>
-                  <p className="text-gray-600">
-                    Sélectionnez un commercial dans l'onglet Équipe pour voir ses documents personnalisés
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Lock className="w-5 h-5 text-red-600" />
+                        <span className="font-medium text-red-900">Privés</span>
+                      </div>
+                      <p className="text-2xl font-bold text-red-600 mt-1">
+                        {allDocuments.filter((d: EducafricDocument) => d.visibilityLevel === 'admin_only').length}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Contracts Tab */}
