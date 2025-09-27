@@ -112,14 +112,9 @@ export default function SandboxDemo() {
       <div className="container mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center text-white mr-4">
-              <TestTube className="w-8 h-8" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-800">{t.title || ''}</h1>
-              <p className="text-xl text-blue-600 mt-2">{t.subtitle}</p>
-            </div>
+          <div className="text-center mb-6">
+            <h1 className="text-4xl font-bold text-gray-800">{t.title || ''}</h1>
+            <p className="text-xl text-blue-600 mt-2">{t.subtitle}</p>
           </div>
           
           <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-8">
