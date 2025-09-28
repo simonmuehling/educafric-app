@@ -227,11 +227,26 @@ export const translations = {
     payment: {
       currency: "FCFA",
       methods: {
+        card: "Carte de crédit",
         bankTransfer: "Virement bancaire",
         orangeMoney: "Orange Money",
         mtnMoney: "MTN Money",
         creditCard: "Carte bancaire",
         cash: "Espèces"
+      },
+      features: {
+        instant: "Paiement immédiat",
+        securedByStripe: "Sécurisé par Stripe",
+        support24: "Support 24/7",
+        mobilePlatform: "Plateforme de paiement mobile",
+        automatic: "Paiement automatique",
+        immediateActivation: "Activation immédiate",
+        securedMTN: "Sécurisé MTN",
+        bankCameroon: "Banque au Cameroun",
+        "1to2days": "1-2 jours",
+        secureTransfer: "Transfert sécurisé",
+        allBanks: "Toutes banques",
+        officialReceipt: "Reçu officiel"
       },
       subscription: {
         monthly: "Mensuel",
@@ -691,11 +706,26 @@ export const translations = {
     payment: {
       currency: "CFA",
       methods: {
+        card: "Credit Card",
         bankTransfer: "Bank Transfer",
         orangeMoney: "Orange Money",
         mtnMoney: "MTN Money",
         creditCard: "Credit Card",
         cash: "Cash"
+      },
+      features: {
+        instant: "Instant payment",
+        securedByStripe: "Secured by Stripe",
+        support24: "24/7 Support",
+        mobilePlatform: "Mobile payment platform",
+        automatic: "Automatic payment",
+        immediateActivation: "Immediate activation",
+        securedMTN: "Secured by MTN",
+        bankCameroon: "Cameroon Bank",
+        "1to2days": "1-2 days",
+        secureTransfer: "Secure transfer",
+        allBanks: "All banks",
+        officialReceipt: "Official receipt"
       },
       subscription: {
         monthly: "Monthly",

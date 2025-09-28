@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Smartphone, Building, Check, Copy, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export type PaymentMethod = 'card' | 'mtn_money' | 'bank_transfer';
 
@@ -28,6 +29,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   currency
 }) => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const copyToClipboard = async (text: string, fieldName: string) => {
@@ -35,14 +37,14 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       await navigator.clipboard.writeText(text);
       setCopiedField(fieldName);
       toast({
-        title: "Copié!",
-        description: `${fieldName} copié dans le presse-papier`,
+        title: t('common.copied') || "Copié!",
+        description: `${fieldName} ${t('common.copiedToClipboard') || 'copié dans le presse-papier'}`,
       });
       setTimeout(() => setCopiedField(null), 2000);
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de copier dans le presse-papier",
+        title: t('errors.network.networkError') || "Erreur",
+        description: t('common.copyError') || "Impossible de copier dans le presse-papier",
         variant: "destructive",
       });
     }
@@ -51,30 +53,42 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   const paymentMethods = [
     {
       id: 'card' as PaymentMethod,
-      title: '💳 Carte de crédit',
-      description: 'Paiement sécurisé par Stripe',
+      title: `💳 ${t('payment.methods.card') || 'Carte de crédit'}`,
+      description: t('payment.subscription.securedBy') || 'Paiement sécurisé par Stripe',
       icon: <CreditCard className="h-6 w-6" />,
-      badge: 'Instantané',
+      badge: t('common.instant') || 'Instantané',
       badgeColor: 'bg-green-100 text-green-800',
-      features: ['Paiement immédiat', 'Sécurisé par Stripe', 'Support 24/7']
+      features: [
+        t('payment.features.instant') || 'Paiement immédiat', 
+        t('payment.features.securedByStripe') || 'Sécurisé par Stripe', 
+        t('payment.features.support24') || 'Support 24/7'
+      ]
     },
     {
       id: 'mtn_money' as PaymentMethod,
       title: '📱 MTN Mobile Money',
-      description: 'Plateforme de paiement mobile',
+      description: t('payment.features.mobilePlatform') || 'Plateforme de paiement mobile',
       icon: <Smartphone className="h-6 w-6" />,
-      badge: 'Instantané',
+      badge: t('common.instant') || 'Instantané',
       badgeColor: 'bg-yellow-100 text-yellow-800',
-      features: ['Paiement automatique', 'Activation immédiate', 'Sécurisé MTN']
+      features: [
+        t('payment.features.automatic') || 'Paiement automatique', 
+        t('payment.features.immediateActivation') || 'Activation immédiate', 
+        t('payment.features.securedMTN') || 'Sécurisé MTN'
+      ]
     },
     {
       id: 'bank_transfer' as PaymentMethod,
-      title: '🏦 Virement bancaire',
-      description: 'Banque au Cameroun',
+      title: `🏦 ${t('payment.methods.bankTransfer') || 'Virement bancaire'}`,
+      description: t('payment.features.bankCameroon') || 'Banque au Cameroun',
       icon: <Building className="h-6 w-6" />,
-      badge: '1-2 jours',
+      badge: t('payment.features.1to2days') || '1-2 jours',
       badgeColor: 'bg-blue-100 text-blue-800',
-      features: ['Transfert sécurisé', 'Toutes banques', 'Reçu officiel']
+      features: [
+        t('payment.features.secureTransfer') || 'Transfert sécurisé', 
+        t('payment.features.allBanks') || 'Toutes banques', 
+        t('payment.features.officialReceipt') || 'Reçu officiel'
+      ]
     }
   ];
 
