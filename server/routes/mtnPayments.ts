@@ -12,8 +12,8 @@ import { PaymentNotificationService } from '../services/paymentNotificationServi
 
 const router = Router();
 
-// Test de connectivité MTN
-router.get('/test-connection', requireAuth, async (req, res) => {
+// Test de connectivité MTN (sans auth pour debug)
+router.get('/test-connection', async (req, res) => {
   try {
     console.log('[MTN_API] 🧪 Testing MTN connection...');
     const isConnected = await mtnService.testConnection();
@@ -33,8 +33,8 @@ router.get('/test-connection', requireAuth, async (req, res) => {
   }
 });
 
-// Valider un numéro MTN
-router.post('/validate-number', requireAuth, async (req, res) => {
+// Valider un numéro MTN (sans auth pour debug)
+router.post('/validate-number', async (req, res) => {
   try {
     const { phoneNumber } = req.body;
     
