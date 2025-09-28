@@ -64,26 +64,27 @@ router.post('/validate-number', async (req, res) => {
   }
 });
 
-// Créer un paiement MTN pour abonnement (redirection webpayment)
+// Créer un paiement MTN pour abonnement (Request-to-Pay SMS)
 router.post('/create-payment', async (req, res) => {
   try {
-    const { amount, currency = 'XAF', planName, callbackUrl, returnUrl } = req.body;
+    const { amount, currency = 'XAF', planName, phoneNumber, callbackUrl, returnUrl } = req.body;
 
     // Validation des paramètres
-    if (!amount || !planName) {
+    if (!amount || !planName || !phoneNumber) {
       return res.status(400).json({
         success: false,
-        message: 'Paramètres manquants (amount, planName requis)'
+        message: 'Paramètres manquants (amount, planName, phoneNumber requis)'
       });
     }
 
-    console.log('[MTN_API] 🚀 Creating subscription payment:', { amount, currency, planName });
+    console.log('[MTN_API] 🚀 Creating subscription payment:', { amount, currency, planName, phoneNumber });
 
-    // Créer le paiement MTN avec redirection
+    // Créer le paiement MTN avec Request-to-Pay SMS
     const paymentData = await mtnService.createSubscriptionPayment({
       amount: parseFloat(amount),
       currency,
       planName,
+      phoneNumber,
       callbackUrl: callbackUrl || `${process.env.BASE_URL}/api/mtn-payments/callback`,
       returnUrl: returnUrl || `${process.env.BASE_URL}/subscribe`
     });
@@ -91,9 +92,9 @@ router.post('/create-payment', async (req, res) => {
     if (paymentData.success) {
       res.json({
         success: true,
-        paymentUrl: paymentData.paymentUrl,
         transactionId: paymentData.transactionId,
-        message: 'Paiement MTN créé avec succès'
+        instructions: paymentData.instructions,
+        message: 'Demande de paiement MTN envoyée avec succès'
       });
     } else {
       throw new Error(paymentData.error || 'Erreur lors de la création du paiement');

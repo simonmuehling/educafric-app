@@ -304,51 +304,69 @@ export class MTNMobileMoneyService {
   }
 
   /**
-   * Créer un paiement d'abonnement avec redirection webpayment
+   * Créer un paiement d'abonnement via Request-to-Pay SMS
+   * MTN Mobile Money envoie des instructions SMS à l'utilisateur
    */
   public async createSubscriptionPayment(params: {
     amount: number;
     currency: string;
     planName: string;
+    phoneNumber: string;
     callbackUrl: string;
     returnUrl: string;
   }): Promise<{
     success: boolean;
-    paymentUrl?: string;
     transactionId?: string;
+    instructions?: string;
     error?: string;
   }> {
     try {
-      console.log('[MTN] 🚀 Creating subscription payment:', params);
+      console.log('[MTN] 🚀 Creating subscription payment:', {
+        amount: params.amount,
+        currency: params.currency,
+        planName: params.planName,
+        phoneNumber: params.phoneNumber
+      });
 
+      // Valider le numéro MTN
+      if (!this.validateMTNNumber(params.phoneNumber)) {
+        throw new Error('Numéro de téléphone MTN invalide');
+      }
+
+      // Formater le numéro pour l'API
+      const formattedPhone = this.formatPhoneNumber(params.phoneNumber);
+      
       // Générer un ID de transaction unique
       const transactionId = this.generateExternalId('SUB');
-      
-      // Construire l'URL de paiement MTN webpayment
-      // Cette URL redirige vers la plateforme MTN pour le paiement
-      const paymentUrl = `https://payment.mtn.cm/pay?` + new URLSearchParams({
-        amount: params.amount.toString(),
-        currency: params.currency,
-        reference: transactionId,
-        description: `Abonnement EDUCAFRIC - ${params.planName}`,
-        callback_url: params.callbackUrl,
-        return_url: params.returnUrl,
-        merchant_id: 'EDUCAFRIC',
-        service: 'subscription'
-      }).toString();
 
-      console.log('[MTN] ✅ Subscription payment URL created:', paymentUrl);
+      // Créer la demande de paiement via Request-to-Pay API
+      const paymentRequest: MTNCollectionRequest = {
+        amount: params.amount,
+        currency: 'XAF',
+        externalId: transactionId,
+        payer: {
+          phoneNumber: formattedPhone
+        },
+        payerMessage: `Abonnement EDUCAFRIC - ${params.planName}`,
+        payeeNote: `Paiement abonnement ${params.planName} - ${params.amount} XAF`
+      };
+
+      // Envoyer la demande à l'API MTN
+      const result = await this.requestPayment(paymentRequest);
+
+      console.log('[MTN] ✅ Payment request sent successfully');
+      console.log(`[MTN] 📱 SMS instructions sent to: ${params.phoneNumber}`);
 
       return {
         success: true,
-        paymentUrl,
-        transactionId
+        transactionId,
+        instructions: `Instructions de paiement envoyées par SMS au ${params.phoneNumber}. Suivez les instructions reçues pour confirmer le paiement de ${params.amount} XAF.`
       };
     } catch (error: any) {
       console.error('[MTN] ❌ Error creating subscription payment:', error);
       return {
         success: false,
-        error: error.message || 'Erreur lors de la création du paiement'
+        error: error.message || 'Erreur lors de la création du paiement MTN'
       };
     }
   }

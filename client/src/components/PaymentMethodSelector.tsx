@@ -7,7 +7,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, Smartphone, Building, Check, Copy, ExternalLink } from "lucide-react";
+import { CreditCard, Smartphone, Building, Check, Copy, ExternalLink, MessageCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -31,6 +33,9 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   const { toast } = useToast();
   const { t } = useLanguage();
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [showPhoneInput, setShowPhoneInput] = useState(false);
+  const [paymentInstructions, setPaymentInstructions] = useState('');
 
   const copyToClipboard = async (text: string, fieldName: string) => {
     try {
@@ -93,14 +98,17 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   ];
 
   const handleMTNPayment = async () => {
+    if (!phoneNumber) {
+      setShowPhoneInput(true);
+      return;
+    }
+
     try {
-      // Redirection directe vers la plateforme MTN webpayment
       toast({
-        title: "🚀 Redirection MTN Mobile Money",
-        description: "Redirection vers la plateforme de paiement sécurisée...",
+        title: "📱 Envoi demande de paiement...",
+        description: "Préparation des instructions SMS...",
       });
 
-      // Créer le paiement MTN et rediriger
       const response = await fetch('/api/mtn-payments/create-payment', {
         method: 'POST',
         headers: {
@@ -110,6 +118,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
           amount: amount,
           currency: currency,
           planName: planName,
+          phoneNumber: phoneNumber,
           callbackUrl: `${window.location.origin}/subscription-success?plan=${planName}`,
           returnUrl: `${window.location.origin}/subscribe`
         })
@@ -117,9 +126,13 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
 
       const data = await response.json();
       
-      if (data.success && data.paymentUrl) {
-        // Redirection immédiate vers MTN webpayment
-        window.location.href = data.paymentUrl;
+      if (data.success) {
+        setPaymentInstructions(data.instructions);
+        toast({
+          title: "📱 Instructions envoyées !",
+          description: "Vérifiez votre téléphone pour confirmer le paiement",
+          variant: "default",
+        });
       } else {
         throw new Error(data.message || 'Erreur lors de la création du paiement MTN');
       }
@@ -144,32 +157,101 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-white p-6 rounded-lg border text-center">
-              <div className="mb-4">
-                <Smartphone className="h-16 w-16 text-yellow-600 mx-auto mb-3" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Paiement instantané avec MTN
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Vous serez redirigé vers la plateforme sécurisée MTN Mobile Money pour finaliser votre paiement.
-                </p>
-                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg mb-4">
-                  <p className="text-sm text-yellow-800">
-                    <strong>💡 Avantages:</strong> Paiement instantané • Activation automatique • Sécurisé MTN
-                  </p>
+            {paymentInstructions ? (
+              // Afficher les instructions après envoi SMS
+              <div className="bg-white p-6 rounded-lg border text-center">
+                <div className="mb-4">
+                  <MessageCircle className="h-16 w-16 text-green-600 mx-auto mb-3" />
+                  <h3 className="text-xl font-semibold text-green-800 mb-2">
+                    📱 Instructions envoyées !
+                  </h3>
+                  <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
+                    <p className="text-sm text-green-800">
+                      {paymentInstructions}
+                    </p>
+                  </div>
+                  <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                      <strong>📞 Étapes suivantes :</strong><br />
+                      1. Vérifiez votre téléphone MTN ({phoneNumber})<br />
+                      2. Suivez les instructions SMS reçues<br />
+                      3. Confirmez le paiement depuis votre téléphone<br />
+                      4. Votre abonnement sera activé automatiquement
+                    </p>
+                  </div>
                 </div>
+                
+                <Button 
+                  onClick={() => {
+                    setPaymentInstructions('');
+                    setPhoneNumber('');
+                    setShowPhoneInput(false);
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Recommencer
+                </Button>
               </div>
-              
-              <Button 
-                onClick={handleMTNPayment}
-                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg"
-                size="lg"
-              >
-                <Smartphone className="mr-2 h-5 w-5" />
-                Payer {amount.toLocaleString()} XAF avec MTN
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
+            ) : (
+              // Interface de saisie du numéro de téléphone ou bouton de paiement
+              <div className="bg-white p-6 rounded-lg border text-center">
+                <div className="mb-4">
+                  <Smartphone className="h-16 w-16 text-yellow-600 mx-auto mb-3" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    Paiement MTN Mobile Money
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Recevez des instructions de paiement par SMS sur votre téléphone MTN.
+                  </p>
+                  <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg mb-4">
+                    <p className="text-sm text-yellow-800">
+                      <strong>💡 Comment ça marche :</strong> Paiement par SMS • Instructions claires • Activation automatique
+                    </p>
+                  </div>
+                </div>
+                
+                {showPhoneInput || phoneNumber ? (
+                  <div className="space-y-4">
+                    <div className="text-left">
+                      <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                        Numéro MTN Mobile Money
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="677 XX XX XX"
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Format accepté : 677 XX XX XX, 65X XX XX XX, 68X XX XX XX
+                      </p>
+                    </div>
+                    
+                    <Button 
+                      onClick={handleMTNPayment}
+                      className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg"
+                      size="lg"
+                      disabled={!phoneNumber}
+                    >
+                      <MessageCircle className="mr-2 h-5 w-5" />
+                      Envoyer instructions SMS - {amount.toLocaleString()} XAF
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={() => setShowPhoneInput(true)}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg"
+                    size="lg"
+                  >
+                    <Smartphone className="mr-2 h-5 w-5" />
+                    Payer {amount.toLocaleString()} XAF avec MTN
+                  </Button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       );
