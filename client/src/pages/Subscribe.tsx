@@ -657,33 +657,12 @@ const Subscribe: React.FC = () => {
                         {t('payment.subscription.instructionsSent')}
                       </h3>
                       <p className="text-green-700 mb-4">
-                        {t('payment.subscription.makePayment')} {selectedPaymentMethod === 'mtn_money' ? 'MTN Mobile Money' : t('payment.subscription.bankTransferPayment')} 
+                        {t('payment.subscription.makePayment')} {t('payment.subscription.bankTransferPayment')} 
                         {t('payment.subscription.withInfoBelow')}
                       </p>
                       
                       {/* Afficher les informations détaillées selon la méthode */}
-                      {selectedPaymentMethod === 'mtn_money' ? (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                          <h4 className="font-semibold text-yellow-800 mb-3">📱 MTN Mobile Money</h4>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">{t('payment.subscription.beneficiary')}</span>
-                              <span className="font-medium">ABANDA AKAK</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">{t('payment.subscription.number')}</span>
-                              <span className="font-medium text-orange-600">677 004 011</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">{t('payment.subscription.amount')}</span>
-                              <span className="font-medium text-green-600">{selectedPlan.price.toLocaleString()} XAF</span>
-                            </div>
-                          </div>
-                          <div className="mt-3 text-xs text-orange-700 bg-orange-100 p-2 rounded">
-                            💡 <strong>{t('payment.subscription.quickCode')}</strong> Composez #150# → 1 → 1 → 677004011 → {selectedPlan.price} XAF
-                          </div>
-                        </div>
-                      ) : (
+                      {selectedPaymentMethod === 'bank_transfer' && (
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                           <h4 className="font-semibold text-blue-800 mb-3">🏦 {t('payment.subscription.bankTransfer')}</h4>
                           <div className="space-y-2 text-sm">
@@ -718,15 +697,15 @@ const Subscribe: React.FC = () => {
                         <ol className="text-left text-sm text-gray-700 space-y-2">
                           <li className="flex items-start gap-2">
                             <span className="font-semibold text-green-600">1.</span>
-                            {t('payment.subscription.step1Transfer')} {selectedPaymentMethod === 'mtn_money' ? 'MTN Mobile Money' : t('payment.subscription.step1Bank')} {t('payment.subscription.step1According')}
+                            {t('payment.subscription.step1Transfer')} {t('payment.subscription.step1Bank')} {t('payment.subscription.step1According')}
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="font-semibold text-green-600">2.</span>
-                            {t('payment.subscription.step2Send')} {selectedPaymentMethod === 'mtn_money' ? 'capture d\'écran MTN' : t('payment.subscription.step2Receipt')} {t('payment.subscription.step2Email')} <strong>support@educafric.com</strong>
+                            {t('payment.subscription.step2Send')} {t('payment.subscription.step2Receipt')} {t('payment.subscription.step2Email')} <strong>support@educafric.com</strong>
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="font-semibold text-green-600">3.</span>
-                            {t('payment.subscription.step3Validate')} {selectedPaymentMethod === 'mtn_money' ? 'votre paiement MTN' : t('payment.subscription.step3Bank')}
+                            {t('payment.subscription.step3Validate')} {t('payment.subscription.step3Bank')}
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="font-semibold text-green-600">4.</span>
