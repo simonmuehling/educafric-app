@@ -613,6 +613,27 @@ const Subscribe: React.FC = () => {
                     />
                   )}
                 </div>
+              ) : selectedPaymentMethod === 'mtn_money' ? (
+                // Étape 2: Paiement MTN (redirection webpayment)
+                <div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleBackToPaymentMethods}
+                      className="w-fit"
+                      data-testid="button-back-payment-methods"
+                    >
+                      ← {t('payment.subscription.backToPaymentMethods')}
+                    </Button>
+                  </div>
+                  <PaymentMethodSelector
+                    selectedMethod={selectedPaymentMethod}
+                    onMethodSelect={setSelectedPaymentMethod}
+                    planName={selectedPlan.name}
+                    amount={selectedPlan.price}
+                    currency={selectedPlan.currency}
+                  />
+                </div>
               ) : (
                 // Étape 2: Instructions pour paiements locaux (Orange Money ou Virement)
                 <div>
