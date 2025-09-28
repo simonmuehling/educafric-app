@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { CreditCard, Smartphone, Building, Check, Copy, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-export type PaymentMethod = 'card' | 'orange_money' | 'mtn_money' | 'bank_transfer';
+export type PaymentMethod = 'card' | 'mtn_money' | 'bank_transfer';
 
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethod | null;
@@ -59,22 +59,13 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       features: ['Paiement immédiat', 'Sécurisé par Stripe', 'Support 24/7']
     },
     {
-      id: 'orange_money' as PaymentMethod,
-      title: '📱 Orange Money',
-      description: 'Mobile Money Cameroun',
-      icon: <Smartphone className="h-6 w-6" />,
-      badge: 'Local',
-      badgeColor: 'bg-orange-100 text-orange-800',
-      features: ['Sans frais bancaires', 'Confirmation par SMS', 'Support local']
-    },
-    {
       id: 'mtn_money' as PaymentMethod,
       title: '📱 MTN Mobile Money',
-      description: 'Mobile Money Cameroun',
+      description: 'Plateforme de paiement mobile',
       icon: <Smartphone className="h-6 w-6" />,
-      badge: 'Local',
+      badge: 'Instantané',
       badgeColor: 'bg-yellow-100 text-yellow-800',
-      features: ['Sans frais bancaires', 'Confirmation par SMS', 'Support local']
+      features: ['Paiement automatique', 'Activation immédiate', 'Sécurisé MTN']
     },
     {
       id: 'bank_transfer' as PaymentMethod,
@@ -87,96 +78,47 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
     }
   ];
 
-  const renderPaymentDetails = () => {
-    if (selectedMethod === 'orange_money') {
-      return (
-        <Card className="mt-4 border-orange-200 bg-orange-50/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-800">
-              <Smartphone className="h-5 w-5" />
-              Instructions Orange Money
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-white p-4 rounded-lg border">
-              <h4 className="font-semibold text-gray-900 mb-2">🔸 Étapes de paiement:</h4>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
-                <li>Composez <strong>#150#</strong> sur votre téléphone Orange</li>
-                <li>Sélectionnez <strong>1</strong> (Transfert d'argent)</li>
-                <li>Sélectionnez <strong>1</strong> (Vers un numéro Orange)</li>
-                <li>Entrez le numéro: <strong className="text-orange-600">677 004 011</strong></li>
-                <li>Entrez le montant: <strong className="text-green-600">{amount.toLocaleString()} XAF</strong></li>
-                <li>Confirmez avec votre code PIN</li>
-              </ol>
-            </div>
-            
-            <div className="bg-white p-4 rounded-lg border">
-              <h4 className="font-semibold text-gray-900 mb-2">📋 Informations du bénéficiaire:</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Nom:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">ABANDA AKAK</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard('ABANDA AKAK', 'Nom du bénéficiaire')}
-                      className="h-6 w-6 p-0"
-                    >
-                      {copiedField === 'Nom du bénéficiaire' ? 
-                        <Check className="h-3 w-3 text-green-600" /> : 
-                        <Copy className="h-3 w-3" />
-                      }
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Numéro:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">677 004 011</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard('677004011', 'Numéro Orange Money')}
-                      className="h-6 w-6 p-0"
-                    >
-                      {copiedField === 'Numéro Orange Money' ? 
-                        <Check className="h-3 w-3 text-green-600" /> : 
-                        <Copy className="h-3 w-3" />
-                      }
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Montant:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-green-600">{amount.toLocaleString()} XAF</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(amount.toString(), 'Montant')}
-                      className="h-6 w-6 p-0"
-                    >
-                      {copiedField === 'Montant' ? 
-                        <Check className="h-3 w-3 text-green-600" /> : 
-                        <Copy className="h-3 w-3" />
-                      }
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>⚠️ Important:</strong> Après le transfert, envoyez-nous une capture d'écran 
-                du SMS de confirmation à <strong>support@educafric.com</strong> pour validation.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      );
+  const handleMTNPayment = async () => {
+    try {
+      // Redirection directe vers la plateforme MTN webpayment
+      toast({
+        title: "🚀 Redirection MTN Mobile Money",
+        description: "Redirection vers la plateforme de paiement sécurisée...",
+      });
+
+      // Créer le paiement MTN et rediriger
+      const response = await fetch('/api/mtn-payments/create-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: amount,
+          currency: currency,
+          planName: planName,
+          callbackUrl: `${window.location.origin}/subscription-success?plan=${planName}`,
+          returnUrl: `${window.location.origin}/subscribe`
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.paymentUrl) {
+        // Redirection immédiate vers MTN webpayment
+        window.location.href = data.paymentUrl;
+      } else {
+        throw new Error(data.message || 'Erreur lors de la création du paiement MTN');
+      }
+    } catch (error: any) {
+      toast({
+        title: "❌ Erreur MTN",
+        description: error.message || "Impossible de créer le paiement MTN",
+        variant: "destructive",
+      });
     }
+  };
+
+  const renderPaymentDetails = () => {
 
     if (selectedMethod === 'mtn_money') {
       return (
@@ -184,101 +126,35 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-yellow-800">
               <Smartphone className="h-5 w-5" />
-              Instructions MTN Mobile Money
+              MTN Mobile Money - Paiement Sécurisé
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-white p-4 rounded-lg border">
-              <h4 className="font-semibold text-gray-900 mb-2">🔸 Étapes de paiement:</h4>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
-                <li>Composez <strong>*126#</strong> sur votre téléphone MTN</li>
-                <li>Sélectionnez <strong>1</strong> (Transfert d'argent)</li>
-                <li>Sélectionnez <strong>1</strong> (Vers un numéro MTN)</li>
-                <li>Entrez le numéro: <strong className="text-yellow-600">672 12 8559</strong></li>
-                <li>Entrez le montant: <strong className="text-green-600">{amount.toLocaleString()} XAF</strong></li>
-                <li>Confirmez avec votre code PIN</li>
-              </ol>
-            </div>
-            
-            <div className="bg-white p-4 rounded-lg border">
-              <h4 className="font-semibold text-gray-900 mb-2">📋 Informations du bénéficiaire:</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Nom:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">ABANDA AKAK</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard('ABANDA AKAK', 'Nom du bénéficiaire MTN')}
-                      className="h-6 w-6 p-0"
-                    >
-                      {copiedField === 'Nom du bénéficiaire MTN' ? 
-                        <Check className="h-3 w-3 text-green-600" /> : 
-                        <Copy className="h-3 w-3" />
-                      }
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Numéro:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">672 12 8559</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard('672128559', 'Numéro MTN Mobile Money')}
-                      className="h-6 w-6 p-0"
-                    >
-                      {copiedField === 'Numéro MTN Mobile Money' ? 
-                        <Check className="h-3 w-3 text-green-600" /> : 
-                        <Copy className="h-3 w-3" />
-                      }
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Treasury:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Abanda Akak</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard('Abanda Akak', 'Treasury MTN')}
-                      className="h-6 w-6 p-0"
-                    >
-                      {copiedField === 'Treasury MTN' ? 
-                        <Check className="h-3 w-3 text-green-600" /> : 
-                        <Copy className="h-3 w-3" />
-                      }
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Montant:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-green-600">{amount.toLocaleString()} XAF</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(amount.toString(), 'Montant MTN')}
-                      className="h-6 w-6 p-0"
-                    >
-                      {copiedField === 'Montant MTN' ? 
-                        <Check className="h-3 w-3 text-green-600" /> : 
-                        <Copy className="h-3 w-3" />
-                      }
-                    </Button>
-                  </div>
+            <div className="bg-white p-6 rounded-lg border text-center">
+              <div className="mb-4">
+                <Smartphone className="h-16 w-16 text-yellow-600 mx-auto mb-3" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Paiement instantané avec MTN
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Vous serez redirigé vers la plateforme sécurisée MTN Mobile Money pour finaliser votre paiement.
+                </p>
+                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg mb-4">
+                  <p className="text-sm text-yellow-800">
+                    <strong>💡 Avantages:</strong> Paiement instantané • Activation automatique • Sécurisé MTN
+                  </p>
                 </div>
               </div>
-            </div>
-            
-            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>⚠️ Important:</strong> Après le transfert, envoyez-nous une capture d'écran 
-                du SMS de confirmation à <strong>support@educafric.com</strong> pour validation.
-              </p>
+              
+              <Button 
+                onClick={handleMTNPayment}
+                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg"
+                size="lg"
+              >
+                <Smartphone className="mr-2 h-5 w-5" />
+                Payer {amount.toLocaleString()} XAF avec MTN
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
             </div>
           </CardContent>
         </Card>

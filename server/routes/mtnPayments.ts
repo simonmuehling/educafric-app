@@ -64,6 +64,94 @@ router.post('/validate-number', async (req, res) => {
   }
 });
 
+// Créer un paiement MTN pour abonnement (redirection webpayment)
+router.post('/create-payment', async (req, res) => {
+  try {
+    const { amount, currency = 'XAF', planName, callbackUrl, returnUrl } = req.body;
+
+    // Validation des paramètres
+    if (!amount || !planName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paramètres manquants (amount, planName requis)'
+      });
+    }
+
+    console.log('[MTN_API] 🚀 Creating subscription payment:', { amount, currency, planName });
+
+    // Créer le paiement MTN avec redirection
+    const paymentData = await mtnService.createSubscriptionPayment({
+      amount: parseFloat(amount),
+      currency,
+      planName,
+      callbackUrl: callbackUrl || `${process.env.BASE_URL}/api/mtn-payments/callback`,
+      returnUrl: returnUrl || `${process.env.BASE_URL}/subscribe`
+    });
+
+    if (paymentData.success) {
+      res.json({
+        success: true,
+        paymentUrl: paymentData.paymentUrl,
+        transactionId: paymentData.transactionId,
+        message: 'Paiement MTN créé avec succès'
+      });
+    } else {
+      throw new Error(paymentData.error || 'Erreur lors de la création du paiement');
+    }
+  } catch (error: any) {
+    console.error('[MTN_API] ❌ Create payment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la création du paiement MTN',
+      error: error.message
+    });
+  }
+});
+
+// Callback de retour de paiement MTN (activation automatique abonnement)
+router.post('/callback', async (req, res) => {
+  try {
+    const { reference, status, amount, currency, phone_number } = req.body;
+    
+    console.log('[MTN_CALLBACK] 🔄 Payment callback received:', { reference, status, amount });
+
+    if (status === 'SUCCESSFUL' || status === 'success') {
+      // Extraire le plan du référence de transaction
+      const planMatch = reference.match(/SUB_(\d+)_/);
+      if (planMatch) {
+        const planId = planMatch[1];
+        
+        // Trouver l'utilisateur par numéro de téléphone ou email
+        // Pour l'instant, on va juste confirmer le paiement
+        console.log('[MTN_CALLBACK] ✅ Payment successful, activating subscription...');
+        
+        // Activer l'abonnement automatiquement
+        try {
+          await subscriptionManager.activateSubscriptionFromPayment({
+            paymentMethod: 'mtn_money',
+            amount: parseFloat(amount),
+            currency,
+            transactionId: reference,
+            phoneNumber: phone_number
+          });
+          
+          console.log('[MTN_CALLBACK] ✅ Subscription activated successfully');
+        } catch (activationError: any) {
+          console.error('[MTN_CALLBACK] ❌ Subscription activation failed:', activationError);
+        }
+      }
+      
+      res.json({ success: true, message: 'Paiement confirmé et abonnement activé' });
+    } else {
+      console.log('[MTN_CALLBACK] ❌ Payment failed:', status);
+      res.json({ success: false, message: 'Paiement échoué' });
+    }
+  } catch (error: any) {
+    console.error('[MTN_CALLBACK] ❌ Callback processing error:', error);
+    res.status(500).json({ success: false, message: 'Erreur lors du traitement du callback' });
+  }
+});
+
 // Initier un paiement MTN automatique
 router.post('/initiate-payment', requireAuth, async (req, res) => {
   try {

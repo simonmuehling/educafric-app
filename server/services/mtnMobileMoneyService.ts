@@ -304,6 +304,56 @@ export class MTNMobileMoneyService {
   }
 
   /**
+   * Créer un paiement d'abonnement avec redirection webpayment
+   */
+  public async createSubscriptionPayment(params: {
+    amount: number;
+    currency: string;
+    planName: string;
+    callbackUrl: string;
+    returnUrl: string;
+  }): Promise<{
+    success: boolean;
+    paymentUrl?: string;
+    transactionId?: string;
+    error?: string;
+  }> {
+    try {
+      console.log('[MTN] 🚀 Creating subscription payment:', params);
+
+      // Générer un ID de transaction unique
+      const transactionId = this.generateExternalId('SUB');
+      
+      // Construire l'URL de paiement MTN webpayment
+      // Cette URL redirige vers la plateforme MTN pour le paiement
+      const paymentUrl = `https://payment.mtn.cm/pay?` + new URLSearchParams({
+        amount: params.amount.toString(),
+        currency: params.currency,
+        reference: transactionId,
+        description: `Abonnement EDUCAFRIC - ${params.planName}`,
+        callback_url: params.callbackUrl,
+        return_url: params.returnUrl,
+        merchant_id: 'EDUCAFRIC',
+        service: 'subscription'
+      }).toString();
+
+      console.log('[MTN] ✅ Subscription payment URL created:', paymentUrl);
+
+      return {
+        success: true,
+        paymentUrl,
+        transactionId
+      };
+    } catch (error: any) {
+      console.error('[MTN] ❌ Error creating subscription payment:', error);
+      return {
+        success: false,
+        error: error.message || 'Erreur lors de la création du paiement'
+      };
+    }
+  }
+
+  /**
    * Test de connectivité avec l'API MTN
    */
   public async testConnection(): Promise<boolean> {
