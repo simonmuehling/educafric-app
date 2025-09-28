@@ -1,105 +1,111 @@
 /**
- * SERVICE MTN MOBILE MONEY - INTÉGRATION VIA Y-NOTE/PAYNOTE
+ * SERVICE MTN MOBILE MONEY - API OFFICIELLE COLLECTIONS
  * 
  * Fonctionnalités:
- * - Webpaiement MTN via agrégateur Y-Note/Paynote Africa
- * - Popup USSD temps réel pour confirmation client
- * - Webhooks pour notifications de statut
+ * - API MTN MoMo Collections officielle (RequestToPay)
+ * - Support sandbox et production
+ * - Authentification Basic auth (USER_ID:API_KEY)
+ * - Webhooks pour notifications
  * - Validation des numéros MTN Cameroun
- * - Gestion OAuth2 avec Y-Note
  * 
- * Documentation: https://www.paynote.africa/comment-deployer-lapi-de-webpaiement-mtn-mobile-money/
+ * Documentation: https://momodeveloper.mtn.com/docs/services/collection/
  */
 
 import axios, { AxiosResponse } from 'axios';
+import crypto from 'crypto';
 
-interface YNoteToken {
+interface MTNAccessToken {
   access_token: string;
   token_type: string;
   expires_in: number;
   created_at: number; // Timestamp de création
 }
 
-interface YNoteWebPaymentRequest {
-  API_MUT: {
-    notifUrl: string;
-    subscriberMsisdn: string;
-    description: string;
-    amount: string;
-    order_id: string;
-    customersecret: string;
-    customerkey: string;
-    PaiementMethod: 'MTN_CMR';
-  };
-}
-
-interface YNoteWebPaymentResponse {
-  ErrorCode: number;
-  body: string;
-  ErrorMessage: string;
-  parameters: {
-    operation: string;
-    currency: string;
-    amount: string;
-    subscriberMsisdn: string;
-    order_id: string;
-    notifUrl: string;
-  };
-  CreateAt: string;
-  MessageId: string;
-}
-
-interface YNoteStatusRequest {
-  customerkey: string;
-  customersecret: string;
-  message_id: string;
-}
-
-interface YNoteStatusResponse {
-  updateDate: string;
-  currency: string;
-  operation: string;
-  status: 'SUCCESSFUL' | 'PENDING' | 'FAILED';
-  paymentRef: string;
+interface MTNRequestToPayRequest {
   amount: string;
-  subscriberMsisdn: string;
+  currency: string;
+  externalId: string;
+  payer: {
+    partyIdType: 'msisdn';
+    partyId: string;
+  };
+  payerMessage?: string;
+  payeeNote?: string;
+}
+
+interface MTNRequestToPayResponse {
+  status: 'PENDING' | 'SUCCESSFUL' | 'FAILED';
+  amount: string;
+  currency: string;
+  externalId: string;
+  payer: {
+    partyIdType: string;
+    partyId: string;
+  };
+  payerMessage?: string;
+  payeeNote?: string;
+  reason?: string;
+}
+
+interface MTNEnvironmentConfig {
+  SUBSCRIPTION_KEY: string;
+  USER_ID: string;
+  API_KEY: string;
+  TARGET_ENV: string;
+  BASE_URL: string;
 }
 
 export class MTNMobileMoneyService {
   private static instance: MTNMobileMoneyService;
-  private token: YNoteToken | null = null;
-  private readonly tokenUrl = 'https://omapi-token.ynote.africa/oauth2/token';
-  private readonly webpaymentUrl = 'https://omapi.ynote.africa/prod/webpayment';
-  private readonly statusUrl = 'https://omapi.ynote.africa/prod/webpaymentmtn/status';
-  private readonly clientId: string;
-  private readonly clientSecret: string;
-  private readonly customerKey: string;
-  private readonly customerSecret: string;
+  private token: MTNAccessToken | null = null;
+  private readonly environment: string;
+  private readonly config: MTNEnvironmentConfig;
+  private readonly callbackBase: string;
 
   private constructor() {
-    // Y-Note credentials pour OAuth2
-    this.clientId = process.env.MTN_CLIENT_ID || '';
-    this.clientSecret = process.env.MTN_CLIENT_SECRET || '';
+    // Déterminer l'environnement (sandbox par défaut)
+    this.environment = process.env.MOMO_ENV || 'sandbox';
+    this.callbackBase = process.env.BASE_URL || 'https://your-replit-app.replit.dev';
     
-    // Y-Note customer credentials pour webpayment
-    this.customerKey = process.env.MTN_CUSTOMER_KEY || '';
-    this.customerSecret = process.env.MTN_CUSTOMER_SECRET || '';
-    
-    if (!this.clientId || !this.clientSecret) {
-      console.error('[MTN] ❌ Y-Note OAuth2 credentials not found in environment variables');
-      console.error('[MTN] 🔍 Expected: MTN_CLIENT_ID and MTN_CLIENT_SECRET');
-      throw new Error('Y-Note OAuth2 credentials not configured');
+    // Configuration selon l'environnement
+    if (this.environment === 'production') {
+      this.config = {
+        SUBSCRIPTION_KEY: process.env.MOMO_SUBSCRIPTION_KEY_PROD || '',
+        USER_ID: process.env.MOMO_USER_ID_PROD || '',
+        API_KEY: process.env.MOMO_API_KEY_PROD || '',
+        TARGET_ENV: process.env.MOMO_TARGET_ENV_PROD || 'mtncameroon',
+        BASE_URL: process.env.MOMO_BASE_PROD || 'https://proxy.momodeveloper.mtn.com'
+      };
+    } else {
+      this.config = {
+        SUBSCRIPTION_KEY: process.env.MOMO_SUBSCRIPTION_KEY || process.env.MTN_CUSTOMER_KEY || '',
+        USER_ID: process.env.MOMO_USER_ID || process.env.MTN_CLIENT_ID || '',
+        API_KEY: process.env.MOMO_API_KEY || process.env.MTN_CLIENT_SECRET || '',
+        TARGET_ENV: process.env.MOMO_TARGET_ENV || 'sandbox',
+        BASE_URL: process.env.MOMO_BASE || 'https://sandbox.momodeveloper.mtn.com'
+      };
     }
     
-    if (!this.customerKey || !this.customerSecret) {
-      console.error('[MTN] ❌ Y-Note customer credentials not found in environment variables');
-      console.error('[MTN] 🔍 Expected: MTN_CUSTOMER_KEY and MTN_CUSTOMER_SECRET');
-      throw new Error('Y-Note customer credentials not configured');
+    // Validation des credentials
+    if (!this.config.SUBSCRIPTION_KEY || !this.config.USER_ID || !this.config.API_KEY) {
+      console.error('[MTN] ❌ MTN MoMo credentials not found for environment:', this.environment);
+      console.error('[MTN] 🔍 Expected variables:');
+      if (this.environment === 'production') {
+        console.error('[MTN] - MOMO_SUBSCRIPTION_KEY_PROD');
+        console.error('[MTN] - MOMO_USER_ID_PROD');
+        console.error('[MTN] - MOMO_API_KEY_PROD');
+      } else {
+        console.error('[MTN] - MOMO_SUBSCRIPTION_KEY (or MTN_CUSTOMER_KEY)');
+        console.error('[MTN] - MOMO_USER_ID (or MTN_CLIENT_ID)');
+        console.error('[MTN] - MOMO_API_KEY (or MTN_CLIENT_SECRET)');
+      }
+      throw new Error(`MTN MoMo credentials not configured for ${this.environment}`);
     }
     
-    console.log('[MTN] ✅ Y-Note MTN service initialized with OAuth2 + Customer credentials');
-    console.log(`[MTN] 🔑 Using Client ID: ${this.clientId.substring(0, 8)}...`);
-    console.log(`[MTN] 🔑 Using Customer Key: ${this.customerKey.substring(0, 8)}...`);
+    console.log(`[MTN] ✅ MTN MoMo Collections API initialized (${this.environment})`);
+    console.log(`[MTN] 🌍 Target Environment: ${this.config.TARGET_ENV}`);
+    console.log(`[MTN] 🔗 Base URL: ${this.config.BASE_URL}`);
+    console.log(`[MTN] 🔑 User ID: ${this.config.USER_ID.substring(0, 8)}...`);
   }
 
   public static getInstance(): MTNMobileMoneyService {
@@ -110,23 +116,24 @@ export class MTNMobileMoneyService {
   }
 
   /**
-   * Étape 1: Récupération de l'Access Token via OAuth2
+   * Récupération de l'Access Token via l'API Collections MTN
+   * Utilise Basic Auth avec USER_ID:API_KEY
    */
   private async getAccessToken(): Promise<string> {
     try {
-      console.log('[MTN] 🔑 Requesting access token...');
+      console.log('[MTN] 🔑 Requesting Collections access token...');
       
-      // Créer l'authentification Basic Auth (base64 encode)
-      const credentials = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
+      // Créer l'authentification Basic Auth (USER_ID:API_KEY)
+      const credentials = Buffer.from(`${this.config.USER_ID}:${this.config.API_KEY}`).toString('base64');
       
-      const response: AxiosResponse<YNoteToken> = await axios.post(
-        this.tokenUrl,
-        'grant_type=client_credentials',
+      const response: AxiosResponse<MTNAccessToken> = await axios.post(
+        `${this.config.BASE_URL}/collection/token/`,
+        {},
         {
           headers: {
             'Authorization': `Basic ${credentials}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json'
+            'Ocp-Apim-Subscription-Key': this.config.SUBSCRIPTION_KEY,
+            'Content-Type': 'application/json'
           },
           timeout: 10000
         }
@@ -140,13 +147,13 @@ export class MTNMobileMoneyService {
         created_at: Date.now()
       };
       
-      console.log('[MTN] ✅ Access token obtained successfully');
+      console.log('[MTN] ✅ Collections access token obtained successfully');
       console.log(`[MTN] 📅 Token expires in: ${tokenData.expires_in} seconds`);
       
       return tokenData.access_token;
     } catch (error: any) {
-      console.error('[MTN] ❌ Failed to get access token:', error.response?.data || error.message);
-      throw new Error(`MTN authentication failed: ${error.response?.data?.error || error.message}`);
+      console.error('[MTN] ❌ Failed to get Collections access token:', error.response?.data || error.message);
+      throw new Error(`MTN Collections authentication failed: ${error.response?.data || error.message}`);
     }
   }
 
@@ -167,180 +174,48 @@ export class MTNMobileMoneyService {
   }
 
   /**
-   * Collection API - Demander un paiement (paiement entrant)
-   */
-  public async requestPayment(request: MTNCollectionRequest): Promise<MTNCollectionResponse> {
-    try {
-      const token = await this.ensureValidToken();
-      
-      console.log('[MTN] 💰 Requesting payment collection...');
-      console.log(`[MTN] 📱 Phone: ${request.payer.phoneNumber}`);
-      console.log(`[MTN] 💵 Amount: ${request.amount} ${request.currency}`);
-      
-      const response: AxiosResponse<MTNCollectionResponse> = await axios.post(
-        `${this.baseUrl}/v1/requesttopay`,
-        {
-          ...request,
-          payerMessage: request.payerMessage || `Paiement EDUCAFRIC - ${request.externalId}`,
-          payeeNote: request.payeeNote || 'Abonnement EDUCAFRIC'
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Reference-Id': request.externalId,
-            'X-Target-Environment': process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
-          },
-          timeout: 30000
-        }
-      );
-      
-      console.log('[MTN] ✅ Payment request initiated successfully');
-      return response.data;
-    } catch (error: any) {
-      console.error('[MTN] ❌ Payment request failed:', error.response?.data || error.message);
-      throw new Error(`MTN payment request failed: ${error.response?.data?.message || error.message}`);
-    }
-  }
-
-  /**
-   * Vérifier le statut d'un paiement
-   */
-  public async checkPaymentStatus(referenceId: string): Promise<MTNCollectionResponse> {
-    try {
-      const token = await this.ensureValidToken();
-      
-      console.log(`[MTN] 🔍 Checking payment status for: ${referenceId}`);
-      
-      const response: AxiosResponse<MTNCollectionResponse> = await axios.get(
-        `${this.baseUrl}/v1/requesttopay/${referenceId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-            'X-Target-Environment': process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
-          },
-          timeout: 10000
-        }
-      );
-      
-      console.log(`[MTN] 📊 Payment status: ${response.data.status}`);
-      return response.data;
-    } catch (error: any) {
-      console.error('[MTN] ❌ Failed to check payment status:', error.response?.data || error.message);
-      throw new Error(`MTN status check failed: ${error.response?.data?.message || error.message}`);
-    }
-  }
-
-  /**
-   * Cashout API - Effectuer un paiement (paiement sortant)
-   */
-  public async sendPayment(request: MTNCashoutRequest): Promise<MTNCollectionResponse> {
-    try {
-      const token = await this.ensureValidToken();
-      
-      console.log('[MTN] 💸 Sending payment (cashout)...');
-      console.log(`[MTN] 📱 To: ${request.payee.phoneNumber}`);
-      console.log(`[MTN] 💵 Amount: ${request.amount} ${request.currency}`);
-      
-      const response: AxiosResponse<MTNCollectionResponse> = await axios.post(
-        `${this.baseUrl}/v1/transfer`,
-        {
-          ...request,
-          payerMessage: request.payerMessage || `Paiement EDUCAFRIC vers ${request.payee.phoneNumber}`,
-          payeeNote: request.payeeNote || 'Paiement EDUCAFRIC'
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Reference-Id': request.externalId,
-            'X-Target-Environment': process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
-          },
-          timeout: 30000
-        }
-      );
-      
-      console.log('[MTN] ✅ Payment sent successfully');
-      return response.data;
-    } catch (error: any) {
-      console.error('[MTN] ❌ Payment send failed:', error.response?.data || error.message);
-      throw new Error(`MTN payment send failed: ${error.response?.data?.message || error.message}`);
-    }
-  }
-
-  /**
-   * Obtenir le solde du compte (si supporté par l'API)
-   */
-  public async getAccountBalance(): Promise<{ balance: number; currency: string }> {
-    try {
-      const token = await this.ensureValidToken();
-      
-      console.log('[MTN] 💰 Checking account balance...');
-      
-      const response = await axios.get(
-        `${this.baseUrl}/v1/account/balance`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-            'X-Target-Environment': process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
-          },
-          timeout: 10000
-        }
-      );
-      
-      console.log(`[MTN] 💰 Balance: ${response.data.balance} ${response.data.currency}`);
-      return response.data;
-    } catch (error: any) {
-      console.error('[MTN] ❌ Failed to get balance:', error.response?.data || error.message);
-      throw new Error(`MTN balance check failed: ${error.response?.data?.message || error.message}`);
-    }
-  }
-
-  /**
-   * Valider un numéro de téléphone MTN
+   * Valider un numéro de téléphone MTN Cameroun
    */
   public validateMTNNumber(phoneNumber: string): boolean {
-    // Numéros MTN Cameroun: 67X XXX XXX, 65X XXX XXX, 68X XXX XXX
-    const mtnPrefixes = ['67', '65', '68'];
-    const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
+    // Nettoyer le numéro
+    const cleaned = phoneNumber.replace(/[\s\-\+]/g, '');
     
-    if (cleanNumber.startsWith('237')) {
-      return mtnPrefixes.some(prefix => cleanNumber.startsWith(`237${prefix}`));
-    }
+    // Patterns MTN Cameroun (avec et sans indicatif +237)
+    const mtnPatterns = [
+      /^237(677|678|679|650|651|652|653|654|680|681|682|683)\d{6}$/, // Avec indicatif
+      /^(677|678|679|650|651|652|653|654|680|681|682|683)\d{6}$/     // Sans indicatif
+    ];
     
-    return mtnPrefixes.some(prefix => cleanNumber.startsWith(prefix));
+    return mtnPatterns.some(pattern => pattern.test(cleaned));
   }
 
   /**
    * Formater un numéro de téléphone pour l'API MTN
    */
   public formatPhoneNumber(phoneNumber: string): string {
-    let cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
+    // Nettoyer et standardiser le format
+    let cleaned = phoneNumber.replace(/[\s\-\+]/g, '');
     
-    // Ajouter l'indicatif pays si manquant
-    if (!cleanNumber.startsWith('237')) {
-      cleanNumber = '237' + cleanNumber;
+    // Ajouter l'indicatif si manquant
+    if (!cleaned.startsWith('237') && cleaned.length === 9) {
+      cleaned = '237' + cleaned;
     }
     
-    return cleanNumber;
+    return cleaned;
   }
 
   /**
    * Générer un ID externe unique pour les transactions
    */
-  public generateExternalId(prefix: string = 'EDU'): string {
+  private generateExternalId(prefix: string = 'PAY'): string {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
     return `${prefix}_${timestamp}_${random}`.toUpperCase();
   }
 
   /**
-   * Créer un paiement d'abonnement via Y-Note Webpayment
-   * Déclenche un popup USSD sur le téléphone MTN du client
+   * Créer un paiement d'abonnement via MTN Collections RequestToPay
+   * Déclenche un popup USSD officiel sur le téléphone MTN du client
    */
   public async createSubscriptionPayment(params: {
     amount: number;
@@ -352,16 +227,17 @@ export class MTNMobileMoneyService {
   }): Promise<{
     success: boolean;
     transactionId?: string;
-    messageId?: string;
+    txRef?: string;
     instructions?: string;
     error?: string;
   }> {
     try {
-      console.log('[MTN] 🚀 Creating Y-Note webpayment:', {
+      console.log('[MTN] 🚀 Creating MTN Collections RequestToPay:', {
         amount: params.amount,
         currency: params.currency,
         planName: params.planName,
-        phoneNumber: params.phoneNumber
+        phoneNumber: params.phoneNumber,
+        environment: this.environment
       });
 
       // Valider le numéro MTN
@@ -369,83 +245,139 @@ export class MTNMobileMoneyService {
         throw new Error('Numéro de téléphone MTN invalide');
       }
 
-      // Formater le numéro (sans indicatif selon doc Y-Note)
-      const formattedPhone = params.phoneNumber.replace(/[\s\-\+]/g, '').replace(/^237/, '');
+      // Formater le numéro (sans indicatif pour l'API MTN)
+      const formattedPhone = this.formatPhoneNumber(params.phoneNumber).replace(/^237/, '');
       
-      // Générer un ID de commande unique
-      const orderId = this.generateExternalId('SUB');
+      // Générer un ID externe et une référence de transaction unique
+      const externalId = this.generateExternalId('SUB');
+      const txRef = crypto.randomUUID();
       
       // Obtenir un token valide
       const accessToken = await this.ensureValidToken();
 
-      // Créer la demande de webpayment Y-Note
-      const webpaymentRequest: YNoteWebPaymentRequest = {
-        API_MUT: {
-          notifUrl: params.callbackUrl,
-          subscriberMsisdn: formattedPhone,
-          description: `Abonnement EDUCAFRIC - ${params.planName}`,
-          amount: params.amount.toString(), // Doit être une string selon doc
-          order_id: orderId,
-          customersecret: this.customerSecret,
-          customerkey: this.customerKey,
-          PaiementMethod: 'MTN_CMR'
-        }
+      // Créer la demande RequestToPay officielle MTN
+      const requestToPayBody: MTNRequestToPayRequest = {
+        amount: params.amount.toString(),
+        currency: params.currency,
+        externalId: externalId,
+        payer: {
+          partyIdType: 'msisdn',
+          partyId: formattedPhone
+        },
+        payerMessage: `Abonnement EDUCAFRIC - ${params.planName}`,
+        payeeNote: `Paiement ${params.planName} - ${params.amount} ${params.currency}`
       };
 
-      console.log('[MTN] 📤 Sending webpayment request to Y-Note...');
+      console.log('[MTN] 📤 Sending RequestToPay to MTN Collections API...');
       
-      const response = await axios.post<YNoteWebPaymentResponse>(
-        this.webpaymentUrl,
-        webpaymentRequest,
+      const response = await axios.post(
+        `${this.config.BASE_URL}/collection/v1_0/requesttopay`,
+        requestToPayBody,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
+            'X-Reference-Id': txRef,
+            'X-Target-Environment': this.config.TARGET_ENV,
+            'Ocp-Apim-Subscription-Key': this.config.SUBSCRIPTION_KEY,
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            ...(params.callbackUrl ? { 'X-Callback-Url': params.callbackUrl } : {})
           },
           timeout: 30000
         }
       );
 
-      const data = response.data;
-      
-      if (data.ErrorCode === 200) {
-        console.log('[MTN] ✅ Webpayment request accepted');
-        console.log(`[MTN] 📱 USSD popup triggered on: ${params.phoneNumber}`);
-        console.log(`[MTN] 🆔 Message ID: ${data.MessageId}`);
+      if (response.status === 202) {
+        console.log('[MTN] ✅ RequestToPay accepted by MTN');
+        console.log(`[MTN] 📱 Official USSD prompt sent to: ${params.phoneNumber}`);
+        console.log(`[MTN] 🆔 Transaction Reference: ${txRef}`);
+        console.log(`[MTN] 🔗 External ID: ${externalId}`);
 
         return {
           success: true,
-          transactionId: orderId,
-          messageId: data.MessageId,
-          instructions: `Un popup USSD a été envoyé sur votre téléphone MTN (${params.phoneNumber}). Suivez les instructions à l'écran pour confirmer le paiement de ${params.amount} XAF en saisissant votre code PIN MTN.`
+          transactionId: externalId,
+          txRef: txRef,
+          instructions: `Un popup USSD officiel MTN a été envoyé sur votre téléphone (${params.phoneNumber}). Suivez les instructions à l'écran pour confirmer le paiement de ${params.amount} ${params.currency} avec votre code PIN MTN.`
         };
       } else {
-        throw new Error(data.ErrorMessage || `Erreur Y-Note: ${data.ErrorCode} - ${data.body}`);
+        const errorDetail = await response.data;
+        throw new Error(`MTN RequestToPay failed (${response.status}): ${JSON.stringify(errorDetail)}`);
       }
     } catch (error: any) {
-      console.error('[MTN] ❌ Error creating Y-Note webpayment:', error.response?.data || error.message);
+      console.error('[MTN] ❌ Error creating MTN RequestToPay:', error.response?.data || error.message);
       return {
         success: false,
-        error: error.message || 'Erreur lors de la création du webpayment Y-Note'
+        error: error.message || 'Erreur lors de la création du RequestToPay MTN'
       };
     }
   }
 
   /**
-   * Test de connectivité avec l'API MTN
+   * Vérifier le statut d'une transaction MTN Collections
+   */
+  public async getTransactionStatus(txRef: string): Promise<{
+    success: boolean;
+    status?: string;
+    transaction?: MTNRequestToPayResponse;
+    error?: string;
+  }> {
+    try {
+      console.log(`[MTN] 🔍 Checking transaction status: ${txRef}`);
+      
+      const accessToken = await this.ensureValidToken();
+      
+      const response = await axios.get<MTNRequestToPayResponse>(
+        `${this.config.BASE_URL}/collection/v1_0/requesttopay/${txRef}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'X-Target-Environment': this.config.TARGET_ENV,
+            'Ocp-Apim-Subscription-Key': this.config.SUBSCRIPTION_KEY
+          },
+          timeout: 10000
+        }
+      );
+
+      const transaction = response.data;
+      
+      console.log(`[MTN] 📊 Transaction status: ${transaction.status}`);
+      
+      return {
+        success: true,
+        status: transaction.status,
+        transaction: transaction
+      };
+    } catch (error: any) {
+      console.error('[MTN] ❌ Error checking transaction status:', error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.message || 'Erreur lors de la vérification du statut'
+      };
+    }
+  }
+
+  /**
+   * Test de connectivité avec l'API MTN Collections
    */
   public async testConnection(): Promise<boolean> {
     try {
+      console.log('[MTN] 🧪 Testing MTN Collections API connection...');
+      
+      // Tenter d'obtenir un token pour valider la connectivité
       const token = await this.getAccessToken();
-      console.log('[MTN] ✅ Connection test successful');
-      return true;
-    } catch (error) {
-      console.error('[MTN] ❌ Connection test failed:', error);
+      
+      if (token) {
+        console.log('[MTN] ✅ Connection test successful');
+        return true;
+      } else {
+        console.log('[MTN] ❌ Connection test failed - no token received');
+        return false;
+      }
+    } catch (error: any) {
+      console.error('[MTN] ❌ Connection test failed:', error.message);
       return false;
     }
   }
 }
 
-// Exporter l'instance singleton
+// Export du service singleton
 export const mtnService = MTNMobileMoneyService.getInstance();
