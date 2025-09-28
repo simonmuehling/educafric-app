@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { TestTube, Play, Eye } from 'lucide-react';
+import { GraduationCap, BookOpen, School } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SandboxBanner() {
@@ -28,7 +28,7 @@ export default function SandboxBanner() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-            <TestTube className="w-5 h-5" />
+            <GraduationCap className="w-5 h-5" />
           </div>
           <div>
             <h3 className="font-bold text-lg">{t.title || ''}</h3>
@@ -38,7 +38,7 @@ export default function SandboxBanner() {
         
         <div className="flex items-center space-x-3">
           <div className="hidden sm:flex items-center text-sm bg-white/20 px-3 py-1 rounded-full">
-            <Eye className="w-4 h-4 mr-1" />
+            <School className="w-4 h-4 mr-1" />
             {t.demo}
           </div>
           <Button

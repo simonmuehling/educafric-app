@@ -9,9 +9,8 @@ import {
   Users, 
   User, 
   BookOpen,
-  TestTube,
-  Eye,
-  Play,
+  Library,
+  UserCheck,
   ArrowRight,
   CheckCircle
 } from 'lucide-react';
@@ -126,14 +125,14 @@ export default function SandboxDemo() {
             onClick={() => navigate('/sandbox-login')}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-3 mx-auto"
           >
-            <Play className="w-5 h-5" />
+            <Library className="w-5 h-5" />
             <span>{t.testNow}</span>
             <ArrowRight className="w-5 h-5" />
           </Button>
 
           {/* Demo Environment Badge */}
           <div className="mt-6 inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold">
-            <Eye className="w-4 h-4 mr-2" />
+            <UserCheck className="w-4 h-4 mr-2" />
             {t.fullDemo}
           </div>
         </div>

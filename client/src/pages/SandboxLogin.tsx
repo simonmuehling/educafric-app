@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import NotificationTester from '@/components/sandbox/NotificationTester';
 import { 
   User, GraduationCap, Users, BookOpen, Briefcase, 
-  Settings, Shield, Play, TestTube, Zap, Crown, Bell
+  Settings, Shield, School, Crown, Bell
 } from 'lucide-react';
 
 const SandboxLogin = () => {
@@ -216,7 +216,7 @@ const SandboxLogin = () => {
           
           <div className="flex items-center justify-center gap-4 mt-4">
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              <Zap className="w-4 h-4 mr-1" />
+              <GraduationCap className="w-4 h-4 mr-1" />
               {t.allFeatures}
             </Badge>
             <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
@@ -224,7 +224,7 @@ const SandboxLogin = () => {
               {t.premiumAccess}
             </Badge>
             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-              <Play className="w-4 h-4 mr-1" />
+              <School className="w-4 h-4 mr-1" />
               {t.directAccess}
             </Badge>
           </div>
@@ -317,7 +317,7 @@ const SandboxLogin = () => {
                     </>
                   ) : (
                     <>
-                      <Play className="w-4 h-4 mr-2" />
+                      <School className="w-4 h-4 mr-2" />
                       {language === 'fr' ? 'Accéder au Dashboard' : 'Access Dashboard'}
                     </>
                   )}

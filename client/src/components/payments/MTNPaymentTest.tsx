@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import MTNPaymentForm from './MTNPaymentForm';
-import { TestTube, CheckCircle, AlertCircle, Smartphone, Activity } from 'lucide-react';
+import { BookOpen, CheckCircle, AlertCircle, Smartphone, Activity } from 'lucide-react';
 
 export default function MTNPaymentTest() {
   const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'error' | null>(null);
@@ -145,12 +145,12 @@ export default function MTNPaymentTest() {
                 >
                   {connectionStatus === 'testing' ? (
                     <>
-                      <TestTube className="w-4 h-4 mr-2 animate-spin" />
+                      <BookOpen className="w-4 h-4 mr-2 animate-spin" />
                       Test en cours...
                     </>
                   ) : (
                     <>
-                      <TestTube className="w-4 h-4 mr-2" />
+                      <BookOpen className="w-4 h-4 mr-2" />
                       Tester Connexion MTN
                     </>
                   )}
@@ -163,7 +163,7 @@ export default function MTNPaymentTest() {
                   }`}>
                     {connectionStatus === 'connected' && <CheckCircle className="w-4 h-4 mr-1" />}
                     {connectionStatus === 'error' && <AlertCircle className="w-4 h-4 mr-1" />}
-                    {connectionStatus === 'testing' && <TestTube className="w-4 h-4 mr-1 animate-spin" />}
+                    {connectionStatus === 'testing' && <BookOpen className="w-4 h-4 mr-1 animate-spin" />}
                     {connectionStatus === 'connected' && 'Connexion réussie'}
                     {connectionStatus === 'error' && 'Connexion échouée'}
                     {connectionStatus === 'testing' && 'Test en cours...'}
