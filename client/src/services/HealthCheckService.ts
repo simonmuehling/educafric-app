@@ -379,11 +379,19 @@ class HealthCheckService {
     // Update telemetry
     this.updateTelemetry(result);
     
-    // Broadcast to other tabs
-    this.broadcastChannel.postMessage({
-      type: 'health-result',
-      result
-    });
+    // Broadcast to other tabs (safe check for closed channel)
+    try {
+      this.broadcastChannel.postMessage({
+        type: 'health-result',
+        result
+      });
+    } catch (error: any) {
+      if (error.message?.includes('Channel is closed')) {
+        console.log('[HEALTH_SERVICE] 📡 BroadcastChannel closed - skipping cross-tab sync');
+      } else {
+        console.warn('[HEALTH_SERVICE] ⚠️ Broadcast error:', error.message);
+      }
+    }
     
     this.notifyListeners();
     
@@ -489,7 +497,14 @@ class HealthCheckService {
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     window.removeEventListener('online', this.handleOnline);
     window.removeEventListener('offline', this.handleOffline);
-    this.broadcastChannel.close();
+    
+    // Safe channel cleanup
+    try {
+      this.broadcastChannel.close();
+    } catch (error: any) {
+      console.log('[HEALTH_SERVICE] 📡 BroadcastChannel already closed');
+    }
+    
     this.listeners.length = 0;
     console.log('[HEALTH_SERVICE] 🧹 Cleanup complete');
   }
