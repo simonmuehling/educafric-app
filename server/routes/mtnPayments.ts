@@ -85,7 +85,7 @@ router.post('/create-payment', async (req, res) => {
       currency,
       planName,
       phoneNumber,
-      callbackUrl: callbackUrl || `${process.env.BASE_URL}/api/mtn-payments/callback`,
+      callbackUrl: callbackUrl || `${process.env.BASE_URL}/api/mtn-payments/webhook`,
       returnUrl: returnUrl || `${process.env.BASE_URL}/subscribe`
     });
 
@@ -109,12 +109,83 @@ router.post('/create-payment', async (req, res) => {
   }
 });
 
-// Callback de retour de paiement MTN (activation automatique abonnement)
+// Webhook Y-Note pour notifications de paiement
+router.post('/webhook', async (req, res) => {
+  try {
+    console.log('[Y-NOTE_WEBHOOK] 🔔 Payment notification received:', req.body);
+    
+    // Structure attendue selon documentation Y-Note:
+    // {
+    //   "ErrorCode": 200,
+    //   "body": "status: SUCCESSFUL",
+    //   "parameters": {
+    //     "operation": "collection Mtn",
+    //     "currency": "XAF",
+    //     "amount": "1250",
+    //     "subscriberMsisdn": "6XXXXXXXX",
+    //     "order_id": "12323312",
+    //     "notifUrl": "https://webhook.site/XXX"
+    //   },
+    //   "MessageId": "558ad7f3-25ff-4e89-8090-XXXX",
+    //   "status": "SUCCESSFUL"
+    // }
+    
+    const { ErrorCode, body, parameters, MessageId, status } = req.body;
+    
+    if (ErrorCode === 200 && (status === 'SUCCESSFUL' || body?.includes('SUCCESSFUL'))) {
+      const { order_id, amount, subscriberMsisdn } = parameters || {};
+      
+      console.log('[Y-NOTE_WEBHOOK] ✅ Payment successful:', { 
+        orderId: order_id, 
+        amount, 
+        phone: subscriberMsisdn,
+        messageId: MessageId 
+      });
+      
+      // Extraire le plan du order_id
+      const planMatch = order_id?.match(/SUB_(\d+)_/);
+      if (planMatch) {
+        const planId = planMatch[1];
+        
+        // Activer l'abonnement (à implémenter)
+        console.log(`[Y-NOTE_WEBHOOK] 🎯 Should activate subscription for plan: ${planId}`);
+        
+        // Envoyer notification de succès
+        console.log('[Y-NOTE_WEBHOOK] 📧 Should send success notification');
+      }
+      
+      // Réponse à Y-Note pour confirmer réception
+      res.status(200).json({
+        success: true,
+        message: 'Webhook processed successfully',
+        messageId: MessageId
+      });
+    } else {
+      console.log('[Y-NOTE_WEBHOOK] ⚠️ Payment not successful:', { ErrorCode, body, status });
+      
+      // Même pour les échecs, on confirme la réception
+      res.status(200).json({
+        success: true,
+        message: 'Webhook received',
+        messageId: MessageId
+      });
+    }
+  } catch (error: any) {
+    console.error('[Y-NOTE_WEBHOOK] ❌ Error processing webhook:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Webhook processing failed',
+      error: error.message
+    });
+  }
+});
+
+// Callback de retour de paiement MTN - LEGACY (garde pour compatibilité)
 router.post('/callback', async (req, res) => {
   try {
     const { reference, status, amount, currency, phone_number } = req.body;
     
-    console.log('[MTN_CALLBACK] 🔄 Payment callback received:', { reference, status, amount });
+    console.log('[MTN_CALLBACK] 🔄 Legacy callback received:', { reference, status, amount });
 
     if (status === 'SUCCESSFUL' || status === 'success') {
       // Extraire le plan du référence de transaction
