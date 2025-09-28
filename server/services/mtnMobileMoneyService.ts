@@ -53,15 +53,18 @@ export class MTNMobileMoneyService {
   private readonly clientSecret: string;
 
   private constructor() {
-    this.clientId = process.env.MTN_CLIENT_ID || '';
-    this.clientSecret = process.env.MTN_CLIENT_SECRET || '';
+    // Support both old and new credential formats
+    this.clientId = process.env.MTN_CUSTOMER_KEY || process.env.MTN_CLIENT_ID || '';
+    this.clientSecret = process.env.MTN_CUSTOMER_SECRET || process.env.MTN_CLIENT_SECRET || '';
     
     if (!this.clientId || !this.clientSecret) {
       console.error('[MTN] ❌ MTN credentials not found in environment variables');
+      console.error('[MTN] 🔍 Expected: MTN_CUSTOMER_KEY and MTN_CUSTOMER_SECRET');
       throw new Error('MTN credentials not configured');
     }
     
-    console.log('[MTN] ✅ MTN Mobile Money service initialized');
+    console.log('[MTN] ✅ MTN Mobile Money service initialized with Customer credentials');
+    console.log(`[MTN] 🔑 Using Customer Key: ${this.clientId.substring(0, 8)}...`);
   }
 
   public static getInstance(): MTNMobileMoneyService {
