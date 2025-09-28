@@ -82,6 +82,7 @@ import SignatureTest from "@/pages/SignatureTest";
 import TestBulletinPDF from "@/pages/TestBulletinPDF";
 import VonageTest from "@/pages/VonageTest";
 import FCMTestPage from "@/pages/FCMTestPage";
+import MTNPaymentTest from "@/components/payments/MTNPaymentTest";
 
 // Deferred module preloader - Only load when user is about to need dashboard access
 const useGlobalModulePreloader = () => {
@@ -454,6 +455,7 @@ function Router() {
       <Route path="/signature-test" component={SignatureTest} />
       <Route path="/vonage-test" component={VonageTest} />
       <Route path="/fcm-test" component={FCMTestPage} />
+      <Route path="/mtn-test" component={MTNPaymentTest} />
       <Route path="/bulletin-validation-test" component={BulletinValidationTest} />
       <Route path="/bulletin-creation-test" component={BulletinCreationTest} />
       <Route path="/bulletin-tests" component={BulletinTestSuite} />

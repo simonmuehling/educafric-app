@@ -83,6 +83,7 @@ import studentsStandalone from "./routes/students";
 import currencyRoutes from "./routes/currency";
 import stripeRoutes from "./routes/stripe";
 import manualPaymentRoutes from "./routes/manual-payments";
+import mtnPaymentRoutes from "./routes/mtnPayments";
 import uploadsRoutes from "./routes/uploads";
 // bulletinRoutes removed - using unified comprehensive bulletin system
 import bulletinVerificationRoutes from "./routes/bulletinVerificationRoutes";
@@ -6723,6 +6724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/currency', currencyRoutes);
   app.use('/api/stripe', stripeRoutes);
   app.use('/api/manual-payments', manualPaymentRoutes);
+  app.use('/api/mtn-payments', mtnPaymentRoutes);
   
   // Add missing API endpoints for payments and commercial leads
   app.get('/api/payments', (req, res) => {
