@@ -105,8 +105,8 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
 
     try {
       toast({
-        title: "📱 Envoi demande de paiement...",
-        description: "Préparation des instructions SMS...",
+        title: "📱 Envoi popup USSD...",
+        description: "Déclenchement du menu USSD sur votre téléphone...",
       });
 
       const response = await fetch('/api/mtn-payments/create-payment', {
@@ -129,8 +129,8 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       if (data.success) {
         setPaymentInstructions(data.instructions);
         toast({
-          title: "📱 Instructions envoyées !",
-          description: "Vérifiez votre téléphone pour confirmer le paiement",
+          title: "📱 Popup USSD envoyé !",
+          description: "Vérifiez l'écran de votre téléphone MTN pour confirmer",
           variant: "default",
         });
       } else {
@@ -163,7 +163,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                 <div className="mb-4">
                   <MessageCircle className="h-16 w-16 text-green-600 mx-auto mb-3" />
                   <h3 className="text-xl font-semibold text-green-800 mb-2">
-                    📱 Instructions envoyées !
+                    📱 Popup USSD envoyé !
                   </h3>
                   <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
                     <p className="text-sm text-green-800">
@@ -172,11 +172,11 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                   </div>
                   <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
                     <p className="text-sm text-yellow-800">
-                      <strong>📞 Étapes suivantes :</strong><br />
-                      1. Vérifiez votre téléphone MTN ({phoneNumber})<br />
-                      2. Suivez les instructions SMS reçues<br />
-                      3. Confirmez le paiement depuis votre téléphone<br />
-                      4. Votre abonnement sera activé automatiquement
+                      <strong>📱 Confirmez sur votre téléphone :</strong><br />
+                      1. Un menu USSD s'affiche sur votre MTN ({phoneNumber})<br />
+                      2. Vérifiez le montant et les détails du paiement<br />
+                      3. Saisissez votre code PIN MTN pour confirmer<br />
+                      4. Votre abonnement sera activé instantanément
                     </p>
                   </div>
                 </div>
@@ -202,11 +202,11 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                     Paiement MTN Mobile Money
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    Recevez des instructions de paiement par SMS sur votre téléphone MTN.
+                    Un popup USSD apparaîtra directement sur votre téléphone MTN pour confirmer le paiement.
                   </p>
                   <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg mb-4">
                     <p className="text-sm text-yellow-800">
-                      <strong>💡 Comment ça marche :</strong> Paiement par SMS • Instructions claires • Activation automatique
+                      <strong>💡 Comment ça marche :</strong> Popup USSD instantané • Confirmation avec PIN • Activation automatique
                     </p>
                   </div>
                 </div>
@@ -237,7 +237,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                       disabled={!phoneNumber}
                     >
                       <MessageCircle className="mr-2 h-5 w-5" />
-                      Envoyer instructions SMS - {amount.toLocaleString()} XAF
+                      Déclencher popup USSD - {amount.toLocaleString()} XAF
                     </Button>
                   </div>
                 ) : (
