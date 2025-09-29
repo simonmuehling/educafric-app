@@ -10,6 +10,9 @@ import { subscriptionPlans } from '../services/stripeService';
 import { subscriptionActivationService } from '../services/subscriptionActivationService';
 import { subscriptionManager } from '../services/subscriptionManager';
 import { PaymentNotificationService } from '../services/paymentNotificationService';
+import { db } from '../db';
+import { payments } from '../../shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
@@ -209,9 +212,12 @@ router.post('/webhook', async (req, res) => {
     //   "status": "SUCCESSFUL"
     // }
     
-    const { ErrorCode, body, parameters, MessageId, status } = req.body;
+    const { ErrorCode, body, parameters, MessageId, status, Status } = req.body;
     
-    if (ErrorCode === 200 && (status === 'SUCCESSFUL' || body?.includes('SUCCESSFUL'))) {
+    // Détecter le statut réel (peut être 'status' ou 'Status')
+    const actualStatus = Status || status;
+    
+    if (ErrorCode === 200 && (actualStatus === 'SUCCESSFUL' || body?.includes('SUCCESSFUL'))) {
       const { order_id, amount, subscriberMsisdn } = parameters || {};
       
       console.log('[Y-NOTE_WEBHOOK] ✅ Payment successful:', { 
@@ -269,8 +275,53 @@ router.post('/webhook', async (req, res) => {
         message: 'Webhook processed successfully',
         messageId: MessageId
       });
+    } else if (ErrorCode === 200 && actualStatus === 'FAILED') {
+      // Gérer les paiements échoués
+      const { order_id, amount, subscriberMsisdn } = parameters || {};
+      const { Reason } = req.body;
+      
+      console.log('[Y-NOTE_WEBHOOK] ❌ Payment failed:', { 
+        orderId: order_id, 
+        amount, 
+        phone: subscriberMsisdn,
+        reason: Reason,
+        messageId: MessageId 
+      });
+      
+      // Mettre à jour le statut du paiement en base de données
+      if (order_id) {
+        try {
+          // Rechercher le paiement par référence (order_id)
+          const existingPayment = await db.select()
+            .from(payments)
+            .where(eq(payments.reference, order_id))
+            .limit(1);
+          
+          if (existingPayment.length > 0) {
+            // Mettre à jour le statut
+            await db.update(payments)
+              .set({ 
+                statut: 'ECHOUE',
+                dateUpdate: new Date()
+              })
+              .where(eq(payments.reference, order_id));
+            
+            console.log('[Y-NOTE_WEBHOOK] ✅ Payment status updated to ECHOUE for order:', order_id);
+          } else {
+            console.log('[Y-NOTE_WEBHOOK] ⚠️ Payment not found in database for order:', order_id);
+          }
+        } catch (dbError: any) {
+          console.error('[Y-NOTE_WEBHOOK] ❌ Database update error:', dbError.message);
+        }
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: 'Failed payment processed',
+        messageId: MessageId
+      });
     } else {
-      console.log('[Y-NOTE_WEBHOOK] ⚠️ Payment not successful:', { ErrorCode, body, status });
+      console.log('[Y-NOTE_WEBHOOK] ⚠️ Payment not successful:', { ErrorCode, body, status: actualStatus });
       
       // Même pour les échecs, on confirme la réception
       res.status(200).json({
