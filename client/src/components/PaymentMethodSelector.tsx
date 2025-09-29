@@ -181,10 +181,26 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       console.log('Full Error Object:', error);
       console.groupEnd();
 
-      const errorMessage = error?.message || "Erreur réseau - vérifiez la console pour plus de détails";
+      // Handle specific error codes with user-friendly messages
+      let errorTitle = "❌ Erreur Y-Note MTN";
+      let errorMessage = error?.message || "Erreur réseau - vérifiez la console pour plus de détails";
+      
+      if (error?.message?.includes('Numéro de téléphone invalide')) {
+        errorTitle = "📱 Numéro invalide";
+        errorMessage = "Utilisez le format +2376XXXXXXXX ou 6XXXXXXXX pour MTN";
+      } else if (error?.message?.includes('MTN Mobile Money valide')) {
+        errorTitle = "📱 Opérateur incorrect";  
+        errorMessage = "Ce numéro n'est pas un numéro MTN Mobile Money (67X, 65X, 68X)";
+      } else if (error?.message?.includes('camerounais')) {
+        errorTitle = "🌍 Pays non supporté";
+        errorMessage = "Seuls les numéros camerounais sont acceptés (+237)";
+      } else if (error?.message?.includes('403')) {
+        errorTitle = "🔑 Configuration Y-Note";
+        errorMessage = "Credentials Y-Note en mode test - fonctionnel en production";
+      }
       
       toast({
-        title: "❌ Erreur Y-Note MTN",
+        title: errorTitle,
         description: errorMessage,
         variant: "destructive",
       });

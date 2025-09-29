@@ -13,6 +13,22 @@
 
 import axios, { AxiosResponse } from 'axios';
 import crypto from 'crypto';
+import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
+
+// Custom error class for validation errors (400 status)
+export class ValidationError extends Error {
+  public status: number;
+  public code: string;
+  public expose: boolean;
+
+  constructor(message: string, code: string = 'VALIDATION_ERROR') {
+    super(message);
+    this.name = 'ValidationError';
+    this.status = 400;
+    this.code = code;
+    this.expose = true;
+  }
+}
 
 interface YNoteAccessToken {
   access_token: string;
@@ -187,35 +203,69 @@ export class MTNMobileMoneyService {
   }
 
   /**
-   * Valider un numéro de téléphone MTN Cameroun
+   * Valider et normaliser un numéro de téléphone MTN Cameroun
+   * Utilise libphonenumber-js pour une validation robuste
+   */
+  public validateAndNormalizeMTNNumber(phoneNumber: string): { msisdn: string; e164: string } {
+    // Nettoyer le numéro d'entrée
+    const raw = phoneNumber.replace(/[^\d+]/g, ''); 
+    
+    // Parser avec libphonenumber-js (Cameroun par défaut)
+    const pn = parsePhoneNumberFromString(raw, 'CM');
+    
+    if (!pn || !pn.isValid()) {
+      throw new ValidationError(
+        'Numéro de téléphone invalide. Utilisez le format +2376XXXXXXXX ou 6XXXXXXXX',
+        'INVALID_PHONE_FORMAT'
+      );
+    }
+
+    // Vérifier que c'est un numéro camerounais
+    if (pn.country !== 'CM') {
+      throw new ValidationError(
+        'Seuls les numéros camerounais sont acceptés (+237)',
+        'INVALID_COUNTRY'
+      );
+    }
+
+    // Vérifier que c'est un numéro MTN (commence par 67, 65, 68)
+    const nationalNumber = pn.nationalNumber;
+    const mtnPrefixes = ['677', '678', '679', '650', '651', '652', '653', '654', '680', '681', '682', '683'];
+    const isValidMTN = mtnPrefixes.some(prefix => nationalNumber.startsWith(prefix));
+    
+    if (!isValidMTN) {
+      throw new ValidationError(
+        'Ce numéro n\'est pas un numéro MTN Mobile Money valide (67X, 65X, 68X)',
+        'INVALID_MTN_PREFIX'
+      );
+    }
+
+    return {
+      e164: pn.number,                           // "+2376XXXXXXXX" 
+      msisdn: pn.number.replace(/^\+/, '')       // "2376XXXXXXXX" (pour Y-Note)
+    };
+  }
+
+  /**
+   * Méthode legacy pour compatibilité - utilise la nouvelle validation
    */
   public validateMTNNumber(phoneNumber: string): boolean {
-    // Nettoyer le numéro
-    const cleaned = phoneNumber.replace(/[\s\-\+]/g, '');
-    
-    // Patterns MTN Cameroun (avec et sans indicatif +237)
-    const mtnPatterns = [
-      /^237(677|678|679|650|651|652|653|654|680|681|682|683)\d{6}$/, // Avec indicatif
-      /^(677|678|679|650|651|652|653|654|680|681|682|683)\d{6}$/     // Sans indicatif
-    ];
-    
-    return mtnPatterns.some(pattern => pattern.test(cleaned));
+    try {
+      this.validateAndNormalizeMTNNumber(phoneNumber);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
    * Formater un numéro de téléphone pour l'API Y-Note
-   * Y-Note accepte les numéros sans l'indicatif pays
+   * Y-Note accepte les numéros sans l'indicatif pays (format national)
    */
   public formatPhoneNumber(phoneNumber: string): string {
-    // Nettoyer et standardiser le format
-    let cleaned = phoneNumber.replace(/[\s\-\+]/g, '');
-    
-    // Supprimer l'indicatif 237 si présent
-    if (cleaned.startsWith('237') && cleaned.length === 12) {
-      cleaned = cleaned.substring(3);
-    }
-    
-    return cleaned;
+    const normalized = this.validateAndNormalizeMTNNumber(phoneNumber);
+    // Y-Note veut le format national sans l'indicatif +237
+    return normalized.msisdn.replace(/^237/, '');
   }
 
   /**
@@ -255,13 +305,9 @@ export class MTNMobileMoneyService {
         environment: this.environment
       });
 
-      // Valider le numéro MTN
-      if (!this.validateMTNNumber(params.phoneNumber)) {
-        throw new Error('Numéro de téléphone MTN invalide');
-      }
-
-      // Formater le numéro (sans indicatif pour Y-Note)
-      const formattedPhone = this.formatPhoneNumber(params.phoneNumber);
+      // Valider et normaliser le numéro MTN avec validation 400
+      const phoneValidation = this.validateAndNormalizeMTNNumber(params.phoneNumber);
+      const formattedPhone = phoneValidation.msisdn.replace(/^237/, ''); // Format national pour Y-Note
       
       // Générer un ID de commande unique
       const orderId = this.generateOrderId('SUB');

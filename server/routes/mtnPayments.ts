@@ -5,7 +5,7 @@
 
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
-import { mtnService } from '../services/mtnMobileMoneyService';
+import { mtnService, ValidationError } from '../services/mtnMobileMoneyService';
 import { subscriptionPlans } from '../services/stripeService';
 import { subscriptionManager } from '../services/subscriptionManager';
 import { PaymentNotificationService } from '../services/paymentNotificationService';
@@ -45,21 +45,36 @@ router.post('/validate-number', async (req, res) => {
       });
     }
     
-    const isValid = mtnService.validateMTNNumber(phoneNumber);
-    const formattedNumber = mtnService.formatPhoneNumber(phoneNumber);
-    
-    res.json({
-      success: true,
-      isValidMTN: isValid,
-      originalNumber: phoneNumber,
-      formattedNumber: formattedNumber,
-      message: isValid ? 'Numéro MTN valide' : 'Ce numéro n\'est pas un numéro MTN valide'
-    });
+    try {
+      const normalized = mtnService.validateAndNormalizeMTNNumber(phoneNumber);
+      
+      res.json({
+        success: true,
+        isValidMTN: true,
+        originalNumber: phoneNumber,
+        formattedNumber: normalized.msisdn.replace(/^237/, ''), // Format national
+        e164: normalized.e164,
+        msisdn: normalized.msisdn,
+        message: 'Numéro MTN valide'
+      });
+    } catch (validationError: any) {
+      if (validationError instanceof ValidationError) {
+        return res.status(400).json({
+          success: false,
+          isValidMTN: false,
+          code: validationError.code,
+          message: validationError.message,
+          originalNumber: phoneNumber
+        });
+      }
+      throw validationError; // Re-throw if not ValidationError
+    }
   } catch (error: any) {
     console.error('[MTN_API] ❌ Number validation error:', error);
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la validation du numéro'
+      message: 'Erreur lors de la validation du numéro',
+      error: error.message
     });
   }
 });
@@ -100,10 +115,33 @@ router.post('/create-payment', async (req, res) => {
         message: 'Y-Note MTN payment request envoyé avec succès'
       });
     } else {
-      throw new Error(paymentData.error || 'Erreur lors de la création du paiement');
+      // Check if this is a validation error based on the error message
+      const errorMessage = paymentData.error || 'Erreur lors de la création du paiement';
+      
+      if (errorMessage.includes('Numéro de téléphone invalide') || 
+          errorMessage.includes('MTN Mobile Money valide') ||
+          errorMessage.includes('camerounais sont acceptés')) {
+        // This is a validation error, create a ValidationError to get proper 400 status
+        const validationError = new ValidationError(errorMessage, 'PHONE_VALIDATION_ERROR');
+        throw validationError;
+      }
+      
+      throw new Error(errorMessage);
     }
   } catch (error: any) {
     console.error('[MTN_API] ❌ Create payment error:', error);
+    
+    // Handle ValidationError with 400 status
+    if (error instanceof ValidationError) {
+      return res.status(400).json({
+        success: false,
+        code: error.code,
+        message: error.message,
+        error: error.message
+      });
+    }
+    
+    // Handle other errors with 500 status
     res.status(500).json({
       success: false,
       message: 'Erreur lors de la création du paiement MTN',
