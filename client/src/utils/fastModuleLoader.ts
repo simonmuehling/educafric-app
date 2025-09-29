@@ -269,7 +269,9 @@ class FastModuleLoader {
       // These were causing "Module X not found in mapping" errors
       'profile': () => import('@/components/shared/UnifiedProfileManager'), // Generic profile fallback
       'messages': () => import('@/components/shared/InterProfileCommunications'), // Generic messages fallback  
-      'communications': () => import('@/components/shared/CommunicationsCenter') // Generic communications fallback
+      'communications': () => import('@/components/shared/CommunicationsCenter'), // Generic communications fallback
+      'help': () => import('@/components/shared/UnifiedProfileManager'), // Generic help module fallback
+      'settings': () => import('@/components/shared/UnifiedProfileManager') // Generic settings fallback
     };
 
     // VALIDATION: Check for duplicate keys to prevent conflicts

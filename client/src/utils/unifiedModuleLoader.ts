@@ -50,6 +50,9 @@ class UnifiedModuleLoader {
     { component: () => import('@/components/director/modules/UnifiedSchoolSettings'), strategy: 'lazy', priority: 4 },
     { component: () => import('@/pages/BulletinValidationTest'), strategy: 'lazy', priority: 5 },
     { component: () => import('@/pages/UIShowcase'), strategy: 'lazy', priority: 5 },
+    // Add missing modules that were causing warnings
+    { component: () => import('@/components/shared/UnifiedProfileManager'), strategy: 'lazy', priority: 5 }, // for help
+    { component: () => import('@/components/shared/UnifiedProfileManager'), strategy: 'lazy', priority: 5 }, // for settings
   ];
 
   private moduleMap: { [key: string]: ModuleConfig } = {};
