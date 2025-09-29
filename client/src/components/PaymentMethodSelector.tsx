@@ -114,6 +114,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Important for session-based auth
         body: JSON.stringify({
           amount: amount,
           currency: currency,
@@ -124,7 +125,34 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         })
       });
 
-      const data = await response.json();
+      // Read raw response first
+      const text = await response.text();
+      let data: any;
+      
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (parseError) {
+        console.error('[Y-NOTE_FRONTEND] ❌ JSON parse failed:', parseError);
+        console.error('[Y-NOTE_FRONTEND] Raw response:', text);
+        data = { raw: text, error: 'Invalid JSON response' };
+      }
+
+      // Detailed response logging
+      console.group('[Y-NOTE_FRONTEND] 📋 Payment Response Debug');
+      console.log('Status:', response.status);
+      console.log('Status Text:', response.statusText);
+      console.log('Headers:', Object.fromEntries(response.headers.entries()));
+      console.log('Raw Text:', text);
+      console.log('Parsed Data:', data);
+      console.groupEnd();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message || 
+          data?.error || 
+          `HTTP ${response.status}: ${response.statusText}`
+        );
+      }
       
       if (data.success) {
         // Y-Note renvoie un objet avec paymentUrl et instructions
@@ -144,10 +172,20 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         throw new Error(data.message || 'Erreur lors de la création du paiement Y-Note MTN');
       }
     } catch (error: any) {
-      console.error('[Y-NOTE_FRONTEND] ❌ Payment creation failed:', error);
+      // Detailed error logging
+      console.group('[Y-NOTE_FRONTEND] ❌ Payment Creation Failed');
+      console.log('Error Type:', error?.constructor?.name);
+      console.log('Error Message:', error?.message);
+      console.log('Error Name:', error?.name);
+      console.log('Error Stack:', error?.stack);
+      console.log('Full Error Object:', error);
+      console.groupEnd();
+
+      const errorMessage = error?.message || "Erreur réseau - vérifiez la console pour plus de détails";
+      
       toast({
         title: "❌ Erreur Y-Note MTN",
-        description: error.message || "Impossible de créer le paiement Y-Note MTN",
+        description: errorMessage,
         variant: "destructive",
       });
     }
