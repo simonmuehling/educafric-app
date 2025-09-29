@@ -847,6 +847,9 @@ export default function ManualBulletinForm({
     }
   });
 
+  // Alias pour compatibilité avec les références existantes
+  const saveBulletinMutation = saveMutation;
+
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
     
