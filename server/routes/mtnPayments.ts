@@ -94,9 +94,10 @@ router.post('/create-payment', async (req, res) => {
         success: true,
         transactionId: paymentData.transactionId,
         txRef: paymentData.txRef,
+        messageId: paymentData.messageId,
         instructions: paymentData.instructions,
         environment: process.env.MOMO_ENV || 'sandbox',
-        message: 'MTN RequestToPay envoyé avec succès'
+        message: 'Y-Note MTN payment request envoyé avec succès'
       });
     } else {
       throw new Error(paymentData.error || 'Erreur lors de la création du paiement');
@@ -148,65 +149,69 @@ router.get('/status/:txRef', async (req, res) => {
   }
 });
 
-// Webhook MTN pour notifications de paiement
+// Webhook Y-Note pour notifications de paiement
 router.post('/webhook', async (req, res) => {
   try {
-    console.log('[MTN_WEBHOOK] 🔔 MTN payment notification received:', req.body);
+    console.log('[Y-NOTE_WEBHOOK] 🔔 Payment notification received:', req.body);
     
-    // Structure attendue de l'API MTN Collections:
-    // Les notifications MTN envoient les données de la transaction directement
-    // similaire à la réponse de getTransactionStatus
+    // Structure attendue selon documentation Y-Note:
+    // {
+    //   "ErrorCode": 200,
+    //   "body": "status: SUCCESSFUL",
+    //   "parameters": {
+    //     "operation": "collection Mtn",
+    //     "currency": "XAF",
+    //     "amount": "1250",
+    //     "subscriberMsisdn": "6XXXXXXXX",
+    //     "order_id": "12323312",
+    //     "notifUrl": "https://webhook.site/XXX"
+    //   },
+    //   "MessageId": "558ad7f3-25ff-4e89-8090-XXXX",
+    //   "status": "SUCCESSFUL"
+    // }
     
-    const { status, externalId, amount, currency, payer, reason } = req.body;
+    const { ErrorCode, body, parameters, MessageId, status } = req.body;
     
-    if (status === 'SUCCESSFUL') {
-      console.log('[MTN_WEBHOOK] ✅ Payment successful:', { 
-        externalId, 
+    if (ErrorCode === 200 && (status === 'SUCCESSFUL' || body?.includes('SUCCESSFUL'))) {
+      const { order_id, amount, subscriberMsisdn } = parameters || {};
+      
+      console.log('[Y-NOTE_WEBHOOK] ✅ Payment successful:', { 
+        orderId: order_id, 
         amount, 
-        currency,
-        phone: payer?.partyId
+        phone: subscriberMsisdn,
+        messageId: MessageId 
       });
       
-      // Extraire le plan de l'externalId
-      const planMatch = externalId?.match(/SUB_(\d+)_/);
+      // Extraire le plan du order_id
+      const planMatch = order_id?.match(/SUB_(\d+)_/);
       if (planMatch) {
         const planId = planMatch[1];
         
         // Activer l'abonnement (à implémenter)
-        console.log(`[MTN_WEBHOOK] 🎯 Should activate subscription for plan: ${planId}`);
+        console.log(`[Y-NOTE_WEBHOOK] 🎯 Should activate subscription for plan: ${planId}`);
         
         // Envoyer notification de succès
-        console.log('[MTN_WEBHOOK] 📧 Should send success notification');
+        console.log('[Y-NOTE_WEBHOOK] 📧 Should send success notification');
       }
       
-      // Réponse à MTN pour confirmer réception
+      // Réponse à Y-Note pour confirmer réception
       res.status(200).json({
         success: true,
         message: 'Webhook processed successfully',
-        externalId: externalId
-      });
-    } else if (status === 'FAILED') {
-      console.log('[MTN_WEBHOOK] ❌ Payment failed:', { externalId, reason });
-      
-      // Log de l'échec et envoyer notification d'échec si nécessaire
-      console.log('[MTN_WEBHOOK] 📧 Should send failure notification');
-      
-      res.status(200).json({
-        success: true,
-        message: 'Webhook received - payment failed',
-        externalId: externalId
+        messageId: MessageId
       });
     } else {
-      console.log('[MTN_WEBHOOK] ⏳ Payment pending or unknown status:', { status, externalId });
+      console.log('[Y-NOTE_WEBHOOK] ⚠️ Payment not successful:', { ErrorCode, body, status });
       
+      // Même pour les échecs, on confirme la réception
       res.status(200).json({
         success: true,
         message: 'Webhook received',
-        externalId: externalId
+        messageId: MessageId
       });
     }
   } catch (error: any) {
-    console.error('[MTN_WEBHOOK] ❌ Error processing webhook:', error);
+    console.error('[Y-NOTE_WEBHOOK] ❌ Error processing webhook:', error);
     res.status(500).json({
       success: false,
       message: 'Webhook processing failed',
