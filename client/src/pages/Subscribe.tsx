@@ -30,7 +30,7 @@ interface SubscriptionPlan {
   currency: string;
   interval: 'month' | 'year' | 'semester' | 'quarter';
   features: string[];
-  category: 'parent' | 'school' | 'freelancer';
+  category: 'parent' | 'freelancer';
 }
 
 // Composant interne pour le formulaire (à l'intérieur d'Elements)
@@ -410,7 +410,7 @@ const Subscribe: React.FC = () => {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<'parent' | 'school' | 'freelancer'>('parent');
+  const [selectedCategory, setSelectedCategory] = useState<'parent' | 'freelancer'>('parent');
   const [stripeLoaded, setStripeLoaded] = useState<any>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
 
@@ -790,7 +790,7 @@ const Subscribe: React.FC = () => {
           
           {/* Sélecteur de catégorie */}
           <div className="flex justify-center space-x-4 mb-8">
-            {(['parent', 'school', 'freelancer'] as const).map((category) => (
+            {(['parent', 'freelancer'] as const).map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? 'default' : 'outline'}
@@ -799,8 +799,7 @@ const Subscribe: React.FC = () => {
                 data-testid={`button-category-${category}`}
               >
                 {category === 'parent' && '👨‍👩‍👧‍👦 Parents'}
-                {category === 'school' && '🏫 Écoles'}
-                {category === 'freelancer' && '🎓 Freelancers'}
+                {category === 'freelancer' && '🎓 Répétiteurs'}
               </Button>
             ))}
           </div>
