@@ -156,8 +156,8 @@ export default function ModernEducafricHero() {
                   </div>
 
                   {/* Feature Grid */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="feature-card p-4 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="feature-card p-3 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
                       <div className="w-8 h-8 bg-blue-500 rounded-lg mb-2 flex items-center justify-center">
                         <span className="text-white text-sm font-bold">📚</span>
                       </div>
@@ -166,7 +166,7 @@ export default function ModernEducafricHero() {
                       </div>
                     </div>
 
-                    <div className="feature-card p-4 bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl">
+                    <div className="feature-card p-3 bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl">
                       <div className="w-8 h-8 bg-green-500 rounded-lg mb-2 flex items-center justify-center">
                         <span className="text-white text-sm font-bold">📱</span>
                       </div>
@@ -175,7 +175,7 @@ export default function ModernEducafricHero() {
                       </div>
                     </div>
 
-                    <div className="feature-card p-4 bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl">
+                    <div className="feature-card p-3 bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl">
                       <div className="w-8 h-8 bg-purple-500 rounded-lg mb-2 flex items-center justify-center">
                         <span className="text-white text-sm font-bold">📍</span>
                       </div>
@@ -184,12 +184,30 @@ export default function ModernEducafricHero() {
                       </div>
                     </div>
 
-                    <div className="feature-card p-4 bg-gradient-to-br from-orange-50 to-red-100 rounded-xl">
+                    <div className="feature-card p-3 bg-gradient-to-br from-orange-50 to-red-100 rounded-xl">
                       <div className="w-8 h-8 bg-orange-500 rounded-lg mb-2 flex items-center justify-center">
                         <span className="text-white text-sm font-bold">💬</span>
                       </div>
                       <div className="text-xs font-semibold text-gray-700">
                         {language === 'fr' ? 'Communication' : 'Communication'}
+                      </div>
+                    </div>
+
+                    <div className="feature-card p-3 bg-gradient-to-br from-cyan-50 to-teal-100 rounded-xl">
+                      <div className="w-8 h-8 bg-cyan-500 rounded-lg mb-2 flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">🎥</span>
+                      </div>
+                      <div className="text-xs font-semibold text-gray-700">
+                        {language === 'fr' ? 'Classes en Ligne' : 'Online Classes'}
+                      </div>
+                    </div>
+
+                    <div className="feature-card p-3 bg-gradient-to-br from-rose-50 to-pink-100 rounded-xl">
+                      <div className="w-8 h-8 bg-rose-500 rounded-lg mb-2 flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">📋</span>
+                      </div>
+                      <div className="text-xs font-semibold text-gray-700">
+                        {language === 'fr' ? 'Bulletins de Notes' : 'Report Cards'}
                       </div>
                     </div>
                   </div>

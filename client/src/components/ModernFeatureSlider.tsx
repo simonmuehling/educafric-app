@@ -35,6 +35,30 @@ export default function ModernFeatureSlider() {
       href: '/grades'
     },
     {
+      id: 'online-classes',
+      title: 'Online Classes',
+      titleFr: 'Classes en Ligne',
+      description: 'Conduct virtual lessons with video conferencing, screen sharing, and interactive whiteboards for modern African education.',
+      descriptionFr: 'Organisez des leçons virtuelles avec visioconférence, partage d\'écran et tableaux interactifs pour l\'éducation africaine moderne.',
+      icon: '🎥',
+      gradient: 'var(--card-gradient-4)',
+      primaryAction: 'Start Class',
+      primaryActionFr: 'Démarrer Cours',
+      href: '/director/online-classes'
+    },
+    {
+      id: 'report-cards',
+      title: 'Digital Report Cards',
+      titleFr: 'Bulletins Numériques',
+      description: 'Generate comprehensive African-style report cards with digital signatures, QR verification, and automatic distribution.',
+      descriptionFr: 'Générez des bulletins complets de style africain avec signatures numériques, vérification QR et distribution automatique.',
+      icon: '📋',
+      gradient: 'var(--card-gradient-5)',
+      primaryAction: 'Create Reports',
+      primaryActionFr: 'Créer Bulletins',
+      href: '/director/bulletins'
+    },
+    {
       id: 'communication',
       title: 'Communication Hub',
       titleFr: 'Centre de Communication',
