@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { ModernCard } from '@/components/ui/ModernCard';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Video, 
   Plus, 
@@ -32,7 +33,12 @@ import {
   Camera,
   CameraOff,
   MessageCircle,
-  Share2
+  Share2,
+  GraduationCap,
+  User,
+  Book,
+  CheckCircle,
+  UserCheck
 } from 'lucide-react';
 
 interface OnlineCourse {
@@ -40,6 +46,10 @@ interface OnlineCourse {
   title: string;
   description?: string;
   language: string;
+  classId?: number;
+  className?: string;
+  subjectId?: number;
+  subjectName?: string;
   maxParticipants: number;
   allowRecording: boolean;
   isActive: boolean;
@@ -67,12 +77,16 @@ const TeacherOnlineClasses: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Component states
-  const [showCreateCourseDialog, setShowCreateCourseDialog] = useState(false);
+  const [step, setStep] = useState<'selection' | 'course-creation' | 'course-management'>('selection');
   const [showCreateSessionDialog, setShowCreateSessionDialog] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<OnlineCourse | null>(null);
-  const [activeTab, setActiveTab] = useState<'courses' | 'sessions'>('courses');
+  const [activeTab, setActiveTab] = useState<'my-courses' | 'upcoming-sessions' | 'create-course'>('my-courses');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [starting, setStarting] = useState(false);
 
   // Course creation state
   const [newCourseData, setNewCourseData] = useState({
@@ -97,14 +111,35 @@ const TeacherOnlineClasses: React.FC = () => {
     startNow: false
   });
 
+  // Silence Replit dev noise
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (typeof e.origin === 'string' && e.origin.includes('.replit.dev')) return;
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
   const text = {
     fr: {
-      title: 'Cours en Ligne',
-      subtitle: 'Gérer vos cours virtuels et sessions live',
-      createCourse: 'Créer un Cours',
+      title: 'Classes en Ligne',
+      subtitle: 'Créez et gérez vos cours virtuels avec vos élèves',
+      myCoursesTab: 'Mes Cours',
+      upcomingSessionsTab: 'Sessions Programmées',
+      createCourseTab: 'Créer un Cours',
+      selectionTitle: 'Configuration du Cours',
+      selectionDesc: 'Choisissez la classe et la matière pour créer votre cours en ligne',
+      selectClass: 'Sélectionner une classe',
+      selectSubject: 'Sélectionner une matière',
+      continue: 'Continuer',
+      back: 'Retour',
+      createCourse: 'Créer le Cours',
       createSession: 'Nouvelle Session',
       myCourses: 'Mes Cours',
       upcomingSessions: 'Sessions Prochaines',
+      scheduledSessions: 'Toutes mes Sessions',
+      startNow: 'Démarrer Maintenant',
+      scheduleCourse: 'Programmer une Session',
       courseTitle: 'Titre du Cours',
       courseDescription: 'Description',
       language: 'Langue',
@@ -119,7 +154,6 @@ const TeacherOnlineClasses: React.FC = () => {
       lobbyEnabled: 'Activer Salle d\'Attente',
       chatEnabled: 'Activer Chat',
       screenShareEnabled: 'Partage d\'Écran',
-      startNow: 'Commencer Maintenant',
       save: 'Enregistrer',
       cancel: 'Annuler',
       join: 'Rejoindre',
@@ -144,15 +178,28 @@ const TeacherOnlineClasses: React.FC = () => {
       sessionCreated: 'Session créée avec succès',
       sessionStarted: 'Session démarrée',
       sessionEnded: 'Session terminée',
-      error: 'Erreur'
+      error: 'Erreur',
+      noData: 'Aucune donnée disponible'
     },
     en: {
       title: 'Online Classes',
-      subtitle: 'Manage your virtual courses and live sessions',
+      subtitle: 'Create and manage your virtual classes with students',
+      myCoursesTab: 'My Courses',
+      upcomingSessionsTab: 'Scheduled Sessions',
+      createCourseTab: 'Create Course',
+      selectionTitle: 'Course Setup',
+      selectionDesc: 'Choose class and subject to create your online course',
+      selectClass: 'Select a class',
+      selectSubject: 'Select a subject',
+      continue: 'Continue',
+      back: 'Back',
       createCourse: 'Create Course',
       createSession: 'New Session',
       myCourses: 'My Courses',
       upcomingSessions: 'Upcoming Sessions',
+      scheduledSessions: 'All my Sessions',
+      startNow: 'Start Now',
+      scheduleCourse: 'Schedule Session',
       courseTitle: 'Course Title',
       courseDescription: 'Description',
       language: 'Language',
@@ -167,7 +214,6 @@ const TeacherOnlineClasses: React.FC = () => {
       lobbyEnabled: 'Enable Lobby',
       chatEnabled: 'Enable Chat',
       screenShareEnabled: 'Screen Sharing',
-      startNow: 'Start Now',
       save: 'Save',
       cancel: 'Cancel',
       join: 'Join',
@@ -192,34 +238,77 @@ const TeacherOnlineClasses: React.FC = () => {
       sessionCreated: 'Session created successfully',
       sessionStarted: 'Session started',
       sessionEnded: 'Session ended',
-      error: 'Error'
+      error: 'Error',
+      noData: 'No data available'
     }
   };
 
   const t = text[language];
 
+  // Fetch teacher's classes
+  const { data: classesData, isLoading: classesLoading } = useQuery({
+    queryKey: ['/api/teacher/classes'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/teacher/classes');
+      return response.json();
+    }
+  });
+
+  // Subjects/Matières data (predefined list with numeric IDs)
+  const subjects = [
+    { id: 1, name: language === 'fr' ? 'Mathématiques' : 'Mathematics' },
+    { id: 2, name: language === 'fr' ? 'Français' : 'French' },
+    { id: 3, name: language === 'fr' ? 'Anglais' : 'English' },
+    { id: 4, name: language === 'fr' ? 'Sciences' : 'Science' },
+    { id: 5, name: language === 'fr' ? 'Histoire' : 'History' },
+    { id: 6, name: language === 'fr' ? 'Géographie' : 'Geography' },
+    { id: 7, name: language === 'fr' ? 'Physique' : 'Physics' },
+    { id: 8, name: language === 'fr' ? 'Chimie' : 'Chemistry' },
+    { id: 9, name: language === 'fr' ? 'Biologie' : 'Biology' },
+    { id: 10, name: language === 'fr' ? 'Philosophie' : 'Philosophy' }
+  ];
+
   // Fetch teacher's courses
   const { data: coursesData, isLoading: coursesLoading } = useQuery({
     queryKey: ['/api/online-classes/courses'],
-    queryFn: () => apiRequest('GET', '/api/online-classes/courses')
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/online-classes/courses');
+      return response.json();
+    },
+    enabled: step !== 'selection' // Only fetch when we're past the selection step
   });
 
-  // Fetch upcoming sessions
+  // Fetch teacher's sessions
   const { data: sessionsData, isLoading: sessionsLoading } = useQuery({
-    queryKey: ['/api/online-classes/school/sessions'],
-    queryFn: () => apiRequest('GET', '/api/online-classes/school/sessions')
+    queryKey: ['/api/online-classes/teacher/sessions'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/online-classes/teacher/sessions');
+      return response.json();
+    }
   });
 
-  // Create course mutation
+  // Create course mutation with teacher context
   const createCourseMutation = useMutation({
-    mutationFn: (courseData: typeof newCourseData) => 
-      apiRequest('POST', '/api/online-classes/courses', courseData),
+    mutationFn: async (courseData: typeof newCourseData) => {
+      const enrichedCourseData = {
+        ...courseData,
+        classId: parseInt(selectedClass, 10),
+        subjectId: parseInt(selectedSubject, 10),
+        language: language
+      };
+      console.log('[TEACHER_ONLINE_CLASSES] Creating course with data:', enrichedCourseData);
+      const response = await apiRequest('POST', '/api/online-classes/courses', enrichedCourseData);
+      return response.json();
+    },
     onSuccess: (response: any) => {
+      const course = response.course || response;
+      setSelectedCourse(course);
+      
       toast({
-        title: 'Succès',
+        title: language === 'fr' ? 'Cours créé' : 'Course created',
         description: t.courseCreated
       });
-      setShowCreateCourseDialog(false);
+      setStep('course-management');
       setNewCourseData({
         title: '',
         description: '',
@@ -230,10 +319,11 @@ const TeacherOnlineClasses: React.FC = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses'] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('[TEACHER_ONLINE_CLASSES] Course creation error:', error);
       toast({
         title: t.error,
-        description: 'Échec de la création du cours',
+        description: language === 'fr' ? 'Échec de la création du cours' : 'Failed to create course',
         variant: "destructive"
       });
     }
@@ -315,8 +405,32 @@ const TeacherOnlineClasses: React.FC = () => {
     }
   });
 
-  const handleCreateCourse = () => {
-    createCourseMutation.mutate(newCourseData);
+  // Handle selection completion
+  const handleContinueSelection = () => {
+    if (selectedClass && selectedSubject) {
+      setStep('course-creation');
+    } else {
+      toast({
+        title: language === 'fr' ? 'Sélection incomplète' : 'Incomplete selection',
+        description: language === 'fr' ? 'Veuillez sélectionner une classe et une matière' : 'Please select a class and subject',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Handle course creation form submission
+  const handleCreateCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const courseData = {
+      title: String(formData.get('title') || ''),
+      description: String(formData.get('description') || ''),
+      language: language,
+      maxParticipants: parseInt(String(formData.get('maxParticipants')) || '30'),
+      allowRecording: Boolean(formData.get('allowRecording')),
+      requireApproval: Boolean(formData.get('requireApproval'))
+    };
+    createCourseMutation.mutate(courseData);
   };
 
   const handleCreateSession = () => {
@@ -328,12 +442,140 @@ const TeacherOnlineClasses: React.FC = () => {
     });
   };
 
+  // Handle start session immediately
+  const handleStartNow = useCallback(async () => {
+    console.log('[TEACHER_ONLINE_CLASSES] Starting session immediately...');
+    if (!selectedCourse) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Veuillez d\'abord créer un cours' : 'Please create a course first',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (starting) return; // Prevent multiple clicks
+    setStarting(true);
+
+    try {
+      console.log('[TEACHER_ONLINE_CLASSES] Creating session for course', selectedCourse.id);
+
+      const response = await fetch(`/api/online-classes/courses/${selectedCourse.id}/sessions`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: `Session - ${selectedCourse.title}`,
+          description: `Session immédiate pour le cours ${selectedCourse.title}`,
+          scheduledStart: new Date().toISOString(),
+          startNow: true,
+          maxDuration: 120,
+          lobbyEnabled: true,
+          chatEnabled: true,
+          screenShareEnabled: true
+        })
+      });
+
+      const text = await response.text();
+      if (!response.ok) {
+        console.error('[TEACHER_ONLINE_CLASSES] StartNow failed', response.status, text);
+        toast({
+          title: language === 'fr' ? 'Erreur' : 'Error',
+          description: `${language === 'fr' ? 'Impossible de démarrer la session' : 'Could not start session'}: ${response.status}`,
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const sessionData = JSON.parse(text);
+      console.log('[TEACHER_ONLINE_CLASSES] Session created:', sessionData);
+
+      // Open Jitsi meeting room if join URL is provided
+      if (sessionData.joinUrl) {
+        console.log('[TEACHER_ONLINE_CLASSES] Opening Jitsi meeting room:', sessionData.joinUrl);
+        
+        const meetingWindow = window.open(sessionData.joinUrl, '_blank', 'noopener,noreferrer');
+        
+        if (!meetingWindow) {
+          console.warn('[TEACHER_ONLINE_CLASSES] Pop-up blocked, redirecting in current tab');
+          window.location.href = sessionData.joinUrl;
+          return;
+        }
+        
+        toast({
+          title: language === 'fr' ? 'Classe démarrée !' : 'Class started!',
+          description: language === 'fr' ? 
+            `La salle de classe virtuelle est maintenant ouverte` :
+            `Virtual classroom is now open`
+        });
+      } else {
+        toast({
+          title: language === 'fr' ? 'Session créée !' : 'Session created!',
+          description: language === 'fr' ? 
+            `Session "${sessionData.session?.title}" créée avec succès` :
+            `Session "${sessionData.session?.title}" created successfully`
+        });
+      }
+
+    } catch (error) {
+      console.error('[TEACHER_ONLINE_CLASSES] handleStartNow error', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Erreur inattendue lors du démarrage de la session' : 'Unexpected error starting session',
+        variant: 'destructive'
+      });
+    } finally {
+      setStarting(false);
+    }
+  }, [selectedCourse, language, toast, starting]);
+
+  // Handle join session
+  const handleJoinSession = useCallback(async (session: any) => {
+    console.log('[TEACHER_ONLINE_CLASSES] Joining session:', session.id, session.roomName);
+    
+    try {
+      const jwtResponse = await fetch(`/api/online-classes/sessions/${session.id}/join`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const jwtData = await jwtResponse.json();
+      
+      if (!jwtResponse.ok || !jwtData.joinUrl) {
+        throw new Error(jwtData.error || 'Failed to generate join URL');
+      }
+      
+      console.log('[TEACHER_ONLINE_CLASSES] Opening Jitsi meeting room:', jwtData.joinUrl);
+      
+      const meetingWindow = window.open(jwtData.joinUrl, '_blank', 'noopener,noreferrer');
+      
+      if (!meetingWindow) {
+        window.location.href = jwtData.joinUrl;
+        return;
+      }
+      
+      toast({
+        title: language === 'fr' ? 'Session rejointe !' : 'Session joined!',
+        description: language === 'fr' ? 
+          'La salle de classe virtuelle est maintenant ouverte' :
+          'Virtual classroom is now open'
+      });
+      
+    } catch (error: any) {
+      console.error('[TEACHER_ONLINE_CLASSES] handleJoinSession error', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 
+          'Erreur lors de la connexion à la session' : 
+          'Error joining the session'),
+        variant: 'destructive'
+      });
+    }
+  }, [language, toast]);
+
   const handleStartSession = (sessionId: number) => {
     startSessionMutation.mutate(sessionId);
-  };
-
-  const handleJoinSession = (sessionId: number) => {
-    joinSessionMutation.mutate(sessionId);
   };
 
   const formatDate = (dateString: string) => {
@@ -352,6 +594,205 @@ const TeacherOnlineClasses: React.FC = () => {
     return <Badge className={config.color}>{config.text}</Badge>;
   };
 
+  // Render selection interface
+  const renderSelection = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Video className="w-6 h-6 text-purple-600" />
+            <span>{t.selectionTitle}</span>
+          </CardTitle>
+          <CardDescription>{t.selectionDesc}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Class Selection */}
+          <div className="space-y-2">
+            <Label className="flex items-center space-x-2">
+              <GraduationCap className="w-4 h-4" />
+              <span>{t.selectClass}</span>
+            </Label>
+            <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <SelectTrigger data-testid="select-class">
+                <SelectValue placeholder={t.selectClass} />
+              </SelectTrigger>
+              <SelectContent>
+                {classesLoading ? (
+                  <SelectItem value="loading" disabled>{t.loading}</SelectItem>
+                ) : classesData?.classes?.length > 0 ? (
+                  classesData.classes.map((cls: any) => (
+                    <SelectItem key={cls.id} value={cls.id.toString()}>
+                      {cls.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-data" disabled>{t.noData}</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Subject Selection */}
+          <div className="space-y-2">
+            <Label className="flex items-center space-x-2">
+              <Book className="w-4 h-4" />
+              <span>{t.selectSubject}</span>
+            </Label>
+            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+              <SelectTrigger data-testid="select-subject">
+                <SelectValue placeholder={t.selectSubject} />
+              </SelectTrigger>
+              <SelectContent>
+                {subjects.map((subject) => (
+                  <SelectItem key={subject.id} value={subject.id.toString()}>
+                    {subject.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Continue Button */}
+          <Button 
+            onClick={handleContinueSelection}
+            disabled={!selectedClass || !selectedSubject}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            data-testid="button-continue-selection"
+          >
+            <Play className="w-4 h-4 mr-2" />
+            {t.continue}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Render course creation form
+  const renderCourseCreation = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center space-x-2">
+              <Video className="w-6 h-6 text-purple-600" />
+              <span>{t.createCourse}</span>
+            </span>
+            <Button variant="outline" onClick={() => setStep('selection')}>
+              {t.back}
+            </Button>
+          </CardTitle>
+          <CardDescription>
+            {language === 'fr' ? 
+              `Classe: ${classesData?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Matière: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}` :
+              `Class: ${classesData?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Subject: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}`
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleCreateCourse} className="space-y-4">
+            <div>
+              <Label htmlFor="title">{t.courseTitle}</Label>
+              <Input name="title" id="title" required data-testid="input-course-title" />
+            </div>
+            <div>
+              <Label htmlFor="description">{t.courseDescription}</Label>
+              <Textarea name="description" id="description" data-testid="input-course-description" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="maxParticipants">{t.maxParticipants}</Label>
+                <Input name="maxParticipants" id="maxParticipants" type="number" defaultValue="30" />
+              </div>
+              <div className="flex items-center space-x-2 pt-8">
+                <input type="checkbox" name="allowRecording" id="allowRecording" defaultChecked className="rounded" />
+                <Label htmlFor="allowRecording">{t.allowRecording}</Label>
+              </div>
+            </div>
+            <Button 
+              type="submit" 
+              disabled={createCourseMutation.isPending}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              data-testid="button-create-course"
+            >
+              {createCourseMutation.isPending ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  {language === 'fr' ? 'Création...' : 'Creating...'}
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  {t.createCourse}
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Render course management with immediate start option
+  const renderCourseManagement = () => (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center space-x-2">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              <span>{language === 'fr' ? 'Cours Créé !' : 'Course Created!'}</span>
+            </span>
+            <Button variant="outline" onClick={() => {
+              setStep('selection');
+              setSelectedCourse(null);
+              setSelectedClass('');
+              setSelectedSubject('');
+            }}>
+              {language === 'fr' ? 'Nouveau Cours' : 'New Course'}
+            </Button>
+          </CardTitle>
+          <CardDescription>
+            {selectedCourse ? 
+              `${selectedCourse.title} - ${language === 'fr' ? 'Prêt pour vos sessions' : 'Ready for your sessions'}` :
+              ''
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button 
+              onClick={handleStartNow}
+              disabled={starting}
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+              data-testid="button-start-now"
+            >
+              {starting ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  {language === 'fr' ? 'Démarrage...' : 'Starting...'}
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 mr-2" />
+                  {t.startNow}
+                </>
+              )}
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={() => setShowCreateSessionDialog(true)}
+              data-testid="button-schedule-session"
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              {t.scheduleCourse}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
   const renderCoursesList = () => (
     <div className="space-y-4">
       {coursesLoading ? (
@@ -360,7 +801,7 @@ const TeacherOnlineClasses: React.FC = () => {
         <div className="text-center py-8 text-gray-500">{t.noCourses}</div>
       ) : (
         coursesData.courses.map((course: OnlineCourse) => (
-          <ModernCard key={course.id} className="p-4">
+          <Card key={course.id} className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-100 rounded-lg">
@@ -370,8 +811,9 @@ const TeacherOnlineClasses: React.FC = () => {
                   <h3 className="font-semibold">{course.title}</h3>
                   <p className="text-sm text-gray-600">{course.description}</p>
                   <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                    <span>{course.className || ''}</span>
+                    <span>{course.subjectName || ''}</span>
                     <span>{course.maxParticipants} {t.participants} max</span>
-                    <span>{course.language === 'fr' ? t.french : t.english}</span>
                     {course.allowRecording && <span>📹 Recording</span>}
                   </div>
                 </div>
@@ -392,7 +834,7 @@ const TeacherOnlineClasses: React.FC = () => {
                 </Button>
               </div>
             </div>
-          </ModernCard>
+          </Card>
         ))
       )}
     </div>
@@ -406,7 +848,7 @@ const TeacherOnlineClasses: React.FC = () => {
         <div className="text-center py-8 text-gray-500">{t.noSessions}</div>
       ) : (
         sessionsData.sessions.map((session: ClassSession) => (
-          <ModernCard key={session.id} className="p-4">
+          <Card key={session.id} className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 rounded-lg">
@@ -452,7 +894,7 @@ const TeacherOnlineClasses: React.FC = () => {
                 </div>
               </div>
             </div>
-          </ModernCard>
+          </Card>
         ))
       )}
     </div>
@@ -461,7 +903,7 @@ const TeacherOnlineClasses: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <ModernCard className="p-6">
+      <Card className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-purple-100 rounded-lg">
@@ -472,126 +914,57 @@ const TeacherOnlineClasses: React.FC = () => {
               <p className="text-gray-600">{t.subtitle}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Dialog open={showCreateCourseDialog} onOpenChange={setShowCreateCourseDialog}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t.createCourse}
-                </Button>
-              </DialogTrigger>
-            </Dialog>
-          </div>
         </div>
-      </ModernCard>
+      </Card>
 
-      {/* Tabs */}
-      <div className="flex border-b">
-        <button
-          className={`px-4 py-2 border-b-2 font-medium text-sm ${
-            activeTab === 'courses'
-              ? 'border-purple-500 text-purple-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setActiveTab('courses')}
-        >
-          <BookOpen className="w-4 h-4 inline mr-2" />
-          {t.myCourses}
-        </button>
-        <button
-          className={`px-4 py-2 border-b-2 font-medium text-sm ${
-            activeTab === 'sessions'
-              ? 'border-purple-500 text-purple-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setActiveTab('sessions')}
-        >
-          <Calendar className="w-4 h-4 inline mr-2" />
-          {t.upcomingSessions}
-        </button>
-      </div>
-
-      {/* Content */}
-      {activeTab === 'courses' && renderCoursesList()}
-      {activeTab === 'sessions' && renderSessionsList()}
-
-      {/* Create Course Dialog */}
-      <Dialog open={showCreateCourseDialog} onOpenChange={setShowCreateCourseDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t.createCourse}</DialogTitle>
-            <DialogDescription>
-              Créer un nouveau cours en ligne pour vos élèves
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="courseTitle">{t.courseTitle}</Label>
-              <Input
-                id="courseTitle"
-                value={newCourseData.title}
-                onChange={(e) => setNewCourseData({...newCourseData, title: e.target.value})}
-                placeholder="Ex: Mathématiques Niveau 6ème"
-              />
-            </div>
-            <div>
-              <Label htmlFor="courseDesc">{t.courseDescription}</Label>
-              <Textarea
-                id="courseDesc"
-                value={newCourseData.description}
-                onChange={(e) => setNewCourseData({...newCourseData, description: e.target.value})}
-                placeholder="Description du cours et objectifs..."
-                rows={3}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="language">{t.language}</Label>
-                <Select 
-                  value={newCourseData.language} 
-                  onValueChange={(value) => setNewCourseData({...newCourseData, language: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fr">{t.french}</SelectItem>
-                    <SelectItem value="en">{t.english}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="maxParticipants">{t.maxParticipants}</Label>
-                <Input
-                  id="maxParticipants"
-                  type="number"
-                  value={newCourseData.maxParticipants}
-                  onChange={(e) => setNewCourseData({...newCourseData, maxParticipants: parseInt(e.target.value)})}
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="allowRecording"
-                checked={newCourseData.allowRecording}
-                onChange={(e) => setNewCourseData({...newCourseData, allowRecording: e.target.checked})}
-                className="rounded"
-              />
-              <Label htmlFor="allowRecording">{t.allowRecording}</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateCourseDialog(false)}>
-              {t.cancel}
+      {/* Main Content with Enhanced Structure */}
+      {step === 'selection' && renderSelection()}
+      {step === 'course-creation' && renderCourseCreation()}
+      {step === 'course-management' && renderCourseManagement()}
+      
+      {/* Tabbed Interface for existing courses */}
+      {step === 'course-management' && (
+        <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="my-courses" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              {t.myCoursesTab}
+            </TabsTrigger>
+            <TabsTrigger value="upcoming-sessions" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              {t.upcomingSessionsTab}
+            </TabsTrigger>
+            <TabsTrigger value="create-course" className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              {t.createCourseTab}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="my-courses" className="space-y-4">
+            {renderCoursesList()}
+          </TabsContent>
+          
+          <TabsContent value="upcoming-sessions" className="space-y-4">
+            {renderSessionsList()}
+          </TabsContent>
+          
+          <TabsContent value="create-course" className="space-y-4">
+            <Button 
+              onClick={() => {
+                setStep('selection');
+                setSelectedCourse(null);
+                setSelectedClass('');
+                setSelectedSubject('');
+              }}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {language === 'fr' ? 'Créer un Nouveau Cours' : 'Create New Course'}
             </Button>
-            <Button onClick={handleCreateCourse} disabled={createCourseMutation.isPending}>
-              {createCourseMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-              {t.save}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </TabsContent>
+        </Tabs>
+      )}
+
 
       {/* Create Session Dialog */}
       <Dialog open={showCreateSessionDialog} onOpenChange={setShowCreateSessionDialog}>
@@ -599,7 +972,10 @@ const TeacherOnlineClasses: React.FC = () => {
           <DialogHeader>
             <DialogTitle>{t.createSession}</DialogTitle>
             <DialogDescription>
-              Programmer une nouvelle session pour "{selectedCourse?.title}"
+              {language === 'fr' ? 
+                `Programmer une nouvelle session pour "${selectedCourse?.title}"` :
+                `Schedule a new session for "${selectedCourse?.title}"`
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -609,7 +985,7 @@ const TeacherOnlineClasses: React.FC = () => {
                 id="sessionTitle"
                 value={newSessionData.title}
                 onChange={(e) => setNewSessionData({...newSessionData, title: e.target.value})}
-                placeholder="Ex: Leçon 1 - Introduction aux fractions"
+                placeholder={language === 'fr' ? "Ex: Leçon 1 - Introduction aux fractions" : "Ex: Lesson 1 - Introduction to fractions"}
               />
             </div>
             <div>
@@ -618,7 +994,7 @@ const TeacherOnlineClasses: React.FC = () => {
                 id="sessionDesc"
                 value={newSessionData.description}
                 onChange={(e) => setNewSessionData({...newSessionData, description: e.target.value})}
-                placeholder="Contenu de la session..."
+                placeholder={language === 'fr' ? "Contenu de la session..." : "Session content..."}
                 rows={2}
               />
             </div>
