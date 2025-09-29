@@ -230,7 +230,11 @@ export class MTNMobileMoneyService {
 
     // Vérifier que c'est un numéro MTN (commence par 67, 65, 68)
     const nationalNumber = pn.nationalNumber;
-    const mtnPrefixes = ['677', '678', '679', '650', '651', '652', '653', '654', '680', '681', '682', '683'];
+    const mtnPrefixes = [
+      '650', '651', '652', '653', '654',           // MTN ranges classiques
+      '670', '671', '672', '673', '674', '675', '676', '677', '678', '679', // MTN ranges 67X
+      '680', '681', '682', '683'                   // MTN ranges 68X
+    ];
     const isValidMTN = mtnPrefixes.some(prefix => nationalNumber.startsWith(prefix));
     
     if (!isValidMTN) {
