@@ -1,65 +1,91 @@
 /**
- * SERVICE MTN MOBILE MONEY - API OFFICIELLE COLLECTIONS
+ * SERVICE Y-NOTE MTN MOBILE MONEY - API OFFICIELLE
  * 
  * Fonctionnalités:
- * - API MTN MoMo Collections officielle (RequestToPay)
- * - Support sandbox et production
- * - Authentification Basic auth (USER_ID:API_KEY)
- * - Webhooks pour notifications
- * - Validation des numéros MTN Cameroun
+ * - API Y-Note pour MTN Mobile Money Cameroun
+ * - Authentification OAuth2 avec client credentials
+ * - Support des paiements web MTN_CMR
+ * - Webhook pour notifications de paiement
+ * - Vérification de statut des transactions
  * 
- * Documentation: https://momodeveloper.mtn.com/docs/services/collection/
+ * Documentation: https://omapi.ynote.africa/
  */
 
 import axios, { AxiosResponse } from 'axios';
 import crypto from 'crypto';
 
-interface MTNAccessToken {
+interface YNoteAccessToken {
   access_token: string;
   token_type: string;
   expires_in: number;
   created_at: number; // Timestamp de création
 }
 
-interface MTNRequestToPayRequest {
-  amount: string;
-  currency: string;
-  externalId: string;
-  payer: {
-    partyIdType: 'msisdn';
-    partyId: string;
+interface YNotePaymentRequest {
+  API_MUT: {
+    notifUrl: string;
+    subscriberMsisdn: string;
+    description: string;
+    amount: string;
+    order_id: string;
+    customersecret: string;
+    customerkey: string;
+    PaiementMethod: string;
   };
-  payerMessage?: string;
-  payeeNote?: string;
 }
 
-interface MTNRequestToPayResponse {
-  status: 'PENDING' | 'SUCCESSFUL' | 'FAILED';
-  amount: string;
-  currency: string;
-  externalId: string;
-  payer: {
-    partyIdType: string;
-    partyId: string;
+interface YNotePaymentResponse {
+  ErrorCode: number;
+  body: string;
+  parameters?: {
+    operation: string;
+    currency: string;
+    amount: string;
+    subscriberMsisdn: string;
+    order_id: string;
+    notifUrl: string;
   };
-  payerMessage?: string;
-  payeeNote?: string;
-  reason?: string;
+  MessageId: string;
+  status: string;
 }
 
-interface MTNEnvironmentConfig {
-  SUBSCRIPTION_KEY: string;
-  USER_ID: string;
-  API_KEY: string;
-  TARGET_ENV: string;
-  BASE_URL: string;
+interface YNoteStatusRequest {
+  customerkey: string;
+  customersecret: string;
+  message_id: string;
+}
+
+interface YNoteStatusResponse {
+  updateDate: string;
+  currency: string;
+  operation: string;
+  notifUrl: string;
+  paytoken: string;
+  status: string;
+  paymentRef: string;
+  message: string;
+  creationDate: string;
+  customer_key: string;
+  request_id: string;
+  amount: string;
+  subscriberMsisdn: string;
+}
+
+interface YNoteEnvironmentConfig {
+  CLIENT_ID: string;
+  CLIENT_SECRET: string;
+  CUSTOMER_KEY: string;
+  CUSTOMER_SECRET: string;
+  TOKEN_URL: string;
+  PAYMENT_URL: string;
+  STATUS_URL: string;
 }
 
 export class MTNMobileMoneyService {
   private static instance: MTNMobileMoneyService;
-  private token: MTNAccessToken | null = null;
+  private token: YNoteAccessToken | null = null;
   private readonly environment: string;
-  private readonly config: MTNEnvironmentConfig;
+  private readonly config: YNoteEnvironmentConfig;
   private readonly callbackBase: string;
 
   private constructor() {
@@ -67,45 +93,33 @@ export class MTNMobileMoneyService {
     this.environment = process.env.MOMO_ENV || 'sandbox';
     this.callbackBase = process.env.BASE_URL || 'https://your-replit-app.replit.dev';
     
-    // Configuration selon l'environnement
-    if (this.environment === 'production') {
-      this.config = {
-        SUBSCRIPTION_KEY: process.env.MOMO_SUBSCRIPTION_KEY_PROD || '',
-        USER_ID: process.env.MOMO_USER_ID_PROD || '',
-        API_KEY: process.env.MOMO_API_KEY_PROD || '',
-        TARGET_ENV: process.env.MOMO_TARGET_ENV_PROD || 'mtncameroon',
-        BASE_URL: process.env.MOMO_BASE_PROD || 'https://proxy.momodeveloper.mtn.com'
-      };
-    } else {
-      this.config = {
-        SUBSCRIPTION_KEY: process.env.MOMO_SUBSCRIPTION_KEY || process.env.MTN_CUSTOMER_KEY || '',
-        USER_ID: process.env.MOMO_USER_ID || process.env.MTN_CLIENT_ID || '',
-        API_KEY: process.env.MOMO_API_KEY || process.env.MTN_CLIENT_SECRET || '',
-        TARGET_ENV: process.env.MOMO_TARGET_ENV || 'sandbox',
-        BASE_URL: process.env.MOMO_BASE || 'https://sandbox.momodeveloper.mtn.com'
-      };
-    }
+    // Configuration Y-Note (même endpoints pour sandbox et production)
+    this.config = {
+      CLIENT_ID: process.env.MOMO_USER_ID || process.env.MTN_CLIENT_ID || '',
+      CLIENT_SECRET: process.env.MOMO_API_KEY || process.env.MTN_CLIENT_SECRET || '',
+      CUSTOMER_KEY: process.env.MOMO_SUBSCRIPTION_KEY || process.env.MTN_CUSTOMER_KEY || '',
+      CUSTOMER_SECRET: process.env.MOMO_CUSTOMER_SECRET || process.env.MTN_CUSTOMER_SECRET || '',
+      TOKEN_URL: 'https://omapi-token.ynote.africa/oauth2/token',
+      PAYMENT_URL: 'https://omapi.ynote.africa/prod/webpayment',
+      STATUS_URL: 'https://omapi.ynote.africa/prod/webpaymentmtn/status'
+    };
     
     // Validation des credentials
-    if (!this.config.SUBSCRIPTION_KEY || !this.config.USER_ID || !this.config.API_KEY) {
-      console.error('[MTN] ❌ MTN MoMo credentials not found for environment:', this.environment);
-      console.error('[MTN] 🔍 Expected variables:');
-      if (this.environment === 'production') {
-        console.error('[MTN] - MOMO_SUBSCRIPTION_KEY_PROD');
-        console.error('[MTN] - MOMO_USER_ID_PROD');
-        console.error('[MTN] - MOMO_API_KEY_PROD');
-      } else {
-        console.error('[MTN] - MOMO_SUBSCRIPTION_KEY (or MTN_CUSTOMER_KEY)');
-        console.error('[MTN] - MOMO_USER_ID (or MTN_CLIENT_ID)');
-        console.error('[MTN] - MOMO_API_KEY (or MTN_CLIENT_SECRET)');
-      }
-      throw new Error(`MTN MoMo credentials not configured for ${this.environment}`);
+    if (!this.config.CLIENT_ID || !this.config.CLIENT_SECRET || !this.config.CUSTOMER_KEY || !this.config.CUSTOMER_SECRET) {
+      console.error('[Y-NOTE] ❌ Y-Note credentials not found for environment:', this.environment);
+      console.error('[Y-NOTE] 🔍 Expected variables:');
+      console.error('[Y-NOTE] - MOMO_USER_ID (or MTN_CLIENT_ID) - ClientId');
+      console.error('[Y-NOTE] - MOMO_API_KEY (or MTN_CLIENT_SECRET) - ClientSecret');
+      console.error('[Y-NOTE] - MOMO_SUBSCRIPTION_KEY (or MTN_CUSTOMER_KEY) - CustomerKey');
+      console.error('[Y-NOTE] - MOMO_CUSTOMER_SECRET (or MTN_CUSTOMER_SECRET) - CustomerSecret');
+      throw new Error(`Y-Note MTN credentials not configured for ${this.environment}`);
     }
     
-    console.log(`[MTN] ✅ MTN MoMo Collections API initialized (${this.environment})`);
-    console.log(`[MTN] 🌍 Target Environment: ${this.config.TARGET_ENV}`);
-    console.log(`[MTN] 🔗 Base URL: ${this.config.BASE_URL}`);
-    console.log(`[MTN] 🔑 User ID: ${this.config.USER_ID.substring(0, 8)}...`);
+    console.log(`[Y-NOTE] ✅ Y-Note MTN Mobile Money API initialized (${this.environment})`);
+    console.log(`[Y-NOTE] 🔗 Token URL: ${this.config.TOKEN_URL}`);
+    console.log(`[Y-NOTE] 🔗 Payment URL: ${this.config.PAYMENT_URL}`);
+    console.log(`[Y-NOTE] 🔑 Client ID: ${this.config.CLIENT_ID.substring(0, 8)}...`);
+    console.log(`[Y-NOTE] 🔑 Customer Key: ${this.config.CUSTOMER_KEY.substring(0, 8)}...`);
   }
 
   public static getInstance(): MTNMobileMoneyService {
@@ -116,24 +130,23 @@ export class MTNMobileMoneyService {
   }
 
   /**
-   * Récupération de l'Access Token via l'API Collections MTN
-   * Utilise Basic Auth avec USER_ID:API_KEY
+   * Étape 1: Récupération de l'Access Token Y-Note
+   * Utilise Basic Auth avec CLIENT_ID:CLIENT_SECRET
    */
   private async getAccessToken(): Promise<string> {
     try {
-      console.log('[MTN] 🔑 Requesting Collections access token...');
+      console.log('[Y-NOTE] 🔑 Requesting access token...');
       
-      // Créer l'authentification Basic Auth (USER_ID:API_KEY)
-      const credentials = Buffer.from(`${this.config.USER_ID}:${this.config.API_KEY}`).toString('base64');
+      // Créer l'authentification Basic Auth (CLIENT_ID:CLIENT_SECRET)
+      const credentials = Buffer.from(`${this.config.CLIENT_ID}:${this.config.CLIENT_SECRET}`).toString('base64');
       
-      const response: AxiosResponse<MTNAccessToken> = await axios.post(
-        `${this.config.BASE_URL}/collection/token/`,
-        {},
+      const response: AxiosResponse<YNoteAccessToken> = await axios.post(
+        this.config.TOKEN_URL,
+        'grant_type=client_credentials',
         {
           headers: {
             'Authorization': `Basic ${credentials}`,
-            'Ocp-Apim-Subscription-Key': this.config.SUBSCRIPTION_KEY,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/x-www-form-urlencoded'
           },
           timeout: 10000
         }
@@ -147,13 +160,13 @@ export class MTNMobileMoneyService {
         created_at: Date.now()
       };
       
-      console.log('[MTN] ✅ Collections access token obtained successfully');
-      console.log(`[MTN] 📅 Token expires in: ${tokenData.expires_in} seconds`);
+      console.log('[Y-NOTE] ✅ Access token obtained successfully');
+      console.log(`[Y-NOTE] 📅 Token expires in: ${tokenData.expires_in} seconds`);
       
       return tokenData.access_token;
     } catch (error: any) {
-      console.error('[MTN] ❌ Failed to get Collections access token:', error.response?.data || error.message);
-      throw new Error(`MTN Collections authentication failed: ${error.response?.data || error.message}`);
+      console.error('[Y-NOTE] ❌ Failed to get access token:', error.response?.data || error.message);
+      throw new Error(`Y-Note authentication failed: ${error.response?.data || error.message}`);
     }
   }
 
@@ -166,7 +179,7 @@ export class MTNMobileMoneyService {
     
     if (!this.token || 
         (now - this.token.created_at) / 1000 > (this.token.expires_in - tokenExpiryBuffer)) {
-      console.log('[MTN] 🔄 Token expired or missing, refreshing...');
+      console.log('[Y-NOTE] 🔄 Token expired or missing, refreshing...');
       return await this.getAccessToken();
     }
     
@@ -190,32 +203,33 @@ export class MTNMobileMoneyService {
   }
 
   /**
-   * Formater un numéro de téléphone pour l'API MTN
+   * Formater un numéro de téléphone pour l'API Y-Note
+   * Y-Note accepte les numéros sans l'indicatif pays
    */
   public formatPhoneNumber(phoneNumber: string): string {
     // Nettoyer et standardiser le format
     let cleaned = phoneNumber.replace(/[\s\-\+]/g, '');
     
-    // Ajouter l'indicatif si manquant
-    if (!cleaned.startsWith('237') && cleaned.length === 9) {
-      cleaned = '237' + cleaned;
+    // Supprimer l'indicatif 237 si présent
+    if (cleaned.startsWith('237') && cleaned.length === 12) {
+      cleaned = cleaned.substring(3);
     }
     
     return cleaned;
   }
 
   /**
-   * Générer un ID externe unique pour les transactions
+   * Générer un ID de commande unique pour les transactions
    */
-  private generateExternalId(prefix: string = 'PAY'): string {
+  private generateOrderId(prefix: string = 'EDU'): string {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
     return `${prefix}_${timestamp}_${random}`.toUpperCase();
   }
 
   /**
-   * Créer un paiement d'abonnement via MTN Collections RequestToPay
-   * Déclenche un popup USSD officiel sur le téléphone MTN du client
+   * Étape 2: Créer un paiement d'abonnement via Y-Note Web Payment
+   * Utilise l'API Y-Note pour déclencher un paiement MTN Mobile Money
    */
   public async createSubscriptionPayment(params: {
     amount: number;
@@ -228,11 +242,12 @@ export class MTNMobileMoneyService {
     success: boolean;
     transactionId?: string;
     txRef?: string;
+    messageId?: string;
     instructions?: string;
     error?: string;
   }> {
     try {
-      console.log('[MTN] 🚀 Creating MTN Collections RequestToPay:', {
+      console.log('[Y-NOTE] 🚀 Creating Y-Note MTN payment:', {
         amount: params.amount,
         currency: params.currency,
         planName: params.planName,
@@ -245,93 +260,99 @@ export class MTNMobileMoneyService {
         throw new Error('Numéro de téléphone MTN invalide');
       }
 
-      // Formater le numéro (sans indicatif pour l'API MTN)
-      const formattedPhone = this.formatPhoneNumber(params.phoneNumber).replace(/^237/, '');
+      // Formater le numéro (sans indicatif pour Y-Note)
+      const formattedPhone = this.formatPhoneNumber(params.phoneNumber);
       
-      // Générer un ID externe et une référence de transaction unique
-      const externalId = this.generateExternalId('SUB');
-      const txRef = crypto.randomUUID();
+      // Générer un ID de commande unique
+      const orderId = this.generateOrderId('SUB');
       
       // Obtenir un token valide
       const accessToken = await this.ensureValidToken();
 
-      // Créer la demande RequestToPay officielle MTN
-      const requestToPayBody: MTNRequestToPayRequest = {
-        amount: params.amount.toString(),
-        currency: params.currency,
-        externalId: externalId,
-        payer: {
-          partyIdType: 'msisdn',
-          partyId: formattedPhone
-        },
-        payerMessage: `Abonnement EDUCAFRIC - ${params.planName}`,
-        payeeNote: `Paiement ${params.planName} - ${params.amount} ${params.currency}`
+      // Créer la demande de paiement Y-Note selon la documentation
+      const paymentRequest: YNotePaymentRequest = {
+        API_MUT: {
+          notifUrl: params.callbackUrl,
+          subscriberMsisdn: formattedPhone,
+          description: `Abonnement EDUCAFRIC - ${params.planName}`,
+          amount: params.amount.toString(),
+          order_id: orderId,
+          customersecret: this.config.CUSTOMER_SECRET,
+          customerkey: this.config.CUSTOMER_KEY,
+          PaiementMethod: 'MTN_CMR'
+        }
       };
 
-      console.log('[MTN] 📤 Sending RequestToPay to MTN Collections API...');
+      console.log('[Y-NOTE] 📤 Sending payment request to Y-Note API...');
+      console.log(`[Y-NOTE] 📱 Phone: ${formattedPhone}, Amount: ${params.amount} ${params.currency}`);
+      console.log(`[Y-NOTE] 🆔 Order ID: ${orderId}`);
       
-      const response = await axios.post(
-        `${this.config.BASE_URL}/collection/v1_0/requesttopay`,
-        requestToPayBody,
+      const response = await axios.post<YNotePaymentResponse>(
+        this.config.PAYMENT_URL,
+        paymentRequest,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
-            'X-Reference-Id': txRef,
-            'X-Target-Environment': this.config.TARGET_ENV,
-            'Ocp-Apim-Subscription-Key': this.config.SUBSCRIPTION_KEY,
-            'Content-Type': 'application/json',
-            ...(params.callbackUrl ? { 'X-Callback-Url': params.callbackUrl } : {})
+            'Content-Type': 'application/json'
           },
           timeout: 30000
         }
       );
 
-      if (response.status === 202) {
-        console.log('[MTN] ✅ RequestToPay accepted by MTN');
-        console.log(`[MTN] 📱 Official USSD prompt sent to: ${params.phoneNumber}`);
-        console.log(`[MTN] 🆔 Transaction Reference: ${txRef}`);
-        console.log(`[MTN] 🔗 External ID: ${externalId}`);
+      const paymentData = response.data;
+
+      if (paymentData.ErrorCode === 200 && (paymentData.status === 'SUCCESSFUL' || paymentData.body?.includes('Pay Request Accepted'))) {
+        console.log('[Y-NOTE] ✅ Payment request accepted by Y-Note');
+        console.log(`[Y-NOTE] 📱 MTN payment request sent to: ${params.phoneNumber}`);
+        console.log(`[Y-NOTE] 🆔 Message ID: ${paymentData.MessageId}`);
+        console.log(`[Y-NOTE] 🔗 Order ID: ${orderId}`);
 
         return {
           success: true,
-          transactionId: externalId,
-          txRef: txRef,
-          instructions: `Un popup USSD officiel MTN a été envoyé sur votre téléphone (${params.phoneNumber}). Suivez les instructions à l'écran pour confirmer le paiement de ${params.amount} ${params.currency} avec votre code PIN MTN.`
+          transactionId: orderId,
+          txRef: paymentData.MessageId,
+          messageId: paymentData.MessageId,
+          instructions: `Une demande de paiement MTN Mobile Money a été envoyée sur votre téléphone (${params.phoneNumber}). Vérifiez votre téléphone et suivez les instructions pour confirmer le paiement de ${params.amount} ${params.currency}.`
         };
       } else {
-        const errorDetail = await response.data;
-        throw new Error(`MTN RequestToPay failed (${response.status}): ${JSON.stringify(errorDetail)}`);
+        throw new Error(`Y-Note payment request failed (${paymentData.ErrorCode}): ${paymentData.body || paymentData.status}`);
       }
     } catch (error: any) {
-      console.error('[MTN] ❌ Error creating MTN RequestToPay:', error.response?.data || error.message);
+      console.error('[Y-NOTE] ❌ Error creating payment request:', error.response?.data || error.message);
       return {
         success: false,
-        error: error.message || 'Erreur lors de la création du RequestToPay MTN'
+        error: error.message || 'Erreur lors de la création du paiement Y-Note'
       };
     }
   }
 
   /**
-   * Vérifier le statut d'une transaction MTN Collections
+   * Vérifier le statut d'une transaction Y-Note
    */
-  public async getTransactionStatus(txRef: string): Promise<{
+  public async getTransactionStatus(messageId: string): Promise<{
     success: boolean;
     status?: string;
-    transaction?: MTNRequestToPayResponse;
+    transaction?: YNoteStatusResponse;
     error?: string;
   }> {
     try {
-      console.log(`[MTN] 🔍 Checking transaction status: ${txRef}`);
+      console.log(`[Y-NOTE] 🔍 Checking transaction status: ${messageId}`);
       
       const accessToken = await this.ensureValidToken();
       
-      const response = await axios.get<MTNRequestToPayResponse>(
-        `${this.config.BASE_URL}/collection/v1_0/requesttopay/${txRef}`,
+      const statusRequest: YNoteStatusRequest = {
+        customerkey: this.config.CUSTOMER_KEY,
+        customersecret: this.config.CUSTOMER_SECRET,
+        message_id: messageId
+      };
+      
+      const response = await axios.post<YNoteStatusResponse>(
+        this.config.STATUS_URL,
+        statusRequest,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
-            'X-Target-Environment': this.config.TARGET_ENV,
-            'Ocp-Apim-Subscription-Key': this.config.SUBSCRIPTION_KEY
+            'Content-Type': 'application/json'
           },
           timeout: 10000
         }
@@ -339,7 +360,7 @@ export class MTNMobileMoneyService {
 
       const transaction = response.data;
       
-      console.log(`[MTN] 📊 Transaction status: ${transaction.status}`);
+      console.log(`[Y-NOTE] 📊 Transaction status: ${transaction.status}`);
       
       return {
         success: true,
@@ -347,7 +368,7 @@ export class MTNMobileMoneyService {
         transaction: transaction
       };
     } catch (error: any) {
-      console.error('[MTN] ❌ Error checking transaction status:', error.response?.data || error.message);
+      console.error('[Y-NOTE] ❌ Error checking transaction status:', error.response?.data || error.message);
       return {
         success: false,
         error: error.message || 'Erreur lors de la vérification du statut'
@@ -356,24 +377,24 @@ export class MTNMobileMoneyService {
   }
 
   /**
-   * Test de connectivité avec l'API MTN Collections
+   * Test de connectivité avec l'API Y-Note
    */
   public async testConnection(): Promise<boolean> {
     try {
-      console.log('[MTN] 🧪 Testing MTN Collections API connection...');
+      console.log('[Y-NOTE] 🧪 Testing Y-Note API connection...');
       
       // Tenter d'obtenir un token pour valider la connectivité
       const token = await this.getAccessToken();
       
       if (token) {
-        console.log('[MTN] ✅ Connection test successful');
+        console.log('[Y-NOTE] ✅ Connection test successful');
         return true;
       } else {
-        console.log('[MTN] ❌ Connection test failed - no token received');
+        console.log('[Y-NOTE] ❌ Connection test failed - no token received');
         return false;
       }
     } catch (error: any) {
-      console.error('[MTN] ❌ Connection test failed:', error.message);
+      console.error('[Y-NOTE] ❌ Connection test failed:', error.message);
       return false;
     }
   }
