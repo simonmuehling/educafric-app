@@ -217,6 +217,14 @@ router.post('/webhook', async (req, res) => {
     // Détecter le statut réel (peut être 'status' ou 'Status')
     const actualStatus = Status || status;
     
+    // Debug logging to understand the status detection
+    console.log('[Y-NOTE_WEBHOOK] 🔍 Status debug:', { 
+      Status, 
+      status, 
+      actualStatus, 
+      ErrorCode 
+    });
+    
     if (ErrorCode === 200 && (actualStatus === 'SUCCESSFUL' || body?.includes('SUCCESSFUL'))) {
       const { order_id, amount, subscriberMsisdn } = parameters || {};
       
@@ -288,32 +296,8 @@ router.post('/webhook', async (req, res) => {
         messageId: MessageId 
       });
       
-      // Mettre à jour le statut du paiement en base de données
-      if (order_id) {
-        try {
-          // Rechercher le paiement par référence (order_id)
-          const existingPayment = await db.select()
-            .from(payments)
-            .where(eq(payments.reference, order_id))
-            .limit(1);
-          
-          if (existingPayment.length > 0) {
-            // Mettre à jour le statut
-            await db.update(payments)
-              .set({ 
-                statut: 'ECHOUE',
-                dateUpdate: new Date()
-              })
-              .where(eq(payments.reference, order_id));
-            
-            console.log('[Y-NOTE_WEBHOOK] ✅ Payment status updated to ECHOUE for order:', order_id);
-          } else {
-            console.log('[Y-NOTE_WEBHOOK] ⚠️ Payment not found in database for order:', order_id);
-          }
-        } catch (dbError: any) {
-          console.error('[Y-NOTE_WEBHOOK] ❌ Database update error:', dbError.message);
-        }
-      }
+      // TODO: Intégrer avec le système de stockage des paiements MTN
+      console.log('[Y-NOTE_WEBHOOK] 💾 Should update payment status to ECHOUE for order:', order_id);
       
       res.status(200).json({
         success: true,
