@@ -7,6 +7,7 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { mtnService, ValidationError } from '../services/mtnMobileMoneyService';
 import { subscriptionPlans } from '../services/stripeService';
+import { subscriptionActivationService } from '../services/subscriptionActivationService';
 import { subscriptionManager } from '../services/subscriptionManager';
 import { PaymentNotificationService } from '../services/paymentNotificationService';
 
@@ -221,15 +222,45 @@ router.post('/webhook', async (req, res) => {
       });
       
       // Extraire le plan du order_id
-      const planMatch = order_id?.match(/SUB_(\d+)_/);
-      if (planMatch) {
+      const planMatch = order_id?.match(/SUB_([^_]+)_/);
+      if (planMatch && subscriberMsisdn && amount) {
         const planId = planMatch[1];
         
-        // Activer l'abonnement (à implémenter)
-        console.log(`[Y-NOTE_WEBHOOK] 🎯 Should activate subscription for plan: ${planId}`);
+        console.log(`[Y-NOTE_WEBHOOK] 🎯 Activating subscription for plan: ${planId}`);
         
-        // Envoyer notification de succès
-        console.log('[Y-NOTE_WEBHOOK] 📧 Should send success notification');
+        // Activer l'abonnement via le service
+        try {
+          const activationResult = await subscriptionActivationService.activateSubscriptionFromMTNPayment({
+            phoneNumber: subscriberMsisdn,
+            planId,
+            amount: parseFloat(amount),
+            currency: parameters.currency || 'XAF',
+            orderId: order_id,
+            transactionId: MessageId,
+            paymentMethod: 'mtn_mobile_money'
+          });
+
+          if (activationResult.success) {
+            console.log('[Y-NOTE_WEBHOOK] ✅ Subscription activated successfully:', {
+              userId: activationResult.userId,
+              planId,
+              phone: subscriberMsisdn
+            });
+            
+            // Envoyer notification de succès
+            console.log('[Y-NOTE_WEBHOOK] 📧 Should send success notification to user');
+          } else {
+            console.log('[Y-NOTE_WEBHOOK] ❌ Subscription activation failed:', activationResult.message);
+          }
+        } catch (activationError: any) {
+          console.error('[Y-NOTE_WEBHOOK] ❌ Subscription activation error:', activationError.message);
+        }
+      } else {
+        console.log('[Y-NOTE_WEBHOOK] ⚠️ Missing required data for subscription activation:', {
+          planMatch: !!planMatch,
+          subscriberMsisdn: !!subscriberMsisdn,
+          amount: !!amount
+        });
       }
       
       // Réponse à Y-Note pour confirmer réception
