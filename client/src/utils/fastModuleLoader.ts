@@ -270,7 +270,7 @@ class FastModuleLoader {
       'profile': () => import('@/components/shared/UnifiedProfileManager'), // Generic profile fallback
       'messages': () => import('@/components/shared/InterProfileCommunications'), // Generic messages fallback  
       'communications': () => import('@/components/shared/CommunicationsCenter'), // Generic communications fallback
-      'help': () => import('@/components/shared/UnifiedProfileManager'), // Generic help module fallback
+      'help': () => import('@/components/teacher/TeacherHelp'), // Teacher-specific help module
       'settings': () => import('@/components/shared/UnifiedProfileManager') // Generic settings fallback
     };
 
