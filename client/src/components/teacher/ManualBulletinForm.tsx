@@ -154,13 +154,45 @@ const BILINGUAL_LABELS = {
     subject: 'Matière',
     coefficient: 'Coefficient',
     grade: 'Note',
-    appreciation: 'Appréciation'
+    appreciation: 'Appréciation',
+    bulletinTitle: 'BULLETIN SCOLAIRE',
+    trimester: 'TRIMESTRE',
+    academicYear: 'ANNÉE SCOLAIRE',
+    firstName: 'Prénom et Nom',
+    class: 'Classe',
+    birthInfo: 'Né(e) le',
+    gender: 'Sexe',
+    uniqueId: 'Matricule',
+    repeater: 'Redoublant',
+    classSize: 'Effectif',
+    mainTeacher: 'Professeur Principal',
+    parents: 'Parents/Tuteurs',
+    parameters: 'Paramètres',
+    prefillCompetencies: 'Préremplir compétences',
+    addSubject: 'Ajouter matière',
+    generalAverage: 'Moyenne générale'
   },
   en: {
     subject: 'Subject',
     coefficient: 'Coefficient', 
     grade: 'Grade',
-    appreciation: 'Appreciation'
+    appreciation: 'Appreciation',
+    bulletinTitle: 'SCHOOL REPORT CARD',
+    trimester: 'TERM',
+    academicYear: 'ACADEMIC YEAR',
+    firstName: 'First and Last Name',
+    class: 'Class',
+    birthInfo: 'Born on',
+    gender: 'Gender',
+    uniqueId: 'Student ID',
+    repeater: 'Repeating',
+    classSize: 'Class Size',
+    mainTeacher: 'Main Teacher',
+    parents: 'Parents/Guardians',
+    parameters: 'Parameters',
+    prefillCompetencies: 'Prefill competencies',
+    addSubject: 'Add subject',
+    generalAverage: 'General average'
   }
 };
 
