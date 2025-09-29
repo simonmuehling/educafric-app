@@ -879,8 +879,8 @@ export default function ManualBulletinForm({
         m20: Number(r.note2) || null,
         coef: Number(r.coef) || 0,
         mxcoef: Number(r.note2 || 0) * Number(r.coef || 0),
-        cote: r.cote || (r.note2 !== '' && r.note2 != null ? coteFromNote(r.note2) : ''),
-        appreciation: r.appreciation || (r.note2 !== '' && r.note2 != null ? appreciationFromNote(r.note2, predefinedAppreciations) : ''),
+        cote: r.cote || (r.note2 !== '' && r.note2 != null ? coteFromNote(Number(r.note2)) : ''),
+        appreciation: r.appreciation || (r.note2 !== '' && r.note2 != null ? appreciationFromNote(Number(r.note2), predefinedAppreciations) : ''),
       })),
       totaux: totals,
       discipline: {
@@ -1106,7 +1106,7 @@ export default function ManualBulletinForm({
             <tbody>
               {rows.map((r, i) => {
                 // Use manually entered values - no automatic calculation (EXACT from academic interface)
-                const moyenneFinale = r.moyenneFinale || 0;
+                const moyenneFinale = Number(r.moyenneFinale) || 0;
                 const totalPondere = round2(moyenneFinale * (Number(r.coef) || 0));
                 const notePercent = round2((moyenneFinale / 20) * 100);
                 const cote = coteFromNote(moyenneFinale);
