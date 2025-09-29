@@ -986,7 +986,7 @@ export default function ManualBulletinForm({
                 {eleve?.photoUrl ? (
                   <img 
                     src={eleve.photoUrl} 
-                    alt={`Photo de ${eleve.nom}`} 
+                    alt={`Photo de ${eleve?.nom || 'élève'}`} 
                     className="w-full h-full object-cover rounded-lg"
                     data-testid="student-photo"
                   />
@@ -1013,15 +1013,15 @@ export default function ManualBulletinForm({
             </div>
           </div>
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <Info label={t('firstName')} value={eleve.nom} />
-            <Info label={t('class')} value={eleve.classe} />
-            <Info label={t('birthInfo')} value={`${eleve.dateNaissance} à ${eleve.lieuNaissance}`} />
-            <Info label={t('gender')} value={eleve.sexe} />
-            <Info label={t('uniqueId')} value={eleve.identifiantUnique} />
-            <Info label={t('repeater')} value={eleve.redoublant ? (language === 'fr' ? "Oui" : "Yes") : (language === 'fr' ? "Non" : "No")} />
-            <Info label={t('classSize')} value={String(eleve.effectif)} />
-            <Info label={t('mainTeacher')} value={eleve.professeurPrincipal} />
-            <Info label={t('parents')} value={`${eleve.parents.noms} – ${eleve.parents.contacts}`} className="sm:col-span-2" />
+            <Info label={t('firstName')} value={eleve?.nom || ''} />
+            <Info label={t('class')} value={eleve?.classe || ''} />
+            <Info label={t('birthInfo')} value={eleve ? `${eleve.dateNaissance} à ${eleve.lieuNaissance}` : ''} />
+            <Info label={t('gender')} value={eleve?.sexe || ''} />
+            <Info label={t('uniqueId')} value={eleve?.identifiantUnique || ''} />
+            <Info label={t('repeater')} value={eleve?.redoublant ? (language === 'fr' ? "Oui" : "Yes") : (language === 'fr' ? "Non" : "No")} />
+            <Info label={t('classSize')} value={String(eleve?.effectif || 0)} />
+            <Info label={t('mainTeacher')} value={eleve?.professeurPrincipal || ''} />
+            <Info label={t('parents')} value={eleve?.parents ? `${eleve.parents.noms} – ${eleve.parents.contacts}` : ''} className="sm:col-span-2" />
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow p-4">
