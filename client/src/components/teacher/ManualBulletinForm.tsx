@@ -766,6 +766,7 @@ export default function ManualBulletinForm({
       enseignant: "", 
       competence1: "", 
       competence2: "", 
+      competence3: "",  // Ajout de la propriété manquante
       note1: "", 
       note2: "", 
       moyenneFinale: "",
