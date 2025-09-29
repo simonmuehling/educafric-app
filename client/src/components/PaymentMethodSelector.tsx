@@ -105,8 +105,8 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
 
     try {
       toast({
-        title: "📱 Envoi popup USSD...",
-        description: "Déclenchement du menu USSD sur votre téléphone...",
+        title: "📱 Initialisation paiement Y-Note...",
+        description: "Connexion à l'API Y-Note MTN en cours...",
       });
 
       const response = await fetch('/api/mtn-payments/create-payment', {
@@ -119,27 +119,35 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
           currency: currency,
           planName: planName,
           phoneNumber: phoneNumber,
-          callbackUrl: `${window.location.origin}/subscription-success?plan=${planName}`,
-          returnUrl: `${window.location.origin}/subscribe`
+          callbackUrl: `${window.location.origin}/api/mtn-payments/webhook`,
+          returnUrl: `${window.location.origin}/subscription-success?plan=${planName}`
         })
       });
 
       const data = await response.json();
       
       if (data.success) {
-        setPaymentInstructions(data.instructions);
-        toast({
-          title: "📱 Popup USSD envoyé !",
-          description: "Vérifiez l'écran de votre téléphone MTN pour confirmer",
-          variant: "default",
-        });
+        // Y-Note renvoie un objet avec paymentUrl et instructions
+        if (data.paymentUrl) {
+          // Rediriger vers l'URL de paiement Y-Note
+          window.location.href = data.paymentUrl;
+        } else {
+          // Afficher les instructions Y-Note
+          setPaymentInstructions(data.instructions || "Paiement Y-Note initié avec succès. Vérifiez votre téléphone MTN.");
+          toast({
+            title: "✅ Paiement Y-Note initié !",
+            description: "Vérifiez votre téléphone MTN pour confirmer le paiement",
+            variant: "default",
+          });
+        }
       } else {
-        throw new Error(data.message || 'Erreur lors de la création du paiement MTN');
+        throw new Error(data.message || 'Erreur lors de la création du paiement Y-Note MTN');
       }
     } catch (error: any) {
+      console.error('[Y-NOTE_FRONTEND] ❌ Payment creation failed:', error);
       toast({
-        title: "❌ Erreur MTN",
-        description: error.message || "Impossible de créer le paiement MTN",
+        title: "❌ Erreur Y-Note MTN",
+        description: error.message || "Impossible de créer le paiement Y-Note MTN",
         variant: "destructive",
       });
     }
