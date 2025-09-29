@@ -221,8 +221,8 @@ router.post('/webhook', async (req, res) => {
         messageId: MessageId 
       });
       
-      // Extraire le plan du order_id
-      const planMatch = order_id?.match(/SUB_([^_]+)_/);
+      // Extraire le plan du order_id (format: SUB_parent_public_monthly_20240929_final)
+      const planMatch = order_id?.match(/SUB_(.+?)_\d{8}/);
       if (planMatch && subscriberMsisdn && amount) {
         const planId = planMatch[1];
         
