@@ -287,13 +287,36 @@ const TeacherOnlineClasses: React.FC = () => {
     }
   });
 
+  // Fetch course-specific sessions for better granularity (matches director module)
+  const { data: courseSessions, isLoading: courseSessionsLoading } = useQuery({
+    queryKey: ['/api/online-classes/courses', selectedCourse?.id, 'sessions'],
+    queryFn: async () => {
+      if (!selectedCourse?.id) return null;
+      const response = await apiRequest('GET', `/api/online-classes/courses/${selectedCourse.id}/sessions`);
+      return response.json();
+    },
+    enabled: !!selectedCourse?.id
+  });
+
   // Create course mutation with teacher context
   const createCourseMutation = useMutation({
     mutationFn: async (courseData: typeof newCourseData) => {
+      // Validate selection guards to prevent NaN IDs
+      if (!selectedClass || !selectedSubject) {
+        throw new Error('Class and subject must be selected');
+      }
+      
+      const classId = parseInt(selectedClass, 10);
+      const subjectId = parseInt(selectedSubject, 10);
+      
+      if (isNaN(classId) || isNaN(subjectId)) {
+        throw new Error('Invalid class or subject selection');
+      }
+      
       const enrichedCourseData = {
         ...courseData,
-        classId: parseInt(selectedClass, 10),
-        subjectId: parseInt(selectedSubject, 10),
+        classId,
+        subjectId,
         language: language
       };
       console.log('[TEACHER_ONLINE_CLASSES] Creating course with data:', enrichedCourseData);
@@ -331,8 +354,10 @@ const TeacherOnlineClasses: React.FC = () => {
 
   // Create session mutation
   const createSessionMutation = useMutation({
-    mutationFn: ({ courseId, sessionData }: { courseId: number; sessionData: typeof newSessionData }) => 
-      apiRequest('POST', `/api/online-classes/courses/${courseId}/sessions`, sessionData),
+    mutationFn: async ({ courseId, sessionData }: { courseId: number; sessionData: typeof newSessionData }) => {
+      const response = await apiRequest('POST', `/api/online-classes/courses/${courseId}/sessions`, sessionData);
+      return response.json(); // Properly parse JSON response
+    },
     onSuccess: (response: any) => {
       toast({
         title: 'Succès',
@@ -351,7 +376,12 @@ const TeacherOnlineClasses: React.FC = () => {
         screenShareEnabled: true,
         startNow: false
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/school/sessions'] });
+      
+      // Properly invalidate teacher sessions and course-specific sessions
+      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/teacher/sessions'] });
+      if (selectedCourse) {
+        queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses', selectedCourse.id, 'sessions'] });
+      }
 
       // If session was started immediately, open join URL
       if (response?.joinUrl) {
@@ -369,14 +399,25 @@ const TeacherOnlineClasses: React.FC = () => {
 
   // Start session mutation
   const startSessionMutation = useMutation({
-    mutationFn: (sessionId: number) => 
-      apiRequest('POST', `/api/online-classes/sessions/${sessionId}/start`),
-    onSuccess: () => {
+    mutationFn: async (sessionId: number) => {
+      const response = await apiRequest('POST', `/api/online-classes/sessions/${sessionId}/start`);
+      return response.json();
+    },
+    onSuccess: (response: any) => {
       toast({
         title: 'Succès',
         description: t.sessionStarted
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/school/sessions'] });
+      // Properly invalidate teacher sessions and course-specific sessions
+      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/teacher/sessions'] });
+      if (selectedCourse) {
+        queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses', selectedCourse.id, 'sessions'] });
+      }
+      
+      // If join URL is provided, open it
+      if (response?.joinUrl) {
+        window.open(response.joinUrl, '_blank');
+      }
     },
     onError: () => {
       toast({
@@ -389,8 +430,10 @@ const TeacherOnlineClasses: React.FC = () => {
 
   // Join session mutation  
   const joinSessionMutation = useMutation({
-    mutationFn: (sessionId: number) => 
-      apiRequest('POST', `/api/online-classes/sessions/${sessionId}/join`),
+    mutationFn: async (sessionId: number) => {
+      const response = await apiRequest('POST', `/api/online-classes/sessions/${sessionId}/join`);
+      return response.json();
+    },
     onSuccess: (response: any) => {
       if (response?.joinUrl) {
         window.open(response.joinUrl, '_blank');
@@ -400,6 +443,32 @@ const TeacherOnlineClasses: React.FC = () => {
       toast({
         title: t.error,
         description: 'Échec de la génération du lien',
+        variant: "destructive"
+      });
+    }
+  });
+
+  // End session mutation
+  const endSessionMutation = useMutation({
+    mutationFn: async (sessionId: number) => {
+      const response = await apiRequest('POST', `/api/online-classes/sessions/${sessionId}/end`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Succès',
+        description: t.sessionEnded
+      });
+      // Properly invalidate teacher sessions and course-specific sessions
+      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/teacher/sessions'] });
+      if (selectedCourse) {
+        queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses', selectedCourse.id, 'sessions'] });
+      }
+    },
+    onError: () => {
+      toast({
+        title: t.error,
+        description: 'Échec de la terminaison de la session',
         variant: "destructive"
       });
     }
@@ -489,6 +558,12 @@ const TeacherOnlineClasses: React.FC = () => {
 
       const sessionData = JSON.parse(text);
       console.log('[TEACHER_ONLINE_CLASSES] Session created:', sessionData);
+
+      // Invalidate caches for consistency
+      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/teacher/sessions'] });
+      if (selectedCourse) {
+        queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses', selectedCourse.id, 'sessions'] });
+      }
 
       // Open Jitsi meeting room if join URL is provided
       if (sessionData.joinUrl) {
