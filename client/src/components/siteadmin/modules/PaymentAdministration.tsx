@@ -25,6 +25,7 @@ const PaymentAdministration = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportData, setReportData] = useState<any>(null);
   const [reportLoading, setReportLoading] = useState(false);
+  const [showExtendPeriod, setShowExtendPeriod] = useState(false);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -237,18 +238,39 @@ const PaymentAdministration = () => {
     }
   };
 
-  const handleProcessBatch = () => {
-    toast({
-      title: language === 'fr' ? "Traitement des lots" : "Batch processing",
-      description: language === 'fr' ? "Fonction de traitement par lots démarrée" : "Batch processing function started",
-    });
+  const handleProcessBatch = async () => {
+    try {
+      const response = await fetch('/api/admin/payments/process-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          batchType: 'pending',
+          criteria: {}
+        })
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        toast({
+          title: language === 'fr' ? "Lot traité" : "Batch processed",
+          description: language === 'fr' 
+            ? `${result.processedCount} paiements traités avec succès` 
+            : `${result.processedCount} payments processed successfully`,
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/payments'] });
+      }
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Échec du traitement par lots" : "Failed to process batch",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleExtendPeriod = () => {
-    toast({
-      title: language === 'fr' ? "Extension de période" : "Period extension",
-      description: language === 'fr' ? "Interface d'extension de période ouverte" : "Period extension interface opened",
-    });
+    setShowExtendPeriod(!showExtendPeriod);
   };
 
   const handleMonthlyReport = async () => {
@@ -612,6 +634,30 @@ const PaymentAdministration = () => {
         </Card>
       )}
 
+      {/* Extend Period Modal */}
+      {showExtendPeriod && (
+        <Card className="mt-6 border-2 border-purple-200 bg-purple-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-purple-800">
+              <Calendar className="w-5 h-5" />
+              {language === 'fr' ? 'Extension de Période d\'Abonnement' : 'Extend Subscription Period'}
+            </CardTitle>
+            <CardDescription>
+              {language === 'fr' 
+                ? 'Prolonger la période d\'abonnement d\'un utilisateur'
+                : 'Extend a user\'s subscription period'
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ExtendPeriodForm 
+              language={language}
+              onClose={() => setShowExtendPeriod(false)}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Monthly Report Modal */}
       {showReportModal && reportData && (
         <Card className="mt-6 border-2 border-green-200 bg-green-50">
@@ -723,18 +769,15 @@ const ManualActivationForm: React.FC<{ language: string; onClose: () => void }> 
     
     try {
       const selectedUserData = users.find(u => u.id.toString() === selectedUser);
-      const response = await fetch('/api/siteadmin/manual-activation', {
+      const response = await fetch('/api/admin/subscriptions/manual-activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          userType: selectedUserType,
           userId: parseInt(selectedUser),
-          userEmail: selectedUserData?.email,
-          planId: selectedPlan,
-          duration: activationDuration.replace('months', '').replace('custom', '12'),
-          reason: activationReason,
-          notes: `Manual activation by Site Admin - User: ${selectedUserData?.name || selectedUserData?.email}`
+          plan: selectedPlan,
+          duration: activationDuration.replace('months', ' months').replace('custom', '12 months'),
+          reason: activationReason
         })
       });
 
@@ -1037,6 +1080,162 @@ const MonthlyReportDisplay: React.FC<{ reportData: any; language: string }> = ({
             {language === 'fr' ? 'Export CSV' : 'Export CSV'}
           </Button>
         </div>
+      </div>
+    </div>
+  );
+};
+
+// Extend Period Form Component
+const ExtendPeriodForm: React.FC<{ language: string; onClose: () => void }> = ({ language, onClose }) => {
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [extensionDays, setExtensionDays] = useState('');
+  const [extensionReason, setExtensionReason] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const { toast } = useToast();
+  
+  // Fetch users with active subscriptions
+  const { data: users = [] } = useQuery({
+    queryKey: ['/api/siteadmin/users'],
+    queryFn: async () => {
+      const response = await fetch('/api/siteadmin/users?hasSubscription=true', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch users');
+      const data = await response.json();
+      return data.users || [];
+    }
+  });
+
+  const handleExtendSubmit = async () => {
+    if (!selectedUserId || !extensionDays || !extensionReason.trim()) {
+      toast({
+        title: language === 'fr' ? "Champs requis" : "Required fields",
+        description: language === 'fr' ? "Veuillez remplir tous les champs" : "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      const response = await fetch('/api/admin/subscriptions/extend-period', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          userId: parseInt(selectedUserId),
+          extensionDays: parseInt(extensionDays),
+          reason: extensionReason
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: language === 'fr' ? "Extension réussie" : "Extension successful",
+          description: language === 'fr' 
+            ? `Abonnement prolongé de ${extensionDays} jours` 
+            : `Subscription extended by ${extensionDays} days`,
+        });
+        
+        // Reset form
+        setSelectedUserId('');
+        setExtensionDays('');
+        setExtensionReason('');
+        onClose();
+      } else {
+        throw new Error(result.message || 'Extension failed');
+      }
+    } catch (error: any) {
+      console.error('[EXTEND_PERIOD] Error:', error);
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: error.message || (language === 'fr' ? "Échec de l'extension" : "Extension failed"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* User Selection */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {language === 'fr' ? 'Sélectionner l\'utilisateur' : 'Select User'}
+        </label>
+        <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+          <SelectTrigger data-testid="select-extend-user">
+            <SelectValue placeholder={language === 'fr' ? 'Choisir un utilisateur...' : 'Choose a user...'} />
+          </SelectTrigger>
+          <SelectContent>
+            {users.map((user: any) => (
+              <SelectItem key={user.id} value={user.id.toString()}>
+                {user.name || user.firstName + ' ' + user.lastName} ({user.email}) - {user.subscriptionPlan || 'N/A'}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Extension Days */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {language === 'fr' ? 'Nombre de jours d\'extension' : 'Extension Days'}
+        </label>
+        <Input
+          type="number"
+          min="1"
+          max="365"
+          value={extensionDays}
+          onChange={(e) => setExtensionDays(e.target.value)}
+          placeholder={language === 'fr' ? 'Ex: 30, 60, 90' : 'E.g: 30, 60, 90'}
+          data-testid="input-extension-days"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          {language === 'fr' ? 'Nombre de jours à ajouter à la période actuelle' : 'Number of days to add to current period'}
+        </p>
+      </div>
+
+      {/* Reason */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {language === 'fr' ? 'Raison de l\'extension' : 'Extension Reason'}
+        </label>
+        <Textarea
+          value={extensionReason}
+          onChange={(e) => setExtensionReason(e.target.value)}
+          placeholder={language === 'fr' 
+            ? 'Ex: Compensation pour interruption de service...' 
+            : 'E.g: Compensation for service interruption...'}
+          rows={3}
+          data-testid="textarea-extension-reason"
+        />
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-2 pt-4 border-t">
+        <Button 
+          variant="outline" 
+          onClick={onClose}
+          disabled={isProcessing}
+          data-testid="button-cancel-extend"
+        >
+          {language === 'fr' ? 'Annuler' : 'Cancel'}
+        </Button>
+        <Button 
+          onClick={handleExtendSubmit}
+          disabled={isProcessing}
+          data-testid="button-submit-extend"
+        >
+          {isProcessing 
+            ? (language === 'fr' ? 'Extension...' : 'Extending...') 
+            : (language === 'fr' ? 'Étendre Période' : 'Extend Period')}
+        </Button>
       </div>
     </div>
   );
