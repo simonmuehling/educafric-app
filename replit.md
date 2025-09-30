@@ -1,7 +1,7 @@
 # Educafric - African Educational Technology Platform
 
 ## Overview
-Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform designed for the African market. It integrates academic management, communication, and financial features to create a digital learning ecosystem. The platform aims to reduce costs for schools, improve educational outcomes, and support high concurrent user loads. Key differentiators include a payment model where Educafric pays schools and intelligent data separation. Its primary goal is to revolutionize education in Africa, aligning with UN Sustainable Development Goals, with ambitions for significant market penetration and becoming a complete educational solution.
+Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform designed for the African market. It integrates academic management, communication, and financial features to create a digital learning ecosystem. The platform aims to reduce costs for schools, improve educational outcomes, and support high concurrent user loads, ultimately revolutionizing education in Africa and aligning with UN Sustainable Development Goals. The project has ambitions for significant market penetration and becoming a complete educational solution.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -21,86 +21,12 @@ Preferred communication style: Simple, everyday language.
 - ✅ Commentaires de protection et alertes intégrés dans fastModuleLoader.ts
 - ⚠️ RÈGLE CRITIQUE : NE JAMAIS mélanger les mappings de modules entre dashboards différents
 
-**RESTAURATION ROUTES POST-REFACTOR**:
-- ✅ **11 routes critiques restaurées** après problèmes causés par le refactor majeur
-- ✅ Serveur stable avec logs: `[TRACKING] ✅`, `[NOTIFICATIONS] ✅`, `All routes configured ✅`
-
 **RÉSOLUTION CONFLITS ROUTES PARAMÈTRES**:
 - ✅ **Problème résolu** : Conflits entre routes settings définies dans routes.ts principal ET routers externes
 - ✅ **Solution implémentée** : Réorganisation ordre d'enregistrement - routes settings définies AVANT routers externes
 - ✅ **Routes Settings fonctionnelles** : `/api/director/settings`, `/api/teacher/settings`, `/api/student/settings`, `/api/parent/settings`, `/api/freelancer/settings`, `/api/school/settings`
 - ✅ **Architecture optimisée** : Ordre prioritaire - Settings → API Modules → System Routes → Services
 - ⚠️ **RÈGLE CRITIQUE** : Toujours maintenir l'ordre d'enregistrement des routes pour éviter conflits futurs
-
-**ROUTES API INTERFACES UTILISATEURS COMPLÈTES**:
-- ✅ **Routes Teacher** : `/api/teacher/schools`, `/api/teacher/classes`, `/api/teacher/students`
-- ✅ **Routes Student** : `/api/student/grades`, `/api/student/timetable`, `/api/student/request-account-deletion`
-- ✅ **Routes Parent** : `/api/parent/children`, `/api/parent/safe-zones`, `/api/parent/children/:childId/location`, `/api/parent/children/:childId/alerts`, `/api/parent/approve-account-deletion`
-- ✅ **Routes Freelancer** : `/api/freelancer/students`, `/api/freelancer/sessions`, `/api/freelancer/schedule`, `/api/freelancer/profile`, `/api/freelancer/payments`, `/api/freelancer/resources`
-
-**REMPLACEMENT COMPLET MODULE BULLETINS - SEPTEMBER 2025**:
-- ✅ **ComprehensiveBulletinGenerator REMPLACE module Bulletins original**
-- ✅ **Workflow End-to-End validé** : draft → submitted → approved → signed → sent avec timestamps
-- ✅ **8 Onglets système fonctionnels** : class-selection, student-management, manual-data-entry, generation-options, bulk-operations, pending-bulletins, approved-bulletins, reports
-- ✅ **Intégrations complètes** : API routes sécurisées (auth + schoolId), notifications Vonage/Hostinger, templates bilingues FR/EN, tracking destinataires, signatures numériques, export PDF avec QR codes
-- ✅ **Performance et robustesse** : 23+ bulletins testés, gestion d'erreurs avancée, responsive design PWA, cache React Query
-- ✅ **Schema avancé** : bulletinComprehensive + bulletinSubjectCodes avec tracking notifications détaillé par canal (Email/SMS/WhatsApp)
-- ✅ **Fonctionnalités étendues** : Absences/retards, sanctions disciplinaires, coefficients matières (CTBA/CBA/CA/CMA/COTE), appréciations, signatures multi-niveaux
-- ✅ **Système prêt pour production** : Remplace complètement l'ancien module avec fonctionnalités africaines avancées
-- ✅ **Routes Connexions Éducatives** : `/api/teacher-student/connections`, `/api/teacher-student/messages`, `/api/student-parent/connections`, `/api/student-parent/messages`
-- ✅ **Routes École-Hiérarchie** : `/api/school/teachers`, `/api/school/students`, `/api/school/parent-child-connections`
-- ✅ **Routes Générales** : `/api/students`, `/api/teachers`, `/api/parent-requests-test`
-- ✅ **Toutes routes retournent JSON** au lieu d'erreurs HTML 404
-- ✅ **Hiérarchie complète fonctionnelle** : École → Directeur → Enseignant → Élèves → Parents → Freelancers
-- ⚠️ **CRITIQUE** : NE PAS supprimer ces routes lors de futurs refactors - elles sont essentielles pour tous les dashboards
-
-Website URL Standard: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
-
-Console Error Prevention:
-- ✅ Toutes erreurs PWA/MIME type JavaScript complètement éliminées.
-- Console filtering activé en production et développement.
-- Interception globale des erreurs MIME avec preventDefault().
-- Validation PWA automatique avec `./scripts/validate-pwa.sh`.
-- Fichier .htaccess créé pour production avec MIME types corrects.
-
-Fast Module Optimization System:
-- ✅ FastModuleLoader: Système de préchargement instantané pour tous dashboards.
-- ✅ 14 modules critiques préchargés automatiquement au démarrage (Director, Parent, Commercial).
-- ✅ Cache intelligent avec gestion mémoire optimisée.
-- ✅ Préchargement au survol des icônes pour UX instantanée.
-- ✅ OptimizedModuleWrapper pour éviter re-renders inutiles.
-- ✅ Performance monitoring intégré avec métriques temps réels.
-- ✅ Support complet modules existants réels (plus de modules inexistants).
-
-**INTÉGRATION CALENDRIER ACADÉMIQUE - SEPTEMBER 2025**:
-- ✅ **Export calendrier iCal/ICS** pour événements académiques (emploi du temps + classes en ligne)
-- ✅ **CalendarService** génère fichiers .ics compatibles Google Calendar, Outlook, Apple Calendar
-- ✅ **Événements inclus** : Cours réguliers (timetables) + Sessions Jitsi en ligne (classSessions)
-- ✅ **Accès restreint** : Directeurs (école complète) et Enseignants (emploi du temps personnel) uniquement
-- ✅ **Routes API** : `/api/calendar/export/{school|teacher}/{id}` et `/api/calendar/subscription-url/{school|teacher}`
-- ✅ **Sécurité renforcée** : Mots de passe Jitsi jamais exposés dans ICS (note générique uniquement)
-- ✅ **Performance optimisée** : Requêtes avec joins pour éliminer N+1, filtrage actif (isActive + status scheduled/live)
-- ✅ **UI intégrée** : Module CalendarExport ajouté aux dashboards Directeur et Enseignant
-- ✅ **Fenêtre temporelle** : Prochains 3 mois d'événements, filtrage par année académique/trimestre
-- ✅ **Liens Jitsi** : URLs complètes meet.educafric.com incluses dans LOCATION et DESCRIPTION
-
-**SUPPRESSION MODULE ABONNEMENT ÉCOLES + IMPORTS EXCEL MASSE - SEPTEMBER 30, 2025**:
-- ✅ **Abonnement Écoles supprimé** : Champs subscription_status, subscription_plan, max_students, max_teachers retirés de la table schools
-- ✅ **Type éducatif ajouté** : Nouveau champ educational_type (general/technical) avec default 'general' dans table schools
-- ✅ **Classification écoles** : Support type école (public/private) ET type éducatif (general/technical) dans signup
-- ✅ **Service Import Excel** : Extension de excelImportService.ts avec support bilingue (FR/EN)
-  - importClasses() : Import masse classes avec validation nom/niveau/section/maxStudents/teacherEmail/academicYear
-  - importTimetables() : Import masse emplois du temps avec validation classe/teacher/subject/jour/horaires
-  - generateTemplate() : Génération templates Excel pour classes, timetables, teachers, students, parents
-- ✅ **Routes API Import** : Nouveaux endpoints dans /api/bulk-import/
-  - GET /template/classes : Télécharger template Excel classes
-  - GET /template/timetables : Télécharger template Excel emplois du temps
-  - POST /import/classes : Import Excel classes (multer, validation, création masse)
-  - POST /import/timetables : Import Excel emplois du temps (multer, validation, création masse)
-- ✅ **Sécurité imports** : Authentification Director/Admin requise, validation données, gestion erreurs détaillée
-- ✅ **Templates bilingues** : Headers FR/EN, exemples réalistes africains, instructions intégrées
-- ✅ **Gestion erreurs** : Rapport détaillé ligne par ligne avec errors[], warnings[], created count
-- ⚠️ **À implémenter** : UI upload Excel dans modules Director (Class Management, Timetable Management)
 
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
@@ -120,22 +46,19 @@ Fast Module Optimization System:
 ### Frontend Architecture
 - **Frameworks**: React with TypeScript, Wouter for routing, TanStack Query for state management.
 - **UI Components**: Radix UI + Shadcn/UI, styled with Tailwind CSS.
-- **Design**: Custom African-themed color palette, modern gradients, rounded cards, animated interactions using Nunito font.
+- **Design**: Custom African-themed color palette, modern gradients, rounded cards, animated interactions using Nunito font. Unified UI/UX across all dashboards.
 - **Accessibility**: Progressive Web App (PWA) with strong mobile optimization.
-- **Consistency**: Unified UI/UX across all dashboards via reusable components.
 - **Mobile**: Separate React Native application (`educafric-mobile/`) for Android, sharing the backend.
 
 ### Backend Architecture
 - **Framework**: Express.js for RESTful APIs.
-- **ORM**: Drizzle ORM with PostgreSQL for type-safe database operations.
+- **ORM**: Drizzle ORM with PostgreSQL.
 - **Authentication**: Session-based authentication using `express-session` and `Passport.js`.
 - **Security**: Robust role-based access control (8 user roles), BCrypt for password hashing, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
 
 ### Database Design
-- **Type**: PostgreSQL, hosted on Neon Serverless.
-- **Architecture**: Multi-tenant support for multiple schools.
-- **Schema**: Comprehensive, covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation.
-- **Organization**: Data structured by academic year/term.
+- **Type**: PostgreSQL, hosted on Neon Serverless, with multi-tenant support.
+- **Schema**: Comprehensive, covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation, structured by academic year/term.
 
 ### Key Features and System Design Choices
 - **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
@@ -147,6 +70,9 @@ Fast Module Optimization System:
 - **Bidirectional Connection System**: Facilitates parent-child, student-parent, and freelancer-student connections with duplicate detection and school verification.
 - **Bilingual Support**: Dynamic French/English language switching, complete localization of UI, content, documentation.
 - **Sandbox Environment**: Dedicated, fully unlocked environment with realistic African demo data.
+- **Academic Calendar Integration**: Export events (timetables, online classes) via iCal/ICS with Jitsi links, restricted access for Directors and Teachers.
+- **Bulk Excel Imports**: Comprehensive service for mass importing classes, timetables, teachers, students, rooms, and school settings with bilingual templates and robust validation.
+- **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` replaces the original module, providing an end-to-end workflow (draft to sent), 8 functional system tabs, and extensive integrations including secure API routes, notifications, bilingual templates, digital signatures, and PDF export with QR codes. It supports advanced features like absences, disciplinary sanctions, and multi-level signatures, tailored for African educational needs.
 
 ## External Dependencies
 

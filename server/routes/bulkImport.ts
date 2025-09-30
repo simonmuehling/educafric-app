@@ -214,7 +214,7 @@ router.get('/template/:userType', requireTemplateAuth, async (req, res) => {
     const lang = (req.query.lang as 'fr' | 'en') || 'fr';
     
     // Check if it's one of the new import types handled by excelImportService
-    if (['classes', 'timetables', 'teachers', 'students', 'rooms'].includes(userType)) {
+    if (['classes', 'timetables', 'teachers', 'students', 'rooms', 'settings'].includes(userType)) {
       const buffer = excelImportService.generateTemplate(userType as any, lang);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename=template_${userType}_${lang}_${Date.now()}.xlsx`);
@@ -385,7 +385,7 @@ router.post('/import', requireAuth, async (req, res) => {
     const { userType, schoolId, data, lang } = req.body;
     const language = (lang as 'fr' | 'en') || 'fr';
 
-    if (!['teachers', 'students', 'classes', 'timetables', 'rooms'].includes(userType)) {
+    if (!['teachers', 'students', 'classes', 'timetables', 'rooms', 'settings'].includes(userType)) {
       return res.status(400).json({ 
         message: language === 'fr' ? 'Type d\'utilisateur invalide' : 'Invalid user type' 
       });
@@ -447,6 +447,17 @@ router.post('/import', requireAuth, async (req, res) => {
       return res.json({
         success: result.success,
         message: language === 'fr' ? `${result.created} salles créées avec succès` : `${result.created} rooms created successfully`,
+        created: result.created,
+        errors: result.errors,
+        warnings: result.warnings
+      });
+    }
+    
+    if (userType === 'settings') {
+      const result = await excelImportService.importSchoolSettings(data, schoolId, language);
+      return res.json({
+        success: result.success,
+        message: language === 'fr' ? `Paramètres de l'école mis à jour avec succès` : `School settings updated successfully`,
         created: result.created,
         errors: result.errors,
         warnings: result.warnings

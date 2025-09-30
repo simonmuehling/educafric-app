@@ -9,7 +9,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ExcelImportButtonProps {
-  importType: 'classes' | 'timetables' | 'teachers' | 'students' | 'parents' | 'rooms';
+  importType: 'classes' | 'timetables' | 'teachers' | 'students' | 'parents' | 'rooms' | 'settings';
   schoolId?: number;
   onImportSuccess?: () => void;
   invalidateQueries?: string[];
@@ -45,7 +45,8 @@ export function ExcelImportButton({
     teachers: { fr: 'Importer Enseignants (Excel)', en: 'Import Teachers (Excel)' },
     students: { fr: 'Importer Élèves (Excel)', en: 'Import Students (Excel)' },
     parents: { fr: 'Importer Parents (Excel)', en: 'Import Parents (Excel)' },
-    rooms: { fr: 'Importer Salles (Excel)', en: 'Import Rooms (Excel)' }
+    rooms: { fr: 'Importer Salles (Excel)', en: 'Import Rooms (Excel)' },
+    settings: { fr: 'Importer Paramètres (Excel)', en: 'Import Settings (Excel)' }
   };
 
   const displayText = buttonText || defaultButtonText[importType];

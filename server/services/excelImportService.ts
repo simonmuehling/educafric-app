@@ -54,6 +54,23 @@ interface RoomImportData {
   equipment?: string;
 }
 
+interface SchoolSettingsImportData {
+  name: string;
+  type: string;
+  address: string;
+  phone: string;
+  email: string;
+  website?: string;
+  description: string;
+  establishedYear: number;
+  principalName: string;
+  studentCapacity: number;
+  regionaleMinisterielle?: string;
+  delegationDepartementale?: string;
+  boitePostale?: string;
+  arrondissement?: string;
+}
+
 interface ImportResult {
   success: boolean;
   created: number;
@@ -119,7 +136,19 @@ const translations = {
       equipment: 'Équipement',
       experience: 'Expérience',
       classes: 'Classes',
-      qualification: 'Qualification'
+      qualification: 'Qualification',
+      // School Settings fields
+      schoolName: 'NomÉcole',
+      schoolType: 'TypeÉtablissement',
+      website: 'SiteWeb',
+      description: 'Description',
+      establishedYear: 'AnnéeCréation',
+      principalName: 'NomDirecteur',
+      studentCapacity: 'CapacitéÉlèves',
+      regionaleMinisterielle: 'DélégationRégionale',
+      delegationDepartementale: 'DélégationDépartementale',
+      boitePostale: 'BoîtePostale',
+      arrondissement: 'Arrondissement'
     },
     genders: {
       male: 'Masculin',
@@ -174,7 +203,19 @@ const translations = {
       equipment: 'Equipment',
       experience: 'Experience',
       classes: 'Classes',
-      qualification: 'Qualification'
+      qualification: 'Qualification',
+      // School Settings fields
+      schoolName: 'SchoolName',
+      schoolType: 'InstitutionType',
+      website: 'Website',
+      description: 'Description',
+      establishedYear: 'EstablishedYear',
+      principalName: 'PrincipalName',
+      studentCapacity: 'StudentCapacity',
+      regionaleMinisterielle: 'RegionalDelegation',
+      delegationDepartementale: 'DepartmentalDelegation',
+      boitePostale: 'POBox',
+      arrondissement: 'District'
     },
     genders: {
       male: 'Male',
@@ -744,9 +785,148 @@ export class ExcelImportService {
   }
   
   /**
+   * Import school settings from parsed data
+   */
+  async importSchoolSettings(data: any[], schoolId: number, lang: 'fr' | 'en' = 'fr'): Promise<ImportResult> {
+    const t = translations[lang];
+    const result: ImportResult = {
+      success: true,
+      created: 0,
+      errors: [],
+      warnings: []
+    };
+    
+    // School settings should have only one row
+    if (data.length === 0) {
+      result.errors.push({
+        row: 0,
+        field: 'general',
+        message: lang === 'fr' ? 'Aucune donnée trouvée' : 'No data found'
+      });
+      result.success = false;
+      return result;
+    }
+    
+    const row = data[0]; // Get first row only
+    
+    try {
+      const settingsData: SchoolSettingsImportData = {
+        name: row[t.fields.schoolName] || row['NomÉcole'] || row['SchoolName'] || '',
+        type: row[t.fields.schoolType] || row['TypeÉtablissement'] || row['InstitutionType'] || '',
+        address: row[t.fields.address] || row['Adresse'] || row['Address'] || '',
+        phone: row[t.fields.phone] || row['Téléphone'] || row['Phone'] || '',
+        email: row[t.fields.email] || row['Email'] || '',
+        website: row[t.fields.website] || row['SiteWeb'] || row['Website'] || '',
+        description: row[t.fields.description] || row['Description'] || '',
+        establishedYear: parseInt(row[t.fields.establishedYear] || row['AnnéeCréation'] || row['EstablishedYear'] || '2020'),
+        principalName: row[t.fields.principalName] || row['NomDirecteur'] || row['PrincipalName'] || '',
+        studentCapacity: parseInt(row[t.fields.studentCapacity] || row['CapacitéÉlèves'] || row['StudentCapacity'] || '500'),
+        regionaleMinisterielle: row[t.fields.regionaleMinisterielle] || row['DélégationRégionale'] || row['RegionalDelegation'] || '',
+        delegationDepartementale: row[t.fields.delegationDepartementale] || row['DélégationDépartementale'] || row['DepartmentalDelegation'] || '',
+        boitePostale: row[t.fields.boitePostale] || row['BoîtePostale'] || row['POBox'] || '',
+        arrondissement: row[t.fields.arrondissement] || row['Arrondissement'] || row['District'] || ''
+      };
+      
+      // Validate required fields
+      if (!settingsData.name) {
+        result.errors.push({
+          row: row._row || 2,
+          field: t.fields.schoolName,
+          message: `${t.fields.schoolName} ${t.errors.required}`
+        });
+      }
+      
+      if (!settingsData.address) {
+        result.errors.push({
+          row: row._row || 2,
+          field: t.fields.address,
+          message: `${t.fields.address} ${t.errors.required}`
+        });
+      }
+      
+      if (!settingsData.phone) {
+        result.errors.push({
+          row: row._row || 2,
+          field: t.fields.phone,
+          message: `${t.fields.phone} ${t.errors.required}`
+        });
+      }
+      
+      if (!settingsData.email) {
+        result.errors.push({
+          row: row._row || 2,
+          field: t.fields.email,
+          message: `${t.fields.email} ${t.errors.required}`
+        });
+      }
+      
+      // If validation errors, don't proceed
+      if (result.errors.length > 0) {
+        result.success = false;
+        return result;
+      }
+      
+      // Validate school type
+      const validSchoolTypes = ['public', 'private', 'enterprise'];
+      if (settingsData.type && !validSchoolTypes.includes(settingsData.type.toLowerCase())) {
+        result.errors.push({
+          row: row._row || 2,
+          field: t.fields.schoolType,
+          message: `${t.fields.schoolType} ${t.errors.invalid}: "${settingsData.type}". ${lang === 'fr' ? 'Valeurs valides' : 'Valid values'}: public, private, enterprise`
+        });
+        result.success = false;
+        return result;
+      }
+      
+      // Update school in database
+      const school = await storage.getSchoolById(schoolId);
+      if (!school) {
+        result.errors.push({
+          row: row._row || 2,
+          field: 'general',
+          message: lang === 'fr' ? 'École introuvable' : 'School not found'
+        });
+        result.success = false;
+        return result;
+      }
+      
+      await storage.updateSchool(schoolId, {
+        name: settingsData.name,
+        type: (settingsData.type || 'private').toLowerCase(),
+        address: settingsData.address,
+        phone: settingsData.phone,
+        email: settingsData.email,
+        website: settingsData.website,
+        description: settingsData.description,
+        establishedYear: settingsData.establishedYear,
+        principalName: settingsData.principalName,
+        studentCapacity: settingsData.studentCapacity,
+        regionaleMinisterielle: settingsData.regionaleMinisterielle,
+        delegationDepartementale: settingsData.delegationDepartementale,
+        boitePostale: settingsData.boitePostale,
+        arrondissement: settingsData.arrondissement
+      });
+      
+      result.created = 1;
+      result.success = true;
+      
+    } catch (error) {
+      result.errors.push({
+        row: row._row || 2,
+        field: 'general',
+        message: `${t.errors.creation}: ${error.message}`,
+        data: row
+      });
+      result.success = false;
+    }
+    
+    return result;
+  }
+  
+  /**
    * Generate template Excel file for download (BILINGUAL)
    */
-  generateTemplate(type: 'teachers' | 'students' | 'parents' | 'classes' | 'timetables' | 'rooms', lang: 'fr' | 'en' = 'fr'): Buffer {
+  generateTemplate(type: 'teachers' | 'students' | 'parents' | 'classes' | 'timetables' | 'rooms' | 'settings', lang: 'fr' | 'en' = 'fr'): Buffer {
     const t = translations[lang];
     let headers: string[];
     let sampleData: any[];
@@ -906,6 +1086,43 @@ export class ExcelImportService {
           [lang === 'fr' ? 'Salle A1' : 'Room A1', 'classroom', '40', lang === 'fr' ? 'Bâtiment A' : 'Building A', lang === 'fr' ? 'Rez-de-chaussée' : 'Ground Floor', lang === 'fr' ? 'Projecteur, Tableau blanc' : 'Projector, Whiteboard'],
           [lang === 'fr' ? 'Labo Sciences' : 'Science Lab', 'laboratory', '30', lang === 'fr' ? 'Bâtiment B' : 'Building B', lang === 'fr' ? '1er étage' : '1st Floor', lang === 'fr' ? 'Microscopes, Matériel chimie' : 'Microscopes, Chemistry equipment'],
           [lang === 'fr' ? 'Salle Informatique' : 'Computer Room', 'computer_lab', '35', lang === 'fr' ? 'Bâtiment A' : 'Building A', lang === 'fr' ? '2ème étage' : '2nd Floor', lang === 'fr' ? '35 ordinateurs, Vidéoprojecteur' : '35 computers, Video projector']
+        ];
+        break;
+        
+      case 'settings':
+        headers = [
+          t.fields.schoolName,
+          t.fields.schoolType,
+          t.fields.address,
+          t.fields.phone,
+          t.fields.email,
+          t.fields.website,
+          t.fields.description,
+          t.fields.establishedYear,
+          t.fields.principalName,
+          t.fields.studentCapacity,
+          t.fields.regionaleMinisterielle,
+          t.fields.delegationDepartementale,
+          t.fields.boitePostale,
+          t.fields.arrondissement
+        ];
+        sampleData = [
+          [
+            lang === 'fr' ? 'Collège Bilingue de Yaoundé' : 'Bilingual College of Yaoundé',
+            'private',
+            lang === 'fr' ? 'Avenue Kennedy, Quartier Bastos, Yaoundé' : 'Kennedy Avenue, Bastos District, Yaoundé',
+            '+237677123456',
+            'contact@college-yaounde.cm',
+            'https://www.college-yaounde.cm',
+            lang === 'fr' ? 'Établissement bilingue d\'excellence offrant une éducation de qualité' : 'Bilingual institution of excellence offering quality education',
+            '1985',
+            lang === 'fr' ? 'Dr. Marie NGUESSO' : 'Dr. Marie NGUESSO',
+            '850',
+            lang === 'fr' ? 'Délégation Régionale du Centre' : 'Centre Regional Delegation',
+            lang === 'fr' ? 'Délégation Départementale du Mfoundi' : 'Mfoundi Departmental Delegation',
+            'B.P. 8524 Yaoundé',
+            lang === 'fr' ? 'Yaoundé 1er' : 'Yaoundé 1st'
+          ]
         ];
         break;
         

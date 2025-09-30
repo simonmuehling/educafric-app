@@ -28,6 +28,7 @@ import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 import { ObjectUploader } from '@/components/ObjectUploader';
 import type { UploadResult } from '@uppy/core';
+import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 
 interface SchoolProfile {
   id: number;
@@ -454,12 +455,30 @@ const UnifiedSchoolSettings: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3 mb-6">
-        <Settings className="w-6 h-6 text-blue-600" />
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
-          <p className="text-gray-600">{t.subtitle}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <Settings className="w-6 h-6 text-blue-600" />
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+            <p className="text-gray-600">{t.subtitle}</p>
+          </div>
         </div>
+        {schoolProfile && (
+          <div className="sm:ml-auto">
+            <ExcelImportButton
+              importType="settings"
+              schoolId={schoolProfile.id}
+              onImportSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['/api/director/school-settings'] });
+              }}
+              invalidateQueries={['/api/director/school-settings']}
+              buttonText={{
+                fr: 'Importer Paramètres',
+                en: 'Import Settings'
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
