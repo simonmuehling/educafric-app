@@ -350,11 +350,14 @@ export class ExcelImportService {
           phone: row[t.fields.phone] || row['Téléphone'] || row['Phone'] || '',
           gender: row[t.fields.gender] || row['Genre'] || row['Gender'] || '',
           dateOfBirth: row[t.fields.dateOfBirth] || row['DateNaissance'] || row['DateOfBirth'] || '',
+          placeOfBirth: row[t.fields.placeOfBirth] || row['LieuNaissance'] || row['PlaceOfBirth'] || '',
           matricule: row[t.fields.matricule] || row['Matricule'] || row['ID'] || '',
           className: row[t.fields.className] || row['Classe'] || row['Class'] || '',
           level: row[t.fields.level] || row['Niveau'] || row['Level'] || '',
+          parentName: row[t.fields.parentName] || row['NomParent'] || row['ParentName'] || '',
           parentEmail: row[t.fields.parentEmail] || row['EmailParent'] || row['ParentEmail'] || '',
-          parentPhone: row[t.fields.parentPhone] || row['TéléphoneParent'] || row['ParentPhone'] || ''
+          parentPhone: row[t.fields.parentPhone] || row['TéléphoneParent'] || row['ParentPhone'] || '',
+          isRepeating: row[t.fields.isRepeating] || row['Redoublant'] || row['IsRepeating'] || ''
         };
         
         // Validate required fields
@@ -405,7 +408,12 @@ export class ExcelImportService {
           isActive: true,
           gender: studentData.gender,
           dateOfBirth: studentData.dateOfBirth,
-          matricule: studentData.matricule || nanoid(10)
+          placeOfBirth: studentData.placeOfBirth || '',
+          matricule: studentData.matricule || nanoid(10),
+          parentName: studentData.parentName || '',
+          parentEmail: studentData.parentEmail || '',
+          parentPhone: studentData.parentPhone || '',
+          isRepeating: studentData.isRepeating === 'Oui' || studentData.isRepeating === 'Yes' ? true : false
         });
         
         result.created++;
