@@ -437,20 +437,39 @@ export class ExcelImportService {
         
         // Parse subjects from format: "Maths;4;6;general | Français;4;6;general"
         const subjects: any[] = [];
+        let hasSubjectValidationError = false;
         if (classData.subjectsRaw) {
           const subjectParts = classData.subjectsRaw.split('|').map((s: string) => s.trim());
           for (const subjectStr of subjectParts) {
             const [name, coeff, hours, category] = subjectStr.split(';').map((s: string) => s.trim());
             if (name) {
+              // Validate subject category
+              const validCategories = ['general', 'professional'];
+              const normalizedCategory = category?.toLowerCase();
+              if (category && !validCategories.includes(normalizedCategory)) {
+                result.errors.push({
+                  row: row._row || index + 2,
+                  field: lang === 'fr' ? 'Catégorie Matière' : 'Subject Category',
+                  message: `${lang === 'fr' ? 'Catégorie matière invalide' : 'Invalid subject category'}: "${category}". ${lang === 'fr' ? 'Valeurs valides' : 'Valid values'}: general, professional`
+                });
+                hasSubjectValidationError = true;
+                break;
+              }
+              
               subjects.push({
                 name,
                 coefficient: parseInt(coeff) || 1,
                 hoursPerWeek: parseInt(hours) || 1,
-                category: category === 'professional' ? 'professional' : 'general',
+                category: normalizedCategory === 'professional' ? 'professional' : 'general',
                 isRequired: true
               });
             }
           }
+        }
+        
+        // Skip this row if subject validation failed
+        if (hasSubjectValidationError) {
+          continue;
         }
         
         // Validate required fields
