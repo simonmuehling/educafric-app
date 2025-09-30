@@ -20,14 +20,20 @@ const ParentSubscription = () => {
   // 📡 Récupérer les vraies données d'abonnement parent
   const { data: subscriptionData, isLoading } = useQuery({
     queryKey: ['/api/parent/subscription', user?.id],
-    queryFn: () => apiRequest('GET', '/api/parent/subscription'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/parent/subscription');
+      return response.json();
+    },
     enabled: !!user?.id
   });
 
   // 📡 Récupérer l'état des passerelles pour chaque enfant
   const { data: gatewayStatus } = useQuery({
     queryKey: ['/api/parent/gateway-status', user?.id],
-    queryFn: () => apiRequest('GET', '/api/parent/gateway-status'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/parent/gateway-status');
+      return response.json();
+    },
     enabled: !!user?.id
   });
 
@@ -46,8 +52,8 @@ const ParentSubscription = () => {
       paymentMethod: 'Méthode de Paiement',
       planOptions: 'Options de Plan',
       freePlan: 'Plan Gratuit',
-      parentPublic: 'Parent École Publique',
-      parentPrivate: 'Parent École Privée',
+      parentPublic: 'Parent Bronze',
+      parentPrivate: 'Parent Bronze P',
       parentGeolocation: 'Parent Géolocalisation',
       monthly: 'Mensuel',
       annual: 'Annuel',
@@ -76,6 +82,13 @@ const ParentSubscription = () => {
       feature8: 'Zones de sécurité',
       feature9: 'Support prioritaire',
       feature10: 'Analyses détaillées',
+      tracking: 'Suivi des élèves',
+      realtimeNotifications: 'Notifications en temps réel (email + sms)',
+      gradeAccess: 'Accès aux notes',
+      bulletinReception: 'Réception de bulletins',
+      onlineClass: 'Online class',
+      teacherComm: 'Communication enseignants',
+      bilingualSupport: 'Support bilingue',
       priceInCFA: 'Prix en CFA',
       activateNow: 'Activer Maintenant',
       billingAddress: 'Adresse de Facturation',
@@ -98,8 +111,8 @@ const ParentSubscription = () => {
       paymentMethod: 'Payment Method',
       planOptions: 'Plan Options',
       freePlan: 'Free Plan',
-      parentPublic: 'Public School Parent',
-      parentPrivate: 'Private School Parent',
+      parentPublic: 'Parent Bronze',
+      parentPrivate: 'Parent Bronze P',
       parentGeolocation: 'Geolocation Parent',
       monthly: 'Monthly',
       annual: 'Annual',
@@ -128,6 +141,13 @@ const ParentSubscription = () => {
       feature8: 'Safety zones',
       feature9: 'Priority support',
       feature10: 'Detailed analytics',
+      tracking: 'Student tracking',
+      realtimeNotifications: 'Real-time notifications (email + sms)',
+      gradeAccess: 'Grade access',
+      bulletinReception: 'Bulletin reception',
+      onlineClass: 'Online class',
+      teacherComm: 'Teacher communication',
+      bilingualSupport: 'Bilingual support',
       priceInCFA: 'Price in CFA',
       activateNow: 'Activate Now',
       billingAddress: 'Billing Address',
@@ -155,33 +175,36 @@ const ParentSubscription = () => {
       current: true
     },
     {
-      id: 'parent_public',
+      id: 'parent_bronze',
       name: t.parentPublic,
-      price: 1000,
-      period: 'monthly',
+      price: 3000,
+      period: 'annual',
       color: 'from-blue-500 to-blue-600',
       popular: true,
       features: [
-        { icon: <Star className="w-4 h-4" />, text: t.feature1 },
-        { icon: <Bell className="w-4 h-4" />, text: t.feature2 },
-        { icon: <MessageSquare className="w-4 h-4" />, text: t.feature3 },
-        { icon: <Calendar className="w-4 h-4" />, text: t.feature4 },
-        { icon: <Eye className="w-4 h-4" />, text: t.feature5 }
+        { icon: <MapPin className="w-4 h-4" />, text: `📍 ${t.tracking}` },
+        { icon: <Bell className="w-4 h-4" />, text: `🔔 ${t.realtimeNotifications}` },
+        { icon: <Star className="w-4 h-4" />, text: `📊 ${t.gradeAccess}` },
+        { icon: <Calendar className="w-4 h-4" />, text: `📄 ${t.bulletinReception}` },
+        { icon: <Smartphone className="w-4 h-4" />, text: `💻 ${t.onlineClass}` },
+        { icon: <MessageSquare className="w-4 h-4" />, text: `💬 ${t.teacherComm}` },
+        { icon: <Users className="w-4 h-4" />, text: `🌍 ${t.bilingualSupport}` }
       ]
     },
     {
-      id: 'parent_private',
+      id: 'parent_bronze_p',
       name: t.parentPrivate,
-      price: 1500,
-      period: 'monthly',
+      price: 4000,
+      period: 'annual',
       color: 'from-purple-500 to-purple-600',
       features: [
-        { icon: <Star className="w-4 h-4" />, text: t.feature1 },
-        { icon: <Bell className="w-4 h-4" />, text: t.feature2 },
-        { icon: <MessageSquare className="w-4 h-4" />, text: t.feature3 },
-        { icon: <Calendar className="w-4 h-4" />, text: t.feature4 },
-        { icon: <Shield className="w-4 h-4" />, text: t.feature9 },
-        { icon: <Heart className="w-4 h-4" />, text: t.feature10 }
+        { icon: <MapPin className="w-4 h-4" />, text: `📍 ${t.tracking}` },
+        { icon: <Bell className="w-4 h-4" />, text: `🔔 ${t.realtimeNotifications}` },
+        { icon: <Star className="w-4 h-4" />, text: `📊 ${t.gradeAccess}` },
+        { icon: <Calendar className="w-4 h-4" />, text: `📄 ${t.bulletinReception}` },
+        { icon: <Smartphone className="w-4 h-4" />, text: `💻 ${t.onlineClass}` },
+        { icon: <MessageSquare className="w-4 h-4" />, text: `💬 ${t.teacherComm}` },
+        { icon: <Users className="w-4 h-4" />, text: `🌍 ${t.bilingualSupport}` }
       ]
     },
     {

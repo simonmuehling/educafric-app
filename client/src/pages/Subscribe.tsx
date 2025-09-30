@@ -473,8 +473,10 @@ const Subscribe: React.FC = () => {
   const getFeatureLabel = (feature: string) => {
     const labels: Record<string, string> = {
       'student_tracking': '📍 Suivi des élèves',
-      'real_time_notifications': '🔔 Notifications en temps réel',
+      'real_time_notifications': '🔔 Notifications en temps réel (email + sms)',
       'grade_access': '📊 Accès aux notes',
+      'bulletin_reception': '📄 Réception de bulletins',
+      'online_class': '💻 Online class',
       'teacher_communication': '💬 Communication enseignants',
       'bilingual_support': '🌍 Support bilingue',
       'priority_support': '⭐ Support prioritaire',

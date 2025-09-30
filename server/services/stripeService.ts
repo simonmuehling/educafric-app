@@ -20,79 +20,24 @@ export interface SubscriptionPlan {
 }
 
 export const subscriptionPlans: SubscriptionPlan[] = [
-  // Plans Parents - École Publique
+  // Plans Parents - Première année uniquement
   {
-    id: 'parent_public_monthly',
-    name: 'Parent École Publique (Mensuel)',
-    price: 1000,
-    currency: 'xaf',
-    interval: 'month',
-    category: 'parent',
-    features: ['student_tracking', 'real_time_notifications', 'grade_access', 'teacher_communication', 'bilingual_support']
-  },
-  {
-    id: 'parent_public_quarterly',
-    name: 'Parent École Publique (Trimestriel)',
+    id: 'parent_bronze',
+    name: 'Parent Bronze',
     price: 3000,
     currency: 'xaf',
-    interval: 'quarter',
+    interval: 'year',
     category: 'parent',
-    features: ['student_tracking', 'real_time_notifications', 'grade_access', 'teacher_communication', 'bilingual_support', 'quarterly_savings']
+    features: ['student_tracking', 'real_time_notifications', 'grade_access', 'bulletin_reception', 'online_class', 'teacher_communication', 'bilingual_support']
   },
   {
-    id: 'parent_public_annual',
-    name: 'Parent École Publique (Annuel)',
-    price: 12000,
+    id: 'parent_bronze_p',
+    name: 'Parent Bronze P',
+    price: 4000,
     currency: 'xaf',
     interval: 'year',
     category: 'parent',
-    features: ['student_tracking', 'real_time_notifications', 'grade_access', 'teacher_communication', 'bilingual_support', 'priority_support']
-  },
-  // Plans Parents - École Privée
-  {
-    id: 'parent_private_monthly',
-    name: 'Parent École Privée (Mensuel)',
-    price: 1500,
-    currency: 'xaf',
-    interval: 'month',
-    category: 'parent',
-    features: ['student_tracking', 'real_time_notifications', 'advanced_gps', 'emergency_button', 'grade_access', 'priority_communication']
-  },
-  {
-    id: 'parent_private_quarterly',
-    name: 'Parent École Privée (Trimestriel)',
-    price: 4500,
-    currency: 'xaf',
-    interval: 'quarter',
-    category: 'parent',
-    features: ['student_tracking', 'real_time_notifications', 'advanced_gps', 'emergency_button', 'grade_access', 'priority_communication', 'quarterly_savings']
-  },
-  {
-    id: 'parent_private_annual',
-    name: 'Parent École Privée (Annuel)',
-    price: 18000,
-    currency: 'xaf',
-    interval: 'year',
-    category: 'parent',
-    features: ['student_tracking', 'real_time_notifications', 'advanced_gps', 'emergency_button', 'grade_access', 'priority_communication', 'premium_support']
-  },
-  {
-    id: 'parent_geolocation_monthly',
-    name: 'Parent GPS (Mensuel)',
-    price: 1000,
-    currency: 'xaf',
-    interval: 'month',
-    category: 'parent',
-    features: ['gps_tracking', 'safety_zones', 'real_time_alerts', 'location_history']
-  },
-  {
-    id: 'parent_geolocation_annual',
-    name: 'Parent GPS (Annuel)',
-    price: 12000,
-    currency: 'xaf',
-    interval: 'year',
-    category: 'parent',
-    features: ['gps_tracking', 'safety_zones', 'real_time_alerts', 'location_history', 'advanced_analytics']
+    features: ['student_tracking', 'real_time_notifications', 'grade_access', 'bulletin_reception', 'online_class', 'teacher_communication', 'bilingual_support']
   },
   // Plans Écoles
   {

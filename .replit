@@ -88,16 +88,16 @@ localPort = 45171
 externalPort = 9000
 
 [[ports]]
-localPort = 45491
-externalPort = 3000
-
-[[ports]]
 localPort = 45917
 externalPort = 5173
 
 [[ports]]
 localPort = 45959
 externalPort = 3002
+
+[[ports]]
+localPort = 46793
+externalPort = 3000
 
 [agent]
 integrations = ["javascript_object_storage:1.0.0", "javascript_database:1.0.0", "javascript_sendgrid:1.0.0", "javascript_log_in_with_replit:1.0.0", "javascript_stripe:1.0.0"]
