@@ -115,6 +115,7 @@ import educationalContentRoutes from "./routes/api/educational-content";
 import vonageMessagesRouter from "./routes/vonage-messages";
 import fcmRoutes from "./routes/fcm";
 import onlineClassesRoutes from "./routes/onlineClassesRoutes";
+import calendarRoutes from "./routes/calendar";
 
 // Import new PDF generators routes
 import masterSheetsRouter from "./routes/api/master-sheets";
@@ -6720,6 +6721,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🔥 PREMIUM RESTRICTED: Online classes with Jitsi Meet integration (premium subscription only)
   // Note: Subscription validation handled by onlineClassesRoutes middleware
   app.use('/api/online-classes', onlineClassesRoutes);
+  
+  // Calendar integration for academic events (school & teacher only)
+  app.use('/api/calendar', calendarRoutes);
+  
   // app.use('/api/grades', gradesRoutes); // REMOVED - using unified comprehensive bulletin system
   // 🔥 PREMIUM RESTRICTED: Grade review system for directors (director role required)
   // app.use('/api/grade-review', checkSubscriptionFeature('advanced_grade_management'), gradeReviewRoutes); // REMOVED - using unified comprehensive bulletin system
