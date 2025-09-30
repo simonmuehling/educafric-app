@@ -262,4 +262,63 @@ export class SchoolStorage implements ISchoolStorage {
       return false;
     }
   }
+
+  // === SITE ADMIN METHODS ===
+  async getSchoolsWithStats(): Promise<any[]> {
+    try {
+      const { sql } = await import("drizzle-orm");
+      const { desc } = await import("drizzle-orm");
+      
+      const schoolsList = await db
+        .select({
+          id: schools.id,
+          name: schools.name,
+          address: schools.address,
+          phone: schools.phone,
+          email: schools.email,
+          schoolType: schools.schoolType,
+          createdAt: schools.createdAt,
+          educafricNumber: schools.educafricNumber
+        })
+        .from(schools)
+        .orderBy(desc(schools.createdAt));
+
+      // Get counts for each school
+      const schoolsWithStats = await Promise.all(schoolsList.map(async (school) => {
+        try {
+          // Count students
+          const [studentCountResult] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(users)
+            .where(eq(users.schoolId, school.id))
+            .where(eq(users.role, 'Student'));
+          
+          // Count teachers
+          const [teacherCountResult] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(users)
+            .where(eq(users.schoolId, school.id))
+            .where(eq(users.role, 'Teacher'));
+
+          return {
+            ...school,
+            studentCount: studentCountResult?.count || 0,
+            teacherCount: teacherCountResult?.count || 0
+          };
+        } catch (error) {
+          console.error(`Error getting stats for school ${school.id}:`, error);
+          return {
+            ...school,
+            studentCount: 0,
+            teacherCount: 0
+          };
+        }
+      }));
+
+      return schoolsWithStats;
+    } catch (error) {
+      console.error('[SCHOOL_STORAGE] Error fetching schools with stats:', error);
+      return [];
+    }
+  }
 }

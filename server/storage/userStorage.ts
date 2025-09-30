@@ -343,4 +343,62 @@ export class UserStorage implements IUserStorage {
       throw new Error(`Failed to create notification preferences: ${error}`);
     }
   }
+
+  // === SITE ADMIN METHODS ===
+  async getUsersWithSchools(): Promise<any[]> {
+    try {
+      const { schools } = await import("../../shared/schema");
+      
+      const usersWithSchools = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          role: users.role,
+          subscriptionStatus: users.subscriptionStatus,
+          lastLoginAt: users.lastLoginAt,
+          createdAt: users.createdAt,
+          educafricNumber: users.educafricNumber,
+          schoolId: users.schoolId,
+          schoolName: schools.name
+        })
+        .from(users)
+        .leftJoin(schools, eq(users.schoolId, schools.id))
+        .orderBy(desc(users.createdAt));
+      
+      return usersWithSchools;
+    } catch (error) {
+      console.error('[USER_STORAGE] Error fetching users with schools:', error);
+      return [];
+    }
+  }
+
+  async getCommercialUsers(): Promise<any[]> {
+    try {
+      const commercialUsers = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          role: users.role,
+          subscriptionStatus: users.subscriptionStatus,
+          lastLoginAt: users.lastLoginAt,
+          createdAt: users.createdAt,
+          schoolId: users.schoolId,
+          educafricNumber: users.educafricNumber
+        })
+        .from(users)
+        .where(eq(users.role, 'commercial'))
+        .orderBy(desc(users.createdAt));
+      
+      return commercialUsers;
+    } catch (error) {
+      console.error('[USER_STORAGE] Error fetching commercial users:', error);
+      return [];
+    }
+  }
 }
