@@ -246,7 +246,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
             const plan = subscriptionPlans.find(p => p.id === planId);
             if (plan) {
               // Activate subscription via subscription manager
-              await subscriptionManager.activateSubscription(parseInt(userId), planId, plan.interval);
+              await subscriptionManager.activateSubscription(parseInt(userId), planId, paymentIntent.id);
               console.log(`[STRIPE_WEBHOOK] ✅ Subscription activated successfully for user ${userId}`);
               
               // Create notification for webhook-triggered activation

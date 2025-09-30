@@ -343,11 +343,15 @@ export class StripeService {
         expirationDate.setMonth(expirationDate.getMonth() + 3);
       }
       
-      // Mettre à jour l'utilisateur
-      // TODO: Implement updateUserSubscription in new storage
-      console.log(`[STRIPE] Should update user ${userId} subscription to active: ${planName}`);
+      // Mettre à jour l'utilisateur avec le plan d'abonnement
+      await storage.updateUserSubscription(userId, {
+        status: 'active',
+        plan: planId, // Enregistrer le planId (ex: parent_gps, parent_bronze, etc.)
+        startDate: now,
+        endDate: expirationDate
+      });
       
-      console.log(`[STRIPE] ✅ Subscription activated for user ${userId}: ${planName}`);
+      console.log(`[STRIPE] ✅ Subscription activated for user ${userId}: ${planName} (${planId}) until ${expirationDate.toISOString()}`);
       
     } catch (error: any) {
       console.error(`[STRIPE] ❌ Error confirming payment:`, error);

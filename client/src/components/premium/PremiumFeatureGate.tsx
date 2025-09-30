@@ -61,7 +61,10 @@ const PremiumFeatureGate: React.FC<PremiumFeatureGateProps> = ({
     const userPlan = user.subscriptionPlan;
     const planLevels = {
       'basic': ['basic'],
-      'geolocation': ['basic', 'premium'], // Plan géolocalisation = premium
+      'parent_bronze': ['basic'], // Parent Bronze - accès de base uniquement
+      'parent_bronze_p': ['basic'], // Parent Bronze P - accès de base uniquement
+      'parent_gps': ['basic', 'premium'], // Parent GPS - accès géolocalisation premium
+      'geolocation': ['basic', 'premium'], // Plan géolocalisation = premium (ancien)
       'premium': ['basic', 'premium'],
       'pro': ['basic', 'premium', 'pro'],
       'enterprise': ['basic', 'premium', 'pro', 'enterprise']
