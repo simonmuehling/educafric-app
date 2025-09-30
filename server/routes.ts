@@ -9652,6 +9652,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= MISSING SCHOOL API ROUTES =============
   
+  // Get school basic information by ID
+  app.get('/api/school/:id', requireAuth, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.id, 10);
+      const user = req.user as any;
+      
+      // Verify user has access to this school
+      if (user.schoolId !== schoolId && user.role !== 'SiteAdmin') {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
+      
+      const school = await db.select({
+        id: schools.id,
+        name: schools.name,
+        educationalType: schools.educationalType,
+        address: schools.address,
+        phone: schools.phone,
+        email: schools.email
+      })
+      .from(schools)
+      .where(eq(schools.id, schoolId))
+      .limit(1);
+      
+      if (!school || school.length === 0) {
+        return res.status(404).json({ success: false, message: 'School not found' });
+      }
+      
+      res.json({ success: true, school: school[0] });
+    } catch (error) {
+      console.error('[SCHOOL_API] Error fetching school:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch school data' });
+    }
+  });
+  
   // School security settings
   app.get('/api/school/security', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
