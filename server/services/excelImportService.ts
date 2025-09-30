@@ -23,11 +23,14 @@ interface StudentImportData {
   phone?: string;
   gender: string;
   dateOfBirth: string;
+  placeOfBirth?: string;
   matricule: string;
   className: string;
   level: string;
+  parentName?: string;
   parentEmail?: string;
   parentPhone?: string;
+  isRepeating?: string;
 }
 
 interface ParentImportData {
@@ -87,10 +90,13 @@ const translations = {
       matricule: 'Matricule',
       subjects: 'Matières',
       dateOfBirth: 'DateNaissance',
+      placeOfBirth: 'LieuNaissance',
       className: 'Classe',
       level: 'Niveau',
+      parentName: 'NomParent',
       parentEmail: 'EmailParent',
       parentPhone: 'TéléphoneParent',
+      isRepeating: 'Redoublant',
       relation: 'Relation',
       profession: 'Profession',
       address: 'Adresse',
@@ -139,10 +145,13 @@ const translations = {
       matricule: 'ID',
       subjects: 'Subjects',
       dateOfBirth: 'DateOfBirth',
+      placeOfBirth: 'PlaceOfBirth',
       className: 'Class',
       level: 'Level',
+      parentName: 'ParentName',
       parentEmail: 'ParentEmail',
       parentPhone: 'ParentPhone',
+      isRepeating: 'IsRepeating',
       relation: 'Relation',
       profession: 'Profession',
       address: 'Address',
@@ -771,10 +780,55 @@ export class ExcelImportService {
         break;
         
       case 'students':
-        headers = [t.fields.firstName, t.fields.lastName, t.fields.email, t.fields.phone, t.fields.gender, t.fields.dateOfBirth, t.fields.matricule, t.fields.className, t.fields.level, t.fields.parentEmail, t.fields.parentPhone];
+        headers = [
+          t.fields.firstName, 
+          t.fields.lastName, 
+          t.fields.email, 
+          t.fields.phone, 
+          t.fields.gender, 
+          t.fields.dateOfBirth, 
+          t.fields.placeOfBirth,
+          t.fields.matricule, 
+          t.fields.className, 
+          t.fields.level, 
+          t.fields.parentName,
+          t.fields.parentEmail, 
+          t.fields.parentPhone,
+          t.fields.isRepeating
+        ];
         sampleData = [
-          ['Amina', 'Kouakou', 'amina.kouakou@educafric.com', '+237677111222', t.genders.female, '15/03/2010', 'STU-2025-001', '6ème A', lang === 'fr' ? 'Collège' : 'Middle School', 'parent.kouakou@gmail.com', '+237677888999'],
-          ['Pierre', 'Mballa', '', '', t.genders.male, '22/08/2008', 'STU-2025-002', '4ème B', lang === 'fr' ? 'Collège' : 'Middle School', 'mballa.parent@yahoo.fr', '+237698555444']
+          [
+            'Amina', 
+            'Kouakou', 
+            'amina.kouakou@educafric.com', 
+            '+237677111222', 
+            t.genders.female, 
+            '2010-03-15',
+            lang === 'fr' ? 'Yaoundé, Cameroun' : 'Yaounde, Cameroon',
+            'STU-2025-001', 
+            '6ème A', 
+            lang === 'fr' ? 'Collège' : 'Middle School', 
+            lang === 'fr' ? 'Jean Kouakou' : 'Jean Kouakou',
+            'parent.kouakou@gmail.com', 
+            '+237677888999',
+            lang === 'fr' ? 'Non' : 'No'
+          ],
+          [
+            'Pierre', 
+            'Mballa', 
+            '', 
+            '', 
+            t.genders.male, 
+            '2008-08-22',
+            lang === 'fr' ? 'Douala, Cameroun' : 'Douala, Cameroon',
+            'STU-2025-002', 
+            '4ème B', 
+            lang === 'fr' ? 'Collège' : 'Middle School',
+            lang === 'fr' ? 'Marie Mballa' : 'Marie Mballa', 
+            'mballa.parent@yahoo.fr', 
+            '+237698555444',
+            lang === 'fr' ? 'Oui' : 'Yes'
+          ]
         ];
         break;
         
