@@ -32,6 +32,11 @@ export const schools = pgTable("schools", {
   whatsappEnabled: boolean("whatsapp_enabled").default(false),
   smsEnabled: boolean("sms_enabled").default(false),
   emailEnabled: boolean("email_enabled").default(true),
+  
+  // EDUCAFRIC number for school registration (format: EDU-CM-SC-###)
+  // SC=School - Required for signup, managed by admin
+  educafricNumber: text("educafric_number").unique(),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });

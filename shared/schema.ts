@@ -19,6 +19,7 @@ export * from "./schemas/predefinedAppreciationsSchema"; // NEW: Predefined appr
 export * from "./schemas/archiveSchema"; // NEW: Archive system for bulletins and mastersheets
 export * from "./schemas/annualReportSchema"; // NEW: Annual report system with signature, workflow, and archiving
 export * from "./schemas/onlineClassesSchema"; // NEW: Online classes with Jitsi Meet integration (Premium feature)
+export * from "./schemas/educafricNumberSchema"; // NEW: EDUCAFRIC number management system
 
 // Import existing schema modules
 export * from "./tutorialSchema";

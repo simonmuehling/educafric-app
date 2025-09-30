@@ -64,6 +64,10 @@ export const users = pgTable("users", {
   signatureUploadedAt: timestamp("signature_uploaded_at"),
   isPrincipalTeacher: boolean("is_principal_teacher").default(false),
   
+  // EDUCAFRIC number for internal tracking (format: EDU-CM-XX-###)
+  // TE=Teacher, ST=Student, PA=Parent - auto-generated
+  educafricNumber: text("educafric_number").unique(),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
