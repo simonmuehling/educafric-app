@@ -580,7 +580,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
           subscriptionStatus: storage.users.subscriptionStatus,
           lastLoginAt: storage.users.lastLoginAt,
           createdAt: storage.users.createdAt,
-          schoolId: storage.users.schoolId
+          schoolId: storage.users.schoolId,
+          educafricNumber: storage.users.educafricNumber
         })
         .from(storage.users)
         .where(storage.eq(storage.users.role, 'commercial'))
@@ -600,7 +601,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
         activeDeals: 0, // Will be calculated from relationships
         revenue: 0, // Will be calculated from business data
         lastActivity: user.lastLoginAt ? new Date(user.lastLoginAt).toISOString() : new Date().toISOString(),
-        role: user.role
+        role: user.role,
+        educafricNumber: user.educafricNumber || undefined
       }));
       
       console.log(`[SITE_ADMIN_API] ✅ Retrieved ${commercials.length} real commercial users from database`);

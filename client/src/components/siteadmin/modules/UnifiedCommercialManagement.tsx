@@ -56,6 +56,7 @@ interface Commercial {
   revenue: number;
   lastActivity: string;
   role: string;
+  educafricNumber?: string;
 }
 
 interface CommercialActivity {
@@ -541,6 +542,13 @@ const UnifiedCommercialManagement: React.FC = () => {
                       <Phone className="w-4 h-4 mr-2" />
                       {commercial.phone}
                     </div>
+                    {commercial.educafricNumber && (
+                      <div className="flex items-center text-sm font-mono font-semibold text-blue-600">
+                        <Badge variant="outline" className="border-blue-600 text-blue-600">
+                          {commercial.educafricNumber}
+                        </Badge>
+                      </div>
+                    )}
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="w-4 h-4 mr-2" />
                       Rejoint le {formatDate(commercial.joinDate)}
