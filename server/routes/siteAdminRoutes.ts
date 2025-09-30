@@ -541,6 +541,59 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // Create new commercial user
+  app.post("/api/site-admin/commercials", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { firstName, lastName, email, phone, password } = req.body;
+      
+      console.log('[SITE_ADMIN_API] Creating new commercial user:', email);
+      
+      // Validate required fields
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ success: false, message: 'User with this email already exists' });
+      }
+
+      // Hash password
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create new user - ALWAYS with Commercial role (server-enforced)
+      const newUser = await storage.createUser({
+        firstName,
+        lastName,
+        email,
+        phone: phone || null,
+        password: hashedPassword,
+        role: 'Commercial', // Hardcoded for security - capitalized to match system
+        subscriptionStatus: 'active'
+      });
+
+      console.log(`[SITE_ADMIN_API] ✅ Commercial user created successfully: ${newUser.id}`);
+      
+      res.json({ 
+        success: true, 
+        message: 'Commercial created successfully',
+        user: {
+          id: newUser.id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          email: newUser.email,
+          role: newUser.role,
+          educafricNumber: newUser.educafricNumber
+        }
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error creating commercial:', error);
+      res.status(500).json({ success: false, message: error.message || 'Internal server error' });
+    }
+  });
+
   // Update commercial status (activate/block/suspend)
   app.patch("/api/site-admin/commercials/:id/status", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {

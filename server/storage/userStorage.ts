@@ -392,7 +392,7 @@ export class UserStorage implements IUserStorage {
           educafricNumber: users.educafricNumber
         })
         .from(users)
-        .where(eq(users.role, 'commercial'))
+        .where(eq(users.role, 'Commercial'))  // Capitalized to match system
         .orderBy(desc(users.createdAt));
       
       return commercialUsers;

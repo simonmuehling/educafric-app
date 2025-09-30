@@ -120,8 +120,16 @@ const UnifiedCommercialManagement: React.FC = () => {
   const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingCommercial, setEditingCommercial] = useState<Commercial | null>(null);
   const [newRole, setNewRole] = useState('');
+  const [newCommercialData, setNewCommercialData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: ''
+  });
 
   // Queries
   const { data: commercials = [], isLoading: loadingCommercials } = useQuery({
@@ -235,6 +243,31 @@ const UnifiedCommercialManagement: React.FC = () => {
     },
     onError: () => {
       toast({ title: "Erreur", description: "Impossible de supprimer le commercial", variant: "destructive" });
+    }
+  });
+
+  const addCommercialMutation = useMutation({
+    mutationFn: async (data: typeof newCommercialData) => {
+      const response = await fetch('/api/site-admin/commercials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data) // Role is server-enforced, don't send from client
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add commercial');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/site-admin/commercials'] });
+      setIsAddDialogOpen(false);
+      setNewCommercialData({ firstName: '', lastName: '', email: '', phone: '', password: '' });
+      toast({ title: "Succès", description: "Commercial ajouté avec succès" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erreur", description: error.message || "Impossible d'ajouter le commercial", variant: "destructive" });
     }
   });
 
@@ -372,7 +405,11 @@ const UnifiedCommercialManagement: React.FC = () => {
             <FileText className="w-4 h-4 mr-2" />
             Créer Contrat
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={() => setIsAddDialogOpen(true)}
+            data-testid="button-add-commercial"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Ajouter Commercial
           </Button>
@@ -1116,6 +1153,88 @@ const UnifiedCommercialManagement: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Commercial Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ajouter un Commercial</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="firstName">Prénom</Label>
+              <Input
+                id="firstName"
+                value={newCommercialData.firstName}
+                onChange={(e) => setNewCommercialData({ ...newCommercialData, firstName: e.target.value })}
+                placeholder="Jean"
+                data-testid="input-firstName"
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName">Nom</Label>
+              <Input
+                id="lastName"
+                value={newCommercialData.lastName}
+                onChange={(e) => setNewCommercialData({ ...newCommercialData, lastName: e.target.value })}
+                placeholder="Dupont"
+                data-testid="input-lastName"
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={newCommercialData.email}
+                onChange={(e) => setNewCommercialData({ ...newCommercialData, email: e.target.value })}
+                placeholder="jean.dupont@educafric.com"
+                data-testid="input-email"
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Téléphone</Label>
+              <Input
+                id="phone"
+                value={newCommercialData.phone}
+                onChange={(e) => setNewCommercialData({ ...newCommercialData, phone: e.target.value })}
+                placeholder="+237650000000"
+                data-testid="input-phone"
+              />
+            </div>
+            <div>
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                value={newCommercialData.password}
+                onChange={(e) => setNewCommercialData({ ...newCommercialData, password: e.target.value })}
+                placeholder="••••••••"
+                data-testid="input-password"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsAddDialogOpen(false);
+                setNewCommercialData({ firstName: '', lastName: '', email: '', phone: '', password: '' });
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={() => addCommercialMutation.mutate(newCommercialData)}
+              disabled={addCommercialMutation.isPending || !newCommercialData.firstName || !newCommercialData.lastName || !newCommercialData.email || !newCommercialData.password}
+              className="bg-blue-600 hover:bg-blue-700"
+              data-testid="button-submit-commercial"
+            >
+              {addCommercialMutation.isPending ? 'Ajout...' : 'Ajouter'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
