@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ExcelImportButtonProps {
   importType: 'classes' | 'timetables' | 'teachers' | 'students' | 'parents' | 'rooms';
@@ -36,6 +37,7 @@ export function ExcelImportButton({
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   const defaultButtonText = {
     classes: { fr: 'Importer Classes (Excel)', en: 'Import Classes (Excel)' },
@@ -47,17 +49,16 @@ export function ExcelImportButton({
   };
 
   const displayText = buttonText || defaultButtonText[importType];
-  const currentLang = (localStorage.getItem('language') || 'fr') as 'fr' | 'en';
+  const currentLang = language;
 
   const handleDownloadTemplate = async () => {
-    const lang = localStorage.getItem('language') || 'fr';
     try {
-      const response = await fetch(`/api/bulk-import/template/${importType}?lang=${lang}`, {
+      const response = await fetch(`/api/bulk-import/template/${importType}?lang=${currentLang}`, {
         credentials: 'include'
       });
 
       if (!response.ok) {
-        const errorMsg = lang === 'fr' ? 'Échec du téléchargement du modèle' : 'Failed to download template';
+        const errorMsg = currentLang === 'fr' ? 'Échec du téléchargement du modèle' : 'Failed to download template';
         throw new Error(errorMsg);
       }
 
@@ -65,20 +66,20 @@ export function ExcelImportButton({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `template_${importType}_${lang}_${Date.now()}.xlsx`;
+      a.download = `template_${importType}_${currentLang}_${Date.now()}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
       toast({
-        title: lang === 'fr' ? 'Modèle téléchargé' : 'Template downloaded',
-        description: lang === 'fr' ? 'Remplissez le modèle Excel et importez-le' : 'Fill the Excel template and import it'
+        title: currentLang === 'fr' ? 'Modèle téléchargé' : 'Template downloaded',
+        description: currentLang === 'fr' ? 'Remplissez le modèle Excel et importez-le' : 'Fill the Excel template and import it'
       });
     } catch (error) {
       toast({
-        title: lang === 'fr' ? 'Erreur' : 'Error',
-        description: error instanceof Error ? error.message : (lang === 'fr' ? 'Erreur de téléchargement' : 'Download error'),
+        title: currentLang === 'fr' ? 'Erreur' : 'Error',
+        description: error instanceof Error ? error.message : (currentLang === 'fr' ? 'Erreur de téléchargement' : 'Download error'),
         variant: 'destructive'
       });
     }
@@ -87,8 +88,6 @@ export function ExcelImportButton({
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    const lang = localStorage.getItem('language') || 'fr';
 
     // Reset state
     setResult(null);
@@ -101,7 +100,7 @@ export function ExcelImportButton({
       const formData = new FormData();
       formData.append('file', file);
       formData.append('userType', importType);
-      formData.append('lang', lang);
+      formData.append('lang', currentLang);
       if (schoolId) formData.append('schoolId', schoolId.toString());
 
       setUploadProgress(30);
@@ -113,7 +112,7 @@ export function ExcelImportButton({
       });
 
       if (!validateResponse.ok) {
-        const errorMsg = lang === 'fr' ? 'Erreur de validation du fichier' : 'File validation error';
+        const errorMsg = currentLang === 'fr' ? 'Erreur de validation du fichier' : 'File validation error';
         throw new Error(errorMsg);
       }
 
@@ -125,7 +124,7 @@ export function ExcelImportButton({
         userType: importType,
         schoolId: schoolId,
         data: validatedData,
-        lang: lang
+        lang: currentLang
       };
 
       const importResponse = await fetch('/api/bulk-import/import', {
@@ -151,26 +150,26 @@ export function ExcelImportButton({
 
       if (importResult.success) {
         toast({
-          title: lang === 'fr' ? 'Import réussi' : 'Import successful',
-          description: importResult.message || `${importResult.created} ${lang === 'fr' ? 'entrées créées' : 'entries created'}`
+          title: currentLang === 'fr' ? 'Import réussi' : 'Import successful',
+          description: importResult.message || `${importResult.created} ${currentLang === 'fr' ? 'entrées créées' : 'entries created'}`
         });
         onImportSuccess?.();
       } else {
         toast({
-          title: lang === 'fr' ? 'Import terminé avec des erreurs' : 'Import completed with errors',
+          title: currentLang === 'fr' ? 'Import terminé avec des erreurs' : 'Import completed with errors',
           description: importResult.message,
           variant: 'destructive'
         });
       }
     } catch (error) {
       toast({
-        title: lang === 'fr' ? 'Erreur d\'import' : 'Import error',
-        description: error instanceof Error ? error.message : (lang === 'fr' ? 'Erreur inconnue' : 'Unknown error'),
+        title: currentLang === 'fr' ? 'Erreur d\'import' : 'Import error',
+        description: error instanceof Error ? error.message : (currentLang === 'fr' ? 'Erreur inconnue' : 'Unknown error'),
         variant: 'destructive'
       });
       setResult({
         success: false,
-        message: error instanceof Error ? error.message : (lang === 'fr' ? 'Erreur inconnue' : 'Unknown error'),
+        message: error instanceof Error ? error.message : (currentLang === 'fr' ? 'Erreur inconnue' : 'Unknown error'),
         created: 0
       });
     } finally {
