@@ -1600,21 +1600,36 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Generate 2FA secret and QR code
   app.post("/api/admin/2fa/setup", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      console.log(`[SITE_ADMIN_API] 2FA setup requested by: ${req.user?.email}`);
+      const user = req.user as any;
+      console.log(`[SITE_ADMIN_API] 2FA setup requested by: ${user.email}`);
       
       const speakeasy = (await import('speakeasy')).default;
       const qrcode = (await import('qrcode')).default;
+      const crypto = (await import('crypto')).default;
       
       const secret = speakeasy.generateSecret({
-        name: `EDUCAFRIC:${req.user?.email}`,
+        name: `EDUCAFRIC:${user.email}`,
         issuer: 'EDUCAFRIC',
         length: 32
       });
       
       const qrCodeDataURL = await qrcode.toDataURL(secret.otpauth_url);
       
-      // In production, you would save the secret to the user's profile
-      console.log('[SITE_ADMIN_API] 2FA secret generated for user');
+      // Generate 10 secure backup codes
+      const backupCodes: string[] = [];
+      for (let i = 0; i < 10; i++) {
+        const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+        backupCodes.push(code);
+      }
+      
+      // Save secret and backup codes to user profile (not enabled yet until verified)
+      await storage.updateUser(user.id, {
+        twoFactorSecret: secret.base32,
+        twoFactorBackupCodes: backupCodes,
+        twoFactorEnabled: false // Not enabled until verified
+      });
+      
+      console.log('[SITE_ADMIN_API] 2FA secret and backup codes saved to database');
       
       res.json({
         success: true,
@@ -1622,13 +1637,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
           secret: secret.base32,
           qrCode: qrCodeDataURL,
           manualEntryKey: secret.base32,
-          backupCodes: [
-            Math.random().toString(36).substring(2, 10).toUpperCase(),
-            Math.random().toString(36).substring(2, 10).toUpperCase(),
-            Math.random().toString(36).substring(2, 10).toUpperCase(),
-            Math.random().toString(36).substring(2, 10).toUpperCase(),
-            Math.random().toString(36).substring(2, 10).toUpperCase()
-          ]
+          backupCodes: backupCodes
         }
       });
     } catch (error: any) {
@@ -1640,21 +1649,37 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Verify 2FA token
   app.post("/api/admin/2fa/verify", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      console.log(`[SITE_ADMIN_API] 2FA verification requested by: ${req.user?.email}`);
-      const { token, secret } = req.body;
+      const user = req.user as any;
+      console.log(`[SITE_ADMIN_API] 2FA verification requested by: ${user.email}`);
+      const { token } = req.body;
+      
+      // Get fresh user data from DB to get the stored secret
+      const currentUser = await storage.getUserById(user.id);
+      if (!currentUser || !currentUser.twoFactorSecret) {
+        return res.status(400).json({
+          success: false,
+          message: '2FA not set up for this user'
+        });
+      }
       
       const speakeasy = (await import('speakeasy')).default;
       
+      // Verify against DB-stored secret (NOT client-provided)
       const verified = speakeasy.totp.verify({
-        secret: secret,
+        secret: currentUser.twoFactorSecret,
         encoding: 'base32',
         token: token,
         window: 2
       });
       
       if (verified) {
-        // In production, you would save that 2FA is enabled for this user
-        console.log('[SITE_ADMIN_API] 2FA verification successful');
+        // Enable 2FA for this user in database
+        await storage.updateUser(user.id, {
+          twoFactorEnabled: true,
+          twoFactorVerifiedAt: new Date()
+        });
+        
+        console.log('[SITE_ADMIN_API] 2FA verification successful - enabled in database');
         res.json({
           success: true,
           message: 'Authentification à deux facteurs activée avec succès'
@@ -1675,11 +1700,30 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Disable 2FA
   app.post("/api/admin/2fa/disable", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      console.log(`[SITE_ADMIN_API] 2FA disable requested by: ${req.user?.email}`);
+      const user = req.user as any;
+      console.log(`[SITE_ADMIN_API] 2FA disable requested by: ${user.email}`);
       const { password } = req.body;
       
-      // In production, you would verify the password and disable 2FA
-      console.log('[SITE_ADMIN_API] 2FA disabled for user');
+      // Verify password before disabling 2FA
+      const bcrypt = require('bcryptjs');
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      
+      if (!isValidPassword) {
+        return res.status(401).json({
+          success: false,
+          message: 'Mot de passe incorrect'
+        });
+      }
+      
+      // Disable 2FA and clear secrets
+      await storage.updateUser(user.id, {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        twoFactorBackupCodes: [],
+        twoFactorVerifiedAt: null
+      });
+      
+      console.log('[SITE_ADMIN_API] 2FA disabled for user in database');
       
       res.json({
         success: true,
@@ -1694,14 +1738,21 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Get 2FA status
   app.get("/api/admin/2fa/status", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      console.log(`[SITE_ADMIN_API] 2FA status requested by: ${req.user?.email}`);
+      const user = req.user as any;
+      console.log(`[SITE_ADMIN_API] 2FA status requested by: ${user.email}`);
       
-      // In production, you would check the user's 2FA status from database
+      // Get user from database to ensure fresh data
+      const currentUser = await storage.getUserById(user.id);
+      
+      if (!currentUser) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+      
       const status = {
-        enabled: false, // This would come from user profile
-        setupDate: null,
-        lastUsed: null,
-        backupCodesRemaining: 5
+        enabled: currentUser.twoFactorEnabled || false,
+        setupDate: currentUser.twoFactorVerifiedAt || null,
+        lastUsed: currentUser.twoFactorVerifiedAt || null,
+        backupCodesRemaining: (currentUser.twoFactorBackupCodes || []).length
       };
       
       res.json({ success: true, data: status });

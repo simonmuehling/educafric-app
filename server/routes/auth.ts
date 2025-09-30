@@ -212,6 +212,20 @@ router.post('/login', (req, res, next) => {
       return res.status(401).json({ message: info?.message || 'Invalid credentials' });
     }
     
+    // Check if user has 2FA enabled
+    if (user.twoFactorEnabled && user.twoFactorSecret) {
+      // Store user ID in session for 2FA verification but don't fully authenticate
+      req.session.pendingTwoFactorUserId = user.id;
+      req.session.save();
+      
+      console.log(`[AUTH_2FA] 2FA required for user: ${user.email}`);
+      return res.status(200).json({
+        requires2FA: true,
+        message: 'Two-factor authentication required',
+        userId: user.id
+      });
+    }
+    
     // Manually log in the user to establish session
     req.logIn(user, (loginErr) => {
       if (loginErr) {
@@ -350,6 +364,138 @@ router.post('/login', (req, res, next) => {
       });
     });
   })(req, res, next);
+});
+
+// Verify 2FA token during login
+router.post('/verify-2fa-login', async (req, res) => {
+  try {
+    const { token, userId } = req.body;
+    
+    // Check if there's a pending 2FA user in session
+    if (!req.session.pendingTwoFactorUserId || req.session.pendingTwoFactorUserId !== userId) {
+      return res.status(401).json({ 
+        message: 'No pending 2FA login found. Please login again.' 
+      });
+    }
+    
+    // Get the user
+    const user = await storage.getUserById(userId);
+    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
+      return res.status(401).json({ message: 'Invalid 2FA setup' });
+    }
+    
+    // Verify the token using speakeasy
+    const speakeasy = (await import('speakeasy')).default;
+    
+    // Try TOTP verification
+    const totpValid = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      token: token,
+      window: 2,
+      encoding: 'base32'
+    });
+    
+    if (totpValid) {
+      // Clear the pending 2FA user ID
+      delete req.session.pendingTwoFactorUserId;
+      
+      // Complete the login
+      req.logIn(user, async (loginErr) => {
+        if (loginErr) {
+          console.error('[AUTH_2FA] Login error after 2FA:', loginErr);
+          return res.status(500).json({ message: 'Failed to complete login' });
+        }
+        
+        // Update last 2FA usage timestamp
+        await storage.updateUser(user.id, {
+          twoFactorVerifiedAt: new Date()
+        });
+        
+        console.log(`[AUTH_2FA] ✅ 2FA verification successful for: ${user.email}`);
+        
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error('[AUTH_2FA] Session save error:', saveErr);
+            return res.status(500).json({ message: 'Failed to save session' });
+          }
+          
+          res.json({ 
+            success: true,
+            user: {
+              id: user.id,
+              email: user.email,
+              role: user.role,
+              firstName: user.firstName,
+              lastName: user.lastName
+            },
+            message: '2FA verification successful' 
+          });
+        });
+      });
+      return;
+    }
+    
+    // If TOTP fails, try backup codes
+    const backupCodes = user.twoFactorBackupCodes || [];
+    const backupCodeIndex = backupCodes.indexOf(token.toUpperCase());
+    
+    if (backupCodeIndex !== -1) {
+      // Remove used backup code
+      const updatedBackupCodes = backupCodes.filter((_, index) => index !== backupCodeIndex);
+      
+      // Clear the pending 2FA user ID
+      delete req.session.pendingTwoFactorUserId;
+      
+      // Complete the login
+      req.logIn(user, async (loginErr) => {
+        if (loginErr) {
+          console.error('[AUTH_2FA] Login error after backup code:', loginErr);
+          return res.status(500).json({ message: 'Failed to complete login' });
+        }
+        
+        // Update backup codes and timestamp
+        await storage.updateUser(user.id, {
+          twoFactorBackupCodes: updatedBackupCodes,
+          twoFactorVerifiedAt: new Date()
+        });
+        
+        console.log(`[AUTH_2FA] ✅ Backup code used for: ${user.email} (${updatedBackupCodes.length} remaining)`);
+        
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error('[AUTH_2FA] Session save error:', saveErr);
+            return res.status(500).json({ message: 'Failed to save session' });
+          }
+          
+          res.json({ 
+            success: true,
+            user: {
+              id: user.id,
+              email: user.email,
+              role: user.role,
+              firstName: user.firstName,
+              lastName: user.lastName
+            },
+            message: `Backup code accepted. ${updatedBackupCodes.length} codes remaining.`,
+            backupCodeUsed: true,
+            remainingBackupCodes: updatedBackupCodes.length
+          });
+        });
+      });
+      return;
+    }
+    
+    // Invalid token
+    console.log(`[AUTH_2FA] ❌ Invalid 2FA token for user: ${user.email}`);
+    res.status(401).json({ 
+      success: false,
+      message: 'Invalid verification code' 
+    });
+    
+  } catch (error) {
+    console.error('[AUTH_2FA] Error verifying 2FA:', error);
+    res.status(500).json({ message: 'Authentication error' });
+  }
 });
 
 // Sandbox login endpoint for demo users
