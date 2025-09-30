@@ -17,6 +17,13 @@ export const users = pgTable("users", {
   dateOfBirth: text("date_of_birth"), // Date de naissance au format YYYY-MM-DD
   placeOfBirth: text("place_of_birth"), // Lieu de naissance (ville, pays)
   phone: text("phone").unique(),
+  
+  // Parent/Guardian information (for students)
+  guardian: text("guardian"), // Nom complet du parent/tuteur
+  parentEmail: text("parent_email"), // Email du parent/tuteur
+  parentPhone: text("parent_phone"), // Téléphone du parent/tuteur
+  isRepeater: boolean("is_repeater").default(false), // Redoublant (pour élèves)
+  
   schoolId: integer("school_id"),
   
   // Subscription and payment fields

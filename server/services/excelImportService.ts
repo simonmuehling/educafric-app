@@ -27,10 +27,10 @@ interface StudentImportData {
   matricule: string;
   className: string;
   level: string;
-  parentName?: string;
+  guardian?: string; // Nom du parent/tuteur (parentName in Excel, guardian in DB)
   parentEmail?: string;
   parentPhone?: string;
-  isRepeating?: string;
+  isRepeater?: string; // Redoublant: Oui/Non (isRepeating in Excel, isRepeater in DB)
 }
 
 interface ParentImportData {
@@ -354,10 +354,10 @@ export class ExcelImportService {
           matricule: row[t.fields.matricule] || row['Matricule'] || row['ID'] || '',
           className: row[t.fields.className] || row['Classe'] || row['Class'] || '',
           level: row[t.fields.level] || row['Niveau'] || row['Level'] || '',
-          parentName: row[t.fields.parentName] || row['NomParent'] || row['ParentName'] || '',
+          guardian: row[t.fields.parentName] || row['NomParent'] || row['ParentName'] || '',
           parentEmail: row[t.fields.parentEmail] || row['EmailParent'] || row['ParentEmail'] || '',
           parentPhone: row[t.fields.parentPhone] || row['TéléphoneParent'] || row['ParentPhone'] || '',
-          isRepeating: row[t.fields.isRepeating] || row['Redoublant'] || row['IsRepeating'] || ''
+          isRepeater: row[t.fields.isRepeating] || row['Redoublant'] || row['IsRepeating'] || ''
         };
         
         // Validate required fields
@@ -410,10 +410,10 @@ export class ExcelImportService {
           dateOfBirth: studentData.dateOfBirth,
           placeOfBirth: studentData.placeOfBirth || '',
           matricule: studentData.matricule || nanoid(10),
-          parentName: studentData.parentName || '',
+          guardian: studentData.guardian || '',
           parentEmail: studentData.parentEmail || '',
           parentPhone: studentData.parentPhone || '',
-          isRepeating: studentData.isRepeating === 'Oui' || studentData.isRepeating === 'Yes' ? true : false
+          isRepeater: studentData.isRepeater === 'Oui' || studentData.isRepeater === 'Yes' ? true : false
         });
         
         result.created++;
