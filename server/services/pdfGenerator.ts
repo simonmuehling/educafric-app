@@ -27,6 +27,7 @@ export interface CameroonOfficialHeaderData {
   region?: string;
   department?: string;
   educationLevel?: 'base' | 'secondary'; // Éducation de Base ou Enseignements Secondaires
+  educationalType?: 'general' | 'technical'; // General vs Technical school (bulletin format)
   logoUrl?: string;
   phone?: string;
   email?: string;
@@ -72,6 +73,7 @@ export class SchoolDataService {
         region,
         department,
         educationLevel: 'secondary', // Default, could be configurable later
+        educationalType: (schoolData.educationalType || 'general') as 'general' | 'technical',
         logoUrl: schoolData.logoUrl || undefined,
         phone: schoolData.phone || undefined,
         email: schoolData.email || undefined,

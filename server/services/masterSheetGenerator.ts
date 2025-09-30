@@ -53,6 +53,7 @@ export interface SchoolInfo {
   regionaleMinisterielle?: string;
   delegationDepartementale?: string;
   boitePostale?: string;
+  educationalType?: 'general' | 'technical'; // For technical schools
 }
 
 export interface MasterSheetOptions {

@@ -63,8 +63,8 @@ export interface SubjectGrade {
   maxScore: number;
   comments?: string;
   rank?: number;
-  // New field for professional sectioning
-  category?: 'general' | 'technical' | 'optional';
+  // New field for professional sectioning (technical schools)
+  category?: 'general' | 'professional' | 'optional';
 }
 
 // Helper type for organized subject sections
@@ -93,6 +93,8 @@ export interface SchoolInfo {
   // Academic info
   academicYear?: string;
   currentTerm?: string;
+  // School type (general vs technical)
+  educationalType?: 'general' | 'technical'; // Determines bulletin format
   // Settings
   settings?: any;
 }
@@ -361,52 +363,97 @@ export class ComprehensiveBulletinGenerator {
   }
   
   // Helper method to organize subjects into professional sections
-  static organizeSubjectsBySections(subjects: SubjectGrade[], language: 'fr' | 'en'): SubjectSection[] {
+  // For technical schools: divides into General Subjects and Professional Subjects with sub-totals
+  static organizeSubjectsBySections(subjects: SubjectGrade[], language: 'fr' | 'en', isTechnicalSchool: boolean = false): SubjectSection[] {
     const sections: SubjectSection[] = [];
     
-    // Define section titles based on language
+    // Define section titles based on language and school type
     const sectionTitles = {
       general: language === 'fr' ? 'MATIÈRES GÉNÉRALES' : 'GENERAL SUBJECTS',
-      technical: language === 'fr' ? 'MATIÈRES TECHNIQUES' : 'TECHNICAL SUBJECTS',
+      professional: language === 'fr' ? 'MATIÈRES PROFESSIONNELLES' : 'PROFESSIONAL SUBJECTS',
       optional: language === 'fr' ? 'MATIÈRES OPTIONNELLES' : 'OPTIONAL SUBJECTS'
     };
     
-    // Categorize subjects automatically if not categorized
-    const generalKeywords = ['français', 'french', 'anglais', 'english', 'mathématiques', 'mathematics', 'math', 'sciences', 'science', 'histoire', 'history', 'géographie', 'geography', 'philosophie', 'philosophy', 'littérature', 'literature'];
-    const technicalKeywords = ['informatique', 'computer', 'technologie', 'technology', 'électronique', 'electronics', 'mécanique', 'mechanics', 'chimie', 'chemistry', 'physique', 'physics', 'biologie', 'biology'];
+    // For general schools, group by optional vs non-optional
+    if (!isTechnicalSchool) {
+      const mainSubjects = subjects.filter(s => !s.category || s.category !== 'optional');
+      const optionalSubjects = subjects.filter(s => s.category === 'optional');
+      
+      const sections: SubjectSection[] = [];
+      
+      // Main subjects section
+      if (mainSubjects.length > 0) {
+        const totalPoints = mainSubjects.reduce((sum, s) => sum + ((s.termAverage || 0) * (s.coefficient || 0)), 0);
+        const totalCoefficients = mainSubjects.reduce((sum, s) => sum + (s.coefficient || 0), 0);
+        const sectionAverage = totalCoefficients > 0 ? totalPoints / totalCoefficients : 0;
+        
+        sections.push({
+          title: sectionTitles.general,
+          subjects: mainSubjects,
+          totalPoints,
+          totalCoefficients,
+          sectionAverage
+        });
+      }
+      
+      // Optional subjects section (if any)
+      if (optionalSubjects.length > 0) {
+        const totalPoints = optionalSubjects.reduce((sum, s) => sum + ((s.termAverage || 0) * (s.coefficient || 0)), 0);
+        const totalCoefficients = optionalSubjects.reduce((sum, s) => sum + (s.coefficient || 0), 0);
+        const sectionAverage = totalCoefficients > 0 ? totalPoints / totalCoefficients : 0;
+        
+        sections.push({
+          title: sectionTitles.optional,
+          subjects: optionalSubjects,
+          totalPoints,
+          totalCoefficients,
+          sectionAverage
+        });
+      }
+      
+      return sections.length > 0 ? sections : [{
+        title: sectionTitles.general,
+        subjects: subjects,
+        totalPoints: 0,
+        totalCoefficients: 0,
+        sectionAverage: 0
+      }];
+    }
+    
+    // For technical schools: categorize by subject type (from database subjectType field)
+    const professionalKeywords = ['sewing', 'couture', 'pattern', 'patron', 'technical drawing', 'dessin technique', 'technology', 'technologie', 'trade', 'commerce', 'fashion', 'mode', 'textile', 'equipment', 'équipement', 'training', 'formation', 'fabric', 'tissu'];
     
     const categorizedSubjects = subjects.map(subject => {
-      if (subject.category) return subject; // Already categorized
+      if (subject.category) return subject; // Already categorized from database
       
       const subjectLower = subject.subjectName.toLowerCase();
       
-      if (generalKeywords.some(keyword => subjectLower.includes(keyword))) {
-        return { ...subject, category: 'general' as const };
-      } else if (technicalKeywords.some(keyword => subjectLower.includes(keyword))) {
-        return { ...subject, category: 'technical' as const };
+      // Check if it's a professional subject
+      if (professionalKeywords.some(keyword => subjectLower.includes(keyword))) {
+        return { ...subject, category: 'professional' as const };
       } else {
-        // Default categorization based on position/coefficient
-        return { ...subject, category: subject.coefficient >= 3 ? 'general' : 'technical' as const };
+        // Default to general for academic subjects
+        return { ...subject, category: 'general' as const };
       }
     });
     
     // Group subjects by category
     const groupedSubjects = {
       general: categorizedSubjects.filter(s => s.category === 'general'),
-      technical: categorizedSubjects.filter(s => s.category === 'technical'),
+      professional: categorizedSubjects.filter(s => s.category === 'professional'),
       optional: categorizedSubjects.filter(s => s.category === 'optional')
     };
     
-    // Create sections for non-empty categories
+    // Create sections with sub-totals for technical schools
     Object.entries(groupedSubjects).forEach(([category, subjects]) => {
       if (subjects.length > 0) {
-        const totalPoints = subjects.reduce((sum, s) => sum + (s.termAverage * s.coefficient), 0);
-        const totalCoefficients = subjects.reduce((sum, s) => sum + s.coefficient, 0);
+        const totalPoints = subjects.reduce((sum, s) => sum + ((s.termAverage || 0) * (s.coefficient || 0)), 0);
+        const totalCoefficients = subjects.reduce((sum, s) => sum + (s.coefficient || 0), 0);
         const sectionAverage = totalCoefficients > 0 ? totalPoints / totalCoefficients : 0;
         
         sections.push({
           title: sectionTitles[category as keyof typeof sectionTitles],
-          subjects: subjects as SubjectGrade[],
+          subjects: subjects,
           totalPoints,
           totalCoefficients,
           sectionAverage
@@ -902,7 +949,8 @@ export class ComprehensiveBulletinGenerator {
         console.log(`[SECTIONED_DEBUG] Subject ${i + 1}: ${subject.subjectName} (coef: ${subject.coefficient}, category: ${subject.category || 'auto'})`);
       });
       
-      const subjectSections = this.organizeSubjectsBySections(studentData.subjects, options.language);
+      const isTechnicalSchool = schoolInfo.educationalType === 'technical';
+      const subjectSections = this.organizeSubjectsBySections(studentData.subjects, options.language, isTechnicalSchool);
       console.log(`[SECTIONED_DEBUG] 🎯 Created ${subjectSections.length} sections:`);
       subjectSections.forEach((section, i) => {
         console.log(`[SECTIONED_DEBUG] Section ${i + 1}: "${section.title}" - ${section.subjects.length} subjects, avg: ${section.sectionAverage.toFixed(2)}`);
