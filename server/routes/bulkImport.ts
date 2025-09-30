@@ -212,6 +212,14 @@ router.get('/template/:userType', requireTemplateAuth, async (req, res) => {
   try {
     const { userType } = req.params;
     
+    // Check if it's one of the new import types handled by excelImportService
+    if (['classes', 'timetables'].includes(userType)) {
+      const buffer = excelImportService.generateTemplate(userType as 'classes' | 'timetables');
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=template_${userType}_${Date.now()}.xlsx`);
+      return res.send(buffer);
+    }
+    
     if (!['teachers', 'students'].includes(userType)) {
       return res.status(400).json({ message: 'Type d\'utilisateur invalide' });
     }
@@ -366,12 +374,35 @@ router.post('/import', requireAuth, async (req, res) => {
   try {
     const { userType, schoolId, data } = req.body;
 
-    if (!['teachers', 'students'].includes(userType)) {
+    if (!['teachers', 'students', 'classes', 'timetables'].includes(userType)) {
       return res.status(400).json({ message: 'Type d\'utilisateur invalide' });
     }
 
     if (!data || !Array.isArray(data) || data.length === 0) {
       return res.status(400).json({ message: 'Données d\'import invalides' });
+    }
+    
+    // Handle new import types using excelImportService
+    if (userType === 'classes') {
+      const result = await excelImportService.importClasses(data, schoolId, req.user?.id);
+      return res.json({
+        success: result.success,
+        message: result.message || `${result.created} classes créées avec succès`,
+        created: result.created,
+        errors: result.errors,
+        warnings: result.warnings
+      });
+    }
+    
+    if (userType === 'timetables') {
+      const result = await excelImportService.importTimetables(data, schoolId, req.user?.id);
+      return res.json({
+        success: result.success,
+        message: result.message || `${result.created} entrées d'emploi du temps créées avec succès`,
+        created: result.created,
+        errors: result.errors,
+        warnings: result.warnings
+      });
     }
 
     const results = {
@@ -457,104 +488,6 @@ router.post('/import', requireAuth, async (req, res) => {
     console.error('Bulk import error:', error);
     res.status(500).json({ 
       message: error instanceof Error ? error.message : 'Erreur lors de l\'import en masse'
-    });
-  }
-});
-
-// Download template for classes
-router.get('/template/classes', requireTemplateAuth, async (req, res) => {
-  try {
-    const buffer = excelImportService.generateTemplate('classes');
-    
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=template_classes_${Date.now()}.xlsx`);
-    
-    res.send(buffer);
-  } catch (error) {
-    console.error('Classes template download error:', error);
-    res.status(500).json({ message: 'Erreur lors de la génération du modèle' });
-  }
-});
-
-// Download template for timetables
-router.get('/template/timetables', requireTemplateAuth, async (req, res) => {
-  try {
-    const buffer = excelImportService.generateTemplate('timetables');
-    
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=template_timetables_${Date.now()}.xlsx`);
-    
-    res.send(buffer);
-  } catch (error) {
-    console.error('Timetables template download error:', error);
-    res.status(500).json({ message: 'Erreur lors de la génération du modèle' });
-  }
-});
-
-// Import classes from Excel
-router.post('/import/classes', requireAuth, upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'Aucun fichier fourni' });
-    }
-
-    const schoolId = req.user?.schoolId || parseInt(req.body.schoolId);
-    const language = req.body.language || 'fr';
-    
-    if (!schoolId) {
-      return res.status(400).json({ message: 'ID école requis' });
-    }
-
-    // Parse and import
-    const data = excelImportService.parseFile(req.file.buffer, req.file.originalname);
-    const result = await excelImportService.importClasses(data, schoolId, req.user?.id);
-
-    res.json({
-      success: result.success,
-      message: result.message || `${result.created} classes créées avec succès`,
-      created: result.created,
-      errors: result.errors,
-      warnings: result.warnings
-    });
-
-  } catch (error) {
-    console.error('Classes import error:', error);
-    res.status(500).json({ 
-      message: error instanceof Error ? error.message : 'Erreur lors de l\'import des classes'
-    });
-  }
-});
-
-// Import timetables from Excel
-router.post('/import/timetables', requireAuth, upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'Aucun fichier fourni' });
-    }
-
-    const schoolId = req.user?.schoolId || parseInt(req.body.schoolId);
-    const language = req.body.language || 'fr';
-    
-    if (!schoolId) {
-      return res.status(400).json({ message: 'ID école requis' });
-    }
-
-    // Parse and import
-    const data = excelImportService.parseFile(req.file.buffer, req.file.originalname);
-    const result = await excelImportService.importTimetables(data, schoolId, req.user?.id);
-
-    res.json({
-      success: result.success,
-      message: result.message || `${result.created} entrées d'emploi du temps créées avec succès`,
-      created: result.created,
-      errors: result.errors,
-      warnings: result.warnings
-    });
-
-  } catch (error) {
-    console.error('Timetables import error:', error);
-    res.status(500).json({ 
-      message: error instanceof Error ? error.message : 'Erreur lors de l\'import des emplois du temps'
     });
   }
 });

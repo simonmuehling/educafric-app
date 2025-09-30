@@ -1,7 +1,7 @@
 # Educafric - African Educational Technology Platform
 
 ## Overview
-Educafric is a comprehensive, bilingual (French/English), mobile-first African educational technology platform. It provides a complete digital learning ecosystem by integrating academic management, communication tools, and financial features tailored for the African market. The platform aims to offer significant cost savings for schools, improve educational outcomes, and supports 3500+ concurrent users. Unique features include a payment model where Educafric pays schools and a smart data separation system for sandbox and real user data. Its ambition is to revolutionize education in Africa, aligning with UN Sustainable Development Goals.
+Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform for the African market. It integrates academic management, communication, and financial features to create a digital learning ecosystem. The platform aims to reduce costs for schools, improve educational outcomes, support high concurrent user loads, and includes unique features like a payment model where Educafric pays schools, and intelligent data separation for sandbox and real user data. Its primary goal is to revolutionize education in Africa, aligning with UN Sustainable Development Goals, with ambitions for significant market penetration and market potential by offering a complete educational solution.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -61,7 +61,7 @@ Preferred communication style: Simple, everyday language.
 
 Website URL Standard: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
 
-Console Error Prevention: 
+Console Error Prevention:
 - ✅ Toutes erreurs PWA/MIME type JavaScript complètement éliminées.
 - Console filtering activé en production et développement.
 - Interception globale des erreurs MIME avec preventDefault().
@@ -123,43 +123,42 @@ Fast Module Optimization System:
 ## System Architecture
 
 ### Frontend Architecture
-- Built with React and TypeScript, using Wouter for routing, TanStack Query for state management, and Radix UI + Shadcn/UI for components.
-- Styled with Tailwind CSS, featuring a custom African-themed color palette, modern gradients, rounded cards, and animated interactions using the Nunito font.
-- Designed as a Progressive Web App (PWA) with strong mobile optimization.
-- Ensures unified UI/UX across all dashboards through standardized, reusable components.
-- A separate React Native application (`educafric-mobile/`) exists for Android, sharing the backend.
+- **Frameworks**: React with TypeScript, Wouter for routing, TanStack Query for state management.
+- **UI Components**: Radix UI + Shadcn/UI, styled with Tailwind CSS.
+- **Design**: Custom African-themed color palette, modern gradients, rounded cards, animated interactions using Nunito font.
+- **Accessibility**: Progressive Web App (PWA) with strong mobile optimization.
+- **Consistency**: Unified UI/UX across all dashboards via reusable components.
+- **Mobile**: Separate React Native application (`educafric-mobile/`) for Android, sharing the backend.
 
 ### Backend Architecture
-- Uses Express.js for RESTful APIs.
-- Drizzle ORM with PostgreSQL for type-safe database operations.
-- Implements session-based authentication with `express-session` and `Passport.js`.
-- Features robust role-based access control for 8 distinct user roles.
-- Employs BCrypt for secure password hashing.
-- Includes consolidated error handling and security hardening measures (helmet, cors, rate-limiting, 2FA, IDS).
+- **Framework**: Express.js for RESTful APIs.
+- **ORM**: Drizzle ORM with PostgreSQL for type-safe database operations.
+- **Authentication**: Session-based authentication using `express-session` and `Passport.js`.
+- **Security**: Robust role-based access control (8 user roles), BCrypt for password hashing, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
 
 ### Database Design
-- PostgreSQL is the primary database, hosted on Neon Serverless.
-- Supports a multi-tenant architecture to accommodate multiple schools.
-- Features a comprehensive schema covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation data.
-- Structured to organize educational data by academic year/term.
+- **Type**: PostgreSQL, hosted on Neon Serverless.
+- **Architecture**: Multi-tenant support for multiple schools.
+- **Schema**: Comprehensive, covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation.
+- **Organization**: Data structured by academic year/term.
 
 ### Key Features and System Design Choices
-- **Authentication & Authorization**: Secure local and Firebase Google OAuth with comprehensive session management and granular permissions.
-- **Educational Management System**: Grade management with African-style report cards, real-time attendance, homework assignment, and flexible timetable management.
-- **Communication System**: Multi-channel notifications via Vonage (SMS/WhatsApp), Hostinger SMTP (Email), and PWA push notifications, with bilingual, contextual templates.
-- **Payment & Subscription Management**: Stripe integration for international payments, complemented by local African payment methods.
-- **Geolocation Services**: GPS tracking for devices, geofencing, safe zone management, real-time monitoring, and emergency alerts.
-- **Document Management System**: Centralized system for commercial, administrative, and legal documents, with digital signatures, PDF generation, and controlled access.
-- **Bidirectional Connection System**: Facilitates connections between parents-children, students-parents, and freelancers-students, with duplicate detection and school verification.
-- **Bilingual Support**: Dynamic French/English language switching with complete localization of UI, content, and documentation.
-- **Sandbox Environment**: A dedicated, fully unlocked environment with realistic African demo data.
+- **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
+- **Educational Management System**: Grade management (African-style report cards), real-time attendance, homework assignment, flexible timetable management.
+- **Communication System**: Multi-channel notifications (Vonage SMS/WhatsApp, Hostinger SMTP Email, PWA push), bilingual, contextual templates.
+- **Payment & Subscription Management**: Stripe integration for international payments, local African payment methods.
+- **Geolocation Services**: GPS tracking, geofencing, safe zone management, real-time monitoring, emergency alerts.
+- **Document Management System**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access.
+- **Bidirectional Connection System**: Facilitates parent-child, student-parent, and freelancer-student connections with duplicate detection and school verification.
+- **Bilingual Support**: Dynamic French/English language switching, complete localization of UI, content, documentation.
+- **Sandbox Environment**: Dedicated, fully unlocked environment with realistic African demo data.
 
 ## External Dependencies
 
 ### Core Services
 - **Neon Database**: Serverless PostgreSQL hosting.
 - **Stripe**: Payment processing.
-- **Firebase**: Authentication (Google OAuth) and real-time features.
+- **Firebase**: Authentication (Google OAuth).
 - **Vonage**: SMS and WhatsApp messaging APIs.
 - **Hostinger**: SMTP services for email communication.
 
