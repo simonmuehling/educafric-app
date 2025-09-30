@@ -10,9 +10,10 @@ interface TeacherImportData {
   lastName: string;
   email: string;
   phone?: string;
-  gender: string;
-  matricule: string;
   subjects: string; // Comma or semicolon separated
+  experience?: string;
+  classes?: string;
+  qualification?: string;
 }
 
 interface StudentImportData {
@@ -109,7 +110,10 @@ const translations = {
       capacity: 'Capacité',
       building: 'Bâtiment',
       floor: 'Étage',
-      equipment: 'Équipement'
+      equipment: 'Équipement',
+      experience: 'Expérience',
+      classes: 'Classes',
+      qualification: 'Qualification'
     },
     genders: {
       male: 'Masculin',
@@ -158,7 +162,10 @@ const translations = {
       capacity: 'Capacity',
       building: 'Building',
       floor: 'Floor',
-      equipment: 'Equipment'
+      equipment: 'Equipment',
+      experience: 'Experience',
+      classes: 'Classes',
+      qualification: 'Qualification'
     },
     genders: {
       male: 'Male',
@@ -227,9 +234,10 @@ export class ExcelImportService {
           lastName: row[t.fields.lastName] || row['Nom'] || row['LastName'] || '',
           email: row[t.fields.email] || row['Email'] || '',
           phone: row[t.fields.phone] || row['Téléphone'] || row['Phone'] || '',
-          gender: row[t.fields.gender] || row['Genre'] || row['Gender'] || '',
-          matricule: row[t.fields.matricule] || row['Matricule'] || row['ID'] || '',
-          subjects: row[t.fields.subjects] || row['Matières'] || row['Subjects'] || ''
+          subjects: row[t.fields.subjects] || row['Matières'] || row['Subjects'] || '',
+          experience: row[t.fields.experience] || row['Expérience'] || row['Experience'] || '',
+          classes: row[t.fields.classes] || row['Classes'] || '',
+          qualification: row[t.fields.qualification] || row['Qualification'] || ''
         };
         
         // Validate required fields
@@ -271,8 +279,14 @@ export class ExcelImportService {
           continue;
         }
         
+        // Parse subjects (stored as array in teacher profile)
+        const subjects = teacherData.subjects
+          .split(/[;,]/)
+          .map(s => s.trim())
+          .filter(Boolean);
+        
         // Create teacher user
-        const hashedPassword = await bcrypt.hash('eduPass@' + teacherData.matricule || '2024', 10);
+        const hashedPassword = await bcrypt.hash('eduPass@2024', 10);
         const newUser = await storage.createUser({
           email: teacherData.email,
           password: hashedPassword,
@@ -282,18 +296,12 @@ export class ExcelImportService {
           userType: 'teacher',
           schoolId: schoolId,
           isActive: true,
-          gender: teacherData.gender,
-          matricule: teacherData.matricule || nanoid(10)
+          matricule: nanoid(10),
+          subjects: subjects, // Store subjects array
+          experience: teacherData.experience || '',
+          qualification: teacherData.qualification || '',
+          assignedClasses: teacherData.classes || '' // Store class assignments
         });
-        
-        // Parse subjects (stored as comma-separated string in user profile for now)
-        const subjects = teacherData.subjects
-          .split(/[;,]/)
-          .map(s => s.trim())
-          .filter(Boolean);
-        
-        // Note: Subject assignment can be done through a separate admin interface
-        // For bulk import, subjects are stored in the teacher's profile
         
         result.created++;
         
@@ -728,10 +736,37 @@ export class ExcelImportService {
     
     switch (type) {
       case 'teachers':
-        headers = [t.fields.firstName, t.fields.lastName, t.fields.email, t.fields.phone, t.fields.gender, t.fields.matricule, t.fields.subjects];
+        headers = [
+          t.fields.firstName, 
+          t.fields.lastName, 
+          t.fields.email, 
+          t.fields.phone, 
+          t.fields.experience, 
+          t.fields.subjects, 
+          t.fields.classes, 
+          t.fields.qualification
+        ];
         sampleData = [
-          ['Marie', 'Nguyen', 'marie.nguyen@educafric.com', '+237677123456', t.genders.female, 'EDU-2025-002', lang === 'fr' ? 'Mathématiques;Physique' : 'Mathematics;Physics'],
-          ['Paul', 'Ateba', 'paul.ateba@educafric.com', '+237698765432', t.genders.male, 'EDU-2025-003', lang === 'fr' ? 'Français;Histoire' : 'French;History']
+          [
+            'Marie', 
+            'Nguyen', 
+            'marie.nguyen@educafric.com', 
+            '+237677123456', 
+            lang === 'fr' ? '5 ans' : '5 years',
+            lang === 'fr' ? 'Mathématiques;Physique' : 'Mathematics;Physics',
+            '6ème A, 5ème B',
+            lang === 'fr' ? 'Master en Mathématiques - Université de Yaoundé I' : 'Master in Mathematics - University of Yaoundé I'
+          ],
+          [
+            'Paul', 
+            'Ateba', 
+            'paul.ateba@educafric.com', 
+            '+237698765432', 
+            lang === 'fr' ? '8 ans' : '8 years',
+            lang === 'fr' ? 'Français;Histoire' : 'French;History',
+            '4ème C, 3ème A',
+            lang === 'fr' ? 'Doctorat en Lettres - Université de Douala' : 'PhD in Literature - University of Douala'
+          ]
         ];
         break;
         
