@@ -33,7 +33,7 @@ const ClassManagement: React.FC = () => {
     subjects: [] as Array<{
       name: string;
       coefficient: number;
-      category: 'general' | 'professional' | 'arts' | 'sports';
+      category: 'general' | 'professional';
       hoursPerWeek: number;
       isRequired: boolean;
     }>
@@ -51,7 +51,7 @@ const ClassManagement: React.FC = () => {
   const [newSubject, setNewSubject] = useState({
     name: '',
     coefficient: 1,
-    category: 'general' as 'general' | 'professional' | 'arts' | 'sports',
+    category: 'general' as 'general' | 'professional',
     hoursPerWeek: 2,
     isRequired: true
   });
@@ -865,7 +865,7 @@ const ClassManagement: React.FC = () => {
                       <div className="flex gap-2">
                         <Select 
                           value={newSubject.category} 
-                          onValueChange={(value: 'general' | 'professional' | 'arts' | 'sports') => 
+                          onValueChange={(value: 'general' | 'professional') => 
                             setNewSubject(prev => ({ ...prev, category: value }))
                           }
                         >
@@ -873,10 +873,8 @@ const ClassManagement: React.FC = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="general">📚 Général</SelectItem>
-                            <SelectItem value="professional">🔧 Professionnel</SelectItem>
-                            <SelectItem value="arts">🎨 Arts</SelectItem>
-                            <SelectItem value="sports">⚽ Sports</SelectItem>
+                            <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
+                            <SelectItem value="professional">🔧 {language === 'fr' ? 'Professionnel' : 'Professional'}</SelectItem>
                           </SelectContent>
                         </Select>
                         <Button
@@ -1790,9 +1788,7 @@ const ClassManagement: React.FC = () => {
                           </div>
                           <Badge variant="outline" className="mt-2 text-xs">
                             {subject.category === 'general' ? (language === 'fr' ? 'Générale' : 'General') :
-                             subject.category === 'professional' ? (language === 'fr' ? 'Professionnelle' : 'Professional') :
-                             subject.category === 'arts' ? (language === 'fr' ? 'Arts' : 'Arts') : 
-                             (language === 'fr' ? 'Sport' : 'Sports')}
+                             (language === 'fr' ? 'Professionnelle' : 'Professional')}
                           </Badge>
                         </div>
                       ))}
