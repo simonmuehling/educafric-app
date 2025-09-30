@@ -660,10 +660,21 @@ export class ExcelImportService {
           continue;
         }
         
+        // Validate room type
+        const validRoomTypes = ['classroom', 'laboratory', 'computer_lab', 'library', 'sports_hall', 'workshop'];
+        if (roomData.type && !validRoomTypes.includes(roomData.type.toLowerCase())) {
+          result.errors.push({
+            row: row._row || index + 2,
+            field: t.fields.type,
+            message: `${t.fields.type} ${t.errors.invalid}: "${roomData.type}". ${lang === 'fr' ? 'Valeurs valides' : 'Valid values'}: classroom, laboratory, computer_lab, library, sports_hall, workshop`
+          });
+          continue;
+        }
+        
         // Create room in database
         await db.insert(rooms).values({
           name: roomData.name,
-          type: roomData.type || 'classroom',
+          type: (roomData.type || 'classroom').toLowerCase(),
           capacity: roomData.capacity || 30,
           building: roomData.building,
           floor: roomData.floor,

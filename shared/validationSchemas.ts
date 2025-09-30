@@ -4,9 +4,13 @@
 import { z } from "zod";
 
 // Room management validation schemas
+const roomTypes = ['classroom', 'laboratory', 'computer_lab', 'library', 'sports_hall', 'workshop'] as const;
+
 export const roomCreationSchema = z.object({
   name: z.string().min(1, "Room name is required").max(100, "Room name too long"),
-  type: z.string().optional().default("classroom"),
+  type: z.enum(roomTypes, {
+    errorMap: () => ({ message: "Room type must be one of: classroom, laboratory, computer_lab, library, sports_hall, workshop" })
+  }).default("classroom"),
   capacity: z.number().int().min(1, "Capacity must be at least 1").max(500, "Capacity too large").default(30),
   building: z.string().max(100, "Building name too long").optional(),
   floor: z.string().max(50, "Floor too long").optional(),
@@ -15,7 +19,9 @@ export const roomCreationSchema = z.object({
 
 export const roomUpdateSchema = z.object({
   name: z.string().min(1, "Room name is required").max(100, "Room name too long").optional(),
-  type: z.string().max(50, "Type too long").optional(),
+  type: z.enum(roomTypes, {
+    errorMap: () => ({ message: "Room type must be one of: classroom, laboratory, computer_lab, library, sports_hall, workshop" })
+  }).optional(),
   capacity: z.number().int().min(1, "Capacity must be at least 1").max(500, "Capacity too large").optional(),
   building: z.string().max(100, "Building name too long").optional(),
   floor: z.string().max(50, "Floor too long").optional(),

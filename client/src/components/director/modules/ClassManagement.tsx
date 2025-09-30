@@ -1654,46 +1654,26 @@ const ClassManagement: React.FC = () => {
                 <Card className="p-4">
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <Upload className="w-4 h-4" />
-                    {language === 'fr' ? 'Import CSV' : 'CSV Import'}
+                    {language === 'fr' ? 'Import Excel' : 'Excel Import'}
                   </h3>
                   <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline"
-                        onClick={downloadRoomsTemplate}
-                        className="flex-1"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        {language === 'fr' ? 'Modèle' : 'Template'}
-                      </Button>
-                      <div className="flex-1">
-                        <input
-                          type="file"
-                          accept=".csv"
-                          onChange={handleFileImport}
-                          disabled={isImportingRooms}
-                          className="hidden"
-                          id="rooms-csv-input"
-                        />
-                        <Button 
-                          className="w-full bg-green-600 hover:bg-green-700"
-                          onClick={() => document.getElementById('rooms-csv-input')?.click()}
-                          disabled={isImportingRooms}
-                        >
-                          {isImportingRooms ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                          ) : (
-                            <Upload className="w-4 h-4 mr-2" />
-                          )}
-                          {language === 'fr' ? 'Importer' : 'Import'}
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 mb-2">
                       {language === 'fr' 
-                        ? 'Format: nom,capacité (téléchargez le modèle pour plus de détails)' 
-                        : 'Format: name,capacity (download template for details)'}
+                        ? 'Téléchargez le modèle Excel, remplissez-le avec vos salles (nom, type, capacité, bâtiment, étage, équipement), puis importez-le.'
+                        : 'Download the Excel template, fill it with your rooms (name, type, capacity, building, floor, equipment), then import it.'}
                     </p>
+                    <ExcelImportButton
+                      importType="rooms"
+                      schoolId={user?.schoolId}
+                      invalidateQueries={['/api/director/rooms']}
+                      onImportSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ['/api/director/rooms'] });
+                        toast({
+                          title: language === 'fr' ? 'Import réussi' : 'Import successful',
+                          description: language === 'fr' ? 'Les salles ont été importées avec succès' : 'Rooms have been imported successfully'
+                        });
+                      }}
+                    />
                   </div>
                 </Card>
               </div>
