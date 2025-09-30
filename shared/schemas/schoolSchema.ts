@@ -6,15 +6,12 @@ import { pgTable, text, serial, integer, boolean, timestamp, decimal, varchar, j
 export const schools = pgTable("schools", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  type: text("type").notNull(), // public, private, enterprise
+  type: text("type").notNull(), // public, private
+  educationalType: text("educational_type").notNull().default('general'), // general, technical
   address: text("address"),
   phone: text("phone"),
   email: text("email"),
   logoUrl: text("logo_url"),
-  subscriptionStatus: text("subscription_status").default("inactive"),
-  subscriptionPlan: text("subscription_plan"),
-  maxStudents: integer("max_students"),
-  maxTeachers: integer("max_teachers"),
   academicYear: text("academic_year"),
   currentTerm: text("current_term"),
   termStartDate: timestamp("term_start_date"),

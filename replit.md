@@ -74,7 +74,7 @@ Fast Module Optimization System:
 - ✅ Cache intelligent avec gestion mémoire optimisée.
 - ✅ Préchargement au survol des icônes pour UX instantanée.
 - ✅ OptimizedModuleWrapper pour éviter re-renders inutiles.
-- ✅ Performance monitoring intégré avec métriques temps réel.
+- ✅ Performance monitoring intégré avec métriques temps réels.
 - ✅ Support complet modules existants réels (plus de modules inexistants).
 
 **INTÉGRATION CALENDRIER ACADÉMIQUE - SEPTEMBER 2025**:
@@ -88,6 +88,24 @@ Fast Module Optimization System:
 - ✅ **UI intégrée** : Module CalendarExport ajouté aux dashboards Directeur et Enseignant
 - ✅ **Fenêtre temporelle** : Prochains 3 mois d'événements, filtrage par année académique/trimestre
 - ✅ **Liens Jitsi** : URLs complètes meet.educafric.com incluses dans LOCATION et DESCRIPTION
+
+**SUPPRESSION MODULE ABONNEMENT ÉCOLES + IMPORTS EXCEL MASSE - SEPTEMBER 30, 2025**:
+- ✅ **Abonnement Écoles supprimé** : Champs subscription_status, subscription_plan, max_students, max_teachers retirés de la table schools
+- ✅ **Type éducatif ajouté** : Nouveau champ educational_type (general/technical) avec default 'general' dans table schools
+- ✅ **Classification écoles** : Support type école (public/private) ET type éducatif (general/technical) dans signup
+- ✅ **Service Import Excel** : Extension de excelImportService.ts avec support bilingue (FR/EN)
+  - importClasses() : Import masse classes avec validation nom/niveau/section/maxStudents/teacherEmail/academicYear
+  - importTimetables() : Import masse emplois du temps avec validation classe/teacher/subject/jour/horaires
+  - generateTemplate() : Génération templates Excel pour classes, timetables, teachers, students, parents
+- ✅ **Routes API Import** : Nouveaux endpoints dans /api/bulk-import/
+  - GET /template/classes : Télécharger template Excel classes
+  - GET /template/timetables : Télécharger template Excel emplois du temps
+  - POST /import/classes : Import Excel classes (multer, validation, création masse)
+  - POST /import/timetables : Import Excel emplois du temps (multer, validation, création masse)
+- ✅ **Sécurité imports** : Authentification Director/Admin requise, validation données, gestion erreurs détaillée
+- ✅ **Templates bilingues** : Headers FR/EN, exemples réalistes africains, instructions intégrées
+- ✅ **Gestion erreurs** : Rapport détaillé ligne par ligne avec errors[], warnings[], created count
+- ⚠️ **À implémenter** : UI upload Excel dans modules Director (Class Management, Timetable Management)
 
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards

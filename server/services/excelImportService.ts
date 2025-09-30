@@ -420,9 +420,197 @@ export class ExcelImportService {
   }
   
   /**
+   * Import classes from parsed data
+   */
+  async importClasses(data: any[], schoolId: number, createdBy: number): Promise<ImportResult> {
+    const result: ImportResult = {
+      success: true,
+      created: 0,
+      errors: [],
+      warnings: []
+    };
+    
+    for (let index = 0; index < data.length; index++) {
+      const row = data[index];
+      try {
+        const classData = {
+          name: row['Nom'] || row['name'],
+          level: row['Niveau'] || row['level'],
+          section: row['Section'] || row['section'] || '',
+          maxStudents: row['MaxÉlèves'] || row['maxStudents'] || null,
+          teacherEmail: row['EmailEnseignant'] || row['teacherEmail'],
+          academicYear: row['AnnéeAcadémique'] || row['academicYear']
+        };
+        
+        // Validate required fields
+        if (!classData.name || !classData.level) {
+          result.errors.push({
+            row: row._row || index + 2,
+            field: 'name/level',
+            message: 'Le nom et le niveau de la classe sont obligatoires',
+            data: row
+          });
+          continue;
+        }
+        
+        // Find teacher if provided
+        let teacherId = null;
+        if (classData.teacherEmail) {
+          const teacher = await storage.getUserByEmail(classData.teacherEmail);
+          if (teacher && teacher.role === 'Teacher') {
+            teacherId = teacher.id;
+          } else {
+            result.warnings.push({
+              row: row._row || index + 2,
+              message: `Enseignant non trouvé: ${classData.teacherEmail}`
+            });
+          }
+        }
+        
+        // Get the school's current academic year
+        const school = await storage.getSchoolById(schoolId);
+        if (!school) {
+          result.errors.push({
+            row: row._row || index + 2,
+            field: 'schoolId',
+            message: 'École non trouvée',
+            data: row
+          });
+          continue;
+        }
+        
+        // Use academicYear from classData if provided, otherwise use school's current year
+        const academicYearName = classData.academicYear || school.academicYear || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+        
+        // For simplicity, use academic year ID 1 as default - schools should have this configured
+        // In production, this should fetch or create the academic year properly
+        const academicYearId = 1;
+        
+        // Create class
+        await storage.createClass({
+          name: classData.name,
+          level: classData.level,
+          section: classData.section,
+          maxStudents: classData.maxStudents ? parseInt(classData.maxStudents) : null,
+          schoolId,
+          teacherId,
+          academicYearId
+        });
+        
+        result.created++;
+        
+      } catch (error) {
+        result.errors.push({
+          row: row._row || index + 2,
+          field: 'general',
+          message: `Erreur lors de la création: ${error.message}`,
+          data: row
+        });
+      }
+    }
+    
+    result.success = result.errors.length === 0;
+    return result;
+  }
+  
+  /**
+   * Import timetables from parsed data
+   */
+  async importTimetables(data: any[], schoolId: number, createdBy: number): Promise<ImportResult> {
+    const result: ImportResult = {
+      success: true,
+      created: 0,
+      errors: [],
+      warnings: []
+    };
+    
+    for (let index = 0; index < data.length; index++) {
+      const row = data[index];
+      try {
+        const timetableData = {
+          className: row['Classe'] || row['className'],
+          teacherEmail: row['EmailEnseignant'] || row['teacherEmail'],
+          subjectName: row['Matière'] || row['subjectName'],
+          dayOfWeek: parseInt(row['Jour'] || row['dayOfWeek']),
+          startTime: row['HeureDébut'] || row['startTime'],
+          endTime: row['HeureFin'] || row['endTime'],
+          room: row['Salle'] || row['room'] || '',
+          academicYear: row['AnnéeAcadémique'] || row['academicYear'],
+          term: row['Trimestre'] || row['term']
+        };
+        
+        // Validation
+        if (!timetableData.className || !timetableData.teacherEmail || !timetableData.subjectName ||
+            !timetableData.dayOfWeek || !timetableData.startTime || !timetableData.endTime) {
+          result.errors.push({
+            row: row._row || index + 2,
+            field: 'required',
+            message: 'Champs obligatoires manquants',
+            data: row
+          });
+          continue;
+        }
+        
+        // Find class
+        const classes = await storage.getClassesBySchool(schoolId);
+        const foundClass = classes.find(c => c.name === timetableData.className);
+        if (!foundClass) {
+          result.errors.push({
+            row: row._row || index + 2,
+            field: 'className',
+            message: `Classe non trouvée: ${timetableData.className}`,
+            data: row
+          });
+          continue;
+        }
+        
+        // Find teacher
+        const teacher = await storage.getUserByEmail(timetableData.teacherEmail);
+        if (!teacher || teacher.role !== 'Teacher') {
+          result.errors.push({
+            row: row._row || index + 2,
+            field: 'teacherEmail',
+            message: `Enseignant non trouvé: ${timetableData.teacherEmail}`,
+            data: row
+          });
+          continue;
+        }
+        
+        // Create timetable entry
+        await storage.createTimetableEntry({
+          schoolId,
+          classId: foundClass.id,
+          teacherId: teacher.id,
+          subjectName: timetableData.subjectName,
+          dayOfWeek: timetableData.dayOfWeek,
+          startTime: timetableData.startTime,
+          endTime: timetableData.endTime,
+          room: timetableData.room,
+          academicYear: timetableData.academicYear || new Date().getFullYear() + '-' + (new Date().getFullYear() + 1),
+          term: timetableData.term || 'Term 1',
+          isActive: true
+        });
+        
+        result.created++;
+        
+      } catch (error) {
+        result.errors.push({
+          row: row._row || index + 2,
+          field: 'general',
+          message: `Erreur lors de la création: ${error.message}`,
+          data: row
+        });
+      }
+    }
+    
+    result.success = result.errors.length === 0;
+    return result;
+  }
+  
+  /**
    * Generate template Excel file for download
    */
-  generateTemplate(type: 'teachers' | 'students' | 'parents'): Buffer {
+  generateTemplate(type: 'teachers' | 'students' | 'parents' | 'classes' | 'timetables'): Buffer {
     let headers: string[];
     let sampleData: any[];
     
@@ -448,6 +636,24 @@ export class ExcelImportService {
         sampleData = [
           ['Marie', 'Kouakou', 'parent.kouakou@gmail.com', '+237677888999', 'Féminin', 'Mère', 'Infirmière', 'Yaoundé, Bastos', 'STU-2025-001'],
           ['Jean', 'Mballa', 'mballa.parent@yahoo.fr', '+237698555444', 'Masculin', 'Père', 'Ingénieur', 'Douala, Bonanjo', 'STU-2025-002;STU-2025-003']
+        ];
+        break;
+        
+      case 'classes':
+        headers = ['Nom', 'Niveau', 'Section', 'MaxÉlèves', 'EmailEnseignant', 'AnnéeAcadémique'];
+        sampleData = [
+          ['6ème A', '6ème', 'A', '40', 'prof.math@educafric.com', '2024-2025'],
+          ['5ème B', '5ème', 'B', '35', 'prof.francais@educafric.com', '2024-2025'],
+          ['CE1 Rouge', 'CE1', 'Rouge', '30', '', '2024-2025']
+        ];
+        break;
+        
+      case 'timetables':
+        headers = ['Classe', 'EmailEnseignant', 'Matière', 'Jour', 'HeureDébut', 'HeureFin', 'Salle', 'AnnéeAcadémique', 'Trimestre'];
+        sampleData = [
+          ['6ème A', 'prof.math@educafric.com', 'Mathématiques', '1', '08:00', '09:00', 'Salle A1', '2024-2025', 'Term 1'],
+          ['6ème A', 'prof.francais@educafric.com', 'Français', '2', '09:00', '10:00', 'Salle A1', '2024-2025', 'Term 1'],
+          ['6ème B', 'prof.sciences@educafric.com', 'Sciences', '3', '10:00', '11:00', 'Labo 1', '2024-2025', 'Term 1']
         ];
         break;
         
