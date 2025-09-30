@@ -420,14 +420,36 @@ export class ExcelImportService {
     for (let index = 0; index < data.length; index++) {
       const row = data[index];
       try {
+        const subjectsColumn = lang === 'fr' 
+          ? 'Matières (nom;coeff;heures;catégorie | séparées par |)'
+          : 'Subjects (name;coeff;hours;category | separated by |)';
+        
         const classData = {
           name: row[t.fields.name] || row['Nom'] || row['Name'] || '',
           level: row[t.fields.level] || row['Niveau'] || row['Level'] || '',
-          section: row[t.fields.section] || row['Section'] || '',
           maxStudents: parseInt(row[t.fields.maxStudents] || row['MaxÉlèves'] || row['MaxStudents'] || '30'),
           teacherEmail: row[t.fields.teacherEmail] || row['EmailEnseignant'] || row['TeacherEmail'] || '',
-          academicYear: row[t.fields.academicYear] || row['AnnéeAcadémique'] || row['AcademicYear'] || ''
+          room: row[t.fields.room] || row['Salle'] || row['Room'] || '',
+          subjectsRaw: row[subjectsColumn] || row['Matières'] || row['Subjects'] || ''
         };
+        
+        // Parse subjects from format: "Maths;4;6;general | Français;4;6;general"
+        const subjects: any[] = [];
+        if (classData.subjectsRaw) {
+          const subjectParts = classData.subjectsRaw.split('|').map((s: string) => s.trim());
+          for (const subjectStr of subjectParts) {
+            const [name, coeff, hours, category] = subjectStr.split(';').map((s: string) => s.trim());
+            if (name) {
+              subjects.push({
+                name,
+                coefficient: parseInt(coeff) || 1,
+                hoursPerWeek: parseInt(hours) || 1,
+                category: category === 'professional' ? 'professional' : 'general',
+                isRequired: true
+              });
+            }
+          }
+        }
         
         // Validate required fields
         if (!classData.name) {
@@ -473,14 +495,15 @@ export class ExcelImportService {
         // Note: Academic year can be set later through admin interface
         let academicYearId = null;
         
-        // Create class
+        // Create class with subjects
         await storage.createClass({
           schoolId,
           name: classData.name,
           level: classData.level,
-          section: classData.section,
           capacity: classData.maxStudents,
           teacherId,
+          room: classData.room || null,
+          subjects: subjects.length > 0 ? subjects : undefined,
           academicYearId,
           isActive: true
         });
@@ -695,11 +718,45 @@ export class ExcelImportService {
         break;
         
       case 'classes':
-        headers = [t.fields.name, t.fields.level, t.fields.section, t.fields.maxStudents, t.fields.teacherEmail, t.fields.academicYear];
+        headers = [
+          t.fields.name, 
+          t.fields.level, 
+          t.fields.maxStudents, 
+          t.fields.teacherEmail, 
+          t.fields.room,
+          lang === 'fr' ? 'Matières (nom;coeff;heures;catégorie | séparées par |)' : 'Subjects (name;coeff;hours;category | separated by |)'
+        ];
         sampleData = [
-          ['6ème A', '6ème', 'A', '40', 'prof.math@educafric.com', '2024-2025'],
-          ['5ème B', '5ème', 'B', '35', 'prof.francais@educafric.com', '2024-2025'],
-          ['CE1 Rouge', 'CE1', 'Rouge', '30', '', '2024-2025']
+          [
+            '6ème A', 
+            '6ème', 
+            '40', 
+            'prof.math@educafric.com', 
+            lang === 'fr' ? 'Salle A1' : 'Room A1',
+            lang === 'fr' 
+              ? 'Mathématiques;4;6;general | Français;4;6;general | Histoire;2;4;general | Sciences;3;5;general'
+              : 'Mathematics;4;6;general | French;4;6;general | History;2;4;general | Sciences;3;5;general'
+          ],
+          [
+            '5ème B', 
+            '5ème', 
+            '35', 
+            'prof.francais@educafric.com', 
+            lang === 'fr' ? 'Salle B2' : 'Room B2',
+            lang === 'fr'
+              ? 'Mathématiques;4;6;general | Français;4;6;general | Anglais;3;4;general'
+              : 'Mathematics;4;6;general | French;4;6;general | English;3;4;general'
+          ],
+          [
+            'Terminale Technique', 
+            'Terminale', 
+            '30', 
+            'prof.tech@educafric.com',
+            lang === 'fr' ? 'Atelier A' : 'Workshop A',
+            lang === 'fr'
+              ? 'Mathématiques;3;4;general | Électricité;5;8;professional | Mécanique;5;8;professional'
+              : 'Mathematics;3;4;general | Electricity;5;8;professional | Mechanics;5;8;professional'
+          ]
         ];
         break;
         
