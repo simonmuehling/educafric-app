@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface ExcelImportButtonProps {
-  importType: 'classes' | 'timetables' | 'teachers' | 'students' | 'parents';
+  importType: 'classes' | 'timetables' | 'teachers' | 'students' | 'parents' | 'rooms';
   schoolId?: number;
   onImportSuccess?: () => void;
   invalidateQueries?: string[];
@@ -42,7 +42,8 @@ export function ExcelImportButton({
     timetables: { fr: 'Importer Emploi du Temps (Excel)', en: 'Import Timetable (Excel)' },
     teachers: { fr: 'Importer Enseignants (Excel)', en: 'Import Teachers (Excel)' },
     students: { fr: 'Importer Élèves (Excel)', en: 'Import Students (Excel)' },
-    parents: { fr: 'Importer Parents (Excel)', en: 'Import Parents (Excel)' }
+    parents: { fr: 'Importer Parents (Excel)', en: 'Import Parents (Excel)' },
+    rooms: { fr: 'Importer Salles (Excel)', en: 'Import Rooms (Excel)' }
   };
 
   const displayText = buttonText || defaultButtonText[importType];
