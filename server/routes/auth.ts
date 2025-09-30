@@ -175,6 +175,14 @@ router.post('/register', async (req, res) => {
   try {
     const validatedData = createUserSchema.parse(req.body);
     
+    // Block Freelancer registration until September 2026
+    if (validatedData.role === 'Freelancer') {
+      return res.status(403).json({ 
+        message: 'Freelancer registration is temporarily unavailable until September 2026',
+        messageFr: 'L\'inscription en tant que Freelancer est temporairement indisponible jusqu\'à septembre 2026'
+      });
+    }
+    
     const existingUser = await storage.getUserByEmail(validatedData.email);
     if (existingUser) {
       return res.status(409).json({ message: 'User already exists' });

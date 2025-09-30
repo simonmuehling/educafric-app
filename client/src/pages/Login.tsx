@@ -232,11 +232,18 @@ export default function Login() {
 
 
   const userRoles = [
-    { value: 'Student', label: language === 'fr' ? 'Élève' : 'Student' },
-    { value: 'Parent', label: 'Parent' },
-    { value: 'Teacher', label: language === 'fr' ? 'Enseignant' : 'Teacher' },
-    { value: 'Director', label: language === 'fr' ? 'Directeur d\'École' : 'School Director' },
-    { value: 'Commercial', label: 'Commercial' },
+    { value: 'Student', label: language === 'fr' ? 'Élève' : 'Student', disabled: false },
+    { value: 'Parent', label: 'Parent', disabled: false },
+    { value: 'Teacher', label: language === 'fr' ? 'Enseignant' : 'Teacher', disabled: false },
+    { value: 'Director', label: language === 'fr' ? 'Directeur d\'École' : 'School Director', disabled: false },
+    { value: 'Commercial', label: 'Commercial', disabled: false },
+    { 
+      value: 'Freelancer', 
+      label: language === 'fr' 
+        ? 'Freelancer (Indisponible jusqu\'à septembre 2026)' 
+        : 'Freelancer (Unavailable until September 2026)', 
+      disabled: true 
+    },
   ];
 
   return (
@@ -648,7 +655,12 @@ export default function Login() {
                   className="w-full px-3 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 focus:bg-white focus:border-blue-500 transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 mobile-select"
                 >
                   {(Array.isArray(userRoles) ? userRoles : []).map(role => (
-                    <option key={role.value} value={role.value} className="bg-white text-gray-900">
+                    <option 
+                      key={role.value} 
+                      value={role.value} 
+                      disabled={role.disabled}
+                      className={role.disabled ? "bg-gray-100 text-gray-400" : "bg-white text-gray-900"}
+                    >
                       {role.label}
                     </option>
                   ))}

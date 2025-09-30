@@ -39,6 +39,15 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     category: 'parent',
     features: ['student_tracking', 'real_time_notifications', 'grade_access', 'bulletin_reception', 'online_class', 'teacher_communication', 'bilingual_support']
   },
+  {
+    id: 'parent_gps',
+    name: 'Parent GPS',
+    price: 5000,
+    currency: 'xaf',
+    interval: 'year',
+    category: 'parent',
+    features: ['gps_tracking', 'safety_zones', 'real_time_alerts', 'location_history', 'emergency_button']
+  },
   // Plans Écoles
   {
     id: 'school_public',

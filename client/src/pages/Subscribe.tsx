@@ -410,7 +410,6 @@ const Subscribe: React.FC = () => {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<'parent' | 'freelancer'>('parent');
   const [stripeLoaded, setStripeLoaded] = useState<any>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
 
@@ -432,12 +431,19 @@ const Subscribe: React.FC = () => {
     }
   }, [selectedPlan, selectedPaymentMethod, stripeLoaded, toast]);
 
-  // Récupérer les plans disponibles
+  // Récupérer les plans disponibles (uniquement parents)
   const { data: plansData, isLoading: plansLoading } = useQuery({
-    queryKey: ['/api/stripe/plans', selectedCategory],
+    queryKey: ['/api/stripe/plans', 'parent'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/stripe/plans?category=${selectedCategory}`);
-      return response.json();
+      const response = await apiRequest('GET', `/api/stripe/plans?category=parent`);
+      const data = await response.json();
+      // Filtrer uniquement les plans Parent Bronze, Parent Bronze P et Parent GPS
+      if (data?.plans) {
+        data.plans = data.plans.filter((plan: SubscriptionPlan) => 
+          ['parent_bronze', 'parent_bronze_p', 'parent_gps'].includes(plan.id)
+        );
+      }
+      return data;
     }
   });
 
@@ -789,22 +795,6 @@ const Subscribe: React.FC = () => {
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">
             Débloquez toutes les fonctionnalités premium pour une expérience éducative complète
           </p>
-          
-          {/* Sélecteur de catégorie */}
-          <div className="flex justify-center space-x-4 mb-8">
-            {(['parent', 'freelancer'] as const).map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory(category)}
-                className={selectedCategory === category ? 'bg-gradient-to-r from-purple-500 to-pink-500' : ''}
-                data-testid={`button-category-${category}`}
-              >
-                {category === 'parent' && '👨‍👩‍👧‍👦 Parents'}
-                {category === 'freelancer' && '🎓 Répétiteurs'}
-              </Button>
-            ))}
-          </div>
         </div>
 
         {/* Alerte pour utilisateurs sandbox */}
