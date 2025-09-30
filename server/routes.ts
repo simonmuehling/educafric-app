@@ -9663,6 +9663,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ success: false, message: 'Access denied' });
       }
       
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                            user.email?.includes('@sandbox.educafric.com') ||
+                            user.email?.includes('sandbox.') ||
+                            user.email?.includes('.sandbox@') ||
+                            user.email?.includes('demo@') ||
+                            user.email?.includes('.demo@');
+      
+      if (isSandboxUser) {
+        console.log('[SCHOOL_API] Sandbox user detected - returning mock school data');
+        // Return mock school data for sandbox users
+        const mockSchool = {
+          id: schoolId,
+          name: 'École Technique Sandbox',
+          educationalType: 'technical', // Technical school for testing
+          address: '123 Rue de la Paix, Yaoundé, Cameroun',
+          phone: '+237677001234',
+          email: 'contact@ecole-technique-sandbox.cm'
+        };
+        
+        return res.json({ success: true, school: mockSchool });
+      }
+      
       const school = await db.select({
         id: schools.id,
         name: schools.name,
