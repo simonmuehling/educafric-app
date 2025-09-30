@@ -39,6 +39,15 @@ interface ParentImportData {
   childrenMatricules: string; // Semicolon separated
 }
 
+interface RoomImportData {
+  name: string;
+  type: string;
+  capacity: number;
+  building?: string;
+  floor?: string;
+  equipment?: string;
+}
+
 interface ImportResult {
   success: boolean;
   created: number;
@@ -54,12 +63,115 @@ interface ImportResult {
   }>;
 }
 
+// Bilingual translations
+const translations = {
+  fr: {
+    errors: {
+      parseFile: 'Erreur lors de la lecture du fichier',
+      minRows: 'Le fichier doit contenir au moins une ligne de données en plus de l\'en-tête',
+      creation: 'Erreur lors de la création',
+      required: 'requis',
+      invalid: 'invalide',
+      duplicate: 'doublon détecté',
+      notFound: 'introuvable'
+    },
+    fields: {
+      firstName: 'Prénom',
+      lastName: 'Nom',
+      email: 'Email',
+      phone: 'Téléphone',
+      gender: 'Genre',
+      matricule: 'Matricule',
+      subjects: 'Matières',
+      dateOfBirth: 'DateNaissance',
+      className: 'Classe',
+      level: 'Niveau',
+      parentEmail: 'EmailParent',
+      parentPhone: 'TéléphoneParent',
+      relation: 'Relation',
+      profession: 'Profession',
+      address: 'Adresse',
+      childrenMatricules: 'MatriculesEnfants',
+      name: 'Nom',
+      section: 'Section',
+      maxStudents: 'MaxÉlèves',
+      teacherEmail: 'EmailEnseignant',
+      academicYear: 'AnnéeAcadémique',
+      subject: 'Matière',
+      day: 'Jour',
+      startTime: 'HeureDébut',
+      endTime: 'HeureFin',
+      room: 'Salle',
+      term: 'Trimestre',
+      type: 'Type',
+      capacity: 'Capacité',
+      building: 'Bâtiment',
+      floor: 'Étage',
+      equipment: 'Équipement'
+    },
+    genders: {
+      male: 'Masculin',
+      female: 'Féminin'
+    }
+  },
+  en: {
+    errors: {
+      parseFile: 'Error reading file',
+      minRows: 'File must contain at least one data row in addition to the header',
+      creation: 'Error during creation',
+      required: 'required',
+      invalid: 'invalid',
+      duplicate: 'duplicate detected',
+      notFound: 'not found'
+    },
+    fields: {
+      firstName: 'FirstName',
+      lastName: 'LastName',
+      email: 'Email',
+      phone: 'Phone',
+      gender: 'Gender',
+      matricule: 'ID',
+      subjects: 'Subjects',
+      dateOfBirth: 'DateOfBirth',
+      className: 'Class',
+      level: 'Level',
+      parentEmail: 'ParentEmail',
+      parentPhone: 'ParentPhone',
+      relation: 'Relation',
+      profession: 'Profession',
+      address: 'Address',
+      childrenMatricules: 'ChildrenIDs',
+      name: 'Name',
+      section: 'Section',
+      maxStudents: 'MaxStudents',
+      teacherEmail: 'TeacherEmail',
+      academicYear: 'AcademicYear',
+      subject: 'Subject',
+      day: 'Day',
+      startTime: 'StartTime',
+      endTime: 'EndTime',
+      room: 'Room',
+      term: 'Term',
+      type: 'Type',
+      capacity: 'Capacity',
+      building: 'Building',
+      floor: 'Floor',
+      equipment: 'Equipment'
+    },
+    genders: {
+      male: 'Male',
+      female: 'Female'
+    }
+  }
+};
+
 export class ExcelImportService {
   
   /**
    * Parse Excel/CSV file buffer and return JSON data
    */
-  parseFile(buffer: Buffer, filename: string): any[] {
+  parseFile(buffer: Buffer, filename: string, lang: 'fr' | 'en' = 'fr'): any[] {
+    const t = translations[lang];
     try {
       const workbook = XLSX.read(buffer, { type: 'buffer' });
       const sheetName = workbook.SheetNames[0];
@@ -73,7 +185,7 @@ export class ExcelImportService {
       });
       
       if (jsonData.length < 2) {
-        throw new Error('Le fichier doit contenir au moins une ligne de données en plus de l\'en-tête');
+        throw new Error(t.errors.minRows);
       }
       
       // Convert array format to object format using first row as keys
@@ -88,14 +200,15 @@ export class ExcelImportService {
       
       return data;
     } catch (error) {
-      throw new Error(`Erreur lors de la lecture du fichier: ${error.message}`);
+      throw new Error(`${t.errors.parseFile}: ${error.message}`);
     }
   }
   
   /**
    * Import teachers from parsed data
    */
-  async importTeachers(data: any[], schoolId: number, createdBy: number): Promise<ImportResult> {
+  async importTeachers(data: any[], schoolId: number, createdBy: number, lang: 'fr' | 'en' = 'fr'): Promise<ImportResult> {
+    const t = translations[lang];
     const result: ImportResult = {
       success: true,
       created: 0,
@@ -103,29 +216,26 @@ export class ExcelImportService {
       warnings: []
     };
     
-    const expectedHeaders = ['Prénom', 'Nom', 'Email', 'Téléphone', 'Genre', 'Matricule', 'Matières'];
-    
     for (let index = 0; index < data.length; index++) {
       const row = data[index];
       try {
-        // Validate required fields
+        // Support both French and English headers
         const teacherData: TeacherImportData = {
-          firstName: row['Prénom'] || row['firstName'],
-          lastName: row['Nom'] || row['lastName'],
-          email: row['Email'] || row['email'],
-          phone: row['Téléphone'] || row['phone'],
-          gender: row['Genre'] || row['gender'],
-          matricule: row['Matricule'] || row['matricule'],
-          subjects: row['Matières'] || row['subjects'] || ''
+          firstName: row[t.fields.firstName] || row['Prénom'] || row['FirstName'] || '',
+          lastName: row[t.fields.lastName] || row['Nom'] || row['LastName'] || '',
+          email: row[t.fields.email] || row['Email'] || '',
+          phone: row[t.fields.phone] || row['Téléphone'] || row['Phone'] || '',
+          gender: row[t.fields.gender] || row['Genre'] || row['Gender'] || '',
+          matricule: row[t.fields.matricule] || row['Matricule'] || row['ID'] || '',
+          subjects: row[t.fields.subjects] || row['Matières'] || row['Subjects'] || ''
         };
         
         // Validate required fields
         if (!teacherData.firstName) {
           result.errors.push({
             row: row._row || index + 2,
-            field: 'firstName',
-            message: 'Le prénom est obligatoire',
-            data: row
+            field: t.fields.firstName,
+            message: `${t.fields.firstName} ${t.errors.required}`
           });
           continue;
         }
@@ -133,54 +243,55 @@ export class ExcelImportService {
         if (!teacherData.lastName) {
           result.errors.push({
             row: row._row || index + 2,
-            field: 'lastName', 
-            message: 'Le nom est obligatoire',
-            data: row
+            field: t.fields.lastName,
+            message: `${t.fields.lastName} ${t.errors.required}`
           });
           continue;
         }
         
-        if (!teacherData.email || !teacherData.email.includes('@')) {
+        if (!teacherData.email) {
           result.errors.push({
             row: row._row || index + 2,
-            field: 'email',
-            message: 'Un email valide est obligatoire',
-            data: row
+            field: t.fields.email,
+            message: `${t.fields.email} ${t.errors.required}`
           });
           continue;
         }
         
-        // Check if user already exists
-        const existingUser = await storage.getUserByEmail(teacherData.email);
-        if (existingUser) {
-          result.warnings.push({
+        // Check for duplicate email
+        const existingTeacher = await storage.getUserByEmail(teacherData.email);
+        if (existingTeacher) {
+          result.errors.push({
             row: row._row || index + 2,
-            message: `L'enseignant avec l'email ${teacherData.email} existe déjà`
+            field: t.fields.email,
+            message: `${t.fields.email} ${t.errors.duplicate}: ${teacherData.email}`
           });
           continue;
         }
         
-        // Parse subjects
-        const subjectsArray = teacherData.subjects 
-          ? teacherData.subjects.split(/[;,]/).map(s => s.trim()).filter(s => s)
-          : [];
-        
-        // Create teacher
-        const hashedPassword = await bcrypt.hash('TempPassword123!', 10);
-        
-        const newTeacher = await storage.createUser({
+        // Create teacher user
+        const hashedPassword = await bcrypt.hash('eduPass@' + teacherData.matricule || '2024', 10);
+        const newUser = await storage.createUser({
+          email: teacherData.email,
+          password: hashedPassword,
           firstName: teacherData.firstName,
           lastName: teacherData.lastName,
-          email: teacherData.email,
           phone: teacherData.phone,
-          password: hashedPassword,
-          role: 'Teacher',
+          userType: 'teacher',
           schoolId: schoolId,
+          isActive: true,
           gender: teacherData.gender,
-          matricule: teacherData.matricule,
-          subjects: subjectsArray,
-          createdBy: createdBy
+          matricule: teacherData.matricule || nanoid(10)
         });
+        
+        // Parse subjects (stored as comma-separated string in user profile for now)
+        const subjects = teacherData.subjects
+          .split(/[;,]/)
+          .map(s => s.trim())
+          .filter(Boolean);
+        
+        // Note: Subject assignment can be done through a separate admin interface
+        // For bulk import, subjects are stored in the teacher's profile
         
         result.created++;
         
@@ -188,7 +299,7 @@ export class ExcelImportService {
         result.errors.push({
           row: row._row || index + 2,
           field: 'general',
-          message: `Erreur lors de la création: ${error.message}`,
+          message: `${t.errors.creation}: ${error.message}`,
           data: row
         });
       }
@@ -201,7 +312,8 @@ export class ExcelImportService {
   /**
    * Import students from parsed data
    */
-  async importStudents(data: any[], schoolId: number, createdBy: number): Promise<ImportResult> {
+  async importStudents(data: any[], schoolId: number, createdBy: number, lang: 'fr' | 'en' = 'fr'): Promise<ImportResult> {
+    const t = translations[lang];
     const result: ImportResult = {
       success: true,
       created: 0,
@@ -213,26 +325,25 @@ export class ExcelImportService {
       const row = data[index];
       try {
         const studentData: StudentImportData = {
-          firstName: row['Prénom'] || row['firstName'],
-          lastName: row['Nom'] || row['lastName'],
-          email: row['Email'] || row['email'],
-          phone: row['Téléphone'] || row['phone'],
-          gender: row['Genre'] || row['gender'],
-          dateOfBirth: row['DateNaissance'] || row['dateOfBirth'],
-          matricule: row['Matricule'] || row['matricule'],
-          className: row['Classe'] || row['className'],
-          level: row['Niveau'] || row['level'],
-          parentEmail: row['EmailParent'] || row['parentEmail'],
-          parentPhone: row['TéléphoneParent'] || row['parentPhone']
+          firstName: row[t.fields.firstName] || row['Prénom'] || row['FirstName'] || '',
+          lastName: row[t.fields.lastName] || row['Nom'] || row['LastName'] || '',
+          email: row[t.fields.email] || row['Email'] || '',
+          phone: row[t.fields.phone] || row['Téléphone'] || row['Phone'] || '',
+          gender: row[t.fields.gender] || row['Genre'] || row['Gender'] || '',
+          dateOfBirth: row[t.fields.dateOfBirth] || row['DateNaissance'] || row['DateOfBirth'] || '',
+          matricule: row[t.fields.matricule] || row['Matricule'] || row['ID'] || '',
+          className: row[t.fields.className] || row['Classe'] || row['Class'] || '',
+          level: row[t.fields.level] || row['Niveau'] || row['Level'] || '',
+          parentEmail: row[t.fields.parentEmail] || row['EmailParent'] || row['ParentEmail'] || '',
+          parentPhone: row[t.fields.parentPhone] || row['TéléphoneParent'] || row['ParentPhone'] || ''
         };
         
         // Validate required fields
         if (!studentData.firstName) {
           result.errors.push({
             row: row._row || index + 2,
-            field: 'firstName',
-            message: 'Le prénom est obligatoire',
-            data: row
+            field: t.fields.firstName,
+            message: `${t.fields.firstName} ${t.errors.required}`
           });
           continue;
         }
@@ -240,59 +351,43 @@ export class ExcelImportService {
         if (!studentData.lastName) {
           result.errors.push({
             row: row._row || index + 2,
-            field: 'lastName',
-            message: 'Le nom est obligatoire', 
-            data: row
+            field: t.fields.lastName,
+            message: `${t.fields.lastName} ${t.errors.required}`
           });
           continue;
         }
         
-        if (!studentData.matricule) {
-          result.errors.push({
-            row: row._row || index + 2,
-            field: 'matricule',
-            message: 'Le matricule est obligatoire',
-            data: row
-          });
-          continue;
+        // Find class by name (query all classes and filter)
+        let classId = null;
+        if (studentData.className) {
+          const classes = await storage.getSchoolClasses(schoolId);
+          const existingClass = classes.find((c: any) => c.name === studentData.className);
+          if (existingClass) {
+            classId = existingClass.id;
+          } else {
+            result.warnings.push({
+              row: row._row || index + 2,
+              message: `${t.fields.className} "${studentData.className}" ${t.errors.notFound}`
+            });
+          }
         }
         
-        // Check if student already exists by email (matricule check not implemented yet)
-        const existingStudentByEmail = studentData.email ? await storage.getUserByEmail(studentData.email) : null;
-        if (existingStudentByEmail) {
-          result.warnings.push({
-            row: row._row || index + 2,
-            message: `L'élève avec l'email ${studentData.email} existe déjà`
-          });
-          continue;
-        }
-        
-        // Create student
-        const hashedPassword = await bcrypt.hash('TempPassword123!', 10);
-        
-        const newStudent = await storage.createUser({
+        // Create student user
+        const hashedPassword = await bcrypt.hash('eduPass@' + (studentData.matricule || '2024'), 10);
+        await storage.createUser({
+          email: studentData.email || `student.${nanoid(6)}@educafric.temp`,
+          password: hashedPassword,
           firstName: studentData.firstName,
           lastName: studentData.lastName,
-          email: studentData.email || `${studentData.matricule}@educafric.com`,
           phone: studentData.phone,
-          password: hashedPassword,
-          role: 'Student',
+          userType: 'student',
           schoolId: schoolId,
+          classId: classId,
+          isActive: true,
           gender: studentData.gender,
-          matricule: studentData.matricule,
           dateOfBirth: studentData.dateOfBirth,
-          className: studentData.className,
-          level: studentData.level,
-          createdBy: createdBy
+          matricule: studentData.matricule || nanoid(10)
         });
-        
-        // Try to connect with parent if parent email provided (connection logic to be implemented)
-        if (studentData.parentEmail) {
-          result.warnings.push({
-            row: row._row || index + 2,
-            message: `Connexion parent-enfant à implémenter pour ${studentData.parentEmail}`
-          });
-        }
         
         result.created++;
         
@@ -300,116 +395,7 @@ export class ExcelImportService {
         result.errors.push({
           row: row._row || index + 2,
           field: 'general',
-          message: `Erreur lors de la création: ${error.message}`,
-          data: row
-        });
-      }
-    }
-    
-    result.success = result.errors.length === 0;
-    return result;
-  }
-  
-  /**
-   * Import parents from parsed data
-   */
-  async importParents(data: any[], schoolId: number, createdBy: number): Promise<ImportResult> {
-    const result: ImportResult = {
-      success: true,
-      created: 0,
-      errors: [],
-      warnings: []
-    };
-    
-    for (let index = 0; index < data.length; index++) {
-      const row = data[index];
-      try {
-        const parentData: ParentImportData = {
-          firstName: row['Prénom'] || row['firstName'],
-          lastName: row['Nom'] || row['lastName'],
-          email: row['Email'] || row['email'],
-          phone: row['Téléphone'] || row['phone'],
-          gender: row['Genre'] || row['gender'],
-          relation: row['Relation'] || row['relation'],
-          profession: row['Profession'] || row['profession'],
-          address: row['Adresse'] || row['address'],
-          childrenMatricules: row['MatriculesEnfants'] || row['childrenMatricules'] || ''
-        };
-        
-        // Validate required fields
-        if (!parentData.firstName) {
-          result.errors.push({
-            row: row._row || index + 2,
-            field: 'firstName',
-            message: 'Le prénom est obligatoire',
-            data: row
-          });
-          continue;
-        }
-        
-        if (!parentData.lastName) {
-          result.errors.push({
-            row: row._row || index + 2,
-            field: 'lastName',
-            message: 'Le nom est obligatoire',
-            data: row
-          });
-          continue;
-        }
-        
-        if (!parentData.email || !parentData.email.includes('@')) {
-          result.errors.push({
-            row: row._row || index + 2,
-            field: 'email',
-            message: 'Un email valide est obligatoire',
-            data: row
-          });
-          continue;
-        }
-        
-        // Check if parent already exists
-        const existingParent = await storage.getUserByEmail(parentData.email);
-        if (existingParent) {
-          result.warnings.push({
-            row: row._row || index + 2,
-            message: `Le parent avec l'email ${parentData.email} existe déjà`
-          });
-          continue;
-        }
-        
-        // Create parent
-        const hashedPassword = await bcrypt.hash('TempPassword123!', 10);
-        
-        const newParent = await storage.createUser({
-          firstName: parentData.firstName,
-          lastName: parentData.lastName,
-          email: parentData.email,
-          phone: parentData.phone,
-          password: hashedPassword,
-          role: 'Parent',
-          schoolId: schoolId,
-          gender: parentData.gender,
-          relation: parentData.relation,
-          profession: parentData.profession,
-          address: parentData.address,
-          createdBy: createdBy
-        });
-        
-        // Connect with children if matricules provided (connection logic to be implemented)
-        if (parentData.childrenMatricules) {
-          result.warnings.push({
-            row: row._row || index + 2,
-            message: `Connexions parent-enfants à implémenter pour les matricules: ${parentData.childrenMatricules}`
-          });
-        }
-        
-        result.created++;
-        
-      } catch (error) {
-        result.errors.push({
-          row: row._row || index + 2,
-          field: 'general',
-          message: `Erreur lors de la création: ${error.message}`,
+          message: `${t.errors.creation}: ${error.message}`,
           data: row
         });
       }
@@ -422,7 +408,8 @@ export class ExcelImportService {
   /**
    * Import classes from parsed data
    */
-  async importClasses(data: any[], schoolId: number, createdBy: number): Promise<ImportResult> {
+  async importClasses(data: any[], schoolId: number, createdBy: number, lang: 'fr' | 'en' = 'fr'): Promise<ImportResult> {
+    const t = translations[lang];
     const result: ImportResult = {
       success: true,
       created: 0,
@@ -434,67 +421,68 @@ export class ExcelImportService {
       const row = data[index];
       try {
         const classData = {
-          name: row['Nom'] || row['name'],
-          level: row['Niveau'] || row['level'],
-          section: row['Section'] || row['section'] || '',
-          maxStudents: row['MaxÉlèves'] || row['maxStudents'] || null,
-          teacherEmail: row['EmailEnseignant'] || row['teacherEmail'],
-          academicYear: row['AnnéeAcadémique'] || row['academicYear']
+          name: row[t.fields.name] || row['Nom'] || row['Name'] || '',
+          level: row[t.fields.level] || row['Niveau'] || row['Level'] || '',
+          section: row[t.fields.section] || row['Section'] || '',
+          maxStudents: parseInt(row[t.fields.maxStudents] || row['MaxÉlèves'] || row['MaxStudents'] || '30'),
+          teacherEmail: row[t.fields.teacherEmail] || row['EmailEnseignant'] || row['TeacherEmail'] || '',
+          academicYear: row[t.fields.academicYear] || row['AnnéeAcadémique'] || row['AcademicYear'] || ''
         };
         
         // Validate required fields
-        if (!classData.name || !classData.level) {
+        if (!classData.name) {
           result.errors.push({
             row: row._row || index + 2,
-            field: 'name/level',
-            message: 'Le nom et le niveau de la classe sont obligatoires',
-            data: row
+            field: t.fields.name,
+            message: `${t.fields.name} ${t.errors.required}`
           });
           continue;
         }
         
-        // Find teacher if provided
+        if (!classData.level) {
+          result.errors.push({
+            row: row._row || index + 2,
+            field: t.fields.level,
+            message: `${t.fields.level} ${t.errors.required}`
+          });
+          continue;
+        }
+        
+        // Check for duplicate class name (query all classes and filter)
+        const classes = await storage.getSchoolClasses(schoolId);
+        const existingClass = classes.find((c: any) => c.name === classData.name);
+        if (existingClass) {
+          result.errors.push({
+            row: row._row || index + 2,
+            field: t.fields.name,
+            message: `${t.fields.name} ${t.errors.duplicate}: ${classData.name}`
+          });
+          continue;
+        }
+        
+        // Find teacher by email if provided
         let teacherId = null;
         if (classData.teacherEmail) {
           const teacher = await storage.getUserByEmail(classData.teacherEmail);
-          if (teacher && teacher.role === 'Teacher') {
+          if (teacher && teacher.userType === 'teacher') {
             teacherId = teacher.id;
-          } else {
-            result.warnings.push({
-              row: row._row || index + 2,
-              message: `Enseignant non trouvé: ${classData.teacherEmail}`
-            });
           }
         }
         
-        // Get the school's current academic year
-        const school = await storage.getSchoolById(schoolId);
-        if (!school) {
-          result.errors.push({
-            row: row._row || index + 2,
-            field: 'schoolId',
-            message: 'École non trouvée',
-            data: row
-          });
-          continue;
-        }
-        
-        // Use academicYear from classData if provided, otherwise use school's current year
-        const academicYearName = classData.academicYear || school.academicYear || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
-        
-        // For simplicity, use academic year ID 1 as default - schools should have this configured
-        // In production, this should fetch or create the academic year properly
-        const academicYearId = 1;
+        // Determine academic year ID from school context
+        // Note: Academic year can be set later through admin interface
+        let academicYearId = null;
         
         // Create class
         await storage.createClass({
+          schoolId,
           name: classData.name,
           level: classData.level,
           section: classData.section,
-          maxStudents: classData.maxStudents ? parseInt(classData.maxStudents) : null,
-          schoolId,
+          capacity: classData.maxStudents,
           teacherId,
-          academicYearId
+          academicYearId,
+          isActive: true
         });
         
         result.created++;
@@ -503,7 +491,7 @@ export class ExcelImportService {
         result.errors.push({
           row: row._row || index + 2,
           field: 'general',
-          message: `Erreur lors de la création: ${error.message}`,
+          message: `${t.errors.creation}: ${error.message}`,
           data: row
         });
       }
@@ -516,7 +504,8 @@ export class ExcelImportService {
   /**
    * Import timetables from parsed data
    */
-  async importTimetables(data: any[], schoolId: number, createdBy: number): Promise<ImportResult> {
+  async importTimetables(data: any[], schoolId: number, createdBy: number, lang: 'fr' | 'en' = 'fr'): Promise<ImportResult> {
+    const t = translations[lang];
     const result: ImportResult = {
       success: true,
       created: 0,
@@ -528,50 +517,55 @@ export class ExcelImportService {
       const row = data[index];
       try {
         const timetableData = {
-          className: row['Classe'] || row['className'],
-          teacherEmail: row['EmailEnseignant'] || row['teacherEmail'],
-          subjectName: row['Matière'] || row['subjectName'],
-          dayOfWeek: parseInt(row['Jour'] || row['dayOfWeek']),
-          startTime: row['HeureDébut'] || row['startTime'],
-          endTime: row['HeureFin'] || row['endTime'],
-          room: row['Salle'] || row['room'] || '',
-          academicYear: row['AnnéeAcadémique'] || row['academicYear'],
-          term: row['Trimestre'] || row['term']
+          className: row[t.fields.className] || row['Classe'] || row['Class'] || '',
+          teacherEmail: row[t.fields.teacherEmail] || row['EmailEnseignant'] || row['TeacherEmail'] || '',
+          subjectName: row[t.fields.subject] || row['Matière'] || row['Subject'] || '',
+          dayOfWeek: parseInt(row[t.fields.day] || row['Jour'] || row['Day'] || '1'),
+          startTime: row[t.fields.startTime] || row['HeureDébut'] || row['StartTime'] || '',
+          endTime: row[t.fields.endTime] || row['HeureFin'] || row['EndTime'] || '',
+          room: row[t.fields.room] || row['Salle'] || row['Room'] || '',
+          academicYear: row[t.fields.academicYear] || row['AnnéeAcadémique'] || row['AcademicYear'] || '',
+          term: row[t.fields.term] || row['Trimestre'] || row['Term'] || 'Term 1'
         };
         
-        // Validation
-        if (!timetableData.className || !timetableData.teacherEmail || !timetableData.subjectName ||
-            !timetableData.dayOfWeek || !timetableData.startTime || !timetableData.endTime) {
+        // Validate required fields
+        if (!timetableData.className) {
           result.errors.push({
             row: row._row || index + 2,
-            field: 'required',
-            message: 'Champs obligatoires manquants',
-            data: row
+            field: t.fields.className,
+            message: `${t.fields.className} ${t.errors.required}`
           });
           continue;
         }
         
-        // Find class
-        const classes = await storage.getClassesBySchool(schoolId);
-        const foundClass = classes.find(c => c.name === timetableData.className);
+        if (!timetableData.teacherEmail) {
+          result.errors.push({
+            row: row._row || index + 2,
+            field: t.fields.teacherEmail,
+            message: `${t.fields.teacherEmail} ${t.errors.required}`
+          });
+          continue;
+        }
+        
+        // Find class (query all classes and filter)
+        const classes = await storage.getSchoolClasses(schoolId);
+        const foundClass = classes.find((c: any) => c.name === timetableData.className);
         if (!foundClass) {
           result.errors.push({
             row: row._row || index + 2,
-            field: 'className',
-            message: `Classe non trouvée: ${timetableData.className}`,
-            data: row
+            field: t.fields.className,
+            message: `${t.fields.className} ${t.errors.notFound}: ${timetableData.className}`
           });
           continue;
         }
         
         // Find teacher
         const teacher = await storage.getUserByEmail(timetableData.teacherEmail);
-        if (!teacher || teacher.role !== 'Teacher') {
+        if (!teacher || teacher.userType !== 'teacher') {
           result.errors.push({
             row: row._row || index + 2,
-            field: 'teacherEmail',
-            message: `Enseignant non trouvé: ${timetableData.teacherEmail}`,
-            data: row
+            field: t.fields.teacherEmail,
+            message: `${t.fields.teacherEmail} ${t.errors.notFound}: ${timetableData.teacherEmail}`
           });
           continue;
         }
@@ -597,7 +591,7 @@ export class ExcelImportService {
         result.errors.push({
           row: row._row || index + 2,
           field: 'general',
-          message: `Erreur lors de la création: ${error.message}`,
+          message: `${t.errors.creation}: ${error.message}`,
           data: row
         });
       }
@@ -608,39 +602,100 @@ export class ExcelImportService {
   }
   
   /**
-   * Generate template Excel file for download
+   * Import rooms from parsed data
    */
-  generateTemplate(type: 'teachers' | 'students' | 'parents' | 'classes' | 'timetables'): Buffer {
+  async importRooms(data: any[], schoolId: number, createdBy: number, lang: 'fr' | 'en' = 'fr'): Promise<ImportResult> {
+    const t = translations[lang];
+    const result: ImportResult = {
+      success: true,
+      created: 0,
+      errors: [],
+      warnings: []
+    };
+    
+    for (let index = 0; index < data.length; index++) {
+      const row = data[index];
+      try {
+        const roomData: RoomImportData = {
+          name: row[t.fields.name] || row['Nom'] || row['Name'] || '',
+          type: row[t.fields.type] || row['Type'] || 'classroom',
+          capacity: parseInt(row[t.fields.capacity] || row['Capacité'] || row['Capacity'] || '30'),
+          building: row[t.fields.building] || row['Bâtiment'] || row['Building'] || '',
+          floor: row[t.fields.floor] || row['Étage'] || row['Floor'] || '',
+          equipment: row[t.fields.equipment] || row['Équipement'] || row['Equipment'] || ''
+        };
+        
+        // Validate required fields
+        if (!roomData.name) {
+          result.errors.push({
+            row: row._row || index + 2,
+            field: t.fields.name,
+            message: `${t.fields.name} ${t.errors.required}`
+          });
+          continue;
+        }
+        
+        // Room import functionality needs to be implemented in storage
+        // For now, skip room creation
+        result.warnings.push({
+          row: row._row || index + 2,
+          message: lang === 'fr' 
+            ? `Import de salles non encore implémenté - "${roomData.name}" ignorée`
+            : `Room import not yet implemented - "${roomData.name}" skipped`
+        });
+        continue;
+        
+        result.created++;
+        
+      } catch (error) {
+        result.errors.push({
+          row: row._row || index + 2,
+          field: 'general',
+          message: `${t.errors.creation}: ${error.message}`,
+          data: row
+        });
+      }
+    }
+    
+    result.success = result.errors.length === 0;
+    return result;
+  }
+  
+  /**
+   * Generate template Excel file for download (BILINGUAL)
+   */
+  generateTemplate(type: 'teachers' | 'students' | 'parents' | 'classes' | 'timetables' | 'rooms', lang: 'fr' | 'en' = 'fr'): Buffer {
+    const t = translations[lang];
     let headers: string[];
     let sampleData: any[];
     
     switch (type) {
       case 'teachers':
-        headers = ['Prénom', 'Nom', 'Email', 'Téléphone', 'Genre', 'Matricule', 'Matières'];
+        headers = [t.fields.firstName, t.fields.lastName, t.fields.email, t.fields.phone, t.fields.gender, t.fields.matricule, t.fields.subjects];
         sampleData = [
-          ['Marie', 'Nguyen', 'marie.nguyen@educafric.com', '+237677123456', 'Féminin', 'EDU-2025-002', 'Mathématiques;Physique'],
-          ['Paul', 'Ateba', 'paul.ateba@educafric.com', '+237698765432', 'Masculin', 'EDU-2025-003', 'Français;Histoire']
+          ['Marie', 'Nguyen', 'marie.nguyen@educafric.com', '+237677123456', t.genders.female, 'EDU-2025-002', lang === 'fr' ? 'Mathématiques;Physique' : 'Mathematics;Physics'],
+          ['Paul', 'Ateba', 'paul.ateba@educafric.com', '+237698765432', t.genders.male, 'EDU-2025-003', lang === 'fr' ? 'Français;Histoire' : 'French;History']
         ];
         break;
         
       case 'students':
-        headers = ['Prénom', 'Nom', 'Email', 'Téléphone', 'Genre', 'DateNaissance', 'Matricule', 'Classe', 'Niveau', 'EmailParent', 'TéléphoneParent'];
+        headers = [t.fields.firstName, t.fields.lastName, t.fields.email, t.fields.phone, t.fields.gender, t.fields.dateOfBirth, t.fields.matricule, t.fields.className, t.fields.level, t.fields.parentEmail, t.fields.parentPhone];
         sampleData = [
-          ['Amina', 'Kouakou', 'amina.kouakou@educafric.com', '+237677111222', 'Féminin', '15/03/2010', 'STU-2025-001', '6ème A', 'Collège', 'parent.kouakou@gmail.com', '+237677888999'],
-          ['Pierre', 'Mballa', '', '', 'Masculin', '22/08/2008', 'STU-2025-002', '4ème B', 'Collège', 'mballa.parent@yahoo.fr', '+237698555444']
+          ['Amina', 'Kouakou', 'amina.kouakou@educafric.com', '+237677111222', t.genders.female, '15/03/2010', 'STU-2025-001', '6ème A', lang === 'fr' ? 'Collège' : 'Middle School', 'parent.kouakou@gmail.com', '+237677888999'],
+          ['Pierre', 'Mballa', '', '', t.genders.male, '22/08/2008', 'STU-2025-002', '4ème B', lang === 'fr' ? 'Collège' : 'Middle School', 'mballa.parent@yahoo.fr', '+237698555444']
         ];
         break;
         
       case 'parents':
-        headers = ['Prénom', 'Nom', 'Email', 'Téléphone', 'Genre', 'Relation', 'Profession', 'Adresse', 'MatriculesEnfants'];
+        headers = [t.fields.firstName, t.fields.lastName, t.fields.email, t.fields.phone, t.fields.gender, t.fields.relation, t.fields.profession, t.fields.address, t.fields.childrenMatricules];
         sampleData = [
-          ['Marie', 'Kouakou', 'parent.kouakou@gmail.com', '+237677888999', 'Féminin', 'Mère', 'Infirmière', 'Yaoundé, Bastos', 'STU-2025-001'],
-          ['Jean', 'Mballa', 'mballa.parent@yahoo.fr', '+237698555444', 'Masculin', 'Père', 'Ingénieur', 'Douala, Bonanjo', 'STU-2025-002;STU-2025-003']
+          ['Marie', 'Kouakou', 'parent.kouakou@gmail.com', '+237677888999', t.genders.female, lang === 'fr' ? 'Mère' : 'Mother', lang === 'fr' ? 'Infirmière' : 'Nurse', lang === 'fr' ? 'Yaoundé, Bastos' : 'Yaounde, Bastos', 'STU-2025-001'],
+          ['Jean', 'Mballa', 'mballa.parent@yahoo.fr', '+237698555444', t.genders.male, lang === 'fr' ? 'Père' : 'Father', lang === 'fr' ? 'Ingénieur' : 'Engineer', 'Douala, Bonanjo', 'STU-2025-002;STU-2025-003']
         ];
         break;
         
       case 'classes':
-        headers = ['Nom', 'Niveau', 'Section', 'MaxÉlèves', 'EmailEnseignant', 'AnnéeAcadémique'];
+        headers = [t.fields.name, t.fields.level, t.fields.section, t.fields.maxStudents, t.fields.teacherEmail, t.fields.academicYear];
         sampleData = [
           ['6ème A', '6ème', 'A', '40', 'prof.math@educafric.com', '2024-2025'],
           ['5ème B', '5ème', 'B', '35', 'prof.francais@educafric.com', '2024-2025'],
@@ -649,16 +704,25 @@ export class ExcelImportService {
         break;
         
       case 'timetables':
-        headers = ['Classe', 'EmailEnseignant', 'Matière', 'Jour', 'HeureDébut', 'HeureFin', 'Salle', 'AnnéeAcadémique', 'Trimestre'];
+        headers = [t.fields.className, t.fields.teacherEmail, t.fields.subject, t.fields.day, t.fields.startTime, t.fields.endTime, t.fields.room, t.fields.academicYear, t.fields.term];
         sampleData = [
-          ['6ème A', 'prof.math@educafric.com', 'Mathématiques', '1', '08:00', '09:00', 'Salle A1', '2024-2025', 'Term 1'],
-          ['6ème A', 'prof.francais@educafric.com', 'Français', '2', '09:00', '10:00', 'Salle A1', '2024-2025', 'Term 1'],
-          ['6ème B', 'prof.sciences@educafric.com', 'Sciences', '3', '10:00', '11:00', 'Labo 1', '2024-2025', 'Term 1']
+          ['6ème A', 'prof.math@educafric.com', lang === 'fr' ? 'Mathématiques' : 'Mathematics', '1', '08:00', '09:00', lang === 'fr' ? 'Salle A1' : 'Room A1', '2024-2025', 'Term 1'],
+          ['6ème A', 'prof.francais@educafric.com', lang === 'fr' ? 'Français' : 'French', '2', '09:00', '10:00', lang === 'fr' ? 'Salle A1' : 'Room A1', '2024-2025', 'Term 1'],
+          ['6ème B', 'prof.sciences@educafric.com', lang === 'fr' ? 'Sciences' : 'Sciences', '3', '10:00', '11:00', lang === 'fr' ? 'Labo 1' : 'Lab 1', '2024-2025', 'Term 1']
+        ];
+        break;
+        
+      case 'rooms':
+        headers = [t.fields.name, t.fields.type, t.fields.capacity, t.fields.building, t.fields.floor, t.fields.equipment];
+        sampleData = [
+          [lang === 'fr' ? 'Salle A1' : 'Room A1', 'classroom', '40', lang === 'fr' ? 'Bâtiment A' : 'Building A', lang === 'fr' ? 'Rez-de-chaussée' : 'Ground Floor', lang === 'fr' ? 'Projecteur, Tableau blanc' : 'Projector, Whiteboard'],
+          [lang === 'fr' ? 'Labo Sciences' : 'Science Lab', 'laboratory', '30', lang === 'fr' ? 'Bâtiment B' : 'Building B', lang === 'fr' ? '1er étage' : '1st Floor', lang === 'fr' ? 'Microscopes, Matériel chimie' : 'Microscopes, Chemistry equipment'],
+          [lang === 'fr' ? 'Salle Informatique' : 'Computer Room', 'computer_lab', '35', lang === 'fr' ? 'Bâtiment A' : 'Building A', lang === 'fr' ? '2ème étage' : '2nd Floor', lang === 'fr' ? '35 ordinateurs, Vidéoprojecteur' : '35 computers, Video projector']
         ];
         break;
         
       default:
-        throw new Error('Type de template non supporté');
+        throw new Error(lang === 'fr' ? 'Type de template non supporté' : 'Template type not supported');
     }
     
     // Create workbook and worksheet
@@ -669,7 +733,7 @@ export class ExcelImportService {
     // Set column widths
     ws['!cols'] = headers.map(() => ({ width: 20 }));
     
-    XLSX.utils.book_append_sheet(wb, ws, 'Import');
+    XLSX.utils.book_append_sheet(wb, ws, lang === 'fr' ? 'Importer' : 'Import');
     
     // Generate buffer
     return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });

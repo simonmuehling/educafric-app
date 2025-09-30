@@ -46,33 +46,38 @@ export function ExcelImportButton({
   };
 
   const displayText = buttonText || defaultButtonText[importType];
+  const currentLang = (localStorage.getItem('language') || 'fr') as 'fr' | 'en';
 
   const handleDownloadTemplate = async () => {
+    const lang = localStorage.getItem('language') || 'fr';
     try {
-      const response = await fetch(`/api/bulk-import/template/${importType}`, {
+      const response = await fetch(`/api/bulk-import/template/${importType}?lang=${lang}`, {
         credentials: 'include'
       });
 
-      if (!response.ok) throw new Error('Échec du téléchargement du modèle');
+      if (!response.ok) {
+        const errorMsg = lang === 'fr' ? 'Échec du téléchargement du modèle' : 'Failed to download template';
+        throw new Error(errorMsg);
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `template_${importType}_${Date.now()}.xlsx`;
+      a.download = `template_${importType}_${lang}_${Date.now()}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
       toast({
-        title: 'Modèle téléchargé',
-        description: 'Remplissez le modèle Excel et importez-le'
+        title: lang === 'fr' ? 'Modèle téléchargé' : 'Template downloaded',
+        description: lang === 'fr' ? 'Remplissez le modèle Excel et importez-le' : 'Fill the Excel template and import it'
       });
     } catch (error) {
       toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Erreur de téléchargement',
+        title: lang === 'fr' ? 'Erreur' : 'Error',
+        description: error instanceof Error ? error.message : (lang === 'fr' ? 'Erreur de téléchargement' : 'Download error'),
         variant: 'destructive'
       });
     }
@@ -82,32 +87,59 @@ export function ExcelImportButton({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    const lang = localStorage.getItem('language') || 'fr';
+
     // Reset state
     setResult(null);
     setIsUploading(true);
     setUploadProgress(0);
 
     try {
+      
+      // Step 1: Validate and parse the file
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('userType', importType);
+      formData.append('lang', lang);
       if (schoolId) formData.append('schoolId', schoolId.toString());
 
-      // Simulate progress for better UX
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
-      }, 200);
+      setUploadProgress(30);
 
-      const response = await fetch(`/api/bulk-import/import/${importType}`, {
+      const validateResponse = await fetch('/api/bulk-import/validate', {
         method: 'POST',
         body: formData,
         credentials: 'include'
       });
 
-      clearInterval(progressInterval);
+      if (!validateResponse.ok) {
+        const errorMsg = lang === 'fr' ? 'Erreur de validation du fichier' : 'File validation error';
+        throw new Error(errorMsg);
+      }
+
+      const validatedData = await validateResponse.json();
+      setUploadProgress(60);
+
+      // Step 2: Import the validated data
+      const importPayload = {
+        userType: importType,
+        schoolId: schoolId,
+        data: validatedData,
+        lang: lang
+      };
+
+      const importResponse = await fetch('/api/bulk-import/import', {
+        method: 'POST',
+        body: JSON.stringify(importPayload),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
       setUploadProgress(100);
 
-      const data = await response.json();
-      setResult(data);
+      const importResult = await importResponse.json();
+      setResult(importResult);
 
       // Invalidate queries
       if (invalidateQueries.length > 0) {
@@ -116,28 +148,28 @@ export function ExcelImportButton({
         );
       }
 
-      if (data.success) {
+      if (importResult.success) {
         toast({
-          title: 'Import réussi',
-          description: data.message || `${data.created} entrées créées`
+          title: lang === 'fr' ? 'Import réussi' : 'Import successful',
+          description: importResult.message || `${importResult.created} ${lang === 'fr' ? 'entrées créées' : 'entries created'}`
         });
         onImportSuccess?.();
       } else {
         toast({
-          title: 'Import terminé avec des erreurs',
-          description: data.message,
+          title: lang === 'fr' ? 'Import terminé avec des erreurs' : 'Import completed with errors',
+          description: importResult.message,
           variant: 'destructive'
         });
       }
     } catch (error) {
       toast({
-        title: 'Erreur d\'import',
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        title: lang === 'fr' ? 'Erreur d\'import' : 'Import error',
+        description: error instanceof Error ? error.message : (lang === 'fr' ? 'Erreur inconnue' : 'Unknown error'),
         variant: 'destructive'
       });
       setResult({
         success: false,
-        message: error instanceof Error ? error.message : 'Erreur inconnue',
+        message: error instanceof Error ? error.message : (lang === 'fr' ? 'Erreur inconnue' : 'Unknown error'),
         created: 0
       });
     } finally {
@@ -156,7 +188,7 @@ export function ExcelImportButton({
           className="flex items-center gap-2"
         >
           <Download className="h-4 w-4" />
-          Télécharger Modèle
+          {currentLang === 'fr' ? 'Télécharger Modèle' : 'Download Template'}
         </Button>
 
         <Button
@@ -167,7 +199,7 @@ export function ExcelImportButton({
           className="flex items-center gap-2"
         >
           <Upload className="h-4 w-4" />
-          {displayText.fr}
+          {currentLang === 'fr' ? displayText.fr : displayText.en}
         </Button>
 
         <input
@@ -184,7 +216,7 @@ export function ExcelImportButton({
         <Card className="p-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span>Import en cours...</span>
+              <span>{currentLang === 'fr' ? 'Import en cours...' : 'Importing...'}</span>
               <span>{uploadProgress}%</span>
             </div>
             <Progress value={uploadProgress} data-testid={`progress-upload-${importType}`} />
@@ -205,12 +237,12 @@ export function ExcelImportButton({
                 <AlertDescription>
                   <div className="font-semibold">{result.message}</div>
                   <div className="mt-2 text-sm">
-                    <div>✓ Créées: {result.created}</div>
+                    <div>✓ {currentLang === 'fr' ? 'Créées' : 'Created'}: {result.created}</div>
                     {result.errors && result.errors.length > 0 && (
-                      <div className="text-red-600">✗ Erreurs: {result.errors.length}</div>
+                      <div className="text-red-600">✗ {currentLang === 'fr' ? 'Erreurs' : 'Errors'}: {result.errors.length}</div>
                     )}
                     {result.warnings && result.warnings.length > 0 && (
-                      <div className="text-yellow-600">⚠ Avertissements: {result.warnings.length}</div>
+                      <div className="text-yellow-600">⚠ {currentLang === 'fr' ? 'Avertissements' : 'Warnings'}: {result.warnings.length}</div>
                     )}
                   </div>
                 </AlertDescription>
@@ -218,17 +250,19 @@ export function ExcelImportButton({
                 {result.errors && result.errors.length > 0 && (
                   <details className="text-sm mt-2">
                     <summary className="cursor-pointer font-medium">
-                      Voir les erreurs ({result.errors.length})
+                      {currentLang === 'fr' ? `Voir les erreurs (${result.errors.length})` : `View errors (${result.errors.length})`}
                     </summary>
                     <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
                       {result.errors.slice(0, 10).map((err, idx) => (
                         <div key={idx} className="text-xs p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                          Ligne {err.row}: {err.message} ({err.field})
+                          {currentLang === 'fr' ? 'Ligne' : 'Row'} {err.row}: {err.message} ({err.field})
                         </div>
                       ))}
                       {result.errors.length > 10 && (
                         <div className="text-xs text-muted-foreground">
-                          ...et {result.errors.length - 10} autres erreurs
+                          {currentLang === 'fr' 
+                            ? `...et ${result.errors.length - 10} autres erreurs`
+                            : `...and ${result.errors.length - 10} more errors`}
                         </div>
                       )}
                     </div>

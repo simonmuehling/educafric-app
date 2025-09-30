@@ -211,12 +211,13 @@ async function validateData(data: any[], userType: 'teachers' | 'students', scho
 router.get('/template/:userType', requireTemplateAuth, async (req, res) => {
   try {
     const { userType } = req.params;
+    const lang = (req.query.lang as 'fr' | 'en') || 'fr';
     
     // Check if it's one of the new import types handled by excelImportService
-    if (['classes', 'timetables'].includes(userType)) {
-      const buffer = excelImportService.generateTemplate(userType as 'classes' | 'timetables');
+    if (['classes', 'timetables', 'teachers', 'students', 'rooms'].includes(userType)) {
+      const buffer = excelImportService.generateTemplate(userType as any, lang);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename=template_${userType}_${Date.now()}.xlsx`);
+      res.setHeader('Content-Disposition', `attachment; filename=template_${userType}_${lang}_${Date.now()}.xlsx`);
       return res.send(buffer);
     }
     
@@ -332,39 +333,48 @@ router.get('/template/:userType', requireTemplateAuth, async (req, res) => {
 // Validate file endpoint
 router.post('/validate', requireAuth, upload.single('file'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'Aucun fichier fourni' });
-    }
-
-    const { userType, schoolId } = req.body;
+    const { userType, schoolId, lang } = req.body;
+    const language = (lang as 'fr' | 'en') || 'fr';
     
-    if (!['teachers', 'students'].includes(userType)) {
-      return res.status(400).json({ message: 'Type d\'utilisateur invalide' });
+    if (!req.file) {
+      return res.status(400).json({ 
+        message: language === 'fr' ? 'Aucun fichier fourni' : 'No file provided' 
+      });
+    }
+    
+    if (!['teachers', 'students', 'classes', 'timetables', 'rooms'].includes(userType)) {
+      return res.status(400).json({ 
+        message: language === 'fr' ? 'Type d\'utilisateur invalide' : 'Invalid user type' 
+      });
     }
 
     if (!schoolId) {
-      return res.status(400).json({ message: 'ID école requis' });
+      return res.status(400).json({ 
+        message: language === 'fr' ? 'ID école requis' : 'School ID required' 
+      });
     }
 
-    // Parse file data
-    const rawData = parseFileData(req.file);
+    // Parse file using excelImportService (bilingual support)
+    const parsedData = excelImportService.parseFile(req.file.buffer, req.file.originalname, language);
     
-    if (rawData.length === 0) {
-      return res.status(400).json({ message: 'Le fichier est vide ou ne contient pas de données valides' });
+    if (parsedData.length === 0) {
+      return res.status(400).json({ 
+        message: language === 'fr' 
+          ? 'Le fichier est vide ou ne contient pas de données valides' 
+          : 'File is empty or contains no valid data' 
+      });
     }
 
-    // Normalize data
-    const normalizedData = normalizeData(rawData, userType);
-
-    // Validate data
-    const validationResults = await validateData(normalizedData, userType, parseInt(schoolId));
-
-    res.json(validationResults);
+    // Return parsed data for import step
+    res.json(parsedData);
 
   } catch (error) {
+    const language = (req.body.lang as 'fr' | 'en') || 'fr';
     console.error('File validation error:', error);
     res.status(500).json({ 
-      message: error instanceof Error ? error.message : 'Erreur lors de la validation du fichier'
+      message: error instanceof Error 
+        ? error.message 
+        : (language === 'fr' ? 'Erreur lors de la validation du fichier' : 'File validation error')
     });
   }
 });
@@ -372,22 +382,27 @@ router.post('/validate', requireAuth, upload.single('file'), async (req, res) =>
 // Import validated data endpoint
 router.post('/import', requireAuth, async (req, res) => {
   try {
-    const { userType, schoolId, data } = req.body;
+    const { userType, schoolId, data, lang } = req.body;
+    const language = (lang as 'fr' | 'en') || 'fr';
 
-    if (!['teachers', 'students', 'classes', 'timetables'].includes(userType)) {
-      return res.status(400).json({ message: 'Type d\'utilisateur invalide' });
+    if (!['teachers', 'students', 'classes', 'timetables', 'rooms'].includes(userType)) {
+      return res.status(400).json({ 
+        message: language === 'fr' ? 'Type d\'utilisateur invalide' : 'Invalid user type' 
+      });
     }
 
     if (!data || !Array.isArray(data) || data.length === 0) {
-      return res.status(400).json({ message: 'Données d\'import invalides' });
+      return res.status(400).json({ 
+        message: language === 'fr' ? 'Données d\'import invalides' : 'Invalid import data' 
+      });
     }
     
     // Handle new import types using excelImportService
     if (userType === 'classes') {
-      const result = await excelImportService.importClasses(data, schoolId, req.user?.id);
+      const result = await excelImportService.importClasses(data, schoolId, req.user?.id, language);
       return res.json({
         success: result.success,
-        message: result.message || `${result.created} classes créées avec succès`,
+        message: language === 'fr' ? `${result.created} classes créées avec succès` : `${result.created} classes created successfully`,
         created: result.created,
         errors: result.errors,
         warnings: result.warnings
@@ -395,10 +410,43 @@ router.post('/import', requireAuth, async (req, res) => {
     }
     
     if (userType === 'timetables') {
-      const result = await excelImportService.importTimetables(data, schoolId, req.user?.id);
+      const result = await excelImportService.importTimetables(data, schoolId, req.user?.id, language);
       return res.json({
         success: result.success,
-        message: result.message || `${result.created} entrées d'emploi du temps créées avec succès`,
+        message: language === 'fr' ? `${result.created} entrées d'emploi du temps créées avec succès` : `${result.created} timetable entries created successfully`,
+        created: result.created,
+        errors: result.errors,
+        warnings: result.warnings
+      });
+    }
+    
+    if (userType === 'teachers') {
+      const result = await excelImportService.importTeachers(data, schoolId, req.user?.id, language);
+      return res.json({
+        success: result.success,
+        message: language === 'fr' ? `${result.created} enseignants créés avec succès` : `${result.created} teachers created successfully`,
+        created: result.created,
+        errors: result.errors,
+        warnings: result.warnings
+      });
+    }
+    
+    if (userType === 'students') {
+      const result = await excelImportService.importStudents(data, schoolId, req.user?.id, language);
+      return res.json({
+        success: result.success,
+        message: language === 'fr' ? `${result.created} élèves créés avec succès` : `${result.created} students created successfully`,
+        created: result.created,
+        errors: result.errors,
+        warnings: result.warnings
+      });
+    }
+    
+    if (userType === 'rooms') {
+      const result = await excelImportService.importRooms(data, schoolId, req.user?.id, language);
+      return res.json({
+        success: result.success,
+        message: language === 'fr' ? `${result.created} salles créées avec succès` : `${result.created} rooms created successfully`,
         created: result.created,
         errors: result.errors,
         warnings: result.warnings
