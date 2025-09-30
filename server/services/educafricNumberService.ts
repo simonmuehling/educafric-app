@@ -4,7 +4,7 @@
 
 import { db } from "../db";
 import { educafricNumbers, educafricNumberCounters, schools, users } from "@shared/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, isNull } from "drizzle-orm";
 
 export interface EducafricNumberConfig {
   type: 'SC' | 'TE' | 'ST' | 'PA'; // School, Teacher, Student, Parent
@@ -134,22 +134,29 @@ export class EducafricNumberService {
 
   /**
    * Assign EDUCAFRIC number to school during signup
+   * Can accept a transaction client for atomic operations
    */
-  static async assignToSchool(educafricNumber: string, schoolId: number): Promise<void> {
-    // Update educafric_numbers record
-    await db
+  static async assignToSchool(educafricNumber: string, schoolId: number, txClient?: any): Promise<void> {
+    const dbClient = txClient || db;
+
+    // Conditional update to prevent race conditions - only update if not already assigned
+    const [updated] = await dbClient
       .update(educafricNumbers)
       .set({ 
         entityId: schoolId,
         updatedAt: new Date()
       })
-      .where(eq(educafricNumbers.educafricNumber, educafricNumber));
+      .where(and(
+        eq(educafricNumbers.educafricNumber, educafricNumber),
+        isNull(educafricNumbers.entityId) // Only update if not already assigned
+      ))
+      .returning();
 
-    // Update school record
-    await db
-      .update(schools)
-      .set({ educafricNumber })
-      .where(eq(schools.id, schoolId));
+    if (!updated) {
+      throw new Error('EDUCAFRIC number has already been assigned to another school');
+    }
+
+    // Note: School record already has educafricNumber from insert, no need to update again
   }
 
   /**

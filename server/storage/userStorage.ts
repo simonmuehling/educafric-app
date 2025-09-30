@@ -8,6 +8,7 @@ import { eq, desc, sql, and, gte } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 import type { IUserStorage } from "./interfaces";
 import type { InsertNotificationPreferences, NotificationPreferences } from "../../shared/schema";
+import { EducafricNumberService } from "../services/educafricNumberService";
 
 export class UserStorage implements IUserStorage {
   async createUser(user: any): Promise<any> {
@@ -16,6 +17,22 @@ export class UserStorage implements IUserStorage {
       const [newUser] = await db.insert(users).values({
         ...user,
       }).returning();
+
+      // Auto-generate EDUCAFRIC number for Teacher, Student, or Parent
+      if (newUser.role && ['Teacher', 'Student', 'Parent'].includes(newUser.role)) {
+        try {
+          const educafricNumber = await EducafricNumberService.autoAssignToUser(newUser.id, newUser.role);
+          if (educafricNumber) {
+            console.log(`[EDUCAFRIC_NUMBER] Auto-generated for ${newUser.role}: ${educafricNumber}`);
+            // Update the user object to include the EDUCAFRIC number
+            newUser.educafricNumber = educafricNumber;
+          }
+        } catch (educafricError) {
+          // Don't fail user creation if EDUCAFRIC number generation fails
+          console.error(`[EDUCAFRIC_NUMBER] Failed to generate for user ${newUser.id}:`, educafricError);
+        }
+      }
+
       return newUser;
     } catch (error) {
       throw new Error(`Failed to create user: ${error}`);

@@ -5,14 +5,46 @@ import { db } from "../db";
 import { schools, classes, users, subjects } from "../../shared/schema";
 import { eq } from "drizzle-orm";
 import type { ISchoolStorage } from "./interfaces";
+import { EducafricNumberService } from "../services/educafricNumberService";
 
 export class SchoolStorage implements ISchoolStorage {
   async createSchool(school: any): Promise<any> {
     try {
-      const [newSchool] = await db.insert(schools).values(school).returning();
+      // Validate EDUCAFRIC number requirement
+      if (!school.educafricNumber) {
+        throw new Error('EDUCAFRIC number is required for school registration');
+      }
+
+      // Validate EDUCAFRIC number before proceeding
+      const validation = await EducafricNumberService.verifySchoolNumber(school.educafricNumber);
+      
+      if (!validation.valid) {
+        throw new Error(`EDUCAFRIC number validation failed: ${validation.message}`);
+      }
+
+      console.log(`[EDUCAFRIC_NUMBER] Validated school number: ${school.educafricNumber}`);
+
+      // Create the school with EDUCAFRIC number in a transaction
+      // This ensures atomicity between school creation and EDUCAFRIC assignment
+      let newSchool: any;
+      
+      await db.transaction(async (tx) => {
+        // Insert school
+        const [schoolResult] = await tx.insert(schools).values(school).returning();
+        newSchool = schoolResult;
+
+        // Update educafric_numbers to link to school (atomic operation within transaction)
+        // Pass transaction client to ensure atomicity and prevent race conditions
+        await EducafricNumberService.assignToSchool(school.educafricNumber, newSchool.id, tx);
+        
+        console.log(`[EDUCAFRIC_NUMBER] Assigned to school ID ${newSchool.id}: ${school.educafricNumber}`);
+      });
+
       return newSchool;
     } catch (error) {
-      throw new Error(`Failed to create school: ${error}`);
+      // Enhanced error message to help with troubleshooting
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to create school: ${errorMessage}`);
     }
   }
 
