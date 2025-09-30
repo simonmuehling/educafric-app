@@ -208,7 +208,11 @@ export const rooms = pgTable("rooms", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   schoolId: integer("school_id").notNull(),
-  capacity: integer("capacity"),
+  type: text("type").default("classroom"),
+  capacity: integer("capacity").default(30),
+  building: text("building"),
+  floor: text("floor"),
+  equipment: text("equipment"),
   isOccupied: boolean("is_occupied").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()

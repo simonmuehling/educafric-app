@@ -43,7 +43,14 @@ const ClassManagement: React.FC = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isRoomManagementOpen, setIsRoomManagementOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
-  const [newRoomName, setNewRoomName] = useState('');
+  const [newRoom, setNewRoom] = useState({
+    name: '',
+    type: 'classroom',
+    capacity: 30,
+    building: '',
+    floor: '',
+    equipment: ''
+  });
   const [isImportingRooms, setIsImportingRooms] = useState(false);
   
   // État pour la gestion des matières
@@ -483,7 +490,7 @@ const ClassManagement: React.FC = () => {
   });
 
   const handleAddRoom = () => {
-    if (!newRoomName.trim()) {
+    if (!newRoom.name.trim()) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Veuillez saisir un nom de salle.' : 'Please enter a room name.',
@@ -492,8 +499,8 @@ const ClassManagement: React.FC = () => {
       return;
     }
     
-    console.log('[CLASS_MANAGEMENT] 🏢 Adding new room:', newRoomName);
-    addRoomMutation.mutate({ name: newRoomName, capacity: 30 });
+    console.log('[CLASS_MANAGEMENT] 🏢 Adding new room:', newRoom);
+    addRoomMutation.mutate(newRoom);
   };
 
   // Import rooms from CSV
@@ -1566,29 +1573,80 @@ const ClassManagement: React.FC = () => {
                     <Plus className="w-4 h-4" />
                     {language === 'fr' ? 'Ajouter une Salle' : 'Add Room'}
                   </h3>
-                  <div className="flex gap-3">
-                    <Input 
-                      placeholder={language === 'fr' ? 'Nom de la salle (ex: Salle 301)' : 'Room name (ex: Room 301)'}
-                      className="flex-1"
-                      value={newRoomName}
-                      onChange={(e) => setNewRoomName(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleAddRoom();
-                        }
-                      }}
-                    />
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs">{language === 'fr' ? 'Nom' : 'Name'}</Label>
+                        <Input 
+                          placeholder={language === 'fr' ? 'Salle 301' : 'Room 301'}
+                          value={newRoom.name}
+                          onChange={(e) => setNewRoom({...newRoom, name: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">{language === 'fr' ? 'Type' : 'Type'}</Label>
+                        <Select value={newRoom.type} onValueChange={(value) => setNewRoom({...newRoom, type: value})}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="classroom">{language === 'fr' ? 'Salle de classe' : 'Classroom'}</SelectItem>
+                            <SelectItem value="laboratory">{language === 'fr' ? 'Laboratoire' : 'Laboratory'}</SelectItem>
+                            <SelectItem value="computer_lab">{language === 'fr' ? 'Salle informatique' : 'Computer Lab'}</SelectItem>
+                            <SelectItem value="library">{language === 'fr' ? 'Bibliothèque' : 'Library'}</SelectItem>
+                            <SelectItem value="sports_hall">{language === 'fr' ? 'Salle de sport' : 'Sports Hall'}</SelectItem>
+                            <SelectItem value="workshop">{language === 'fr' ? 'Atelier' : 'Workshop'}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-xs">{language === 'fr' ? 'Capacité' : 'Capacity'}</Label>
+                        <Input 
+                          type="number"
+                          placeholder="30"
+                          value={newRoom.capacity}
+                          onChange={(e) => setNewRoom({...newRoom, capacity: parseInt(e.target.value) || 30})}
+                          min="1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">{language === 'fr' ? 'Bâtiment' : 'Building'}</Label>
+                        <Input 
+                          placeholder={language === 'fr' ? 'Bât. A' : 'Building A'}
+                          value={newRoom.building}
+                          onChange={(e) => setNewRoom({...newRoom, building: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">{language === 'fr' ? 'Étage' : 'Floor'}</Label>
+                        <Input 
+                          placeholder={language === 'fr' ? 'RDC' : 'Ground'}
+                          value={newRoom.floor}
+                          onChange={(e) => setNewRoom({...newRoom, floor: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">{language === 'fr' ? 'Équipement' : 'Equipment'}</Label>
+                      <Input 
+                        placeholder={language === 'fr' ? 'Projecteur, Tableau blanc...' : 'Projector, Whiteboard...'}
+                        value={newRoom.equipment}
+                        onChange={(e) => setNewRoom({...newRoom, equipment: e.target.value})}
+                      />
+                    </div>
                     <Button 
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="w-full bg-blue-600 hover:bg-blue-700"
                       onClick={handleAddRoom}
-                      disabled={addRoomMutation.isPending || !newRoomName.trim()}
+                      disabled={addRoomMutation.isPending || !newRoom.name.trim()}
                     >
                       {addRoomMutation.isPending ? (
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                       ) : (
                         <Plus className="w-4 h-4 mr-2" />
                       )}
-                      {language === 'fr' ? 'Ajouter' : 'Add'}
+                      {language === 'fr' ? 'Ajouter la salle' : 'Add Room'}
                     </Button>
                   </div>
                 </Card>
