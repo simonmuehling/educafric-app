@@ -28,6 +28,7 @@ import sandboxUnifiedDataRoutes from "./routes/sandbox-unified-data";
 import schoolsRouter from "./routes/api/schools";
 import parentRouter from "./routes/api/parent";
 import adminRoutes from "./routes/admin";
+import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 
 // Import database and schema
 import { storage } from "./storage.js";
@@ -6695,6 +6696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🔥 PREMIUM RESTRICTED: Advanced parent features (GPS tracking + notifications)
   app.use('/api/parent', checkSubscriptionFeature('parent_premium'), parentRouter);
   app.use('/api/admin', adminRoutes);
+  app.use('/api', educafricNumberRoutes); // EDUCAFRIC number management (admin & public verify)
   app.use('/api/director', adminRoutes); // Map director to admin routes
   app.use('/api/permissions', adminRoutes); // Map permissions to admin routes
 
