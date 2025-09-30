@@ -43,21 +43,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       console.log('[SITE_ADMIN_API] Fetching real platform users from database');
 
       // Fetch real users from database with school information
-      const usersWithSchools = await storage.db
-        .select({
-          id: storage.users.id,
-          firstName: storage.users.firstName,
-          lastName: storage.users.lastName,
-          email: storage.users.email,
-          role: storage.users.role,
-          subscriptionStatus: storage.users.subscriptionStatus,
-          lastLoginAt: storage.users.lastLoginAt,
-          createdAt: storage.users.createdAt,
-          schoolName: storage.schools.name
-        })
-        .from(storage.users)
-        .leftJoin(storage.schools, storage.eq(storage.users.schoolId, storage.schools.id))
-        .orderBy(storage.desc(storage.users.createdAt));
+      const usersWithSchools = await storage.getUsersWithSchools();
 
       // Transform the data to match the expected format
       const users = usersWithSchools.map(user => ({
@@ -89,13 +75,10 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       const updates = req.body;
       
       // Update user in database
-      await storage.db
-        .update(storage.users)
-        .set({
-          ...updates,
-          updatedAt: new Date()
-        })
-        .where(storage.eq(storage.users.id, parseInt(userId)));
+      await storage.updateUser(parseInt(userId), {
+        ...updates,
+        updatedAt: new Date()
+      });
 
       console.log(`[SITE_ADMIN_API] ✅ User ${userId} updated successfully`);
       res.json({ message: 'User updated successfully' });
@@ -113,9 +96,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       const { userId } = req.params;
       
       // Delete user from database
-      await storage.db
-        .delete(storage.users)
-        .where(storage.eq(storage.users.id, parseInt(userId)));
+      await storage.deleteUser(parseInt(userId));
 
       console.log(`[SITE_ADMIN_API] ✅ User ${userId} deleted successfully`);
       res.json({ message: 'User deleted successfully' });
@@ -133,69 +114,32 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       const { search = '', type = 'all', status = 'all', page = 1, limit = 20 } = req.query;
 
       // Fetch real schools from database with user statistics
-      const schoolsWithStats = await storage.db
-        .select({
-          id: storage.schools.id,
-          name: storage.schools.name,
-          address: storage.schools.address,
-          phone: storage.schools.phone,
-          email: storage.schools.email,
-          city: storage.schools.city,
-          region: storage.schools.region,
-          schoolType: storage.schools.schoolType,
-          createdAt: storage.schools.createdAt
-        })
-        .from(storage.schools)
-        .orderBy(storage.desc(storage.schools.createdAt));
+      const schoolsWithStats = await storage.getSchoolsWithStats();
 
-      // Get user counts for each school
-      const schoolsWithCounts = await Promise.all(
-        schoolsWithStats.map(async (school) => {
-          // Count students
-          const studentCount = await storage.db
-            .select({ count: storage.sql`count(*)::int` })
-            .from(storage.users)
-            .where(storage.and(
-              storage.eq(storage.users.schoolId, school.id),
-              storage.eq(storage.users.role, 'Student')
-            ));
-
-          // Count teachers
-          const teacherCount = await storage.db
-            .select({ count: storage.sql`count(*)::int` })
-            .from(storage.users)
-            .where(storage.and(
-              storage.eq(storage.users.schoolId, school.id),
-              storage.eq(storage.users.role, 'Teacher')
-            ));
-
-          return {
-            id: school.id,
-            name: school.name,
-            address: school.address || `${school.city || ''}, ${school.region || ''}`.trim(),
-            phone: school.phone,
-            email: school.email,
-            city: school.city,
-            region: school.region,
-            schoolType: school.schoolType,
-            studentCount: studentCount[0]?.count || 0,
-            teacherCount: teacherCount[0]?.count || 0,
-            subscriptionStatus: 'active', // Could be calculated based on active users with subscriptions
-            monthlyRevenue: 0, // Would need to be calculated from subscription data
-            createdAt: school.createdAt,
-            contactEmail: school.email,
-            location: `${school.city || ''}, ${school.region || ''}`.trim()
-          };
-        })
-      );
+      // Transform to match expected format
+      const schoolsWithCounts = schoolsWithStats.map(school => ({
+        id: school.id,
+        name: school.name,
+        address: school.address || '',
+        phone: school.phone,
+        email: school.email,
+        schoolType: school.type || 'private',
+        studentCount: school.studentCount || 0,
+        teacherCount: school.teacherCount || 0,
+        subscriptionStatus: 'active',
+        monthlyRevenue: 0,
+        createdAt: school.createdAt,
+        contactEmail: school.email,
+        location: school.address || '',
+        educafricNumber: school.educafricNumber
+      }));
 
       // Apply search filter if provided
       let filteredSchools = schoolsWithCounts;
       if (search) {
         filteredSchools = schoolsWithCounts.filter(school => 
           school.name.toLowerCase().includes(search.toString().toLowerCase()) ||
-          school.address?.toLowerCase().includes(search.toString().toLowerCase()) ||
-          school.city?.toLowerCase().includes(search.toString().toLowerCase())
+          school.address?.toLowerCase().includes(search.toString().toLowerCase())
         );
       }
 
@@ -569,23 +513,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       console.log('[SITE_ADMIN_API] Fetching real commercial users from database');
       
       // Fetch all users with Commercial role from database
-      const commercialUsers = await storage.db
-        .select({
-          id: storage.users.id,
-          firstName: storage.users.firstName,
-          lastName: storage.users.lastName,
-          email: storage.users.email,
-          phone: storage.users.phone,
-          role: storage.users.role,
-          subscriptionStatus: storage.users.subscriptionStatus,
-          lastLoginAt: storage.users.lastLoginAt,
-          createdAt: storage.users.createdAt,
-          schoolId: storage.users.schoolId,
-          educafricNumber: storage.users.educafricNumber
-        })
-        .from(storage.users)
-        .where(storage.eq(storage.users.role, 'commercial'))
-        .orderBy(storage.desc(storage.users.createdAt));
+      const commercialUsers = await storage.getCommercialUsers();
 
       // Transform the data to match expected Commercial interface
       const commercials = commercialUsers.map(user => ({
@@ -626,13 +554,10 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       }
       
       // Update user status in database
-      await storage.db
-        .update(storage.users)
-        .set({
-          subscriptionStatus: status,
-          updatedAt: new Date()
-        })
-        .where(storage.eq(storage.users.id, parseInt(id)));
+      await storage.updateUser(parseInt(id), {
+        subscriptionStatus: status,
+        updatedAt: new Date()
+      });
       
       console.log(`[SITE_ADMIN_API] ✅ Commercial ${id} status updated to ${status} in database`);
       res.json({ 
@@ -661,13 +586,10 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       }
       
       // Update user role in database
-      await storage.db
-        .update(storage.users)
-        .set({
-          role: role.toLowerCase(),
-          updatedAt: new Date()
-        })
-        .where(storage.eq(storage.users.id, parseInt(id)));
+      await storage.updateUser(parseInt(id), {
+        role: role.toLowerCase(),
+        updatedAt: new Date()
+      });
       
       console.log(`[SITE_ADMIN_API] ✅ Commercial ${id} role updated to ${role} in database`);
       
@@ -691,9 +613,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       console.log(`[SITE_ADMIN_API] Deleting commercial ${id}`);
       
       // Delete user from database
-      await storage.db
-        .delete(storage.users)
-        .where(storage.eq(storage.users.id, parseInt(id)));
+      await storage.deleteUser(parseInt(id));
       
       console.log(`[SITE_ADMIN_API] ✅ Commercial ${id} deleted from database`);
       res.json({ 
