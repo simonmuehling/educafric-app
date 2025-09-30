@@ -6,12 +6,20 @@ import { z } from "zod";
 // Room management validation schemas
 export const roomCreationSchema = z.object({
   name: z.string().min(1, "Room name is required").max(100, "Room name too long"),
-  capacity: z.number().int().min(1, "Capacity must be at least 1").max(500, "Capacity too large")
+  type: z.string().optional().default("classroom"),
+  capacity: z.number().int().min(1, "Capacity must be at least 1").max(500, "Capacity too large").default(30),
+  building: z.string().max(100, "Building name too long").optional(),
+  floor: z.string().max(50, "Floor too long").optional(),
+  equipment: z.string().max(500, "Equipment description too long").optional()
 });
 
 export const roomUpdateSchema = z.object({
   name: z.string().min(1, "Room name is required").max(100, "Room name too long").optional(),
+  type: z.string().max(50, "Type too long").optional(),
   capacity: z.number().int().min(1, "Capacity must be at least 1").max(500, "Capacity too large").optional(),
+  building: z.string().max(100, "Building name too long").optional(),
+  floor: z.string().max(50, "Floor too long").optional(),
+  equipment: z.string().max(500, "Equipment description too long").optional(),
   isOccupied: z.boolean().optional()
 });
 

@@ -2,6 +2,8 @@ import * as XLSX from 'xlsx';
 import * as bcrypt from 'bcryptjs';
 import { storage } from '../storage';
 import { nanoid } from 'nanoid';
+import { db } from '../db';
+import { rooms } from '../../shared/schema';
 
 interface TeacherImportData {
   firstName: string;
@@ -658,15 +660,17 @@ export class ExcelImportService {
           continue;
         }
         
-        // Room import functionality needs to be implemented in storage
-        // For now, skip room creation
-        result.warnings.push({
-          row: row._row || index + 2,
-          message: lang === 'fr' 
-            ? `Import de salles non encore implémenté - "${roomData.name}" ignorée`
-            : `Room import not yet implemented - "${roomData.name}" skipped`
+        // Create room in database
+        await db.insert(rooms).values({
+          name: roomData.name,
+          type: roomData.type || 'classroom',
+          capacity: roomData.capacity || 30,
+          building: roomData.building,
+          floor: roomData.floor,
+          equipment: roomData.equipment,
+          schoolId,
+          isOccupied: false
         });
-        continue;
         
         result.created++;
         

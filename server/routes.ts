@@ -33,7 +33,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications } from "../shared/schema.js";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms } from "../shared/schema.js";
 import { 
   predefinedAppreciations, 
   competencyEvaluationSystems, 
@@ -859,18 +859,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/director/rooms", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
+      const schoolId = user.schoolId;
       
-      // For now, return mock data. In production, fetch from database
-      const rooms = [
-        { id: 1, name: 'Salle 101', schoolId: user.schoolId, capacity: 30, isOccupied: false },
-        { id: 2, name: 'Salle 102', schoolId: user.schoolId, capacity: 25, isOccupied: true },
-        { id: 3, name: 'Salle 201', schoolId: user.schoolId, capacity: 35, isOccupied: false },
-        { id: 4, name: 'Salle 202', schoolId: user.schoolId, capacity: 28, isOccupied: true },
-        { id: 5, name: 'Laboratoire', schoolId: user.schoolId, capacity: 20, isOccupied: false },
-        { id: 6, name: 'Salle Informatique', schoolId: user.schoolId, capacity: 24, isOccupied: false }
-      ];
+      if (!schoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
       
-      res.json({ success: true, rooms });
+      // Fetch rooms from database
+      const schoolRooms = await db.select().from(rooms).where(eq(rooms.schoolId, schoolId));
+      
+      res.json({ success: true, rooms: schoolRooms });
     } catch (error) {
       console.error('[ROOMS_API] Error fetching rooms:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch rooms' });
@@ -892,8 +893,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const { name, capacity } = validationResult.data;
-      console.log('[ROOMS_API] POST /api/director/rooms - Adding room:', { name, capacity });
+      const { name, type, capacity, building, floor, equipment } = validationResult.data;
+      console.log('[ROOMS_API] POST /api/director/rooms - Adding room:', { name, type, capacity, building, floor, equipment });
 
       // Validate school access
       const schoolId = user.schoolId;
@@ -904,15 +905,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // For now, return success with mock ID. In production, save to database
-      const newRoom = {
-        id: Math.floor(Math.random() * 1000) + 100,
+      // Save to database
+      const [newRoom] = await db.insert(rooms).values({
         name,
-        capacity,
+        type: type || 'classroom',
+        capacity: capacity || 30,
+        building,
+        floor,
+        equipment,
         schoolId,
-        isOccupied: false,
-        createdAt: new Date().toISOString()
-      };
+        isOccupied: false
+      }).returning();
       
       console.log('[ROOMS_API] ✅ Room added successfully:', newRoom.name);
       res.json({ success: true, room: newRoom, message: 'Room added successfully' });
