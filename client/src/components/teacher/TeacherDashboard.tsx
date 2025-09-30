@@ -12,6 +12,7 @@ import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
 // NotificationCenter, SubscriptionStatusCard, and UniversalMultiRoleSwitch now loaded dynamically via fastModuleLoader
 import { TeacherMultiSchoolProvider } from '@/contexts/TeacherMultiSchoolContext';
+import { CalendarExport } from '@/components/shared/CalendarExport';
 
 interface TeacherDashboardProps {
   stats?: any;
@@ -190,7 +191,8 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       profile: 'Profil',
       multirole: 'Multi-Rôles',
       notifications: 'Notifications',
-      help: 'Aide'
+      help: 'Aide',
+      calendarExport: 'Export Calendrier'
     },
     en: {
       title: 'Teacher Dashboard',
@@ -208,7 +210,8 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       profile: 'Profile',
       notifications: 'Notifications',
       multirole: 'Multi-Roles',
-      help: 'Help'
+      help: 'Help',
+      calendarExport: 'Calendar Export'
     }
   };
 
@@ -228,6 +231,13 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-green-500',
       component: createDynamicModule('teacher-timetable')
+    },
+    {
+      id: 'calendar-export',
+      label: t.calendarExport,
+      icon: <Calendar className="w-6 h-6" />,
+      color: 'bg-cyan-500',
+      component: <CalendarExport userType="teacher" userId={user?.id} />
     },
     {
       id: 'attendance',
