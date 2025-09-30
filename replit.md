@@ -1,7 +1,7 @@
 # Educafric - African Educational Technology Platform
 
 ## Overview
-Educafric is a comprehensive, bilingual (French/English), mobile-first African educational technology platform. It provides a complete digital learning ecosystem with integrated academic management, communication tools, and financial features tailored for the African market (e.g., SMS/WhatsApp communication, localized payments). The platform aims to offer significant cost savings for schools, high ROI for stakeholders, and improved educational outcomes, aligning with UN Sustainable Development Goals. It is designed for production deployment, supporting 3500+ concurrent users, and features a unique payment model where Educafric pays schools. It includes a smart data separation system to distinguish between sandbox and real user data based on email patterns, ensuring strict data integrity.
+Educafric is a comprehensive, bilingual (French/English), mobile-first African educational technology platform. It provides a complete digital learning ecosystem by integrating academic management, communication tools, and financial features tailored for the African market. The platform aims to offer significant cost savings for schools, improve educational outcomes, and supports 3500+ concurrent users. Unique features include a payment model where Educafric pays schools and a smart data separation system for sandbox and real user data. Its ambition is to revolutionize education in Africa, aligning with UN Sustainable Development Goals.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -125,8 +125,8 @@ Fast Module Optimization System:
 ### Frontend Architecture
 - Built with React and TypeScript, using Wouter for routing, TanStack Query for state management, and Radix UI + Shadcn/UI for components.
 - Styled with Tailwind CSS, featuring a custom African-themed color palette, modern gradients, rounded cards, and animated interactions using the Nunito font.
-- Designed as a Progressive Web App (PWA) with strong mobile optimization, including `MobileActionsOverlay` and compact navigation.
-- Ensures unified UI/UX across all dashboards through standardized, reusable components like `ModuleContainer` and `ModernDashboardLayout`.
+- Designed as a Progressive Web App (PWA) with strong mobile optimization.
+- Ensures unified UI/UX across all dashboards through standardized, reusable components.
 - A separate React Native application (`educafric-mobile/`) exists for Android, sharing the backend.
 
 ### Backend Architecture
@@ -147,20 +147,12 @@ Fast Module Optimization System:
 - **Authentication & Authorization**: Secure local and Firebase Google OAuth with comprehensive session management and granular permissions.
 - **Educational Management System**: Grade management with African-style report cards, real-time attendance, homework assignment, and flexible timetable management.
 - **Communication System**: Multi-channel notifications via Vonage (SMS/WhatsApp), Hostinger SMTP (Email), and PWA push notifications, with bilingual, contextual templates.
-- **Payment & Subscription Management**: Stripe integration for international payments, complemented by local African payment methods (Orange Money, Express Union, Afriland First Bank). Supports multiple subscription tiers.
+- **Payment & Subscription Management**: Stripe integration for international payments, complemented by local African payment methods.
 - **Geolocation Services**: GPS tracking for devices, geofencing, safe zone management, real-time monitoring, and emergency alerts.
 - **Document Management System**: Centralized system for commercial, administrative, and legal documents, with digital signatures, PDF generation, and controlled access.
 - **Bidirectional Connection System**: Facilitates connections between parents-children, students-parents, and freelancers-students, with duplicate detection and school verification.
-- **Phone Number Validation**: Comprehensive uniqueness and format validation, especially for Cameroon numbers, with WhatsApp support.
-- **Bilingual Support**: Dynamic French/English language switching with complete localization of UI, content, and documentation, including African educational terminology.
+- **Bilingual Support**: Dynamic French/English language switching with complete localization of UI, content, and documentation.
 - **Sandbox Environment**: A dedicated, fully unlocked environment with realistic African demo data.
-- **Tutorial System**: Backend-driven with progress tracking and analytics.
-- **Mobile School Configuration Guide**: Optimized for smartphones and integrated into the unified dashboard system.
-
-### Pricing Structure
-- Schools: Annual plans only, no student limitations.
-- Freelancers: Professional plan.
-- Parents: Quarterly subscriptions.
 
 ## External Dependencies
 
