@@ -162,7 +162,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       'switchToAdministrators': 'administrators',
       'switchToStudent-management': 'students',
       'switchToAttendance-management': 'attendance',
-      'switchToSubscription': 'subscription',
       'switchToOnlineClasses': 'online-classes'
     };
     
@@ -181,7 +180,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     const eventTypes = [
       'switchToTimetable', 'switchToTeacherManagement', 'switchToClassManagement', 'switchToCommunications',
       'switchToSettings', 'switchToAdministrators', 'switchToStudent-management', 'switchToAttendance-management',
-      'switchToGeolocation', 'switchToSubscription'
+      'switchToGeolocation'
     ];
     
     eventTypes.forEach(eventType => {
@@ -253,13 +252,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   const t = text[language as keyof typeof text];
 
   const modules = [
-    {
-      id: 'subscription',
-      label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
-      icon: <Star className="w-6 h-6" />,
-      color: 'bg-gradient-to-r from-yellow-500 to-orange-500',
-      component: createDynamicModule('subscription')
-    },
     {
       id: 'settings',
       label: t.settings,

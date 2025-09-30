@@ -199,8 +199,12 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     enabled: !!user?.schoolId,
   });
 
-  const educationalType = schoolData?.educationalType || 'general'; // Default to 'general' if not specified
+  const educationalType = schoolData?.school?.educationalType || 'general'; // Default to 'general' if not specified
   const isTechnicalSchool = educationalType === 'technical';
+  
+  console.log('[BULLETIN] School data:', schoolData);
+  console.log('[BULLETIN] Educational type:', educationalType);
+  console.log('[BULLETIN] Is technical school:', isTechnicalSchool);
   
   // Ministry-required trimester titles
   const TRIMESTER_TITLES = {
