@@ -7,7 +7,7 @@ import { requireAuth, requireRole } from "../middleware/auth";
 
 const router = Router();
 
-// ===== ADMIN ROUTES FOR SCHOOL EDUCAFRIC NUMBERS =====
+// ===== ADMIN ROUTES FOR SCHOOL & COMMERCIAL EDUCAFRIC NUMBERS =====
 
 // Get all school EDUCAFRIC numbers
 router.get('/admin/educafric-numbers', requireAuth, requireRole('SiteAdmin'), async (req, res) => {
@@ -15,7 +15,18 @@ router.get('/admin/educafric-numbers', requireAuth, requireRole('SiteAdmin'), as
     const numbers = await EducafricNumberService.getSchoolNumbers();
     res.json({ numbers });
   } catch (error: any) {
-    console.error('[EDUCAFRIC_NUMBERS] Error fetching numbers:', error);
+    console.error('[EDUCAFRIC_NUMBERS] Error fetching school numbers:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all commercial EDUCAFRIC numbers
+router.get('/admin/educafric-numbers/commercial', requireAuth, requireRole('SiteAdmin'), async (req, res) => {
+  try {
+    const numbers = await EducafricNumberService.getCommercialNumbers();
+    res.json({ numbers });
+  } catch (error: any) {
+    console.error('[EDUCAFRIC_NUMBERS] Error fetching commercial numbers:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -50,7 +61,31 @@ router.post('/admin/educafric-numbers', requireAuth, requireRole('SiteAdmin'), a
       record 
     });
   } catch (error: any) {
-    console.error('[EDUCAFRIC_NUMBERS] Error creating number:', error);
+    console.error('[EDUCAFRIC_NUMBERS] Error creating school number:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new commercial EDUCAFRIC number
+router.post('/admin/educafric-numbers/commercial', requireAuth, requireRole('SiteAdmin'), async (req, res) => {
+  try {
+    const { notes } = req.body;
+    const userId = req.user!.id;
+
+    const record = await EducafricNumberService.createNumber({
+      type: 'CO',
+      entityType: 'user',
+      issuedBy: userId,
+      notes
+    });
+
+    res.json({ 
+      success: true, 
+      educafricNumber: record.educafricNumber,
+      record 
+    });
+  } catch (error: any) {
+    console.error('[EDUCAFRIC_NUMBERS] Error creating commercial number:', error);
     res.status(500).json({ error: error.message });
   }
 });

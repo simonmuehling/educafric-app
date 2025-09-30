@@ -160,18 +160,18 @@ export class EducafricNumberService {
   }
 
   /**
-   * Auto-generate and assign EDUCAFRIC number to user (Teacher/Student/Parent/Commercial)
+   * Auto-generate and assign EDUCAFRIC number to user (Teacher/Student/Parent only)
+   * Note: School and Commercial get numbers from admins, not auto-generated
    */
   static async autoAssignToUser(userId: number, userRole: string): Promise<string | null> {
     // Determine type based on role
-    let type: 'TE' | 'ST' | 'PA' | 'CO' | null = null;
+    let type: 'TE' | 'ST' | 'PA' | null = null;
     
     if (userRole === 'Teacher') type = 'TE';
     else if (userRole === 'Student') type = 'ST';
     else if (userRole === 'Parent') type = 'PA';
-    else if (userRole === 'Commercial') type = 'CO';
 
-    if (!type) return null; // Only generate for Teacher, Student, Parent, Commercial
+    if (!type) return null; // Only auto-generate for Teacher, Student, Parent
 
     // Generate and create number
     const record = await this.createNumber({
@@ -207,6 +207,30 @@ export class EducafricNumberService {
       .from(educafricNumbers)
       .leftJoin(schools, eq(educafricNumbers.entityId, schools.id))
       .where(eq(educafricNumbers.type, 'SC'))
+      .orderBy(sql`${educafricNumbers.createdAt} DESC`);
+
+    return numbers;
+  }
+
+  /**
+   * Get all commercial EDUCAFRIC numbers for admin management
+   */
+  static async getCommercialNumbers() {
+    const numbers = await db
+      .select({
+        id: educafricNumbers.id,
+        educafricNumber: educafricNumbers.educafricNumber,
+        status: educafricNumbers.status,
+        entityId: educafricNumbers.entityId,
+        notes: educafricNumbers.notes,
+        createdAt: educafricNumbers.createdAt,
+        userName: users.firstName,
+        userLastName: users.lastName,
+        userEmail: users.email
+      })
+      .from(educafricNumbers)
+      .leftJoin(users, eq(educafricNumbers.entityId, users.id))
+      .where(eq(educafricNumbers.type, 'CO'))
       .orderBy(sql`${educafricNumbers.createdAt} DESC`);
 
     return numbers;
@@ -279,7 +303,8 @@ export class EducafricNumberService {
       SC: 'School',
       TE: 'Teacher',
       ST: 'Student',
-      PA: 'Parent'
+      PA: 'Parent',
+      CO: 'Commercial'
     };
     return labels[type] || type;
   }
