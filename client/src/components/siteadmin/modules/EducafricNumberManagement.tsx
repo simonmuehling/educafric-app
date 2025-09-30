@@ -158,19 +158,22 @@ export default function EducafricNumberManagement() {
   };
 
   // Fetch counter statistics
-  const { data: stats = [] } = useQuery<CounterStat[]>({
+  const { data: statsResponse } = useQuery<{ stats: CounterStat[] }>({
     queryKey: ['/api/admin/educafric-numbers/stats'],
   });
+  const stats = statsResponse?.stats || [];
 
   // Fetch school numbers
-  const { data: schoolNumbers = [], isLoading: loadingSchools } = useQuery<EducafricNumber[]>({
+  const { data: schoolNumbersResponse, isLoading: loadingSchools } = useQuery<{ numbers: EducafricNumber[] }>({
     queryKey: ['/api/admin/educafric-numbers'],
   });
+  const schoolNumbers = schoolNumbersResponse?.numbers || [];
 
   // Fetch commercial numbers
-  const { data: commercialNumbers = [], isLoading: loadingCommercials } = useQuery<EducafricNumber[]>({
+  const { data: commercialNumbersResponse, isLoading: loadingCommercials } = useQuery<{ numbers: EducafricNumber[] }>({
     queryKey: ['/api/admin/educafric-numbers/commercial'],
   });
+  const commercialNumbers = commercialNumbersResponse?.numbers || [];
 
   // Create school number mutation
   const createSchoolMutation = useMutation({
