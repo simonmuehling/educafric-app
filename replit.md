@@ -77,6 +77,18 @@ Fast Module Optimization System:
 - ✅ Performance monitoring intégré avec métriques temps réel.
 - ✅ Support complet modules existants réels (plus de modules inexistants).
 
+**INTÉGRATION CALENDRIER ACADÉMIQUE - SEPTEMBER 2025**:
+- ✅ **Export calendrier iCal/ICS** pour événements académiques (emploi du temps + classes en ligne)
+- ✅ **CalendarService** génère fichiers .ics compatibles Google Calendar, Outlook, Apple Calendar
+- ✅ **Événements inclus** : Cours réguliers (timetables) + Sessions Jitsi en ligne (classSessions)
+- ✅ **Accès restreint** : Directeurs (école complète) et Enseignants (emploi du temps personnel) uniquement
+- ✅ **Routes API** : `/api/calendar/export/{school|teacher}/{id}` et `/api/calendar/subscription-url/{school|teacher}`
+- ✅ **Sécurité renforcée** : Mots de passe Jitsi jamais exposés dans ICS (note générique uniquement)
+- ✅ **Performance optimisée** : Requêtes avec joins pour éliminer N+1, filtrage actif (isActive + status scheduled/live)
+- ✅ **UI intégrée** : Module CalendarExport ajouté aux dashboards Directeur et Enseignant
+- ✅ **Fenêtre temporelle** : Prochains 3 mois d'événements, filtrage par année académique/trimestre
+- ✅ **Liens Jitsi** : URLs complètes meet.educafric.com incluses dans LOCATION et DESCRIPTION
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional

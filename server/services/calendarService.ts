@@ -1,7 +1,7 @@
 import { storage } from '../storage';
 import { db } from '../db';
-import { timetables, classes } from '../../shared/schema';
-import { eq, and } from 'drizzle-orm';
+import { timetables, classes, classSessions, onlineCourses, users } from '../../shared/schema';
+import { eq, and, gte, lte } from 'drizzle-orm';
 
 interface CalendarEvent {
   uid: string;
@@ -118,6 +118,51 @@ export class CalendarService {
       });
     }
 
+    // Add online class sessions for this school
+    const now = new Date();
+    const threeMonthsLater = new Date();
+    threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
+
+    const sessions = await db.select({
+      session: classSessions,
+      course: onlineCourses,
+      teacher: {
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName
+      }
+    })
+      .from(classSessions)
+      .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
+      .innerJoin(users, eq(onlineCourses.teacherId, users.id))
+      .where(
+        and(
+          eq(onlineCourses.schoolId, schoolId),
+          eq(onlineCourses.isActive, true),
+          gte(classSessions.scheduledStart, now),
+          lte(classSessions.scheduledStart, threeMonthsLater)
+        )
+      );
+
+    for (const { session, course, teacher } of sessions) {
+      if (!session.scheduledStart) continue;
+      
+      // Only include scheduled or live sessions (filtering in loop due to Drizzle typing)
+      if (session.status !== 'scheduled' && session.status !== 'live') continue;
+      
+      const jitsiUrl = `https://meet.educafric.com/${session.roomName}`;
+      const passwordNote = session.roomPassword ? '\nMot de passe requis (voir notification)' : '';
+      
+      events.push({
+        uid: `online-session-${session.id}`,
+        summary: `📹 ${session.title} (Classe en ligne)`,
+        description: `${session.description || ''}\n\nEnseignant: ${teacher.firstName} ${teacher.lastName}\nLien Jitsi: ${jitsiUrl}${passwordNote}`,
+        location: jitsiUrl,
+        startDate: new Date(session.scheduledStart),
+        endDate: session.scheduledEnd ? new Date(session.scheduledEnd) : new Date(new Date(session.scheduledStart).getTime() + 60 * 60 * 1000)
+      });
+    }
+
     return this.generateICalendar(events, `EDUCAFRIC - School Calendar (${academicYear} - ${term})`);
   }
 
@@ -172,6 +217,47 @@ export class CalendarService {
           until: termEnd,
           byDay: [dayMap[timetable.dayOfWeek]]
         }
+      });
+    }
+
+    // Add online class sessions for this teacher
+    const now = new Date();
+    const threeMonthsLater = new Date();
+    threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
+
+    const sessions = await db.select({
+      session: classSessions,
+      course: onlineCourses,
+      class: classes
+    })
+      .from(classSessions)
+      .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
+      .leftJoin(classes, eq(onlineCourses.classId, classes.id))
+      .where(
+        and(
+          eq(onlineCourses.teacherId, teacherId),
+          eq(onlineCourses.isActive, true),
+          gte(classSessions.scheduledStart, now),
+          lte(classSessions.scheduledStart, threeMonthsLater)
+        )
+      );
+
+    for (const { session, course, class: classInfo } of sessions) {
+      if (!session.scheduledStart) continue;
+      
+      // Only include scheduled or live sessions (filtering in loop due to Drizzle typing)
+      if (session.status !== 'scheduled' && session.status !== 'live') continue;
+      
+      const jitsiUrl = `https://meet.educafric.com/${session.roomName}`;
+      const passwordNote = session.roomPassword ? '\nMot de passe requis (voir notification)' : '';
+      
+      events.push({
+        uid: `teacher-online-session-${session.id}`,
+        summary: `📹 ${session.title} (Classe en ligne)`,
+        description: `${session.description || ''}\n\n${classInfo ? `Classe: ${classInfo.name}\n` : ''}Lien Jitsi: ${jitsiUrl}${passwordNote}\nStatut: ${session.status}`,
+        location: jitsiUrl,
+        startDate: new Date(session.scheduledStart),
+        endDate: session.scheduledEnd ? new Date(session.scheduledEnd) : new Date(new Date(session.scheduledStart).getTime() + 60 * 60 * 1000)
       });
     }
 
