@@ -213,9 +213,10 @@ class FastModuleLoader {
       // SiteAdmin modules - Using shared components for now until specific modules are created
       'siteadmin-overview': () => import('@/components/shared/UnifiedProfileManager'),
       
-      // SiteAdmin modules - Consolidated 9 modules only (prefixed to avoid conflicts)
+      // SiteAdmin modules - Consolidated 10 modules only (prefixed to avoid conflicts)
       'siteadmin-users': () => import('@/components/siteadmin/modules/UserManagement'),
       'siteadmin-schools': () => import('@/components/siteadmin/modules/SchoolManagement'),
+      'siteadmin-educafric-numbers': () => import('@/components/siteadmin/modules/EducafricNumberManagement'),
       'siteadmin-payments': () => import('@/components/siteadmin/modules/PaymentAdministration'),
       'siteadmin-commercial': () => import('@/components/siteadmin/modules/UnifiedCommercialManagement'),
       'siteadmin-documents': () => import('@/components/siteadmin/modules/FunctionalSiteAdminDocuments'),
