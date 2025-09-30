@@ -1,13 +1,13 @@
 // ===== EDUCAFRIC NUMBER MANAGEMENT SERVICE =====
 // Handles generation, validation, and management of EDUCAFRIC numbers
-// Format: EDU-CM-XX-### where XX = SC/TE/ST/PA and ### = 3-digit counter
+// Format: EDU-CM-XX-### where XX = SC/TE/ST/PA/CO and ### = 3-digit counter
 
 import { db } from "../db";
 import { educafricNumbers, educafricNumberCounters, schools, users } from "@shared/schema";
 import { eq, and, sql, isNull } from "drizzle-orm";
 
 export interface EducafricNumberConfig {
-  type: 'SC' | 'TE' | 'ST' | 'PA'; // School, Teacher, Student, Parent
+  type: 'SC' | 'TE' | 'ST' | 'PA' | 'CO'; // School, Teacher, Student, Parent, Commercial
   entityType: 'school' | 'user';
   entityId?: number;
   issuedBy?: number;
@@ -20,7 +20,7 @@ export class EducafricNumberService {
    * Generate next EDUCAFRIC number for a given type
    * Format: EDU-CM-{type}-{counter}
    */
-  static async generateNumber(type: 'SC' | 'TE' | 'ST' | 'PA'): Promise<string> {
+  static async generateNumber(type: 'SC' | 'TE' | 'ST' | 'PA' | 'CO'): Promise<string> {
     // Get current counter and increment atomically using raw SQL for atomic operation
     const [counter] = await db
       .update(educafricNumberCounters)
@@ -160,17 +160,18 @@ export class EducafricNumberService {
   }
 
   /**
-   * Auto-generate and assign EDUCAFRIC number to user (Teacher/Student/Parent)
+   * Auto-generate and assign EDUCAFRIC number to user (Teacher/Student/Parent/Commercial)
    */
   static async autoAssignToUser(userId: number, userRole: string): Promise<string | null> {
     // Determine type based on role
-    let type: 'TE' | 'ST' | 'PA' | null = null;
+    let type: 'TE' | 'ST' | 'PA' | 'CO' | null = null;
     
     if (userRole === 'Teacher') type = 'TE';
     else if (userRole === 'Student') type = 'ST';
     else if (userRole === 'Parent') type = 'PA';
+    else if (userRole === 'Commercial') type = 'CO';
 
-    if (!type) return null; // Only generate for Teacher, Student, Parent
+    if (!type) return null; // Only generate for Teacher, Student, Parent, Commercial
 
     // Generate and create number
     const record = await this.createNumber({
