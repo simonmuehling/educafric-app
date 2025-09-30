@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Badge } from '@/components/ui/badge';
 import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer, Users, Info } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -184,6 +185,22 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   const { defaultClass, defaultTerm, defaultYear } = props;
   const { language } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Fetch school data to determine educational type
+  const { data: schoolData } = useQuery({
+    queryKey: ['school-data', user?.schoolId],
+    queryFn: async () => {
+      if (!user?.schoolId) return null;
+      const response = await fetch(`/api/school/${user.schoolId}`);
+      if (!response.ok) throw new Error('Failed to fetch school data');
+      return response.json();
+    },
+    enabled: !!user?.schoolId,
+  });
+
+  const educationalType = schoolData?.educationalType || 'general'; // Default to 'general' if not specified
+  const isTechnicalSchool = educationalType === 'technical';
   
   // Ministry-required trimester titles
   const TRIMESTER_TITLES = {
@@ -703,7 +720,11 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       
       // Calculate overall average
       const totalCoef = subjects.reduce((sum, s) => sum + (s.coefficient || 0), 0);
-      const totalMxCoef = subjects.reduce((sum, s) => sum + (s.moyenneFinale || 0) * (s.coefficient || 0), 0);
+      // For technical schools, use note1; for general schools, use moyenneFinale
+      const totalMxCoef = subjects.reduce((sum, s) => {
+        const gradeToUse = isTechnicalSchool ? (s.note1 || 0) : (s.moyenneFinale || 0);
+        return sum + gradeToUse * (s.coefficient || 0);
+      }, 0);
       const overallAverage = totalCoef ? (totalMxCoef / totalCoef).toFixed(2) : '0.00';
       
       // Create verification record on server
@@ -978,29 +999,33 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         }
       }
     },
-    lines: subjects.map(s => ({
-      subject: s.name,
-      note1: s.note1,
-      moyenneFinale: s.moyenneFinale,
-      m20: s.moyenneFinale || s.grade, // Use moyenneFinale as primary, fallback to grade
-      coef: s.coefficient,
-      totalPondere: s.totalPondere,
-      notePercent: round2((s.moyenneFinale / 20) * 100),
-      cote: s.cote,
-      competence1: s.competence1,
-      competence2: s.competence2,
-      competence3: s.competence3,
-      competencesEvaluees: [s.competence1, s.competence2, s.competence3].filter(c => c?.trim()).join('; '),
-      competencyLevel: s.competencyLevel,
-      competencyEvaluation: s.competencyEvaluation,
-      remark: s.remark,
-      teacherComments: Array.isArray(s.comments) 
-        ? s.comments.map(commentId => {
-            const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
-            return comment ? comment.text : commentId;
-          })
-        : [], // Map comment IDs to localized text
-    })),
+    lines: subjects.map(s => {
+      // For technical schools, use note1; for general schools, use moyenneFinale
+      const gradeToUse = isTechnicalSchool ? (s.note1 || 0) : (s.moyenneFinale || 0);
+      return {
+        subject: s.name,
+        note1: s.note1,
+        moyenneFinale: s.moyenneFinale,
+        m20: gradeToUse, // Use note1 for technical schools, moyenneFinale for general schools
+        coef: s.coefficient,
+        totalPondere: round2(gradeToUse * s.coefficient),
+        notePercent: round2((gradeToUse / 20) * 100),
+        cote: coteFromNote(gradeToUse),
+        competence1: s.competence1,
+        competence2: s.competence2,
+        competence3: s.competence3,
+        competencesEvaluees: [s.competence1, s.competence2, s.competence3].filter(c => c?.trim()).join('; '),
+        competencyLevel: s.competencyLevel,
+        competencyEvaluation: s.competencyEvaluation,
+        remark: s.remark,
+        teacherComments: Array.isArray(s.comments) 
+          ? s.comments.map(commentId => {
+              const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
+              return comment ? comment.text : commentId;
+            })
+          : [], // Map comment IDs to localized text
+      };
+    }),
     year,
     trimester,
     schoolLogoUrl: realSchoolLogoUrl,
@@ -1755,7 +1780,12 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   <thead>
                     <tr className="bg-blue-50 border-b-2 border-blue-200">
                       <th className="px-3 py-2 text-left text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Matière' : 'Subject'}</th>
-                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'N/20-M/20' : 'N/20-M/20'}</th>
+                      <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">
+                        {isTechnicalSchool 
+                          ? (language === 'fr' ? 'N/20' : 'N/20')
+                          : (language === 'fr' ? 'N/20-M/20' : 'N/20-M/20')
+                        }
+                      </th>
                       <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Coefficient' : 'Coefficient'}</th>
                       <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'M x coef' : 'M x coef'}</th>
                       <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Note %' : 'Grade %'}</th>
@@ -1769,10 +1799,12 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   <tbody>
                     {subjects.map((subject, index) => {
                       // Use manually entered values - no automatic calculation
+                      // For technical schools, use note1; for general schools, use moyenneFinale
+                      const gradeToUse = isTechnicalSchool ? (subject.note1 || 0) : (subject.moyenneFinale || 0);
                       const moyenneFinale = subject.moyenneFinale || 0;
-                      const totalPondere = round2(moyenneFinale * subject.coefficient);
-                      const notePercent = round2((moyenneFinale / 20) * 100);
-                      const cote = coteFromNote(moyenneFinale);
+                      const totalPondere = round2(gradeToUse * subject.coefficient);
+                      const notePercent = round2((gradeToUse / 20) * 100);
+                      const cote = coteFromNote(gradeToUse);
                       const competencesEvaluees = [subject.competence1, subject.competence2, subject.competence3].filter(c => c?.trim()).join('; ');
                       
                       return (
@@ -1811,18 +1843,22 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                 placeholder="N/20"
                                 data-testid={`input-note1-${index}`}
                               />
-                              <span className="text-gray-500">-</span>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="20"
-                                className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm font-bold bg-blue-50"
-                                value={subject.moyenneFinale === 0 ? '' : subject.moyenneFinale}
-                                onChange={(e) => updateSubject(subject.id, 'moyenneFinale', parseFloat(e.target.value) || 0)}
-                                placeholder="M/20"
-                                data-testid={`input-moyenne-${index}`}
-                              />
+                              {!isTechnicalSchool && (
+                                <>
+                                  <span className="text-gray-500">-</span>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max="20"
+                                    className="w-16 md:w-20 border rounded px-2 py-1 text-center text-sm font-bold bg-blue-50"
+                                    value={subject.moyenneFinale === 0 ? '' : subject.moyenneFinale}
+                                    onChange={(e) => updateSubject(subject.id, 'moyenneFinale', parseFloat(e.target.value) || 0)}
+                                    placeholder="M/20"
+                                    data-testid={`input-moyenne-${index}`}
+                                  />
+                                </>
+                              )}
                             </div>
                           </td>
 
@@ -2017,10 +2053,12 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
               <div className="block md:hidden">
                 <Accordion type="single" collapsible className="space-y-2">
                   {subjects.map((subject, index) => {
+                    // For technical schools, use note1; for general schools, use moyenneFinale
+                    const gradeToUse = isTechnicalSchool ? (subject.note1 || 0) : (subject.moyenneFinale || 0);
                     const moyenneFinale = subject.moyenneFinale || 0;
-                    const totalPondere = round2(moyenneFinale * subject.coefficient);
-                    const notePercent = round2((moyenneFinale / 20) * 100);
-                    const cote = coteFromNote(moyenneFinale);
+                    const totalPondere = round2(gradeToUse * subject.coefficient);
+                    const notePercent = round2((gradeToUse / 20) * 100);
+                    const cote = coteFromNote(gradeToUse);
                     const competencesEvaluees = [subject.competence1, subject.competence2, subject.competence3].filter(c => c?.trim()).join('; ');
                     
                     return (
@@ -2032,7 +2070,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                               <span className="text-xs text-gray-500">{subject.teacher || language === 'fr' ? 'Enseignant' : 'Teacher'}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
-                              <Badge variant="outline">{moyenneFinale}/20</Badge>
+                              <Badge variant="outline">{gradeToUse}/20</Badge>
                               <Badge variant="secondary">Coef: {subject.coefficient}</Badge>
                               {(subject.comments || []).length > 0 && (
                                 <Badge variant="default">{(subject.comments || []).length}/2 📝</Badge>
@@ -2044,7 +2082,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                         <AccordionContent className="px-4 pb-4">
                           <div className="space-y-4">
                             {/* Primary Inputs Grid */}
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className={`grid gap-3 ${isTechnicalSchool ? 'grid-cols-1' : 'grid-cols-2'}`}>
                               <div className="space-y-1">
                                 <Label className="text-xs text-gray-600">{language === 'fr' ? 'N/20' : 'N/20'}</Label>
                                 <Input
@@ -2056,17 +2094,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                   data-testid={`mobile-input-note1-${index}`}
                                 />
                               </div>
-                              <div className="space-y-1">
-                                <Label className="text-xs text-gray-600">{language === 'fr' ? 'M/20' : 'M/20'}</Label>
-                                <Input
-                                  type="number"
-                                  inputMode="decimal"
-                                  className="h-10 text-right font-medium"
-                                  value={subject.moyenneFinale}
-                                  onChange={(e) => updateSubject(subject.id, 'moyenneFinale', parseFloat(e.target.value) || 0)}
-                                  data-testid={`mobile-input-moyenne-${index}`}
-                                />
-                              </div>
+                              {!isTechnicalSchool && (
+                                <div className="space-y-1">
+                                  <Label className="text-xs text-gray-600">{language === 'fr' ? 'M/20' : 'M/20'}</Label>
+                                  <Input
+                                    type="number"
+                                    inputMode="decimal"
+                                    className="h-10 text-right font-medium"
+                                    value={subject.moyenneFinale}
+                                    onChange={(e) => updateSubject(subject.id, 'moyenneFinale', parseFloat(e.target.value) || 0)}
+                                    data-testid={`mobile-input-moyenne-${index}`}
+                                  />
+                                </div>
+                              )}
                               <div className="space-y-1">
                                 <Label className="text-xs text-gray-600">{language === 'fr' ? 'Coefficient' : 'Coefficient'}</Label>
                                 <Input
