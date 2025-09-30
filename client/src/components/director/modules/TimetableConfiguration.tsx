@@ -12,6 +12,8 @@ import { Clock, Calendar, Users, School, Plus, Upload, Edit3, Trash2, Save, Tren
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import { useToast } from '@/hooks/use-toast';
 import { TimetableCreation } from '@/components/timetable/TimetableCreation';
+import { ExcelImportButton } from '@/components/common/ExcelImportButton';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface TimetableEntry {
   id: number;
@@ -27,6 +29,7 @@ const TimetableConfiguration: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [timetables, setTimetables] = useState<TimetableEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -647,6 +650,37 @@ const TimetableConfiguration: React.FC = () => {
               }
             ]}
           />
+        </Card>
+
+        {/* Excel Import Section */}
+        <Card className="p-6 bg-white border-gray-200">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-2">
+                <Upload className="w-5 h-5 text-blue-600" />
+                {language === 'fr' ? 'Import Excel Emploi du Temps' : 'Timetable Excel Import'}
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                {language === 'fr' 
+                  ? 'Téléchargez le modèle Excel, remplissez-le avec vos emplois du temps, puis importez-le pour créer plusieurs créneaux horaires en une seule opération.'
+                  : 'Download the Excel template, fill it with your timetables, then import it to create multiple time slots in one operation.'}
+              </p>
+            </div>
+            <ExcelImportButton
+              importType="timetables"
+              schoolId={user?.schoolId}
+              invalidateQueries={['/api/director/timetables', '/api/timetables']}
+              onImportSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['/api/director/timetables'] });
+                queryClient.invalidateQueries({ queryKey: ['/api/timetables'] });
+                refetchTimetables();
+                toast({
+                  title: language === 'fr' ? '✅ Import réussi' : '✅ Import successful',
+                  description: language === 'fr' ? 'Les emplois du temps ont été créés avec succès' : 'Timetables created successfully'
+                });
+              }}
+            />
+          </div>
         </Card>
 
         {/* Advanced Timetable Creation Form - Enhanced with Real Data */}

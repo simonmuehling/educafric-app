@@ -9,15 +9,18 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp, Building, GraduationCap, Star } from 'lucide-react';
 import { CAMEROON_CURRICULUM_TEMPLATES, getSubjectTemplateByLevel } from '@/data/subjectTemplates';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import ImportModal from '../ImportModal';
+import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 
 const ClassManagement: React.FC = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [newClass, setNewClass] = useState({
@@ -1352,6 +1355,36 @@ const ClassManagement: React.FC = () => {
               ]}
             />
           </CardContent>
+        </Card>
+
+        {/* Excel Import Section */}
+        <Card className="p-6 bg-white border-gray-200">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-2">
+                <Upload className="w-5 h-5 text-blue-600" />
+                {language === 'fr' ? 'Import Excel en Masse' : 'Bulk Excel Import'}
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                {language === 'fr' 
+                  ? 'Téléchargez le modèle Excel, remplissez-le avec vos classes, puis importez-le pour créer plusieurs classes en une seule opération.'
+                  : 'Download the Excel template, fill it with your classes, then import it to create multiple classes in one operation.'}
+              </p>
+            </div>
+            <ExcelImportButton
+              importType="classes"
+              schoolId={user?.schoolId}
+              invalidateQueries={['/api/classes', '/api/director/classes']}
+              onImportSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['/api/classes'] });
+                queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
+                toast({
+                  title: language === 'fr' ? '✅ Import réussi' : '✅ Import successful',
+                  description: language === 'fr' ? 'Les classes ont été créées avec succès' : 'Classes created successfully'
+                });
+              }}
+            />
+          </div>
         </Card>
 
         {/* Filters and Search */}

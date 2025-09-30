@@ -64,12 +64,12 @@ localPort = 36661
 externalPort = 4200
 
 [[ports]]
-localPort = 38689
-externalPort = 8080
+localPort = 38033
+externalPort = 3000
 
 [[ports]]
-localPort = 38819
-externalPort = 3000
+localPort = 38689
+externalPort = 8080
 
 [[ports]]
 localPort = 41279

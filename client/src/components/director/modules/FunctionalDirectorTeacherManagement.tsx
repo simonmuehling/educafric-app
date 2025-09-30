@@ -15,6 +15,7 @@ import {
   Eye, X, Mail, Phone, GraduationCap, UserCheck, Upload, Camera
 } from 'lucide-react';
 import ImportModal from '../ImportModal';
+import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 
 interface Teacher {
   id: number;
@@ -611,6 +612,36 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Excel Import Section */}
+      <Card className="p-6 bg-white border-gray-200">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-2">
+              <Upload className="w-5 h-5 text-blue-600" />
+              {language === 'fr' ? 'Import Excel Enseignants' : 'Teachers Excel Import'}
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {language === 'fr' 
+                ? 'Téléchargez le modèle Excel, remplissez-le avec vos enseignants, puis importez-le pour créer plusieurs enseignants en une seule opération.'
+                : 'Download the Excel template, fill it with your teachers, then import it to create multiple teachers in one operation.'}
+            </p>
+          </div>
+          <ExcelImportButton
+            importType="teachers"
+            schoolId={user?.schoolId}
+            invalidateQueries={['/api/director/teachers', '/api/teachers']}
+            onImportSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+              toast({
+                title: language === 'fr' ? '✅ Import réussi' : '✅ Import successful',
+                description: language === 'fr' ? 'Les enseignants ont été créés avec succès' : 'Teachers created successfully'
+              });
+            }}
+          />
+        </div>
+      </Card>
 
       {/* Filters */}
       <Card>
