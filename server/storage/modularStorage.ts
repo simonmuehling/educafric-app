@@ -55,6 +55,8 @@ export class ModularStorage {
   async updateUser(id: number, updates: any) { return this.userStorage.updateUser(id, updates); }
   async deleteUser(id: number) { return this.userStorage.deleteUser(id); }
   async verifyPassword(user: any, password: string) { return this.userStorage.verifyPassword(user, password); }
+  async getUsersWithSchools() { return this.userStorage.getUsersWithSchools(); }
+  async getCommercialUsers() { return this.userStorage.getCommercialUsers(); }
   
   // === STRIPE & SUBSCRIPTION METHODS ===
   async updateUserStripeCustomerId(userId: number, stripeCustomerId: string) { 
@@ -142,6 +144,7 @@ export class ModularStorage {
   async updateSchoolSecuritySettings(schoolId: number, settings: any) { return this.schoolStorage.updateSchoolSecuritySettings(schoolId, settings); }
   async getSchoolNotificationSettings(schoolId: number) { return this.schoolStorage.getSchoolNotificationSettings(schoolId); }
   async updateSchoolNotificationSettings(schoolId: number, settings: any) { return this.schoolStorage.updateSchoolNotificationSettings(schoolId, settings); }
+  async getSchoolsWithStats() { return this.schoolStorage.getSchoolsWithStats(); }
 
   // === STUDENT METHODS ===
   async createStudentRecord(student: any) { return this.studentStorage.createStudentRecord(student); }

@@ -266,8 +266,7 @@ export class SchoolStorage implements ISchoolStorage {
   // === SITE ADMIN METHODS ===
   async getSchoolsWithStats(): Promise<any[]> {
     try {
-      const { sql } = await import("drizzle-orm");
-      const { desc } = await import("drizzle-orm");
+      const { sql, desc, and } = await import("drizzle-orm");
       
       const schoolsList = await db
         .select({
@@ -276,7 +275,7 @@ export class SchoolStorage implements ISchoolStorage {
           address: schools.address,
           phone: schools.phone,
           email: schools.email,
-          schoolType: schools.schoolType,
+          type: schools.type,
           createdAt: schools.createdAt,
           educafricNumber: schools.educafricNumber
         })
@@ -290,15 +289,19 @@ export class SchoolStorage implements ISchoolStorage {
           const [studentCountResult] = await db
             .select({ count: sql<number>`count(*)::int` })
             .from(users)
-            .where(eq(users.schoolId, school.id))
-            .where(eq(users.role, 'Student'));
+            .where(and(
+              eq(users.schoolId, school.id),
+              eq(users.role, 'Student')
+            ));
           
           // Count teachers
           const [teacherCountResult] = await db
             .select({ count: sql<number>`count(*)::int` })
             .from(users)
-            .where(eq(users.schoolId, school.id))
-            .where(eq(users.role, 'Teacher'));
+            .where(and(
+              eq(users.schoolId, school.id),
+              eq(users.role, 'Teacher')
+            ));
 
           return {
             ...school,
