@@ -61,7 +61,7 @@ interface Activation {
 export default function OnlineClassActivations() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
-  const [durationType, setDurationType] = useState<'monthly' | 'quarterly' | 'semestral' | 'yearly'>('yearly');
+  const [durationType, setDurationType] = useState<'daily' | 'weekly' | 'monthly' | 'quarterly' | 'semestral' | 'yearly'>('yearly');
   const [notes, setNotes] = useState('');
   const [showDialog, setShowDialog] = useState(false);
   const { toast } = useToast();
@@ -159,6 +159,8 @@ export default function OnlineClassActivations() {
 
   const getDurationLabel = (durationType: string) => {
     const labels: Record<string, string> = {
+      daily: 'Journalier',
+      weekly: 'Hebdomadaire',
       monthly: 'Mensuel',
       quarterly: 'Trimestriel',
       semestral: 'Semestriel',
@@ -389,6 +391,8 @@ export default function OnlineClassActivations() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="daily">Journalier (1 jour)</SelectItem>
+                  <SelectItem value="weekly">Hebdomadaire (1 semaine)</SelectItem>
                   <SelectItem value="monthly">Mensuel (1 mois)</SelectItem>
                   <SelectItem value="quarterly">Trimestriel (3 mois)</SelectItem>
                   <SelectItem value="semestral">Semestriel (6 mois)</SelectItem>

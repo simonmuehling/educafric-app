@@ -9,7 +9,7 @@ const router = Router();
 // Validation schemas
 const activateSchoolSchema = z.object({
   schoolId: z.number(),
-  durationType: z.enum(['monthly', 'quarterly', 'semestral', 'yearly']),
+  durationType: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'semestral', 'yearly']),
   notes: z.string().optional()
 });
 

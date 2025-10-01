@@ -137,7 +137,7 @@ export const onlineClassActivations = pgTable("online_class_activations", {
   id: serial("id").primaryKey(),
   activatorType: text("activator_type").notNull(), // "school" or "teacher"
   activatorId: integer("activator_id").notNull(), // schoolId or teacherId (references users.id)
-  durationType: text("duration_type").notNull(), // "monthly", "quarterly", "semestral", "yearly"
+  durationType: text("duration_type").notNull(), // "daily", "weekly", "monthly", "quarterly", "semestral", "yearly"
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
   status: text("status").notNull().default("active"), // "active", "expired", "cancelled"

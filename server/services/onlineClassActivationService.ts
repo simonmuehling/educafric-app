@@ -15,6 +15,12 @@ export class OnlineClassActivationService {
     const endDate = new Date(startDate);
     
     switch (durationType) {
+      case "daily":
+        endDate.setDate(endDate.getDate() + 1);
+        break;
+      case "weekly":
+        endDate.setDate(endDate.getDate() + 7);
+        break;
       case "monthly":
         endDate.setMonth(endDate.getMonth() + 1);
         break;
@@ -39,7 +45,7 @@ export class OnlineClassActivationService {
    */
   async activateForSchool(
     schoolId: number,
-    durationType: "monthly" | "quarterly" | "semestral" | "yearly",
+    durationType: "daily" | "weekly" | "monthly" | "quarterly" | "semestral" | "yearly",
     adminUserId: number,
     notes?: string
   ): Promise<OnlineClassActivation> {
@@ -201,7 +207,7 @@ export class OnlineClassActivationService {
    */
   async extendActivation(
     activationId: number,
-    additionalDurationType: "monthly" | "quarterly" | "semestral" | "yearly"
+    additionalDurationType: "daily" | "weekly" | "monthly" | "quarterly" | "semestral" | "yearly"
   ): Promise<OnlineClassActivation> {
     const [activation] = await db
       .select()
