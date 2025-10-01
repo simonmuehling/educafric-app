@@ -1099,8 +1099,8 @@ const TeacherOnlineClasses: React.FC = () => {
                   toast({
                     title: language === 'fr' ? 'Paiements à venir' : 'Payments Coming Soon',
                     description: language === 'fr' 
-                      ? `L'intégration des paiements Stripe et MTN Mobile Money sera disponible prochainement. Prix: ${calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA pour ${getDurationLabel(purchaseDuration).toLowerCase()}.`
-                      : `Stripe and MTN Mobile Money payment integration coming soon. Price: ${calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA for ${getDurationLabel(purchaseDuration).toLowerCase()}.`,
+                      ? `L'intégration des paiements par carte bancaire et MTN Mobile Money sera disponible prochainement. Prix: ${calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA pour ${getDurationLabel(purchaseDuration).toLowerCase()}.`
+                      : `Credit card and MTN Mobile Money payment integration coming soon. Price: ${calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA for ${getDurationLabel(purchaseDuration).toLowerCase()}.`,
                   });
                 }}
                 data-testid="button-purchase-access"
