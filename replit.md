@@ -73,6 +73,7 @@ Preferred communication style: Simple, everyday language.
 - **Academic Calendar Integration**: Export events (timetables, online classes) via iCal/ICS with Jitsi links, restricted access for Directors and Teachers.
 - **Bulk Excel Imports**: Comprehensive service for mass importing classes, timetables, teachers, students, rooms, and school settings with bilingual templates and robust validation.
 - **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` replaces the original module, providing an end-to-end workflow (draft to sent), 8 functional system tabs, and extensive integrations including secure API routes, notifications, bilingual templates, digital signatures, and PDF export with QR codes. It supports advanced features like absences, disciplinary sanctions, and multi-level signatures, tailored for African educational needs.
+- **Online Classes with Jitsi Meet**: Paid module with manual admin activation for schools (yearly/semester/trimester/monthly) and direct purchase option for independent teachers (150,000 CFA/year). Features time-window access control based on school timetables (free usage 2h before/after school hours), JWT-secured video conferencing at meet.educafric.com, course creation and session management, attendance tracking, and integration with Stripe + MTN Mobile Money for teacher payments.
 
 ## External Dependencies
 

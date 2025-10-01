@@ -76,6 +76,10 @@ router.post('/schools',
 /**
  * POST /api/admin/online-class-activations/teachers
  * Record a teacher's personal activation (after payment)
+ * 
+ * TODO SECURITY: Currently allows teachers to self-activate without payment verification.
+ * This route MUST be restricted to admins only until Stripe/MTN payment verification is implemented.
+ * Teachers should not be able to POST to this endpoint directly.
  */
 router.post('/teachers',
   requireAuth,
@@ -83,22 +87,15 @@ router.post('/teachers',
     try {
       const user = req.user!;
       
-      // Only admins or the teacher themselves can record activation
-      const validated = activateTeacherSchema.parse(req.body);
-      
-      if (user.role === 'Teacher' && user.id !== validated.teacherId) {
+      // SECURITY: Only admins can activate teachers until payment verification is implemented
+      if (!['SiteAdmin', 'Admin'].includes(user.role)) {
         return res.status(403).json({
           success: false,
-          error: 'Accès refusé'
+          error: 'Seuls les administrateurs peuvent activer les enseignants. Paiement via Stripe/MTN à venir.'
         });
       }
 
-      if (!['SiteAdmin', 'Admin', 'Teacher'].includes(user.role)) {
-        return res.status(403).json({
-          success: false,
-          error: 'Accès refusé'
-        });
-      }
+      const validated = activateTeacherSchema.parse(req.body);
 
       const activation = await onlineClassActivationService.activateForTeacher(
         validated.teacherId,
@@ -152,10 +149,28 @@ router.get('/',
 
       const activations = await onlineClassActivationService.getAllActivations();
 
+      // Transform activations to match frontend expectations
+      const transformedActivations = activations.map(a => ({
+        id: a.id,
+        entityType: a.activatorType, // 'school' or 'teacher'
+        entityId: a.activatorId,
+        entityName: a.activatorType === 'school' ? `School ${a.activatorId}` : `Teacher ${a.activatorId}`,
+        durationType: a.durationType,
+        expiresAt: a.endDate.toISOString(), // Frontend expects ISO string
+        isActive: a.status === 'active', // Convert status to boolean
+        activatedBy: a.activatedBy,
+        activatorName: `User ${a.activatedBy}`,
+        paymentId: a.paymentId,
+        paymentMethod: a.paymentMethod,
+        amountPaid: a.amountPaid ? Number(a.amountPaid) : undefined,
+        notes: a.notes,
+        createdAt: a.createdAt.toISOString()
+      }));
+
       res.json({
         success: true,
-        activations,
-        total: activations.length
+        activations: transformedActivations,
+        total: transformedActivations.length
       });
     } catch (error) {
       console.error('[ONLINE_CLASS_ACTIVATION] Error fetching activations:', error);
@@ -196,10 +211,28 @@ router.get('/schools/:schoolId',
 
       const activations = await onlineClassActivationService.getSchoolActivations(schoolId);
 
+      // Transform activations to match frontend expectations
+      const transformedActivations = activations.map(a => ({
+        id: a.id,
+        entityType: a.activatorType,
+        entityId: a.activatorId,
+        entityName: a.activatorType === 'school' ? `School ${a.activatorId}` : `Teacher ${a.activatorId}`,
+        durationType: a.durationType,
+        expiresAt: a.endDate.toISOString(),
+        isActive: a.status === 'active',
+        activatedBy: a.activatedBy,
+        activatorName: `User ${a.activatedBy}`,
+        paymentId: a.paymentId,
+        paymentMethod: a.paymentMethod,
+        amountPaid: a.amountPaid ? Number(a.amountPaid) : undefined,
+        notes: a.notes,
+        createdAt: a.createdAt.toISOString()
+      }));
+
       res.json({
         success: true,
-        activations,
-        total: activations.length
+        activations: transformedActivations,
+        total: transformedActivations.length
       });
     } catch (error) {
       console.error('[ONLINE_CLASS_ACTIVATION] Error fetching school activations:', error);

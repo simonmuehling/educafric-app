@@ -123,11 +123,16 @@ export class OnlineClassAccessService {
     }
 
     // Outside all windows (late evening/early morning)
+    // If after evening window, next available is tomorrow morning
+    const nextWindowStart = now > eveningWindowEnd 
+      ? new Date(morningWindowStart.getTime() + 24 * 60 * 60 * 1000) // Next day
+      : morningWindowStart;
+    
     return {
       allowed: false,
       reason: "outside_allowed_windows",
       message: "Horaire non autorisé - voir emploi du temps",
-      nextAvailableAt: morningWindowStart
+      nextAvailableAt: nextWindowStart
     };
   }
 
