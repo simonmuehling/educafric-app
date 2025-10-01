@@ -294,6 +294,13 @@ router.get('/check-access',
     try {
       const user = req.user!;
       
+      console.log('[ONLINE_CLASS_ACCESS_CHECK] User:', {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        schoolId: user.schoolId
+      });
+      
       if (user.role !== 'Teacher') {
         return res.json({
           success: true,
@@ -307,6 +314,8 @@ router.get('/check-access',
         user.id,
         new Date()
       );
+
+      console.log('[ONLINE_CLASS_ACCESS_CHECK] Result:', accessCheck);
 
       res.json({
         success: true,
