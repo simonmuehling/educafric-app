@@ -12,7 +12,6 @@ import { apiRequest } from '@/lib/queryClient';
 
 // Load Stripe - with fallback to prevent errors
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-console.log('[STRIPE] Loading Stripe with key:', stripeKey ? 'Key present' : 'NO KEY FOUND');
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 interface OnlineClassPaymentProps {
@@ -98,8 +97,6 @@ function StripePaymentForm({ durationType, amount, onSuccess, language }: any) {
 }
 
 export function OnlineClassPayment({ isOpen, onClose, durationType, amount, language }: OnlineClassPaymentProps) {
-  console.log('[ONLINE_CLASS_PAYMENT] 🚀 Component function called, isOpen:', isOpen);
-  
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mtn' | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoadingIntent, setIsLoadingIntent] = useState(false);
@@ -111,8 +108,6 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
   const [mtnMessage, setMtnMessage] = useState('');
 
   const { toast } = useToast();
-
-  console.log('[ONLINE_CLASS_PAYMENT] ✅ Component rendered, isOpen:', isOpen, 'paymentMethod:', paymentMethod);
 
   const handlePaymentMethodSelect = async (method: 'stripe' | 'mtn') => {
     setPaymentMethod(method);
@@ -324,7 +319,7 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
                 </div>
-              ) : clientSecret ? (
+              ) : clientSecret && stripePromise ? (
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <StripePaymentForm 
                     durationType={durationType}
@@ -333,6 +328,23 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
                     language={language}
                   />
                 </Elements>
+              ) : clientSecret && !stripePromise ? (
+                <div className="text-center py-6 space-y-4">
+                  <XCircle className="h-12 w-12 text-red-600 mx-auto" />
+                  <div>
+                    <h4 className="font-medium mb-2 text-red-600">
+                      {language === 'fr' ? 'Configuration manquante' : 'Missing Configuration'}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {language === 'fr' 
+                        ? 'Le paiement par carte n\'est pas disponible actuellement. Veuillez utiliser MTN Mobile Money.' 
+                        : 'Card payment is not available currently. Please use MTN Mobile Money.'}
+                    </p>
+                  </div>
+                  <Button variant="outline" onClick={handleBack} className="w-full">
+                    {language === 'fr' ? 'Retour' : 'Back'}
+                  </Button>
+                </div>
               ) : null}
               
               <Button 
