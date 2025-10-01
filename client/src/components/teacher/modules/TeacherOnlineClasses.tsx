@@ -1291,14 +1291,35 @@ const TeacherOnlineClasses: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Payment Modal */}
-      <OnlineClassPayment
-        isOpen={isPaymentOpen}
-        onClose={() => setIsPaymentOpen(false)}
-        durationType={purchaseDuration}
-        amount={calculatePrice(purchaseDuration)}
-        language={language}
-      />
+      {/* Payment Modal - Debug */}
+      {console.log('[TEACHER_ONLINE_CLASSES] About to render OnlineClassPayment, isOpen:', isPaymentOpen)}
+      {isPaymentOpen && (
+        <Dialog open={true} onOpenChange={() => setIsPaymentOpen(false)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Test Modal</DialogTitle>
+              <DialogDescription>
+                This is a test modal to verify Dialog works
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-4">
+              <p>Duration: {purchaseDuration}</p>
+              <p>Amount: {calculatePrice(purchaseDuration)} CFA</p>
+              <Button onClick={() => setIsPaymentOpen(false)}>Close</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+      {/* Original Payment Component (currently broken) */}
+      {false && (
+        <OnlineClassPayment
+          isOpen={isPaymentOpen}
+          onClose={() => setIsPaymentOpen(false)}
+          durationType={purchaseDuration}
+          amount={calculatePrice(purchaseDuration)}
+          language={language}
+        />
+      )}
     </div>
   );
 };
