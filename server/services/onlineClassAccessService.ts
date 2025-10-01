@@ -1,0 +1,270 @@
+import { db } from "../db";
+import { timetables, users, schools } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
+import { onlineClassActivationService } from "./onlineClassActivationService";
+
+interface AccessCheckResult {
+  allowed: boolean;
+  reason: string;
+  activationType?: "school" | "teacher" | null;
+  message?: string;
+  timeWindow?: {
+    start: Date;
+    end: Date;
+  };
+  nextAvailableAt?: Date;
+}
+
+export class OnlineClassAccessService {
+  
+  /**
+   * Parse time string (HH:MM) to Date object for today
+   */
+  private parseTimeToDate(timeString: string): Date {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  }
+
+  /**
+   * Get day of week in French format compatible with timetable
+   */
+  private getDayOfWeek(date: Date): number {
+    // JavaScript: 0=Sunday, 1=Monday, etc.
+    // Our timetable: 1=Monday, 2=Tuesday, etc.
+    const jsDay = date.getDay();
+    return jsDay === 0 ? 7 : jsDay; // Convert Sunday from 0 to 7
+  }
+
+  /**
+   * Check if school can use online class based on timetable restrictions
+   * Schools can use 2h BEFORE first class and 2h AFTER last class
+   */
+  private async checkSchoolTimeWindow(
+    schoolId: number,
+    currentTime: Date
+  ): Promise<AccessCheckResult> {
+    const dayOfWeek = this.getDayOfWeek(currentTime);
+    
+    // Get today's timetable for the school
+    const todayClasses = await db
+      .select()
+      .from(timetables)
+      .where(
+        and(
+          eq(timetables.schoolId, schoolId),
+          eq(timetables.dayOfWeek, dayOfWeek),
+          eq(timetables.isActive, true)
+        )
+      )
+      .orderBy(timetables.startTime);
+
+    // No classes scheduled today = unlimited access
+    if (todayClasses.length === 0) {
+      return {
+        allowed: true,
+        reason: "no_classes_scheduled",
+        message: "Aucun cours programmé aujourd'hui - accès illimité"
+      };
+    }
+
+    // Get first and last class times
+    const firstClassTime = todayClasses[0].startTime;
+    const lastClassTime = todayClasses[todayClasses.length - 1].endTime;
+
+    // Parse times to Date objects
+    const firstClassStart = this.parseTimeToDate(firstClassTime);
+    const lastClassEnd = this.parseTimeToDate(lastClassTime);
+
+    // Calculate allowed windows (2h before first class, 2h after last class)
+    const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+    const morningWindowStart = new Date(firstClassStart.getTime() - TWO_HOURS_MS);
+    const morningWindowEnd = firstClassStart;
+    const eveningWindowStart = lastClassEnd;
+    const eveningWindowEnd = new Date(lastClassEnd.getTime() + TWO_HOURS_MS);
+
+    const now = currentTime;
+
+    // Check if in morning window (2h before first class)
+    if (now >= morningWindowStart && now < morningWindowEnd) {
+      return {
+        allowed: true,
+        reason: "before_school_hours",
+        message: "Créneau matinal autorisé (2h avant les cours)",
+        timeWindow: {
+          start: morningWindowStart,
+          end: morningWindowEnd
+        }
+      };
+    }
+
+    // Check if in evening window (2h after last class)
+    if (now >= eveningWindowStart && now <= eveningWindowEnd) {
+      return {
+        allowed: true,
+        reason: "after_school_hours",
+        message: "Créneau soirée autorisé (2h après les cours)",
+        timeWindow: {
+          start: eveningWindowStart,
+          end: eveningWindowEnd
+        }
+      };
+    }
+
+    // During school hours = not allowed
+    if (now >= morningWindowEnd && now < eveningWindowStart) {
+      return {
+        allowed: false,
+        reason: "during_school_hours",
+        message: "Cours en ligne disponibles 2h avant/après les cours de l'école",
+        nextAvailableAt: eveningWindowStart
+      };
+    }
+
+    // Outside all windows (late evening/early morning)
+    return {
+      allowed: false,
+      reason: "outside_allowed_windows",
+      message: "Horaire non autorisé - voir emploi du temps",
+      nextAvailableAt: morningWindowStart
+    };
+  }
+
+  /**
+   * Main method: Check if a teacher can create/access online class
+   */
+  async canTeacherAccessOnlineClass(
+    teacherId: number,
+    currentTime: Date = new Date()
+  ): Promise<AccessCheckResult> {
+    
+    // Get teacher info
+    const [teacher] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, teacherId))
+      .limit(1);
+
+    if (!teacher) {
+      return {
+        allowed: false,
+        reason: "teacher_not_found",
+        message: "Enseignant non trouvé"
+      };
+    }
+
+    const schoolId = teacher.schoolId;
+
+    // Case 1: Teacher is assigned to a school
+    if (schoolId) {
+      // Check if school has activation
+      const schoolActivation = await onlineClassActivationService.checkSchoolActivation(schoolId);
+      
+      if (schoolActivation) {
+        // School has activation - check time window
+        const timeWindowCheck = await this.checkSchoolTimeWindow(schoolId, currentTime);
+        
+        return {
+          ...timeWindowCheck,
+          activationType: "school"
+        };
+      }
+      
+      // School doesn't have activation - check if teacher has personal activation
+      const teacherActivation = await onlineClassActivationService.checkTeacherActivation(teacherId);
+      
+      if (teacherActivation) {
+        return {
+          allowed: true,
+          reason: "teacher_personal_subscription",
+          message: "Abonnement personnel actif - accès illimité",
+          activationType: "teacher"
+        };
+      }
+      
+      // Neither school nor teacher has activation
+      return {
+        allowed: false,
+        reason: "no_activation",
+        message: "Votre école n'a pas activé ce module. Contactez l'administration ou souscrivez personnellement (150,000 CFA/an)."
+      };
+    }
+
+    // Case 2: Independent teacher (no school assignment)
+    const teacherActivation = await onlineClassActivationService.checkTeacherActivation(teacherId);
+    
+    if (teacherActivation) {
+      return {
+        allowed: true,
+        reason: "teacher_personal_subscription",
+        message: "Abonnement personnel actif - accès illimité",
+        activationType: "teacher"
+      };
+    }
+
+    // No activation at all
+    return {
+      allowed: false,
+      reason: "no_activation",
+      message: "Module non activé. Souscrivez pour 150,000 CFA/an pour un accès illimité."
+    };
+  }
+
+  /**
+   * Check if a school has online class activated (for admin purposes)
+   */
+  async isSchoolActivated(schoolId: number): Promise<boolean> {
+    const activation = await onlineClassActivationService.checkSchoolActivation(schoolId);
+    return activation !== null;
+  }
+
+  /**
+   * Check if a teacher has personal activation (for admin purposes)
+   */
+  async isTeacherActivated(teacherId: number): Promise<boolean> {
+    const activation = await onlineClassActivationService.checkTeacherActivation(teacherId);
+    return activation !== null;
+  }
+
+  /**
+   * Get detailed access info for UI display
+   */
+  async getAccessDetails(teacherId: number) {
+    const [teacher] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, teacherId))
+      .limit(1);
+
+    if (!teacher) {
+      return null;
+    }
+
+    const result: any = {
+      teacherId,
+      schoolId: teacher.schoolId,
+      hasSchoolActivation: false,
+      hasPersonalActivation: false,
+      canAccess: false
+    };
+
+    if (teacher.schoolId) {
+      const schoolActivation = await onlineClassActivationService.checkSchoolActivation(teacher.schoolId);
+      result.hasSchoolActivation = !!schoolActivation;
+      result.schoolActivation = schoolActivation;
+    }
+
+    const teacherActivation = await onlineClassActivationService.checkTeacherActivation(teacherId);
+    result.hasPersonalActivation = !!teacherActivation;
+    result.teacherActivation = teacherActivation;
+
+    const accessCheck = await this.canTeacherAccessOnlineClass(teacherId);
+    result.canAccess = accessCheck.allowed;
+    result.accessDetails = accessCheck;
+
+    return result;
+  }
+}
+
+export const onlineClassAccessService = new OnlineClassAccessService();

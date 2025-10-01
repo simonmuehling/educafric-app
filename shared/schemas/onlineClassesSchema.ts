@@ -132,6 +132,38 @@ export const onlineClassesSubscriptions = pgTable("online_classes_subscriptions"
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// NEW: Online class activations (manual by admin for schools OR direct purchase for teachers)
+export const onlineClassActivations = pgTable("online_class_activations", {
+  id: serial("id").primaryKey(),
+  activatorType: text("activator_type").notNull(), // "school" or "teacher"
+  activatorId: integer("activator_id").notNull(), // schoolId or teacherId (references users.id)
+  durationType: text("duration_type").notNull(), // "monthly", "quarterly", "semestral", "yearly"
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  status: text("status").notNull().default("active"), // "active", "expired", "cancelled"
+  activatedBy: text("activated_by").notNull(), // "admin_manual" or "self_purchase"
+  adminUserId: integer("admin_user_id"), // Admin who activated (if manual)
+  paymentId: text("payment_id"), // Stripe/MTN payment reference (if purchase)
+  paymentMethod: text("payment_method"), // "stripe", "mtn", "manual"
+  amountPaid: integer("amount_paid"), // Amount in CFA (150,000 for teachers)
+  notes: text("notes"), // Admin notes for manual activations
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// NEW: Usage logs for tracking online class usage by schools/teachers
+export const onlineClassUsageLogs = pgTable("online_class_usage_logs", {
+  id: serial("id").primaryKey(),
+  activationId: integer("activation_id").notNull().references(() => onlineClassActivations.id),
+  sessionId: integer("session_id").notNull().references(() => classSessions.id),
+  teacherId: integer("teacher_id").notNull().references(() => users.id),
+  schoolId: integer("school_id"), // Null if independent teacher
+  sessionDuration: integer("session_duration"), // In minutes
+  participantCount: integer("participant_count"),
+  wasWithinAllowedWindow: boolean("was_within_allowed_window").default(true), // For schools with time restrictions
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 // Zod schemas for validation
 export const insertOnlineCourseSchema = createInsertSchema(onlineCourses);
 
@@ -142,6 +174,10 @@ export const insertClassSessionSchema = createInsertSchema(classSessions);
 export const insertSessionAttendanceSchema = createInsertSchema(sessionAttendance);
 
 export const insertOnlineClassesSubscriptionSchema = createInsertSchema(onlineClassesSubscriptions);
+
+export const insertOnlineClassActivationSchema = createInsertSchema(onlineClassActivations);
+
+export const insertOnlineClassUsageLogSchema = createInsertSchema(onlineClassUsageLogs);
 
 // TypeScript types
 export type OnlineCourse = typeof onlineCourses.$inferSelect;
@@ -162,6 +198,12 @@ export type SessionInvitation = typeof sessionInvitations.$inferSelect;
 
 export type OnlineClassesSubscription = typeof onlineClassesSubscriptions.$inferSelect;
 export type InsertOnlineClassesSubscription = z.infer<typeof insertOnlineClassesSubscriptionSchema>;
+
+export type OnlineClassActivation = typeof onlineClassActivations.$inferSelect;
+export type InsertOnlineClassActivation = z.infer<typeof insertOnlineClassActivationSchema>;
+
+export type OnlineClassUsageLog = typeof onlineClassUsageLogs.$inferSelect;
+export type InsertOnlineClassUsageLog = z.infer<typeof insertOnlineClassUsageLogSchema>;
 
 // Extended schemas with relationships for API responses
 export const classSessionWithDetailsSchema = insertClassSessionSchema.extend({
