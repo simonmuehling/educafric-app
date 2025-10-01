@@ -79,6 +79,15 @@ const TeacherOnlineClasses: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // CHECK ACCESS TO ONLINE CLASSES MODULE
+  const { data: accessData, isLoading: accessLoading } = useQuery({
+    queryKey: ['/api/online-class-activations/check-access'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/online-class-activations/check-access');
+      return response.json();
+    }
+  });
+
   // Component states
   const [step, setStep] = useState<'selection' | 'course-creation' | 'course-management'>('selection');
   const [showCreateSessionDialog, setShowCreateSessionDialog] = useState(false);
@@ -974,6 +983,68 @@ const TeacherOnlineClasses: React.FC = () => {
       )}
     </div>
   );
+
+  // Show loading state while checking access
+  if (accessLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">{t.loading}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied / purchase interface if no access
+  if (!accessData?.allowed) {
+    return (
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-purple-100 rounded-lg">
+              <Video className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">{t.title}</h2>
+              <p className="text-gray-600">{t.subtitle}</p>
+            </div>
+          </div>
+
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <Video className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {language === 'fr' ? 'Module Cours en Ligne Non Activé' : 'Online Classes Module Not Activated'}
+            </h3>
+            <p className="text-gray-700 mb-4">
+              {language === 'fr' 
+                ? accessData?.reason === 'no_school_activation' 
+                  ? 'Votre école n\'a pas encore activé le module de cours en ligne. Les enseignants indépendants peuvent acheter un accès personnel pour 150,000 CFA/an.'
+                  : 'Votre accès aux cours en ligne est actuellement restreint. Contactez votre administrateur ou achetez un accès personnel (150,000 CFA/an).'
+                : accessData?.reason === 'no_school_activation'
+                  ? 'Your school has not activated the online classes module. Independent teachers can purchase personal access for 150,000 CFA/year.'
+                  : 'Your access to online classes is currently restricted. Contact your administrator or purchase personal access (150,000 CFA/year).'
+              }
+            </p>
+            <Button
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={() => {
+                toast({
+                  title: language === 'fr' ? 'Paiements à venir' : 'Payments Coming Soon',
+                  description: language === 'fr' 
+                    ? 'L\'intégration des paiements Stripe et MTN Mobile Money sera disponible prochainement. Contactez l\'administration pour l\'activation.'
+                    : 'Stripe and MTN Mobile Money payment integration coming soon. Contact administration for activation.',
+                });
+              }}
+              data-testid="button-purchase-access"
+            >
+              {language === 'fr' ? 'Acheter l\'Accès (150,000 CFA/an)' : 'Purchase Access (150,000 CFA/year)'}
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
