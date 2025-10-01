@@ -74,6 +74,11 @@ Preferred communication style: Simple, everyday language.
 - **Bulk Excel Imports**: Comprehensive service for mass importing classes, timetables, teachers, students, rooms, and school settings with bilingual templates and robust validation.
 - **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` replaces the original module, providing an end-to-end workflow (draft to sent), 8 functional system tabs, and extensive integrations including secure API routes, notifications, bilingual templates, digital signatures, and PDF export with QR codes. It supports advanced features like absences, disciplinary sanctions, and multi-level signatures, tailored for African educational needs.
 - **Online Classes with Jitsi Meet**: Paid module with manual admin activation for schools (yearly/semester/trimester/monthly) and direct purchase option for independent teachers (150,000 CFA/year). Features time-window access control based on school timetables (free usage 2h before/after school hours), JWT-secured video conferencing at meet.educafric.com, course creation and session management, attendance tracking, and integration with Stripe + MTN Mobile Money for teacher payments.
+  - **Payment Security (Oct 2025)**: Production-ready payment integration with critical security hardening:
+    - Stripe: XAF zero-decimal currency handling (no multiplication), mandatory webhook signature verification with STRIPE_WEBHOOK_SECRET (no insecure fallbacks), server-side amount reconciliation
+    - MTN Mobile Money: Y-Note integration with webhook amount verification, order ID validation, server-side price calculation enforcement
+    - Frontend: Real-time polling system for payment confirmation (replaces fake success timers), 2-minute timeout with graceful failure messaging
+    - Protection: All webhooks validate received amounts against server-calculated prices before activation, preventing under/overpayment exploits
 
 ## External Dependencies
 
