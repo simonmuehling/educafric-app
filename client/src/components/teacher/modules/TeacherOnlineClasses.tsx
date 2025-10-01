@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { OnlineClassPayment } from '@/components/teacher/OnlineClassPayment';
 import { 
   Video, 
   Plus, 
@@ -122,6 +123,7 @@ const TeacherOnlineClasses: React.FC = () => {
 
   // Purchase duration state for teachers
   const [purchaseDuration, setPurchaseDuration] = useState<'daily' | 'weekly' | 'monthly' | 'quarterly' | 'semestral' | 'yearly'>('yearly');
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   // Calculate price based on duration (fixed prices)
   const calculatePrice = (duration: typeof purchaseDuration) => {
@@ -1095,14 +1097,7 @@ const TeacherOnlineClasses: React.FC = () => {
 
               <Button
                 className="w-full bg-purple-600 hover:bg-purple-700"
-                onClick={() => {
-                  toast({
-                    title: language === 'fr' ? 'Paiements à venir' : 'Payments Coming Soon',
-                    description: language === 'fr' 
-                      ? `L'intégration des paiements par carte bancaire et MTN Mobile Money sera disponible prochainement. Prix: ${calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA pour ${getDurationLabel(purchaseDuration).toLowerCase()}.`
-                      : `Credit card and MTN Mobile Money payment integration coming soon. Price: ${calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA for ${getDurationLabel(purchaseDuration).toLowerCase()}.`,
-                  });
-                }}
+                onClick={() => setIsPaymentOpen(true)}
                 data-testid="button-purchase-access"
               >
                 {language === 'fr' 
@@ -1292,6 +1287,15 @@ const TeacherOnlineClasses: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Payment Modal */}
+      <OnlineClassPayment
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        durationType={purchaseDuration}
+        amount={calculatePrice(purchaseDuration)}
+        language={language}
+      />
     </div>
   );
 };

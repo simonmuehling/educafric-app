@@ -116,6 +116,7 @@ import vonageMessagesRouter from "./routes/vonage-messages";
 import fcmRoutes from "./routes/fcm";
 import onlineClassesRoutes from "./routes/onlineClassesRoutes";
 import onlineClassActivationsRouter from "./routes/api/online-class-activations";
+import onlineClassPaymentsRouter from "./routes/api/online-class-payments";
 import calendarRoutes from "./routes/calendar";
 
 // Import new PDF generators routes
@@ -6729,6 +6730,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Online class activations management (admin + teacher access)
   app.use('/api/admin/online-class-activations', onlineClassActivationsRouter);
   app.use('/api/online-class-activations', onlineClassActivationsRouter);
+  
+  // Online class payments (Stripe + MTN Mobile Money)
+  app.use('/api/online-class-payments', onlineClassPaymentsRouter);
   
   // Calendar integration for academic events (school & teacher only)
   app.use('/api/calendar', calendarRoutes);
