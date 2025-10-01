@@ -1063,16 +1063,21 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     <div className="container mx-auto p-4 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <FileText className="h-5 w-5" />
               {t.title}
-            </div>
+            </CardTitle>
             {isSandboxUser && (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">
-                  {language === 'fr' ? 'MODE TEST' : 'TEST MODE'}
+              <div className="flex items-center gap-1.5 sm:gap-2 self-end sm:self-auto">
+                <Badge 
+                  variant="outline" 
+                  className="px-1.5 py-0.5 text-[10px] sm:text-xs whitespace-nowrap"
+                  data-testid="badge-test-mode"
+                >
+                  {language === 'fr' ? 'TEST' : 'TEST'}
                 </Badge>
+                {/* Mobile: Icon-only button */}
                 <Button
                   onClick={() => {
                     setTestModeEducationalType(prev => {
@@ -1087,9 +1092,30 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                     });
                   }}
                   variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  data-testid="button-toggle-school-type"
+                  size="icon"
+                  className="sm:hidden h-8 w-8"
+                  aria-label={language === 'fr' ? 'Basculer type d\'école' : 'Toggle school type'}
+                  data-testid="button-toggle-educational-type-mobile"
+                >
+                  <School className="h-4 w-4" />
+                </Button>
+                {/* Desktop: Full text button */}
+                <Button
+                  onClick={() => {
+                    setTestModeEducationalType(prev => {
+                      const newType = prev === 'technical' ? 'general' : 'technical';
+                      toast({
+                        title: language === 'fr' ? 'Type d\'école modifié' : 'School type changed',
+                        description: language === 'fr' 
+                          ? `Basculé vers école ${newType === 'technical' ? 'technique' : 'générale'}`
+                          : `Switched to ${newType} school`,
+                      });
+                      return newType;
+                    });
+                  }}
+                  variant="outline"
+                  className="hidden sm:inline-flex h-8 px-3 gap-2 text-xs sm:text-sm"
+                  data-testid="button-toggle-educational-type-desktop"
                 >
                   <School className="h-4 w-4" />
                   {educationalType === 'technical' 
@@ -1099,7 +1125,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                 </Button>
               </div>
             )}
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Basic Information */}
