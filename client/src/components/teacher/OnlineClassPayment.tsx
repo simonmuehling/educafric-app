@@ -108,6 +108,8 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
 
   const { toast } = useToast();
 
+  console.log('[ONLINE_CLASS_PAYMENT] Component rendered, isOpen:', isOpen, 'paymentMethod:', paymentMethod);
+
   const handlePaymentMethodSelect = async (method: 'stripe' | 'mtn') => {
     setPaymentMethod(method);
 
