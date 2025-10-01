@@ -10,8 +10,10 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { loadStripe } from '@stripe/stripe-js';
 import { apiRequest } from '@/lib/queryClient';
 
-// Load Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+// Load Stripe - with fallback to prevent errors
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+console.log('[STRIPE] Loading Stripe with key:', stripeKey ? 'Key present' : 'NO KEY FOUND');
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 interface OnlineClassPaymentProps {
   isOpen: boolean;
@@ -96,6 +98,8 @@ function StripePaymentForm({ durationType, amount, onSuccess, language }: any) {
 }
 
 export function OnlineClassPayment({ isOpen, onClose, durationType, amount, language }: OnlineClassPaymentProps) {
+  console.log('[ONLINE_CLASS_PAYMENT] 🚀 Component function called, isOpen:', isOpen);
+  
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mtn' | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoadingIntent, setIsLoadingIntent] = useState(false);
@@ -108,7 +112,7 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
 
   const { toast } = useToast();
 
-  console.log('[ONLINE_CLASS_PAYMENT] Component rendered, isOpen:', isOpen, 'paymentMethod:', paymentMethod);
+  console.log('[ONLINE_CLASS_PAYMENT] ✅ Component rendered, isOpen:', isOpen, 'paymentMethod:', paymentMethod);
 
   const handlePaymentMethodSelect = async (method: 'stripe' | 'mtn') => {
     setPaymentMethod(method);
