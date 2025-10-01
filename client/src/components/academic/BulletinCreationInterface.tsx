@@ -199,12 +199,22 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     enabled: !!user?.schoolId,
   });
 
-  const educationalType = schoolData?.school?.educationalType || 'general'; // Default to 'general' if not specified
+  // TEST MODE: Allow sandbox users to toggle between general and technical
+  const [testModeEducationalType, setTestModeEducationalType] = useState<'general' | 'technical' | null>(null);
+  const isSandboxUser = user?.email?.includes('@test.educafric.com') || 
+                        user?.email?.includes('@sandbox.educafric.com') ||
+                        user?.email?.includes('sandbox.') ||
+                        user?.email?.includes('.sandbox@') ||
+                        user?.email?.includes('demo@') ||
+                        user?.email?.includes('.demo@');
+
+  const educationalType = testModeEducationalType || schoolData?.school?.educationalType || 'general';
   const isTechnicalSchool = educationalType === 'technical';
   
   console.log('[BULLETIN] School data:', schoolData);
   console.log('[BULLETIN] Educational type:', educationalType);
   console.log('[BULLETIN] Is technical school:', isTechnicalSchool);
+  console.log('[BULLETIN] Test mode active:', testModeEducationalType);
   
   // Ministry-required trimester titles
   const TRIMESTER_TITLES = {
@@ -1053,9 +1063,42 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     <div className="container mx-auto p-4 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            {t.title}
+          <CardTitle className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {t.title}
+            </div>
+            {isSandboxUser && (
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {language === 'fr' ? 'MODE TEST' : 'TEST MODE'}
+                </Badge>
+                <Button
+                  onClick={() => {
+                    setTestModeEducationalType(prev => {
+                      const newType = prev === 'technical' ? 'general' : 'technical';
+                      toast({
+                        title: language === 'fr' ? 'Type d\'école modifié' : 'School type changed',
+                        description: language === 'fr' 
+                          ? `Basculé vers école ${newType === 'technical' ? 'technique' : 'générale'}`
+                          : `Switched to ${newType} school`,
+                      });
+                      return newType;
+                    });
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  data-testid="button-toggle-school-type"
+                >
+                  <School className="h-4 w-4" />
+                  {educationalType === 'technical' 
+                    ? (language === 'fr' ? '→ Général' : '→ General')
+                    : (language === 'fr' ? '→ Technique' : '→ Technical')
+                  }
+                </Button>
+              </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
