@@ -201,7 +201,7 @@ const ParentCommunicationsBidirectional = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="bg-blue-100 p-2 rounded-full">
-                  <User className="w-5 h-5 text-blue-600" />
+                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
                 <div>
                   <p className="font-medium">{t.writeToTeacher}</p>
@@ -215,7 +215,7 @@ const ParentCommunicationsBidirectional = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="bg-green-100 p-2 rounded-full">
-                  <Building className="w-5 h-5 text-green-600" />
+                  <Building className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                 </div>
                 <div>
                   <p className="font-medium">{t.writeToDirection}</p>
@@ -229,7 +229,7 @@ const ParentCommunicationsBidirectional = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="bg-purple-100 p-2 rounded-full">
-                  <MessageSquare className="w-5 h-5 text-purple-600" />
+                  <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                 </div>
                 <div>
                   <p className="font-medium">{t.recentConversations}</p>
@@ -244,16 +244,16 @@ const ParentCommunicationsBidirectional = () => {
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="inbox" className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
+              <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
               {t.inbox}
               <Badge variant="destructive" className="ml-1">2</Badge>
             </TabsTrigger>
             <TabsTrigger value="compose" className="flex items-center gap-2">
-              <Edit3 className="w-4 h-4" />
+              <Edit3 className="w-5 h-5 sm:w-6 sm:h-6" />
               {t.compose}
             </TabsTrigger>
             <TabsTrigger value="sent" className="flex items-center gap-2">
-              <Send className="w-4 h-4" />
+              <Send className="w-5 h-5 sm:w-6 sm:h-6" />
               {t.sent}
             </TabsTrigger>
           </TabsList>
@@ -263,7 +263,7 @@ const ParentCommunicationsBidirectional = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Mail className="w-5 h-5" />
+                  <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
                   {t.inbox}
                 </CardTitle>
               </CardHeader>
@@ -279,7 +279,7 @@ const ParentCommunicationsBidirectional = () => {
                   <div className="space-y-3">
                     {receivedMessages.length === 0 ? (
                       <div className="text-center p-8 text-muted-foreground">
-                        <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <Mail className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 opacity-50" />
                         <p>{language === 'fr' ? 'Aucun message reçu' : 'No messages received'}</p>
                       </div>
                     ) : (
@@ -298,7 +298,7 @@ const ParentCommunicationsBidirectional = () => {
                             <div className="flex items-center gap-2">
                               {message.priority === 'urgent' && (
                                 <Badge variant="destructive" className="text-xs">
-                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                                   Urgent
                                 </Badge>
                               )}
@@ -311,7 +311,7 @@ const ParentCommunicationsBidirectional = () => {
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-500">{message.date}</span>
                             <Button variant="outline" size="sm">
-                              <Reply className="w-4 h-4 mr-1" />
+                              <Reply className="h-4 w-4 sm:h-5 sm:w-5 mr-1" />
                               {t.reply}
                             </Button>
                           </div>
@@ -329,7 +329,7 @@ const ParentCommunicationsBidirectional = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Edit3 className="w-5 h-5" />
+                  <Edit3 className="w-5 h-5 sm:w-6 sm:h-6" />
                   {t.compose}
                 </CardTitle>
               </CardHeader>
@@ -360,7 +360,7 @@ const ParentCommunicationsBidirectional = () => {
                             {children.map((child) => (
                               <SelectItem key={child.id} value={child.id}>
                                 <div className="flex items-center gap-2">
-                                  <User className="h-4 w-4" />
+                                  <User className="h-4 w-4 sm:h-5 sm:w-5" />
                                   {child.name} - {child.details}
                                 </div>
                               </SelectItem>
@@ -377,7 +377,7 @@ const ParentCommunicationsBidirectional = () => {
                             {schools.map((school) => (
                               <SelectItem key={school.id} value={school.id}>
                                 <div className="flex items-center gap-2">
-                                  <Building className="h-4 w-4" />
+                                  <Building className="h-4 w-4 sm:h-5 sm:w-5" />
                                   {school.name} - {school.details}
                                 </div>
                               </SelectItem>
@@ -394,7 +394,7 @@ const ParentCommunicationsBidirectional = () => {
                             {teachers.map((teacher) => (
                               <SelectItem key={teacher.id} value={teacher.id}>
                                 <div className="flex items-center gap-2">
-                                  <User className="h-4 w-4" />
+                                  <User className="h-4 w-4 sm:h-5 sm:w-5" />
                                   {teacher.name} - {teacher.details}
                                 </div>
                               </SelectItem>
@@ -447,9 +447,9 @@ const ParentCommunicationsBidirectional = () => {
                   data-testid="button-send-message"
                 >
                   {sendMessageMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin" />
                   ) : (
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   )}
                   {sendMessageMutation.isPending 
                     ? (language === 'fr' ? 'Envoi...' : 'Sending...') 
@@ -472,7 +472,7 @@ const ParentCommunicationsBidirectional = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Send className="w-5 h-5" />
+                  <Send className="w-5 h-5 sm:w-6 sm:h-6" />
                   {t.sent}
                 </CardTitle>
               </CardHeader>
@@ -486,7 +486,7 @@ const ParentCommunicationsBidirectional = () => {
                           <p className="text-sm text-gray-600">{message.subject}</p>
                         </div>
                         <Badge variant="outline">
-                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                           Envoyé
                         </Badge>
                       </div>
@@ -504,7 +504,7 @@ const ParentCommunicationsBidirectional = () => {
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
+              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
               {language === 'fr' ? 'Destinataires autorisés' : 'Authorized Recipients'}
             </CardTitle>
             <p className="text-sm text-muted-foreground">
@@ -557,11 +557,11 @@ const ParentCommunicationsBidirectional = () => {
                           'bg-purple-100'
                         }`}>
                           {recipient.type === 'child' ? (
-                            <User className="w-4 h-4 text-blue-600" />
+                            <User className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                           ) : recipient.type === 'school' ? (
-                            <Building className="w-4 h-4 text-green-600" />
+                            <Building className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                           ) : (
-                            <User className="w-4 h-4 text-purple-600" />
+                            <User className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">

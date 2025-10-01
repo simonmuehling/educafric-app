@@ -339,13 +339,13 @@ const FunctionalParentMessages: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'unread':
-        return <AlertCircle className="w-4 h-4 text-orange-500" />;
+        return <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500" />;
       case 'read':
-        return <CheckCircle className="w-4 h-4 text-blue-500" />;
+        return <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />;
       case 'replied':
-        return <Reply className="w-4 h-4 text-green-500" />;
+        return <Reply className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-500" />;
+        return <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />;
     }
   };
 
@@ -376,7 +376,7 @@ const FunctionalParentMessages: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">
-              <Plus className="w-5 h-5 mr-2 inline" />
+              <Plus className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
               {t?.actions?.newMessage}
             </h3>
           </div>
@@ -385,7 +385,7 @@ const FunctionalParentMessages: React.FC = () => {
           <Dialog open={isNewMessageOpen} onOpenChange={setIsNewMessageOpen}>
             <DialogTrigger asChild>
               <Button className="bg-blue-600 hover:bg-blue-700 w-full" data-testid="button-new-message">
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
                 Nouveau Message
               </Button>
             </DialogTrigger>
@@ -464,7 +464,7 @@ const FunctionalParentMessages: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <MessageSquare className="w-6 h-6 text-blue-600" />
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.totalMessages}</p>
@@ -478,7 +478,7 @@ const FunctionalParentMessages: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-orange-100 rounded-lg">
-                <AlertCircle className="w-6 h-6 text-orange-600" />
+                <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.unread}</p>
@@ -492,7 +492,7 @@ const FunctionalParentMessages: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-red-100 rounded-lg">
-                <Star className="w-6 h-6 text-red-600" />
+                <Star className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.important}</p>
@@ -506,7 +506,7 @@ const FunctionalParentMessages: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 rounded-lg">
-                <Reply className="w-6 h-6 text-purple-600" />
+                <Reply className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.needsResponse}</p>
@@ -528,7 +528,7 @@ const FunctionalParentMessages: React.FC = () => {
           {/* Search and Filter Fields - Moved Under Boîte de Réception */}
           <div className="flex items-center justify-between mb-6 space-x-3">
             <div className="flex items-center space-x-2">
-              <Search className="w-4 h-4 text-gray-500" />
+              <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
               <input
                 type="text"
                 placeholder="Rechercher un message..."
@@ -538,7 +538,7 @@ const FunctionalParentMessages: React.FC = () => {
               />
             </div>
             <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-gray-500" />
+              <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
               <select
                 value={selectedFilter}
                 onChange={(e) => setSelectedFilter(e?.target?.value)}
@@ -555,7 +555,7 @@ const FunctionalParentMessages: React.FC = () => {
           {/* Messages List Content */}
           {(Array.isArray(filteredMessages) ? filteredMessages.length : 0) === 0 ? (
             <div className="text-center py-8">
-              <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noData}</h3>
               <p className="text-gray-600">Aucun message ne correspond à vos critères.</p>
             </div>
@@ -568,7 +568,7 @@ const FunctionalParentMessages: React.FC = () => {
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
                           <div className={`p-2 ${getCategoryColor(message.category)} rounded-lg`}>
-                            <Users className="w-5 h-5 text-white" />
+                            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-1">
@@ -576,7 +576,7 @@ const FunctionalParentMessages: React.FC = () => {
                                 {message.subject}
                               </h4>
                               {getStatusIcon(message.status)}
-                              {message.hasAttachment && <Paperclip className="w-4 h-4 text-gray-500" />}
+                              {message.hasAttachment && <Paperclip className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />}
                             </div>
                             <p className="text-sm text-gray-600">
                               {t?.message?.from}: {message.senderName} ({t.senderRole[message.senderRole as keyof typeof t.senderRole]})
@@ -611,26 +611,26 @@ const FunctionalParentMessages: React.FC = () => {
 
                         <div className="flex flex-wrap gap-2">
                           <Button variant="outline" size="sm">
-                            <Eye className="w-4 h-4 mr-2" />
+                            <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             Lire
                           </Button>
                           <Button variant="outline" size="sm">
-                            <Reply className="w-4 h-4 mr-2" />
+                            <Reply className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             {t?.actions?.reply}
                           </Button>
                           {message.requiresResponse && (
                             <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                              <Send className="w-4 h-4 mr-2" />
+                              <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                               Répondre
                             </Button>
                           )}
                           <Button variant="outline" size="sm">
-                            <Star className="w-4 h-4 mr-2" />
+                            <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             {t?.actions?.star}
                           </Button>
                           {message.senderRole === 'teacher' && (
                             <Button variant="outline" size="sm">
-                              <Phone className="w-4 h-4 mr-2" />
+                              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                               Appeler
                             </Button>
                           )}

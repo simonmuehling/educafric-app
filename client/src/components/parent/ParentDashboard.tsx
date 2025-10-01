@@ -199,21 +199,21 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     {
       id: 'subscription',
       label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
-      icon: <Star className="w-6 h-6" />,
+      icon: <Star className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
       component: createDynamicModule('subscription')
     },
     {
       id: 'children',
       label: t.myChildren,
-      icon: <Users className="w-6 h-6" />,
+      icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-blue-500',
       component: createDynamicModule('children')
     },
     {
       id: 'messages',
       label: t.communications,
-      icon: <MessageSquare className="w-6 h-6" />,
+      icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-500',
       component: (
         <PremiumFeatureGate
@@ -233,7 +233,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     {
       id: 'grades',
       label: t.results,
-      icon: <BarChart3 className="w-6 h-6" />,
+      icon: <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-green-500',
       component: (
         <PremiumFeatureGate
@@ -253,14 +253,14 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     {
       id: 'library',
       label: language === 'fr' ? 'Bibliothèque' : 'Library',
-      icon: <BookOpen className="w-6 h-6" />,
+      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600',
       component: createDynamicModule('parent-library')
     },
     {
       id: 'attendance',
       label: t.attendance,
-      icon: <CheckCircle2 className="w-6 h-6" />,
+      icon: <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-orange-500',
       component: (
         <PremiumFeatureGate
@@ -280,7 +280,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     {
       id: 'payments',
       label: 'Paiements',
-      icon: <CreditCard className="w-6 h-6" />,
+      icon: <CreditCard className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-red-500',
       component: (
         <PremiumFeatureGate
@@ -300,7 +300,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     {
       id: 'parent-timetable',
       label: language === 'fr' ? 'Emploi du Temps Enfants' : 'Children Timetable',
-      icon: <Calendar className="w-6 h-6" />,
+      icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-500',
       component: (
         <PremiumFeatureGate
@@ -320,7 +320,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     {
       id: 'geolocation',
       label: t.geolocation,
-      icon: <MapPin className="w-6 h-6" />,
+      icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-emerald-500',
       component: (
         <PremiumFeatureGate
@@ -340,7 +340,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     {
       id: 'family',
       label: language === 'fr' ? 'Connexions Familiales' : 'Family Connections',
-      icon: <Heart className="w-6 h-6" />,
+      icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-pink-500',
       component: (
         <PremiumFeatureGate
@@ -360,35 +360,35 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     {
       id: 'notifications',
       label: t.notifications,
-      icon: <Bell className="w-6 h-6" />,
+      icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-blue-600',
       component: createDynamicModule('notifications')
     },
     {
       id: 'requests',
       label: t.requests,
-      icon: <FileText className="w-6 h-6" />,
+      icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-orange-500',
       component: createDynamicModule('requests')
     },
     {
       id: 'profile',
       label: language === 'fr' ? 'Paramètres Parent' : 'Parent Settings',
-      icon: <User className="w-6 h-6" />,
+      icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-gray-500',
       component: createDynamicModule('parent-settings')
     },
     {
       id: 'multirole',
       label: 'Multi-Rôles',
-      icon: <User className="w-6 h-6" />,
+      icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600',
       component: createDynamicModule('multirole')
     },
     {
       id: 'help',
       label: t.help,
-      icon: <HelpCircle className="w-6 h-6" />,
+      icon: <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-cyan-500',
       component: createDynamicModule('help')
     }

@@ -99,7 +99,7 @@ const DeviceConfigurationGuide = () => {
 
   const deviceConfigurations = {
     smartphone: {
-      icon: <Smartphone className="w-8 h-8" />,
+      icon: <Smartphone className="w-6 h-6 sm:w-8 sm:h-8" />,
       name: t.smartphone,
       requirements: [
         t.androidVersion + ' / ' + t.iosVersion,
@@ -112,37 +112,37 @@ const DeviceConfigurationGuide = () => {
           title: t.downloadApp,
           description: 'Télécharger EDUCAFRIC GPS Tracker depuis Play Store/App Store',
           status: 'completed',
-          icon: <Download className="w-5 h-5" />
+          icon: <Download className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: t.firebaseSetup,
           description: 'Configurer la synchronisation Firebase pour le suivi temps réel',
           status: 'completed',
-          icon: <Settings className="w-5 h-5" />
+          icon: <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: t.enableGPS,
           description: 'Activer les services de localisation dans Paramètres > Localisation',
           status: 'completed',
-          icon: <MapPin className="w-5 h-5" />
+          icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: t.setPermissions,
           description: 'Autoriser l\'accès à la localisation en permanence',
           status: 'pending',
-          icon: <Settings className="w-5 h-5" />
+          icon: <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: t.batteryOptimization,
           description: 'Désactiver l\'optimisation batterie pour EDUCAFRIC',
           status: 'pending',
-          icon: <Battery className="w-5 h-5" />
+          icon: <Battery className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: t.testLocation,
           description: 'Vérifier que la position est transmise correctement',
           status: 'pending',
-          icon: <CheckCircle className="w-5 h-5" />
+          icon: <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
         }
       ],
       features: [
@@ -154,7 +154,7 @@ const DeviceConfigurationGuide = () => {
       ]
     },
     smartwatch: {
-      icon: <Watch className="w-8 h-8" />,
+      icon: <Watch className="w-6 h-6 sm:w-8 sm:h-8" />,
       name: t.smartwatch,
       requirements: [
         'WearOS 2.0+ / watchOS 6.0+',
@@ -167,37 +167,37 @@ const DeviceConfigurationGuide = () => {
           title: 'Installation WearOS',
           description: 'Installer EDUCAFRIC Kids Watch depuis le Play Store de la montre',
           status: 'completed',
-          icon: <Download className="w-5 h-5" />
+          icon: <Download className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: 'Jumelage Parent',
           description: 'Jumeler la montre avec le téléphone du parent via Bluetooth',
           status: 'completed',
-          icon: <Wifi className="w-5 h-5" />
+          icon: <Wifi className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: 'Configuration GPS',
           description: 'Activer le GPS intégré de la montre connectée',
           status: 'completed',
-          icon: <MapPin className="w-5 h-5" />
+          icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: 'Synchronisation Firebase',
           description: 'Configurer la synchronisation temps réel avec Firebase',
           status: 'pending',
-          icon: <RotateCcw className="w-5 h-5" />
+          icon: <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: 'Mode Économie',
           description: 'Configurer l\'envoi de position toutes les 5 minutes',
           status: 'pending',
-          icon: <Battery className="w-5 h-5" />
+          icon: <Battery className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: 'Test Fonctionnel',
           description: 'Vérifier réception des alertes sur le téléphone parent',
           status: 'pending',
-          icon: <Play className="w-5 h-5" />
+          icon: <Play className="w-5 h-5 sm:w-6 sm:h-6" />
         }
       ],
       features: [
@@ -209,7 +209,7 @@ const DeviceConfigurationGuide = () => {
       ]
     },
     tablet: {
-      icon: <Tablet className="w-8 h-8" />,
+      icon: <Tablet className="w-6 h-6 sm:w-8 sm:h-8" />,
       name: t.tablet,
       requirements: [
         'Android 9.0+ / iPadOS 13.0+',
@@ -222,37 +222,37 @@ const DeviceConfigurationGuide = () => {
           title: 'Installation Tablette',
           description: 'Télécharger EDUCAFRIC Student Tracker pour tablettes',
           status: 'completed',
-          icon: <Download className="w-5 h-5" />
+          icon: <Download className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: 'Configuration Éducative',
           description: 'Paramétrer le mode école avec restrictions appropriées',
           status: 'completed',
-          icon: <Settings className="w-5 h-5" />
+          icon: <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: 'Géofencing École',
           description: 'Définir les zones scolaires autorisées automatiquement',
           status: 'completed',
-          icon: <MapPin className="w-5 h-5" />
+          icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: 'Firebase Éducatif',
           description: 'Connecter au système Firebase éducatif pour suivi classe',
           status: 'pending',
-          icon: <Wifi className="w-5 h-5" />
+          icon: <Wifi className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: 'Contrôles Professeur',
           description: 'Permettre au professeur de voir la position en classe',
           status: 'pending',
-          icon: <Settings className="w-5 h-5" />
+          icon: <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
         },
         {
           title: 'Mode Examen',
           description: 'Configurer restrictions pendant les examens',
           status: 'pending',
-          icon: <AlertTriangle className="w-5 h-5" />
+          icon: <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
         }
       ],
       features: [
@@ -317,7 +317,7 @@ const DeviceConfigurationGuide = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
+                <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
                 {t.requirements}
               </CardTitle>
             </CardHeader>
@@ -325,7 +325,7 @@ const DeviceConfigurationGuide = () => {
               <div className="space-y-3">
                 {currentDevice.requirements.map((req, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
                     <span className="text-sm">{req}</span>
                   </div>
                 ))}
@@ -337,7 +337,7 @@ const DeviceConfigurationGuide = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
+                <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
                 Fonctionnalités
               </CardTitle>
             </CardHeader>
@@ -358,7 +358,7 @@ const DeviceConfigurationGuide = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Play className="w-5 h-5" />
+              <Play className="w-5 h-5 sm:w-6 sm:h-6" />
               Étapes de Configuration
             </CardTitle>
           </CardHeader>
@@ -387,7 +387,7 @@ const DeviceConfigurationGuide = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
               {t.troubleshooting}
             </CardTitle>
           </CardHeader>
@@ -399,7 +399,7 @@ const DeviceConfigurationGuide = () => {
                   className="flex flex-col items-center gap-1 h-auto py-3 px-2"
                   onClick={() => setSelectedTroubleshoot('common')}
                 >
-                  <AlertTriangle className="w-4 h-4" />
+                  <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="text-xs">Problèmes</span>
                 </Button>
                 <Button
@@ -407,7 +407,7 @@ const DeviceConfigurationGuide = () => {
                   className="flex flex-col items-center gap-1 h-auto py-3 px-2"
                   onClick={() => setSelectedTroubleshoot('firebase')}
                 >
-                  <Wifi className="w-4 h-4" />
+                  <Wifi className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="text-xs">Firebase</span>
                 </Button>
                 <Button
@@ -415,7 +415,7 @@ const DeviceConfigurationGuide = () => {
                   className="flex flex-col items-center gap-1 h-auto py-3 px-2"
                   onClick={() => setSelectedTroubleshoot('support')}
                 >
-                  <Phone className="w-4 h-4" />
+                  <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="text-xs">Support</span>
                 </Button>
               </div>

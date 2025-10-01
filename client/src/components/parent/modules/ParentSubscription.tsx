@@ -168,9 +168,9 @@ const ParentSubscription = () => {
       period: 'free',
       color: 'from-gray-400 to-gray-500',
       features: [
-        { icon: <Eye className="w-4 h-4" />, text: t.feature5 },
-        { icon: <Bell className="w-4 h-4" />, text: 'Notifications de base' },
-        { icon: <Users className="w-4 h-4" />, text: 'Support communautaire' }
+        { icon: <Eye className="w-5 h-5 sm:w-6 sm:h-6" />, text: t.feature5 },
+        { icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />, text: 'Notifications de base' },
+        { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, text: 'Support communautaire' }
       ],
       current: true
     },
@@ -182,13 +182,13 @@ const ParentSubscription = () => {
       color: 'from-blue-500 to-blue-600',
       popular: true,
       features: [
-        { icon: <MapPin className="w-4 h-4" />, text: `📍 ${t.tracking}` },
-        { icon: <Bell className="w-4 h-4" />, text: `🔔 ${t.realtimeNotifications}` },
-        { icon: <Star className="w-4 h-4" />, text: `📊 ${t.gradeAccess}` },
-        { icon: <Calendar className="w-4 h-4" />, text: `📄 ${t.bulletinReception}` },
-        { icon: <Smartphone className="w-4 h-4" />, text: `💻 ${t.onlineClass}` },
-        { icon: <MessageSquare className="w-4 h-4" />, text: `💬 ${t.teacherComm}` },
-        { icon: <Users className="w-4 h-4" />, text: `🌍 ${t.bilingualSupport}` }
+        { icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📍 ${t.tracking}` },
+        { icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />, text: `🔔 ${t.realtimeNotifications}` },
+        { icon: <Star className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📊 ${t.gradeAccess}` },
+        { icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📄 ${t.bulletinReception}` },
+        { icon: <Smartphone className="w-5 h-5 sm:w-6 sm:h-6" />, text: `💻 ${t.onlineClass}` },
+        { icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />, text: `💬 ${t.teacherComm}` },
+        { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, text: `🌍 ${t.bilingualSupport}` }
       ]
     },
     {
@@ -198,13 +198,13 @@ const ParentSubscription = () => {
       period: 'annual',
       color: 'from-purple-500 to-purple-600',
       features: [
-        { icon: <MapPin className="w-4 h-4" />, text: `📍 ${t.tracking}` },
-        { icon: <Bell className="w-4 h-4" />, text: `🔔 ${t.realtimeNotifications}` },
-        { icon: <Star className="w-4 h-4" />, text: `📊 ${t.gradeAccess}` },
-        { icon: <Calendar className="w-4 h-4" />, text: `📄 ${t.bulletinReception}` },
-        { icon: <Smartphone className="w-4 h-4" />, text: `💻 ${t.onlineClass}` },
-        { icon: <MessageSquare className="w-4 h-4" />, text: `💬 ${t.teacherComm}` },
-        { icon: <Users className="w-4 h-4" />, text: `🌍 ${t.bilingualSupport}` }
+        { icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📍 ${t.tracking}` },
+        { icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />, text: `🔔 ${t.realtimeNotifications}` },
+        { icon: <Star className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📊 ${t.gradeAccess}` },
+        { icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📄 ${t.bulletinReception}` },
+        { icon: <Smartphone className="w-5 h-5 sm:w-6 sm:h-6" />, text: `💻 ${t.onlineClass}` },
+        { icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />, text: `💬 ${t.teacherComm}` },
+        { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, text: `🌍 ${t.bilingualSupport}` }
       ]
     },
     {
@@ -215,11 +215,11 @@ const ParentSubscription = () => {
       color: 'from-green-500 to-green-600',
       premium: true,
       features: [
-        { icon: <MapPin className="w-4 h-4" />, text: t.feature6 },
-        { icon: <AlertTriangle className="w-4 h-4" />, text: t.feature7 },
-        { icon: <ScanEye className="w-4 h-4" />, text: t.feature8 },
-        { icon: <Smartphone className="w-4 h-4" />, text: 'Suivi multi-appareils' },
-        { icon: <Bell className="w-4 h-4" />, text: 'Alertes de position' }
+        { icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />, text: t.feature6 },
+        { icon: <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />, text: t.feature7 },
+        { icon: <ScanEye className="w-5 h-5 sm:w-6 sm:h-6" />, text: t.feature8 },
+        { icon: <Smartphone className="w-5 h-5 sm:w-6 sm:h-6" />, text: 'Suivi multi-appareils' },
+        { icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />, text: 'Alertes de position' }
       ]
     }
   ];
@@ -328,7 +328,7 @@ const ParentSubscription = () => {
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                     onClick={() => window.open('/subscribe', '_blank')}
                   >
-                    <ArrowRight className="w-4 h-4 mr-2" />
+                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     {t.upgrade}
                   </Button>
                 ) : (
@@ -338,7 +338,7 @@ const ParentSubscription = () => {
                       variant="outline"
                       onClick={() => window.open('/subscribe', '_blank')}
                     >
-                      <CreditCard className="w-4 h-4 mr-2" />
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       {t.manageBilling}
                     </Button>
                     <Button 
@@ -346,7 +346,7 @@ const ParentSubscription = () => {
                       className="bg-gradient-to-r from-green-600 to-blue-600 text-white"
                       onClick={() => window.open('/subscribe?upgrade=true', '_blank')}
                     >
-                      <Star className="w-4 h-4 mr-2" />
+                      <Star className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       Ajouter enfant
                     </Button>
                   </div>
@@ -386,7 +386,7 @@ const ParentSubscription = () => {
               className="w-full"
               onClick={() => window.open('/subscribe', '_blank')}
             >
-              <CreditCard className="w-4 h-4 mr-2" />
+              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               {t.manageBilling}
             </Button>
           </div>

@@ -332,7 +332,7 @@ const ModernChildrenModule: React.FC = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-xl">
         <h1 className="text-2xl font-bold flex items-center gap-3">
-          <Users className="w-8 h-8" />
+          <Users className="w-6 h-6 sm:w-8 sm:h-8" />
           {t.title}
         </h1>
         <p className="text-blue-100 mt-2">{t.subtitle}</p>
@@ -342,15 +342,15 @@ const ModernChildrenModule: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="children" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
+            <Users className="w-5 h-5 sm:w-6 sm:h-6" />
             {t.tabs.children}
           </TabsTrigger>
           <TabsTrigger value="addChild" className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
             {t.tabs.addChild}
           </TabsTrigger>
           <TabsTrigger value="schools" className="flex items-center gap-2">
-            <School className="w-4 h-4" />
+            <School className="w-5 h-5 sm:w-6 sm:h-6" />
             {t.tabs.schools}
           </TabsTrigger>
         </TabsList>
@@ -369,7 +369,7 @@ const ModernChildrenModule: React.FC = () => {
           ) : children.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
-                <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <Users className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">{t.noChildren}</h3>
                 <p className="text-gray-500 mb-6">{t.noChildrenDesc}</p>
                 <Button 
@@ -377,7 +377,7 @@ const ModernChildrenModule: React.FC = () => {
                   className="bg-blue-600 hover:bg-blue-700"
                   data-testid="button-add-first-child"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   {t.addFirstChild}
                 </Button>
               </CardContent>
@@ -454,7 +454,7 @@ const ModernChildrenModule: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Plus className="w-5 h-5" />
+                <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
                 {t.addChild}
               </CardTitle>
             </CardHeader>
@@ -462,7 +462,7 @@ const ModernChildrenModule: React.FC = () => {
               {/* Child Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <User className="w-5 h-5" />
+                  <User className="w-5 h-5 sm:w-6 sm:h-6" />
                   {t.childInfo}
                 </h3>
                 
@@ -516,7 +516,7 @@ const ModernChildrenModule: React.FC = () => {
               {/* School Selection */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <School className="w-5 h-5" />
+                  <School className="w-5 h-5 sm:w-6 sm:h-6" />
                   {t.school} *
                 </h3>
                 
@@ -640,7 +640,7 @@ const ModernChildrenModule: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <School className="w-5 h-5" />
+                <School className="w-5 h-5 sm:w-6 sm:h-6" />
                 {t.tabs.schools}
               </CardTitle>
             </CardHeader>
@@ -669,7 +669,7 @@ const ModernChildrenModule: React.FC = () => {
                             <div className="flex-1">
                               <h4 className="text-lg font-semibold">{school.name}</h4>
                               <p className="text-gray-600 flex items-center gap-1">
-                                <MapPin className="w-4 h-4" />
+                                <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
                                 {school.address}, {school.city}, {school.country}
                               </p>
                             </div>

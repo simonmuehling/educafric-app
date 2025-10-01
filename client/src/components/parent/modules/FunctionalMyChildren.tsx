@@ -139,7 +139,7 @@ const FunctionalMyChildren: React.FC = () => {
       {isLoading && (
         <div className="p-8">
           <div className="text-center">
-            <Clock className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+            <Clock className="w-6 h-6 sm:w-8 sm:h-8 animate-spin mx-auto mb-4 text-blue-600" />
             <p className="text-gray-600">{t.loading}</p>
           </div>
         </div>
@@ -156,11 +156,11 @@ const FunctionalMyChildren: React.FC = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => refetch()}>
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
             {t.refresh}
           </Button>
           <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
             {t.download}
           </Button>
         </div>
@@ -192,7 +192,7 @@ const FunctionalMyChildren: React.FC = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <Users className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">{t.noChildren}</p>
             </div>
           </CardContent>
@@ -263,18 +263,18 @@ const FunctionalMyChildren: React.FC = () => {
                 {/* Additional Info */}
                 <div className="space-y-2 text-sm text-gray-600">
                   <div className="flex items-center">
-                    <GraduationCap className="w-4 h-4 mr-2" />
+                    <GraduationCap className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                     {t.teacher}: {child.teacher}
                   </div>
                   {child.totalAbsences > 0 && (
                     <div className="flex items-center">
-                      <AlertCircle className="w-4 h-4 mr-2 text-orange-500" />
+                      <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-orange-500" />
                       {child.totalAbsences} {t.absences}
                     </div>
                   )}
                   {child.nextExam && (
                     <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2" />
+                      <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                       {t.nextExam}: {child.nextExam}
                     </div>
                   )}
@@ -283,15 +283,15 @@ const FunctionalMyChildren: React.FC = () => {
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-3">
                   <Button size="sm" className="flex-1">
-                    <Eye className="w-4 h-4 mr-1" />
+                    <Eye className="h-4 w-4 sm:h-5 sm:h-5 mr-1" />
                     {t.viewDetails}
                   </Button>
                   <Button variant="outline" size="sm">
-                    <Phone className="w-4 h-4 mr-1" />
+                    <Phone className="h-4 w-4 sm:h-5 sm:h-5 mr-1" />
                     {t.contactTeacher}
                   </Button>
                   <Button variant="outline" size="sm">
-                    <Settings className="w-4 h-4" />
+                    <Settings className="h-4 w-4 sm:h-5 sm:h-5" />
                   </Button>
                 </div>
               </CardContent>
@@ -312,7 +312,7 @@ const FunctionalMyChildren: React.FC = () => {
                 <div key={child.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <BookOpen className="w-4 h-4 text-blue-600" />
+                      <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                     </div>
                     <div>
                       <p className="font-medium">{child.firstName || ''} {child.lastName || ''}</p>

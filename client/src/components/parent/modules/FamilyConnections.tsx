@@ -279,7 +279,7 @@ const FamilyConnections: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-3">
-              <Heart className="w-8 h-8" />
+              <Heart className="w-6 h-6 sm:w-8 sm:h-8" />
               {t.title}
             </h1>
             <p className="text-pink-100 mt-2">{t.subtitle}</p>
@@ -289,7 +289,7 @@ const FamilyConnections: React.FC = () => {
             className="bg-white/20 hover:bg-white/30 text-white border-white/30"
             size="sm"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             {t.addConnection}
           </Button>
         </div>
@@ -300,7 +300,7 @@ const FamilyConnections: React.FC = () => {
         <Card className="border-2 border-purple-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-purple-600" />
+              <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               {t.addConnection}
             </CardTitle>
           </CardHeader>
@@ -316,7 +316,7 @@ const FamilyConnections: React.FC = () => {
                   onClick={() => setSearchType('email')}
                   className="flex items-center gap-2"
                 >
-                  <Mail className="w-4 h-4" />
+                  <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
                   {t.email}
                 </Button>
                 <Button
@@ -325,7 +325,7 @@ const FamilyConnections: React.FC = () => {
                   onClick={() => setSearchType('phone')}
                   className="flex items-center gap-2"
                 >
-                  <Phone className="w-4 h-4" />
+                  <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
                   {t.phone}
                 </Button>
               </div>
@@ -427,14 +427,14 @@ const FamilyConnections: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
+                <Users className="w-5 h-5 sm:w-6 sm:h-6" />
                 Mes enfants ({connections.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               {connections.length === 0 ? (
                 <div className="text-center py-8">
-                  <Heart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <Heart className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 font-medium">{t.noConnections}</p>
                   <p className="text-gray-400 text-sm mt-1">{t.noConnectionsDesc}</p>
                 </div>
@@ -492,7 +492,7 @@ const FamilyConnections: React.FC = () => {
           <Card className="h-[600px] flex flex-col">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5" />
+                <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                 {selectedConnection 
                   ? connections.find((c: FamilyConnection) => c.id === selectedConnection)?.childName
                   : t.selectChild
@@ -536,14 +536,14 @@ const FamilyConnections: React.FC = () => {
                               </span>
                               {message.senderType === 'parent' && (
                                 <CheckCheck 
-                                  className={`w-3 h-3 ${
+                                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
                                     message.isRead ? 'text-blue-300' : 'text-gray-300'
                                   }`} 
                                 />
                               )}
                             </div>
                             {message.isEncrypted && (
-                              <Lock className="w-3 h-3 opacity-50 mt-1" />
+                              <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4 opacity-50 mt-1" />
                             )}
                           </div>
                         </div>
@@ -574,13 +574,13 @@ const FamilyConnections: React.FC = () => {
                         size="sm"
                         className="bg-purple-600 hover:bg-purple-700"
                       >
-                        <Send className="w-4 h-4" />
+                        <Send className="h-4 w-4 sm:h-5 sm:w-5" />
                       </Button>
                       <Button variant="outline" size="sm">
-                        <Camera className="w-4 h-4" />
+                        <Camera className="h-4 w-4 sm:h-5 sm:w-5" />
                       </Button>
                       <Button variant="outline" size="sm">
-                        <MapPin className="w-4 h-4" />
+                        <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
                       </Button>
                     </div>
                   </div>
@@ -589,7 +589,7 @@ const FamilyConnections: React.FC = () => {
             ) : (
               <CardContent className="flex-1 flex items-center justify-center">
                 <div className="text-center">
-                  <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500">{t.selectChild}</p>
                 </div>
               </CardContent>
@@ -601,7 +601,7 @@ const FamilyConnections: React.FC = () => {
       {/* Security Info */}
       <Card className="border-purple-200 bg-purple-50">
         <CardContent className="flex items-center gap-3 p-4">
-          <Shield className="w-5 h-5 text-purple-600" />
+          <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
           <div>
             <p className="text-sm font-medium text-purple-800">
               Communication sécurisée end-to-end

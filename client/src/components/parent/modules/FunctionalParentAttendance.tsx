@@ -293,15 +293,15 @@ const FunctionalParentAttendance: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'present':
-        return <CheckCircle2 className="w-5 h-5 text-green-600" />;
+        return <CheckCircle2 className="h-4 w-4 sm:h-5 sm:h-5 text-green-600" />;
       case 'absent':
-        return <XCircle className="w-5 h-5 text-red-600" />;
+        return <XCircle className="h-4 w-4 sm:h-5 sm:h-5 text-red-600" />;
       case 'late':
-        return <Clock className="w-5 h-5 text-yellow-600" />;
+        return <Clock className="h-4 w-4 sm:h-5 sm:h-5 text-yellow-600" />;
       case 'excused':
-        return <FileText className="w-5 h-5 text-blue-600" />;
+        return <FileText className="h-4 w-4 sm:h-5 sm:h-5 text-blue-600" />;
       default:
-        return <AlertTriangle className="w-5 h-5 text-gray-600" />;
+        return <AlertTriangle className="h-4 w-4 sm:h-5 sm:h-5 text-gray-600" />;
     }
   };
 
@@ -326,7 +326,7 @@ const FunctionalParentAttendance: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <Calendar className="w-6 h-6 text-blue-600" />
+                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.totalDays}</p>
@@ -340,7 +340,7 @@ const FunctionalParentAttendance: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle2 className="w-6 h-6 text-green-600" />
+                <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.presentDays}</p>
@@ -354,7 +354,7 @@ const FunctionalParentAttendance: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-red-100 rounded-lg">
-                <XCircle className="w-6 h-6 text-red-600" />
+                <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.absentDays}</p>
@@ -368,7 +368,7 @@ const FunctionalParentAttendance: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-yellow-100 rounded-lg">
-                <Clock className="w-6 h-6 text-yellow-600" />
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.lateArrivals}</p>
@@ -388,7 +388,7 @@ const FunctionalParentAttendance: React.FC = () => {
               <div className="flex items-center space-x-4">
                 <div className="text-4xl font-bold text-blue-600">{getAttendanceRate()}%</div>
                 <div className="flex items-center text-green-600">
-                  <TrendingUp className="w-5 h-5 mr-1" />
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 mr-1" />
                   <span className="text-sm">+2.5% ce mois</span>
                 </div>
               </div>
@@ -421,7 +421,7 @@ const FunctionalParentAttendance: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">
-              <FileText className="w-5 h-5 mr-2 inline" />
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
               Demander une Excuse
             </h3>
           </div>
@@ -430,7 +430,7 @@ const FunctionalParentAttendance: React.FC = () => {
           <Dialog open={isExcuseOpen} onOpenChange={setIsExcuseOpen}>
             <DialogTrigger asChild>
               <Button className="bg-orange-600 hover:bg-orange-700 w-full" data-testid="button-request-excuse">
-                <FileText className="w-4 h-4 mr-2" />
+                <FileText className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
                 Demander une Excuse
               </Button>
             </DialogTrigger>
@@ -529,7 +529,7 @@ const FunctionalParentAttendance: React.FC = () => {
         <CardContent>
           {(Array.isArray(filteredAttendance) ? filteredAttendance.length : 0) === 0 ? (
             <div className="text-center py-8">
-              <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noData}</h3>
               <p className="text-gray-600">Aucun enregistrement de présence ne correspond à vos critères.</p>
             </div>
@@ -591,17 +591,17 @@ const FunctionalParentAttendance: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex flex-wrap gap-2">
                             <Button variant="outline" size="sm">
-                              <Eye className="w-4 h-4 mr-2" />
+                              <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                               {t?.actions?.viewDetails}
                             </Button>
                             {record.status === 'absent' && (
                               <Button variant="outline" size="sm">
-                                <FileText className="w-4 h-4 mr-2" />
+                                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                                 {t?.actions?.excuseAbsence}
                               </Button>
                             )}
                             <Button variant="outline" size="sm">
-                              <Phone className="w-4 h-4 mr-2" />
+                              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                               {t?.actions?.contactSchool}
                             </Button>
                           </div>

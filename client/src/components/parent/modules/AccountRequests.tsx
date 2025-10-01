@@ -135,7 +135,7 @@ export function AccountRequests() {
       <ModuleContainer
         title="Demandes de Suppression"
         subtitle="Gérez les demandes de suppression de compte de vos enfants"
-        icon={<AlertTriangle className="w-6 h-6 text-orange-600" />}
+        icon={<AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />}
       >
         <div className="flex items-center justify-center p-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -148,12 +148,12 @@ export function AccountRequests() {
     <ModuleContainer
       title="Demandes de Suppression"
       subtitle="Gérez les demandes de suppression de compte de vos enfants"
-      icon={<AlertTriangle className="w-6 h-6 text-orange-600" />}
+      icon={<AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />}
     >
       <div className="space-y-6">
         {requests.length === 0 ? (
           <Alert>
-            <Clock className="h-4 w-4" />
+            <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
             <AlertDescription>
               Aucune demande de suppression de compte en attente.
             </AlertDescription>
@@ -165,7 +165,7 @@ export function AccountRequests() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
-                      <User className="w-5 h-5" />
+                      <User className="w-5 h-5 sm:w-6 sm:h-6" />
                       {request.studentName}
                     </CardTitle>
                     <Badge className={getStatusColor(request.status)}>
@@ -188,7 +188,7 @@ export function AccountRequests() {
                   </div>
 
                   <Alert className="bg-orange-50 border-orange-200">
-                    <AlertTriangle className="h-4 w-4 text-orange-600" />
+                    <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
                     <AlertDescription className="text-orange-800">
                       <strong>Attention:</strong> Votre enfant {request.studentName} demande la suppression de son compte EDUCAFRIC. 
                       Cette action est irréversible et toutes ses données seront définitivement supprimées.
@@ -204,7 +204,7 @@ export function AccountRequests() {
                             className="flex-1"
                             data-testid="button-approve-deletion"
                           >
-                            <Check className="w-4 h-4 mr-2" />
+                            <Check className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                             Approuver la suppression
                           </Button>
                         </AlertDialogTrigger>
@@ -237,7 +237,7 @@ export function AccountRequests() {
                         onClick={() => handleDeclineRequest(request.studentId)}
                         data-testid="button-decline-deletion"
                       >
-                        <X className="w-4 h-4 mr-2" />
+                        <X className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                         Refuser
                       </Button>
                     </div>

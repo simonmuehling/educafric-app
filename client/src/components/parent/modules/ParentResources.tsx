@@ -190,15 +190,15 @@ export const ParentResources = () => {
   const getResourceIcon = (type: string) => {
     switch (type) {
       case 'downloadable':
-        return <Download className="w-5 h-5" />;
+        return <Download className="w-5 h-5 sm:w-6 sm:h-6" />;
       case 'online':
-        return <ExternalLink className="w-5 h-5" />;
+        return <ExternalLink className="w-5 h-5 sm:w-6 sm:h-6" />;
       case 'video':
-        return <GraduationCap className="w-5 h-5" />;
+        return <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" />;
       case 'article':
-        return <BookOpen className="w-5 h-5" />;
+        return <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />;
       default:
-        return <FileText className="w-5 h-5" />;
+        return <FileText className="w-5 h-5 sm:w-6 sm:h-6" />;
     }
   };
 
@@ -220,15 +220,15 @@ export const ParentResources = () => {
   const getCategoryIcon = (categoryId: string) => {
     switch (categoryId) {
       case 'parenting':
-        return <Users className="w-6 h-6" />;
+        return <Users className="w-6 h-6 sm:w-8 sm:h-8" />;
       case 'policies':
-        return <FileText className="w-6 h-6" />;
+        return <FileText className="w-6 h-6 sm:w-8 sm:h-8" />;
       case 'help':
-        return <HelpCircle className="w-6 h-6" />;
+        return <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8" />;
       case 'community':
-        return <Calendar className="w-6 h-6" />;
+        return <Calendar className="w-6 h-6 sm:w-8 sm:h-8" />;
       default:
-        return <BookOpen className="w-6 h-6" />;
+        return <BookOpen className="w-6 h-6 sm:w-8 sm:h-8" />;
     }
   };
 
@@ -244,7 +244,7 @@ export const ParentResources = () => {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <RefreshCw className="w-6 h-6 sm:w-8 sm:h-8 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-gray-600">{t.loading}</p>
         </div>
       </div>
@@ -255,10 +255,10 @@ export const ParentResources = () => {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 text-red-500 mx-auto mb-4" />
           <p className="text-red-600">{t.error}</p>
           <Button onClick={() => refetch()} className="mt-4">
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             {t.retry}
           </Button>
         </div>
@@ -272,7 +272,7 @@ export const ParentResources = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-to-r from-violet-400 to-violet-600 rounded-lg flex items-center justify-center">
-            <GraduationCap className="w-5 h-5 text-white" />
+            <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-800">{t.title || ''}</h2>
@@ -280,7 +280,7 @@ export const ParentResources = () => {
           </div>
         </div>
         <Button variant="outline" onClick={() => refetch()} data-testid="button-refresh-resources">
-          <RefreshCw className="w-4 h-4 mr-2" />
+          <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           {t.refresh}
         </Button>
       </div>
@@ -289,7 +289,7 @@ export const ParentResources = () => {
       {emergencyContacts.length > 0 && (
         <ModernCard gradient="orange">
           <div className="flex items-center space-x-2 mb-4">
-            <Phone className="w-5 h-5 text-orange-600" />
+            <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
             <h3 className="text-lg font-semibold text-gray-700">{t.emergencyContacts}</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -310,7 +310,7 @@ export const ParentResources = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search className="h-4 w-4 sm:h-5 sm:w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -323,7 +323,7 @@ export const ParentResources = () => {
             <div className="flex gap-2">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-48">
-                  <Filter className="w-4 h-4 mr-2" />
+                  <Filter className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   <SelectValue placeholder={t.category} />
                 </SelectTrigger>
                 <SelectContent>
@@ -393,7 +393,7 @@ export const ParentResources = () => {
       {/* Resources Grid */}
       {resourcesData.length === 0 ? (
         <div className="text-center py-12">
-          <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500 text-lg mb-2">{t.noResourcesFound}</p>
           <p className="text-gray-400 text-sm">{t.searchHelp}</p>
         </div>
@@ -453,12 +453,12 @@ export const ParentResources = () => {
                   <Button size="sm" variant="ghost" data-testid={`button-resource-${resource.id}`}>
                     {resource.type === 'downloadable' ? (
                       <>
-                        <Download className="w-4 h-4 mr-1" />
+                        <Download className="h-4 w-4 sm:h-5 sm:w-5 mr-1" />
                         {t.download}
                       </>
                     ) : (
                       <>
-                        <ExternalLink className="w-4 h-4 mr-1" />
+                        <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5 mr-1" />
                         {t.viewMore}
                       </>
                     )}
@@ -477,22 +477,22 @@ export const ParentResources = () => {
           {[
             {
               title: language === 'fr' ? 'Calendrier' : 'Calendar',
-              icon: <Calendar className="w-5 h-5" />,
+              icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />,
               color: 'bg-blue-500'
             },
             {
               title: 'FAQ',
-              icon: <HelpCircle className="w-5 h-5" />,
+              icon: <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6" />,
               color: 'bg-green-500'
             },
             {
               title: language === 'fr' ? 'Guides' : 'Guides',
-              icon: <BookOpen className="w-5 h-5" />,
+              icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
               color: 'bg-purple-500'
             },
             {
               title: 'Contact',
-              icon: <Phone className="w-5 h-5" />,
+              icon: <Phone className="w-5 h-5 sm:w-6 sm:h-6" />,
               color: 'bg-orange-500'
             }
           ].map((link, index) => (
@@ -514,7 +514,7 @@ export const ParentResources = () => {
       <ModernCard gradient="default">
         <div className="text-center">
           <div className="w-16 h-16 bg-gray-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <HelpCircle className="w-8 h-8 text-white" />
+            <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
           <h3 className="text-xl font-bold text-gray-800 mb-2">{t.needHelp}</h3>
           <p className="text-gray-600 mb-4">{t.supportTeam}</p>

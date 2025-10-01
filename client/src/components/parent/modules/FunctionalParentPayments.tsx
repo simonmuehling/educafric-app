@@ -326,13 +326,13 @@ const FunctionalParentPayments: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'paid':
-        return <CheckCircle2 className="w-5 h-5 text-green-600" />;
+        return <CheckCircle2 className="h-4 w-4 sm:h-5 sm:h-5 text-green-600" />;
       case 'pending':
-        return <Clock className="w-5 h-5 text-yellow-600" />;
+        return <Clock className="h-4 w-4 sm:h-5 sm:h-5 text-yellow-600" />;
       case 'overdue':
-        return <AlertTriangle className="w-5 h-5 text-red-600" />;
+        return <AlertTriangle className="h-4 w-4 sm:h-5 sm:h-5 text-red-600" />;
       default:
-        return <DollarSign className="w-5 h-5 text-gray-600" />;
+        return <DollarSign className="h-4 w-4 sm:h-5 sm:h-5 text-gray-600" />;
     }
   };
 
@@ -400,7 +400,7 @@ const FunctionalParentPayments: React.FC = () => {
         <Dialog open={isNewPaymentOpen} onOpenChange={setIsNewPaymentOpen}>
           <DialogTrigger asChild>
             <Button className="bg-green-600 hover:bg-green-700" data-testid="new-payment-button">
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
               {t.actions.newPayment}
             </Button>
           </DialogTrigger>
@@ -507,7 +507,7 @@ const FunctionalParentPayments: React.FC = () => {
                   className="flex-1"
                   data-testid="cancel-payment-button"
                 >
-                  <X className="w-4 h-4 mr-2" />
+                  <X className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                   {t.newPaymentForm.cancel}
                 </Button>
                 <Button
@@ -516,7 +516,7 @@ const FunctionalParentPayments: React.FC = () => {
                   disabled={createPaymentMutation.isPending}
                   data-testid="create-payment-button"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                   {createPaymentMutation.isPending ? 
                     (language === 'fr' ? 'Création...' : 'Creating...') : 
                     t.newPaymentForm.create
@@ -534,7 +534,7 @@ const FunctionalParentPayments: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <Wallet className="w-6 h-6 text-blue-600" />
+                <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.totalPayments}</p>
@@ -548,7 +548,7 @@ const FunctionalParentPayments: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle2 className="w-6 h-6 text-green-600" />
+                <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.paidAmount}</p>
@@ -562,7 +562,7 @@ const FunctionalParentPayments: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-yellow-100 rounded-lg">
-                <Clock className="w-6 h-6 text-yellow-600" />
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.pendingAmount}</p>
@@ -576,7 +576,7 @@ const FunctionalParentPayments: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-red-100 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.overduePayments}</p>
@@ -632,7 +632,7 @@ const FunctionalParentPayments: React.FC = () => {
         <CardContent>
           {(Array.isArray(filteredPayments) ? filteredPayments.length : 0) === 0 ? (
             <div className="text-center py-8">
-              <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <CreditCard className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noData}</h3>
               <p className="text-gray-600">Aucun paiement ne correspond à vos critères de filtre.</p>
             </div>
@@ -724,23 +724,23 @@ const FunctionalParentPayments: React.FC = () => {
                         <div className="flex flex-wrap gap-2">
                           {payment.status === 'pending' && (
                             <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                              <CreditCard className="w-4 h-4 mr-2" />
+                              <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                               {t?.actions?.payNow}
                             </Button>
                           )}
                           <Button variant="outline" size="sm">
-                            <Eye className="w-4 h-4 mr-2" />
+                            <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             {t?.actions?.viewInvoice}
                           </Button>
                           {payment.status === 'paid' && (
                             <Button variant="outline" size="sm">
-                              <Download className="w-4 h-4 mr-2" />
+                              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                               {t?.actions?.downloadReceipt}
                             </Button>
                           )}
                           {payment.status === 'pending' && payment.amount > 50000 && (
                             <Button variant="outline" size="sm">
-                              <Calendar className="w-4 h-4 mr-2" />
+                              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                               {t?.actions?.requestInstallment}
                             </Button>
                           )}

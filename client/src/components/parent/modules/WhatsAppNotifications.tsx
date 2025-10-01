@@ -267,8 +267,8 @@ const WhatsAppNotifications = () => {
   };
 
   const tabs = [
-    { id: 'settings', label: text.settings, icon: <Settings className="w-4 h-4" /> },
-    { id: 'history', label: text.history, icon: <MessageSquare className="w-4 h-4" /> }
+    { id: 'settings', label: text.settings, icon: <Settings className="h-4 w-4 sm:h-5 sm:w-5" /> },
+    { id: 'history', label: text.history, icon: <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" /> }
   ];
 
   return (
@@ -276,7 +276,7 @@ const WhatsAppNotifications = () => {
       {/* Coming Soon Notice */}
       <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
         <div className="flex items-center justify-center gap-3 mb-4">
-          <Clock className="w-8 h-8 text-yellow-500" />
+          <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />
           <h2 className="text-xl font-semibold text-yellow-800">
             {language === 'fr' ? 'Fonctionnalité en Développement' : 'Feature Under Development'}
           </h2>
@@ -301,7 +301,7 @@ const WhatsAppNotifications = () => {
         </div>
         <div className="flex items-center gap-3">
           <Badge variant={isVerified ? "default" : "secondary"} className={isVerified ? "bg-green-100 text-green-700" : ""}>
-            <MessageSquare className="w-3 h-3 mr-1" />
+            <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
             {isVerified ? text.verified : text.notVerified}
           </Badge>
         </div>
@@ -333,7 +333,7 @@ const WhatsAppNotifications = () => {
           <Card>
             <CardHeader>
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Phone className="w-5 h-5 text-green-500" />
+                <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
                 {text.whatsappNumber}
               </h3>
             </CardHeader>
@@ -353,7 +353,7 @@ const WhatsAppNotifications = () => {
                 >
                   {isVerified ? (
                     <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       {text.verified}
                     </>
                   ) : (
@@ -365,7 +365,7 @@ const WhatsAppNotifications = () => {
               {isVerified && (
                 <div className="flex gap-2">
                   <Button onClick={testNotification} variant="outline" size="sm">
-                    <Bell className="w-4 h-4 mr-2" />
+                    <Bell className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     {text.testNotification}
                   </Button>
                 </div>
@@ -377,7 +377,7 @@ const WhatsAppNotifications = () => {
           <Card>
             <CardHeader>
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Bell className="w-5 h-5 text-blue-500" />
+                <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
                 {text.enableNotifications}
               </h3>
             </CardHeader>
@@ -432,7 +432,7 @@ const WhatsAppNotifications = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-purple-500" />
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500" />
                 {text.recentNotifications}
               </h3>
               {notifications.some(n => !n.read) && (
@@ -445,7 +445,7 @@ const WhatsAppNotifications = () => {
           <CardContent>
             {(Array.isArray(notifications) ? notifications.length : 0) === 0 ? (
               <div className="text-center py-12">
-                <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                 <h4 className="text-lg font-medium text-gray-600 mb-2">
                   {text.noNotifications}
                 </h4>
@@ -462,7 +462,7 @@ const WhatsAppNotifications = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <Badge variant="outline">
-                              <User className="w-3 h-3 mr-1" />
+                              <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                               {notification.studentName}
                             </Badge>
                             {!notification.read && (
@@ -478,9 +478,9 @@ const WhatsAppNotifications = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           {notification.read ? (
-                            <CheckCircle className="w-4 h-4 text-green-500" />
+                            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                           ) : (
-                            <AlertCircle className="w-4 h-4 text-blue-500" />
+                            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
                           )}
                         </div>
                       </div>

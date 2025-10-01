@@ -328,7 +328,7 @@ const FunctionalParentChildren: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-6 h-6 text-blue-600" />
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.totalChildren}</p>
@@ -342,7 +342,7 @@ const FunctionalParentChildren: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
-                <Star className="w-6 h-6 text-green-600" />
+                <Star className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.excellentGrades}</p>
@@ -356,7 +356,7 @@ const FunctionalParentChildren: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.avgGrade}</p>
@@ -370,7 +370,7 @@ const FunctionalParentChildren: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-red-100 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.needsAttention}</p>
@@ -385,7 +385,7 @@ const FunctionalParentChildren: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <TrendingUp className="w-5 h-5 mr-2" />
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
             {language === 'fr' ? 'Actions Rapides' : 'Quick Actions'}
           </CardTitle>
         </CardHeader>
@@ -397,35 +397,35 @@ const FunctionalParentChildren: React.FC = () => {
               {
                 id: 'view-all-grades',
                 label: language === 'fr' ? 'Toutes les Notes' : 'All Grades',
-                icon: <FileText className="w-5 h-5" />,
+                icon: <FileText className="h-4 w-4 sm:h-5 sm:h-5" />,
                 onClick: handleViewAllGrades,
                 color: 'bg-blue-600 hover:bg-blue-700'
               },
               {
                 id: 'check-attendance',
                 label: language === 'fr' ? 'Vérifier Présences' : 'Check Attendance',
-                icon: <UserCheck className="w-5 h-5" />,
+                icon: <UserCheck className="h-4 w-4 sm:h-5 sm:h-5" />,
                 onClick: handleCheckAttendance,
                 color: 'bg-green-600 hover:bg-green-700'
               },
               {
                 id: 'send-message',
                 label: language === 'fr' ? 'Message École' : 'Message School',
-                icon: <Mail className="w-5 h-5" />,
+                icon: <Mail className="h-4 w-4 sm:h-5 sm:h-5" />,
                 onClick: handleSendMessage,
                 color: 'bg-purple-600 hover:bg-purple-700'
               },
               {
                 id: 'track-location',
                 label: language === 'fr' ? 'Géolocalisation' : 'Track Location',
-                icon: <MapPin className="w-5 h-5" />,
+                icon: <MapPin className="h-4 w-4 sm:h-5 sm:h-5" />,
                 onClick: handleTrackLocation,
                 color: 'bg-orange-600 hover:bg-orange-700'
               },
               {
                 id: 'export-children',
                 label: language === 'fr' ? 'Exporter Données' : 'Export Data',
-                icon: <Download className="w-5 h-5" />,
+                icon: <Download className="h-4 w-4 sm:h-5 sm:h-5" />,
                 onClick: handleExportChildren,
                 color: 'bg-orange-600 hover:bg-orange-700'
               }
@@ -441,7 +441,7 @@ const FunctionalParentChildren: React.FC = () => {
             <h3 className="text-lg font-semibold">Liste des Enfants</h3>
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <Search className="w-4 h-4 text-gray-500" />
+                <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
                 <input
                   type="text"
                   placeholder="Rechercher un enfant..."
@@ -451,7 +451,7 @@ const FunctionalParentChildren: React.FC = () => {
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <Filter className="w-4 h-4 text-gray-500" />
+                <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
                 <select
                   value={selectedFilter}
                   onChange={(e) => setSelectedFilter(e?.target?.value)}
@@ -469,7 +469,7 @@ const FunctionalParentChildren: React.FC = () => {
         <CardContent>
           {(Array.isArray(filteredChildren) ? filteredChildren.length : 0) === 0 ? (
             <div className="text-center py-8">
-              <GraduationCap className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <GraduationCap className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noData}</h3>
               <p className="text-gray-600">Aucun enfant ne correspond à vos critères de recherche.</p>
             </div>
@@ -520,11 +520,11 @@ const FunctionalParentChildren: React.FC = () => {
 
                         <div className="mb-4 text-sm text-gray-600">
                           <div className="flex items-center mb-1">
-                            <Calendar className="w-4 h-4 mr-2" />
+                            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             <span>Dernière activité: {new Date(child.lastActivity).toLocaleDateString()}</span>
                           </div>
                           <div className="flex items-center">
-                            <MapPin className="w-4 h-4 mr-2" />
+                            <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             <span>{child.schoolName}</span>
                           </div>
                         </div>
@@ -557,7 +557,7 @@ const FunctionalParentChildren: React.FC = () => {
                               });
                             })}
                           >
-                            <Eye className="w-4 h-4 mr-2" />
+                            <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             {t?.actions?.viewProgress}
                           </Button>
                           <Button 
@@ -587,7 +587,7 @@ const FunctionalParentChildren: React.FC = () => {
                               });
                             })}
                           >
-                            <BookOpen className="w-4 h-4 mr-2" />
+                            <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             {t?.actions?.viewGrades}
                           </Button>
                           <Button 
@@ -622,7 +622,7 @@ const FunctionalParentChildren: React.FC = () => {
                               });
                             })}
                           >
-                            <MessageCircle className="w-4 h-4 mr-2" />
+                            <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             {t?.actions?.contactTeacher}
                           </Button>
                           <Button 
@@ -652,7 +652,7 @@ const FunctionalParentChildren: React.FC = () => {
                               });
                             })}
                           >
-                            <Calendar className="w-4 h-4 mr-2" />
+                            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             {t?.actions?.viewAttendance}
                           </Button>
                         </div>

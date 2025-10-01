@@ -177,7 +177,7 @@ const ChildrenManagement = () => {
       {/* ✅ CONDITIONAL RENDERING - Loading State */}
       {isLoading && (
         <div className="text-center py-8">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <RefreshCw className="w-6 h-6 sm:w-8 sm:h-8 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-gray-600">
             {language === 'fr' ? 'Chargement des enfants...' : 'Loading children...'}
           </p>
@@ -187,12 +187,12 @@ const ChildrenManagement = () => {
       {/* ✅ CONDITIONAL RENDERING - Error State */}
       {error && (
         <div className="text-center py-8">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 text-red-500 mx-auto mb-4" />
           <p className="text-red-600">
             {language === 'fr' ? 'Erreur lors du chargement' : 'Error loading children'}
           </p>
           <Button onClick={() => refetch()} className="mt-4">
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             {language === 'fr' ? 'Réessayer' : 'Retry'}
           </Button>
         </div>
@@ -205,7 +205,7 @@ const ChildrenManagement = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-purple-600 rounded-lg flex items-center justify-center">
-            <Users className="w-5 h-5 text-white" />
+            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-800">
@@ -218,13 +218,13 @@ const ChildrenManagement = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => refetch()} data-testid="button-refresh-children">
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             {language === 'fr' ? 'Actualiser' : 'Refresh'}
           </Button>
           <Dialog open={isAddChildOpen} onOpenChange={setIsAddChildOpen}>
             <DialogTrigger asChild>
               <Button className="bg-purple-600 hover:bg-purple-700" data-testid="button-connect-child">
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 {language === 'fr' ? 'Connecter Enfant' : 'Connect Child'}
               </Button>
             </DialogTrigger>
@@ -313,26 +313,26 @@ const ChildrenManagement = () => {
         <ModernStatsCard
           title={language === 'fr' ? 'Mes Enfants' : 'My Children'}
           value={(statsData?.totalChildren || childrenData.length).toString()}
-          icon={<Users className="w-5 h-5" />}
+          icon={<Users className="w-5 h-5 sm:w-6 sm:h-6" />}
           gradient="blue"
         />
         <ModernStatsCard
           title={language === 'fr' ? 'Moyenne Globale' : 'Overall Average'}
           value={`${(statsData?.averageGrade || 0).toFixed(1)}/20`}
-          icon={<GraduationCap className="w-5 h-5" />}
+          icon={<GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" />}
           gradient="green"
           trend={{ value: 1.2, isPositive: true }}
         />
         <ModernStatsCard
           title={language === 'fr' ? 'Présence' : 'Attendance'}
           value={`${(statsData?.averageAttendance || 0).toFixed(1)}%`}
-          icon={<Calendar className="w-5 h-5" />}
+          icon={<Calendar className="w-5 h-5 sm:w-6 sm:h-6" />}
           gradient="purple"
         />
         <ModernStatsCard
           title={language === 'fr' ? 'Écoles' : 'Schools'}
           value={(statsData?.uniqueSchools || 0).toString()}
-          icon={<User className="w-5 h-5" />}
+          icon={<User className="w-5 h-5 sm:w-6 sm:h-6" />}
           gradient="orange"
         />
       </div>
@@ -347,7 +347,7 @@ const ChildrenManagement = () => {
         </h3>
         {childrenData.length === 0 ? (
           <div className="text-center py-12">
-            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <Users className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 text-lg mb-2">
               {language === 'fr' ? 'Aucun enfant connecté' : 'No children connected'}
             </p>
@@ -361,7 +361,7 @@ const ChildrenManagement = () => {
               onClick={() => setIsAddChildOpen(true)}
               className="bg-purple-600 hover:bg-purple-700"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               {language === 'fr' ? 'Connecter un Enfant' : 'Connect a Child'}
             </Button>
           </div>
@@ -428,11 +428,11 @@ const ChildrenManagement = () => {
                 
                 <div className="flex gap-3 flex-wrap">
                   <Button size="sm" variant="outline" data-testid={`button-view-details-${child.id}`}>
-                    <Eye className="w-4 h-4 mr-2" />
+                    <Eye className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     {language === 'fr' ? 'Voir Détails' : 'View Details'}
                   </Button>
                   <Button size="sm" variant="outline" data-testid={`button-contact-school-${child.id}`}>
-                    <MessageSquare className="w-4 h-4 mr-2" />
+                    <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     {language === 'fr' ? 'Contacter École' : 'Contact School'}
                   </Button>
                   <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" data-testid={`button-full-tracking-${child.id}`}>
@@ -440,7 +440,7 @@ const ChildrenManagement = () => {
                   </Button>
                   {child.parentConnection !== 'verified' && (
                     <Button size="sm" variant="outline" className="border-orange-200 text-orange-700">
-                      <Edit className="w-4 h-4 mr-2" />
+                      <Edit className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       {language === 'fr' ? 'Modifier Connexion' : 'Edit Connection'}
                     </Button>
                   )}

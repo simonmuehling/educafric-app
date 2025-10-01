@@ -233,7 +233,7 @@ const FunctionalParentProfile: React.FC = () => {
                 className="bg-blue-600 hover:bg-blue-700"
                 data-testid="button-edit-profile"
               >
-                <Edit className="w-4 h-4 mr-2" />
+                <Edit className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 {t.edit}
               </Button>
             ) : (
@@ -244,7 +244,7 @@ const FunctionalParentProfile: React.FC = () => {
                   className="bg-green-600 hover:bg-green-700"
                   data-testid="button-save-profile"
                 >
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   {updateProfileMutation.isPending ? 'Saving...' : t.save}
                 </Button>
                 <Button 
@@ -252,7 +252,7 @@ const FunctionalParentProfile: React.FC = () => {
                   onClick={handleCancel}
                   data-testid="button-cancel-profile"
                 >
-                  <X className="w-4 h-4 mr-2" />
+                  <X className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   {t.cancel}
                 </Button>
               </div>
@@ -272,7 +272,7 @@ const FunctionalParentProfile: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <User className="w-5 h-5 mr-2" />
+                  <User className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
                   {t.personalInfo}
                 </CardTitle>
               </CardHeader>
@@ -362,7 +362,7 @@ const FunctionalParentProfile: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Heart className="w-5 h-5 mr-2" />
+                  <Heart className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
                   {t.myChildren}
                 </CardTitle>
               </CardHeader>
@@ -372,7 +372,7 @@ const FunctionalParentProfile: React.FC = () => {
                     <div key={child.id || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-4">
                         <div className="bg-blue-100 rounded-full p-2">
-                          <Users className="w-5 h-5 text-blue-600" />
+                          <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-900">{child.name || ''}</h4>
@@ -397,14 +397,14 @@ const FunctionalParentProfile: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Bell className="w-5 h-5 mr-2" />
+                  <Bell className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
                   {t.notifications}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Smartphone className="w-4 h-4 text-gray-600" />
+                    <Smartphone className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
                     <span>{t.smsAlerts}</span>
                   </div>
                   <Switch
@@ -416,7 +416,7 @@ const FunctionalParentProfile: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-gray-600" />
+                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
                     <span>{t.emailReports}</span>
                   </div>
                   <Switch
@@ -428,7 +428,7 @@ const FunctionalParentProfile: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-gray-600" />
+                    <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
                     <span>{t.gradeAlerts}</span>
                   </div>
                   <Switch
@@ -440,7 +440,7 @@ const FunctionalParentProfile: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-600" />
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
                     <span>{t.attendanceAlerts}</span>
                   </div>
                   <Switch
@@ -452,7 +452,7 @@ const FunctionalParentProfile: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-gray-600" />
+                    <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
                     <span>{t.paymentReminders}</span>
                   </div>
                   <Switch
@@ -468,7 +468,7 @@ const FunctionalParentProfile: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Shield className="w-5 h-5 mr-2" />
+                  <Shield className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
                   Sécurité
                 </CardTitle>
               </CardHeader>
@@ -478,7 +478,7 @@ const FunctionalParentProfile: React.FC = () => {
                   className="w-full"
                   data-testid="button-change-password"
                 >
-                  <Lock className="w-4 h-4 mr-2" />
+                  <Lock className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   {t.changePassword}
                 </Button>
               </CardContent>
@@ -490,7 +490,7 @@ const FunctionalParentProfile: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <CreditCard className="w-5 h-5 mr-2" />
+                  <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
                   {t.subscription}
                 </CardTitle>
               </CardHeader>
