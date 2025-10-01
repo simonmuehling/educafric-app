@@ -422,7 +422,7 @@ const TimetableView: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           {/* Sélection école */}
           <div className="flex items-center gap-2">
-            <School className="w-4 h-4 text-gray-500" />
+            <School className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
             <Select value={selectedSchool} onValueChange={setSelectedSchool}>
               <SelectTrigger className="w-auto min-w-[180px]">
                 <SelectValue placeholder={t.schoolSelector} />
@@ -448,14 +448,14 @@ const TimetableView: React.FC = () => {
           
           {/* Boutons d'action */}
           <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
             {t?.actions?.export}
           </Button>
           <Button 
             onClick={() => setIsAddSlotOpen(true)}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
             {t?.actions?.addSlot}
           </Button>
           
@@ -465,7 +465,7 @@ const TimetableView: React.FC = () => {
             variant="outline"
             className="text-red-600 border-red-600 hover:bg-red-50"
           >
-            <LogOut className="w-4 h-4 mr-2" />
+            <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
             {t.logout}
           </Button>
         </div>
@@ -477,7 +477,7 @@ const TimetableView: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <Calendar className="w-6 h-6 text-blue-600" />
+                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.totalClasses}</p>
@@ -491,7 +491,7 @@ const TimetableView: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
-                <Clock className="w-6 h-6 text-green-600" />
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.hoursPerWeek}</p>
@@ -505,7 +505,7 @@ const TimetableView: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 rounded-lg">
-                <BookOpen className="w-6 h-6 text-purple-600" />
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.subjects}</p>
@@ -519,7 +519,7 @@ const TimetableView: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-orange-100 rounded-lg">
-                <MapPin className="w-6 h-6 text-orange-600" />
+                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.classrooms}</p>

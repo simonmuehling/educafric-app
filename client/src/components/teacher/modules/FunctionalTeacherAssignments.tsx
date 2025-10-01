@@ -523,7 +523,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
         </div>
         <div className="flex space-x-2">
           <Button variant="outline">
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
             {t?.actions?.export}
           </Button>
           <Button 
@@ -531,7 +531,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
             onClick={() => setIsCreateHomeworkOpen(true)}
             data-testid="button-create-homework"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
             {t?.actions?.createAssignment}
           </Button>
         </div>
@@ -544,7 +544,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center">
                 <div className="p-2 bg-blue-100 rounded-lg">
-                  <FileText className="w-6 h-6 text-blue-600" />
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-600">{t?.stats?.totalAssignments}</p>
@@ -558,7 +558,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center">
                 <div className="p-2 bg-green-100 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-green-600" />
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-600">{t?.stats?.avgCompletion}</p>
@@ -572,7 +572,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center">
                 <div className="p-2 bg-orange-100 rounded-lg">
-                  <Clock className="w-6 h-6 text-orange-600" />
+                  <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-600">{t?.stats?.pending}</p>
@@ -586,7 +586,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center">
                 <div className="p-2 bg-red-100 rounded-lg">
-                  <AlertCircle className="w-6 h-6 text-red-600" />
+                  <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-600">{t?.stats?.overdue}</p>
@@ -602,19 +602,19 @@ const FunctionalTeacherAssignments: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="active" className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             {t.tabs.active}
           </TabsTrigger>
           <TabsTrigger value="completed" className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4" />
+            <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             {t.tabs.completed}
           </TabsTrigger>
           <TabsTrigger value="overdue" className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
+            <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             {t.tabs.overdue}
           </TabsTrigger>
           <TabsTrigger value="archives" className="flex items-center gap-2">
-            <Archive className="w-4 h-4" />
+            <Archive className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             {t.tabs.archives}
           </TabsTrigger>
         </TabsList>
@@ -625,14 +625,14 @@ const FunctionalTeacherAssignments: React.FC = () => {
             <Card>
               <CardContent className="p-8">
                 <div className="text-center">
-                  <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noData}</h3>
                   <p className="text-gray-600 mb-4">Commencez par créer un devoir pour vos élèves.</p>
                   <Button 
                     onClick={() => setIsCreateHomeworkOpen(true)}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                     {t.actions.createAssignment}
                   </Button>
                 </div>
@@ -646,7 +646,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
-                          <FileText className="w-5 h-5 text-blue-600" />
+                          <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                           <h4 className="text-lg font-semibold text-gray-900">{assignment.title}</h4>
                           {getStatusBadge(assignment.status)}
                           {getPriorityBadge(assignment.priority)}
@@ -664,7 +664,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                           <div>
                             <p className="text-sm text-gray-600">Classe</p>
                             <p className="font-semibold flex items-center">
-                              <Users className="w-4 h-4 mr-1" />
+                              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                               {assignment.className}
                             </p>
                           </div>
@@ -675,7 +675,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                           <div>
                             <p className="text-sm text-gray-600">Échéance</p>
                             <p className="font-semibold flex items-center">
-                              <Calendar className="w-4 h-4 mr-1" />
+                              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                               {formatDate(assignment.dueDate)}
                             </p>
                           </div>
@@ -704,7 +704,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                           onClick={() => handleEditHomework(assignment)}
                           data-testid={`button-edit-homework-${assignment.id}`}
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="outline"
@@ -713,10 +713,10 @@ const FunctionalTeacherAssignments: React.FC = () => {
                           className="text-purple-600 hover:text-purple-700"
                           data-testid={`button-archive-homework-${assignment.id}`}
                         >
-                          <Archive className="w-4 h-4" />
+                          <Archive className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                         <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4" />
+                          <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </div>
@@ -732,7 +732,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
           <Card>
             <CardContent className="p-8">
               <div className="text-center">
-                <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
+                <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Devoirs Terminés</h3>
                 <p className="text-gray-600">Les devoirs terminés apparaîtront ici.</p>
               </div>
@@ -745,7 +745,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
           <Card>
             <CardContent className="p-8">
               <div className="text-center">
-                <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 text-red-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Devoirs en Retard</h3>
                 <p className="text-gray-600">Les devoirs en retard apparaîtront ici.</p>
               </div>

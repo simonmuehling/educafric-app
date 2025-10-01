@@ -345,15 +345,15 @@ const FunctionalTeacherAttendance: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'present':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
+        return <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />;
       case 'absent':
-        return <XCircle className="w-5 h-5 text-red-600" />;
+        return <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />;
       case 'late':
-        return <Clock className="w-5 h-5 text-orange-600" />;
+        return <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />;
       case 'excused':
-        return <AlertTriangle className="w-5 h-5 text-blue-600" />;
+        return <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />;
       default:
-        return <Clock className="w-5 h-5 text-gray-600" />;
+        return <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />;
     }
   };
 
@@ -386,7 +386,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
             onClick={() => handleExportAttendance()}
             data-testid="button-export-attendance"
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
             {t?.actions?.export}
           </Button>
           <Button 
@@ -394,7 +394,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
             onClick={() => setIsMarkAttendanceOpen(true)}
             data-testid="button-blue-mark-attendance"
           >
-            <CheckCircle className="w-4 h-4 mr-2" />
+            <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
             {t?.actions?.markAttendance}
           </Button>
         </div>
@@ -406,7 +406,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.present}</p>
@@ -420,7 +420,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-red-100 rounded-lg">
-                <XCircle className="w-6 h-6 text-red-600" />
+                <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.absent}</p>
@@ -434,7 +434,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-orange-100 rounded-lg">
-                <Clock className="w-6 h-6 text-orange-600" />
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.late}</p>
@@ -448,7 +448,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <AlertTriangle className="w-6 h-6 text-blue-600" />
+                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.excused}</p>
@@ -464,7 +464,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">
-              <CheckCircle className="w-5 h-5 mr-2 inline" />
+              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2 inline" />
               Marquer les Présences
             </h3>
           </div>
@@ -476,7 +476,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
               data-testid="button-mark-attendance"
               onClick={() => setIsMarkAttendanceOpen(true)}
             >
-              <CheckCircle className="w-4 h-4 mr-2" />
+              <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
               Marquer les Présences
             </Button>
             <div className="text-sm text-gray-500">
@@ -582,12 +582,12 @@ const FunctionalTeacherAttendance: React.FC = () => {
                               <div className="flex items-center">
                                 {student.status === 'present' ? (
                                   <div className="flex items-center text-green-600">
-                                    <CheckCircle className="w-4 h-4 mr-1" />
+                                    <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                                     <span className="text-xs">Présent</span>
                                   </div>
                                 ) : (
                                   <div className="flex items-center text-red-600">
-                                    <XCircle className="w-4 h-4 mr-1" />
+                                    <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                                     <span className="text-xs">Absent</span>
                                   </div>
                                 )}
@@ -641,7 +641,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
             <h3 className="text-lg font-semibold">Présences Récentes</h3>
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <Calendar className="w-4 h-4 text-gray-500" />
+                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
                 <input
                   type="date"
                   value={selectedDate}
@@ -650,7 +650,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <Filter className="w-4 h-4 text-gray-500" />
+                <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e?.target?.value)}
@@ -669,7 +669,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
         <CardContent>
           {(Array.isArray(attendance) ? attendance.length : 0) === 0 ? (
             <div className="text-center py-8">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <Users className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noData}</h3>
               <p className="text-gray-600">Commencez par marquer les présences de vos élèves.</p>
             </div>
@@ -702,10 +702,10 @@ const FunctionalTeacherAttendance: React.FC = () => {
                       <td className="py-3 px-4">
                         <div className="flex space-x-2">
                           <Button variant="outline" size="sm">
-                            <Eye className="w-4 h-4" />
+                            <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>
                           <Button variant="outline" size="sm">
-                            <Edit className="w-4 h-4" />
+                            <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                       </td>

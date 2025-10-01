@@ -144,7 +144,7 @@ const FunctionalTeacherClasses: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <School className="w-6 h-6 text-blue-600" />
+                <School className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.totalClasses}</p>
@@ -158,7 +158,7 @@ const FunctionalTeacherClasses: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
-                <Users className="w-6 h-6 text-green-600" />
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.totalStudents}</p>
@@ -172,7 +172,7 @@ const FunctionalTeacherClasses: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-orange-100 rounded-lg">
-                <Calendar className="w-6 h-6 text-orange-600" />
+                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.currentYear}</p>
@@ -186,7 +186,7 @@ const FunctionalTeacherClasses: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 rounded-lg">
-                <Clock className="w-6 h-6 text-purple-600" />
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.nextClass}</p>
@@ -201,7 +201,7 @@ const FunctionalTeacherClasses: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <TrendingUp className="w-5 h-5 mr-2" />
+            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             {language === 'fr' ? 'Actions Rapides' : 'Quick Actions'}
           </CardTitle>
         </CardHeader>
@@ -213,7 +213,7 @@ const FunctionalTeacherClasses: React.FC = () => {
               {
                 id: 'take-attendance',
                 label: language === 'fr' ? 'Prendre Présences' : 'Take Attendance',
-                icon: <CheckCircle className="w-5 h-5" />,
+                icon: <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />,
                 onClick: async () => {
                   console.log('[TEACHER_CLASSES] 📋 Taking attendance...');
                   try {
@@ -261,7 +261,7 @@ const FunctionalTeacherClasses: React.FC = () => {
               {
                 id: 'manage-grades',
                 label: language === 'fr' ? 'Gérer Notes' : 'Manage Grades',
-                icon: <BarChart3 className="w-5 h-5" />,
+                icon: <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />,
                 onClick: async () => {
                   console.log('[TEACHER_CLASSES] 📊 Managing grades...');
                   try {
@@ -308,7 +308,7 @@ const FunctionalTeacherClasses: React.FC = () => {
               {
                 id: 'send-message',
                 label: language === 'fr' ? 'Message Parents' : 'Message Parents',
-                icon: <Mail className="w-5 h-5" />,
+                icon: <Mail className="h-4 w-4 sm:h-5 sm:w-5" />,
                 onClick: () => {
                   console.log('[TEACHER_CLASSES] 💬 Navigating to communications module...');
                   const event = new CustomEvent('switchToCommunications');
@@ -319,7 +319,7 @@ const FunctionalTeacherClasses: React.FC = () => {
               {
                 id: 'export-list',
                 label: language === 'fr' ? 'Exporter Liste' : 'Export List',
-                icon: <Download className="w-5 h-5" />,
+                icon: <Download className="h-4 w-4 sm:h-5 sm:w-5" />,
                 onClick: () => {
                   const csvContent = [
                     ['Classe,Niveau,Section,Eleves,Capacite,Ecole'],
@@ -360,7 +360,7 @@ const FunctionalTeacherClasses: React.FC = () => {
         {(Array.isArray(classes) ? classes.length : 0) === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <GraduationCap className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <GraduationCap className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noClasses}</h3>
               <p className="text-gray-600">Contactez votre administration pour l'assignation des classes.</p>
             </CardContent>
@@ -372,7 +372,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="p-2 bg-blue-100 rounded-lg">
-                      <BookOpen className="w-6 h-6 text-blue-600" />
+                      <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{cls.name || ''}</h3>
@@ -386,7 +386,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                       {cls.studentCount}/{cls.capacity} {t?.class?.students}
                     </Badge>
                     <ChevronRight 
-                      className={`w-5 h-5 text-gray-400 transition-transform ${
+                      className={`h-4 w-4 sm:h-5 sm:w-5 text-gray-400 transition-transform ${
                         selectedClassId === cls.id ? 'rotate-90' : ''
                       }`}
                     />
@@ -429,7 +429,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                     }}
                     data-testid={`button-view-students-${cls.id}`}
                   >
-                    <Eye className="w-4 h-4 mr-2" />
+                    <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                     {t?.actions?.viewStudents}
                   </Button>
                   <Button 
@@ -445,7 +445,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                     }}
                     data-testid={`button-take-attendance-${cls.id}`}
                   >
-                    <Users className="w-4 h-4 mr-2" />
+                    <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                     {t?.actions?.takeAttendance}
                   </Button>
                   <Button 
@@ -461,7 +461,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                     }}
                     data-testid={`button-manage-grades-${cls.id}`}
                   >
-                    <BarChart3 className="w-4 h-4 mr-2" />
+                    <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                     {t?.actions?.manageGrades}
                   </Button>
                   <Button 
@@ -475,7 +475,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                     }}
                     data-testid={`button-settings-${cls.id}`}
                   >
-                    <Settings className="w-4 h-4 mr-2" />
+                    <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                     {t?.actions?.settings}
                   </Button>
                 </div>

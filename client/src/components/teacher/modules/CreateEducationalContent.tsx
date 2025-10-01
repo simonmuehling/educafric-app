@@ -378,7 +378,7 @@ const CreateEducationalContent = () => {
                     className="w-64"
                   />
                   <Button onClick={() => setIsCreateDialogOpen(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                     {t.createNew}
                   </Button>
                 </div>
@@ -460,7 +460,7 @@ const CreateEducationalContent = () => {
               <h3 className="text-lg font-semibold mb-4">{t.myLibrary}</h3>
               
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <Upload className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                 <h4 className="text-lg font-medium text-gray-700 mb-2">
                   Téléchargez vos ressources pédagogiques
                 </h4>
@@ -468,7 +468,7 @@ const CreateEducationalContent = () => {
                   Documents, images, vidéos, présentations...
                 </p>
                 <Button onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="w-4 h-4 mr-2" />
+                  <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                   {t.addFiles}
                 </Button>
                 <input
@@ -488,7 +488,7 @@ const CreateEducationalContent = () => {
                     {(Array.isArray(uploadedFiles) ? uploadedFiles : []).map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-blue-600" />
+                          <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
                           <span className="text-sm font-medium">{file.name || ''}</span>
                           <Badge variant="outline" className="text-xs">
                             {(file.size / 1024 / 1024).toFixed(1)} MB

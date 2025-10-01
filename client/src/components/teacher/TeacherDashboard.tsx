@@ -221,105 +221,105 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
     {
       id: 'classes',
       label: t.classes,
-      icon: <Users className="w-6 h-6" />,
+      icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-blue-500',
       component: createDynamicModule('teacher-classes')
     },
     {
       id: 'timetable',
       label: t.timetable,
-      icon: <Clock className="w-6 h-6" />,
+      icon: <Clock className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-green-500',
       component: createDynamicModule('teacher-timetable')
     },
     {
       id: 'calendar-export',
       label: t.calendarExport,
-      icon: <Calendar className="w-6 h-6" />,
+      icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-cyan-500',
       component: <CalendarExport userType="teacher" userId={user?.id} />
     },
     {
       id: 'attendance',
       label: t.attendance,
-      icon: <CheckSquare className="w-6 h-6" />,
+      icon: <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-500',
       component: createDynamicModule('teacher-attendance')
     },
     {
       id: 'assignments',
       label: t.assignments,
-      icon: <FileText className="w-6 h-6" />,
+      icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-pink-500',
       component: createDynamicModule('teacher-assignments')
     },
     {
       id: 'content',
       label: t.content,
-      icon: <PenTool className="w-6 h-6" />,
+      icon: <PenTool className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-yellow-500',
       component: createDynamicModule('teacher-content')
     },
     {
       id: 'library',
       label: language === 'fr' ? 'Bibliothèque' : 'Library',
-      icon: <BookOpen className="w-6 h-6" />,
+      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-emerald-500',
       component: createDynamicModule('teacher-library')
     },
     {
       id: 'reports',
       label: t.reports,
-      icon: <Calendar className="w-6 h-6" />,
+      icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-indigo-500',
       component: createDynamicModule('teacher-bulletins')
     },
     {
       id: 'communications',
       label: t.communications,
-      icon: <MessageSquare className="w-6 h-6" />,
+      icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-red-500',
       component: createDynamicModule('teacher-communications')
     },
     {
       id: 'online-classes',
       label: t.onlineClasses,
-      icon: <Video className="w-6 h-6" />,
+      icon: <Video className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600',
       component: createDynamicModule('teacher-online-classes')
     },
     {
       id: 'absence-declaration',
       label: t.absenceDeclaration,
-      icon: <UserX className="w-6 h-6" />,
+      icon: <UserX className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-orange-600',
       component: createDynamicModule('teacher-absence-declaration')
     },
     {
       id: 'notifications',
       label: t.notifications,
-      icon: <Bell className="w-6 h-6" />,
+      icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-blue-600',
       component: createDynamicModule('notifications')
     },
     {
       id: 'multirole',
       label: t.multirole,
-      icon: <Users className="w-6 h-6" />,
+      icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600',
       component: createDynamicModule('multirole')
     },
     {
       id: 'help',
       label: t.help,
-      icon: <HelpCircle className="w-6 h-6" />,
+      icon: <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-emerald-500',
       component: createDynamicModule('help')
     },
     {
       id: 'settings',
       label: language === 'fr' ? 'Paramètres' : 'Settings',
-      icon: <Settings className="w-6 h-6" />,
+      icon: <Settings className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-gray-600',
       component: createDynamicModule('teacher-settings')
     }

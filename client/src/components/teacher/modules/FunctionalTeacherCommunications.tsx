@@ -302,11 +302,11 @@ const FunctionalTeacherCommunications: React.FC = () => {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'urgent':
-        return <Star className="w-4 h-4 text-red-500" />;
+        return <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500" />;
       case 'announcement':
-        return <Mail className="w-4 h-4 text-blue-500" />;
+        return <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />;
       default:
-        return <MessageSquare className="w-4 h-4 text-gray-500" />;
+        return <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />;
     }
   };
 
@@ -350,7 +350,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
           }}
           data-testid="button-new-message"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
           {t?.actions?.compose}
         </Button>
       </div>
@@ -361,7 +361,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-red-100 rounded-lg">
-                <MessageSquare className="w-6 h-6 text-red-600" />
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.unread}</p>
@@ -375,7 +375,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <Inbox className="w-6 h-6 text-blue-600" />
+                <Inbox className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.today}</p>
@@ -389,7 +389,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
-                <Mail className="w-6 h-6 text-green-600" />
+                <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.parents}</p>
@@ -403,7 +403,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 rounded-lg">
-                <Phone className="w-6 h-6 text-purple-600" />
+                <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.students}</p>
@@ -447,7 +447,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                       });
                     }}
                   >
-                    <Search className="w-4 h-4" />
+                    <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </Button>
                   <Button 
                     variant="outline" 
@@ -460,7 +460,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                       });
                     }}
                   >
-                    <Filter className="w-4 h-4" />
+                    <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
               </div>
@@ -468,7 +468,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
             <CardContent className="p-0">
               {(Array.isArray(filteredCommunications) ? filteredCommunications.length : 0) === 0 ? (
                 <div className="text-center py-12">
-                  <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noData}</h3>
                   <p className="text-gray-600">Aucun message dans cette catégorie.</p>
                 </div>
@@ -576,7 +576,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                         });
                       }}
                     >
-                      <Reply className="w-4 h-4 mr-2" />
+                      <Reply className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                       {t?.actions?.reply}
                     </Button>
                     <Button 
@@ -597,7 +597,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                         });
                       }}
                     >
-                      <Forward className="w-4 h-4" />
+                      <Forward className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                     <Button 
                       variant="outline" 
@@ -611,7 +611,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                         setSelectedMessage(null);
                       }}
                     >
-                      <Archive className="w-4 h-4" />
+                      <Archive className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
@@ -636,7 +636,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                     }}
                     data-testid="button-compose-parent-message"
                   >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                     Nouveau message parent
                   </Button>
                   <Button 
@@ -658,7 +658,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                     }}
                     data-testid="button-compose-director-report"
                   >
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                     Rapport direction
                   </Button>
                 </div>
@@ -833,7 +833,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                     className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                     data-testid="button-send-compose"
                   >
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                     {sendMessageMutation.isPending ? 
                       (language === 'fr' ? 'Envoi...' : 'Sending...') : 
                       (language === 'fr' ? 'Envoyer' : 'Send')
