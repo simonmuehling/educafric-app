@@ -120,6 +120,35 @@ const TeacherOnlineClasses: React.FC = () => {
     startNow: false
   });
 
+  // Purchase duration state for teachers
+  const [purchaseDuration, setPurchaseDuration] = useState<'daily' | 'weekly' | 'monthly' | 'quarterly' | 'semestral' | 'yearly'>('yearly');
+
+  // Calculate price based on duration (base: 150,000 CFA/year)
+  const calculatePrice = (duration: typeof purchaseDuration) => {
+    const yearlyPrice = 150000;
+    switch (duration) {
+      case 'daily': return Math.round(yearlyPrice / 365);
+      case 'weekly': return Math.round(yearlyPrice / 52);
+      case 'monthly': return Math.round(yearlyPrice / 12);
+      case 'quarterly': return Math.round(yearlyPrice / 4);
+      case 'semestral': return Math.round(yearlyPrice / 2);
+      case 'yearly': return yearlyPrice;
+      default: return yearlyPrice;
+    }
+  };
+
+  const getDurationLabel = (duration: typeof purchaseDuration) => {
+    const labels = {
+      daily: { fr: 'Journalier (1 jour)', en: 'Daily (1 day)' },
+      weekly: { fr: 'Hebdomadaire (1 semaine)', en: 'Weekly (1 week)' },
+      monthly: { fr: 'Mensuel (1 mois)', en: 'Monthly (1 month)' },
+      quarterly: { fr: 'Trimestriel (3 mois)', en: 'Quarterly (3 months)' },
+      semestral: { fr: 'Semestriel (6 mois)', en: 'Semestral (6 months)' },
+      yearly: { fr: 'Annuel (1 an)', en: 'Yearly (1 year)' }
+    };
+    return labels[duration][language as 'fr' | 'en'];
+  };
+
   // Silence Replit dev noise
   useEffect(() => {
     const handler = (e: MessageEvent) => {
@@ -1011,35 +1040,78 @@ const TeacherOnlineClasses: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-            <Video className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {language === 'fr' ? 'Module Cours en Ligne Non Activé' : 'Online Classes Module Not Activated'}
-            </h3>
-            <p className="text-gray-700 mb-4">
-              {language === 'fr' 
-                ? accessData?.reason === 'no_school_activation' 
-                  ? 'Votre école n\'a pas encore activé le module de cours en ligne. Les enseignants indépendants peuvent acheter un accès personnel pour 150,000 CFA/an.'
-                  : 'Votre accès aux cours en ligne est actuellement restreint. Contactez votre administrateur ou achetez un accès personnel (150,000 CFA/an).'
-                : accessData?.reason === 'no_school_activation'
-                  ? 'Your school has not activated the online classes module. Independent teachers can purchase personal access for 150,000 CFA/year.'
-                  : 'Your access to online classes is currently restricted. Contact your administrator or purchase personal access (150,000 CFA/year).'
-              }
-            </p>
-            <Button
-              className="bg-purple-600 hover:bg-purple-700"
-              onClick={() => {
-                toast({
-                  title: language === 'fr' ? 'Paiements à venir' : 'Payments Coming Soon',
-                  description: language === 'fr' 
-                    ? 'L\'intégration des paiements Stripe et MTN Mobile Money sera disponible prochainement. Contactez l\'administration pour l\'activation.'
-                    : 'Stripe and MTN Mobile Money payment integration coming soon. Contact administration for activation.',
-                });
-              }}
-              data-testid="button-purchase-access"
-            >
-              {language === 'fr' ? 'Acheter l\'Accès (150,000 CFA/an)' : 'Purchase Access (150,000 CFA/year)'}
-            </Button>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <div className="text-center mb-6">
+              <Video className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {language === 'fr' ? 'Module Cours en Ligne Non Activé' : 'Online Classes Module Not Activated'}
+              </h3>
+              <p className="text-gray-700">
+                {language === 'fr' 
+                  ? accessData?.reason === 'no_school_activation' 
+                    ? 'Votre école n\'a pas encore activé le module de cours en ligne. Vous pouvez acheter un accès personnel.'
+                    : 'Votre accès aux cours en ligne est actuellement restreint. Contactez votre administrateur ou achetez un accès personnel.'
+                  : accessData?.reason === 'no_school_activation'
+                    ? 'Your school has not activated the online classes module. You can purchase personal access.'
+                    : 'Your access to online classes is currently restricted. Contact your administrator or purchase personal access.'
+                }
+              </p>
+            </div>
+
+            <div className="max-w-md mx-auto space-y-4">
+              {/* Duration Selection */}
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  {language === 'fr' ? 'Choisir la durée d\'abonnement' : 'Choose subscription duration'}
+                </Label>
+                <Select value={purchaseDuration} onValueChange={(value: any) => setPurchaseDuration(value)}>
+                  <SelectTrigger data-testid="select-purchase-duration" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">{getDurationLabel('daily')}</SelectItem>
+                    <SelectItem value="weekly">{getDurationLabel('weekly')}</SelectItem>
+                    <SelectItem value="monthly">{getDurationLabel('monthly')}</SelectItem>
+                    <SelectItem value="quarterly">{getDurationLabel('quarterly')}</SelectItem>
+                    <SelectItem value="semestral">{getDurationLabel('semestral')}</SelectItem>
+                    <SelectItem value="yearly">{getDurationLabel('yearly')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Price Display */}
+              <div className="bg-white rounded-lg p-4 border-2 border-purple-200">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-1">
+                    {language === 'fr' ? 'Prix' : 'Price'}
+                  </p>
+                  <p className="text-3xl font-bold text-purple-600">
+                    {calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {getDurationLabel(purchaseDuration)}
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                className="w-full bg-purple-600 hover:bg-purple-700"
+                onClick={() => {
+                  toast({
+                    title: language === 'fr' ? 'Paiements à venir' : 'Payments Coming Soon',
+                    description: language === 'fr' 
+                      ? `L'intégration des paiements Stripe et MTN Mobile Money sera disponible prochainement. Prix: ${calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA pour ${getDurationLabel(purchaseDuration).toLowerCase()}.`
+                      : `Stripe and MTN Mobile Money payment integration coming soon. Price: ${calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA for ${getDurationLabel(purchaseDuration).toLowerCase()}.`,
+                  });
+                }}
+                data-testid="button-purchase-access"
+              >
+                {language === 'fr' 
+                  ? `Acheter l'Accès (${calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA)` 
+                  : `Purchase Access (${calculatePrice(purchaseDuration).toLocaleString('fr-FR')} CFA)`
+                }
+              </Button>
+            </div>
           </div>
         </Card>
       </div>

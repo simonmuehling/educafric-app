@@ -17,7 +17,8 @@ const activateTeacherSchema = z.object({
   teacherId: z.number(),
   paymentId: z.string(),
   paymentMethod: z.enum(['stripe', 'mtn']),
-  amountPaid: z.number().default(150000)
+  durationType: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'semestral', 'yearly']).default('yearly'),
+  amountPaid: z.number().optional()
 });
 
 /**
@@ -101,15 +102,16 @@ router.post('/teachers',
         validated.teacherId,
         validated.paymentId,
         validated.paymentMethod,
+        validated.durationType,
         validated.amountPaid
       );
 
-      console.log(`[ONLINE_CLASS_ACTIVATION] ✅ Teacher ${validated.teacherId} activated (${validated.paymentMethod})`);
+      console.log(`[ONLINE_CLASS_ACTIVATION] ✅ Teacher ${validated.teacherId} activated (${validated.paymentMethod}, ${validated.durationType})`);
 
       res.status(201).json({
         success: true,
         activation,
-        message: 'Module cours en ligne activé (1 an)'
+        message: `Module cours en ligne activé (${validated.durationType})`
       });
     } catch (error) {
       console.error('[ONLINE_CLASS_ACTIVATION] Error activating teacher:', error);

@@ -71,30 +71,44 @@ export class OnlineClassActivationService {
   }
 
   /**
-   * Teacher purchases online class module (150,000 CFA for 1 year)
+   * Teacher purchases online class module (flexible duration)
+   * Default: 150,000 CFA for 1 year, proportional for other durations
    */
   async activateForTeacher(
     teacherId: number,
     paymentId: string,
     paymentMethod: "stripe" | "mtn",
-    amountPaid: number = 150000
+    durationType: "daily" | "weekly" | "monthly" | "quarterly" | "semestral" | "yearly" = "yearly",
+    amountPaid?: number
   ): Promise<OnlineClassActivation> {
     const startDate = new Date();
-    const endDate = this.calculateEndDate(startDate, "yearly");
+    const endDate = this.calculateEndDate(startDate, durationType);
+
+    // Calculate default amount if not provided
+    const yearlyPrice = 150000;
+    let defaultAmount = yearlyPrice;
+    switch (durationType) {
+      case 'daily': defaultAmount = Math.round(yearlyPrice / 365); break;
+      case 'weekly': defaultAmount = Math.round(yearlyPrice / 52); break;
+      case 'monthly': defaultAmount = Math.round(yearlyPrice / 12); break;
+      case 'quarterly': defaultAmount = Math.round(yearlyPrice / 4); break;
+      case 'semestral': defaultAmount = Math.round(yearlyPrice / 2); break;
+      case 'yearly': defaultAmount = yearlyPrice; break;
+    }
 
     const [activation] = await db
       .insert(onlineClassActivations)
       .values({
         activatorType: "teacher",
         activatorId: teacherId,
-        durationType: "yearly",
+        durationType,
         startDate,
         endDate,
         status: "active",
         activatedBy: "self_purchase",
         paymentId,
         paymentMethod,
-        amountPaid,
+        amountPaid: amountPaid ?? defaultAmount,
       })
       .returning();
 
