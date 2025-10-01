@@ -223,6 +223,7 @@ class FastModuleLoader {
       'siteadmin-security': () => import('@/components/siteadmin/modules/SecurityAudit'),
       'siteadmin-system': () => import('@/components/siteadmin/modules/FunctionalSiteAdminSystemHealth'),
       'siteadmin-settings': () => import('@/components/siteadmin/modules/FunctionalSiteAdminSettings'),
+      'siteadmin-online-class-activations': () => import('@/components/siteadmin/OnlineClassActivations'),
       
       // ROLE-NAMESPACED SETTINGS - PREVENT CONFLICTS
       'director.settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),

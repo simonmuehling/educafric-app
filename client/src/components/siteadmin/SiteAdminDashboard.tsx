@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useFastModules } from '@/utils/fastModuleLoader';
 import { useAuth } from '@/contexts/AuthContext';
-import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText, CreditCard, Building2, Network, Eye, Lock, UserCheck, Briefcase, Megaphone, Zap, LogOut, Hash } from 'lucide-react';
+import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText, CreditCard, Building2, Network, Eye, Lock, UserCheck, Briefcase, Megaphone, Zap, LogOut, Hash, Video } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -407,7 +407,7 @@ const SiteAdminDashboard: React.FC = () => {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex flex-wrap justify-start overflow-x-auto md:grid md:grid-cols-10 h-auto md:h-auto w-full bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm p-1 gap-0.5 md:gap-0 scrollbar-hide">
+          <TabsList className="flex flex-wrap justify-start overflow-x-auto md:grid md:grid-cols-11 h-auto md:h-auto w-full bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm p-1 gap-0.5 md:gap-0 scrollbar-hide">
             {/* Row 1 - Core Management */}
             <TabsTrigger 
               value="overview" 
@@ -480,6 +480,13 @@ const SiteAdminDashboard: React.FC = () => {
               title="Configuration"
             >
               <Settings className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="online-class-activations" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 rounded-md" 
+              title="Cours en Ligne"
+            >
+              <Video className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
           </TabsList>
 
@@ -619,6 +626,10 @@ const SiteAdminDashboard: React.FC = () => {
 
           <TabsContent value="settings" className="mt-6">
             {createDynamicModule('siteadmin-settings')}
+          </TabsContent>
+
+          <TabsContent value="online-class-activations" className="mt-6">
+            {createDynamicModule('siteadmin-online-class-activations')}
           </TabsContent>
         </Tabs>
       </div>
