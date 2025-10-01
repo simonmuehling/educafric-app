@@ -190,11 +190,11 @@ const StudentLearning = () => {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'video': return <Video className="w-5 h-5 text-red-500" />;
-      case 'document': return <FileText className="w-5 h-5 text-blue-500" />;
-      case 'quiz': return <Award className="w-5 h-5 text-purple-500" />;
-      case 'exercise': return <BookOpen className="w-5 h-5 text-green-500" />;
-      default: return <Book className="w-5 h-5 text-gray-500" />;
+      case 'video': return <Video className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" />;
+      case 'document': return <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />;
+      case 'quiz': return <Award className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500" />;
+      case 'exercise': return <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />;
+      default: return <Book className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />;
     }
   };
 
@@ -243,7 +243,7 @@ const StudentLearning = () => {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <AlertCircle className="w-12 h-12 sm:w-16 sm:h-16 text-red-500 mx-auto mb-4" />
           <p className="text-red-600">{t.error}</p>
         </div>
       </div>
@@ -262,7 +262,7 @@ const StudentLearning = () => {
         <ModernCard gradient="blue">
           <div className="flex items-center space-x-3">
             <div className="p-3 bg-blue-100 rounded-lg">
-              <Book className="w-6 h-6 text-blue-600" />
+              <Book className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">{t.totalResources}</p>
@@ -274,7 +274,7 @@ const StudentLearning = () => {
         <ModernCard gradient="green">
           <div className="flex items-center space-x-3">
             <div className="p-3 bg-green-100 rounded-lg">
-              <Award className="w-6 h-6 text-green-600" />
+              <Award className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">{t.completedResources}</p>
@@ -286,7 +286,7 @@ const StudentLearning = () => {
         <ModernCard gradient="purple">
           <div className="flex items-center space-x-3">
             <div className="p-3 bg-purple-100 rounded-lg">
-              <Clock className="w-6 h-6 text-purple-600" />
+              <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">{t.studyTime}</p>
@@ -298,7 +298,7 @@ const StudentLearning = () => {
         <ModernCard gradient="orange">
           <div className="flex items-center space-x-3">
             <div className="p-3 bg-orange-100 rounded-lg">
-              <Award className="w-6 h-6 text-orange-600" />
+              <Award className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">{t.certificates}</p>
@@ -374,11 +374,11 @@ const StudentLearning = () => {
                 {/* Metadata */}
                 <div className="flex items-center justify-between text-sm text-gray-500">
                   <div className="flex items-center space-x-1">
-                    <Clock className="w-4 h-4" />
+                    <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                     <span>{resource.duration}</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <Book className="w-4 h-4" />
+                    <Book className="h-4 w-4 sm:h-5 sm:w-5" />
                     <span>{resource.level}</span>
                   </div>
                 </div>
@@ -404,7 +404,7 @@ const StudentLearning = () => {
                     onClick={() => openResource(resource)}
                     className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
                   >
-                    <Play className="w-4 h-4" />
+                    <Play className="h-4 w-4 sm:h-5 sm:w-5" />
                     <span className="text-sm">
                       {resource.progress === 0 ? t.startLearning : 
                        resource.progress < 100 ? t.continueLearning : t.openResource}
@@ -417,7 +417,7 @@ const StudentLearning = () => {
                       disabled={isDownloading}
                       className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Download className="w-4 h-4" />
+                      <Download className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                   )}
                   
@@ -426,7 +426,7 @@ const StudentLearning = () => {
                       onClick={() => window.open(resource.url, '_blank')}
                       className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <ExternalLink className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                   )}
                 </div>
@@ -435,7 +435,7 @@ const StudentLearning = () => {
           ))
         ) : (
           <div className="col-span-3 text-center py-8">
-            <Book className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <Book className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500">{t.noResources}</p>
           </div>
         )}

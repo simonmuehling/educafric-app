@@ -143,42 +143,42 @@ const StudentHelp = () => {
       title: t.startHere,
       description: t.startHereDesc,
       category: 'account',
-      icon: <Book className="w-6 h-6 text-blue-500" />
+      icon: <Book className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />
     },
     {
       id: 'view-grades',
       title: t.viewGrades,
       description: t.viewGradesDesc,
       category: 'grades',
-      icon: <FileText className="w-6 h-6 text-green-500" />
+      icon: <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
     },
     {
       id: 'submit-homework',
       title: t.submitHomework,
       description: t.submitHomeworkDesc,
       category: 'homework',
-      icon: <Book className="w-6 h-6 text-purple-500" />
+      icon: <Book className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
     },
     {
       id: 'messaging',
       title: t.useMessaging,
       description: t.useMessagingDesc,
       category: 'account',
-      icon: <MessageSquare className="w-6 h-6 text-orange-500" />
+      icon: <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500" />
     },
     {
       id: 'profile',
       title: t.manageProfile,
       description: t.manageProfileDesc,
       category: 'account',
-      icon: <Users className="w-6 h-6 text-pink-500" />
+      icon: <Users className="w-6 h-6 sm:w-8 sm:h-8 text-pink-500" />
     },
     {
       id: 'troubleshooting',
       title: t.troubleshooting,
       description: t.troubleshootingDesc,
       category: 'technical',
-      icon: <HelpCircle className="w-6 h-6 text-red-500" />
+      icon: <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
     }
   ];
 
@@ -262,7 +262,7 @@ const StudentHelp = () => {
       {/* Search Bar */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
+          <Search className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
         </div>
         <input
           type="text"
@@ -349,7 +349,7 @@ const StudentHelp = () => {
           <ModernCard gradient="green">
             <div className="p-4 text-center">
               <div className="p-3 bg-green-100 rounded-lg mx-auto w-fit mb-3">
-                <Mail className="w-6 h-6 text-green-600" />
+                <Mail className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
               </div>
               <h4 className="font-semibold text-gray-900 mb-2">{t.supportEmail}</h4>
               <p className="text-sm text-gray-600 mb-3">{t.supportEmailDesc}</p>
@@ -365,7 +365,7 @@ const StudentHelp = () => {
           <ModernCard gradient="blue">
             <div className="p-4 text-center">
               <div className="p-3 bg-blue-100 rounded-lg mx-auto w-fit mb-3">
-                <Phone className="w-6 h-6 text-blue-600" />
+                <Phone className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
               </div>
               <h4 className="font-semibold text-gray-900 mb-2">{t.supportPhone}</h4>
               <p className="text-sm text-gray-600 mb-3">{t.supportPhoneDesc}</p>
@@ -381,7 +381,7 @@ const StudentHelp = () => {
           <ModernCard gradient="purple">
             <div className="p-4 text-center">
               <div className="p-3 bg-purple-100 rounded-lg mx-auto w-fit mb-3">
-                <MessageSquare className="w-6 h-6 text-purple-600" />
+                <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
               </div>
               <h4 className="font-semibold text-gray-900 mb-2">{t.onlineChat}</h4>
               <p className="text-sm text-gray-600 mb-3">{t.onlineChatDesc}</p>
@@ -403,14 +403,14 @@ const StudentHelp = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-gray-500" />
+                <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
                 <div>
                   <p className="text-sm text-gray-600">{t.email || ''}</p>
                   <p className="font-medium text-gray-900">info@educafric.com</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-gray-500" />
+                <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
                 <div>
                   <p className="text-sm text-gray-600">{t.phone}</p>
                   <p className="font-medium text-gray-900">+237 656 200 472</p>
@@ -419,7 +419,7 @@ const StudentHelp = () => {
             </div>
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
-                <Clock className="w-5 h-5 text-gray-500" />
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
                 <div>
                   <p className="text-sm text-gray-600">{t.hours}</p>
                   <p className="font-medium text-gray-900">{t.businessHours}</p>
@@ -433,7 +433,7 @@ const StudentHelp = () => {
       {/* No Results Message */}
       {(Array.isArray(filteredTopics) ? filteredTopics.length : 0) === 0 && (Array.isArray(filteredFAQs) ? filteredFAQs.length : 0) === 0 && (
         <div className="text-center py-8">
-          <HelpCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <HelpCircle className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500">{t.noResults}</p>
         </div>
       )}

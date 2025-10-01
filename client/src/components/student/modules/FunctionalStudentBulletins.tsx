@@ -181,7 +181,7 @@ const FunctionalStudentBulletins: React.FC = () => {
                 {t.backToList}
               </Button>
               <Button className="bg-blue-600 hover:bg-blue-700">
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 {t?.bulletin?.download}
               </Button>
             </div>
@@ -192,7 +192,7 @@ const FunctionalStudentBulletins: React.FC = () => {
             <Card className="bg-white border-gray-200">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
-                  <BarChart3 className="w-5 h-5 text-blue-600" />
+                  <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
                 <div className={`text-2xl font-bold ${getGradeColor(selectedBulletin.overallGrade)}`}>
                   {selectedBulletin.overallGrade}/20
@@ -204,7 +204,7 @@ const FunctionalStudentBulletins: React.FC = () => {
             <Card className="bg-white border-gray-200">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
-                  <Trophy className="w-5 h-5 text-yellow-600" />
+                  <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
                 </div>
                 <div className="text-2xl font-bold text-gray-900">
                   {selectedBulletin.rank}/{selectedBulletin.totalStudents}
@@ -216,7 +216,7 @@ const FunctionalStudentBulletins: React.FC = () => {
             <Card className="bg-white border-gray-200">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
-                  <Award className="w-5 h-5 text-purple-600" />
+                  <Award className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                 </div>
                 <div className="text-2xl font-bold text-gray-900">{selectedBulletin.conduct}</div>
                 <div className="text-sm text-gray-600">{t?.bulletin?.conduct}</div>
@@ -226,7 +226,7 @@ const FunctionalStudentBulletins: React.FC = () => {
             <Card className="bg-white border-gray-200">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
-                  <Clock className="w-5 h-5 text-red-600" />
+                  <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                 </div>
                 <div className="text-2xl font-bold text-gray-900">{selectedBulletin.absences}</div>
                 <div className="text-sm text-gray-600">{t?.bulletin?.absences}</div>
@@ -257,7 +257,7 @@ const FunctionalStudentBulletins: React.FC = () => {
                       <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
-                            <BookOpen className="w-4 h-4 text-gray-500" />
+                            <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
                             {grade.subject}
                           </div>
                         </td>
@@ -312,7 +312,7 @@ const FunctionalStudentBulletins: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="p-3 bg-blue-100 rounded-lg">
-                        <FileText className="w-6 h-6 text-blue-600" />
+                        <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
                       </div>
                       
                       <div>
@@ -354,7 +354,7 @@ const FunctionalStudentBulletins: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <GraduationCap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <GraduationCap className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">{t.noData}</h3>
             <p className="text-gray-600">{t.noDataDesc}</p>
           </div>

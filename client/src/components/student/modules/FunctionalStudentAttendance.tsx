@@ -136,11 +136,11 @@ const FunctionalStudentAttendance: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'present': return <CheckCircle className="w-4 h-4" />;
-      case 'absent': return <XCircle className="w-4 h-4" />;
-      case 'late': return <Clock className="w-4 h-4" />;
-      case 'excused': return <AlertCircle className="w-4 h-4" />;
-      default: return <Activity className="w-4 h-4" />;
+      case 'present': return <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />;
+      case 'absent': return <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />;
+      case 'late': return <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />;
+      case 'excused': return <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />;
+      default: return <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />;
     }
   };
 
@@ -180,7 +180,7 @@ const FunctionalStudentAttendance: React.FC = () => {
           <Card className="bg-white border-gray-200">
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center mb-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stats.rate}%</div>
               <div className="text-sm text-gray-600">{t?.stats?.overall}</div>
@@ -190,7 +190,7 @@ const FunctionalStudentAttendance: React.FC = () => {
           <Card className="bg-white border-gray-200">
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center mb-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stats.present}</div>
               <div className="text-sm text-gray-600">{t?.stats?.present}</div>
@@ -200,7 +200,7 @@ const FunctionalStudentAttendance: React.FC = () => {
           <Card className="bg-white border-gray-200">
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center mb-2">
-                <XCircle className="w-5 h-5 text-red-600" />
+                <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stats.absent}</div>
               <div className="text-sm text-gray-600">{t?.stats?.absent}</div>
@@ -210,7 +210,7 @@ const FunctionalStudentAttendance: React.FC = () => {
           <Card className="bg-white border-gray-200">
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center mb-2">
-                <Clock className="w-5 h-5 text-orange-600" />
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stats.late}</div>
               <div className="text-sm text-gray-600">{t?.stats?.late}</div>
@@ -220,7 +220,7 @@ const FunctionalStudentAttendance: React.FC = () => {
           <Card className="bg-white border-gray-200">
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center mb-2">
-                <AlertCircle className="w-5 h-5 text-blue-600" />
+                <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stats.excused}</div>
               <div className="text-sm text-gray-600">{t?.stats?.excused}</div>
@@ -230,7 +230,7 @@ const FunctionalStudentAttendance: React.FC = () => {
           <Card className="bg-white border-gray-200">
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center mb-2">
-                <BarChart3 className="w-5 h-5 text-purple-600" />
+                <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
               <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
               <div className="text-sm text-gray-600">{t?.stats?.total}</div>
@@ -310,19 +310,19 @@ const FunctionalStudentAttendance: React.FC = () => {
                       
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="w-4 h-4 text-gray-500" />
+                          <Calendar className="h-4 w-4 sm:h-5 sm:h-5 text-gray-500" />
                           <span className="font-medium">{new Date(record.date).toLocaleDateString()}</span>
                           <span className="text-gray-500">•</span>
                           <span className="text-gray-600">{record.period}</span>
                         </div>
                         
                         <div className="flex items-center gap-2 text-sm">
-                          <BookOpen className="w-4 h-4 text-gray-500" />
+                          <BookOpen className="h-4 w-4 sm:h-5 sm:h-5 text-gray-500" />
                           <span className="font-medium">{record.subject}</span>
                         </div>
                         
                         <div className="flex items-center gap-2 text-sm">
-                          <User className="w-4 h-4 text-gray-500" />
+                          <User className="h-4 w-4 sm:h-5 sm:h-5 text-gray-500" />
                           <span className="text-gray-600">{record.teacher}</span>
                         </div>
                         
@@ -348,7 +348,7 @@ const FunctionalStudentAttendance: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <CalendarDays className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <CalendarDays className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{t.noRecords}</h3>
                 <p className="text-gray-600">{t.noRecordsDesc}</p>
               </div>

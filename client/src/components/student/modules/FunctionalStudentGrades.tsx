@@ -173,9 +173,9 @@ const FunctionalStudentGrades: React.FC = () => {
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <TrendingUp className="w-4 h-4 text-green-600" />;
-      case 'down': return <TrendingDown className="w-4 h-4 text-red-600" />;
-      default: return <BarChart3 className="w-4 h-4 text-blue-600" />;
+      case 'up': return <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />;
+      case 'down': return <TrendingDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />;
+      default: return <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />;
     }
   };
 
@@ -191,7 +191,7 @@ const FunctionalStudentGrades: React.FC = () => {
     return (
       <div className="p-8">
         <div className="text-center">
-          <Clock className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <Clock className="h-6 w-6 sm:h-8 sm:w-8 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-gray-600">{t.loading}</p>
         </div>
       </div>
@@ -208,12 +208,12 @@ const FunctionalStudentGrades: React.FC = () => {
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <Button variant="outline" onClick={() => refetch()} className="flex-1 sm:flex-none">
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
             <span className="hidden sm:inline">{t.refresh}</span>
             <span className="sm:hidden">↻</span>
           </Button>
           <Button variant="outline" className="flex-1 sm:flex-none">
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
             <span className="hidden sm:inline">{t.download}</span>
             <span className="sm:hidden">↓</span>
           </Button>
@@ -229,7 +229,7 @@ const FunctionalStudentGrades: React.FC = () => {
                 <p className="text-blue-100 text-sm font-medium">{t.overall}</p>
                 <p className="text-3xl font-bold">{summary?.overallAverage?.toFixed(1)}/20</p>
               </div>
-              <Trophy className="w-8 h-8 text-blue-200" />
+              <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-blue-200" />
             </div>
             <div className="flex items-center mt-2">
               {getTrendIcon(summary.trend)}
@@ -245,7 +245,7 @@ const FunctionalStudentGrades: React.FC = () => {
                 <p className="text-green-100 text-sm font-medium">{t.rank}</p>
                 <p className="text-3xl font-bold">{summary.rank}/{summary.totalStudents}</p>
               </div>
-              <Medal className="w-8 h-8 text-green-200" />
+              <Medal className="w-6 h-6 sm:w-8 sm:h-8 text-green-200" />
             </div>
             <div className="mt-2">
               <Progress 
@@ -263,7 +263,7 @@ const FunctionalStudentGrades: React.FC = () => {
                 <p className="text-purple-100 text-sm font-medium">{t.performance}</p>
                 <p className="text-lg font-bold">{getPerformanceLabel(summary.overallAverage)}</p>
               </div>
-              <Star className="w-8 h-8 text-purple-200" />
+              <Star className="w-6 h-6 sm:w-8 sm:h-8 text-purple-200" />
             </div>
           </CardContent>
         </Card>
@@ -303,7 +303,7 @@ const FunctionalStudentGrades: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <TrendingUp className="w-5 h-5 mr-2" />
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:w-6 mr-2" />
             {language === 'fr' ? 'Actions Rapides' : 'Quick Actions'}
           </CardTitle>
         </CardHeader>
@@ -315,7 +315,7 @@ const FunctionalStudentGrades: React.FC = () => {
               {
                 id: 'view-progress',
                 label: language === 'fr' ? 'Voir Progrès' : 'View Progress',
-                icon: <Eye className="w-5 h-5" />,
+                icon: <Eye className="w-5 h-5 sm:w-6 sm:w-6" />,
                 onClick: () => {
                   toast({
                     title: language === 'fr' ? 'Progrès Scolaire' : 'Academic Progress',
@@ -327,7 +327,7 @@ const FunctionalStudentGrades: React.FC = () => {
               {
                 id: 'contact-teacher',
                 label: language === 'fr' ? 'Contacter Professeur' : 'Contact Teacher',
-                icon: <Mail className="w-5 h-5" />,
+                icon: <Mail className="w-5 h-5 sm:w-6 sm:w-6" />,
                 onClick: () => {
                   toast({
                     title: language === 'fr' ? 'Communication' : 'Communication',
@@ -339,7 +339,7 @@ const FunctionalStudentGrades: React.FC = () => {
               {
                 id: 'view-report',
                 label: language === 'fr' ? 'Bulletin de Notes' : 'Report Card',
-                icon: <FileText className="w-5 h-5" />,
+                icon: <FileText className="w-5 h-5 sm:w-6 sm:w-6" />,
                 onClick: () => {
                   toast({
                     title: language === 'fr' ? 'Bulletin' : 'Report Card',
@@ -351,7 +351,7 @@ const FunctionalStudentGrades: React.FC = () => {
               {
                 id: 'download-grades',
                 label: language === 'fr' ? 'Télécharger Notes' : 'Download Grades',
-                icon: <Download className="w-5 h-5" />,
+                icon: <Download className="w-5 h-5 sm:w-6 sm:w-6" />,
                 onClick: () => {
                   const csvContent = [
                     ['Matiere,Note,Note_Max,Coefficient,Type,Date,Professeur'],
@@ -397,7 +397,7 @@ const FunctionalStudentGrades: React.FC = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">{t.noGrades}</p>
             </div>
           </CardContent>
@@ -421,15 +421,15 @@ const FunctionalStudentGrades: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                       <div className="flex items-center">
-                        <User className="w-4 h-4 mr-2" />
+                        <User className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
                         {grade.teacher}
                       </div>
                       <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-2" />
+                        <Calendar className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
                         {new Date(grade.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
                       </div>
                       <div className="flex items-center">
-                        <Target className="w-4 h-4 mr-2" />
+                        <Target className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
                         Coefficient: {grade.coefficient}
                       </div>
                     </div>

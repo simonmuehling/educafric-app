@@ -183,7 +183,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
       <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
         <CardHeader>
           <CardTitle className="flex items-center space-x-3 text-purple-800">
-            <QrCode className="h-6 w-6" />
+            <QrCode className="h-6 w-6 sm:h-8 sm:w-8" />
             <span>{t.title || ''}</span>
           </CardTitle>
           <p className="text-purple-600">{t.subtitle}</p>
@@ -194,7 +194,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <QrCode className="h-5 w-5" />
+            <QrCode className="w-5 h-5 sm:w-6 sm:h-6" />
             <span>{t.purpose}</span>
           </CardTitle>
         </CardHeader>
@@ -211,9 +211,9 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
               >
                 <CardContent className="pt-4 text-center">
                   <div className="text-lg mb-2">
-                    {purpose === 'parent-connection' && <Users className="h-8 w-8 mx-auto text-blue-600" />}
-                    {purpose === 'event-registration' && <Calendar className="h-8 w-8 mx-auto text-green-600" />}
-                    {purpose === 'resource-sharing' && <BookOpen className="h-8 w-8 mx-auto text-purple-600" />}
+                    {purpose === 'parent-connection' && <Users className="h-8 w-8 sm:h-10 sm:w-10 mx-auto text-blue-600" />}
+                    {purpose === 'event-registration' && <Calendar className="h-8 w-8 sm:h-10 sm:w-10 mx-auto text-green-600" />}
+                    {purpose === 'resource-sharing' && <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 mx-auto text-purple-600" />}
                   </div>
                   <p className="text-sm font-medium">{t.purposes[purpose]}</p>
                 </CardContent>
@@ -268,7 +268,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
                 size="lg"
                 className="w-full md:w-auto"
               >
-                <QrCode className="h-5 w-5 mr-2" />
+                <QrCode className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
                 {loading ? t.processing : `${t.generate} ${t.purposes[qrPurpose]}`}
               </Button>
             ) : (
@@ -295,7 +295,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium text-gray-700">{t.expires}:</span>
                     <span className="text-red-600 flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
+                      <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-1" />
                       {formatExpiry(qrData.expiresAt)}
                     </span>
                   </div>
@@ -304,11 +304,11 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
                 {/* Actions */}
                 <div className="flex space-x-4 justify-center">
                   <Button onClick={downloadQR} variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
+                    <Download className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     {t.download}
                   </Button>
                   <Button onClick={generateQR} disabled={loading}>
-                    <QrCode className="h-4 w-4 mr-2" />
+                    <QrCode className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     {t.generate}
                   </Button>
                 </div>
@@ -323,7 +323,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
         <Card className="border-blue-200">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-blue-800">
-              <CheckCircle className="h-5 w-5" />
+              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
               <span>{t?.instructions?.title}</span>
             </CardTitle>
           </CardHeader>
@@ -339,7 +339,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
         <Card className="border-green-200">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-green-800">
-              <AlertCircle className="h-5 w-5" />
+              <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6" />
               <span>{t?.security?.title}</span>
             </CardTitle>
           </CardHeader>
@@ -358,7 +358,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
         <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
           <CardContent className="pt-6">
             <div className="flex items-center justify-center space-x-3">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+              <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
               <div className="text-center">
                 <h3 className="font-medium text-green-800">
                   {language === 'fr' ? 'Code QR Actif' : 'QR Code Active'}

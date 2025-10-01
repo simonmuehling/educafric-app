@@ -136,10 +136,10 @@ const StudentProgress = () => {
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <TrendingUp className="w-4 h-4 text-green-500" />;
-      case 'down': return <TrendingUp className="w-4 h-4 text-red-500 transform rotate-180" />;
-      case 'stable': return <BarChart3 className="w-4 h-4 text-blue-500" />;
-      default: return <BarChart3 className="w-4 h-4 text-gray-500" />;
+      case 'up': return <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />;
+      case 'down': return <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 transform rotate-180" />;
+      case 'stable': return <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />;
+      default: return <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />;
     }
   };
 
@@ -196,7 +196,7 @@ const StudentProgress = () => {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <AlertCircle className="w-12 h-12 sm:w-16 sm:h-16 text-red-500 mx-auto mb-4" />
           <p className="text-red-600">{t.error}</p>
         </div>
       </div>
@@ -236,7 +236,7 @@ const StudentProgress = () => {
         <ModernCard variant="gradient">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-blue-100 rounded-lg">
-              <BarChart3 className="w-8 h-8 text-blue-600" />
+              <BarChart3 className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">{t.average}</p>
@@ -249,7 +249,7 @@ const StudentProgress = () => {
         <ModernCard variant="gradient">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-green-100 rounded-lg">
-              <Target className="w-8 h-8 text-green-600" />
+              <Target className="w-8 h-8 sm:w-10 sm:h-10 text-green-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">{t.academicGoals}</p>
@@ -262,7 +262,7 @@ const StudentProgress = () => {
         <ModernCard variant="gradient">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-purple-100 rounded-lg">
-              <Trophy className="w-8 h-8 text-purple-600" />
+              <Trophy className="w-8 h-8 sm:w-10 sm:h-10 text-purple-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">{t.earnedPoints}</p>
@@ -352,7 +352,7 @@ const StudentProgress = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <BarChart3 className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">{t.noData}</p>
             </div>
           )}
@@ -368,18 +368,18 @@ const StudentProgress = () => {
                 <ModernCard key={achievement.id} variant="gradient">
                   <div className="flex items-center space-x-4">
                     <div className="p-3 bg-yellow-100 rounded-lg">
-                      <Trophy className="w-6 h-6 text-yellow-600" />
+                      <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600" />
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900">{achievement.title || ''}</h4>
                       <p className="text-sm text-gray-600">{achievement.description || ''}</p>
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center space-x-1 text-xs text-gray-500">
-                          <Calendar className="w-3 h-3" />
+                          <Calendar className="w-3 h-3 sm:h-4 sm:w-4" />
                           <span>{new Date(achievement.date).toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center space-x-1 text-xs text-yellow-600 font-medium">
-                          <Star className="w-3 h-3" />
+                          <Star className="w-3 h-3 sm:h-4 sm:w-4" />
                           <span>+{achievement.points} {t.points}</span>
                         </div>
                       </div>
@@ -390,7 +390,7 @@ const StudentProgress = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">{language === 'fr' ? 'Aucune réussite pour le moment' : 'No achievements yet'}</p>
             </div>
           )}

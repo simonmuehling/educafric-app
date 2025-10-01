@@ -215,112 +215,112 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
     {
       id: 'timetable',
       label: t.timetable,
-      icon: <Clock className="w-6 h-6" />,
+      icon: <Clock className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-blue-500',
       component: createDynamicModule('timetable')
     },
     {
       id: 'grades',
       label: t.grades,
-      icon: <BarChart3 className="w-6 h-6" />,
+      icon: <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-green-500',
       component: createDynamicModule('grades')
     },
     {
       id: 'assignments',
       label: t.assignments,
-      icon: <FileText className="w-6 h-6" />,
+      icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-500',
       component: createDynamicModule('assignments')
     },
     {
       id: 'bulletins',
       label: t.notes,
-      icon: <FileText className="w-6 h-6" />,
+      icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-orange-500',
       component: createDynamicModule('bulletins')
     },
     {
       id: 'library',
       label: language === 'fr' ? 'Bibliothèque' : 'Library',
-      icon: <BookOpen className="w-6 h-6" />,
+      icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-emerald-500',
       component: createDynamicModule('student-library')
     },
     {
       id: 'attendance',
       label: t.attendance,
-      icon: <Calendar className="w-6 h-6" />,
+      icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-pink-500',
       component: createDynamicModule('attendance')
     },
     {
       id: 'progress',
       label: t.progress,
-      icon: <Target className="w-6 h-6" />,
+      icon: <Target className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-yellow-500',
       component: createDynamicModule('progress')
     },
     {
       id: 'messages',
       label: t.messages,
-      icon: <MessageSquare className="w-6 h-6" />,
+      icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-indigo-500',
       component: createDynamicModule('messages')
     },
     {
       id: 'online-classes',
       label: t.onlineClasses,
-      icon: <Video className="w-6 h-6" />,
+      icon: <Video className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600',
       component: createDynamicModule('student-online-classes')
     },
     {
       id: 'parentConnection',
       label: t.parentConnection,
-      icon: <Heart className="w-6 h-6" />,
+      icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-pink-600',
       component: createDynamicModule('parentConnection')
     },
     {
       id: 'achievements',
       label: t.achievements,
-      icon: <Award className="w-6 h-6" />,
+      icon: <Award className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-red-500',
       component: createDynamicModule('achievements')
     },
     {
       id: 'student-settings',
       label: language === 'fr' ? 'Paramètres Étudiant' : 'Student Settings',
-      icon: <User className="w-6 h-6" />,
+      icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-teal-500',
       component: createDynamicModule('student-settings')
     },
     {
       id: 'help',
       label: t.help,
-      icon: <HelpCircle className="w-6 h-6" />,
+      icon: <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-slate-500',
       component: createDynamicModule('help')
     },
     {
       id: 'notifications',
       label: t.notifications,
-      icon: <Bell className="w-6 h-6" />,
+      icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-blue-600',
       component: createDynamicModule('notifications')
     },
     {
       id: 'geolocation',
       label: 'Géolocalisation',
-      icon: <MapPin className="w-6 h-6" />,
+      icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-emerald-500',
       component: createDynamicModule('student-geolocation')
     },
     {
       id: 'multirole',
       label: 'Multi-Rôles',
-      icon: <User className="w-6 h-6" />,
+      icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600',
       component: createDynamicModule('multirole')
     }

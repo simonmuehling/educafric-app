@@ -154,7 +154,7 @@ const FunctionalStudentClasses: React.FC = () => {
             <CardContent className="pt-6">
               <div className="flex items-center">
                 <div className="p-3 bg-blue-100 rounded-full">
-                  <BookOpen className="w-6 h-6 text-blue-600" />
+                  <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{t.stats.totalClasses}</p>
@@ -168,7 +168,7 @@ const FunctionalStudentClasses: React.FC = () => {
             <CardContent className="pt-6">
               <div className="flex items-center">
                 <div className="p-3 bg-green-100 rounded-full">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{t.stats.activeClasses}</p>
@@ -182,7 +182,7 @@ const FunctionalStudentClasses: React.FC = () => {
             <CardContent className="pt-6">
               <div className="flex items-center">
                 <div className="p-3 bg-purple-100 rounded-full">
-                  <GraduationCap className="w-6 h-6 text-purple-600" />
+                  <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{t.stats.avgGrade}</p>
@@ -196,7 +196,7 @@ const FunctionalStudentClasses: React.FC = () => {
             <CardContent className="pt-6">
               <div className="flex items-center">
                 <div className="p-3 bg-orange-100 rounded-full">
-                  <Users className="w-6 h-6 text-orange-600" />
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{t.stats.attendance}</p>
@@ -211,7 +211,7 @@ const FunctionalStudentClasses: React.FC = () => {
         <div className="space-y-6">
           {classes.length === 0 ? (
             <Card className="p-12 text-center">
-              <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noData}</h3>
               <p className="text-gray-600">
                 {language === 'fr' ? 'Aucun cours disponible pour le moment.' : 'No classes available at the moment.'}
@@ -224,7 +224,7 @@ const FunctionalStudentClasses: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="p-3 bg-blue-100 rounded-lg">
-                        <BookOpen className="w-6 h-6 text-blue-600" />
+                        <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                       </div>
                       <div>
                         <CardTitle className="text-xl">{classItem.name || ''}</CardTitle>
@@ -246,14 +246,14 @@ const FunctionalStudentClasses: React.FC = () => {
                     <div>
                       <p className="text-sm text-gray-600 mb-1">{t.class.room}</p>
                       <div className="flex items-center">
-                        <MapPin className="w-4 h-4 text-gray-400 mr-1" />
+                        <MapPin className="h-4 w-4 sm:h-5 sm:h-5 text-gray-400 mr-1" />
                         <span className="font-medium">{classItem.room}</span>
                       </div>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 mb-1">{t.class.schedule}</p>
                       <div className="flex items-center">
-                        <Clock className="w-4 h-4 text-gray-400 mr-1" />
+                        <Clock className="h-4 w-4 sm:h-5 sm:h-5 text-gray-400 mr-1" />
                         <span className="font-medium">{classItem.schedule}</span>
                       </div>
                     </div>
@@ -283,13 +283,13 @@ const FunctionalStudentClasses: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:h-5 text-green-600" />
                         <span className="text-sm text-gray-600">
                           {classItem.completedAssignments}/{classItem.assignments} {t.class.completed}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <AlertCircle className="w-4 h-4 text-orange-600" />
+                        <AlertCircle className="h-4 w-4 sm:h-5 sm:h-5 text-orange-600" />
                         <span className="text-sm text-gray-600">
                           {classItem.assignments - classItem.completedAssignments} {t.class.pending}
                         </span>
@@ -329,7 +329,7 @@ const FunctionalStudentClasses: React.FC = () => {
                         }}
                         data-testid={`button-view-details-${classItem.id}`}
                       >
-                        <Eye className="w-4 h-4 mr-2" />
+                        <Eye className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
                         {t.actions.viewDetails}
                       </Button>
                       <Button 
@@ -371,7 +371,7 @@ const FunctionalStudentClasses: React.FC = () => {
                         }}
                         data-testid={`button-view-assignments-${classItem.id}`}
                       >
-                        <FileText className="w-4 h-4 mr-2" />
+                        <FileText className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
                         {t.actions.viewAssignments}
                       </Button>
                       <Button 
@@ -385,7 +385,7 @@ const FunctionalStudentClasses: React.FC = () => {
                         }}
                         data-testid={`button-download-materials-${classItem.id}`}
                       >
-                        <Download className="w-4 h-4 mr-2" />
+                        <Download className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
                         {t.actions.downloadMaterials}
                       </Button>
                       {classItem.status === 'active' && (
@@ -400,7 +400,7 @@ const FunctionalStudentClasses: React.FC = () => {
                           }}
                           data-testid={`button-join-class-${classItem.id}`}
                         >
-                          <Users className="w-4 h-4 mr-2" />
+                          <Users className="h-4 w-4 sm:h-5 sm:h-5 mr-2" />
                           {t.actions.joinClass}
                         </Button>
                       )}

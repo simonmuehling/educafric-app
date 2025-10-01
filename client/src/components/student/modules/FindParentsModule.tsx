@@ -492,10 +492,10 @@ const FindParentsModule: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'verified': return <CheckCircle2 className="w-4 h-4" />;
-      case 'pending': return <Clock className="w-4 h-4" />;
-      case 'rejected': return <XCircle className="w-4 h-4" />;
-      default: return <Clock className="w-4 h-4" />;
+      case 'verified': return <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />;
+      case 'pending': return <Clock className="h-4 w-4 sm:h-5 sm:w-5" />;
+      case 'rejected': return <XCircle className="h-4 w-4 sm:h-5 sm:w-5" />;
+      default: return <Clock className="h-4 w-4 sm:h-5 sm:w-5" />;
     }
   };
 
@@ -504,7 +504,7 @@ const FindParentsModule: React.FC = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-6 rounded-xl">
         <h1 className="text-2xl font-bold flex items-center gap-3">
-          <Heart className="w-8 h-8" />
+          <Heart className="w-8 h-8 sm:w-10 sm:h-10" />
           {t.title}
         </h1>
         <p className="text-pink-100 mt-2">{t.subtitle}</p>
@@ -514,15 +514,15 @@ const FindParentsModule: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="connections" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
+            <Users className="w-5 h-5 sm:w-6 sm:h-6" />
             {t.tabs.connections}
           </TabsTrigger>
           <TabsTrigger value="qrCode" className="flex items-center gap-2">
-            <QrCode className="w-4 h-4" />
+            <QrCode className="w-5 h-5 sm:w-6 sm:h-6" />
             {t.tabs.qrCode}
           </TabsTrigger>
           <TabsTrigger value="search" className="flex items-center gap-2">
-            <Search className="w-4 h-4" />
+            <Search className="w-5 h-5 sm:w-6 sm:h-6" />
             {t.tabs.search}
           </TabsTrigger>
         </TabsList>
@@ -541,7 +541,7 @@ const FindParentsModule: React.FC = () => {
           ) : parentConnections.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
-                <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <Heart className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">{t.noParents}</h3>
                 <p className="text-gray-500 mb-6">{t.noParentsDesc}</p>
                 <div className="flex gap-3 justify-center">
@@ -550,7 +550,7 @@ const FindParentsModule: React.FC = () => {
                     className="bg-pink-600 hover:bg-pink-700"
                     data-testid="button-goto-qr"
                   >
-                    <QrCode className="w-4 h-4 mr-2" />
+                    <QrCode className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     {t.generateQR}
                   </Button>
                   <Button 
@@ -558,7 +558,7 @@ const FindParentsModule: React.FC = () => {
                     variant="outline"
                     data-testid="button-goto-search"
                   >
-                    <Search className="w-4 h-4 mr-2" />
+                    <Search className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     {t.searchParent}
                   </Button>
                 </div>
@@ -594,7 +594,7 @@ const FindParentsModule: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <p className="text-sm text-gray-600 flex items-center gap-1">
-                              <Mail className="w-4 h-4" />
+                              <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
                               Email
                             </p>
                             <p className="font-semibold text-gray-800">{connection.parentEmail}</p>
@@ -602,7 +602,7 @@ const FindParentsModule: React.FC = () => {
                           {connection.parentPhone && (
                             <div>
                               <p className="text-sm text-gray-600 flex items-center gap-1">
-                                <Phone className="w-4 h-4" />
+                                <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
                                 {language === 'fr' ? 'Téléphone' : 'Phone'}
                               </p>
                               <p className="font-semibold text-gray-800">{connection.parentPhone}</p>
@@ -610,7 +610,7 @@ const FindParentsModule: React.FC = () => {
                           )}
                           <div>
                             <p className="text-sm text-gray-600 flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
+                              <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                               {connection.status === 'verified' ? t.verifiedOn : t.requestedOn}
                             </p>
                             <p className="font-semibold text-gray-800">
@@ -632,7 +632,7 @@ const FindParentsModule: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <QrCode className="w-5 h-5" />
+                <QrCode className="w-5 h-5 sm:w-6 sm:h-6" />
                 {t.generateQR}
               </CardTitle>
               <p className="text-sm text-gray-600">
@@ -644,7 +644,7 @@ const FindParentsModule: React.FC = () => {
                 // Bouton pour générer le QR code
                 <div className="text-center py-8">
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <QrCode className="h-10 w-10 text-white" />
+                    <QrCode className="h-10 w-10 sm:h-12 sm:w-12 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-800 mb-2">
                     {language === 'fr' ? 'Générer votre code de connexion' : 'Generate your connection code'}
@@ -662,12 +662,12 @@ const FindParentsModule: React.FC = () => {
                   >
                     {isGeneratingQR ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                         {language === 'fr' ? 'Génération...' : 'Generating...'}
                       </>
                     ) : (
                       <>
-                        <QrCode className="mr-2 h-4 w-4" />
+                        <QrCode className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                         {t.generateQR}
                       </>
                     )}
@@ -708,7 +708,7 @@ const FindParentsModule: React.FC = () => {
                         size="sm" 
                         className="mt-3 w-full"
                       >
-                        <Copy className="mr-2 h-4 w-4" />
+                        <Copy className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                         {language === 'fr' ? 'Copier le lien' : 'Copy link'}
                       </Button>
                     </div>
@@ -721,7 +721,7 @@ const FindParentsModule: React.FC = () => {
                       variant="outline" 
                       className="flex-1"
                     >
-                      <Download className="mr-2 h-4 w-4" />
+                      <Download className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       {language === 'fr' ? 'Télécharger QR' : 'Download QR'}
                     </Button>
                     <Button 
@@ -732,7 +732,7 @@ const FindParentsModule: React.FC = () => {
                       variant="outline" 
                       className="flex-1"
                     >
-                      <QrCode className="mr-2 h-4 w-4" />
+                      <QrCode className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       {language === 'fr' ? 'Nouveau code' : 'New code'}
                     </Button>
                   </div>
@@ -747,7 +747,7 @@ const FindParentsModule: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Search className="w-5 h-5" />
+                <Search className="w-5 h-5 sm:w-6 sm:h-6" />
                 {t.searchParent}
               </CardTitle>
             </CardHeader>

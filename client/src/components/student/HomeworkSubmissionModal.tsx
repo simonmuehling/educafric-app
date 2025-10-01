@@ -95,11 +95,11 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
 
   const getFileIcon = (type: string) => {
     switch (type) {
-      case 'image': return <Image className="w-4 h-4" />;
-      case 'video': return <Video className="w-4 h-4" />;
-      case 'audio': return <Music className="w-4 h-4" />;
-      case 'document': return <FileText className="w-4 h-4" />;
-      default: return <Archive className="w-4 h-4" />;
+      case 'image': return <Image className="h-5 w-5 sm:w-6 sm:h-6" />;
+      case 'video': return <Video className="h-5 w-5 sm:w-6 sm:h-6" />;
+      case 'audio': return <Music className="h-5 w-5 sm:w-6 sm:h-6" />;
+      case 'document': return <FileText className="h-5 w-5 sm:w-6 sm:h-6" />;
+      default: return <Archive className="h-5 w-5 sm:w-6 sm:h-6" />;
     }
   };
 
@@ -214,7 +214,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Send className="w-5 h-5" />
+            <Send className="h-5 w-5 sm:h-6 sm:w-6" />
             Soumettre le devoir
           </DialogTitle>
         </DialogHeader>
@@ -260,7 +260,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
               onDrop={handleDrop}
             >
               <div className="flex flex-col items-center gap-2">
-                <Upload className="w-8 h-8 text-gray-400" />
+                <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
                 <p className="text-sm text-gray-600">
                   Glissez-déposez vos fichiers ici ou
                 </p>
@@ -272,7 +272,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
                     onClick={() => fileInputRef.current?.click()}
                     data-testid="button-upload-files"
                   >
-                    <Upload className="w-4 h-4 mr-2" />
+                    <Upload className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Parcourir
                   </Button>
                   <Button
@@ -282,7 +282,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
                     onClick={() => cameraInputRef.current?.click()}
                     data-testid="button-camera"
                   >
-                    <Camera className="w-4 h-4 mr-2" />
+                    <Camera className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Photo
                   </Button>
                 </div>
@@ -346,7 +346,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
                       onClick={() => removeFile(index)}
                       data-testid={`button-remove-file-${index}`}
                     >
-                      <X className="w-4 h-4" />
+                      <X className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                   </div>
                 ))}
@@ -364,12 +364,12 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
             >
               {submitHomeworkMutation.isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin" />
                   Soumission...
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4 mr-2" />
+                  <Send className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Soumettre le devoir
                 </>
               )}
