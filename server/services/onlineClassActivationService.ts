@@ -72,7 +72,7 @@ export class OnlineClassActivationService {
 
   /**
    * Teacher purchases online class module (flexible duration)
-   * Default: 150,000 CFA for 1 year, proportional for other durations
+   * Fixed prices per duration
    */
   async activateForTeacher(
     teacherId: number,
@@ -84,16 +84,15 @@ export class OnlineClassActivationService {
     const startDate = new Date();
     const endDate = this.calculateEndDate(startDate, durationType);
 
-    // Calculate default amount if not provided
-    const yearlyPrice = 150000;
-    let defaultAmount = yearlyPrice;
+    // Fixed pricing per duration
+    let defaultAmount = 150000;
     switch (durationType) {
-      case 'daily': defaultAmount = Math.round(yearlyPrice / 365); break;
-      case 'weekly': defaultAmount = Math.round(yearlyPrice / 52); break;
-      case 'monthly': defaultAmount = Math.round(yearlyPrice / 12); break;
-      case 'quarterly': defaultAmount = Math.round(yearlyPrice / 4); break;
-      case 'semestral': defaultAmount = Math.round(yearlyPrice / 2); break;
-      case 'yearly': defaultAmount = yearlyPrice; break;
+      case 'daily': defaultAmount = 2500; break;
+      case 'weekly': defaultAmount = 10000; break;
+      case 'monthly': defaultAmount = 25000; break;
+      case 'quarterly': defaultAmount = 73000; break;
+      case 'semestral': defaultAmount = 105000; break;
+      case 'yearly': defaultAmount = 150000; break;
     }
 
     const [activation] = await db

@@ -123,17 +123,16 @@ const TeacherOnlineClasses: React.FC = () => {
   // Purchase duration state for teachers
   const [purchaseDuration, setPurchaseDuration] = useState<'daily' | 'weekly' | 'monthly' | 'quarterly' | 'semestral' | 'yearly'>('yearly');
 
-  // Calculate price based on duration (base: 150,000 CFA/year)
+  // Calculate price based on duration (fixed prices)
   const calculatePrice = (duration: typeof purchaseDuration) => {
-    const yearlyPrice = 150000;
     switch (duration) {
-      case 'daily': return Math.round(yearlyPrice / 365);
-      case 'weekly': return Math.round(yearlyPrice / 52);
-      case 'monthly': return Math.round(yearlyPrice / 12);
-      case 'quarterly': return Math.round(yearlyPrice / 4);
-      case 'semestral': return Math.round(yearlyPrice / 2);
-      case 'yearly': return yearlyPrice;
-      default: return yearlyPrice;
+      case 'daily': return 2500;
+      case 'weekly': return 10000;
+      case 'monthly': return 25000;
+      case 'quarterly': return 73000;
+      case 'semestral': return 105000;
+      case 'yearly': return 150000;
+      default: return 150000;
     }
   };
 
