@@ -1492,9 +1492,100 @@ const OnlineClassesManager: React.FC = () => {
 
               <TabsContent value="calendar" className="space-y-4">
                 <Card>
-                  <CardContent className="flex flex-col items-center justify-center py-12">
-                    <CalendarDays className="h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-600">Calendar view coming soon...</p>
+                  <CardHeader>
+                    <CardTitle className="dark:text-gray-100">
+                      {language === 'fr' ? 'Vue Calendrier' : 'Calendar View'}
+                    </CardTitle>
+                    <CardDescription>
+                      {language === 'fr' 
+                        ? 'Planification hebdomadaire des sessions' 
+                        : 'Weekly session schedule'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {sessionsLoading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {/* Calendar grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
+                          {['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'].map((day, idx) => {
+                            const dayName = language === 'fr' ? day : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][idx];
+                            const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+                            const isToday = idx === todayIndex;
+                            
+                            // Filter sessions for this day
+                            const daySessions = (sessionsData?.sessions || []).filter(session => {
+                              const sessionDate = new Date(session.scheduledStart);
+                              const sessionDay = sessionDate.getDay() === 0 ? 6 : sessionDate.getDay() - 1;
+                              return sessionDay === idx;
+                            });
+                            
+                            return (
+                              <div key={day} className={`border rounded-lg p-3 ${isToday ? 'bg-purple-50 border-purple-300' : 'bg-white'}`}>
+                                <h3 className={`font-semibold mb-2 text-sm ${isToday ? 'text-purple-700' : 'text-gray-700'}`}>
+                                  {dayName}
+                                  {isToday && <span className="ml-1 text-xs">({language === 'fr' ? "Aujourd'hui" : 'Today'})</span>}
+                                </h3>
+                                <div className="space-y-2">
+                                  {daySessions.length === 0 ? (
+                                    <p className="text-xs text-gray-400">
+                                      {language === 'fr' ? 'Aucune session' : 'No sessions'}
+                                    </p>
+                                  ) : (
+                                    daySessions
+                                      .sort((a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime())
+                                      .map(session => {
+                                        const startTime = new Date(session.scheduledStart).toLocaleTimeString(language === 'fr' ? 'fr-FR' : 'en-US', {
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        });
+                                        
+                                        return (
+                                          <div
+                                            key={session.id}
+                                            className="text-xs p-2 bg-purple-100 dark:bg-purple-900 rounded border border-purple-200 dark:border-purple-700"
+                                          >
+                                            <div className="font-medium text-purple-900 dark:text-purple-100">
+                                              {startTime}
+                                            </div>
+                                            <div className="text-purple-700 dark:text-purple-300 truncate">
+                                              {session.title}
+                                            </div>
+                                            {session.className && (
+                                              <div className="text-purple-600 dark:text-purple-400 text-xs">
+                                                {session.className}
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Legend */}
+                        <div className="flex items-center gap-4 pt-4 border-t">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-purple-50 border border-purple-300 rounded"></div>
+                            <span className="text-sm text-gray-600">
+                              {language === 'fr' ? "Aujourd'hui" : 'Today'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-purple-100 border border-purple-200 rounded"></div>
+                            <span className="text-sm text-gray-600">
+                              {language === 'fr' ? 'Session programmée' : 'Scheduled session'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
