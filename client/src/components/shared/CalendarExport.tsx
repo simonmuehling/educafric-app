@@ -14,7 +14,7 @@ interface CalendarExportProps {
   schoolId?: number;
 }
 
-export const CalendarExport = ({ userType, userId, schoolId }: CalendarExportProps) => {
+export default function CalendarExport({ userType, userId, schoolId }: CalendarExportProps) {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -241,4 +241,4 @@ export const CalendarExport = ({ userType, userId, schoolId }: CalendarExportPro
       </CardContent>
     </Card>
   );
-};
+}

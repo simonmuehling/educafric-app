@@ -15,7 +15,7 @@ import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
-import { CalendarExport } from '@/components/shared/CalendarExport';
+import CalendarExport from '@/components/shared/CalendarExport';
 
 interface DirectorDashboardProps {
   activeModule?: string;

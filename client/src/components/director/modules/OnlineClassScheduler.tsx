@@ -393,15 +393,15 @@ const OnlineClassScheduler: React.FC = () => {
   const t = translations[language];
 
   const { data: coursesData, isLoading: coursesLoading } = useQuery<CoursesResponse>({
-    queryKey: ['/api/school-scheduler/courses']
+    queryKey: ['/api/online-class-scheduler/courses']
   });
 
   const { data: sessionsData, isLoading: sessionsLoading } = useQuery<SessionsResponse>({
-    queryKey: ['/api/school-scheduler/sessions']
+    queryKey: ['/api/online-class-scheduler/sessions']
   });
 
   const { data: recurrencesData, isLoading: recurrencesLoading } = useQuery<RecurrencesResponse>({
-    queryKey: ['/api/school-scheduler/recurrences']
+    queryKey: ['/api/online-class-scheduler/recurrences']
   });
 
   const { data: classesData } = useQuery({
@@ -410,11 +410,11 @@ const OnlineClassScheduler: React.FC = () => {
 
   const createSessionMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('POST', '/api/school-scheduler/sessions', data);
+      const response = await apiRequest('POST', '/api/online-class-scheduler/sessions', data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/school-scheduler/sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/sessions'] });
       toast({
         title: t.createSession.success,
         variant: 'default'
@@ -432,12 +432,12 @@ const OnlineClassScheduler: React.FC = () => {
 
   const createRecurrenceMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('POST', '/api/school-scheduler/recurrences', data);
+      const response = await apiRequest('POST', '/api/online-class-scheduler/recurrences', data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/school-scheduler/recurrences'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/school-scheduler/sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/recurrences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/sessions'] });
       toast({
         title: t.createRecurrence.success,
         variant: 'default'
@@ -455,11 +455,11 @@ const OnlineClassScheduler: React.FC = () => {
 
   const cancelSessionMutation = useMutation({
     mutationFn: async (sessionId: number) => {
-      const response = await apiRequest('DELETE', `/api/school-scheduler/sessions/${sessionId}`);
+      const response = await apiRequest('DELETE', `/api/online-class-scheduler/sessions/${sessionId}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/school-scheduler/sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/sessions'] });
       toast({
         title: t.sessions.cancelSuccess,
         variant: 'default'
@@ -476,7 +476,7 @@ const OnlineClassScheduler: React.FC = () => {
 
   const toggleRecurrenceMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
-      const response = await apiRequest('PATCH', `/api/school-scheduler/recurrences/${id}`, {
+      const response = await apiRequest('PATCH', `/api/online-class-scheduler/recurrences/${id}`, {
         isActive,
         pausedAt: isActive ? null : new Date().toISOString(),
         pausedBy: user?.id,
@@ -485,7 +485,7 @@ const OnlineClassScheduler: React.FC = () => {
       return response.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/school-scheduler/recurrences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/recurrences'] });
       toast({
         title: variables.isActive ? t.recurrences.resumeSuccess : t.recurrences.pauseSuccess,
         variant: 'default'
@@ -502,11 +502,11 @@ const OnlineClassScheduler: React.FC = () => {
 
   const deleteRecurrenceMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest('DELETE', `/api/school-scheduler/recurrences/${id}`);
+      const response = await apiRequest('DELETE', `/api/online-class-scheduler/recurrences/${id}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/school-scheduler/recurrences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/recurrences'] });
       toast({
         title: t.recurrences.deleteSuccess,
         variant: 'default'

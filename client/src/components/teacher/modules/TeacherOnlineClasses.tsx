@@ -339,10 +339,10 @@ const TeacherOnlineClasses: React.FC = () => {
 
   // Fetch school-scheduled sessions for this teacher
   const { data: schoolSessionsData, isLoading: schoolSessionsLoading } = useQuery({
-    queryKey: ['/api/school-scheduler/teacher', user?.id, 'sessions'],
+    queryKey: ['/api/online-class-scheduler/teacher', user?.id, 'sessions'],
     queryFn: async () => {
       if (!user?.id) return { sessions: [] };
-      const response = await apiRequest('GET', `/api/school-scheduler/teacher/${user.id}/sessions`);
+      const response = await apiRequest('GET', `/api/online-class-scheduler/teacher/${user.id}/sessions`);
       return response.json();
     },
     enabled: !!user?.id && !!accessData?.allowed

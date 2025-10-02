@@ -12,7 +12,7 @@ import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
 // NotificationCenter, SubscriptionStatusCard, and UniversalMultiRoleSwitch now loaded dynamically via fastModuleLoader
 import { TeacherMultiSchoolProvider } from '@/contexts/TeacherMultiSchoolContext';
-import { CalendarExport } from '@/components/shared/CalendarExport';
+import CalendarExport from '@/components/shared/CalendarExport';
 
 interface TeacherDashboardProps {
   stats?: any;

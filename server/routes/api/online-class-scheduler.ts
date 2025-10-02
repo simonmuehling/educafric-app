@@ -62,7 +62,7 @@ const updateRecurrenceSchema = z.object({
 });
 
 /**
- * POST /api/school-scheduler/sessions
+ * POST /api/online-class-scheduler/sessions
  * Create a single scheduled session (school-created)
  * Requires: Director or SchoolAdmin role
  */
@@ -131,7 +131,7 @@ router.post(
 );
 
 /**
- * POST /api/school-scheduler/recurrences
+ * POST /api/online-class-scheduler/recurrences
  * Create a recurrence rule for scheduled sessions
  * Requires: Director or SchoolAdmin role
  */
@@ -192,7 +192,7 @@ router.post(
 );
 
 /**
- * GET /api/school-scheduler/recurrences
+ * GET /api/online-class-scheduler/recurrences
  * Get all recurrences for a school
  * Requires: Director or SchoolAdmin role
  */
@@ -232,7 +232,7 @@ router.get(
 );
 
 /**
- * PATCH /api/school-scheduler/recurrences/:id
+ * PATCH /api/online-class-scheduler/recurrences/:id
  * Update a recurrence rule (pause, resume, end)
  * Requires: Director or SchoolAdmin role
  */
@@ -286,7 +286,7 @@ router.patch(
 );
 
 /**
- * POST /api/school-scheduler/recurrences/:id/generate
+ * POST /api/online-class-scheduler/recurrences/:id/generate
  * Manually trigger session generation for a recurrence
  * Requires: Director or SchoolAdmin role
  */
@@ -344,7 +344,7 @@ router.post(
 );
 
 /**
- * DELETE /api/school-scheduler/sessions/:id
+ * DELETE /api/online-class-scheduler/sessions/:id
  * Cancel a scheduled session
  * Requires: Director or SchoolAdmin role
  */
@@ -415,7 +415,7 @@ router.delete(
 );
 
 /**
- * GET /api/school-scheduler/teacher/:teacherId/sessions
+ * GET /api/online-class-scheduler/teacher/:teacherId/sessions
  * Get scheduled sessions for a specific teacher (for school view)
  * Requires: Director or SchoolAdmin role
  */

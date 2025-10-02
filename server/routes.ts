@@ -6736,7 +6736,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/online-class-payments', onlineClassPaymentsRouter);
   
   // Online class scheduler (school-controlled session scheduling)
-  app.use('/api/school-scheduler', onlineClassSchedulerRouter);
+  app.use('/api/online-class-scheduler', onlineClassSchedulerRouter);
   
   // Calendar integration for academic events (school & teacher only)
   app.use('/api/calendar', calendarRoutes);
