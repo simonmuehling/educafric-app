@@ -3823,8 +3823,12 @@ export default function ComprehensiveBulletinGenerator() {
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                                     <div className="space-y-2">
                                       <h5 className="font-medium text-blue-800">🇫🇷 Français:</h5>
-                                      <p><strong>N/20:</strong> Note sur 20</p>
-                                      {!isTechnicalSchool && <p><strong>M/20:</strong> Moyenne sur 20</p>}
+                                      {!isTechnicalSchool && (
+                                        <>
+                                          <p><strong>N/20:</strong> Note sur 20</p>
+                                          <p><strong>M/20:</strong> Moyenne sur 20</p>
+                                        </>
+                                      )}
                                       <p><strong>Coef:</strong> Coefficient de la matière</p>
                                       <p><strong>M*Coef:</strong> Moyenne × Coefficient</p>
                                       <p><strong>Cote:</strong> Cote d'appréciation (A-F)</p>
@@ -3840,8 +3844,12 @@ export default function ComprehensiveBulletinGenerator() {
                                     </div>
                                     <div className="space-y-2">
                                       <h5 className="font-medium text-blue-800">🇺🇸 English:</h5>
-                                      <p><strong>N/20:</strong> Grade out of 20</p>
-                                      {!isTechnicalSchool && <p><strong>M/20:</strong> Average out of 20</p>}
+                                      {!isTechnicalSchool && (
+                                        <>
+                                          <p><strong>N/20:</strong> Grade out of 20</p>
+                                          <p><strong>M/20:</strong> Average out of 20</p>
+                                        </>
+                                      )}
                                       <p><strong>Coef:</strong> Subject coefficient</p>
                                       <p><strong>M*Coef:</strong> Average × Coefficient</p>
                                       <p><strong>Cote:</strong> Achievement Grade (A-F)</p>
@@ -3863,8 +3871,12 @@ export default function ComprehensiveBulletinGenerator() {
                                     <thead>
                                       <tr className="bg-gray-50">
                                         <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Matière</th>
-                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">N/20</th>
-                                        {!isTechnicalSchool && <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">M/20</th>}
+                                        {!isTechnicalSchool && (
+                                          <>
+                                            <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">N/20</th>
+                                            <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">M/20</th>
+                                          </>
+                                        )}
                                         <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Coef</th>
                                         <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">M*Coef</th>
                                         <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Cote</th>
@@ -3878,33 +3890,35 @@ export default function ComprehensiveBulletinGenerator() {
                                             <div className="font-medium text-gray-900">{grade.subjectName}</div>
                                             <div className="text-xs text-gray-500 mt-1">Prof: {grade.teacherName || 'Non assigné'}</div>
                                           </td>
-                                          <td className="border border-gray-300 px-1 py-1">
-                                            <Input
-                                              type="number"
-                                              step="0.1"
-                                              min="0"
-                                              max="20"
-                                              placeholder="0.0"
-                                              className="h-8 text-center text-xs"
-                                              value={subjectCoefficients[grade.subjectId]?.noteOn20 || ''}
-                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'noteOn20', e.target.value)}
-                                              data-testid={`note-${grade.subjectId}`}
-                                            />
-                                          </td>
                                           {!isTechnicalSchool && (
-                                            <td className="border border-gray-300 px-1 py-1">
-                                              <Input
-                                                type="number"
-                                                step="0.1"
-                                                min="0"
-                                                max="20"
-                                                placeholder="0.0"
-                                                className="h-8 text-center text-xs"
-                                                value={subjectCoefficients[grade.subjectId]?.averageOn20 || ''}
-                                                onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'averageOn20', e.target.value)}
-                                                data-testid={`average-${grade.subjectId}`}
-                                              />
-                                            </td>
+                                            <>
+                                              <td className="border border-gray-300 px-1 py-1">
+                                                <Input
+                                                  type="number"
+                                                  step="0.1"
+                                                  min="0"
+                                                  max="20"
+                                                  placeholder="0.0"
+                                                  className="h-8 text-center text-xs"
+                                                  value={subjectCoefficients[grade.subjectId]?.noteOn20 || ''}
+                                                  onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'noteOn20', e.target.value)}
+                                                  data-testid={`note-${grade.subjectId}`}
+                                                />
+                                              </td>
+                                              <td className="border border-gray-300 px-1 py-1">
+                                                <Input
+                                                  type="number"
+                                                  step="0.1"
+                                                  min="0"
+                                                  max="20"
+                                                  placeholder="0.0"
+                                                  className="h-8 text-center text-xs"
+                                                  value={subjectCoefficients[grade.subjectId]?.averageOn20 || ''}
+                                                  onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'averageOn20', e.target.value)}
+                                                  data-testid={`average-${grade.subjectId}`}
+                                                />
+                                              </td>
+                                            </>
                                           )}
                                           <td className="border border-gray-300 px-1 py-1">
                                             <Input
@@ -3992,23 +4006,23 @@ export default function ComprehensiveBulletinGenerator() {
                                         <p className="text-sm text-gray-500">Prof: {grade.teacherName || 'Non assigné'}</p>
                                       </CardHeader>
                                       <CardContent className="space-y-4">
-                                        {/* Scores Row */}
-                                        <div className={cn("grid gap-3", isTechnicalSchool ? "grid-cols-1" : "grid-cols-2")}>
-                                          <div className="space-y-1">
-                                            <Label className="text-xs text-gray-600">N/20</Label>
-                                            <Input
-                                              type="number"
-                                              step="0.1"
-                                              min="0"
-                                              max="20"
-                                              placeholder="0.0"
-                                              className="h-9 text-center text-sm"
-                                              value={subjectCoefficients[grade.subjectId]?.noteOn20 || ''}
-                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'noteOn20', e.target.value)}
-                                              data-testid={`note-mobile-${grade.subjectId}`}
-                                            />
-                                          </div>
-                                          {!isTechnicalSchool && (
+                                        {/* Scores Row - Only for non-technical schools */}
+                                        {!isTechnicalSchool && (
+                                          <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                              <Label className="text-xs text-gray-600">N/20</Label>
+                                              <Input
+                                                type="number"
+                                                step="0.1"
+                                                min="0"
+                                                max="20"
+                                                placeholder="0.0"
+                                                className="h-9 text-center text-sm"
+                                                value={subjectCoefficients[grade.subjectId]?.noteOn20 || ''}
+                                                onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'noteOn20', e.target.value)}
+                                                data-testid={`note-mobile-${grade.subjectId}`}
+                                              />
+                                            </div>
                                             <div className="space-y-1">
                                               <Label className="text-xs text-gray-600">M/20</Label>
                                               <Input
@@ -4023,8 +4037,8 @@ export default function ComprehensiveBulletinGenerator() {
                                                 data-testid={`average-mobile-${grade.subjectId}`}
                                               />
                                             </div>
-                                          )}
-                                        </div>
+                                          </div>
+                                        )}
 
                                         {/* Coefficient Row */}
                                         <div className="grid grid-cols-2 gap-3">
