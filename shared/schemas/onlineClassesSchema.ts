@@ -35,6 +35,7 @@ export const courseEnrollments = pgTable("course_enrollments", {
 });
 
 // Individual class sessions (Jitsi rooms)
+// Supports both flows: teacher-created (manual) and school-scheduled
 export const classSessions = pgTable("class_sessions", {
   id: serial("id").primaryKey(),
   courseId: integer("course_id").notNull().references(() => onlineCourses.id),
@@ -55,7 +56,52 @@ export const classSessions = pgTable("class_sessions", {
   chatEnabled: boolean("chat_enabled").default(true),
   screenShareEnabled: boolean("screen_share_enabled").default(true),
   createdBy: integer("created_by").notNull().references(() => users.id),
+  creatorType: text("creator_type").default("teacher"), // "teacher" (manual) or "school" (scheduled)
+  recurrenceId: integer("recurrence_id").references(() => onlineClassRecurrences.id, { onDelete: "set null" }), // Link to recurrence rule if part of series
+  notificationsSent: boolean("notifications_sent").default(false), // Track if students/parents notified
   metadata: text("metadata"), // JSON string for additional settings
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Recurrence rules for scheduled sessions (school-created recurring events)
+export const onlineClassRecurrences = pgTable("online_class_recurrences", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().references(() => schools.id),
+  courseId: integer("course_id").notNull().references(() => onlineCourses.id),
+  teacherId: integer("teacher_id").notNull().references(() => users.id),
+  classId: integer("class_id").notNull().references(() => classes.id),
+  subjectId: integer("subject_id").references(() => subjects.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  
+  // Recurrence pattern
+  ruleType: text("rule_type").notNull(), // "daily", "weekly", "biweekly", "custom"
+  interval: integer("interval").default(1), // Every N days/weeks
+  byDay: text("by_day"), // For weekly: JSON array ["monday", "wednesday", "friday"]
+  startTime: text("start_time").notNull(), // "14:00" format
+  durationMinutes: integer("duration_minutes").notNull().default(60),
+  
+  // Date range
+  startDate: timestamp("start_date").notNull(), // When recurrence starts
+  endDate: timestamp("end_date"), // When recurrence ends (null = indefinite)
+  
+  // Generation tracking
+  occurrencesGenerated: integer("occurrences_generated").default(0), // How many sessions created
+  lastGenerated: timestamp("last_generated"), // Last time sessions were generated
+  nextGeneration: timestamp("next_generation"), // Next scheduled generation
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  pausedAt: timestamp("paused_at"),
+  pausedBy: integer("paused_by").references(() => users.id),
+  pauseReason: text("pause_reason"),
+  
+  // Metadata
+  maxDuration: integer("max_duration").default(120), // Max duration in minutes
+  autoNotify: boolean("auto_notify").default(true), // Auto-send notifications to students/parents
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -179,6 +225,8 @@ export const insertOnlineClassActivationSchema = createInsertSchema(onlineClassA
 
 export const insertOnlineClassUsageLogSchema = createInsertSchema(onlineClassUsageLogs);
 
+export const insertOnlineClassRecurrenceSchema = createInsertSchema(onlineClassRecurrences);
+
 // TypeScript types
 export type OnlineCourse = typeof onlineCourses.$inferSelect;
 export type InsertOnlineCourse = z.infer<typeof insertOnlineCourseSchema>;
@@ -204,6 +252,9 @@ export type InsertOnlineClassActivation = z.infer<typeof insertOnlineClassActiva
 
 export type OnlineClassUsageLog = typeof onlineClassUsageLogs.$inferSelect;
 export type InsertOnlineClassUsageLog = z.infer<typeof insertOnlineClassUsageLogSchema>;
+
+export type OnlineClassRecurrence = typeof onlineClassRecurrences.$inferSelect;
+export type InsertOnlineClassRecurrence = z.infer<typeof insertOnlineClassRecurrenceSchema>;
 
 // Extended schemas with relationships for API responses
 export const classSessionWithDetailsSchema = insertClassSessionSchema.extend({
