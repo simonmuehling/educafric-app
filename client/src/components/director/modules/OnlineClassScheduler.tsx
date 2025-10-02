@@ -620,25 +620,25 @@ const OnlineClassScheduler: React.FC = () => {
           <CardContent className="pt-6">
             <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)}>
               <TabsList className="grid w-full grid-cols-5 mb-6">
-                <TabsTrigger value="sessions" data-testid="tab-sessions">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  {t.tabs.sessions}
+                <TabsTrigger value="sessions" data-testid="tab-sessions" className="flex items-center justify-center">
+                  <Calendar className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.tabs.sessions}</span>
                 </TabsTrigger>
-                <TabsTrigger value="create-session" data-testid="tab-create-session">
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t.tabs.createSession}
+                <TabsTrigger value="create-session" data-testid="tab-create-session" className="flex items-center justify-center">
+                  <Plus className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.tabs.createSession}</span>
                 </TabsTrigger>
-                <TabsTrigger value="recurrences" data-testid="tab-recurrences">
-                  <Repeat className="h-4 w-4 mr-2" />
-                  {t.tabs.recurrences}
+                <TabsTrigger value="recurrences" data-testid="tab-recurrences" className="flex items-center justify-center">
+                  <Repeat className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.tabs.recurrences}</span>
                 </TabsTrigger>
-                <TabsTrigger value="create-recurrence" data-testid="tab-create-recurrence">
-                  <CalendarDays className="h-4 w-4 mr-2" />
-                  {t.tabs.createRecurrence}
+                <TabsTrigger value="create-recurrence" data-testid="tab-create-recurrence" className="flex items-center justify-center">
+                  <CalendarDays className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.tabs.createRecurrence}</span>
                 </TabsTrigger>
-                <TabsTrigger value="calendar" data-testid="tab-calendar">
-                  <CalendarDays className="h-4 w-4 mr-2" />
-                  {t.tabs.calendar}
+                <TabsTrigger value="calendar" data-testid="tab-calendar" className="flex items-center justify-center">
+                  <CalendarDays className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.tabs.calendar}</span>
                 </TabsTrigger>
               </TabsList>
 
