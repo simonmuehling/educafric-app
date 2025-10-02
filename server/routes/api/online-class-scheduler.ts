@@ -7,6 +7,31 @@ import { z } from "zod";
 const router = Router();
 
 /**
+ * Check if user is a sandbox/test user (exempt from activation checks)
+ */
+const isSandboxOrTestUser = (email: string): boolean => {
+  if (!email) return false;
+  
+  const emailLower = email.toLowerCase();
+  const exemptPatterns = [
+    '@test.educafric.com',
+    '@educafric.demo',
+    '@educafric.test',
+    'sandbox@',
+    'sandbox.',
+    'demo@',
+    'demo.',
+    'test@',
+    'test.',
+    '.sandbox@',
+    '.demo@',
+    '.test@'
+  ];
+  
+  return exemptPatterns.some(pattern => emailLower.includes(pattern));
+};
+
+/**
  * GET /api/online-class-scheduler/courses
  * Get all online courses for a school
  * Requires: Director role
@@ -200,7 +225,8 @@ router.post(
         scheduledStart: parsed.scheduledStart,
         durationMinutes: parsed.durationMinutes,
         autoNotify: parsed.autoNotify,
-        createdBy: req.user.id
+        createdBy: req.user.id,
+        skipActivationCheck: isSandboxOrTestUser(req.user.email)
       });
 
       console.log(`[SCHEDULER_API] ✅ Single session created by ${req.user.email} for school ${req.user.schoolId}`);
@@ -274,7 +300,8 @@ router.post(
         startDate: parsed.startDate,
         endDate: parsed.endDate,
         autoNotify: parsed.autoNotify,
-        createdBy: req.user.id
+        createdBy: req.user.id,
+        skipActivationCheck: isSandboxOrTestUser(req.user.email)
       });
 
       console.log(`[SCHEDULER_API] ✅ Recurrence created by ${req.user.email} for school ${req.user.schoolId}`);

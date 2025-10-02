@@ -22,6 +22,7 @@ interface CreateSessionInput {
   durationMinutes: number;
   createdBy: number;
   autoNotify?: boolean;
+  skipActivationCheck?: boolean;
 }
 
 interface CreateRecurrenceInput {
@@ -41,6 +42,7 @@ interface CreateRecurrenceInput {
   endDate?: Date;
   createdBy: number;
   autoNotify?: boolean;
+  skipActivationCheck?: boolean;
 }
 
 interface RecurrenceUpdate {
@@ -57,21 +59,25 @@ export class OnlineClassSchedulerService {
    * Create a single scheduled session (school-created)
    */
   async createScheduledSession(input: CreateSessionInput) {
-    // Verify school has active online class module
-    const activation = await db
-      .select()
-      .from(onlineClassActivations)
-      .where(
-        and(
-          eq(onlineClassActivations.activatorType, "school"),
-          eq(onlineClassActivations.activatorId, input.schoolId),
-          eq(onlineClassActivations.status, "active")
+    // Verify school has active online class module (skip for sandbox users)
+    if (!input.skipActivationCheck) {
+      const activation = await db
+        .select()
+        .from(onlineClassActivations)
+        .where(
+          and(
+            eq(onlineClassActivations.activatorType, "school"),
+            eq(onlineClassActivations.activatorId, input.schoolId),
+            eq(onlineClassActivations.status, "active")
+          )
         )
-      )
-      .limit(1);
+        .limit(1);
 
-    if (activation.length === 0) {
-      throw new Error("École n'a pas de module Classes en Ligne activé");
+      if (activation.length === 0) {
+        throw new Error("École n'a pas de module Classes en Ligne activé");
+      }
+    } else {
+      console.log(`[SCHEDULER_SERVICE] ✅ Sandbox user - skipping activation check for school ${input.schoolId}`);
     }
 
     // Generate unique room name
@@ -117,21 +123,25 @@ export class OnlineClassSchedulerService {
    * Create a recurrence rule for scheduled sessions
    */
   async createRecurrence(input: CreateRecurrenceInput) {
-    // Verify school has active online class module
-    const activation = await db
-      .select()
-      .from(onlineClassActivations)
-      .where(
-        and(
-          eq(onlineClassActivations.activatorType, "school"),
-          eq(onlineClassActivations.activatorId, input.schoolId),
-          eq(onlineClassActivations.status, "active")
+    // Verify school has active online class module (skip for sandbox users)
+    if (!input.skipActivationCheck) {
+      const activation = await db
+        .select()
+        .from(onlineClassActivations)
+        .where(
+          and(
+            eq(onlineClassActivations.activatorType, "school"),
+            eq(onlineClassActivations.activatorId, input.schoolId),
+            eq(onlineClassActivations.status, "active")
+          )
         )
-      )
-      .limit(1);
+        .limit(1);
 
-    if (activation.length === 0) {
-      throw new Error("École n'a pas de module Classes en Ligne activé");
+      if (activation.length === 0) {
+        throw new Error("École n'a pas de module Classes en Ligne activé");
+      }
+    } else {
+      console.log(`[SCHEDULER_SERVICE] ✅ Sandbox user - skipping activation check for recurrence in school ${input.schoolId}`);
     }
 
     // Create recurrence rule
