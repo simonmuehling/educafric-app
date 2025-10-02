@@ -57,14 +57,27 @@ const PremiumFeatureGate: React.FC<PremiumFeatureGateProps> = ({
       return false; // Bloquer l'accès si pas d'abonnement actif
     }
 
-    // Mapper les plans EDUCAFRIC aux niveaux de fonctionnalités
     const userPlan = user.subscriptionPlan;
+    
+    // SPECIAL CASE: Géolocalisation requires parent_gps ONLY
+    // Check for geolocation features (case-insensitive, both French and English)
+    const isGeolocationFeature = featureName.toLowerCase().includes('géolocalisation') || 
+                                  featureName.toLowerCase().includes('geolocation') ||
+                                  featureName.toLowerCase().includes('gps');
+    
+    if (isGeolocationFeature) {
+      // Only parent_gps or geolocation plan unlocks geolocation features
+      return userPlan === 'parent_gps' || userPlan === 'geolocation';
+    }
+
+    // Mapper les plans EDUCAFRIC aux niveaux de fonctionnalités
+    // parent_bronze and parent_bronze_p unlock ALL premium features EXCEPT geolocation
     const planLevels = {
       'basic': ['basic'],
-      'parent_bronze': ['basic'], // Parent Bronze - accès de base uniquement
-      'parent_bronze_p': ['basic'], // Parent Bronze P - accès de base uniquement
-      'parent_gps': ['basic', 'premium'], // Parent GPS - accès géolocalisation premium
-      'geolocation': ['basic', 'premium'], // Plan géolocalisation = premium (ancien)
+      'parent_bronze': ['basic', 'premium'], // Public school - premium access to all features except geo
+      'parent_bronze_p': ['basic', 'premium'], // Private school - premium access to all features except geo
+      'parent_gps': ['basic'], // GPS ONLY - no premium access to other features
+      'geolocation': ['basic', 'premium'], // Plan géolocalisation = premium (ancien, compatibility)
       'premium': ['basic', 'premium'],
       'pro': ['basic', 'premium', 'pro'],
       'enterprise': ['basic', 'premium', 'pro', 'enterprise']

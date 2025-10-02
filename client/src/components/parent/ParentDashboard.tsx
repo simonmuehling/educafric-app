@@ -204,6 +204,26 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       component: createDynamicModule('subscription')
     },
     {
+      id: 'family',
+      label: language === 'fr' ? 'Connexions Familiales' : 'Family Connections',
+      icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-pink-500',
+      component: (
+        <PremiumFeatureGate
+          featureName="Communication Familiale Directe"
+          userType="Parent"
+          features={[
+            "Communication directe parent-enfant",
+            "Messages chiffrés end-to-end",
+            "Connexions sécurisées par QR code",
+            "Chat temps réel avec statut en ligne"
+          ]}
+        >
+          {createDynamicModule('family')}
+        </PremiumFeatureGate>
+      )
+    },
+    {
       id: 'children',
       label: t.myChildren,
       icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />,
@@ -282,20 +302,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: 'Paiements',
       icon: <CreditCard className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-red-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Gestion Paiements"
-          userType="Parent"
-          features={[
-            "Paiements Orange Money & MTN",
-            "Historique complet des factures",
-            "Rappels automatiques d'échéance",
-            "Reçus PDF téléchargeables"
-          ]}
-        >
-          {createDynamicModule('payments')}
-        </PremiumFeatureGate>
-      )
+      component: createDynamicModule('payments')
     },
     {
       id: 'parent-timetable',
@@ -326,6 +333,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
         <PremiumFeatureGate
           featureName="Géolocalisation Premium"
           userType="Parent"
+          requiredPlan="premium"
           features={[
             "Suivi GPS temps réel de votre enfant",
             "Zones de sécurité personnalisées",
@@ -334,26 +342,6 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
           ]}
         >
           {createDynamicModule('geolocation')}
-        </PremiumFeatureGate>
-      )
-    },
-    {
-      id: 'family',
-      label: language === 'fr' ? 'Connexions Familiales' : 'Family Connections',
-      icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-pink-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Communication Familiale Directe"
-          userType="Parent"
-          features={[
-            "Communication directe parent-enfant",
-            "Messages chiffrés end-to-end",
-            "Connexions sécurisées par QR code",
-            "Chat temps réel avec statut en ligne"
-          ]}
-        >
-          {createDynamicModule('family')}
         </PremiumFeatureGate>
       )
     },
