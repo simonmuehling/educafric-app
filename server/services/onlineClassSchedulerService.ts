@@ -442,20 +442,54 @@ export class OnlineClassSchedulerService {
   }
 
   /**
-   * Send notifications to students and parents
-   * This will be integrated with the existing notification system
+   * Send notifications to teacher, students and parents
    */
   private async notifyStudentsAndParents(sessionId: number, classId: number) {
-    // TODO: Integrate with existing notification service
-    // For now, just mark as sent
+    const { OnlineClassNotificationService } = await import('./onlineClassNotificationService');
+    const notificationService = OnlineClassNotificationService.getInstance();
+    
+    // Get session details to pass schoolId and teacher name
+    const [session] = await db
+      .select()
+      .from(classSessions)
+      .where(eq(classSessions.id, sessionId))
+      .limit(1);
+    
+    if (!session) {
+      console.error(`[SCHEDULER_SERVICE] Session ${sessionId} not found for notifications`);
+      return;
+    }
+    
+    // Get teacher details
+    const [teacher] = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        schoolId: users.schoolId
+      })
+      .from(users)
+      .where(eq(users.id, session.teacherId))
+      .limit(1);
+    
+    if (!teacher?.schoolId) {
+      console.error(`[SCHEDULER_SERVICE] No schoolId found for teacher ${session.teacherId}`);
+      return;
+    }
+    
+    const teacherName = teacher.name || `${teacher.firstName} ${teacher.lastName}`;
+    
+    // Send notifications to teacher, students, and parents
+    await notificationService.notifySessionScheduled(sessionId, teacherName, teacher.schoolId);
+    
+    // Mark notifications as sent
     await db
       .update(classSessions)
       .set({ notificationsSent: true })
       .where(eq(classSessions.id, sessionId));
 
-    console.log(`[SCHEDULER] Notifications sent for session ${sessionId} to class ${classId}`);
-    
-    // This will be expanded in task #6 to send actual in-app and push notifications
+    console.log(`[SCHEDULER_SERVICE] Notifications sent for session ${sessionId} in class ${classId} to teacher, students, and parents`);
   }
 
   /**

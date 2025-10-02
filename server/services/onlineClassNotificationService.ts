@@ -24,9 +24,9 @@ export class OnlineClassNotificationService {
   }
 
   /**
-   * Notify students and parents when a new session is scheduled
+   * Notify teacher, students and parents when a new session is scheduled
    */
-  async notifySessionScheduled(sessionId: number, teacherName: string): Promise<void> {
+  async notifySessionScheduled(sessionId: number, teacherName: string, schoolId: number): Promise<void> {
     try {
       console.log(`[ONLINE_CLASS_NOTIFICATIONS] Sending scheduled notifications for session ${sessionId}`);
 
@@ -42,22 +42,20 @@ export class OnlineClassNotificationService {
         return;
       }
 
-      // Get course details
-      const [course] = await db
-        .select()
-        .from(onlineCourses)
-        .where(eq(onlineCourses.id, session.courseId))
-        .limit(1);
-
-      if (!course) {
-        console.error(`[ONLINE_CLASS_NOTIFICATIONS] Course ${session.courseId} not found`);
-        return;
+      // Get course details (optional - school-scheduled sessions may not have a course)
+      let course = null;
+      if (session.courseId) {
+        const [courseResult] = await db
+          .select()
+          .from(onlineCourses)
+          .where(eq(onlineCourses.id, session.courseId))
+          .limit(1);
+        course = courseResult;
       }
 
       // Get recipients (students and parents)
-      // Use session's classId if provided, otherwise use course's classId
-      const classIdToUse = session.classId || course.classId;
-      const recipients = await this.getSessionRecipients(classIdToUse, course.schoolId, course.id);
+      // Use session's classId (required for school-scheduled sessions)
+      const recipients = await this.getSessionRecipients(session.classId, schoolId, session.courseId || null);
 
       if (recipients.length === 0) {
         console.log(`[ONLINE_CLASS_NOTIFICATIONS] No recipients found for session ${sessionId}`);
@@ -74,7 +72,7 @@ export class OnlineClassNotificationService {
         minute: '2-digit'
       });
 
-      // Send notifications
+      // Send notifications to students and parents
       await this.notificationService.sendNotification({
         type: 'sms',
         template: 'ONLINE_CLASS_SCHEDULED',
@@ -86,15 +84,57 @@ export class OnlineClassNotificationService {
           teacher: teacherName
         },
         priority: 'medium',
-        schoolId: course.schoolId,
+        schoolId: schoolId,
         metadata: {
           sessionId: session.id,
-          courseId: course.id,
+          courseId: session.courseId,
           eventType: 'session_scheduled'
         }
       });
 
-      console.log(`[ONLINE_CLASS_NOTIFICATIONS] Scheduled notifications sent to ${recipients.length} recipients`);
+      // Notify the teacher about their assigned session
+      const [teacher] = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          preferredLanguage: users.preferredLanguage
+        })
+        .from(users)
+        .where(eq(users.id, session.teacherId))
+        .limit(1);
+
+      if (teacher) {
+        await this.notificationService.sendNotification({
+          type: 'sms',
+          template: 'ONLINE_CLASS_TEACHER_ASSIGNED',
+          recipients: [{
+            id: teacher.id,
+            name: teacher.name || `${teacher.firstName} ${teacher.lastName}`,
+            email: teacher.email,
+            phone: teacher.phone,
+            language: teacher.preferredLanguage || 'fr',
+            role: 'Teacher'
+          }],
+          data: {
+            title: session.title,
+            dateTime: dateTimeStr,
+            className: recipients[0]?.name || 'Class'
+          },
+          priority: 'medium',
+          schoolId: schoolId,
+          metadata: {
+            sessionId: session.id,
+            eventType: 'teacher_session_assigned'
+          }
+        });
+        console.log(`[ONLINE_CLASS_NOTIFICATIONS] Teacher notification sent to ${teacher.name}`);
+      }
+
+      console.log(`[ONLINE_CLASS_NOTIFICATIONS] Scheduled notifications sent to ${recipients.length} recipients + teacher`);
     } catch (error) {
       console.error('[ONLINE_CLASS_NOTIFICATIONS] Error sending scheduled notifications:', error);
     }
@@ -244,7 +284,7 @@ export class OnlineClassNotificationService {
    * Get recipients (students and parents) for a session
    * Prioritizes classId if provided, with fallback to course enrollments
    */
-  private async getSessionRecipients(classId: number | null, schoolId: number, courseId: number): Promise<NotificationRecipient[]> {
+  private async getSessionRecipients(classId: number | null, schoolId: number, courseId: number | null): Promise<NotificationRecipient[]> {
     const recipients: NotificationRecipient[] = [];
 
     try {
@@ -270,12 +310,12 @@ export class OnlineClassNotificationService {
           studentIds = classStudents.map(s => s.studentId);
           console.log(`[ONLINE_CLASS_NOTIFICATIONS] Found ${studentIds.length} students in class ${classId}`);
         } else {
-          console.log(`[ONLINE_CLASS_NOTIFICATIONS] No students in class ${classId}, falling back to course enrollments`);
+          console.log(`[ONLINE_CLASS_NOTIFICATIONS] No students in class ${classId}, falling back to course enrollments if available`);
         }
       }
       
-      // Fallback to course enrollments if no classId provided OR no students found in class
-      if (studentIds.length === 0) {
+      // Fallback to course enrollments if courseId is provided AND (no classId provided OR no students found in class)
+      if (studentIds.length === 0 && courseId) {
         console.log(`[ONLINE_CLASS_NOTIFICATIONS] Using course-based recipients for courseId: ${courseId}`);
         
         const enrolledStudents = await db
@@ -298,6 +338,11 @@ export class OnlineClassNotificationService {
 
         studentIds = enrolledStudents.map(s => s.userId);
         console.log(`[ONLINE_CLASS_NOTIFICATIONS] Found ${studentIds.length} students enrolled in course ${courseId}`);
+      }
+      
+      if (studentIds.length === 0) {
+        console.log(`[ONLINE_CLASS_NOTIFICATIONS] No students found for class ${classId}, course ${courseId}`);
+        return recipients;
       }
 
       // Get student details
