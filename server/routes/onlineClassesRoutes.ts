@@ -7,7 +7,8 @@ import { requireAuth } from '../middleware/auth';
 import { 
   requireOnlineClassesSubscription, 
   requireOnlineClassesManagement,
-  requireOnlineClassesAccess 
+  requireOnlineClassesAccess,
+  requirePersonalSubscription 
 } from '../middleware/onlineClassesMiddleware';
 import { jitsiService } from '../services/jitsiService.js';
 import { onlineClassNotificationService } from '../services/onlineClassNotificationService';
@@ -104,11 +105,13 @@ router.get('/courses',
 /**
  * POST /api/online-classes/courses
  * Create a new online course
+ * NOTE: Requires PERSONAL subscription for teachers (school access not sufficient)
  */
 router.post('/courses',
   requireAuth,
   requireOnlineClassesSubscription,
   requireOnlineClassesManagement,
+  requirePersonalSubscription, // Teachers must have personal subscription to create courses
   async (req, res) => {
     try {
       const user = req.user!;
@@ -249,11 +252,13 @@ router.get('/courses/:courseId/sessions',
 /**
  * POST /api/online-classes/courses/:courseId/sessions
  * Create a new class session
+ * NOTE: Requires PERSONAL subscription for teachers (school access not sufficient)
  */
 router.post('/courses/:courseId/sessions',
   requireAuth,
   requireOnlineClassesSubscription,
   requireOnlineClassesManagement,
+  requirePersonalSubscription, // Teachers must have personal subscription to create sessions
   async (req, res) => {
     try {
       const courseId = parseInt(req.params.courseId);

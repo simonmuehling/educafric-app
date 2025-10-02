@@ -201,3 +201,85 @@ export const requireOnlineClassesAccess = async (
 
   next();
 };
+
+// Middleware to require PERSONAL subscription for course creation
+// Teachers with school-only access cannot create their own courses
+export const requirePersonalSubscription = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+  
+  if (!user) {
+    return res.status(401).json({ 
+      error: "Authentication required", 
+      code: "AUTH_REQUIRED" 
+    });
+  }
+
+  // Site admins and directors bypass this check (they manage school courses)
+  if (['SiteAdmin', 'Admin', 'Director'].includes(user.role)) {
+    return next();
+  }
+
+  // Check for sandbox/test exemption
+  const exemptPatterns = [
+    '@educafric.demo',
+    '@test.educafric.com',
+    'sandbox.',
+    'demo.',
+    'test.',
+    '.sandbox@',
+    '.demo@',
+    '.test@'
+  ];
+  
+  const isExempt = user.email && exemptPatterns.some(pattern => user.email!.includes(pattern));
+  
+  if (isExempt) {
+    console.log(`[PERSONAL_SUBSCRIPTION] ✅ User ${user.email} exempt from personal subscription check`);
+    return next();
+  }
+
+  // For teachers, check if they have personal subscription (not just school access)
+  if (user.role === 'Teacher') {
+    const { onlineClassAccessService } = await import('../services/onlineClassAccessService.js');
+    
+    const accessCheck = await onlineClassAccessService.canTeacherAccessOnlineClass(
+      user.id,
+      new Date(),
+      user.email || undefined
+    );
+    
+    console.log(`[PERSONAL_SUBSCRIPTION] 🔍 Access check for teacher ${user.id}:`, accessCheck);
+    
+    // Allow only if they have PERSONAL subscription (activationType === 'teacher')
+    // Deny if they only have school access (activationType === 'school')
+    if (accessCheck.activationType === 'school') {
+      console.log(`[PERSONAL_SUBSCRIPTION] ❌ Teacher ${user.id} has school access only - course creation denied`);
+      return res.status(403).json({ 
+        error: "Vous avez accès aux sessions assignées par votre école, mais pour créer vos propres cours, vous devez souscrire à un abonnement personnel (150,000 CFA/an).",
+        code: "PERSONAL_SUBSCRIPTION_REQUIRED",
+        requiresPersonalSubscription: true,
+        yearlyPrice: 150000,
+        currency: "XAF"
+      });
+    }
+    
+    if (!accessCheck.allowed || accessCheck.activationType !== 'teacher') {
+      console.log(`[PERSONAL_SUBSCRIPTION] ❌ Teacher ${user.id} does not have personal subscription`);
+      return res.status(403).json({ 
+        error: "Abonnement personnel requis pour créer des cours. Souscrivez pour 150,000 CFA/an.",
+        code: "PERSONAL_SUBSCRIPTION_REQUIRED",
+        requiresPersonalSubscription: true,
+        yearlyPrice: 150000,
+        currency: "XAF"
+      });
+    }
+    
+    console.log(`[PERSONAL_SUBSCRIPTION] ✅ Teacher ${user.id} has valid personal subscription`);
+  }
+
+  next();
+};
