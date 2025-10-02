@@ -134,6 +134,8 @@ router.post('/courses',
                            user.email?.startsWith('sandbox.');
       const schoolId = user.schoolId || (isSandboxUser ? 999 : null);
       
+      console.log('[ONLINE_CLASSES_DEBUG] User:', { email: user.email, userSchoolId: user.schoolId, isSandboxUser, finalSchoolId: schoolId });
+      
       if (!schoolId) {
         return res.status(400).json({
           success: false,
