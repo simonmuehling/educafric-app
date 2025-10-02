@@ -226,7 +226,7 @@ router.post(
         durationMinutes: parsed.durationMinutes,
         autoNotify: parsed.autoNotify,
         createdBy: req.user.id,
-        skipActivationCheck: isSandbox
+        skipActivationCheck: isSandboxOrTestUser(req.user.email)
       });
 
       console.log(`[SCHEDULER_API] ✅ Single session created by ${req.user.email} for school ${req.user.schoolId}`);
@@ -301,7 +301,7 @@ router.post(
         endDate: parsed.endDate,
         autoNotify: parsed.autoNotify,
         createdBy: req.user.id,
-        skipActivationCheck: isSandbox
+        skipActivationCheck: isSandboxOrTestUser(req.user.email)
       });
 
       console.log(`[SCHEDULER_API] ✅ Recurrence created by ${req.user.email} for school ${req.user.schoolId}`);
