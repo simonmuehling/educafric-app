@@ -634,11 +634,11 @@ const OnlineClassesManager: React.FC = () => {
                   <Video className="h-6 w-6" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
+                  <CardTitle className="text-2xl font-bold text-gray-800">
                     {t.title}
                   </CardTitle>
-                  <p className="text-gray-600 dark:text-gray-300 mt-1">{t.subtitle}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t.description}</p>
+                  <p className="text-gray-600 mt-1">{t.subtitle}</p>
+                  <p className="text-sm text-gray-500 mt-1">{t.description}</p>
                 </div>
               </div>
             </div>
@@ -680,7 +680,7 @@ const OnlineClassesManager: React.FC = () => {
                   <Card className="border-dashed">
                     <CardContent className="flex flex-col items-center justify-center py-12">
                       <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-gray-600 dark:text-gray-400">{t.sessions.noSessions}</p>
+                      <p className="text-gray-600">{t.sessions.noSessions}</p>
                     </CardContent>
                   </Card>
                 ) : (
@@ -690,8 +690,8 @@ const OnlineClassesManager: React.FC = () => {
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <CardTitle className="text-lg dark:text-gray-100">{session.title}</CardTitle>
-                              <CardDescription className="mt-1 dark:text-gray-400">
+                              <CardTitle className="text-lg text-gray-800">{session.title}</CardTitle>
+                              <CardDescription className="mt-1">
                                 {session.className || session.courseName}
                               </CardDescription>
                             </div>
@@ -704,22 +704,22 @@ const OnlineClassesManager: React.FC = () => {
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Clock className="h-4 w-4" />
                             <span>{new Date(session.scheduledStart).toLocaleString(language)}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Users className="h-4 w-4" />
                             <span>{session.teacherName}</span>
                           </div>
                           {session.subjectName && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
                               <BookOpen className="h-4 w-4" />
                               <span>{session.subjectName}</span>
                             </div>
                           )}
                           {session.description && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{session.description}</p>
+                            <p className="text-sm text-gray-500 mt-2">{session.description}</p>
                           )}
                           {session.status === 'scheduled' && (
                             <Button
@@ -754,13 +754,13 @@ const OnlineClassesManager: React.FC = () => {
                           name="classId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createSession.selectClass}</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createSession.selectClass}</FormLabel>
                               <Select onValueChange={(value) => {
                                 field.onChange(value);
                                 sessionForm.setValue('subjectId', '');
                               }} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-class">
+                                  <SelectTrigger className="bg-white border-gray-300" data-testid="select-session-class">
                                     <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -782,10 +782,10 @@ const OnlineClassesManager: React.FC = () => {
                           name="teacherId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createSession.selectTeacher}</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createSession.selectTeacher}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-teacher">
+                                  <SelectTrigger className="bg-white border-gray-300" data-testid="select-session-teacher">
                                     <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -807,10 +807,10 @@ const OnlineClassesManager: React.FC = () => {
                           name="subjectId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createSession.selectSubject}</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createSession.selectSubject}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value} disabled={!selectedClassId}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-subject">
+                                  <SelectTrigger className="bg-white border-gray-300" data-testid="select-session-subject">
                                     <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -832,12 +832,13 @@ const OnlineClassesManager: React.FC = () => {
                           name="title"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createSession.sessionTitle}</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createSession.sessionTitle}</FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder={t.createSession.sessionTitle}
                                   {...field}
                                   data-testid="input-session-title"
+                                  className="bg-white border-gray-300"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -850,12 +851,13 @@ const OnlineClassesManager: React.FC = () => {
                           name="description"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createSession.description}</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createSession.description}</FormLabel>
                               <FormControl>
                                 <Textarea
                                   placeholder={t.createSession.description}
                                   {...field}
                                   data-testid="input-session-description"
+                                  className="bg-white border-gray-300"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -868,12 +870,13 @@ const OnlineClassesManager: React.FC = () => {
                           name="scheduledStart"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createSession.scheduledStart}</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createSession.scheduledStart}</FormLabel>
                               <FormControl>
                                 <Input
                                   type="datetime-local"
                                   {...field}
                                   data-testid="input-session-scheduled-start"
+                                  className="bg-white border-gray-300"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -886,7 +889,7 @@ const OnlineClassesManager: React.FC = () => {
                           name="durationMinutes"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createSession.durationMinutes}</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createSession.durationMinutes}</FormLabel>
                               <FormControl>
                                 <Input
                                   type="number"
@@ -895,6 +898,7 @@ const OnlineClassesManager: React.FC = () => {
                                   {...field}
                                   onChange={(e) => field.onChange(parseInt(e.target.value))}
                                   data-testid="input-session-duration"
+                                  className="bg-white border-gray-300"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -915,7 +919,7 @@ const OnlineClassesManager: React.FC = () => {
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-normal cursor-pointer dark:text-gray-200">
+                                <FormLabel className="text-sm font-normal cursor-pointer">
                                   {t.createSession.autoNotify}
                                 </FormLabel>
                               </div>
@@ -961,7 +965,7 @@ const OnlineClassesManager: React.FC = () => {
                   <Card className="border-dashed">
                     <CardContent className="flex flex-col items-center justify-center py-12">
                       <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-gray-600 dark:text-gray-400">{t.recurrences.noRecurrences}</p>
+                      <p className="text-gray-600">{t.recurrences.noRecurrences}</p>
                     </CardContent>
                   </Card>
                 ) : (
@@ -971,8 +975,8 @@ const OnlineClassesManager: React.FC = () => {
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <CardTitle className="text-lg dark:text-gray-100">{recurrence.title}</CardTitle>
-                              <CardDescription className="mt-1 dark:text-gray-400">
+                              <CardTitle className="text-lg">{recurrence.title}</CardTitle>
+                              <CardDescription className="mt-1">
                                 {recurrence.courseName}
                               </CardDescription>
                             </div>
@@ -985,15 +989,15 @@ const OnlineClassesManager: React.FC = () => {
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Repeat className="h-4 w-4" />
                             <span>{t.recurrences.ruleType[recurrence.ruleType]}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Clock className="h-4 w-4" />
                             <span>{recurrence.startTime} ({recurrence.durationMinutes} min)</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Users className="h-4 w-4" />
                             <span>{recurrence.teacherName}</span>
                           </div>
@@ -1006,7 +1010,7 @@ const OnlineClassesManager: React.FC = () => {
                               ))}
                             </div>
                           )}
-                          <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                          <div className="text-xs text-gray-500 space-y-1">
                             <div>{t.recurrences.generatedCount}: {recurrence.generatedCount}</div>
                             {recurrence.lastGenerated && (
                               <div>{t.recurrences.lastGenerated}: {new Date(recurrence.lastGenerated).toLocaleDateString()}</div>
@@ -1057,10 +1061,10 @@ const OnlineClassesManager: React.FC = () => {
                           name="courseId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createRecurrence.selectCourse} (Optional)</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createRecurrence.selectCourse} (Optional)</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-recurrence-course">
+                                  <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-course">
                                     <SelectValue placeholder={language === 'fr' ? "Aucun - Programmation directe" : "None - Direct scheduling"} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -1087,10 +1091,10 @@ const OnlineClassesManager: React.FC = () => {
                               name="classId"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="dark:text-gray-200">{t.createSession.selectClass}</FormLabel>
+                                  <FormLabel className="text-gray-700">{t.createSession.selectClass}</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
-                                      <SelectTrigger data-testid="select-recurrence-class">
+                                      <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-class">
                                         <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
                                       </SelectTrigger>
                                     </FormControl>
@@ -1112,10 +1116,10 @@ const OnlineClassesManager: React.FC = () => {
                               name="teacherId"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="dark:text-gray-200">{t.createSession.selectTeacher}</FormLabel>
+                                  <FormLabel className="text-gray-700">{t.createSession.selectTeacher}</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
-                                      <SelectTrigger data-testid="select-recurrence-teacher">
+                                      <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-teacher">
                                         <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
                                       </SelectTrigger>
                                     </FormControl>
@@ -1138,10 +1142,10 @@ const OnlineClassesManager: React.FC = () => {
                                 name="subjectId"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="dark:text-gray-200">{t.createSession.selectSubject}</FormLabel>
+                                    <FormLabel className="text-gray-700">{t.createSession.selectSubject}</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                       <FormControl>
-                                        <SelectTrigger data-testid="select-recurrence-subject">
+                                        <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-subject">
                                           <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
                                         </SelectTrigger>
                                       </FormControl>
@@ -1166,12 +1170,13 @@ const OnlineClassesManager: React.FC = () => {
                           name="title"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createRecurrence.ruleTitle}</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createRecurrence.ruleTitle}</FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder={t.createRecurrence.ruleTitle}
                                   {...field}
                                   data-testid="input-recurrence-title"
+                                  className="bg-white border-gray-300"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -1184,12 +1189,13 @@ const OnlineClassesManager: React.FC = () => {
                           name="description"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createRecurrence.description}</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createRecurrence.description}</FormLabel>
                               <FormControl>
                                 <Textarea
                                   placeholder={t.createRecurrence.description}
                                   {...field}
                                   data-testid="input-recurrence-description"
+                                  className="bg-white border-gray-300"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -1202,10 +1208,10 @@ const OnlineClassesManager: React.FC = () => {
                           name="ruleType"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="dark:text-gray-200">{t.createRecurrence.ruleType}</FormLabel>
+                              <FormLabel className="text-gray-700">{t.createRecurrence.ruleType}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-recurrence-type">
+                                  <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-type">
                                     <SelectValue />
                                   </SelectTrigger>
                                 </FormControl>
@@ -1227,7 +1233,7 @@ const OnlineClassesManager: React.FC = () => {
                             name="byDay"
                             render={() => (
                               <FormItem>
-                                <FormLabel className="dark:text-gray-200">{t.createRecurrence.byDay}</FormLabel>
+                                <FormLabel className="text-gray-700">{t.createRecurrence.byDay}</FormLabel>
                                 <div className="grid grid-cols-2 gap-2">
                                   {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
                                     <FormField
@@ -1243,7 +1249,7 @@ const OnlineClassesManager: React.FC = () => {
                                               data-testid={`checkbox-day-${day}`}
                                             />
                                           </FormControl>
-                                          <FormLabel className="text-sm font-normal cursor-pointer dark:text-gray-200">
+                                          <FormLabel className="text-sm font-normal cursor-pointer">
                                             {t.createRecurrence.days[day as keyof typeof t.createRecurrence.days]}
                                           </FormLabel>
                                         </FormItem>
@@ -1263,12 +1269,13 @@ const OnlineClassesManager: React.FC = () => {
                             name="startTime"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="dark:text-gray-200">{t.createRecurrence.startTime}</FormLabel>
+                                <FormLabel className="text-gray-700">{t.createRecurrence.startTime}</FormLabel>
                                 <FormControl>
                                   <Input
                                     type="time"
                                     {...field}
                                     data-testid="input-recurrence-start-time"
+                                    className="bg-white border-gray-300"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -1281,7 +1288,7 @@ const OnlineClassesManager: React.FC = () => {
                             name="durationMinutes"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="dark:text-gray-200">{t.createRecurrence.durationMinutes}</FormLabel>
+                                <FormLabel className="text-gray-700">{t.createRecurrence.durationMinutes}</FormLabel>
                                 <FormControl>
                                   <Input
                                     type="number"
@@ -1290,6 +1297,7 @@ const OnlineClassesManager: React.FC = () => {
                                     {...field}
                                     onChange={(e) => field.onChange(parseInt(e.target.value))}
                                     data-testid="input-recurrence-duration"
+                                    className="bg-white border-gray-300"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -1304,12 +1312,13 @@ const OnlineClassesManager: React.FC = () => {
                             name="startDate"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="dark:text-gray-200">{t.createRecurrence.startDate}</FormLabel>
+                                <FormLabel className="text-gray-700">{t.createRecurrence.startDate}</FormLabel>
                                 <FormControl>
                                   <Input
                                     type="date"
                                     {...field}
                                     data-testid="input-recurrence-start-date"
+                                    className="bg-white border-gray-300"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -1322,12 +1331,13 @@ const OnlineClassesManager: React.FC = () => {
                             name="endDate"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="dark:text-gray-200">{t.createRecurrence.endDate}</FormLabel>
+                                <FormLabel className="text-gray-700">{t.createRecurrence.endDate}</FormLabel>
                                 <FormControl>
                                   <Input
                                     type="date"
                                     {...field}
                                     data-testid="input-recurrence-end-date"
+                                    className="bg-white border-gray-300"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -1349,7 +1359,7 @@ const OnlineClassesManager: React.FC = () => {
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-normal cursor-pointer dark:text-gray-200">
+                                <FormLabel className="text-sm font-normal cursor-pointer">
                                   {t.createRecurrence.autoNotify}
                                 </FormLabel>
                               </div>
@@ -1390,7 +1400,7 @@ const OnlineClassesManager: React.FC = () => {
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
                     <CalendarDays className="h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400">Calendar view coming soon...</p>
+                    <p className="text-gray-600">Calendar view coming soon...</p>
                   </CardContent>
                 </Card>
               </TabsContent>
