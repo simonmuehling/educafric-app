@@ -6,6 +6,86 @@ import { z } from "zod";
 
 const router = Router();
 
+/**
+ * GET /api/online-class-scheduler/courses
+ * Get all online courses for a school
+ * Requires: Director role
+ */
+router.get(
+  "/courses",
+  requireAuth,
+  async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== "Director") {
+        return res.status(403).json({
+          success: false,
+          message: "Accès refusé - rôle Director requis"
+        });
+      }
+
+      if (!req.user.schoolId) {
+        return res.status(403).json({
+          success: false,
+          message: "Utilisateur n'est pas associé à une école"
+        });
+      }
+
+      const courses = await onlineClassSchedulerService.getSchoolCourses(req.user.schoolId);
+
+      res.json({
+        success: true,
+        courses
+      });
+    } catch (error) {
+      console.error("[SCHEDULER_API] ❌ Error fetching courses:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erreur lors de la récupération des cours"
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/online-class-scheduler/sessions
+ * Get all scheduled sessions for a school
+ * Requires: Director role
+ */
+router.get(
+  "/sessions",
+  requireAuth,
+  async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== "Director") {
+        return res.status(403).json({
+          success: false,
+          message: "Accès refusé - rôle Director requis"
+        });
+      }
+
+      if (!req.user.schoolId) {
+        return res.status(403).json({
+          success: false,
+          message: "Utilisateur n'est pas associé à une école"
+        });
+      }
+
+      const sessions = await onlineClassSchedulerService.getSchoolSessions(req.user.schoolId);
+
+      res.json({
+        success: true,
+        sessions
+      });
+    } catch (error) {
+      console.error("[SCHEDULER_API] ❌ Error fetching sessions:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erreur lors de la récupération des sessions"
+      });
+    }
+  }
+);
+
 // Schema validation for creating a single session
 const createSessionSchema = z.object({
   courseId: z.number(),

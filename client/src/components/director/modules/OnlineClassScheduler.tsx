@@ -770,9 +770,6 @@ const OnlineClassScheduler: React.FC = () => {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="">
-                                    {language === 'fr' ? 'Aucune classe (utiliser celle du cours)' : 'No class (use course class)'}
-                                  </SelectItem>
                                   {classesData?.classes?.map((cls: any) => (
                                     <SelectItem key={cls.id} value={cls.id.toString()}>
                                       {cls.name}

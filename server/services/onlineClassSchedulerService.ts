@@ -354,6 +354,63 @@ export class OnlineClassSchedulerService {
   }
 
   /**
+   * Get all online courses for a school with teacher and class info
+   */
+  async getSchoolCourses(schoolId: number) {
+    const courses = await db
+      .select({
+        id: onlineCourses.id,
+        title: onlineCourses.title,
+        description: onlineCourses.description,
+        teacherId: onlineCourses.teacherId,
+        teacherName: users.name,
+        classId: onlineCourses.classId,
+        className: classes.name,
+        subjectId: onlineCourses.subjectId,
+        createdAt: onlineCourses.createdAt
+      })
+      .from(onlineCourses)
+      .leftJoin(users, eq(onlineCourses.teacherId, users.id))
+      .leftJoin(classes, eq(onlineCourses.classId, classes.id))
+      .where(eq(onlineCourses.schoolId, schoolId))
+      .orderBy(onlineCourses.createdAt);
+
+    return courses;
+  }
+
+  /**
+   * Get all scheduled sessions for a school
+   */
+  async getSchoolSessions(schoolId: number) {
+    // Get all sessions where the course belongs to this school
+    const sessions = await db
+      .select({
+        id: classSessions.id,
+        courseId: classSessions.courseId,
+        courseName: onlineCourses.title,
+        teacherId: classSessions.teacherId,
+        teacherName: users.name,
+        classId: classSessions.classId,
+        className: classes.name,
+        title: classSessions.title,
+        description: classSessions.description,
+        scheduledStart: classSessions.scheduledStart,
+        scheduledEnd: classSessions.scheduledEnd,
+        status: classSessions.status,
+        roomName: classSessions.roomName,
+        createdAt: classSessions.createdAt
+      })
+      .from(classSessions)
+      .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
+      .leftJoin(users, eq(classSessions.teacherId, users.id))
+      .leftJoin(classes, eq(classSessions.classId, classes.id))
+      .where(eq(onlineCourses.schoolId, schoolId))
+      .orderBy(classSessions.scheduledStart);
+
+    return sessions;
+  }
+
+  /**
    * Get scheduled sessions for a teacher (school-created only)
    * Now directly filters by teacherId field in class_sessions table
    */
