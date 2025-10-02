@@ -44,7 +44,7 @@ const createSessionSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
   scheduledStart: z.string().transform(str => new Date(str)),
-  scheduledEnd: z.string().transform(str => new Date(str)).optional(),
+  scheduledEnd: z.string().optional().transform(str => str ? new Date(str) : undefined),
   maxDuration: z.number().default(120),
   lobbyEnabled: z.boolean().default(true),
   chatEnabled: z.boolean().default(true),
@@ -133,8 +133,6 @@ router.post('/courses',
                            user.email?.includes('@test.educafric.com') || 
                            user.email?.startsWith('sandbox.');
       const schoolId = user.schoolId || (isSandboxUser ? 999 : null);
-      
-      console.log('[ONLINE_CLASSES_DEBUG] User:', { email: user.email, userSchoolId: user.schoolId, isSandboxUser, finalSchoolId: schoolId });
       
       if (!schoolId) {
         return res.status(400).json({
@@ -328,6 +326,7 @@ router.post('/courses/:courseId/sessions',
           screenShareEnabled: validated.screenShareEnabled,
           courseId,
           roomName,
+          teacherId: user.id, // Fix: Add missing teacherId
           createdBy: user.id
         })
         .returning();
