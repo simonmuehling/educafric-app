@@ -4,7 +4,7 @@
  */
 
 import { db } from '../db';
-import { classSessions, users, onlineCourses, courseEnrollments, parentStudentRelations } from '../../shared/schema';
+import { classSessions, users, onlineCourses, courseEnrollments, classEnrollments, parentStudentRelations } from '../../shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 import { RefactoredNotificationService, NotificationRecipient } from './refactoredNotificationService';
 
@@ -241,32 +241,63 @@ export class OnlineClassNotificationService {
   }
 
   /**
-   * Get recipients (students and parents) for a course
+   * Get recipients (students and parents) for a session
+   * Prioritizes classId if provided, otherwise uses course enrollments
    */
   private async getSessionRecipients(classId: number | null, schoolId: number, courseId: number): Promise<NotificationRecipient[]> {
     const recipients: NotificationRecipient[] = [];
 
     try {
-      // Get students enrolled in this course
-      const enrolledStudents = await db
-        .select({
-          userId: courseEnrollments.userId
-        })
-        .from(courseEnrollments)
-        .where(
-          and(
-            eq(courseEnrollments.courseId, courseId),
-            eq(courseEnrollments.role, 'student'),
-            eq(courseEnrollments.isActive, true)
-          )
-        );
+      let studentIds: number[] = [];
 
-      if (enrolledStudents.length === 0) {
-        console.log(`[ONLINE_CLASS_NOTIFICATIONS] No students enrolled in course ${courseId}`);
-        return recipients;
+      if (classId) {
+        // Get students from class enrollment if classId is provided
+        console.log(`[ONLINE_CLASS_NOTIFICATIONS] Using class-based recipients for classId: ${classId}`);
+        
+        const classStudents = await db
+          .select({
+            studentId: classEnrollments.studentId
+          })
+          .from(classEnrollments)
+          .where(
+            and(
+              eq(classEnrollments.classId, classId),
+              eq(classEnrollments.status, 'active')
+            )
+          );
+
+        if (classStudents.length === 0) {
+          console.log(`[ONLINE_CLASS_NOTIFICATIONS] No students enrolled in class ${classId}`);
+          return recipients;
+        }
+
+        studentIds = classStudents.map(s => s.studentId);
+        console.log(`[ONLINE_CLASS_NOTIFICATIONS] Found ${studentIds.length} students in class ${classId}`);
+      } else {
+        // Fallback to course enrollments if no classId
+        console.log(`[ONLINE_CLASS_NOTIFICATIONS] Using course-based recipients for courseId: ${courseId}`);
+        
+        const enrolledStudents = await db
+          .select({
+            userId: courseEnrollments.userId
+          })
+          .from(courseEnrollments)
+          .where(
+            and(
+              eq(courseEnrollments.courseId, courseId),
+              eq(courseEnrollments.role, 'student'),
+              eq(courseEnrollments.isActive, true)
+            )
+          );
+
+        if (enrolledStudents.length === 0) {
+          console.log(`[ONLINE_CLASS_NOTIFICATIONS] No students enrolled in course ${courseId}`);
+          return recipients;
+        }
+
+        studentIds = enrolledStudents.map(s => s.userId);
+        console.log(`[ONLINE_CLASS_NOTIFICATIONS] Found ${studentIds.length} students enrolled in course ${courseId}`);
       }
-
-      const studentIds = enrolledStudents.map(s => s.userId);
 
       // Get student details
       const students = await db
