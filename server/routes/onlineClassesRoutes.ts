@@ -68,7 +68,19 @@ router.get('/courses',
   async (req, res) => {
     try {
       const user = req.user!;
-      const schoolId = user.schoolId!;
+      
+      // Handle sandbox users with null schoolId
+      const isSandboxUser = user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('@test.educafric.com') || 
+                           user.email?.startsWith('sandbox.');
+      const schoolId = user.schoolId || (isSandboxUser ? 999 : null);
+      
+      if (!schoolId) {
+        return res.status(400).json({
+          success: false,
+          error: 'School ID is required'
+        });
+      }
 
       const courses = await db
         .select({
@@ -115,7 +127,19 @@ router.post('/courses',
   async (req, res) => {
     try {
       const user = req.user!;
-      const schoolId = user.schoolId!;
+      
+      // Handle sandbox users with null schoolId
+      const isSandboxUser = user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('@test.educafric.com') || 
+                           user.email?.startsWith('sandbox.');
+      const schoolId = user.schoolId || (isSandboxUser ? 999 : null);
+      
+      if (!schoolId) {
+        return res.status(400).json({
+          success: false,
+          error: 'School ID is required to create a course'
+        });
+      }
       
       console.log('[ONLINE_CLASSES_API] 📥 Received request body:', JSON.stringify(req.body, null, 2));
       console.log('[ONLINE_CLASSES_API] 📥 Content-Type:', req.headers['content-type']);
