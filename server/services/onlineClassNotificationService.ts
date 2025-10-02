@@ -72,13 +72,33 @@ export class OnlineClassNotificationService {
         minute: '2-digit'
       });
 
-      // Send notifications to students and parents
+      // Send email notifications to students and parents
       await this.notificationService.sendNotification({
-        type: 'sms',
+        type: 'email',
         template: 'ONLINE_CLASS_SCHEDULED',
         recipients,
         data: {
           childName: recipients[0].name, // Will be replaced per recipient
+          title: session.title,
+          dateTime: dateTimeStr,
+          teacher: teacherName
+        },
+        priority: 'medium',
+        schoolId: schoolId,
+        metadata: {
+          sessionId: session.id,
+          courseId: session.courseId,
+          eventType: 'session_scheduled'
+        }
+      });
+
+      // Send push notifications to students and parents
+      await this.notificationService.sendNotification({
+        type: 'push',
+        template: 'ONLINE_CLASS_SCHEDULED',
+        recipients,
+        data: {
+          childName: recipients[0].name,
           title: session.title,
           dateTime: dateTimeStr,
           teacher: teacherName
@@ -108,8 +128,9 @@ export class OnlineClassNotificationService {
         .limit(1);
 
       if (teacher) {
+        // Email notification to teacher
         await this.notificationService.sendNotification({
-          type: 'sms',
+          type: 'email',
           template: 'ONLINE_CLASS_TEACHER_ASSIGNED',
           recipients: [{
             id: teacher.id,
@@ -131,7 +152,32 @@ export class OnlineClassNotificationService {
             eventType: 'teacher_session_assigned'
           }
         });
-        console.log(`[ONLINE_CLASS_NOTIFICATIONS] Teacher notification sent to ${teacher.name}`);
+
+        // Push notification to teacher
+        await this.notificationService.sendNotification({
+          type: 'push',
+          template: 'ONLINE_CLASS_TEACHER_ASSIGNED',
+          recipients: [{
+            id: teacher.id,
+            name: teacher.name || `${teacher.firstName} ${teacher.lastName}`,
+            email: teacher.email,
+            phone: teacher.phone,
+            language: teacher.preferredLanguage || 'fr',
+            role: 'Teacher'
+          }],
+          data: {
+            title: session.title,
+            dateTime: dateTimeStr,
+            className: recipients[0]?.name || 'Class'
+          },
+          priority: 'medium',
+          schoolId: schoolId,
+          metadata: {
+            sessionId: session.id,
+            eventType: 'teacher_session_assigned'
+          }
+        });
+        console.log(`[ONLINE_CLASS_NOTIFICATIONS] Teacher notifications (email + push) sent to ${teacher.name}`);
       }
 
       console.log(`[ONLINE_CLASS_NOTIFICATIONS] Scheduled notifications sent to ${recipients.length} recipients + teacher`);
