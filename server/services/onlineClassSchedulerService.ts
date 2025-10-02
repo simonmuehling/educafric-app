@@ -108,7 +108,7 @@ export class OnlineClassSchedulerService {
         lobbyEnabled: true,
         chatEnabled: true,
         screenShareEnabled: true
-      })
+      } as any)
       .returning();
 
     // Send notifications if auto-notify enabled
@@ -167,7 +167,7 @@ export class OnlineClassSchedulerService {
         createdBy: input.createdBy,
         isActive: true,
         occurrencesGenerated: 0
-      })
+      } as any)
       .returning();
 
     // Generate initial batch of sessions (next 4 weeks)
@@ -296,7 +296,7 @@ export class OnlineClassSchedulerService {
                 lobbyEnabled: true,
                 chatEnabled: true,
                 screenShareEnabled: true
-              })
+              } as any)
               .returning();
 
             sessions.push(session);
@@ -321,7 +321,7 @@ export class OnlineClassSchedulerService {
           occurrencesGenerated: (recurrence.occurrencesGenerated || 0) + sessions.length,
           lastGenerated: new Date(),
           nextGeneration: generationEnd
-        })
+        } as any)
         .where(eq(onlineClassRecurrences.id, recurrenceId));
     }
 
@@ -334,7 +334,7 @@ export class OnlineClassSchedulerService {
   async updateRecurrence(recurrenceId: number, updates: RecurrenceUpdate) {
     await db
       .update(onlineClassRecurrences)
-      .set(updates)
+      .set(updates as any)
       .where(eq(onlineClassRecurrences.id, recurrenceId));
 
     return this.getRecurrenceById(recurrenceId);
@@ -485,7 +485,6 @@ export class OnlineClassSchedulerService {
     const [teacher] = await db
       .select({
         id: users.id,
-        name: users.name,
         firstName: users.firstName,
         lastName: users.lastName,
         schoolId: users.schoolId
@@ -499,7 +498,7 @@ export class OnlineClassSchedulerService {
       return;
     }
     
-    const teacherName = teacher.name || `${teacher.firstName} ${teacher.lastName}`;
+    const teacherName = `${teacher.firstName} ${teacher.lastName}`;
     
     // Send notifications to teacher, students, and parents
     await notificationService.notifySessionScheduled(sessionId, teacherName, teacher.schoolId);
@@ -507,7 +506,7 @@ export class OnlineClassSchedulerService {
     // Mark notifications as sent
     await db
       .update(classSessions)
-      .set({ notificationsSent: true })
+      .set({ notificationsSent: true } as any)
       .where(eq(classSessions.id, sessionId));
 
     console.log(`[SCHEDULER_SERVICE] Notifications sent for session ${sessionId} in class ${classId} to teacher, students, and parents`);
@@ -519,7 +518,7 @@ export class OnlineClassSchedulerService {
   async cancelSession(sessionId: number) {
     await db
       .update(classSessions)
-      .set({ status: "canceled" })
+      .set({ status: "canceled" } as any)
       .where(eq(classSessions.id, sessionId));
   }
 
