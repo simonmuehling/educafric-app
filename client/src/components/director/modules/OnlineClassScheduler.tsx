@@ -116,7 +116,10 @@ const sessionFormSchema = z.object({
 });
 
 const recurrenceFormSchema = z.object({
-  courseId: z.string().min(1, 'Course is required'),
+  courseId: z.string().optional(),
+  classId: z.string().optional(),
+  teacherId: z.string().optional(),
+  subjectId: z.string().optional(),
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   ruleType: z.enum(['daily', 'weekly', 'biweekly', 'custom']),
@@ -128,13 +131,20 @@ const recurrenceFormSchema = z.object({
   endDate: z.string().optional(),
   autoNotify: z.boolean().default(true)
 }).refine((data) => {
+  // If no course selected, require class, teacher, and subject
+  if (!data.courseId || data.courseId === '') {
+    if (!data.classId || !data.teacherId) {
+      return false;
+    }
+  }
+  // For non-daily recurrence, require at least one day
   if (data.ruleType !== 'daily' && (!data.byDay || data.byDay.length === 0)) {
     return false;
   }
   return true;
 }, {
-  message: 'Please select at least one day of the week for non-daily recurrence',
-  path: ['byDay']
+  message: 'When no course is selected, class and teacher are required. For non-daily recurrence, please select at least one day of the week',
+  path: ['courseId']
 });
 
 type SessionFormValues = z.infer<typeof sessionFormSchema>;
@@ -166,6 +176,9 @@ const OnlineClassScheduler: React.FC = () => {
     resolver: zodResolver(recurrenceFormSchema),
     defaultValues: {
       courseId: '',
+      classId: '',
+      teacherId: '',
+      subjectId: '',
       title: '',
       description: '',
       ruleType: 'weekly',
@@ -556,14 +569,14 @@ const OnlineClassScheduler: React.FC = () => {
   };
 
   const onRecurrenceSubmit = (values: RecurrenceFormValues) => {
-    const selectedCourse = coursesData?.courses?.find((c: OnlineCourse) => c.id === parseInt(values.courseId));
-    if (!selectedCourse) return;
+    // Allow optional courseId - if not selected, require manual teacher/class/subject selection
+    const selectedCourse = values.courseId ? coursesData?.courses?.find((c: OnlineCourse) => c.id === parseInt(values.courseId)) : null;
 
     createRecurrenceMutation.mutate({
-      courseId: parseInt(values.courseId),
-      teacherId: selectedCourse.teacherId,
-      classId: selectedCourse.classId,
-      subjectId: selectedCourse.subjectId,
+      courseId: values.courseId ? parseInt(values.courseId) : undefined,
+      teacherId: selectedCourse ? selectedCourse.teacherId : parseInt(values.teacherId),
+      classId: selectedCourse ? selectedCourse.classId : parseInt(values.classId),
+      subjectId: selectedCourse ? selectedCourse.subjectId : (values.subjectId ? parseInt(values.subjectId) : undefined),
       title: values.title,
       description: values.description,
       ruleType: values.ruleType,
@@ -1055,19 +1068,22 @@ const OnlineClassScheduler: React.FC = () => {
                           name="courseId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t.createRecurrence.selectCourse}</FormLabel>
+                              <FormLabel>{t.createRecurrence.selectCourse} (Optional)</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-recurrence-course">
-                                    <SelectValue placeholder={t.createRecurrence.selectCourse} />
+                                    <SelectValue placeholder={language === 'fr' ? "Aucun - Programmation directe" : "None - Direct scheduling"} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {courses.map((course) => (
+                                  <SelectItem value="">
+                                    {language === 'fr' ? "Aucun - Programmation directe" : "None - Direct scheduling"}
+                                  </SelectItem>
+                                  {coursesData?.courses?.map((course: OnlineCourse) => (
                                     <SelectItem key={course.id} value={course.id.toString()}>
                                       {course.title} - {course.teacherName} {course.className ? `(${course.className})` : ''}
                                     </SelectItem>
-                                  ))}
+                                  )) || []}
                                 </SelectContent>
                               </Select>
                               <FormMessage />
