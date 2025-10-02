@@ -771,8 +771,8 @@ const OnlineClassScheduler: React.FC = () => {
                                 sessionForm.setValue('subjectId', '');
                               }} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-class" className="text-black bg-gray-300 dark:bg-gray-700 dark:text-white">
-                                    <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
+                                  <SelectTrigger data-testid="select-session-class" className="text-black bg-gray-300 dark:bg-gray-700 dark:text-white [&>span]:text-black [&>span]:dark:text-white">
+                                    <SelectValue placeholder={t.createSession.selectClassPlaceholder} className="text-black dark:text-white" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -796,8 +796,8 @@ const OnlineClassScheduler: React.FC = () => {
                               <FormLabel>{t.createSession.selectTeacher}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-teacher" className="text-black bg-gray-300 dark:bg-gray-700 dark:text-white">
-                                    <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
+                                  <SelectTrigger data-testid="select-session-teacher" className="text-black bg-gray-300 dark:bg-gray-700 dark:text-white [&>span]:text-black [&>span]:dark:text-white">
+                                    <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} className="text-black dark:text-white" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -821,8 +821,8 @@ const OnlineClassScheduler: React.FC = () => {
                               <FormLabel>{t.createSession.selectSubject}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value} disabled={!selectedClassId}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-subject" className="text-black bg-gray-300 dark:bg-gray-700 dark:text-white">
-                                    <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
+                                  <SelectTrigger data-testid="select-session-subject" className="text-black bg-gray-300 dark:bg-gray-700 dark:text-white [&>span]:text-black [&>span]:dark:text-white">
+                                    <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} className="text-black dark:text-white" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
