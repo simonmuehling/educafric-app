@@ -1088,6 +1088,12 @@ const TeacherOnlineClasses: React.FC = () => {
     );
   };
 
+  // Determine access permissions based on activation type
+  const hasSchoolAccess = accessData?.activationType === 'school';
+  const hasPersonalSubscription = accessData?.activationType === 'teacher' || accessData?.activationType === null; // null = sandbox
+  const canCreateCourses = hasPersonalSubscription; // Only personal subscribers can create courses
+  const canViewSchoolSessions = hasSchoolAccess || hasPersonalSubscription; // Both can view school sessions
+
   // Show loading state while checking access
   if (accessLoading) {
     return (
@@ -1222,67 +1228,119 @@ const TeacherOnlineClasses: React.FC = () => {
             <Info className="w-4 h-4 text-blue-600" />
             <p className="text-sm text-blue-800">
               {accessData.activationType === 'school' 
-                ? (language === 'fr' ? '🏫 Accès fourni par votre école' : '🏫 Access provided by your school')
-                : accessData.activationType === 'personal'
-                  ? (language === 'fr' ? '👤 Abonnement personnel actif' : '👤 Personal subscription active')
-                  : (language === 'fr' ? '✅ Accès actif' : '✅ Active access')
+                ? (language === 'fr' ? '🏫 Accès fourni par votre école - Vous pouvez rejoindre les sessions assignées' : '🏫 Access provided by your school - You can join assigned sessions')
+                : accessData.activationType === 'teacher'
+                  ? (language === 'fr' ? '👤 Abonnement personnel actif - Vous pouvez créer vos propres cours' : '👤 Personal subscription active - You can create your own courses')
+                  : (language === 'fr' ? '✅ Accès complet actif' : '✅ Full access active')
               }
             </p>
           </div>
         )}
+        
+        {/* School-only access restriction notice */}
+        {hasSchoolAccess && !hasPersonalSubscription && (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex gap-3">
+              <Info className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-medium text-yellow-900 mb-1">
+                  {language === 'fr' ? 'Accès limité' : 'Limited Access'}
+                </h3>
+                <p className="text-sm text-yellow-800 mb-2">
+                  {language === 'fr' 
+                    ? 'Avec l\'accès fourni par votre école, vous pouvez rejoindre les sessions assignées par le directeur. Pour créer vos propres cours en ligne, veuillez acheter un abonnement personnel.'
+                    : 'With school-provided access, you can join sessions assigned by the director. To create your own online courses, please purchase a personal subscription.'
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
-      {/* Main Content with Enhanced Structure */}
-      {step === 'selection' && renderSelection()}
-      {step === 'course-creation' && renderCourseCreation()}
-      {step === 'course-management' && renderCourseManagement()}
-      
-      {/* Tabbed Interface for existing courses */}
-      {step === 'course-management' && (
-        <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="my-courses" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              {t.myCoursesTab}
-            </TabsTrigger>
-            <TabsTrigger value="upcoming-sessions" className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              {t.upcomingSessionsTab}
-              {(schoolSessionsData?.sessions?.length || 0) > 0 && (
-                <Badge className="ml-2 bg-purple-500 text-white" data-testid="school-sessions-count">
-                  {schoolSessionsData.sessions.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="create-course" className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              {t.createCourseTab}
-            </TabsTrigger>
-          </TabsList>
+      {/* SCHOOL-ONLY ACCESS: Show only assigned sessions */}
+      {hasSchoolAccess && !hasPersonalSubscription && (
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Calendar className="w-6 h-6 text-purple-600" />
+            <div>
+              <h3 className="text-lg font-semibold">
+                {language === 'fr' ? 'Sessions Assignées par l\'École' : 'School-Assigned Sessions'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {language === 'fr' 
+                  ? 'Rejoignez les cours en ligne programmés par votre école'
+                  : 'Join online classes scheduled by your school'
+                }
+              </p>
+            </div>
+            {(schoolSessionsData?.sessions?.length || 0) > 0 && (
+              <Badge className="ml-auto bg-purple-500 text-white" data-testid="school-sessions-badge">
+                {schoolSessionsData.sessions.length}
+              </Badge>
+            )}
+          </div>
+          {renderSessionsList()}
+        </Card>
+      )}
+
+      {/* PERSONAL SUBSCRIPTION: Full access - show all features */}
+      {hasPersonalSubscription && (
+        <>
+          {/* Main Content with Enhanced Structure */}
+          {step === 'selection' && renderSelection()}
+          {step === 'course-creation' && renderCourseCreation()}
+          {step === 'course-management' && renderCourseManagement()}
           
-          <TabsContent value="my-courses" className="space-y-4">
-            {renderCoursesList()}
-          </TabsContent>
-          
-          <TabsContent value="upcoming-sessions" className="space-y-4">
-            {renderSessionsList()}
-          </TabsContent>
-          
-          <TabsContent value="create-course" className="space-y-4">
-            <Button 
-              onClick={() => {
-                setStep('selection');
-                setSelectedCourse(null);
-                setSelectedClass('');
-                setSelectedSubject('');
-              }}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {language === 'fr' ? 'Créer un Nouveau Cours' : 'Create New Course'}
-            </Button>
-          </TabsContent>
-        </Tabs>
+          {/* Tabbed Interface for existing courses */}
+          {step === 'course-management' && (
+            <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="my-courses" className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  {t.myCoursesTab}
+                </TabsTrigger>
+                <TabsTrigger value="upcoming-sessions" className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  {t.upcomingSessionsTab}
+                  {(schoolSessionsData?.sessions?.length || 0) > 0 && (
+                    <Badge className="ml-2 bg-purple-500 text-white" data-testid="school-sessions-count">
+                      {schoolSessionsData.sessions.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="create-course" className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  {t.createCourseTab}
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="my-courses" className="space-y-4">
+                {renderCoursesList()}
+              </TabsContent>
+              
+              <TabsContent value="upcoming-sessions" className="space-y-4">
+                {renderSessionsList()}
+              </TabsContent>
+              
+              <TabsContent value="create-course" className="space-y-4">
+                <Button 
+                  onClick={() => {
+                    setStep('selection');
+                    setSelectedCourse(null);
+                    setSelectedClass('');
+                    setSelectedSubject('');
+                  }}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  data-testid="button-start-create-course"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Créer un Nouveau Cours' : 'Create New Course'}
+                </Button>
+              </TabsContent>
+            </Tabs>
+          )}
+        </>
       )}
 
 
