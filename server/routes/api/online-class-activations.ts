@@ -312,7 +312,8 @@ router.get('/check-access',
 
       const accessCheck = await onlineClassAccessService.canTeacherAccessOnlineClass(
         user.id,
-        new Date()
+        new Date(),
+        user.email // ✅ Pass user email for sandbox/test exemption check
       );
 
       console.log('[ONLINE_CLASS_ACCESS_CHECK] Result:', accessCheck);

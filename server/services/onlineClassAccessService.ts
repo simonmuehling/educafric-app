@@ -2,6 +2,7 @@ import { db } from "../db";
 import { timetables, users, schools } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { onlineClassActivationService } from "./onlineClassActivationService";
+import { SubscriptionService } from "./subscriptionService";
 
 interface AccessCheckResult {
   allowed: boolean;
@@ -16,6 +17,37 @@ interface AccessCheckResult {
 }
 
 export class OnlineClassAccessService {
+  
+  /**
+   * Vérifier si un utilisateur est exempt des restrictions premium
+   * (comptes sandbox et @test.educafric.com)
+   */
+  private isSandboxOrTestUser(userEmail: string): boolean {
+    if (!userEmail) return false;
+    
+    const email = userEmail.toLowerCase();
+    
+    // Vérifier les domaines exemptés (suffixes)
+    const exemptDomains = [
+      '@educafric.demo',
+      '@educafric.test', 
+      '@test.educafric.com'
+    ];
+    
+    if (exemptDomains.some(domain => email.endsWith(domain))) {
+      return true;
+    }
+    
+    // Vérifier les préfixes exemptés (avant le @)
+    const localPart = email.split('@')[0];
+    const exemptPrefixes = ['sandbox', 'demo', 'test'];
+    
+    if (exemptPrefixes.some(prefix => localPart.startsWith(prefix))) {
+      return true;
+    }
+    
+    return false;
+  }
   
   /**
    * Parse time string (HH:MM) to Date object for today
@@ -141,8 +173,21 @@ export class OnlineClassAccessService {
    */
   async canTeacherAccessOnlineClass(
     teacherId: number,
-    currentTime: Date = new Date()
+    currentTime: Date = new Date(),
+    userEmail?: string
   ): Promise<AccessCheckResult> {
+    
+    // ✅ EXEMPTION PERMANENTE: Vérifier sandbox/test users AVANT la base de données
+    if (userEmail && this.isSandboxOrTestUser(userEmail)) {
+      console.log(`[PREMIUM_EXEMPT] ✅ User ${userEmail} permanently exempt from online classes subscription`);
+      console.log(`[LIMITS_EXEMPT] ✅ Online classes unlimited access granted`);
+      return {
+        allowed: true,
+        reason: "sandbox_exemption",
+        message: "Accès illimité (compte sandbox/test)",
+        activationType: null
+      };
+    }
     
     // Get teacher info
     const [teacher] = await db
@@ -264,7 +309,11 @@ export class OnlineClassAccessService {
     result.hasPersonalActivation = !!teacherActivation;
     result.teacherActivation = teacherActivation;
 
-    const accessCheck = await this.canTeacherAccessOnlineClass(teacherId);
+    const accessCheck = await this.canTeacherAccessOnlineClass(
+      teacherId, 
+      new Date(), 
+      teacher.email || undefined  // Pass email for sandbox/test exemption check
+    );
     result.canAccess = accessCheck.allowed;
     result.accessDetails = accessCheck;
 
