@@ -12,6 +12,7 @@ import { apiRequest } from '@/lib/queryClient';
 
 // Load Stripe - with fallback to prevent errors
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+console.log('[PAYMENT_DEBUG] Stripe key configured:', !!stripeKey);
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 interface OnlineClassPaymentProps {
@@ -109,23 +110,45 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
 
   const { toast } = useToast();
 
+  // Debug log when modal opens
+  console.log('[PAYMENT_DEBUG] OnlineClassPayment modal opened:', { isOpen, durationType, amount, stripeConfigured: !!stripePromise });
+
   const handlePaymentMethodSelect = async (method: 'stripe' | 'mtn') => {
+    console.log('[PAYMENT_DEBUG] Payment method selected:', method);
     setPaymentMethod(method);
 
     if (method === 'stripe') {
+      // Check if Stripe is configured
+      if (!stripePromise) {
+        console.error('[PAYMENT_DEBUG] Stripe is not configured!');
+        toast({
+          title: language === 'fr' ? 'Erreur de configuration' : 'Configuration Error',
+          description: language === 'fr' 
+            ? 'Le système de paiement Stripe n\'est pas configuré. Veuillez contacter le support.' 
+            : 'Stripe payment system is not configured. Please contact support.',
+          variant: 'destructive',
+        });
+        setPaymentMethod(null);
+        return;
+      }
+
       setIsLoadingIntent(true);
       try {
+        console.log('[PAYMENT_DEBUG] Creating Stripe payment intent for duration:', durationType);
         const response = await apiRequest('POST', '/api/online-class-payments/create-stripe-intent', {
           durationType
         });
         const data = await response.json();
+        console.log('[PAYMENT_DEBUG] Stripe intent response:', data);
 
         if (data.success && data.clientSecret) {
           setClientSecret(data.clientSecret);
+          console.log('[PAYMENT_DEBUG] Client secret received successfully');
         } else {
           throw new Error(data.error || 'Échec de la création du paiement');
         }
       } catch (error: any) {
+        console.error('[PAYMENT_DEBUG] Error creating Stripe intent:', error);
         toast({
           title: language === 'fr' ? 'Erreur' : 'Error',
           description: error.message,

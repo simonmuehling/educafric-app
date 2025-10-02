@@ -1169,7 +1169,10 @@ const TeacherOnlineClasses: React.FC = () => {
 
               <Button
                 className="w-full bg-purple-600 hover:bg-purple-700"
-                onClick={() => setIsPaymentOpen(true)}
+                onClick={() => {
+                  console.log('[PAYMENT_DEBUG] Purchase button clicked, opening payment modal');
+                  setIsPaymentOpen(true);
+                }}
                 data-testid="button-purchase-access"
               >
                 {language === 'fr' 

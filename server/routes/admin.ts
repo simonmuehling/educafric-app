@@ -3,6 +3,7 @@ import { storage } from '../storage';
 import * as bcrypt from 'bcryptjs';
 import multer from 'multer';
 import { excelImportService } from '../services/excelImportService';
+import { welcomeEmailService } from '../services/welcomeEmailService';
 
 const router = Router();
 
@@ -394,6 +395,22 @@ router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
     const teacher = await storage.createUser(teacherData);
     
     console.log('[DIRECTOR_CREATE_TEACHER] Teacher created successfully:', teacher.id);
+    
+    // Send welcome email (fire-and-forget - don't block response)
+    (async () => {
+      try {
+        const school = await storage.getSchoolById(user.schoolId);
+        await welcomeEmailService.sendUserWelcomeEmail({
+          name: teacher.firstName + ' ' + teacher.lastName,
+          email: teacher.email,
+          role: teacher.role,
+          schoolName: school?.name || 'EDUCAFRIC'
+        });
+        console.log('[DIRECTOR_CREATE_TEACHER] ✅ Welcome email sent to:', teacher.email);
+      } catch (emailError) {
+        console.error('[DIRECTOR_CREATE_TEACHER] ⚠️ Failed to send welcome email:', emailError);
+      }
+    })();
     
     res.status(201).json({
       success: true,
