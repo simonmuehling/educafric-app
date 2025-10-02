@@ -117,6 +117,7 @@ import fcmRoutes from "./routes/fcm";
 import onlineClassesRoutes from "./routes/onlineClassesRoutes";
 import onlineClassActivationsRouter from "./routes/api/online-class-activations";
 import onlineClassPaymentsRouter from "./routes/api/online-class-payments";
+import onlineClassSchedulerRouter from "./routes/api/online-class-scheduler";
 import calendarRoutes from "./routes/calendar";
 
 // Import new PDF generators routes
@@ -6733,6 +6734,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Online class payments (Stripe + MTN Mobile Money)
   app.use('/api/online-class-payments', onlineClassPaymentsRouter);
+  
+  // Online class scheduler (school-controlled session scheduling)
+  app.use('/api/school-scheduler', onlineClassSchedulerRouter);
   
   // Calendar integration for academic events (school & teacher only)
   app.use('/api/calendar', calendarRoutes);
