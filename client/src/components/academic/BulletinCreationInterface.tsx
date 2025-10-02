@@ -2886,7 +2886,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
           </CardHeader>
           <CardContent>
             <BulletinPrint documentTitle={`${student.name?.replace(/\s+/g, '_')}_${trimester}_${year}`}>
-              <ReportCardPreview {...bulletinData} />
+              <ReportCardPreview {...bulletinData} isTechnicalSchool={isTechnicalSchool} />
             </BulletinPrint>
           </CardContent>
         </Card>

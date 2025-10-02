@@ -58,5 +58,6 @@ export const subjects = pgTable("subjects", {
   code: text("code"),
   coefficient: decimal("coefficient"),
   schoolId: integer("school_id").notNull(),
+  classId: integer("class_id"),
   subjectType: text("subject_type").default('general') // 'general' or 'professional' for technical schools
 });
