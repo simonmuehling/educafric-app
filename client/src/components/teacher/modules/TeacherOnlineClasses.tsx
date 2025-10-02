@@ -72,6 +72,9 @@ interface ClassSession {
   chatEnabled: boolean;
   screenShareEnabled: boolean;
   createdAt: string;
+  creatorType?: 'teacher' | 'school';
+  className?: string;
+  subjectName?: string;
 }
 
 const TeacherOnlineClasses: React.FC = () => {
@@ -218,7 +221,11 @@ const TeacherOnlineClasses: React.FC = () => {
       sessionStarted: 'Session démarrée',
       sessionEnded: 'Session terminée',
       error: 'Erreur',
-      noData: 'Aucune donnée disponible'
+      noData: 'Aucune donnée disponible',
+      schoolCreated: 'École',
+      teacherCreated: 'Vous',
+      class: 'Classe',
+      subject: 'Matière'
     },
     en: {
       title: 'Online Classes',
@@ -278,7 +285,11 @@ const TeacherOnlineClasses: React.FC = () => {
       sessionStarted: 'Session started',
       sessionEnded: 'Session ended',
       error: 'Error',
-      noData: 'No data available'
+      noData: 'No data available',
+      schoolCreated: 'School',
+      teacherCreated: 'You',
+      class: 'Class',
+      subject: 'Subject'
     }
   };
 
@@ -324,6 +335,17 @@ const TeacherOnlineClasses: React.FC = () => {
       const response = await apiRequest('GET', '/api/online-classes/teacher/sessions');
       return response.json();
     }
+  });
+
+  // Fetch school-scheduled sessions for this teacher
+  const { data: schoolSessionsData, isLoading: schoolSessionsLoading } = useQuery({
+    queryKey: ['/api/school-scheduler/teacher', user?.id, 'sessions'],
+    queryFn: async () => {
+      if (!user?.id) return { sessions: [] };
+      const response = await apiRequest('GET', `/api/school-scheduler/teacher/${user.id}/sessions`);
+      return response.json();
+    },
+    enabled: !!user?.id && !!accessData?.allowed
   });
 
   // Fetch course-specific sessions for better granularity (matches director module)
@@ -954,65 +976,115 @@ const TeacherOnlineClasses: React.FC = () => {
     </div>
   );
 
-  const renderSessionsList = () => (
-    <div className="space-y-4">
-      {sessionsLoading ? (
-        <div className="text-center py-8">{t.loading}</div>
-      ) : !sessionsData?.sessions || sessionsData.sessions.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">{t.noSessions}</div>
-      ) : (
-        sessionsData.sessions.map((session: ClassSession) => (
-          <Card key={session.id} className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <MonitorPlay className="w-5 h-5 text-blue-600" />
+  const renderSessionsList = () => {
+    const isLoading = sessionsLoading || schoolSessionsLoading;
+    
+    const teacherSessions = (sessionsData?.sessions || []).map((s: ClassSession) => ({
+      ...s,
+      creatorType: 'teacher' as const
+    }));
+    
+    const schoolSessions = (schoolSessionsData?.sessions || []).map((s: ClassSession) => ({
+      ...s,
+      creatorType: 'school' as const
+    }));
+    
+    const allSessions = [...teacherSessions, ...schoolSessions].sort((a, b) => 
+      new Date(b.scheduledStart).getTime() - new Date(a.scheduledStart).getTime()
+    );
+
+    return (
+      <div className="space-y-4">
+        {isLoading ? (
+          <div className="text-center py-8" data-testid="loading-sessions">{t.loading}</div>
+        ) : allSessions.length === 0 ? (
+          <div className="text-center py-8 text-gray-500" data-testid="no-sessions">{t.noSessions}</div>
+        ) : (
+          allSessions.map((session: ClassSession) => (
+            <Card key={`${session.creatorType}-${session.id}`} className="p-4" data-testid={`session-card-${session.id}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <MonitorPlay className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold" data-testid={`session-title-${session.id}`}>{session.title}</h3>
+                      <Badge 
+                        className={session.creatorType === 'school' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}
+                        data-testid={`session-creator-badge-${session.id}`}
+                      >
+                        {session.creatorType === 'school' ? t.schoolCreated : t.teacherCreated}
+                      </Badge>
+                    </div>
+                    {session.description && (
+                      <p className="text-sm text-gray-600" data-testid={`session-description-${session.id}`}>{session.description}</p>
+                    )}
+                    <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                      <span data-testid={`session-date-${session.id}`}>
+                        <Calendar className="w-3 h-3 inline mr-1" />
+                        {formatDate(session.scheduledStart)}
+                      </span>
+                      <span data-testid={`session-duration-${session.id}`}>
+                        <Clock className="w-3 h-3 inline mr-1" />
+                        {session.maxDuration}min
+                      </span>
+                      {session.className && (
+                        <span className="font-medium" data-testid={`session-class-${session.id}`}>
+                          <GraduationCap className="w-3 h-3 inline mr-1" />
+                          {session.className}
+                        </span>
+                      )}
+                      {session.subjectName && (
+                        <span className="font-medium" data-testid={`session-subject-${session.id}`}>
+                          <Book className="w-3 h-3 inline mr-1" />
+                          {session.subjectName}
+                        </span>
+                      )}
+                      {session.courseName && !session.className && (
+                        <span className="font-medium" data-testid={`session-course-${session.id}`}>{session.courseName}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold">{session.title}</h3>
-                  <p className="text-sm text-gray-600">{session.description}</p>
-                  <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                    <span><Calendar className="w-3 h-3 inline mr-1" />{formatDate(session.scheduledStart)}</span>
-                    <span><Clock className="w-3 h-3 inline mr-1" />{session.maxDuration}min</span>
-                    <span className="font-medium">{session.courseName}</span>
+                <div className="flex items-center gap-3">
+                  {getStatusBadge(session.status)}
+                  <div className="flex items-center gap-2">
+                    {session.status === 'scheduled' && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleStartSession(session.id)}
+                        disabled={startSessionMutation.isPending}
+                        data-testid={`button-start-session-${session.id}`}
+                      >
+                        <Play className="w-4 h-4 mr-1" />
+                        {t.start}
+                      </Button>
+                    )}
+                    {(session.status === 'live' || session.status === 'scheduled') && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleJoinSession(session)}
+                        disabled={joinSessionMutation.isPending}
+                        data-testid={`button-join-session-${session.id}`}
+                      >
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        {t.join}
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" data-testid={`button-settings-session-${session.id}`}>
+                      <Settings className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                {getStatusBadge(session.status)}
-                <div className="flex items-center gap-2">
-                  {session.status === 'scheduled' && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleStartSession(session.id)}
-                      disabled={startSessionMutation.isPending}
-                    >
-                      <Play className="w-4 h-4 mr-1" />
-                      {t.start}
-                    </Button>
-                  )}
-                  {(session.status === 'live' || session.status === 'scheduled') && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleJoinSession(session.id)}
-                      disabled={joinSessionMutation.isPending}
-                    >
-                      <ExternalLink className="w-4 h-4 mr-1" />
-                      {t.join}
-                    </Button>
-                  )}
-                  <Button size="sm" variant="outline">
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))
-      )}
-    </div>
-  );
+            </Card>
+          ))
+        )}
+      </div>
+    );
+  };
 
   // Show loading state while checking access
   if (accessLoading) {
@@ -1145,6 +1217,11 @@ const TeacherOnlineClasses: React.FC = () => {
             <TabsTrigger value="upcoming-sessions" className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               {t.upcomingSessionsTab}
+              {(schoolSessionsData?.sessions?.length || 0) > 0 && (
+                <Badge className="ml-2 bg-purple-500 text-white" data-testid="school-sessions-count">
+                  {schoolSessionsData.sessions.length}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="create-course" className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
