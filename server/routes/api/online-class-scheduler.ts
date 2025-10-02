@@ -110,7 +110,7 @@ router.get(
 
 // Schema validation for creating a single session
 const createSessionSchema = z.object({
-  courseId: z.number(),
+  courseId: z.number().optional(),
   teacherId: z.number(),
   classId: z.number(),
   subjectId: z.number().optional(),
@@ -126,7 +126,7 @@ const createSessionSchema = z.object({
 
 // Schema validation for creating a recurrence rule
 const createRecurrenceSchema = z.object({
-  courseId: z.number(),
+  courseId: z.number().optional(),
   teacherId: z.number(),
   classId: z.number(),
   subjectId: z.number().optional(),
@@ -206,11 +206,11 @@ router.post(
       console.log(`[SCHEDULER_API] ✅ Single session created by ${req.user.email} for school ${req.user.schoolId}`);
 
       // Send notifications (fire-and-forget pattern to avoid blocking response)
-      if (parsed.autoNotify) {
+      if (parsed.autoNotify && req.user.schoolId) {
         setImmediate(async () => {
           try {
             const teacherName = await onlineClassNotificationService.getTeacherName(parsed.teacherId);
-            await onlineClassNotificationService.notifySessionScheduled(session.id, teacherName);
+            await onlineClassNotificationService.notifySessionScheduled(session.id, teacherName, req.user.schoolId!);
             console.log(`[SCHEDULER_API] 📧 Notifications sent for session ${session.id}`);
           } catch (notifError) {
             console.error(`[SCHEDULER_API] ⚠️ Notification failed for session ${session.id}:`, notifError);

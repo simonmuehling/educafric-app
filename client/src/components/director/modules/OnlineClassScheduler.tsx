@@ -436,10 +436,11 @@ const OnlineClassScheduler: React.FC = () => {
   });
 
   const selectedClassId = sessionForm.watch('classId');
+  const selectedRecurrenceClassId = recurrenceForm.watch('classId');
 
   const { data: subjectsData } = useQuery({
-    queryKey: ['/api/director/subjects', selectedClassId],
-    enabled: !!selectedClassId
+    queryKey: ['/api/director/subjects', selectedClassId || selectedRecurrenceClassId],
+    enabled: !!selectedClassId || !!selectedRecurrenceClassId
   });
 
   const createSessionMutation = useMutation({
@@ -1090,6 +1091,87 @@ const OnlineClassScheduler: React.FC = () => {
                             </FormItem>
                           )}
                         />
+
+                        {!recurrenceForm.watch('courseId') && (
+                          <>
+                            <FormField
+                              control={recurrenceForm.control}
+                              name="classId"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t.createSession.selectClass}</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-recurrence-class">
+                                        <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {classesData?.classes?.map((cls: any) => (
+                                        <SelectItem key={cls.id} value={cls.id.toString()}>
+                                          {cls.name}
+                                        </SelectItem>
+                                      )) || []}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={recurrenceForm.control}
+                              name="teacherId"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t.createSession.selectTeacher}</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-recurrence-teacher">
+                                        <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {teachersData?.teachers?.map((teacher: any) => (
+                                        <SelectItem key={teacher.userId} value={teacher.userId.toString()}>
+                                          {teacher.firstName} {teacher.lastName}
+                                        </SelectItem>
+                                      )) || []}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            {recurrenceForm.watch('classId') && (
+                              <FormField
+                                control={recurrenceForm.control}
+                                name="subjectId"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.createSession.selectSubject}</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger data-testid="select-recurrence-subject">
+                                          <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {subjectsData?.subjects?.map((subject: any) => (
+                                          <SelectItem key={subject.id} value={subject.id.toString()}>
+                                            {subject.name}
+                                          </SelectItem>
+                                        )) || []}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            )}
+                          </>
+                        )}
 
                         <FormField
                           control={recurrenceForm.control}
