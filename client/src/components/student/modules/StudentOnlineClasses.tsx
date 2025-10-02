@@ -7,8 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-
-console.log('[STUDENT_ONLINE_CLASSES] 📦 Module file loaded!');
 import { 
   Video, 
   Calendar, 
@@ -52,15 +50,11 @@ interface SessionsResponse {
 }
 
 const StudentOnlineClasses: React.FC = () => {
-  console.log('[STUDENT_ONLINE_CLASSES] 🎨 Component rendering!');
-  
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'upcoming' | 'live' | 'past'>('upcoming');
-  
-  console.log('[STUDENT_ONLINE_CLASSES] 👤 User:', user);
 
   const text = {
     fr: {
@@ -130,24 +124,11 @@ const StudentOnlineClasses: React.FC = () => {
   const t = text[language];
 
   // Fetch student's available sessions
-  const { data: sessionsData, isLoading: sessionsLoading, error } = useQuery<SessionsResponse>({
+  const { data: sessionsData, isLoading: sessionsLoading } = useQuery<SessionsResponse>({
     queryKey: ['/api/online-classes/school/sessions'],
-    queryFn: async () => {
-      console.log('[STUDENT_ONLINE_CLASSES] 🔍 Fetching sessions from /api/online-classes/school/sessions');
-      try {
-        const response = await apiRequest('GET', '/api/online-classes/school/sessions') as unknown as SessionsResponse;
-        console.log('[STUDENT_ONLINE_CLASSES] ✅ Sessions fetched:', response);
-        return response;
-      } catch (err) {
-        console.error('[STUDENT_ONLINE_CLASSES] ❌ Error fetching sessions:', err);
-        throw err;
-      }
-    },
+    queryFn: () => apiRequest('GET', '/api/online-classes/school/sessions') as unknown as Promise<SessionsResponse>,
     refetchInterval: 30000 // Refetch every 30 seconds for live updates
   });
-
-  // Log loading and error states
-  console.log('[STUDENT_ONLINE_CLASSES] Loading:', sessionsLoading, 'Error:', error, 'Data:', sessionsData);
 
   // Join session mutation
   const joinSessionMutation = useMutation({

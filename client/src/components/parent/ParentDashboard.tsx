@@ -278,7 +278,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       component: createDynamicModule('parent-library')
     },
     {
-      id: 'online-classes',
+      id: 'parent-online-classes',
       label: language === 'fr' ? 'Classes en Ligne' : 'Online Classes',
       icon: <Video className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600',
