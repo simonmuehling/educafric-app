@@ -282,7 +282,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       component: createDynamicModule('teacher-communications')
     },
     {
-      id: 'online-classes',
+      id: 'teacher-online-classes',
       label: t.onlineClasses,
       icon: <Video className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600',
