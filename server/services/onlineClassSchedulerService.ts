@@ -7,7 +7,7 @@ import {
   classes,
   onlineClassActivations
 } from "@shared/schema";
-import { eq, and, gte, lte, isNull, or } from "drizzle-orm";
+import { eq, and, gte, lte, isNull, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 interface CreateSessionInput {
@@ -26,7 +26,7 @@ interface CreateSessionInput {
 
 interface CreateRecurrenceInput {
   schoolId: number;
-  courseId: number;
+  courseId?: number;
   teacherId: number;
   classId: number;
   subjectId?: number;
@@ -85,12 +85,12 @@ export class OnlineClassSchedulerService {
     const [session] = await db
       .insert(classSessions)
       .values({
-        courseId: input.courseId || null,
+        courseId: input.courseId ?? null,
         teacherId: input.teacherId,
         classId: input.classId,
-        subjectId: input.subjectId || null,
+        subjectId: input.subjectId ?? null,
         title: input.title,
-        description: input.description || null,
+        description: input.description ?? null,
         scheduledStart: input.scheduledStart,
         scheduledEnd,
         roomName,
@@ -139,21 +139,21 @@ export class OnlineClassSchedulerService {
       .insert(onlineClassRecurrences)
       .values({
         schoolId: input.schoolId,
-        courseId: input.courseId,
+        courseId: input.courseId ?? null,
         teacherId: input.teacherId,
         classId: input.classId,
-        subjectId: input.subjectId,
+        subjectId: input.subjectId ?? null,
         title: input.title,
-        description: input.description,
+        description: input.description ?? null,
         ruleType: input.ruleType,
-        interval: input.interval || 1,
+        interval: input.interval ?? 1,
         byDay: input.byDay ? JSON.stringify(input.byDay) : null,
         startTime: input.startTime,
         durationMinutes: input.durationMinutes,
         startDate: input.startDate,
-        endDate: input.endDate,
+        endDate: input.endDate ?? null,
         maxDuration: input.durationMinutes,
-        autoNotify: input.autoNotify !== false,
+        autoNotify: input.autoNotify ?? true,
         createdBy: input.createdBy,
         isActive: true,
         occurrencesGenerated: 0
@@ -363,7 +363,7 @@ export class OnlineClassSchedulerService {
         title: onlineCourses.title,
         description: onlineCourses.description,
         teacherId: onlineCourses.teacherId,
-        teacherName: users.name,
+        teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
         classId: onlineCourses.classId,
         className: classes.name,
         subjectId: onlineCourses.subjectId,
@@ -380,16 +380,19 @@ export class OnlineClassSchedulerService {
 
   /**
    * Get all scheduled sessions for a school
+   * Now supports sessions with or without pre-existing courses (LEFT JOIN)
    */
   async getSchoolSessions(schoolId: number) {
-    // Get all sessions where the course belongs to this school
+    // First, we need to get the teacher's school ID to filter sessions
+    // For sessions with courses, use course.schoolId
+    // For sessions without courses, use teacher.schoolId
     const sessions = await db
       .select({
         id: classSessions.id,
         courseId: classSessions.courseId,
         courseName: onlineCourses.title,
         teacherId: classSessions.teacherId,
-        teacherName: users.name,
+        teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
         classId: classSessions.classId,
         className: classes.name,
         title: classSessions.title,
@@ -401,10 +404,18 @@ export class OnlineClassSchedulerService {
         createdAt: classSessions.createdAt
       })
       .from(classSessions)
-      .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
+      .leftJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
       .leftJoin(users, eq(classSessions.teacherId, users.id))
       .leftJoin(classes, eq(classSessions.classId, classes.id))
-      .where(eq(onlineCourses.schoolId, schoolId))
+      .where(
+        or(
+          eq(onlineCourses.schoolId, schoolId),
+          and(
+            isNull(classSessions.courseId),
+            eq(users.schoolId, schoolId)
+          )
+        )
+      )
       .orderBy(classSessions.scheduledStart);
 
     return sessions;

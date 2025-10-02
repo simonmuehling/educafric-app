@@ -71,7 +71,7 @@ export const classSessions = pgTable("class_sessions", {
 export const onlineClassRecurrences = pgTable("online_class_recurrences", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").notNull().references(() => schools.id),
-  courseId: integer("course_id").notNull().references(() => onlineCourses.id),
+  courseId: integer("course_id").references(() => onlineCourses.id), // Optional: allows direct scheduling without pre-existing course
   teacherId: integer("teacher_id").notNull().references(() => users.id),
   classId: integer("class_id").notNull().references(() => classes.id),
   subjectId: integer("subject_id").references(() => subjects.id),
