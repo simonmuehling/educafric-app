@@ -771,7 +771,7 @@ const OnlineClassScheduler: React.FC = () => {
                                 sessionForm.setValue('subjectId', '');
                               }} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-class" className="text-foreground">
+                                  <SelectTrigger data-testid="select-session-class" className="text-foreground bg-gray-100 dark:bg-gray-800">
                                     <SelectValue placeholder={t.createSession.selectClassPlaceholder} className="text-foreground" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -796,7 +796,7 @@ const OnlineClassScheduler: React.FC = () => {
                               <FormLabel>{t.createSession.selectTeacher}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-teacher" className="text-foreground">
+                                  <SelectTrigger data-testid="select-session-teacher" className="text-foreground bg-gray-100 dark:bg-gray-800">
                                     <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} className="text-foreground" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -821,7 +821,7 @@ const OnlineClassScheduler: React.FC = () => {
                               <FormLabel>{t.createSession.selectSubject}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value} disabled={!selectedClassId}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-subject" className="text-foreground">
+                                  <SelectTrigger data-testid="select-session-subject" className="text-foreground bg-gray-100 dark:bg-gray-800">
                                     <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} className="text-foreground" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -849,6 +849,7 @@ const OnlineClassScheduler: React.FC = () => {
                                   placeholder={t.createSession.sessionTitle}
                                   {...field}
                                   data-testid="input-session-title"
+                                  className="bg-gray-100 dark:bg-gray-800"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -867,6 +868,7 @@ const OnlineClassScheduler: React.FC = () => {
                                   placeholder={t.createSession.description}
                                   {...field}
                                   data-testid="input-session-description"
+                                  className="bg-gray-100 dark:bg-gray-800"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -885,6 +887,7 @@ const OnlineClassScheduler: React.FC = () => {
                                   type="datetime-local"
                                   {...field}
                                   data-testid="input-session-start"
+                                  className="bg-gray-100 dark:bg-gray-800"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -906,6 +909,7 @@ const OnlineClassScheduler: React.FC = () => {
                                   {...field}
                                   onChange={(e) => field.onChange(parseInt(e.target.value))}
                                   data-testid="input-session-duration"
+                                  className="bg-gray-100 dark:bg-gray-800"
                                 />
                               </FormControl>
                               <FormMessage />
