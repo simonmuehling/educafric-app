@@ -34,40 +34,8 @@ export const courseEnrollments = pgTable("course_enrollments", {
   isActive: boolean("is_active").default(true)
 });
 
-// Individual class sessions (Jitsi rooms)
-// Supports both flows: teacher-created (manual) and school-scheduled
-export const classSessions = pgTable("class_sessions", {
-  id: serial("id").primaryKey(),
-  courseId: integer("course_id").references(() => onlineCourses.id), // Optional: school-scheduled sessions may not have a course
-  teacherId: integer("teacher_id").notNull().references(() => users.id),
-  classId: integer("class_id").references(() => classes.id), // Added: optional class override for notifications
-  subjectId: integer("subject_id").references(() => subjects.id),
-  title: text("title").notNull(),
-  description: text("description"),
-  scheduledStart: timestamp("scheduled_start").notNull(),
-  scheduledEnd: timestamp("scheduled_end"),
-  actualStart: timestamp("actual_start"),
-  actualEnd: timestamp("actual_end"),
-  roomName: text("room_name").notNull().unique(), // Unique Jitsi room identifier
-  roomPassword: text("room_password"), // Optional room password
-  status: text("status").notNull().default("scheduled"), // scheduled, live, ended, canceled, recorded
-  recordingUrl: text("recording_url"),
-  recordingSize: integer("recording_size"), // bytes
-  maxDuration: integer("max_duration").default(120), // minutes
-  lobbyEnabled: boolean("lobby_enabled").default(true),
-  waitingRoomEnabled: boolean("waiting_room_enabled").default(false),
-  chatEnabled: boolean("chat_enabled").default(true),
-  screenShareEnabled: boolean("screen_share_enabled").default(true),
-  createdBy: integer("created_by").notNull().references(() => users.id),
-  creatorType: text("creator_type").default("teacher"), // "teacher" (manual) or "school" (scheduled)
-  recurrenceId: integer("recurrence_id").references(() => onlineClassRecurrences.id, { onDelete: "set null" }), // Link to recurrence rule if part of series
-  notificationsSent: boolean("notifications_sent").default(false), // Track if students/parents notified
-  metadata: text("metadata"), // JSON string for additional settings
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
-});
-
 // Recurrence rules for scheduled sessions (school-created recurring events)
+// MUST be defined BEFORE classSessions to avoid forward reference issues
 export const onlineClassRecurrences = pgTable("online_class_recurrences", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").notNull().references(() => schools.id),
@@ -105,6 +73,39 @@ export const onlineClassRecurrences = pgTable("online_class_recurrences", {
   autoNotify: boolean("auto_notify").default(true), // Auto-send notifications to students/parents
   createdBy: integer("created_by").notNull().references(() => users.id),
   
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Individual class sessions (Jitsi rooms)
+// Supports both flows: teacher-created (manual) and school-scheduled
+export const classSessions = pgTable("class_sessions", {
+  id: serial("id").primaryKey(),
+  courseId: integer("course_id").references(() => onlineCourses.id), // Optional: school-scheduled sessions may not have a course
+  teacherId: integer("teacher_id").notNull().references(() => users.id),
+  classId: integer("class_id").references(() => classes.id), // Added: optional class override for notifications
+  subjectId: integer("subject_id").references(() => subjects.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  scheduledStart: timestamp("scheduled_start").notNull(),
+  scheduledEnd: timestamp("scheduled_end"),
+  actualStart: timestamp("actual_start"),
+  actualEnd: timestamp("actual_end"),
+  roomName: text("room_name").notNull().unique(), // Unique Jitsi room identifier
+  roomPassword: text("room_password"), // Optional room password
+  status: text("status").notNull().default("scheduled"), // scheduled, live, ended, canceled, recorded
+  recordingUrl: text("recording_url"),
+  recordingSize: integer("recording_size"), // bytes
+  maxDuration: integer("max_duration").default(120), // minutes
+  lobbyEnabled: boolean("lobby_enabled").default(true),
+  waitingRoomEnabled: boolean("waiting_room_enabled").default(false),
+  chatEnabled: boolean("chat_enabled").default(true),
+  screenShareEnabled: boolean("screen_share_enabled").default(true),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  creatorType: text("creator_type").default("teacher"), // "teacher" (manual) or "school" (scheduled)
+  recurrenceId: integer("recurrence_id").references(() => onlineClassRecurrences.id, { onDelete: "set null" }), // Link to recurrence rule if part of series
+  notificationsSent: boolean("notifications_sent").default(false), // Track if students/parents notified
+  metadata: text("metadata"), // JSON string for additional settings
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
