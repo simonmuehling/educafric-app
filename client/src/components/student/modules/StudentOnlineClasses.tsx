@@ -124,11 +124,24 @@ const StudentOnlineClasses: React.FC = () => {
   const t = text[language];
 
   // Fetch student's available sessions
-  const { data: sessionsData, isLoading: sessionsLoading } = useQuery<SessionsResponse>({
+  const { data: sessionsData, isLoading: sessionsLoading, error } = useQuery<SessionsResponse>({
     queryKey: ['/api/online-classes/school/sessions'],
-    queryFn: () => apiRequest('GET', '/api/online-classes/school/sessions') as unknown as Promise<SessionsResponse>,
+    queryFn: async () => {
+      console.log('[STUDENT_ONLINE_CLASSES] 🔍 Fetching sessions from /api/online-classes/school/sessions');
+      try {
+        const response = await apiRequest('GET', '/api/online-classes/school/sessions') as unknown as SessionsResponse;
+        console.log('[STUDENT_ONLINE_CLASSES] ✅ Sessions fetched:', response);
+        return response;
+      } catch (err) {
+        console.error('[STUDENT_ONLINE_CLASSES] ❌ Error fetching sessions:', err);
+        throw err;
+      }
+    },
     refetchInterval: 30000 // Refetch every 30 seconds for live updates
   });
+
+  // Log loading and error states
+  console.log('[STUDENT_ONLINE_CLASSES] Loading:', sessionsLoading, 'Error:', error, 'Data:', sessionsData);
 
   // Join session mutation
   const joinSessionMutation = useMutation({
