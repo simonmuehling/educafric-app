@@ -177,6 +177,8 @@ export class OnlineClassAccessService {
     userEmail?: string
   ): Promise<AccessCheckResult> {
     
+    console.log(`[ONLINE_CLASS_ACCESS] 🔍 Checking access for teacherId: ${teacherId}, email: ${userEmail}`);
+    
     // ✅ EXEMPTION PERMANENTE: Vérifier sandbox/test users AVANT la base de données
     if (userEmail && this.isSandboxOrTestUser(userEmail)) {
       console.log(`[PREMIUM_EXEMPT] ✅ User ${userEmail} permanently exempt from online classes subscription`);
@@ -188,6 +190,8 @@ export class OnlineClassAccessService {
         activationType: null
       };
     }
+    
+    console.log(`[ONLINE_CLASS_ACCESS] ❌ Email ${userEmail} did not pass exemption check, proceeding to database lookup`);
     
     // Get teacher info
     const [teacher] = await db
