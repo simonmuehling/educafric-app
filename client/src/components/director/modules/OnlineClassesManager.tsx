@@ -624,9 +624,9 @@ const OnlineClassesManager: React.FC = () => {
   const recurrences: RecurrenceRule[] = recurrencesData?.recurrences || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-xl border border-white/30 dark:border-gray-700/30">
+        <Card className="shadow-xl">
           <CardHeader>
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -645,7 +645,7 @@ const OnlineClassesManager: React.FC = () => {
           </CardHeader>
         </Card>
 
-        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-xl border border-white/30 dark:border-gray-700/30">
+        <Card className="shadow-xl">
           <CardContent className="pt-6">
             <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)}>
               <TabsList className="grid w-full grid-cols-5 mb-6">
@@ -677,7 +677,7 @@ const OnlineClassesManager: React.FC = () => {
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                   </div>
                 ) : sessions.length === 0 ? (
-                  <Card className="bg-gray-50 dark:bg-gray-900 border-dashed">
+                  <Card className="border-dashed">
                     <CardContent className="flex flex-col items-center justify-center py-12">
                       <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
                       <p className="text-gray-600 dark:text-gray-400">{t.sessions.noSessions}</p>
@@ -686,7 +686,7 @@ const OnlineClassesManager: React.FC = () => {
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
                     {sessions.map((session) => (
-                      <Card key={session.id} className="hover:shadow-lg transition-shadow dark:bg-gray-800" data-testid={`session-card-${session.id}`}>
+                      <Card key={session.id} className="hover:shadow-lg transition-shadow" data-testid={`session-card-${session.id}`}>
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -742,7 +742,7 @@ const OnlineClassesManager: React.FC = () => {
               </TabsContent>
 
               <TabsContent value="create-session" className="space-y-4">
-                <Card className="dark:bg-gray-800">
+                <Card>
                   <CardHeader>
                     <CardTitle className="dark:text-gray-100">{t.createSession.title}</CardTitle>
                   </CardHeader>
@@ -760,7 +760,7 @@ const OnlineClassesManager: React.FC = () => {
                                 sessionForm.setValue('subjectId', '');
                               }} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-class" className="dark:bg-gray-700 dark:text-gray-200">
+                                  <SelectTrigger data-testid="select-session-class">
                                     <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -785,7 +785,7 @@ const OnlineClassesManager: React.FC = () => {
                               <FormLabel className="dark:text-gray-200">{t.createSession.selectTeacher}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-teacher" className="dark:bg-gray-700 dark:text-gray-200">
+                                  <SelectTrigger data-testid="select-session-teacher">
                                     <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -810,7 +810,7 @@ const OnlineClassesManager: React.FC = () => {
                               <FormLabel className="dark:text-gray-200">{t.createSession.selectSubject}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value} disabled={!selectedClassId}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-subject" className="dark:bg-gray-700 dark:text-gray-200">
+                                  <SelectTrigger data-testid="select-session-subject">
                                     <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -838,7 +838,6 @@ const OnlineClassesManager: React.FC = () => {
                                   placeholder={t.createSession.sessionTitle}
                                   {...field}
                                   data-testid="input-session-title"
-                                  className="dark:bg-gray-700 dark:text-gray-200"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -857,7 +856,6 @@ const OnlineClassesManager: React.FC = () => {
                                   placeholder={t.createSession.description}
                                   {...field}
                                   data-testid="input-session-description"
-                                  className="dark:bg-gray-700 dark:text-gray-200"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -876,7 +874,6 @@ const OnlineClassesManager: React.FC = () => {
                                   type="datetime-local"
                                   {...field}
                                   data-testid="input-session-scheduled-start"
-                                  className="dark:bg-gray-700 dark:text-gray-200"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -898,7 +895,6 @@ const OnlineClassesManager: React.FC = () => {
                                   {...field}
                                   onChange={(e) => field.onChange(parseInt(e.target.value))}
                                   data-testid="input-session-duration"
-                                  className="dark:bg-gray-700 dark:text-gray-200"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -962,7 +958,7 @@ const OnlineClassesManager: React.FC = () => {
                     <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                   </div>
                 ) : recurrences.length === 0 ? (
-                  <Card className="bg-gray-50 dark:bg-gray-900 border-dashed">
+                  <Card className="border-dashed">
                     <CardContent className="flex flex-col items-center justify-center py-12">
                       <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
                       <p className="text-gray-600 dark:text-gray-400">{t.recurrences.noRecurrences}</p>
@@ -971,7 +967,7 @@ const OnlineClassesManager: React.FC = () => {
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
                     {recurrences.map((recurrence) => (
-                      <Card key={recurrence.id} className="hover:shadow-lg transition-shadow dark:bg-gray-800" data-testid={`recurrence-card-${recurrence.id}`}>
+                      <Card key={recurrence.id} className="hover:shadow-lg transition-shadow" data-testid={`recurrence-card-${recurrence.id}`}>
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -1049,7 +1045,7 @@ const OnlineClassesManager: React.FC = () => {
               </TabsContent>
 
               <TabsContent value="create-recurrence" className="space-y-4">
-                <Card className="dark:bg-gray-800">
+                <Card>
                   <CardHeader>
                     <CardTitle className="dark:text-gray-100">{t.createRecurrence.title}</CardTitle>
                   </CardHeader>
@@ -1064,7 +1060,7 @@ const OnlineClassesManager: React.FC = () => {
                               <FormLabel className="dark:text-gray-200">{t.createRecurrence.selectCourse} (Optional)</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-recurrence-course" className="dark:bg-gray-700 dark:text-gray-200">
+                                  <SelectTrigger data-testid="select-recurrence-course">
                                     <SelectValue placeholder={language === 'fr' ? "Aucun - Programmation directe" : "None - Direct scheduling"} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -1094,7 +1090,7 @@ const OnlineClassesManager: React.FC = () => {
                                   <FormLabel className="dark:text-gray-200">{t.createSession.selectClass}</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
-                                      <SelectTrigger data-testid="select-recurrence-class" className="dark:bg-gray-700 dark:text-gray-200">
+                                      <SelectTrigger data-testid="select-recurrence-class">
                                         <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
                                       </SelectTrigger>
                                     </FormControl>
@@ -1119,7 +1115,7 @@ const OnlineClassesManager: React.FC = () => {
                                   <FormLabel className="dark:text-gray-200">{t.createSession.selectTeacher}</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
-                                      <SelectTrigger data-testid="select-recurrence-teacher" className="dark:bg-gray-700 dark:text-gray-200">
+                                      <SelectTrigger data-testid="select-recurrence-teacher">
                                         <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
                                       </SelectTrigger>
                                     </FormControl>
@@ -1145,7 +1141,7 @@ const OnlineClassesManager: React.FC = () => {
                                     <FormLabel className="dark:text-gray-200">{t.createSession.selectSubject}</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                       <FormControl>
-                                        <SelectTrigger data-testid="select-recurrence-subject" className="dark:bg-gray-700 dark:text-gray-200">
+                                        <SelectTrigger data-testid="select-recurrence-subject">
                                           <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
                                         </SelectTrigger>
                                       </FormControl>
@@ -1176,7 +1172,6 @@ const OnlineClassesManager: React.FC = () => {
                                   placeholder={t.createRecurrence.ruleTitle}
                                   {...field}
                                   data-testid="input-recurrence-title"
-                                  className="dark:bg-gray-700 dark:text-gray-200"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -1195,7 +1190,6 @@ const OnlineClassesManager: React.FC = () => {
                                   placeholder={t.createRecurrence.description}
                                   {...field}
                                   data-testid="input-recurrence-description"
-                                  className="dark:bg-gray-700 dark:text-gray-200"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -1211,7 +1205,7 @@ const OnlineClassesManager: React.FC = () => {
                               <FormLabel className="dark:text-gray-200">{t.createRecurrence.ruleType}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-recurrence-type" className="dark:bg-gray-700 dark:text-gray-200">
+                                  <SelectTrigger data-testid="select-recurrence-type">
                                     <SelectValue />
                                   </SelectTrigger>
                                 </FormControl>
@@ -1275,7 +1269,6 @@ const OnlineClassesManager: React.FC = () => {
                                     type="time"
                                     {...field}
                                     data-testid="input-recurrence-start-time"
-                                    className="dark:bg-gray-700 dark:text-gray-200"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -1297,7 +1290,6 @@ const OnlineClassesManager: React.FC = () => {
                                     {...field}
                                     onChange={(e) => field.onChange(parseInt(e.target.value))}
                                     data-testid="input-recurrence-duration"
-                                    className="dark:bg-gray-700 dark:text-gray-200"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -1318,7 +1310,6 @@ const OnlineClassesManager: React.FC = () => {
                                     type="date"
                                     {...field}
                                     data-testid="input-recurrence-start-date"
-                                    className="dark:bg-gray-700 dark:text-gray-200"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -1337,7 +1328,6 @@ const OnlineClassesManager: React.FC = () => {
                                     type="date"
                                     {...field}
                                     data-testid="input-recurrence-end-date"
-                                    className="dark:bg-gray-700 dark:text-gray-200"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -1397,7 +1387,7 @@ const OnlineClassesManager: React.FC = () => {
               </TabsContent>
 
               <TabsContent value="calendar" className="space-y-4">
-                <Card className="dark:bg-gray-800">
+                <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
                     <CalendarDays className="h-12 w-12 text-gray-400 mb-4" />
                     <p className="text-gray-600 dark:text-gray-400">Calendar view coming soon...</p>
