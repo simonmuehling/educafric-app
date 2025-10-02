@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../../middleware/auth";
 import { onlineClassSchedulerService } from "../../services/onlineClassSchedulerService";
+import { onlineClassNotificationService } from "../../services/onlineClassNotificationService";
 import { z } from "zod";
 
 const router = Router();
@@ -101,6 +102,19 @@ router.post(
       });
 
       console.log(`[SCHEDULER_API] ✅ Single session created by ${req.user.email} for school ${req.user.schoolId}`);
+
+      // Send notifications (fire-and-forget pattern to avoid blocking response)
+      if (parsed.autoNotify) {
+        setImmediate(async () => {
+          try {
+            const teacherName = await onlineClassNotificationService.getTeacherName(parsed.teacherId);
+            await onlineClassNotificationService.notifySessionScheduled(session.id, teacherName);
+            console.log(`[SCHEDULER_API] 📧 Notifications sent for session ${session.id}`);
+          } catch (notifError) {
+            console.error(`[SCHEDULER_API] ⚠️ Notification failed for session ${session.id}:`, notifError);
+          }
+        });
+      }
 
       res.json({
         success: true,

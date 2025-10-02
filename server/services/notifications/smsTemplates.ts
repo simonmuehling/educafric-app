@@ -82,5 +82,34 @@ export const SMS_TEMPLATES = {
       `📚 ${childName} ${period}: Average ${average}/20. Support needed. Contact teacher. Report card ready.`,
     fr: (childName: string, period: string, average: string) => 
       `📚 ${childName} ${period}: Moyenne ${average}/20. Soutien nécessaire. Contactez prof. Bulletin prêt.`
+  },
+
+  // Online class notifications
+  ONLINE_CLASS_SCHEDULED: {
+    en: (childName: string, title: string, dateTime: string, teacher: string) => 
+      `📹 ${childName}: Online class "${title}" scheduled for ${dateTime} with ${teacher}. Join via app.`,
+    fr: (childName: string, title: string, dateTime: string, teacher: string) => 
+      `📹 ${childName}: Cours en ligne "${title}" programmé pour ${dateTime} avec ${teacher}. Rejoignez via l'app.`
+  },
+
+  ONLINE_CLASS_STARTING: {
+    en: (childName: string, title: string, teacher: string) => 
+      `🔴 LIVE NOW: ${childName}'s online class "${title}" with ${teacher} has started! Join now via app.`,
+    fr: (childName: string, title: string, teacher: string) => 
+      `🔴 EN DIRECT: Cours "${title}" de ${childName} avec ${teacher} a commencé! Rejoignez via l'app.`
+  },
+
+  ONLINE_CLASS_STARTING_SOON: {
+    en: (childName: string, title: string, minutes: string, teacher: string) => 
+      `⏰ ${childName}: Online class "${title}" with ${teacher} starts in ${minutes} min. Get ready!`,
+    fr: (childName: string, title: string, minutes: string, teacher: string) => 
+      `⏰ ${childName}: Cours "${title}" avec ${teacher} commence dans ${minutes} min. Préparez-vous!`
+  },
+
+  ONLINE_CLASS_ENDED: {
+    en: (childName: string, title: string, duration: string) => 
+      `✅ ${childName}: Online class "${title}" completed (${duration}). Recording available if enabled.`,
+    fr: (childName: string, title: string, duration: string) => 
+      `✅ ${childName}: Cours "${title}" terminé (${duration}). Enregistrement disponible si activé.`
   }
 };

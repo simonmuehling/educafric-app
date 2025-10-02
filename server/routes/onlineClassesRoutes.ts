@@ -10,6 +10,7 @@ import {
   requireOnlineClassesAccess 
 } from '../middleware/onlineClassesMiddleware';
 import { jitsiService } from '../services/jitsiService.js';
+import { onlineClassNotificationService } from '../services/onlineClassNotificationService';
 import { db } from '../db.js';
 import { 
   onlineCourses, 
@@ -439,8 +440,16 @@ router.post('/sessions/:sessionId/start',
 
       console.log(`[ONLINE_CLASSES_API] ✅ Session ${sessionId} started by user ${user.id}`);
 
-      // TODO: Send notifications to enrolled students
-      // notifySessionStarted(sessionId);
+      // Send notifications to enrolled students (fire-and-forget pattern)
+      setImmediate(async () => {
+        try {
+          const teacherName = await onlineClassNotificationService.getTeacherName(courseData.teacherId);
+          await onlineClassNotificationService.notifySessionStarting(sessionId, teacherName);
+          console.log(`[ONLINE_CLASSES_API] 📧 Session starting notifications sent for session ${sessionId}`);
+        } catch (notifError) {
+          console.error(`[ONLINE_CLASSES_API] ⚠️ Notification failed for session ${sessionId}:`, notifError);
+        }
+      });
 
       res.json({
         success: true,
