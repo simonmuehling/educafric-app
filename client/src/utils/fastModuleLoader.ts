@@ -44,7 +44,6 @@ class FastModuleLoader {
       'content-approval': () => import('@/components/director/modules/EducationalContentApproval'),
       'academic-management': () => import('@/components/director/modules/AcademicManagementSuite'),
       'online-classes': () => import('@/components/director/modules/OnlineClassesManager'),
-      'online-class-scheduler': () => import('@/components/director/modules/OnlineClassScheduler'),
       
       
       // =============================================

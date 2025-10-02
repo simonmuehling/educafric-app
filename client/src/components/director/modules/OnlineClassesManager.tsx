@@ -1,1034 +1,1413 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Video, Play, Users, Calendar, Settings, Plus, Clock, CheckCircle, BookOpen, UserCheck, GraduationCap, User, Book, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Video,
+  Plus,
+  Calendar,
+  Clock,
+  Trash2,
+  Pause,
+  Play,
+  Users,
+  BookOpen,
+  Loader2,
+  AlertCircle,
+  CalendarDays,
+  Repeat
+} from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
-interface OnlineClassesManagerProps {
-  className?: string;
-}
-
-// Type for created course
-type Course = {
+interface OnlineCourse {
   id: number;
   title: string;
-  description?: string;
-  language: string;
-  classId: number;
   teacherId: number;
-  subjectId: number;
-};
+  teacherName?: string;
+  classId?: number;
+  className?: string;
+  subjectId?: number;
+  subjectName?: string;
+}
 
-const OnlineClassesManager: React.FC<OnlineClassesManagerProps> = ({ className }) => {
+interface OnlineClassSession {
+  id: number;
+  courseId: number;
+  courseName?: string;
+  teacherId: number;
+  teacherName?: string;
+  classId?: number;
+  className?: string;
+  subjectId?: number;
+  subjectName?: string;
+  title: string;
+  description?: string;
+  scheduledStart: string;
+  durationMinutes: number;
+  status: 'scheduled' | 'live' | 'ended' | 'cancelled';
+  creatorType: 'school' | 'teacher';
+  recurrenceId?: number;
+}
+
+interface RecurrenceRule {
+  id: number;
+  courseId: number;
+  courseName?: string;
+  teacherId: number;
+  teacherName?: string;
+  classId?: number;
+  className?: string;
+  title: string;
+  ruleType: 'daily' | 'weekly' | 'biweekly' | 'custom';
+  interval: number;
+  byDay?: string[];
+  startTime: string;
+  durationMinutes: number;
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
+  pausedAt?: string;
+  pauseReason?: string;
+  generatedCount: number;
+  lastGenerated?: string;
+}
+
+interface CoursesResponse {
+  courses: OnlineCourse[];
+}
+
+interface SessionsResponse {
+  sessions: OnlineClassSession[];
+}
+
+interface RecurrencesResponse {
+  recurrences: RecurrenceRule[];
+}
+
+const sessionFormSchema = z.object({
+  classId: z.string().min(1, 'Class is required'),
+  teacherId: z.string().min(1, 'Teacher is required'),
+  subjectId: z.string().min(1, 'Subject is required'),
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
+  scheduledStart: z.string().min(1, 'Scheduled start is required'),
+  durationMinutes: z.coerce.number().min(15, 'Duration must be at least 15 minutes').max(240, 'Duration cannot exceed 240 minutes'),
+  autoNotify: z.boolean().default(true)
+});
+
+const recurrenceFormSchema = z.object({
+  courseId: z.string().optional(),
+  classId: z.string().optional(),
+  teacherId: z.string().optional(),
+  subjectId: z.string().optional(),
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
+  ruleType: z.enum(['daily', 'weekly', 'biweekly', 'custom']),
+  interval: z.coerce.number().min(1),
+  byDay: z.array(z.string()).optional(),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Start time must be in HH:MM format'),
+  durationMinutes: z.coerce.number().min(15, 'Duration must be at least 15 minutes').max(240, 'Duration cannot exceed 240 minutes'),
+  startDate: z.string().min(1, 'Start date is required'),
+  endDate: z.string().optional(),
+  autoNotify: z.boolean().default(true)
+}).refine((data) => {
+  // If no course selected, require class, teacher, and subject
+  if (!data.courseId || data.courseId === '') {
+    if (!data.classId || !data.teacherId) {
+      return false;
+    }
+  }
+  // For non-daily recurrence, require at least one day
+  if (data.ruleType !== 'daily' && (!data.byDay || data.byDay.length === 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'When no course is selected, class and teacher are required. For non-daily recurrence, please select at least one day of the week',
+  path: ['courseId']
+});
+
+type SessionFormValues = z.infer<typeof sessionFormSchema>;
+type RecurrenceFormValues = z.infer<typeof recurrenceFormSchema>;
+
+const OnlineClassesManager: React.FC = () => {
   const { language } = useLanguage();
-  const [activeTab, setActiveTab] = useState('create-course'); // 'create-course' | 'scheduled-sessions'
-  const [step, setStep] = useState('selection'); // 'selection' | 'course-creation' | 'session-management'
-  const [selectedClass, setSelectedClass] = useState('');
-  const [selectedTeacher, setSelectedTeacher] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('');
-  const [showCreateCourse, setShowCreateCourse] = useState(false);
-  const [createdCourse, setCreatedCourse] = useState<Course | null>(null); // Store created course
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Silence Replit dev noise
-  React.useEffect(() => {
-    const handler = (e: MessageEvent) => {
-      if (typeof e.origin === 'string' && e.origin.includes('.replit.dev')) return;
-    };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, []);
+  const [activeTab, setActiveTab] = useState<'sessions' | 'create-session' | 'recurrences' | 'create-recurrence' | 'calendar'>('sessions');
 
-  const text = {
+  const sessionForm = useForm<SessionFormValues>({
+    resolver: zodResolver(sessionFormSchema),
+    defaultValues: {
+      classId: '',
+      teacherId: '',
+      subjectId: '',
+      title: '',
+      description: '',
+      scheduledStart: '',
+      durationMinutes: 120,
+      autoNotify: true
+    }
+  });
+
+  const recurrenceForm = useForm<RecurrenceFormValues>({
+    resolver: zodResolver(recurrenceFormSchema),
+    defaultValues: {
+      courseId: '',
+      classId: '',
+      teacherId: '',
+      subjectId: '',
+      title: '',
+      description: '',
+      ruleType: 'weekly',
+      interval: 1,
+      byDay: [],
+      startTime: '08:00',
+      durationMinutes: 120,
+      startDate: '',
+      endDate: '',
+      autoNotify: true
+    }
+  });
+
+  const translations = {
     fr: {
-      title: 'Classes en ligne',
-      subtitle: 'Créez des sessions de cours en visioconférence',
-      createCourseTab: 'Créer un cours',
-      scheduledSessionsTab: 'Sessions programmées',
-      selectClass: 'Sélectionner une classe',
-      selectTeacher: 'Sélectionner un enseignant',
-      selectSubject: 'Sélectionner une matière',
-      selectionTitle: 'Configuration du cours en ligne',
-      selectionDesc: 'Choisissez la classe, l\'enseignant et la matière pour créer votre session de cours en ligne',
-      scheduledSessionsTitle: 'Toutes les sessions programmées',
-      scheduledSessionsDesc: 'Gérez toutes les sessions de cours programmées dans votre école',
-      continue: 'Continuer',
-      back: 'Retour',
-      createCourse: 'Créer le cours',
-      courseTitle: 'Titre du cours',
-      courseDescription: 'Description du cours',
-      scheduleCourse: 'Programmer le cours',
-      startNow: 'Démarrer maintenant',
-      join: 'Rejoindre',
-      delete: 'Supprimer',
-      confirm: 'Confirmer',
-      cancel: 'Annuler',
-      deleteConfirm: 'Êtes-vous sûr de vouloir supprimer cette session ?',
-      teacher: 'Enseignant',
-      course: 'Cours',
-      noSessions: 'Aucune session programmée',
-      loading: 'Chargement...',
-      noData: 'Aucune donnée disponible'
+      title: "Classes en ligne",
+      subtitle: "Gérez les sessions de cours en ligne de votre école",
+      description: "Planifiez des sessions individuelles ou créez des règles de récurrence pour générer automatiquement les sessions",
+      tabs: {
+        sessions: "Sessions Planifiées",
+        createSession: "Créer une Session",
+        recurrences: "Règles de Récurrence",
+        createRecurrence: "Créer une Règle",
+        calendar: "Calendrier"
+      },
+      sessions: {
+        title: "Sessions Planifiées",
+        noSessions: "Aucune session planifiée",
+        status: {
+          scheduled: "Planifiée",
+          live: "En cours",
+          ended: "Terminée",
+          cancelled: "Annulée"
+        },
+        creatorType: {
+          school: "École",
+          teacher: "Enseignant"
+        },
+        cancel: "Annuler",
+        cancelConfirm: "Êtes-vous sûr de vouloir annuler cette session ?",
+        cancelSuccess: "Session annulée avec succès",
+        cancelError: "Erreur lors de l'annulation de la session"
+      },
+      createSession: {
+        title: "Créer une Session",
+        selectCourse: "Sélectionner un cours",
+        selectClass: "Sélectionner une classe",
+        selectClassPlaceholder: "Sélectionner une classe",
+        selectTeacher: "Sélectionner un enseignant",
+        selectTeacherPlaceholder: "Sélectionner un enseignant",
+        selectSubject: "Sélectionner une matière",
+        selectSubjectPlaceholder: "Sélectionner une matière",
+        sessionTitle: "Titre de la session",
+        description: "Description",
+        scheduledStart: "Date et heure de début",
+        durationMinutes: "Durée (minutes)",
+        autoNotify: "Notifier automatiquement les élèves et parents",
+        submit: "Créer la session",
+        cancel: "Annuler",
+        success: "Session créée avec succès",
+        error: "Erreur lors de la création de la session"
+      },
+      recurrences: {
+        title: "Règles de Récurrence",
+        noRecurrences: "Aucune règle de récurrence",
+        ruleType: {
+          daily: "Quotidien",
+          weekly: "Hebdomadaire",
+          biweekly: "Bi-hebdomadaire",
+          custom: "Personnalisé"
+        },
+        status: {
+          active: "Active",
+          paused: "En pause"
+        },
+        pause: "Mettre en pause",
+        resume: "Reprendre",
+        edit: "Modifier",
+        delete: "Supprimer",
+        pauseSuccess: "Règle mise en pause",
+        resumeSuccess: "Règle reprise",
+        deleteSuccess: "Règle supprimée",
+        deleteConfirm: "Êtes-vous sûr de vouloir supprimer cette règle ?",
+        generatedCount: "Sessions générées",
+        lastGenerated: "Dernière génération"
+      },
+      createRecurrence: {
+        title: "Créer une Règle de Récurrence",
+        selectCourse: "Sélectionner un cours",
+        ruleTitle: "Titre de la règle",
+        description: "Description",
+        ruleType: "Type de récurrence",
+        interval: "Intervalle",
+        byDay: "Jours de la semaine",
+        startTime: "Heure de début",
+        durationMinutes: "Durée (minutes)",
+        startDate: "Date de début",
+        endDate: "Date de fin (optionnel)",
+        autoNotify: "Notifier automatiquement",
+        days: {
+          monday: "Lundi",
+          tuesday: "Mardi",
+          wednesday: "Mercredi",
+          thursday: "Jeudi",
+          friday: "Vendredi",
+          saturday: "Samedi",
+          sunday: "Dimanche"
+        },
+        submit: "Créer la règle",
+        cancel: "Annuler",
+        success: "Règle de récurrence créée avec succès",
+        error: "Erreur lors de la création de la règle"
+      },
+      courses: {
+        title: "Cours en Ligne",
+        noCourses: "Aucun cours disponible",
+        teacher: "Enseignant",
+        class: "Classe",
+        subject: "Matière"
+      },
+      loading: "Chargement...",
+      error: "Erreur"
     },
     en: {
-      title: 'Online Classes',
-      subtitle: 'Create video conference course sessions',
-      createCourseTab: 'Create Course',
-      scheduledSessionsTab: 'Scheduled Sessions',
-      selectClass: 'Select a class',
-      selectTeacher: 'Select a teacher',
-      selectSubject: 'Select a subject',
-      selectionTitle: 'Online Course Setup',
-      selectionDesc: 'Choose class, teacher and subject to create your online course session',
-      scheduledSessionsTitle: 'All Scheduled Sessions',
-      scheduledSessionsDesc: 'Manage all scheduled course sessions in your school',
-      continue: 'Continue',
-      back: 'Back',
-      createCourse: 'Create Course',
-      courseTitle: 'Course Title',
-      courseDescription: 'Course Description',
-      scheduleCourse: 'Schedule Course',
-      startNow: 'Start Now',
-      join: 'Join',
-      delete: 'Delete',
-      confirm: 'Confirm',
-      cancel: 'Cancel',
-      deleteConfirm: 'Are you sure you want to delete this session?',
-      teacher: 'Teacher',
-      course: 'Course',
-      noSessions: 'No scheduled sessions',
-      loading: 'Loading...',
-      noData: 'No data available'
+      title: "Online Classes",
+      subtitle: "Manage your school's online class sessions",
+      description: "Schedule individual sessions or create recurrence rules to automatically generate sessions",
+      tabs: {
+        sessions: "Scheduled Sessions",
+        createSession: "Create Session",
+        recurrences: "Recurrence Rules",
+        createRecurrence: "Create Rule",
+        calendar: "Calendar"
+      },
+      sessions: {
+        title: "Scheduled Sessions",
+        noSessions: "No scheduled sessions",
+        status: {
+          scheduled: "Scheduled",
+          live: "Live",
+          ended: "Ended",
+          cancelled: "Cancelled"
+        },
+        creatorType: {
+          school: "School",
+          teacher: "Teacher"
+        },
+        cancel: "Cancel",
+        cancelConfirm: "Are you sure you want to cancel this session?",
+        cancelSuccess: "Session cancelled successfully",
+        cancelError: "Error cancelling session"
+      },
+      createSession: {
+        title: "Create Session",
+        selectCourse: "Select a course",
+        selectClass: "Select a class",
+        selectClassPlaceholder: "Select a class",
+        selectTeacher: "Select a teacher",
+        selectTeacherPlaceholder: "Select a teacher",
+        selectSubject: "Select a subject",
+        selectSubjectPlaceholder: "Select a subject",
+        sessionTitle: "Session title",
+        description: "Description",
+        scheduledStart: "Start date and time",
+        durationMinutes: "Duration (minutes)",
+        autoNotify: "Automatically notify students and parents",
+        submit: "Create session",
+        cancel: "Cancel",
+        success: "Session created successfully",
+        error: "Error creating session"
+      },
+      recurrences: {
+        title: "Recurrence Rules",
+        noRecurrences: "No recurrence rules",
+        ruleType: {
+          daily: "Daily",
+          weekly: "Weekly",
+          biweekly: "Bi-weekly",
+          custom: "Custom"
+        },
+        status: {
+          active: "Active",
+          paused: "Paused"
+        },
+        pause: "Pause",
+        resume: "Resume",
+        edit: "Edit",
+        delete: "Delete",
+        pauseSuccess: "Rule paused",
+        resumeSuccess: "Rule resumed",
+        deleteSuccess: "Rule deleted",
+        deleteConfirm: "Are you sure you want to delete this rule?",
+        generatedCount: "Generated sessions",
+        lastGenerated: "Last generated"
+      },
+      createRecurrence: {
+        title: "Create Recurrence Rule",
+        selectCourse: "Select a course",
+        ruleTitle: "Rule title",
+        description: "Description",
+        ruleType: "Recurrence type",
+        interval: "Interval",
+        byDay: "Days of week",
+        startTime: "Start time",
+        durationMinutes: "Duration (minutes)",
+        startDate: "Start date",
+        endDate: "End date (optional)",
+        autoNotify: "Automatically notify",
+        days: {
+          monday: "Monday",
+          tuesday: "Tuesday",
+          wednesday: "Wednesday",
+          thursday: "Thursday",
+          friday: "Friday",
+          saturday: "Saturday",
+          sunday: "Sunday"
+        },
+        submit: "Create rule",
+        cancel: "Cancel",
+        success: "Recurrence rule created successfully",
+        error: "Error creating rule"
+      },
+      courses: {
+        title: "Online Courses",
+        noCourses: "No courses available",
+        teacher: "Teacher",
+        class: "Class",
+        subject: "Subject"
+      },
+      loading: "Loading...",
+      error: "Error"
     }
   };
 
-  const t = text[language as keyof typeof text];
+  const t = translations[language];
 
-  // Fetch classes data
-  const { data: classesData, isLoading: classesLoading } = useQuery({
-    queryKey: ['/api/director/classes'],
-    queryFn: async () => {
-      const response = await fetch('/api/director/classes', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch classes');
-      return response.json();
-    }
+  const { data: coursesData, isLoading: coursesLoading } = useQuery<CoursesResponse>({
+    queryKey: ['/api/online-class-scheduler/courses']
   });
 
-  // Fetch teachers data
-  const { data: teachersData, isLoading: teachersLoading } = useQuery({
-    queryKey: ['/api/director/teachers'],
-    queryFn: async () => {
-      const response = await fetch('/api/director/teachers', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch teachers');
-      return response.json();
-    }
+  const { data: sessionsData, isLoading: sessionsLoading } = useQuery<SessionsResponse>({
+    queryKey: ['/api/online-class-scheduler/sessions']
   });
 
-  // Subjects/Matières data (predefined list with numeric IDs)
-  const subjects = [
-    { id: 1, name: language === 'fr' ? 'Mathématiques' : 'Mathematics' },
-    { id: 2, name: language === 'fr' ? 'Français' : 'French' },
-    { id: 3, name: language === 'fr' ? 'Anglais' : 'English' },
-    { id: 4, name: language === 'fr' ? 'Sciences' : 'Science' },
-    { id: 5, name: language === 'fr' ? 'Histoire' : 'History' },
-    { id: 6, name: language === 'fr' ? 'Géographie' : 'Geography' },
-    { id: 7, name: language === 'fr' ? 'Physique' : 'Physics' },
-    { id: 8, name: language === 'fr' ? 'Chimie' : 'Chemistry' },
-    { id: 9, name: language === 'fr' ? 'Biologie' : 'Biology' },
-    { id: 10, name: language === 'fr' ? 'Philosophie' : 'Philosophy' }
-  ];
-
-  // Fetch courses data only after selection is complete
-  const { data: coursesData, isLoading: coursesLoading } = useQuery({
-    queryKey: ['/api/online-classes/courses'],
-    queryFn: async () => {
-      const response = await fetch('/api/online-classes/courses', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch courses');
-      return response.json();
-    },
-    enabled: step !== 'selection' // Only fetch when we're past the selection step
+  const { data: recurrencesData, isLoading: recurrencesLoading } = useQuery<RecurrencesResponse>({
+    queryKey: ['/api/online-class-scheduler/recurrences']
   });
 
-  // Query to fetch sessions for the created course
-  const { data: courseSessions, isLoading: isLoadingSessions } = useQuery({
-    queryKey: ['/api/online-classes/courses', createdCourse?.id, 'sessions'],
-    queryFn: async () => {
-      const response = await fetch(`/api/online-classes/courses/${createdCourse?.id}/sessions`, {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch sessions');
-      return response.json();
-    },
-    enabled: !!createdCourse?.id
+  const { data: classesData } = useQuery({
+    queryKey: ['/api/director/classes']
   });
 
-  // Query to fetch ALL school sessions (for the "Scheduled Sessions" tab)
-  const { data: allSchoolSessions, isLoading: isLoadingAllSessions, refetch: refetchAllSessions } = useQuery({
-    queryKey: ['/api/online-classes/school/sessions'],
-    queryFn: async () => {
-      const response = await fetch('/api/online-classes/school/sessions', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch school sessions');
-      return response.json();
-    },
-    enabled: activeTab === 'scheduled-sessions' // Only fetch when on scheduled sessions tab
+  const { data: teachersData } = useQuery({
+    queryKey: ['/api/director/teachers']
   });
 
-  // Delete session mutation
-  const deleteSessionMutation = useMutation({
-    mutationFn: async (sessionId: number) => {
-      const response = await fetch(`/api/online-classes/sessions/${sessionId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete session');
-      }
+  const selectedClassId = sessionForm.watch('classId');
+  const selectedRecurrenceClassId = recurrenceForm.watch('classId');
+
+  const { data: subjectsData } = useQuery({
+    queryKey: ['/api/director/subjects', selectedClassId || selectedRecurrenceClassId],
+    enabled: !!selectedClassId || !!selectedRecurrenceClassId
+  });
+
+  const createSessionMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/online-class-scheduler/sessions', data);
       return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/sessions'] });
       toast({
-        title: language === 'fr' ? 'Session supprimée !' : 'Session deleted!',
-        description: language === 'fr' ? 
-          'La session a été supprimée avec succès' :
-          'Session has been deleted successfully'
+        title: t.createSession.success,
+        variant: 'default'
       });
-      // Refresh all related queries
-      refetchAllSessions();
-      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses'] });
-      if (createdCourse?.id) {
-        queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses', createdCourse.id, 'sessions'] });
-      }
+      sessionForm.reset();
+      setActiveTab('sessions');
     },
     onError: (error: any) => {
       toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: error.message || (language === 'fr' ? 
-          'Erreur lors de la suppression de la session' : 
-          'Error deleting the session'),
+        title: t.createSession.error,
+        description: error.message,
         variant: 'destructive'
       });
     }
   });
 
-  // Create course mutation with selected data
-  const createCourseMutation = useMutation({
-    mutationFn: async (courseData: any) => {
-      const enrichedCourseData = {
-        ...courseData,
-        classId: parseInt(selectedClass, 10), // Convert string to number
-        teacherId: parseInt(selectedTeacher, 10), // Convert string to number
-        subjectId: parseInt(selectedSubject, 10) // Convert string to number
-      };
-      console.log('[ONLINE_CLASSES] Creating course with data:', enrichedCourseData);
-      const response = await apiRequest('POST', '/api/online-classes/courses', enrichedCourseData);
-      return await response.json(); // Parse JSON response
+  const createRecurrenceMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/online-class-scheduler/recurrences', data);
+      return response.json();
     },
-    onSuccess: (response: any) => {
-      // Store the created course in state for use by handlers
-      const course = response.course || response;
-      setCreatedCourse(course);
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses'] });
-      setStep('session-management');
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/recurrences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/sessions'] });
       toast({
-        title: language === 'fr' ? 'Cours créé' : 'Course created',
-        description: language === 'fr' ? 'Le cours a été créé avec succès' : 'Course created successfully'
+        title: t.createRecurrence.success,
+        variant: 'default'
       });
+      recurrenceForm.reset();
+      setActiveTab('recurrences');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
-        title: 'Erreur',
-        description: language === 'fr' ? 'Erreur lors de la création du cours' : 'Error creating course',
+        title: t.createRecurrence.error,
+        description: error.message,
         variant: 'destructive'
       });
     }
   });
 
-  // Handle selection completion
-  const handleContinueSelection = () => {
-    if (selectedClass && selectedTeacher && selectedSubject) {
-      setStep('course-creation');
-    } else {
+  const cancelSessionMutation = useMutation({
+    mutationFn: async (sessionId: number) => {
+      const response = await apiRequest('DELETE', `/api/online-class-scheduler/sessions/${sessionId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/sessions'] });
       toast({
-        title: language === 'fr' ? 'Sélection incomplète' : 'Incomplete selection',
-        description: language === 'fr' ? 'Veuillez sélectionner une classe, un enseignant et une matière' : 'Please select a class, teacher and subject',
+        title: t.sessions.cancelSuccess,
+        variant: 'default'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: t.sessions.cancelError,
+        description: error.message,
         variant: 'destructive'
       });
     }
-  };
+  });
 
-  // Handle course creation form submission
-  const handleCreateCourse = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const courseData = {
-      title: formData.get('title'),
-      description: formData.get('description'),
-      language: language
-    };
-    createCourseMutation.mutate(courseData);
-  };
-
-
-
-  // Render selection interface
-  const renderSelection = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Video className="w-6 h-6 text-purple-600" />
-            <span>{t.selectionTitle}</span>
-          </CardTitle>
-          <CardDescription>{t.selectionDesc}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Class Selection */}
-          <div className="space-y-2">
-            <Label className="flex items-center space-x-2">
-              <GraduationCap className="w-4 h-4" />
-              <span>{t.selectClass}</span>
-            </Label>
-            <Select value={selectedClass} onValueChange={setSelectedClass}>
-              <SelectTrigger data-testid="select-class">
-                <SelectValue placeholder={t.selectClass} />
-              </SelectTrigger>
-              <SelectContent>
-                {classesLoading ? (
-                  <SelectItem value="loading" disabled>{t.loading}</SelectItem>
-                ) : classesData?.classes?.length > 0 ? (
-                  classesData.classes.map((cls: any) => (
-                    <SelectItem key={cls.id} value={cls.id.toString()}>
-                      {cls.name}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="no-data" disabled>{t.noData}</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Teacher Selection */}
-          <div className="space-y-2">
-            <Label className="flex items-center space-x-2">
-              <User className="w-4 h-4" />
-              <span>{t.selectTeacher}</span>
-            </Label>
-            <Select value={selectedTeacher} onValueChange={setSelectedTeacher}>
-              <SelectTrigger data-testid="select-teacher">
-                <SelectValue placeholder={t.selectTeacher} />
-              </SelectTrigger>
-              <SelectContent>
-                {teachersLoading ? (
-                  <SelectItem value="loading" disabled>{t.loading}</SelectItem>
-                ) : teachersData?.teachers?.length > 0 ? (
-                  teachersData.teachers.map((teacher: any) => (
-                    <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                      {teacher.firstName} {teacher.lastName}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="no-data" disabled>{t.noData}</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Subject Selection */}
-          <div className="space-y-2">
-            <Label className="flex items-center space-x-2">
-              <Book className="w-4 h-4" />
-              <span>{t.selectSubject}</span>
-            </Label>
-            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-              <SelectTrigger data-testid="select-subject">
-                <SelectValue placeholder={t.selectSubject} />
-              </SelectTrigger>
-              <SelectContent>
-                {subjects.map((subject) => (
-                  <SelectItem key={subject.id} value={subject.id.toString()}>
-                    {subject.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Continue Button */}
-          <Button 
-            onClick={handleContinueSelection}
-            disabled={!selectedClass || !selectedTeacher || !selectedSubject}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-            data-testid="button-continue-selection"
-          >
-            <Play className="w-4 h-4 mr-2" />
-            {t.continue}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  // Render course creation form
-  const renderCourseCreation = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center space-x-2">
-              <Video className="w-6 h-6 text-purple-600" />
-              <span>{t.createCourse}</span>
-            </span>
-            <Button variant="outline" onClick={() => setStep('selection')}>
-              {t.back}
-            </Button>
-          </CardTitle>
-          <CardDescription>
-            {language === 'fr' ? 
-              `Classe: ${classesData?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Enseignant: ${teachersData?.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName || ''} | Matière: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}` :
-              `Class: ${classesData?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Teacher: ${teachersData?.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName || ''} | Subject: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}`
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleCreateCourse} className="space-y-4">
-            <div>
-              <Label htmlFor="title">{t.courseTitle}</Label>
-              <Input name="title" id="title" required data-testid="input-course-title" />
-            </div>
-            <div>
-              <Label htmlFor="description">{t.courseDescription}</Label>
-              <Textarea name="description" id="description" data-testid="input-course-description" />
-            </div>
-            <Button 
-              type="submit" 
-              disabled={createCourseMutation.isPending}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-              data-testid="button-create-course"
-            >
-              {createCourseMutation.isPending ? (
-                <>
-                  <Clock className="w-4 h-4 mr-2 animate-spin" />
-                  {language === 'fr' ? 'Création...' : 'Creating...'}
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t.createCourse}
-                </>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  // Handle start session immediately  
-  const [starting, setStarting] = useState(false);
-  
-  const handleStartNow = React.useCallback(async () => {
-    console.log('[ONLINE_CLASSES] Starting session immediately...');
-    if (!createdCourse) {
+  const toggleRecurrenceMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
+      const response = await apiRequest('PATCH', `/api/online-class-scheduler/recurrences/${id}`, {
+        isActive,
+        pausedAt: isActive ? null : new Date().toISOString(),
+        pausedBy: user?.id,
+        pauseReason: isActive ? null : 'Manually paused by director'
+      });
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/recurrences'] });
       toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Veuillez d\'abord créer un cours' : 'Please create a course first',
-        variant: 'destructive'
+        title: variables.isActive ? t.recurrences.resumeSuccess : t.recurrences.pauseSuccess,
+        variant: 'default'
       });
-      return;
-    }
-    
-    if (starting) return; // Prevent multiple clicks
-    setStarting(true);
-
-    try {
-      console.log('[ONLINE_CLASSES] Creating session for course', createdCourse.id);
-
-      // Validate courseId before making request
-      if (!createdCourse.id || typeof createdCourse.id === 'undefined') {
-        throw new Error(`Invalid course ID: ${createdCourse.id}`);
-      }
-
-      // Call the sessions endpoint
-      const response = await fetch(`/api/online-classes/courses/${createdCourse.id}/sessions`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          title: `Session - ${createdCourse.title}`,
-          description: `Session immédiate pour le cours ${createdCourse.title}`,
-          scheduledStart: new Date().toISOString(),
-          startNow: true,
-          maxDuration: 120,
-          lobbyEnabled: true,
-          chatEnabled: true,
-          screenShareEnabled: true
-        })
-      });
-
-      const text = await response.text();
-      if (!response.ok) {
-        console.error('[ONLINE_CLASSES] StartNow failed', response.status, text);
-        toast({
-          title: language === 'fr' ? 'Erreur' : 'Error',
-          description: `${language === 'fr' ? 'Impossible de démarrer la session' : 'Could not start session'}: ${response.status}`,
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      const sessionData = JSON.parse(text);
-      console.log('[ONLINE_CLASSES] Session created:', sessionData);
-
-      // Open Jitsi meeting room if join URL is provided
-      if (sessionData.joinUrl) {
-        console.log('[ONLINE_CLASSES] Opening Jitsi meeting room:', sessionData.joinUrl);
-        
-        // Open in new tab/window
-        const meetingWindow = window.open(sessionData.joinUrl, '_blank', 'noopener,noreferrer');
-        
-        if (!meetingWindow) {
-          // Pop-up blocked - fallback to current tab
-          console.warn('[ONLINE_CLASSES] Pop-up blocked, redirecting in current tab');
-          window.location.href = sessionData.joinUrl;
-          return; // Don't show toast if redirecting
-        }
-        
-        toast({
-          title: language === 'fr' ? 'Classe démarrée !' : 'Class started!',
-          description: language === 'fr' ? 
-            `La salle de classe virtuelle est maintenant ouverte` :
-            `Virtual classroom is now open`
-        });
-      } else {
-        // Fallback if no join URL
-        toast({
-          title: language === 'fr' ? 'Session créée !' : 'Session created!',
-          description: language === 'fr' ? 
-            `Session "${sessionData.session?.title}" créée avec succès` :
-            `Session "${sessionData.session?.title}" created successfully`
-        });
-      }
-
-    } catch (error) {
-      console.error('[ONLINE_CLASSES] handleStartNow error', error);
+    },
+    onError: (error: any) => {
       toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Erreur inattendue lors du démarrage de la session' : 'Unexpected error starting session',
-        variant: 'destructive'
-      });
-    } finally {
-      setStarting(false);
-    }
-  }, [createdCourse, language, toast, starting]);
-
-  // Handle join session
-  const handleJoinSession = React.useCallback(async (session: any) => {
-    console.log('[ONLINE_CLASSES] Joining session:', session.id, session.roomName);
-    
-    try {
-      // Generate JWT token for this session
-      const jwtResponse = await fetch(`/api/online-classes/sessions/${session.id}/join`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      const jwtData = await jwtResponse.json();
-      
-      if (!jwtResponse.ok || !jwtData.joinUrl) {
-        throw new Error(jwtData.error || 'Failed to generate join URL');
-      }
-      
-      console.log('[ONLINE_CLASSES] Opening Jitsi meeting room:', jwtData.joinUrl);
-      
-      // Open meeting room in new tab
-      const meetingWindow = window.open(jwtData.joinUrl, '_blank', 'noopener,noreferrer');
-      
-      if (!meetingWindow) {
-        // Pop-up blocked - fallback to current tab
-        window.location.href = jwtData.joinUrl;
-        return;
-      }
-      
-      toast({
-        title: language === 'fr' ? 'Session rejointe !' : 'Session joined!',
-        description: language === 'fr' ? 
-          'La salle de classe virtuelle est maintenant ouverte' :
-          'Virtual classroom is now open'
-      });
-      
-    } catch (error) {
-      console.error('[ONLINE_CLASSES] Join session error:', error);
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 
-          'Erreur lors de la connexion à la session' : 
-          'Error joining the session',
+        title: t.error,
+        description: error.message,
         variant: 'destructive'
       });
     }
-  }, [language, toast]);
+  });
 
-  // Handle session settings
-  const handleSessionSettings = React.useCallback((session: any) => {
-    console.log('[ONLINE_CLASSES] Opening settings for session:', session.id);
-    
-    // TODO: Open session settings modal
-    toast({
-      title: language === 'fr' ? 'Paramètres de session' : 'Session Settings',
-      description: language === 'fr' ? 'Fonctionnalité bientôt disponible' : 'Feature coming soon'
+  const deleteRecurrenceMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/online-class-scheduler/recurrences/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/recurrences'] });
+      toast({
+        title: t.recurrences.deleteSuccess,
+        variant: 'default'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: t.error,
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const onSessionSubmit = (values: SessionFormValues) => {
+    createSessionMutation.mutate({
+      teacherId: parseInt(values.teacherId),
+      classId: parseInt(values.classId),
+      subjectId: parseInt(values.subjectId),
+      title: values.title,
+      description: values.description,
+      scheduledStart: values.scheduledStart,
+      durationMinutes: values.durationMinutes,
+      autoNotify: values.autoNotify
     });
-  }, [language, toast]);
+  };
 
-  // Handle delete session
-  const handleDeleteSession = React.useCallback((session: any) => {
-    console.log('[ONLINE_CLASSES] Delete session:', session.id);
-    
-    // Show confirmation dialog
-    const confirmDelete = window.confirm(
-      language === 'fr' ? 
-        `Êtes-vous sûr de vouloir supprimer la session "${session.title}" ?` :
-        `Are you sure you want to delete the session "${session.title}"?`
-    );
-    
-    if (confirmDelete) {
-      deleteSessionMutation.mutate(session.id);
+  const onRecurrenceSubmit = (values: RecurrenceFormValues) => {
+    const selectedCourse = values.courseId ? coursesData?.courses?.find((c: OnlineCourse) => c.id === parseInt(values.courseId)) : null;
+
+    createRecurrenceMutation.mutate({
+      courseId: values.courseId ? parseInt(values.courseId) : undefined,
+      teacherId: selectedCourse ? selectedCourse.teacherId : parseInt(values.teacherId),
+      classId: selectedCourse ? selectedCourse.classId : parseInt(values.classId),
+      subjectId: selectedCourse ? selectedCourse.subjectId : (values.subjectId ? parseInt(values.subjectId) : undefined),
+      title: values.title,
+      description: values.description,
+      ruleType: values.ruleType,
+      interval: values.interval,
+      byDay: values.byDay && values.byDay.length > 0 ? values.byDay : undefined,
+      startTime: values.startTime,
+      durationMinutes: values.durationMinutes,
+      startDate: values.startDate,
+      endDate: values.endDate || undefined,
+      autoNotify: values.autoNotify
+    });
+  };
+
+  const handleCancelSession = (sessionId: number) => {
+    if (window.confirm(t.sessions.cancelConfirm)) {
+      cancelSessionMutation.mutate(sessionId);
     }
-  }, [language, deleteSessionMutation]);
+  };
 
-  // Handle schedule course - Create a real scheduled session
-  const handleScheduleCourse = React.useCallback(async () => {
-    console.log('[ONLINE_CLASSES] Creating scheduled session...');
-    if (!createdCourse) {
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Veuillez d\'abord créer un cours' : 'Please create a course first',
-        variant: 'destructive'
-      });
-      return;
+  const handleToggleRecurrence = (recurrence: RecurrenceRule) => {
+    toggleRecurrenceMutation.mutate({
+      id: recurrence.id,
+      isActive: !recurrence.isActive
+    });
+  };
+
+  const handleDeleteRecurrence = (id: number) => {
+    if (window.confirm(t.recurrences.deleteConfirm)) {
+      deleteRecurrenceMutation.mutate(id);
     }
-    
-    try {
-      // Create a session scheduled for tomorrow at 10:00 AM (for demo)
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(10, 0, 0, 0);
-      
-      const sessionEnd = new Date(tomorrow);
-      sessionEnd.setHours(11, 0, 0, 0); // 1 hour duration
-      
-      const sessionData = {
-        title: `Session: ${createdCourse.title}`,
-        description: `Session programmée pour le cours "${createdCourse.title}"`,
-        scheduledStart: tomorrow.toISOString(),
-        scheduledEnd: sessionEnd.toISOString(),
-      };
-      
-      console.log('[ONLINE_CLASSES] Creating session with data:', sessionData);
-      
-      const response = await fetch(`/api/online-classes/courses/${createdCourse.id}/sessions`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sessionData)
-      });
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to create session');
-      }
-      
-      toast({
-        title: language === 'fr' ? 'Session programmée !' : 'Session scheduled!',
-        description: language === 'fr' ? 
-          `Session créée pour demain à 10h00` :
-          `Session created for tomorrow at 10:00 AM`
-      });
-      
-      // Refresh sessions list
-      await queryClient.invalidateQueries({ 
-        queryKey: ['/api/online-classes/courses', createdCourse.id, 'sessions'] 
-      });
-      
-    } catch (error) {
-      console.error('[ONLINE_CLASSES] Schedule session error:', error);
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 
-          'Erreur lors de la programmation de la session' : 
-          'Error scheduling the session',
-        variant: 'destructive'
-      });
-    }
-  }, [createdCourse, language, toast, queryClient]);
+  };
 
-  // Render scheduled sessions tab
-  const renderScheduledSessionsTab = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5" />
-            <span>{t.scheduledSessionsTitle}</span>
-          </CardTitle>
-          <CardDescription>
-            {t.scheduledSessionsDesc}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoadingAllSessions ? (
-            <div className="flex items-center justify-center py-8">
-              <Clock className="w-6 h-6 animate-spin mr-2" />
-              <span>{t.loading}</span>
-            </div>
-          ) : allSchoolSessions?.sessions?.length === 0 ? (
-            <div className="text-center py-8">
-              <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-500">{t.noSessions}</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {allSchoolSessions?.sessions?.map((session: any) => (
-                <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{session.title}</h4>
-                    <p className="text-sm text-gray-600 mb-1">{session.description}</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span className="flex items-center">
-                        <User className="w-4 h-4 mr-1" />
-                        {t.teacher}: {session.teacherName}
-                      </span>
-                      <span className="flex items-center">
-                        <Book className="w-4 h-4 mr-1" />
-                        {t.course}: {session.courseName}
-                      </span>
-                      <span className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {new Date(session.scheduledStart).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="mt-2">
-                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
-                        session.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                        session.status === 'live' ? 'bg-green-100 text-green-800' :
-                        session.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {session.status === 'scheduled' ? (language === 'fr' ? 'Programmé' : 'Scheduled') :
-                         session.status === 'live' ? (language === 'fr' ? 'En cours' : 'Live') :
-                         session.status === 'completed' ? (language === 'fr' ? 'Terminé' : 'Completed') :
-                         session.status
-                        }
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {session.status === 'scheduled' && (
-                      <Button 
-                        size="sm" 
-                        className="bg-green-500 hover:bg-green-600"
-                        onClick={() => handleJoinSession(session)}
-                        data-testid={`button-join-session-${session.id}`}
-                      >
-                        <Video className="w-4 h-4 mr-1" />
-                        {t.join}
-                      </Button>
-                    )}
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleSessionSettings(session)}
-                      data-testid={`button-settings-session-${session.id}`}
-                    >
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      onClick={() => handleDeleteSession(session)}
-                      disabled={session.status === 'live'}
-                      data-testid={`button-delete-session-${session.id}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+  const toggleDaySelection = (day: string) => {
+    const currentDays = recurrenceForm.getValues('byDay') || [];
+    const newDays = currentDays.includes(day)
+      ? currentDays.filter(d => d !== day)
+      : [...currentDays, day];
+    recurrenceForm.setValue('byDay', newDays);
+  };
 
-  // Render session management (after course creation)
-  const renderSessionManagement = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center space-x-2">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-              <span>{language === 'fr' ? 'Cours créé avec succès !' : 'Course created successfully!'}</span>
-            </span>
-            <Button variant="outline" onClick={() => setStep('selection')}>
-              {language === 'fr' ? 'Nouveau cours' : 'New Course'}
-            </Button>
-          </CardTitle>
-          <CardDescription>
-            {language === 'fr' ? 
-              'Votre cours est maintenant prêt. Vous pouvez démarrer une session immédiatement ou la programmer plus tard.' :
-              'Your course is now ready. You can start a session immediately or schedule it for later.'
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button 
-            onClick={handleStartNow}
-            disabled={!createdCourse || starting}
-            className="w-full bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            data-testid="button-start-now"
-          >
-            {starting ? (
-              <>
-                <Clock className="w-4 h-4 mr-2 animate-spin" />
-                {language === 'fr' ? 'Démarrage...' : 'Starting...'}
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                {t.startNow}
-              </>
-            )}
-          </Button>
-          <Button 
-            onClick={handleScheduleCourse}
-            disabled={!createdCourse}
-            variant="outline" 
-            className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            data-testid="button-schedule-course"
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            {t.scheduleCourse}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Scheduled Sessions Display */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5" />
-            <span>{language === 'fr' ? 'Sessions programmées' : 'Scheduled Sessions'}</span>
-          </CardTitle>
-          <CardDescription>
-            {language === 'fr' ? 
-              'Toutes les sessions créées pour ce cours apparaissent ici.' :
-              'All sessions created for this course appear here.'
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoadingSessions ? (
-            <div className="text-center py-4">
-              <Clock className="w-6 h-6 animate-spin mx-auto mb-2" />
-              <p>{language === 'fr' ? 'Chargement des sessions...' : 'Loading sessions...'}</p>
-            </div>
-          ) : courseSessions?.sessions?.length > 0 ? (
-            <div className="space-y-3">
-              {courseSessions.sessions.map((session: any) => (
-                <div key={session.id} className="border rounded-lg p-4 flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-medium">{session.title}</h3>
-                    <p className="text-sm text-gray-600">{session.description}</p>
-                    <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                      <span className="flex items-center space-x-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>
-                          {new Date(session.scheduledStart).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
-                        </span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <Clock className="w-4 h-4" />
-                        <span>
-                          {new Date(session.scheduledStart).toLocaleTimeString(language === 'fr' ? 'fr-FR' : 'en-US')}
-                        </span>
-                      </span>
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        session.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                        session.status === 'live' ? 'bg-green-100 text-green-800' :
-                        session.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {session.status === 'scheduled' ? (language === 'fr' ? 'Programmé' : 'Scheduled') :
-                         session.status === 'live' ? (language === 'fr' ? 'En cours' : 'Live') :
-                         session.status === 'completed' ? (language === 'fr' ? 'Terminé' : 'Completed') :
-                         session.status
-                        }
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {session.status === 'scheduled' && (
-                      <Button 
-                        size="sm" 
-                        className="bg-green-500 hover:bg-green-600"
-                        onClick={() => handleJoinSession(session)}
-                        data-testid={`button-join-session-${session.id}`}
-                      >
-                        <Video className="w-4 h-4 mr-1" />
-                        {language === 'fr' ? 'Rejoindre' : 'Join'}
-                      </Button>
-                    )}
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleSessionSettings(session)}
-                      data-testid={`button-settings-session-${session.id}`}
-                    >
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {courseSessions?.sessions?.map((session: any) => (
-                <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{session.title}</h4>
-                    <p className="text-sm text-gray-600 mb-1">{session.description}</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span className="flex items-center">
-                        <User className="w-4 h-4 mr-1" />
-                        {t.teacher}: {session.teacherName}
-                      </span>
-                      <span className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {new Date(session.scheduledStart).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="mt-2">
-                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
-                        session.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                        session.status === 'live' ? 'bg-green-100 text-green-800' :
-                        session.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {session.status === 'scheduled' ? (language === 'fr' ? 'Programmé' : 'Scheduled') :
-                         session.status === 'live' ? (language === 'fr' ? 'En cours' : 'Live') :
-                         session.status === 'completed' ? (language === 'fr' ? 'Terminé' : 'Completed') :
-                         session.status
-                        }
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {session.status === 'scheduled' && (
-                      <Button 
-                        size="sm" 
-                        className="bg-green-500 hover:bg-green-600"
-                        onClick={() => handleJoinSession(session)}
-                        data-testid={`button-join-session-${session.id}`}
-                      >
-                        <Video className="w-4 h-4 mr-1" />
-                        {t.join}
-                      </Button>
-                    )}
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleSessionSettings(session)}
-                      data-testid={`button-settings-session-${session.id}`}
-                    >
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      onClick={() => handleDeleteSession(session)}
-                      disabled={session.status === 'live'}
-                      data-testid={`button-delete-session-${session.id}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )) || (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>{language === 'fr' ? 'Aucune session programmée' : 'No scheduled sessions'}</p>
-                  <p className="text-sm">{language === 'fr' ? 'Utilisez les boutons ci-dessus pour créer une session' : 'Use the buttons above to create a session'}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+  const courses: OnlineCourse[] = coursesData?.courses || [];
+  const sessions: OnlineClassSession[] = sessionsData?.sessions || [];
+  const recurrences: RecurrenceRule[] = recurrencesData?.recurrences || [];
 
   return (
-    <div className={`space-y-6 ${className}`} data-testid="online-classes-manager">
-      <div className="flex flex-col space-y-2">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
-          <Video className="w-8 h-8 text-purple-600" />
-          <span>{t.title}</span>
-        </h1>
-        <p className="text-gray-600">{t.subtitle}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-xl border border-white/30 dark:border-gray-700/30">
+          <CardHeader>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white">
+                  <Video className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
+                    {t.title}
+                  </CardTitle>
+                  <p className="text-gray-600 dark:text-gray-300 mt-1">{t.subtitle}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t.description}</p>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-xl border border-white/30 dark:border-gray-700/30">
+          <CardContent className="pt-6">
+            <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)}>
+              <TabsList className="grid w-full grid-cols-5 mb-6">
+                <TabsTrigger value="sessions" data-testid="tab-sessions" className="flex items-center justify-center">
+                  <Calendar className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.tabs.sessions}</span>
+                </TabsTrigger>
+                <TabsTrigger value="create-session" data-testid="tab-create-session" className="flex items-center justify-center">
+                  <Plus className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.tabs.createSession}</span>
+                </TabsTrigger>
+                <TabsTrigger value="recurrences" data-testid="tab-recurrences" className="flex items-center justify-center">
+                  <Repeat className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.tabs.recurrences}</span>
+                </TabsTrigger>
+                <TabsTrigger value="create-recurrence" data-testid="tab-create-recurrence" className="flex items-center justify-center">
+                  <Plus className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.tabs.createRecurrence}</span>
+                </TabsTrigger>
+                <TabsTrigger value="calendar" data-testid="tab-calendar" className="flex items-center justify-center">
+                  <CalendarDays className="h-5 w-5 md:h-4 md:w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.tabs.calendar}</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="sessions" className="space-y-4">
+                {sessionsLoading ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                  </div>
+                ) : sessions.length === 0 ? (
+                  <Card className="bg-gray-50 dark:bg-gray-900 border-dashed">
+                    <CardContent className="flex flex-col items-center justify-center py-12">
+                      <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
+                      <p className="text-gray-600 dark:text-gray-400">{t.sessions.noSessions}</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {sessions.map((session) => (
+                      <Card key={session.id} className="hover:shadow-lg transition-shadow dark:bg-gray-800" data-testid={`session-card-${session.id}`}>
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg dark:text-gray-100">{session.title}</CardTitle>
+                              <CardDescription className="mt-1 dark:text-gray-400">
+                                {session.className || session.courseName}
+                              </CardDescription>
+                            </div>
+                            <Badge 
+                              variant={session.status === 'scheduled' ? 'default' : session.status === 'live' ? 'destructive' : 'secondary'}
+                              data-testid={`session-status-${session.id}`}
+                            >
+                              {t.sessions.status[session.status]}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <Clock className="h-4 w-4" />
+                            <span>{new Date(session.scheduledStart).toLocaleString(language)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <Users className="h-4 w-4" />
+                            <span>{session.teacherName}</span>
+                          </div>
+                          {session.subjectName && (
+                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                              <BookOpen className="h-4 w-4" />
+                              <span>{session.subjectName}</span>
+                            </div>
+                          )}
+                          {session.description && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{session.description}</p>
+                          )}
+                          {session.status === 'scheduled' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full mt-2"
+                              onClick={() => handleCancelSession(session.id)}
+                              disabled={cancelSessionMutation.isPending}
+                              data-testid={`button-cancel-session-${session.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {t.sessions.cancel}
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="create-session" className="space-y-4">
+                <Card className="dark:bg-gray-800">
+                  <CardHeader>
+                    <CardTitle className="dark:text-gray-100">{t.createSession.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Form {...sessionForm}>
+                      <form onSubmit={sessionForm.handleSubmit(onSessionSubmit)} className="space-y-4">
+                        <FormField
+                          control={sessionForm.control}
+                          name="classId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createSession.selectClass}</FormLabel>
+                              <Select onValueChange={(value) => {
+                                field.onChange(value);
+                                sessionForm.setValue('subjectId', '');
+                              }} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-session-class" className="dark:bg-gray-700 dark:text-gray-200">
+                                    <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {(classesData as any)?.classes?.map((cls: any) => (
+                                    <SelectItem key={cls.id} value={cls.id.toString()}>
+                                      {cls.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={sessionForm.control}
+                          name="teacherId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createSession.selectTeacher}</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-session-teacher" className="dark:bg-gray-700 dark:text-gray-200">
+                                    <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {(teachersData as any)?.teachers?.map((teacher: any) => (
+                                    <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                                      {teacher.firstName} {teacher.lastName}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={sessionForm.control}
+                          name="subjectId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createSession.selectSubject}</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value} disabled={!selectedClassId}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-session-subject" className="dark:bg-gray-700 dark:text-gray-200">
+                                    <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {(subjectsData as any)?.subjects?.map((subject: any) => (
+                                    <SelectItem key={subject.id} value={subject.id.toString()}>
+                                      {subject.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={sessionForm.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createSession.sessionTitle}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder={t.createSession.sessionTitle}
+                                  {...field}
+                                  data-testid="input-session-title"
+                                  className="dark:bg-gray-700 dark:text-gray-200"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={sessionForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createSession.description}</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder={t.createSession.description}
+                                  {...field}
+                                  data-testid="input-session-description"
+                                  className="dark:bg-gray-700 dark:text-gray-200"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={sessionForm.control}
+                          name="scheduledStart"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createSession.scheduledStart}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="datetime-local"
+                                  {...field}
+                                  data-testid="input-session-scheduled-start"
+                                  className="dark:bg-gray-700 dark:text-gray-200"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={sessionForm.control}
+                          name="durationMinutes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createSession.durationMinutes}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={15}
+                                  max={240}
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                  data-testid="input-session-duration"
+                                  className="dark:bg-gray-700 dark:text-gray-200"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={sessionForm.control}
+                          name="autoNotify"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  data-testid="checkbox-session-notify"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-normal cursor-pointer dark:text-gray-200">
+                                  {t.createSession.autoNotify}
+                                </FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="flex gap-2">
+                          <Button
+                            type="submit"
+                            disabled={createSessionMutation.isPending}
+                            className="flex-1"
+                            data-testid="button-create-session"
+                          >
+                            {createSessionMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                              <Plus className="h-4 w-4 mr-2" />
+                            )}
+                            {t.createSession.submit}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => sessionForm.reset()}
+                            data-testid="button-reset-session"
+                          >
+                            {t.createSession.cancel}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="recurrences" className="space-y-4">
+                {recurrencesLoading ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                  </div>
+                ) : recurrences.length === 0 ? (
+                  <Card className="bg-gray-50 dark:bg-gray-900 border-dashed">
+                    <CardContent className="flex flex-col items-center justify-center py-12">
+                      <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
+                      <p className="text-gray-600 dark:text-gray-400">{t.recurrences.noRecurrences}</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {recurrences.map((recurrence) => (
+                      <Card key={recurrence.id} className="hover:shadow-lg transition-shadow dark:bg-gray-800" data-testid={`recurrence-card-${recurrence.id}`}>
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg dark:text-gray-100">{recurrence.title}</CardTitle>
+                              <CardDescription className="mt-1 dark:text-gray-400">
+                                {recurrence.courseName}
+                              </CardDescription>
+                            </div>
+                            <Badge 
+                              variant={recurrence.isActive ? 'default' : 'secondary'}
+                              data-testid={`recurrence-status-${recurrence.id}`}
+                            >
+                              {recurrence.isActive ? t.recurrences.status.active : t.recurrences.status.paused}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <Repeat className="h-4 w-4" />
+                            <span>{t.recurrences.ruleType[recurrence.ruleType]}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <Clock className="h-4 w-4" />
+                            <span>{recurrence.startTime} ({recurrence.durationMinutes} min)</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <Users className="h-4 w-4" />
+                            <span>{recurrence.teacherName}</span>
+                          </div>
+                          {recurrence.byDay && recurrence.byDay.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {recurrence.byDay.map(day => (
+                                <Badge key={day} variant="outline" className="text-xs">
+                                  {day}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                            <div>{t.recurrences.generatedCount}: {recurrence.generatedCount}</div>
+                            {recurrence.lastGenerated && (
+                              <div>{t.recurrences.lastGenerated}: {new Date(recurrence.lastGenerated).toLocaleDateString()}</div>
+                            )}
+                          </div>
+                          <div className="flex gap-2 mt-4">
+                            <Button
+                              variant={recurrence.isActive ? "outline" : "default"}
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => handleToggleRecurrence(recurrence)}
+                              disabled={toggleRecurrenceMutation.isPending}
+                              data-testid={`button-toggle-recurrence-${recurrence.id}`}
+                            >
+                              {recurrence.isActive ? (
+                                <><Pause className="h-4 w-4 mr-2" />{t.recurrences.pause}</>
+                              ) : (
+                                <><Play className="h-4 w-4 mr-2" />{t.recurrences.resume}</>
+                              )}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteRecurrence(recurrence.id)}
+                              disabled={deleteRecurrenceMutation.isPending}
+                              data-testid={`button-delete-recurrence-${recurrence.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="create-recurrence" className="space-y-4">
+                <Card className="dark:bg-gray-800">
+                  <CardHeader>
+                    <CardTitle className="dark:text-gray-100">{t.createRecurrence.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Form {...recurrenceForm}>
+                      <form onSubmit={recurrenceForm.handleSubmit(onRecurrenceSubmit)} className="space-y-4">
+                        <FormField
+                          control={recurrenceForm.control}
+                          name="courseId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createRecurrence.selectCourse} (Optional)</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-recurrence-course" className="dark:bg-gray-700 dark:text-gray-200">
+                                    <SelectValue placeholder={language === 'fr' ? "Aucun - Programmation directe" : "None - Direct scheduling"} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="">
+                                    {language === 'fr' ? "Aucun - Programmation directe" : "None - Direct scheduling"}
+                                  </SelectItem>
+                                  {coursesData?.courses?.map((course: OnlineCourse) => (
+                                    <SelectItem key={course.id} value={course.id.toString()}>
+                                      {course.title} - {course.teacherName} {course.className ? `(${course.className})` : ''}
+                                    </SelectItem>
+                                  )) || []}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {!recurrenceForm.watch('courseId') && (
+                          <>
+                            <FormField
+                              control={recurrenceForm.control}
+                              name="classId"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="dark:text-gray-200">{t.createSession.selectClass}</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-recurrence-class" className="dark:bg-gray-700 dark:text-gray-200">
+                                        <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {(classesData as any)?.classes?.map((cls: any) => (
+                                        <SelectItem key={cls.id} value={cls.id.toString()}>
+                                          {cls.name}
+                                        </SelectItem>
+                                      )) || []}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={recurrenceForm.control}
+                              name="teacherId"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="dark:text-gray-200">{t.createSession.selectTeacher}</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-recurrence-teacher" className="dark:bg-gray-700 dark:text-gray-200">
+                                        <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {(teachersData as any)?.teachers?.map((teacher: any) => (
+                                        <SelectItem key={teacher.userId} value={teacher.userId.toString()}>
+                                          {teacher.firstName} {teacher.lastName}
+                                        </SelectItem>
+                                      )) || []}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            {recurrenceForm.watch('classId') && (
+                              <FormField
+                                control={recurrenceForm.control}
+                                name="subjectId"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="dark:text-gray-200">{t.createSession.selectSubject}</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger data-testid="select-recurrence-subject" className="dark:bg-gray-700 dark:text-gray-200">
+                                          <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {(subjectsData as any)?.subjects?.map((subject: any) => (
+                                          <SelectItem key={subject.id} value={subject.id.toString()}>
+                                            {subject.name}
+                                          </SelectItem>
+                                        )) || []}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            )}
+                          </>
+                        )}
+
+                        <FormField
+                          control={recurrenceForm.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createRecurrence.ruleTitle}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder={t.createRecurrence.ruleTitle}
+                                  {...field}
+                                  data-testid="input-recurrence-title"
+                                  className="dark:bg-gray-700 dark:text-gray-200"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={recurrenceForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createRecurrence.description}</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder={t.createRecurrence.description}
+                                  {...field}
+                                  data-testid="input-recurrence-description"
+                                  className="dark:bg-gray-700 dark:text-gray-200"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={recurrenceForm.control}
+                          name="ruleType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="dark:text-gray-200">{t.createRecurrence.ruleType}</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-recurrence-type" className="dark:bg-gray-700 dark:text-gray-200">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="daily">{t.recurrences.ruleType.daily}</SelectItem>
+                                  <SelectItem value="weekly">{t.recurrences.ruleType.weekly}</SelectItem>
+                                  <SelectItem value="biweekly">{t.recurrences.ruleType.biweekly}</SelectItem>
+                                  <SelectItem value="custom">{t.recurrences.ruleType.custom}</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {recurrenceForm.watch('ruleType') !== 'daily' && (
+                          <FormField
+                            control={recurrenceForm.control}
+                            name="byDay"
+                            render={() => (
+                              <FormItem>
+                                <FormLabel className="dark:text-gray-200">{t.createRecurrence.byDay}</FormLabel>
+                                <div className="grid grid-cols-2 gap-2">
+                                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+                                    <FormField
+                                      key={day}
+                                      control={recurrenceForm.control}
+                                      name="byDay"
+                                      render={({ field }) => (
+                                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                          <FormControl>
+                                            <Checkbox
+                                              checked={field.value?.includes(day)}
+                                              onCheckedChange={() => toggleDaySelection(day)}
+                                              data-testid={`checkbox-day-${day}`}
+                                            />
+                                          </FormControl>
+                                          <FormLabel className="text-sm font-normal cursor-pointer dark:text-gray-200">
+                                            {t.createRecurrence.days[day as keyof typeof t.createRecurrence.days]}
+                                          </FormLabel>
+                                        </FormItem>
+                                      )}
+                                    />
+                                  ))}
+                                </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={recurrenceForm.control}
+                            name="startTime"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="dark:text-gray-200">{t.createRecurrence.startTime}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="time"
+                                    {...field}
+                                    data-testid="input-recurrence-start-time"
+                                    className="dark:bg-gray-700 dark:text-gray-200"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={recurrenceForm.control}
+                            name="durationMinutes"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="dark:text-gray-200">{t.createRecurrence.durationMinutes}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min={15}
+                                    max={240}
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                    data-testid="input-recurrence-duration"
+                                    className="dark:bg-gray-700 dark:text-gray-200"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={recurrenceForm.control}
+                            name="startDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="dark:text-gray-200">{t.createRecurrence.startDate}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="date"
+                                    {...field}
+                                    data-testid="input-recurrence-start-date"
+                                    className="dark:bg-gray-700 dark:text-gray-200"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={recurrenceForm.control}
+                            name="endDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="dark:text-gray-200">{t.createRecurrence.endDate}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="date"
+                                    {...field}
+                                    data-testid="input-recurrence-end-date"
+                                    className="dark:bg-gray-700 dark:text-gray-200"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={recurrenceForm.control}
+                          name="autoNotify"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  data-testid="checkbox-recurrence-notify"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-normal cursor-pointer dark:text-gray-200">
+                                  {t.createRecurrence.autoNotify}
+                                </FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="flex gap-2">
+                          <Button
+                            type="submit"
+                            disabled={createRecurrenceMutation.isPending}
+                            className="flex-1"
+                            data-testid="button-create-recurrence"
+                          >
+                            {createRecurrenceMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                              <Plus className="h-4 w-4 mr-2" />
+                            )}
+                            {t.createRecurrence.submit}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => recurrenceForm.reset()}
+                            data-testid="button-reset-recurrence"
+                          >
+                            {t.createRecurrence.cancel}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="calendar" className="space-y-4">
+                <Card className="dark:bg-gray-800">
+                  <CardContent className="flex flex-col items-center justify-center py-12">
+                    <CalendarDays className="h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">Calendar view coming soon...</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="create-course" className="flex items-center space-x-2">
-            <Plus className="w-4 h-4" />
-            <span>{t.createCourseTab}</span>
-          </TabsTrigger>
-          <TabsTrigger value="scheduled-sessions" className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4" />
-            <span>{t.scheduledSessionsTab}</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="create-course" className="mt-6">
-          <div className="min-h-[400px]">
-            {step === 'selection' && renderSelection()}
-            {step === 'course-creation' && renderCourseCreation()}
-            {step === 'session-management' && renderSessionManagement()}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="scheduled-sessions" className="mt-6">
-          <div className="min-h-[400px]">
-            {renderScheduledSessionsTab()}
-          </div>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

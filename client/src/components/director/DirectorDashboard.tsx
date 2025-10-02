@@ -460,14 +460,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
           {createDynamicModule('online-classes')}
         </PremiumFeatureGate>
       )
-    },
-    {
-      id: 'online-class-scheduler',
-      label: t.onlineClassScheduler,
-      icon: <Calendar className="w-6 h-6" />,
-      color: 'bg-gradient-to-r from-blue-500 to-purple-500',
-      component: createDynamicModule('online-class-scheduler')
-    },
+    }
   ];
 
   return (
