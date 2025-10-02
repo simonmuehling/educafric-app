@@ -262,6 +262,7 @@ interface ReportCardProps {
   qrValue?: string;
   language?: 'fr' | 'en'; // NEW: Language support
   isThirdTrimester?: boolean;
+  isTechnicalSchool?: boolean; // NEW: Hide MK/20 and AV/20 columns for technical schools
   // selectedTeacherComments removed - now using per-subject comments in SubjectLine
   annualSummary?: {
     firstTrimesterAverage: number;
@@ -286,6 +287,7 @@ export default function ReportCardPreview({
   qrValue = "https://www.educafric.com",
   language = 'fr', // Default to French
   isThirdTrimester = false,
+  isTechnicalSchool = false, // Default to general school (show MK/20 and AV/20)
   annualSummary = null,
 }: ReportCardProps) {
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
@@ -427,12 +429,16 @@ export default function ReportCardPreview({
                   <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'COMPÉTENCES ÉVALUÉES' : 'COMPETENCIES EVALUATED'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                    {language === 'fr' ? 'N/20' : 'MK/20'}
-                  </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                    {language === 'fr' ? 'M/20' : 'AV/20'}
-                  </th>
+                  {!isTechnicalSchool && (
+                    <>
+                      <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                        {language === 'fr' ? 'N/20' : 'MK/20'}
+                      </th>
+                      <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                        {language === 'fr' ? 'M/20' : 'AV/20'}
+                      </th>
+                    </>
+                  )}
                   <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     Coef
                   </th>
@@ -511,12 +517,16 @@ export default function ReportCardPreview({
                           })()}
                         </div>
                       </td>
-                      <td className="border border-black p-0.5 text-center text-[6px]">
-                        {mk20}
-                      </td>
-                      <td className="border border-black p-0.5 text-center text-[6px] font-bold">
-                        {av20}
-                      </td>
+                      {!isTechnicalSchool && (
+                        <>
+                          <td className="border border-black p-0.5 text-center text-[6px]">
+                            {mk20}
+                          </td>
+                          <td className="border border-black p-0.5 text-center text-[6px] font-bold">
+                            {av20}
+                          </td>
+                        </>
+                      )}
                       <td className="border border-black p-0.5 text-center text-[6px]">
                         {r.coef}
                       </td>
@@ -551,8 +561,12 @@ export default function ReportCardPreview({
                 <tr className="bg-gray-200">
                   <td className="border border-black p-0.5 font-bold text-[6px] text-center">TOTAL</td>
                   <td className="border border-black p-1"></td>
-                  <td className="border border-black p-1"></td>
-                  <td className="border border-black p-1"></td>
+                  {!isTechnicalSchool && (
+                    <>
+                      <td className="border border-black p-1"></td>
+                      <td className="border border-black p-1"></td>
+                    </>
+                  )}
                   <td className="border border-black p-0.5 text-center font-bold text-[6px]">{totalCoef}</td>
                   <td className="border border-black p-0.5 text-center font-bold text-[6px]">{round2(totalMxCoef)}</td>
                   <td className="border border-black p-1"></td>
