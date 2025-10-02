@@ -105,8 +105,9 @@ interface RecurrencesResponse {
 }
 
 const sessionFormSchema = z.object({
-  courseId: z.string().min(1, 'Course is required'),
-  classId: z.string().optional(),
+  classId: z.string().min(1, 'Class is required'),
+  teacherId: z.string().min(1, 'Teacher is required'),
+  subjectId: z.string().min(1, 'Subject is required'),
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   scheduledStart: z.string().min(1, 'Scheduled start is required'),
@@ -150,8 +151,9 @@ const OnlineClassScheduler: React.FC = () => {
   const sessionForm = useForm<SessionFormValues>({
     resolver: zodResolver(sessionFormSchema),
     defaultValues: {
-      courseId: '',
       classId: '',
+      teacherId: '',
+      subjectId: '',
       title: '',
       description: '',
       scheduledStart: '',
@@ -210,8 +212,12 @@ const OnlineClassScheduler: React.FC = () => {
       createSession: {
         title: "Créer une Session",
         selectCourse: "Sélectionner un cours",
-        selectClass: "Sélectionner une classe (optionnel)",
-        selectClassPlaceholder: "Sélectionner une classe pour notifier les élèves/parents",
+        selectClass: "Sélectionner une classe",
+        selectClassPlaceholder: "Sélectionner une classe",
+        selectTeacher: "Sélectionner un enseignant",
+        selectTeacherPlaceholder: "Sélectionner un enseignant",
+        selectSubject: "Sélectionner une matière",
+        selectSubjectPlaceholder: "Sélectionner une matière",
         sessionTitle: "Titre de la session",
         description: "Description",
         scheduledStart: "Date et heure de début",
@@ -315,8 +321,12 @@ const OnlineClassScheduler: React.FC = () => {
       createSession: {
         title: "Create Session",
         selectCourse: "Select a course",
-        selectClass: "Select a class (optional)",
-        selectClassPlaceholder: "Select a class to notify students/parents",
+        selectClass: "Select a class",
+        selectClassPlaceholder: "Select a class",
+        selectTeacher: "Select a teacher",
+        selectTeacherPlaceholder: "Select a teacher",
+        selectSubject: "Select a subject",
+        selectSubjectPlaceholder: "Select a subject",
         sessionTitle: "Session title",
         description: "Description",
         scheduledStart: "Start date and time",
@@ -406,6 +416,17 @@ const OnlineClassScheduler: React.FC = () => {
 
   const { data: classesData } = useQuery({
     queryKey: ['/api/director/classes']
+  });
+
+  const { data: teachersData } = useQuery({
+    queryKey: ['/api/director/teachers']
+  });
+
+  const selectedClassId = sessionForm.watch('classId');
+
+  const { data: subjectsData } = useQuery({
+    queryKey: ['/api/director/subjects', selectedClassId],
+    enabled: !!selectedClassId
   });
 
   const createSessionMutation = useMutation({
@@ -522,17 +543,10 @@ const OnlineClassScheduler: React.FC = () => {
   });
 
   const onSessionSubmit = (values: SessionFormValues) => {
-    const selectedCourse = coursesData?.courses?.find((c: OnlineCourse) => c.id === parseInt(values.courseId));
-    if (!selectedCourse) return;
-
-    // Use selected class if provided, otherwise use course's class
-    const classIdToUse = values.classId ? parseInt(values.classId) : selectedCourse.classId;
-
     createSessionMutation.mutate({
-      courseId: parseInt(values.courseId),
-      teacherId: selectedCourse.teacherId,
-      classId: classIdToUse,
-      subjectId: selectedCourse.subjectId,
+      teacherId: parseInt(values.teacherId),
+      classId: parseInt(values.classId),
+      subjectId: parseInt(values.subjectId),
       title: values.title,
       description: values.description,
       scheduledStart: values.scheduledStart,
@@ -734,22 +748,25 @@ const OnlineClassScheduler: React.FC = () => {
                       <form onSubmit={sessionForm.handleSubmit(onSessionSubmit)} className="space-y-4">
                         <FormField
                           control={sessionForm.control}
-                          name="courseId"
+                          name="classId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t.createSession.selectCourse}</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
+                              <FormLabel>{t.createSession.selectClass}</FormLabel>
+                              <Select onValueChange={(value) => {
+                                field.onChange(value);
+                                sessionForm.setValue('subjectId', '');
+                              }} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-course">
-                                    <SelectValue placeholder={t.createSession.selectCourse} />
+                                  <SelectTrigger data-testid="select-session-class">
+                                    <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {courses.map((course) => (
-                                    <SelectItem key={course.id} value={course.id.toString()}>
-                                      {course.title} - {course.teacherName} {course.className ? `(${course.className})` : ''}
+                                  {(classesData as any)?.classes?.map((cls: any) => (
+                                    <SelectItem key={cls.id} value={cls.id.toString()}>
+                                      {cls.name}
                                     </SelectItem>
-                                  ))}
+                                  )) || []}
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -759,22 +776,47 @@ const OnlineClassScheduler: React.FC = () => {
 
                         <FormField
                           control={sessionForm.control}
-                          name="classId"
+                          name="teacherId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t.createSession.selectClass}</FormLabel>
+                              <FormLabel>{t.createSession.selectTeacher}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-class">
-                                    <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
+                                  <SelectTrigger data-testid="select-session-teacher">
+                                    <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {classesData?.classes?.map((cls: any) => (
-                                    <SelectItem key={cls.id} value={cls.id.toString()}>
-                                      {cls.name}
+                                  {(teachersData as any)?.teachers?.map((teacher: any) => (
+                                    <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                                      {teacher.firstName} {teacher.lastName}
                                     </SelectItem>
-                                  ))}
+                                  )) || []}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={sessionForm.control}
+                          name="subjectId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t.createSession.selectSubject}</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value} disabled={!selectedClassId}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-session-subject">
+                                    <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {(subjectsData as any)?.subjects?.map((subject: any) => (
+                                    <SelectItem key={subject.id} value={subject.id.toString()}>
+                                      {subject.name}
+                                    </SelectItem>
+                                  )) || []}
                                 </SelectContent>
                               </Select>
                               <FormMessage />

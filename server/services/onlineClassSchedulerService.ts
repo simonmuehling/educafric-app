@@ -12,7 +12,7 @@ import { nanoid } from "nanoid";
 
 interface CreateSessionInput {
   schoolId: number;
-  courseId: number;
+  courseId?: number;
   teacherId: number;
   classId: number;
   subjectId?: number;
@@ -85,12 +85,12 @@ export class OnlineClassSchedulerService {
     const [session] = await db
       .insert(classSessions)
       .values({
-        courseId: input.courseId,
+        courseId: input.courseId || null,
         teacherId: input.teacherId,
         classId: input.classId,
-        subjectId: input.subjectId,
+        subjectId: input.subjectId || null,
         title: input.title,
-        description: input.description,
+        description: input.description || null,
         scheduledStart: input.scheduledStart,
         scheduledEnd,
         roomName,

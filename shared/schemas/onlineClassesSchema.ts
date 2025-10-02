@@ -38,7 +38,7 @@ export const courseEnrollments = pgTable("course_enrollments", {
 // Supports both flows: teacher-created (manual) and school-scheduled
 export const classSessions = pgTable("class_sessions", {
   id: serial("id").primaryKey(),
-  courseId: integer("course_id").notNull().references(() => onlineCourses.id),
+  courseId: integer("course_id").references(() => onlineCourses.id), // Optional: school-scheduled sessions may not have a course
   teacherId: integer("teacher_id").notNull().references(() => users.id),
   classId: integer("class_id").references(() => classes.id), // Added: optional class override for notifications
   subjectId: integer("subject_id").references(() => subjects.id),
