@@ -721,6 +721,132 @@ router.get('/school/sessions',
 );
 
 /**
+ * GET /api/online-classes/teacher/sessions
+ * Get all sessions created by the teacher
+ */
+router.get('/teacher/sessions',
+  requireAuth,
+  requireOnlineClassesSubscription,
+  async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      if (user.role !== 'Teacher') {
+        return res.status(403).json({
+          success: false,
+          error: 'Access denied: Teacher role required'
+        });
+      }
+      
+      // Get sessions created by this teacher
+      const sessions = await db
+        .select({
+          id: classSessions.id,
+          title: classSessions.title,
+          description: classSessions.description,
+          scheduledStart: classSessions.scheduledStart,
+          scheduledEnd: classSessions.scheduledEnd,
+          status: classSessions.status,
+          roomName: classSessions.roomName,
+          courseId: classSessions.courseId,
+          courseName: onlineCourses.title,
+          maxDuration: classSessions.maxDuration,
+          lobbyEnabled: classSessions.lobbyEnabled,
+          chatEnabled: classSessions.chatEnabled,
+          screenShareEnabled: classSessions.screenShareEnabled,
+          createdAt: classSessions.createdAt
+        })
+        .from(classSessions)
+        .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
+        .where(and(
+          eq(onlineCourses.teacherId, user.id),
+          eq(onlineCourses.schoolId, user.schoolId!)
+        ))
+        .orderBy(classSessions.scheduledStart);
+
+      console.log(`[ONLINE_CLASSES_API] ✅ Listed ${sessions.length} teacher sessions for user ${user.id}`);
+
+      res.json({
+        success: true,
+        sessions
+      });
+
+    } catch (error) {
+      console.error('[ONLINE_CLASSES_API] Error fetching teacher sessions:', error);
+      
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch teacher sessions',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/online-classes/parent/sessions
+ * Get all sessions for the parent's children
+ */
+router.get('/parent/sessions',
+  requireAuth,
+  requireOnlineClassesSubscription,
+  async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      if (user.role !== 'Parent') {
+        return res.status(403).json({
+          success: false,
+          error: 'Access denied: Parent role required'
+        });
+      }
+      
+      // Get sessions for all classes in the school (parents can see all school sessions)
+      const sessions = await db
+        .select({
+          id: classSessions.id,
+          title: classSessions.title,
+          description: classSessions.description,
+          scheduledStart: classSessions.scheduledStart,
+          scheduledEnd: classSessions.scheduledEnd,
+          status: classSessions.status,
+          roomName: classSessions.roomName,
+          courseId: classSessions.courseId,
+          courseName: onlineCourses.title,
+          teacherName: sql<string>`COALESCE(CONCAT(${users.firstName}, ' ', ${users.lastName}), 'Enseignant')`,
+          teacherId: onlineCourses.teacherId,
+          maxDuration: classSessions.maxDuration,
+          lobbyEnabled: classSessions.lobbyEnabled,
+          chatEnabled: classSessions.chatEnabled,
+          screenShareEnabled: classSessions.screenShareEnabled,
+          createdAt: classSessions.createdAt
+        })
+        .from(classSessions)
+        .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
+        .leftJoin(users, eq(onlineCourses.teacherId, users.id))
+        .where(eq(onlineCourses.schoolId, user.schoolId!))
+        .orderBy(classSessions.scheduledStart);
+
+      console.log(`[ONLINE_CLASSES_API] ✅ Listed ${sessions.length} parent sessions for user ${user.id}`);
+
+      res.json({
+        success: true,
+        sessions
+      });
+
+    } catch (error) {
+      console.error('[ONLINE_CLASSES_API] Error fetching parent sessions:', error);
+      
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch parent sessions',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+);
+
+/**
  * DELETE /api/online-classes/sessions/:sessionId
  * Delete a scheduled session
  */

@@ -45,6 +45,10 @@ interface ClassSession {
   createdAt: string;
 }
 
+interface SessionsResponse {
+  sessions: ClassSession[];
+}
+
 const StudentOnlineClasses: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
@@ -120,9 +124,9 @@ const StudentOnlineClasses: React.FC = () => {
   const t = text[language];
 
   // Fetch student's available sessions
-  const { data: sessionsData, isLoading: sessionsLoading } = useQuery({
+  const { data: sessionsData, isLoading: sessionsLoading } = useQuery<SessionsResponse>({
     queryKey: ['/api/online-classes/school/sessions'],
-    queryFn: () => apiRequest('GET', '/api/online-classes/school/sessions'),
+    queryFn: () => apiRequest('GET', '/api/online-classes/school/sessions') as unknown as Promise<SessionsResponse>,
     refetchInterval: 30000 // Refetch every 30 seconds for live updates
   });
 
