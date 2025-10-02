@@ -219,6 +219,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       configGuide: 'Guide Configuration',
       schoolSettings: 'Paramètres École',
       onlineClasses: 'Classes en ligne',
+      onlineClassScheduler: 'Planification Sessions en Ligne',
       calendarExport: 'Export Calendrier'
     },
     en: {
@@ -245,6 +246,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       configGuide: 'Configuration Guide',
       schoolSettings: 'School Settings',
       onlineClasses: 'Online Classes',
+      onlineClassScheduler: 'Online Class Scheduler',
       calendarExport: 'Calendar Export'
     }
   };
@@ -458,6 +460,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
           {createDynamicModule('online-classes')}
         </PremiumFeatureGate>
       )
+    },
+    {
+      id: 'online-class-scheduler',
+      label: t.onlineClassScheduler,
+      icon: <Calendar className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-blue-500 to-purple-500',
+      component: createDynamicModule('online-class-scheduler')
     },
   ];
 
