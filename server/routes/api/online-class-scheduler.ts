@@ -654,33 +654,30 @@ router.delete(
 
 /**
  * GET /api/online-class-scheduler/teacher/:teacherId/sessions
- * Get scheduled sessions for a specific teacher (for school view)
- * Requires: Director or SchoolAdmin role
+ * Get scheduled sessions for a specific teacher
+ * Requires: Director role OR Teacher viewing their own sessions
  */
 router.get(
   "/teacher/:teacherId/sessions",
   requireAuth,
   async (req, res) => {
-    // Check if user has Director role
-    if (!req.user || req.user.role !== "Director") {
-      return res.status(403).json({
-        success: false,
-        message: "Accès refusé - rôle Director requis"
-      });
-    }
     try {
       const teacherId = parseInt(req.params.teacherId);
       const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
       const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
       
-      if (!req.user.schoolId) {
+      // HYBRID ACCESS: Allow Director to view any teacher OR Teacher to view their own sessions
+      const isDirector = req.user?.role === "Director";
+      const isTeacherViewingOwnSessions = req.user?.role === "Teacher" && req.user.id === teacherId;
+      
+      if (!isDirector && !isTeacherViewingOwnSessions) {
         return res.status(403).json({
           success: false,
-          message: "Utilisateur n'est pas associé à une école"
+          message: "Accès refusé - vous ne pouvez voir que vos propres sessions"
         });
       }
 
-      // SECURITY: Verify teacher belongs to user's school
+      // SECURITY: Verify teacher belongs to user's school (for Directors)
       const { users } = await import("@shared/schema");
       const { db } = await import("../../db");
       const { eq } = await import("drizzle-orm");
@@ -691,7 +688,15 @@ router.get(
         .where(eq(users.id, teacherId))
         .limit(1);
 
-      if (!teacher || teacher.schoolId !== req.user.schoolId) {
+      if (!teacher) {
+        return res.status(404).json({
+          success: false,
+          message: "Enseignant non trouvé"
+        });
+      }
+
+      // For Directors: verify teacher belongs to their school
+      if (isDirector && req.user.schoolId && teacher.schoolId !== req.user.schoolId) {
         return res.status(403).json({
           success: false,
           message: "Accès refusé - cet enseignant n'appartient pas à votre école"
