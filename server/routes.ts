@@ -1124,6 +1124,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get subjects for a specific class
+  app.get("/api/director/subjects/:classId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const classId = parseInt(req.params.classId);
+      
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.email?.includes('demo@') || 
+                           user.email?.includes('.sandbox@') ||
+                           user.email?.includes('.demo@') ||
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.');
+      
+      let subjects;
+      
+      if (isSandboxUser) {
+        console.log('[DIRECTOR_SUBJECTS_API] Sandbox user detected - using mock data for class', classId);
+        // Return comprehensive mock subjects for sandbox/demo users
+        subjects = [
+          { id: 1, name: 'Mathématiques', code: 'MATH', classId, schoolId: user.schoolId || 1, coefficient: 4, isActive: true },
+          { id: 2, name: 'Français', code: 'FR', classId, schoolId: user.schoolId || 1, coefficient: 4, isActive: true },
+          { id: 3, name: 'Anglais', code: 'EN', classId, schoolId: user.schoolId || 1, coefficient: 3, isActive: true },
+          { id: 4, name: 'Sciences Physiques', code: 'PHYS', classId, schoolId: user.schoolId || 1, coefficient: 3, isActive: true },
+          { id: 5, name: 'Sciences de la Vie et de la Terre (SVT)', code: 'SVT', classId, schoolId: user.schoolId || 1, coefficient: 3, isActive: true },
+          { id: 6, name: 'Histoire-Géographie', code: 'HIST-GEO', classId, schoolId: user.schoolId || 1, coefficient: 2, isActive: true },
+          { id: 7, name: 'Éducation Physique et Sportive (EPS)', code: 'EPS', classId, schoolId: user.schoolId || 1, coefficient: 1, isActive: true },
+          { id: 8, name: 'Informatique', code: 'INFO', classId, schoolId: user.schoolId || 1, coefficient: 2, isActive: true },
+          { id: 9, name: 'Arts Plastiques', code: 'ARTS', classId, schoolId: user.schoolId || 1, coefficient: 1, isActive: true },
+          { id: 10, name: 'Éducation Civique et Morale (ECM)', code: 'ECM', classId, schoolId: user.schoolId || 1, coefficient: 1, isActive: true }
+        ];
+      } else {
+        console.log('[DIRECTOR_SUBJECTS_API] Real user detected - using database data for class', classId);
+        // Get real subjects from database
+        const { db } = await import('./db');
+        const { subjects: subjectsTable } = await import('@shared/schema');
+        const { eq, and } = await import('drizzle-orm');
+        
+        const userSchoolId = user.school_id || 1;
+        
+        // Get subjects for this class and school
+        const classSubjects = await db.select()
+          .from(subjectsTable)
+          .where(and(
+            eq(subjectsTable.classId, classId),
+            eq(subjectsTable.schoolId, userSchoolId)
+          ));
+        
+        subjects = classSubjects;
+      }
+      
+      console.log('[DIRECTOR_SUBJECTS_API] Subjects count for class', classId, ':', subjects.length);
+      res.json({ success: true, subjects });
+    } catch (error) {
+      console.error('[DIRECTOR_SUBJECTS_API] Error fetching subjects:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch subjects' });
+    }
+  });
+
   // Get students for director (with optional class filter or specific student)
   app.get("/api/director/students", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {

@@ -757,8 +757,8 @@ const OnlineClassScheduler: React.FC = () => {
                                 sessionForm.setValue('subjectId', '');
                               }} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-class">
-                                    <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
+                                  <SelectTrigger data-testid="select-session-class" className="text-foreground">
+                                    <SelectValue placeholder={t.createSession.selectClassPlaceholder} className="text-foreground" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -782,8 +782,8 @@ const OnlineClassScheduler: React.FC = () => {
                               <FormLabel>{t.createSession.selectTeacher}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-teacher">
-                                    <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
+                                  <SelectTrigger data-testid="select-session-teacher" className="text-foreground">
+                                    <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} className="text-foreground" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -807,8 +807,8 @@ const OnlineClassScheduler: React.FC = () => {
                               <FormLabel>{t.createSession.selectSubject}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value} disabled={!selectedClassId}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-session-subject">
-                                    <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
+                                  <SelectTrigger data-testid="select-session-subject" className="text-foreground">
+                                    <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} className="text-foreground" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>

@@ -30,12 +30,23 @@ router.get(
         });
       }
 
-      const courses = await onlineClassSchedulerService.getSchoolCourses(req.user.schoolId);
-
-      res.json({
-        success: true,
-        courses
-      });
+      try {
+        const courses = await onlineClassSchedulerService.getSchoolCourses(req.user.schoolId);
+        res.json({
+          success: true,
+          courses
+        });
+      } catch (serviceError: any) {
+        // If tables don't exist yet, return empty array instead of 500 error
+        if (serviceError.message?.includes('does not exist') || serviceError.message?.includes('undefined or null')) {
+          console.log("[SCHEDULER_API] ⚠️ Tables not yet created - returning empty courses array");
+          return res.json({
+            success: true,
+            courses: []
+          });
+        }
+        throw serviceError;
+      }
     } catch (error) {
       console.error("[SCHEDULER_API] ❌ Error fetching courses:", error);
       res.status(500).json({
@@ -70,12 +81,23 @@ router.get(
         });
       }
 
-      const sessions = await onlineClassSchedulerService.getSchoolSessions(req.user.schoolId);
-
-      res.json({
-        success: true,
-        sessions
-      });
+      try {
+        const sessions = await onlineClassSchedulerService.getSchoolSessions(req.user.schoolId);
+        res.json({
+          success: true,
+          sessions
+        });
+      } catch (serviceError: any) {
+        // If tables don't exist yet, return empty array instead of 500 error
+        if (serviceError.message?.includes('does not exist') || serviceError.message?.includes('undefined or null')) {
+          console.log("[SCHEDULER_API] ⚠️ Tables not yet created - returning empty sessions array");
+          return res.json({
+            success: true,
+            sessions: []
+          });
+        }
+        throw serviceError;
+      }
     } catch (error) {
       console.error("[SCHEDULER_API] ❌ Error fetching sessions:", error);
       res.status(500).json({
@@ -295,12 +317,23 @@ router.get(
         });
       }
 
-      const recurrences = await onlineClassSchedulerService.getSchoolRecurrences(req.user.schoolId);
-
-      res.json({
-        success: true,
-        recurrences
-      });
+      try {
+        const recurrences = await onlineClassSchedulerService.getSchoolRecurrences(req.user.schoolId);
+        res.json({
+          success: true,
+          recurrences
+        });
+      } catch (serviceError: any) {
+        // If tables don't exist yet, return empty array instead of 500 error
+        if (serviceError.message?.includes('does not exist') || serviceError.message?.includes('undefined or null')) {
+          console.log("[SCHEDULER_API] ⚠️ Tables not yet created - returning empty recurrences array");
+          return res.json({
+            success: true,
+            recurrences: []
+          });
+        }
+        throw serviceError;
+      }
     } catch (error) {
       console.error("[SCHEDULER_API] ❌ Error fetching recurrences:", error);
       res.status(500).json({
