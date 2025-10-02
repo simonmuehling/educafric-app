@@ -1090,4 +1090,72 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// Account deletion request endpoint
+router.post('/delete-account', async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    const userId = req.user.id;
+    const userEmail = req.user.email;
+    const userName = req.user.firstName && req.user.lastName 
+      ? `${req.user.firstName} ${req.user.lastName}`
+      : req.user.email;
+
+    console.log(`[ACCOUNT_DELETION] Deletion request received from user ${userId} (${userEmail})`);
+
+    // Send notification to school admin and site admin
+    try {
+      // Get school administrators
+      const schoolAdmins = await storage.getSchoolAdministrators(req.user.schoolId || 0);
+      
+      // Notification message
+      const message = `DEMANDE DE SUPPRESSION DE COMPTE\n\nUtilisateur: ${userName}\nEmail: ${userEmail}\nRôle: ${req.user.role}\nDate: ${new Date().toLocaleString('fr-FR')}\n\nCette demande nécessite une action de votre part. Veuillez contacter l'utilisateur pour confirmer la suppression.`;
+
+      // Send email to admins
+      for (const admin of schoolAdmins) {
+        if (admin.email) {
+          await hostingerMailService.sendEmail({
+            to: admin.email,
+            subject: `⚠️ Demande de suppression de compte - ${userName}`,
+            text: message,
+            html: `
+              <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2 style="color: #dc2626;">⚠️ Demande de suppression de compte</h2>
+                <p><strong>Utilisateur:</strong> ${userName}</p>
+                <p><strong>Email:</strong> ${userEmail}</p>
+                <p><strong>Rôle:</strong> ${req.user.role}</p>
+                <p><strong>Date:</strong> ${new Date().toLocaleString('fr-FR')}</p>
+                <p style="margin-top: 20px; padding: 15px; background-color: #fef2f2; border-left: 4px solid #dc2626;">
+                  Cette demande nécessite une action de votre part. Veuillez contacter l'utilisateur pour confirmer la suppression.
+                </p>
+              </div>
+            `
+          });
+        }
+      }
+
+      console.log(`[ACCOUNT_DELETION] Notification sent to ${schoolAdmins.length} administrators`);
+    } catch (notificationError) {
+      console.error('[ACCOUNT_DELETION] Error sending notifications:', notificationError);
+    }
+
+    res.json({
+      success: true,
+      message: 'Demande de suppression envoyée avec succès'
+    });
+
+  } catch (error) {
+    console.error('[ACCOUNT_DELETION] Error processing deletion request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors du traitement de la demande de suppression'
+    });
+  }
+});
+
 export default router;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Bell, Lock, Phone, Smartphone, CheckCircle, XCircle, Wifi, Settings } from 'lucide-react';
+import { User, Shield, Bell, Lock, Phone, Smartphone, CheckCircle, XCircle, Wifi, Settings, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,9 +27,11 @@ import EnhancedPWAManager from '@/components/pwa/EnhancedPWAManager';
 
 const ParentSettings = () => {
   const [activeTab, setActiveTab] = useState('profile');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   const { language } = useLanguage();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [pwaConnectionStatus, setPwaConnectionStatus] = useState<any>(null);
   
   // Fetch PWA subscription info
@@ -64,6 +76,46 @@ const ParentSettings = () => {
     };
   }, []);
 
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch('/api/auth/delete-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la demande de suppression');
+      }
+
+      toast({
+        title: language === 'fr' ? 'Demande envoyée' : 'Request sent',
+        description: language === 'fr' 
+          ? 'Votre demande de suppression de compte a été envoyée à l\'administration. Vous serez déconnecté dans 3 secondes.'
+          : 'Your account deletion request has been sent to administration. You will be logged out in 3 seconds.',
+        variant: 'default'
+      });
+
+      // Disconnect after 3 seconds
+      setTimeout(() => {
+        logout();
+      }, 3000);
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' 
+          ? 'Une erreur est survenue lors de la demande de suppression.'
+          : 'An error occurred while requesting account deletion.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   const text = {
     fr: {
       title: 'Paramètres Parent',
@@ -95,7 +147,14 @@ const ParentSettings = () => {
       changePassword: 'Changer le mot de passe',
       currentPassword: 'Mot de passe actuel',
       newPassword: 'Nouveau mot de passe',
-      confirmPassword: 'Confirmer le mot de passe'
+      confirmPassword: 'Confirmer le mot de passe',
+      deleteAccount: 'Suppression du compte',
+      deleteAccountDesc: 'Demander la suppression permanente de toutes vos données',
+      requestDeletion: 'Demander la suppression',
+      deleteDialogTitle: 'Confirmer la suppression du compte',
+      deleteDialogDesc: 'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données seront supprimées. Vous devrez contacter l\'administration pour confirmer cette demande.',
+      cancel: 'Annuler',
+      confirmDelete: 'Confirmer la suppression'
     },
     en: {
       title: 'Parent Settings',
@@ -127,7 +186,14 @@ const ParentSettings = () => {
       changePassword: 'Change Password',
       currentPassword: 'Current Password',
       newPassword: 'New Password',
-      confirmPassword: 'Confirm Password'
+      confirmPassword: 'Confirm Password',
+      deleteAccount: 'Account Deletion',
+      deleteAccountDesc: 'Request permanent deletion of all your data',
+      requestDeletion: 'Request Deletion',
+      deleteDialogTitle: 'Confirm Account Deletion',
+      deleteDialogDesc: 'Are you sure you want to delete your account? This action is irreversible and all your data will be deleted. You will need to contact administration to confirm this request.',
+      cancel: 'Cancel',
+      confirmDelete: 'Confirm Deletion'
     }
   };
 
@@ -712,11 +778,17 @@ const ParentSettings = () => {
               <div className="border-t pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label className="font-medium text-red-600">Suppression du compte</Label>
-                    <p className="text-sm text-gray-600">Demander la suppression permanente de toutes vos données</p>
+                    <Label className="font-medium text-red-600">{t.deleteAccount}</Label>
+                    <p className="text-sm text-gray-600">{t.deleteAccountDesc}</p>
                   </div>
-                  <Button variant="destructive" size="sm">
-                    Demander la suppression
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={() => setShowDeleteDialog(true)}
+                    data-testid="button-request-account-deletion"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {t.requestDeletion}
                   </Button>
                 </div>
               </div>
@@ -729,6 +801,44 @@ const ParentSettings = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Account Deletion Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="w-5 h-5" />
+              {t.deleteDialogTitle}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              {t.deleteDialogDesc}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting} data-testid="button-cancel-deletion">
+              {t.cancel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="button-confirm-deletion"
+            >
+              {isDeleting ? (
+                <>
+                  <Settings className="w-4 h-4 mr-2 animate-spin" />
+                  {language === 'fr' ? 'En cours...' : 'Processing...'}
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {t.confirmDelete}
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
