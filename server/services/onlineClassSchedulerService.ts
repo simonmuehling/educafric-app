@@ -523,6 +523,46 @@ export class OnlineClassSchedulerService {
   }
 
   /**
+   * Update a scheduled session
+   */
+  async updateClassSession(sessionId: number, updateData: any) {
+    const updateFields: any = {};
+    
+    if (updateData.teacherId) updateFields.teacherId = parseInt(updateData.teacherId);
+    if (updateData.classId) updateFields.classId = parseInt(updateData.classId);
+    if (updateData.subjectId) updateFields.subjectId = parseInt(updateData.subjectId);
+    if (updateData.title) updateFields.title = updateData.title;
+    if (updateData.description !== undefined) updateFields.description = updateData.description;
+    
+    let scheduledStart = updateData.scheduledStart ? new Date(updateData.scheduledStart) : null;
+    let maxDuration = updateData.durationMinutes ? parseInt(updateData.durationMinutes) : null;
+    
+    if (scheduledStart) updateFields.scheduledStart = scheduledStart;
+    if (maxDuration) updateFields.maxDuration = maxDuration;
+    
+    if (scheduledStart || maxDuration) {
+      const session = await this.getSessionById(sessionId);
+      if (!session) {
+        throw new Error(`Session ${sessionId} not found`);
+      }
+      
+      const finalStart = scheduledStart || session.scheduledStart;
+      const finalDuration = maxDuration || session.maxDuration;
+      
+      const scheduledEnd = new Date(finalStart);
+      scheduledEnd.setMinutes(scheduledEnd.getMinutes() + finalDuration);
+      updateFields.scheduledEnd = scheduledEnd;
+    }
+    
+    await db
+      .update(classSessions)
+      .set(updateFields)
+      .where(eq(classSessions.id, sessionId));
+      
+    console.log(`[SCHEDULER_SERVICE] ✅ Session ${sessionId} updated`);
+  }
+
+  /**
    * Get session by ID
    */
   async getSessionById(sessionId: number) {

@@ -25,7 +25,8 @@ import {
   Loader2,
   AlertCircle,
   CalendarDays,
-  Repeat
+  Repeat,
+  Edit
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -157,6 +158,7 @@ const OnlineClassesManager: React.FC = () => {
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<'sessions' | 'create-session' | 'recurrences' | 'create-recurrence' | 'calendar'>('sessions');
+  const [editingSession, setEditingSession] = useState<OnlineClassSession | null>(null);
 
   const sessionForm = useForm<SessionFormValues>({
     resolver: zodResolver(sessionFormSchema),
@@ -511,6 +513,30 @@ const OnlineClassesManager: React.FC = () => {
     }
   });
 
+  const updateSessionMutation = useMutation({
+    mutationFn: async ({ sessionId, data }: { sessionId: number; data: SessionFormValues }) => {
+      const response = await apiRequest('PATCH', `/api/online-class-scheduler/sessions/${sessionId}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/sessions'] });
+      setEditingSession(null);
+      setActiveTab('sessions');
+      sessionForm.reset();
+      toast({
+        title: language === 'fr' ? 'Session mise à jour avec succès' : 'Session updated successfully',
+        variant: 'default'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur lors de la mise à jour' : 'Error updating session',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+
   const toggleRecurrenceMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
       const response = await apiRequest('PATCH', `/api/online-class-scheduler/recurrences/${id}`, {
@@ -558,17 +584,53 @@ const OnlineClassesManager: React.FC = () => {
     }
   });
 
-  const onSessionSubmit = (values: SessionFormValues) => {
-    createSessionMutation.mutate({
-      teacherId: parseInt(values.teacherId),
-      classId: parseInt(values.classId),
-      subjectId: parseInt(values.subjectId),
-      title: values.title,
-      description: values.description,
-      scheduledStart: values.scheduledStart,
-      durationMinutes: values.durationMinutes,
-      autoNotify: values.autoNotify
+  const handleEditSession = (session: OnlineClassSession) => {
+    setEditingSession(session);
+    
+    // Format the date for datetime-local input in LOCAL time (not UTC)
+    const scheduledDate = new Date(session.scheduledStart);
+    const year = scheduledDate.getFullYear();
+    const month = String(scheduledDate.getMonth() + 1).padStart(2, '0');
+    const day = String(scheduledDate.getDate()).padStart(2, '0');
+    const hours = String(scheduledDate.getHours()).padStart(2, '0');
+    const minutes = String(scheduledDate.getMinutes()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+    sessionForm.reset({
+      classId: session.classId?.toString() || '',
+      teacherId: session.teacherId?.toString() || '',
+      subjectId: session.subjectId?.toString() || '',
+      title: session.title,
+      description: session.description || '',
+      scheduledStart: formattedDate,
+      durationMinutes: session.durationMinutes,
+      autoNotify: true
     });
+    
+    setActiveTab('create-session');
+  };
+
+  const onSessionSubmit = (values: SessionFormValues) => {
+    if (editingSession) {
+      // Update existing session (exclude autoNotify - only used for creation)
+      const { autoNotify, ...updateData } = values;
+      updateSessionMutation.mutate({
+        sessionId: editingSession.id,
+        data: updateData
+      });
+    } else {
+      // Create new session
+      createSessionMutation.mutate({
+        teacherId: parseInt(values.teacherId),
+        classId: parseInt(values.classId),
+        subjectId: parseInt(values.subjectId),
+        title: values.title,
+        description: values.description,
+        scheduledStart: values.scheduledStart,
+        durationMinutes: values.durationMinutes,
+        autoNotify: values.autoNotify
+      });
+    }
   };
 
   const onRecurrenceSubmit = (values: RecurrenceFormValues) => {
@@ -722,17 +784,29 @@ const OnlineClassesManager: React.FC = () => {
                             <p className="text-sm text-gray-500 mt-2">{session.description}</p>
                           )}
                           {session.status === 'scheduled' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full mt-2"
-                              onClick={() => handleCancelSession(session.id)}
-                              disabled={cancelSessionMutation.isPending}
-                              data-testid={`button-cancel-session-${session.id}`}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              {t.sessions.cancel}
-                            </Button>
+                            <div className="flex gap-2 mt-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => handleEditSession(session)}
+                                data-testid={`button-edit-session-${session.id}`}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                {language === 'fr' ? 'Modifier' : 'Edit'}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => handleCancelSession(session.id)}
+                                disabled={cancelSessionMutation.isPending}
+                                data-testid={`button-cancel-session-${session.id}`}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {t.sessions.cancel}
+                              </Button>
+                            </div>
                           )}
                         </CardContent>
                       </Card>
@@ -744,7 +818,27 @@ const OnlineClassesManager: React.FC = () => {
               <TabsContent value="create-session" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="dark:text-gray-100">{t.createSession.title}</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-gray-800">
+                        {editingSession 
+                          ? (language === 'fr' ? 'Modifier une Session' : 'Edit Session')
+                          : t.createSession.title
+                        }
+                      </CardTitle>
+                      {editingSession && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingSession(null);
+                            sessionForm.reset();
+                            setActiveTab('sessions');
+                          }}
+                        >
+                          {language === 'fr' ? 'Annuler' : 'Cancel'}
+                        </Button>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <Form {...sessionForm}>
@@ -783,7 +877,7 @@ const OnlineClassesManager: React.FC = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-gray-700">{t.createSession.selectTeacher}</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger className="bg-white border-gray-300" data-testid="select-session-teacher">
                                     <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
@@ -1062,7 +1156,7 @@ const OnlineClassesManager: React.FC = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-gray-700">{t.createRecurrence.selectCourse} (Optional)</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-course">
                                     <SelectValue placeholder={language === 'fr' ? "Aucun - Programmation directe" : "None - Direct scheduling"} />
@@ -1092,7 +1186,7 @@ const OnlineClassesManager: React.FC = () => {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel className="text-gray-700">{t.createSession.selectClass}</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
+                                  <Select onValueChange={field.onChange} value={field.value || ""}>
                                     <FormControl>
                                       <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-class">
                                         <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
@@ -1117,7 +1211,7 @@ const OnlineClassesManager: React.FC = () => {
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel className="text-gray-700">{t.createSession.selectTeacher}</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
+                                  <Select onValueChange={field.onChange} value={field.value || ""}>
                                     <FormControl>
                                       <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-teacher">
                                         <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
@@ -1143,7 +1237,7 @@ const OnlineClassesManager: React.FC = () => {
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel className="text-gray-700">{t.createSession.selectSubject}</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value || ""}>
                                       <FormControl>
                                         <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-subject">
                                           <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
@@ -1209,7 +1303,7 @@ const OnlineClassesManager: React.FC = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-gray-700">{t.createRecurrence.ruleType}</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-type">
                                     <SelectValue />

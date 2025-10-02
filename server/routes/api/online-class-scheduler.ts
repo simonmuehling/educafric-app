@@ -484,6 +484,104 @@ router.post(
 );
 
 /**
+ * PATCH /api/online-class-scheduler/sessions/:id
+ * Update a scheduled session
+ * Requires: Director role
+ */
+router.patch(
+  "/sessions/:id",
+  requireAuth,
+  async (req, res) => {
+    if (!req.user || req.user.role !== "Director") {
+      return res.status(403).json({
+        success: false,
+        message: "Accès refusé - rôle Director requis"
+      });
+    }
+    
+    try {
+      const sessionId = parseInt(req.params.id);
+      
+      if (!req.user.schoolId) {
+        return res.status(403).json({
+          success: false,
+          message: "Utilisateur n'est pas associé à une école"
+        });
+      }
+
+      const updateSessionSchema = z.object({
+        teacherId: z.string().optional(),
+        classId: z.string().optional(),
+        subjectId: z.string().optional(),
+        title: z.string().min(1).optional(),
+        description: z.string().optional(),
+        scheduledStart: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/, 'Invalid datetime format').optional(),
+        durationMinutes: z.coerce.number().min(15).max(240).optional()
+      });
+
+      const validatedData = updateSessionSchema.parse(req.body);
+
+      // Verify session belongs to school - SECURITY: Prevent cross-school access
+      const session = await onlineClassSchedulerService.getSessionById(sessionId);
+      if (!session || session.creatorType !== "school") {
+        return res.status(404).json({
+          success: false,
+          message: "Session non trouvée"
+        });
+      }
+
+      // SECURITY: Verify session belongs to user's school
+      const { onlineCourses, classes } = await import("@shared/schema");
+      const { db } = await import("../../db");
+      const { eq } = await import("drizzle-orm");
+      
+      let belongsToSchool = false;
+
+      if (session.courseId) {
+        const [course] = await db
+          .select()
+          .from(onlineCourses)
+          .where(eq(onlineCourses.id, session.courseId))
+          .limit(1);
+        
+        belongsToSchool = course && course.schoolId === req.user.schoolId;
+      } else if (session.classId) {
+        const [classInfo] = await db
+          .select()
+          .from(classes)
+          .where(eq(classes.id, session.classId))
+          .limit(1);
+        
+        belongsToSchool = classInfo && classInfo.schoolId === req.user.schoolId;
+      }
+
+      if (!belongsToSchool) {
+        return res.status(403).json({
+          success: false,
+          message: "Accès refusé - cette session n'appartient pas à votre école"
+        });
+      }
+
+      // Update the session
+      await onlineClassSchedulerService.updateClassSession(sessionId, validatedData);
+
+      console.log(`[SCHEDULER_API] ✅ Session ${sessionId} updated by ${req.user.email}`);
+
+      res.json({
+        success: true,
+        message: "Session mise à jour avec succès"
+      });
+    } catch (error) {
+      console.error("[SCHEDULER_API] ❌ Error updating session:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erreur lors de la mise à jour de la session"
+      });
+    }
+  }
+);
+
+/**
  * DELETE /api/online-class-scheduler/sessions/:id
  * Cancel a scheduled session
  * Requires: Director or SchoolAdmin role
