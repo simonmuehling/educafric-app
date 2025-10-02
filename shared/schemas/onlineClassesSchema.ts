@@ -39,6 +39,9 @@ export const courseEnrollments = pgTable("course_enrollments", {
 export const classSessions = pgTable("class_sessions", {
   id: serial("id").primaryKey(),
   courseId: integer("course_id").notNull().references(() => onlineCourses.id),
+  teacherId: integer("teacher_id").notNull().references(() => users.id),
+  classId: integer("class_id").references(() => classes.id), // Added: optional class override for notifications
+  subjectId: integer("subject_id").references(() => subjects.id),
   title: text("title").notNull(),
   description: text("description"),
   scheduledStart: timestamp("scheduled_start").notNull(),

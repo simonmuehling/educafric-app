@@ -55,7 +55,9 @@ export class OnlineClassNotificationService {
       }
 
       // Get recipients (students and parents)
-      const recipients = await this.getSessionRecipients(course.classId, course.schoolId, course.id);
+      // Use session's classId if provided, otherwise use course's classId
+      const classIdToUse = session.classId || course.classId;
+      const recipients = await this.getSessionRecipients(classIdToUse, course.schoolId, course.id);
 
       if (recipients.length === 0) {
         console.log(`[ONLINE_CLASS_NOTIFICATIONS] No recipients found for session ${sessionId}`);
@@ -130,7 +132,9 @@ export class OnlineClassNotificationService {
       }
 
       // Get recipients
-      const recipients = await this.getSessionRecipients(course.classId, course.schoolId, course.id);
+      // Use session's classId if provided, otherwise use course's classId
+      const classIdToUse = session.classId || course.classId;
+      const recipients = await this.getSessionRecipients(classIdToUse, course.schoolId, course.id);
 
       if (recipients.length === 0) {
         console.log(`[ONLINE_CLASS_NOTIFICATIONS] No recipients found for session ${sessionId}`);
@@ -200,7 +204,9 @@ export class OnlineClassNotificationService {
       }
 
       // Get recipients
-      const recipients = await this.getSessionRecipients(course.classId, course.schoolId, course.id);
+      // Use session's classId if provided, otherwise use course's classId
+      const classIdToUse = session.classId || course.classId;
+      const recipients = await this.getSessionRecipients(classIdToUse, course.schoolId, course.id);
 
       if (recipients.length === 0) {
         console.log(`[ONLINE_CLASS_NOTIFICATIONS] No recipients found for session ${sessionId}`);

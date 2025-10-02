@@ -106,6 +106,7 @@ interface RecurrencesResponse {
 
 const sessionFormSchema = z.object({
   courseId: z.string().min(1, 'Course is required'),
+  classId: z.string().optional(),
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   scheduledStart: z.string().min(1, 'Scheduled start is required'),
@@ -150,6 +151,7 @@ const OnlineClassScheduler: React.FC = () => {
     resolver: zodResolver(sessionFormSchema),
     defaultValues: {
       courseId: '',
+      classId: '',
       title: '',
       description: '',
       scheduledStart: '',
@@ -208,6 +210,8 @@ const OnlineClassScheduler: React.FC = () => {
       createSession: {
         title: "Créer une Session",
         selectCourse: "Sélectionner un cours",
+        selectClass: "Sélectionner une classe (optionnel)",
+        selectClassPlaceholder: "Sélectionner une classe pour notifier les élèves/parents",
         sessionTitle: "Titre de la session",
         description: "Description",
         scheduledStart: "Date et heure de début",
@@ -311,6 +315,8 @@ const OnlineClassScheduler: React.FC = () => {
       createSession: {
         title: "Create Session",
         selectCourse: "Select a course",
+        selectClass: "Select a class (optional)",
+        selectClassPlaceholder: "Select a class to notify students/parents",
         sessionTitle: "Session title",
         description: "Description",
         scheduledStart: "Start date and time",
@@ -396,6 +402,10 @@ const OnlineClassScheduler: React.FC = () => {
 
   const { data: recurrencesData, isLoading: recurrencesLoading } = useQuery<RecurrencesResponse>({
     queryKey: ['/api/school-scheduler/recurrences']
+  });
+
+  const { data: classesData } = useQuery({
+    queryKey: ['/api/director/classes']
   });
 
   const createSessionMutation = useMutation({
@@ -515,10 +525,13 @@ const OnlineClassScheduler: React.FC = () => {
     const selectedCourse = coursesData?.courses?.find((c: OnlineCourse) => c.id === parseInt(values.courseId));
     if (!selectedCourse) return;
 
+    // Use selected class if provided, otherwise use course's class
+    const classIdToUse = values.classId ? parseInt(values.classId) : selectedCourse.classId;
+
     createSessionMutation.mutate({
       courseId: parseInt(values.courseId),
       teacherId: selectedCourse.teacherId,
-      classId: selectedCourse.classId,
+      classId: classIdToUse,
       subjectId: selectedCourse.subjectId,
       title: values.title,
       description: values.description,
@@ -735,6 +748,34 @@ const OnlineClassScheduler: React.FC = () => {
                                   {courses.map((course) => (
                                     <SelectItem key={course.id} value={course.id.toString()}>
                                       {course.title} - {course.teacherName} {course.className ? `(${course.className})` : ''}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={sessionForm.control}
+                          name="classId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t.createSession.selectClass}</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-session-class">
+                                    <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="">
+                                    {language === 'fr' ? 'Aucune classe (utiliser celle du cours)' : 'No class (use course class)'}
+                                  </SelectItem>
+                                  {classesData?.classes?.map((cls: any) => (
+                                    <SelectItem key={cls.id} value={cls.id.toString()}>
+                                      {cls.name}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>

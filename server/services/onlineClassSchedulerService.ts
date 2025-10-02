@@ -86,6 +86,9 @@ export class OnlineClassSchedulerService {
       .insert(classSessions)
       .values({
         courseId: input.courseId,
+        teacherId: input.teacherId,
+        classId: input.classId,
+        subjectId: input.subjectId,
         title: input.title,
         description: input.description,
         scheduledStart: input.scheduledStart,
@@ -266,6 +269,9 @@ export class OnlineClassSchedulerService {
               .insert(classSessions)
               .values({
                 courseId: recurrence.courseId,
+                teacherId: recurrence.teacherId,
+                classId: recurrence.classId,
+                subjectId: recurrence.subjectId,
                 title: recurrence.title,
                 description: recurrence.description,
                 scheduledStart,
