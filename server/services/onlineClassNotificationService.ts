@@ -242,7 +242,7 @@ export class OnlineClassNotificationService {
 
   /**
    * Get recipients (students and parents) for a session
-   * Prioritizes classId if provided, otherwise uses course enrollments
+   * Prioritizes classId if provided, with fallback to course enrollments
    */
   private async getSessionRecipients(classId: number | null, schoolId: number, courseId: number): Promise<NotificationRecipient[]> {
     const recipients: NotificationRecipient[] = [];
@@ -266,15 +266,16 @@ export class OnlineClassNotificationService {
             )
           );
 
-        if (classStudents.length === 0) {
-          console.log(`[ONLINE_CLASS_NOTIFICATIONS] No students enrolled in class ${classId}`);
-          return recipients;
+        if (classStudents.length > 0) {
+          studentIds = classStudents.map(s => s.studentId);
+          console.log(`[ONLINE_CLASS_NOTIFICATIONS] Found ${studentIds.length} students in class ${classId}`);
+        } else {
+          console.log(`[ONLINE_CLASS_NOTIFICATIONS] No students in class ${classId}, falling back to course enrollments`);
         }
-
-        studentIds = classStudents.map(s => s.studentId);
-        console.log(`[ONLINE_CLASS_NOTIFICATIONS] Found ${studentIds.length} students in class ${classId}`);
-      } else {
-        // Fallback to course enrollments if no classId
+      }
+      
+      // Fallback to course enrollments if no classId provided OR no students found in class
+      if (studentIds.length === 0) {
         console.log(`[ONLINE_CLASS_NOTIFICATIONS] Using course-based recipients for courseId: ${courseId}`);
         
         const enrolledStudents = await db

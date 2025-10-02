@@ -1158,7 +1158,11 @@ router.post('/delete-account', async (req, res) => {
     } else if (userRole === 'Parent') {
       // For parents: delete account directly (soft delete)
       try {
-        // Mark account as deleted to preserve data integrity
+        // Single atomic database update - all fields updated together or none
+        // No external service cleanup needed as we only store references locally
+        // PostgreSQL ensures atomicity - either all updates succeed or all fail
+        console.log(`[ACCOUNT_DELETION] Starting parent account deletion for userId: ${userId}`);
+        
         await storage.updateUser(userId, {
           deletionRequested: true,
           deletionRequestedAt: new Date(),
@@ -1167,10 +1171,10 @@ router.post('/delete-account', async (req, res) => {
           email: `deleted_${userId}_${userEmail}`, // Prefix email to free it up
           password: null, // Clear password to prevent login
           firebaseUid: null, // Clear Firebase UID
-          stripeCustomerId: null // Clear sensitive payment data
+          stripeCustomerId: null // Clear sensitive payment data (reference only)
         });
 
-        console.log(`[ACCOUNT_DELETION] Parent account ${userId} marked as deleted`);
+        console.log(`[ACCOUNT_DELETION] ✅ Parent account ${userId} successfully marked as deleted and cleaned`);
 
         res.json({
           success: true,
@@ -1178,7 +1182,7 @@ router.post('/delete-account', async (req, res) => {
         });
 
       } catch (deleteError) {
-        console.error('[ACCOUNT_DELETION] Error deleting parent account:', deleteError);
+        console.error('[ACCOUNT_DELETION] ❌ Error deleting parent account:', deleteError);
         throw deleteError;
       }
 

@@ -355,23 +355,12 @@ export class OnlineClassSchedulerService {
 
   /**
    * Get scheduled sessions for a teacher (school-created only)
+   * Now directly filters by teacherId field in class_sessions table
    */
   async getTeacherScheduledSessions(teacherId: number, startDate?: Date, endDate?: Date) {
-    // Filter by teacher through course
-    const courses = await db
-      .select()
-      .from(onlineCourses)
-      .where(eq(onlineCourses.teacherId, teacherId));
-
-    const courseIds = courses.map(c => c.id);
-
-    if (courseIds.length === 0) {
-      return [];
-    }
-
     const conditions = [
       eq(classSessions.creatorType, "school"),
-      or(...courseIds.map(id => eq(classSessions.courseId, id)))
+      eq(classSessions.teacherId, teacherId)
     ];
 
     if (startDate) {
@@ -382,11 +371,17 @@ export class OnlineClassSchedulerService {
       conditions.push(lte(classSessions.scheduledStart, endDate));
     }
 
-    return db
+    console.log(`[SCHEDULER_SERVICE] Fetching sessions for teacherId: ${teacherId}`);
+
+    const sessions = await db
       .select()
       .from(classSessions)
       .where(and(...conditions))
       .orderBy(classSessions.scheduledStart);
+
+    console.log(`[SCHEDULER_SERVICE] Found ${sessions.length} sessions for teacher ${teacherId}`);
+
+    return sessions;
   }
 
   /**
