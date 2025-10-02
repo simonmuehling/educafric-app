@@ -24,10 +24,12 @@ export const requireOnlineClassesSubscription = async (
       });
     }
 
-    // Only school admins and teachers can access online classes
-    if (!['SiteAdmin', 'Admin', 'Director', 'Teacher'].includes(user.role)) {
+    // Allow Students and Parents to access (they can view/join sessions)
+    // Allow Admins, Directors, and Teachers to manage
+    const allowedRoles = ['SiteAdmin', 'Admin', 'Director', 'Teacher', 'Student', 'Parent'];
+    if (!allowedRoles.includes(user.role)) {
       return res.status(403).json({ 
-        error: "Access denied. Only school administrators and teachers can access online classes.", 
+        error: "Access denied. Only school members can access online classes.", 
         code: "ROLE_FORBIDDEN" 
       });
     }
@@ -63,7 +65,14 @@ export const requireOnlineClassesSubscription = async (
       return next();
     }
 
-    // Check school subscription status
+    // Students and Parents: Allow access regardless of subscription (they will see available sessions)
+    // They can only join sessions, not create them
+    if (['Student', 'Parent'].includes(user.role)) {
+      console.log(`[ONLINE_CLASSES_ACCESS] ✅ ${user.role} ${user.email} granted view access to online classes`);
+      return next();
+    }
+
+    // For Teachers, Directors, Admins: Check school subscription
     const schoolId = user.schoolId;
     if (!schoolId) {
       return res.status(400).json({ 
