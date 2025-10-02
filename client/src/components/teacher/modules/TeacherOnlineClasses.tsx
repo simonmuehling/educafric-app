@@ -39,7 +39,9 @@ import {
   User,
   Book,
   CheckCircle,
-  UserCheck
+  UserCheck,
+  CreditCard,
+  Info
 } from 'lucide-react';
 
 interface OnlineCourse {
@@ -1201,7 +1203,33 @@ const TeacherOnlineClasses: React.FC = () => {
               <p className="text-gray-600">{t.subtitle}</p>
             </div>
           </div>
+          
+          {/* HYBRID ACCESS: Personal subscription purchase button - always visible */}
+          <Button
+            variant="outline"
+            className="border-2 border-purple-600 text-purple-600 hover:bg-purple-50"
+            onClick={() => setIsPaymentOpen(true)}
+            data-testid="button-buy-personal-subscription"
+          >
+            <CreditCard className="w-4 h-4 mr-2" />
+            {language === 'fr' ? 'Acheter Abonnement Personnel' : 'Buy Personal Subscription'}
+          </Button>
         </div>
+        
+        {/* Access type indicator */}
+        {accessData?.activationType && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+            <Info className="w-4 h-4 text-blue-600" />
+            <p className="text-sm text-blue-800">
+              {accessData.activationType === 'school' 
+                ? (language === 'fr' ? '🏫 Accès fourni par votre école' : '🏫 Access provided by your school')
+                : accessData.activationType === 'personal'
+                  ? (language === 'fr' ? '👤 Abonnement personnel actif' : '👤 Personal subscription active')
+                  : (language === 'fr' ? '✅ Accès actif' : '✅ Active access')
+              }
+            </p>
+          </div>
+        )}
       </Card>
 
       {/* Main Content with Enhanced Structure */}
