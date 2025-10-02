@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+
+console.log('[STUDENT_ONLINE_CLASSES] 📦 Module file loaded!');
 import { 
   Video, 
   Calendar, 
@@ -50,11 +52,15 @@ interface SessionsResponse {
 }
 
 const StudentOnlineClasses: React.FC = () => {
+  console.log('[STUDENT_ONLINE_CLASSES] 🎨 Component rendering!');
+  
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'upcoming' | 'live' | 'past'>('upcoming');
+  
+  console.log('[STUDENT_ONLINE_CLASSES] 👤 User:', user);
 
   const text = {
     fr: {
