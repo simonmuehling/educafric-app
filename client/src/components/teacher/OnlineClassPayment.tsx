@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreditCard, Smartphone, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -97,10 +98,13 @@ function StripePaymentForm({ durationType, amount, onSuccess, language }: any) {
   );
 }
 
-export function OnlineClassPayment({ isOpen, onClose, durationType, amount, language }: OnlineClassPaymentProps) {
+export function OnlineClassPayment({ isOpen, onClose, durationType: initialDurationType, amount: initialAmount, language }: OnlineClassPaymentProps) {
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mtn' | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoadingIntent, setIsLoadingIntent] = useState(false);
+  
+  // Duration selection state - allow user to change duration in modal
+  const [selectedDuration, setSelectedDuration] = useState<'daily' | 'weekly' | 'monthly' | 'quarterly' | 'semestral' | 'yearly'>(initialDurationType);
   
   // MTN state
   const [mtnPhone, setMtnPhone] = useState('');
@@ -110,8 +114,35 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
 
   const { toast } = useToast();
 
+  // Calculate price based on selected duration
+  const calculatePrice = (duration: typeof selectedDuration) => {
+    switch (duration) {
+      case 'daily': return 2500;
+      case 'weekly': return 10000;
+      case 'monthly': return 25000;
+      case 'quarterly': return 73000;
+      case 'semestral': return 105000;
+      case 'yearly': return 150000;
+      default: return 150000;
+    }
+  };
+
+  const getDurationLabel = (duration: typeof selectedDuration) => {
+    const labels = {
+      daily: { fr: 'Journalier (1 jour)', en: 'Daily (1 day)' },
+      weekly: { fr: 'Hebdomadaire (1 semaine)', en: 'Weekly (1 week)' },
+      monthly: { fr: 'Mensuel (1 mois)', en: 'Monthly (1 month)' },
+      quarterly: { fr: 'Trimestriel (3 mois)', en: 'Quarterly (3 months)' },
+      semestral: { fr: 'Semestriel (6 mois)', en: 'Semestral (6 months)' },
+      yearly: { fr: 'Annuel (1 an)', en: 'Yearly (1 year)' }
+    };
+    return labels[duration][language as 'fr' | 'en'];
+  };
+
+  const currentAmount = calculatePrice(selectedDuration);
+
   // Debug log when modal opens
-  console.log('[PAYMENT_DEBUG] OnlineClassPayment modal opened:', { isOpen, durationType, amount, stripeConfigured: !!stripePromise });
+  console.log('[PAYMENT_DEBUG] OnlineClassPayment modal opened:', { isOpen, durationType: selectedDuration, amount: currentAmount, stripeConfigured: !!stripePromise });
 
   const handlePaymentMethodSelect = async (method: 'stripe' | 'mtn') => {
     console.log('[PAYMENT_DEBUG] Payment method selected:', method);
@@ -134,9 +165,9 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
 
       setIsLoadingIntent(true);
       try {
-        console.log('[PAYMENT_DEBUG] Creating Stripe payment intent for duration:', durationType);
+        console.log('[PAYMENT_DEBUG] Creating Stripe payment intent for duration:', selectedDuration);
         const response = await apiRequest('POST', '/api/online-class-payments/create-stripe-intent', {
-          durationType
+          durationType: selectedDuration
         });
         const data = await response.json();
         console.log('[PAYMENT_DEBUG] Stripe intent response:', data);
@@ -178,7 +209,7 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
 
     try {
       const response = await apiRequest('POST', '/api/online-class-payments/create-mtn-payment', {
-        durationType,
+        durationType: selectedDuration,
         phoneNumber: mtnPhone
       });
       const data = await response.json();
@@ -279,8 +310,8 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
           </DialogTitle>
           <DialogDescription>
             {language === 'fr' 
-              ? `Module Cours en Ligne - ${amount.toLocaleString('fr-FR')} CFA`
-              : `Online Classes Module - ${amount.toLocaleString('fr-FR')} CFA`
+              ? `Module Cours en Ligne - ${currentAmount.toLocaleString('fr-FR')} CFA`
+              : `Online Classes Module - ${currentAmount.toLocaleString('fr-FR')} CFA`
             }
           </DialogDescription>
         </DialogHeader>
@@ -288,6 +319,41 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
         <div className="space-y-4">
           {!paymentMethod && (
             <>
+              {/* Duration Selection */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  {language === 'fr' ? 'Durée d\'abonnement' : 'Subscription duration'}
+                </Label>
+                <Select value={selectedDuration} onValueChange={(value: any) => setSelectedDuration(value)}>
+                  <SelectTrigger data-testid="select-modal-duration" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">{getDurationLabel('daily')}</SelectItem>
+                    <SelectItem value="weekly">{getDurationLabel('weekly')}</SelectItem>
+                    <SelectItem value="monthly">{getDurationLabel('monthly')}</SelectItem>
+                    <SelectItem value="quarterly">{getDurationLabel('quarterly')}</SelectItem>
+                    <SelectItem value="semestral">{getDurationLabel('semestral')}</SelectItem>
+                    <SelectItem value="yearly">{getDurationLabel('yearly')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Price Display */}
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-1">
+                    {language === 'fr' ? 'Prix' : 'Price'}
+                  </p>
+                  <p className="text-3xl font-bold text-purple-600">
+                    {currentAmount.toLocaleString('fr-FR')} CFA
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {getDurationLabel(selectedDuration)}
+                  </p>
+                </div>
+              </div>
+
               <p className="text-sm text-gray-600">
                 {language === 'fr' 
                   ? 'Choisissez votre méthode de paiement :' 
@@ -345,8 +411,8 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
               ) : clientSecret && stripePromise ? (
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <StripePaymentForm 
-                    durationType={durationType}
-                    amount={amount}
+                    durationType={selectedDuration}
+                    amount={currentAmount}
                     onSuccess={handleSuccess}
                     language={language}
                   />
@@ -418,8 +484,8 @@ export function OnlineClassPayment({ isOpen, onClose, durationType, amount, lang
                     ) : (
                       <>
                         {language === 'fr' 
-                          ? `Payer ${amount.toLocaleString('fr-FR')} CFA` 
-                          : `Pay ${amount.toLocaleString('fr-FR')} CFA`}
+                          ? `Payer ${currentAmount.toLocaleString('fr-FR')} CFA` 
+                          : `Pay ${currentAmount.toLocaleString('fr-FR')} CFA`}
                       </>
                     )}
                   </Button>
