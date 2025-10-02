@@ -757,8 +757,8 @@ const TeacherOnlineClasses: React.FC = () => {
               <SelectContent>
                 {classesLoading ? (
                   <SelectItem value="loading" disabled>{t.loading}</SelectItem>
-                ) : classesData?.classes?.length > 0 ? (
-                  classesData.classes.map((cls: any) => (
+                ) : classesData?.schoolsWithClasses?.[0]?.classes?.length > 0 ? (
+                  classesData.schoolsWithClasses[0].classes.map((cls: any) => (
                     <SelectItem key={cls.id} value={cls.id.toString()}>
                       {cls.name}
                     </SelectItem>
@@ -821,8 +821,8 @@ const TeacherOnlineClasses: React.FC = () => {
           </CardTitle>
           <CardDescription>
             {language === 'fr' ? 
-              `Classe: ${classesData?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Matière: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}` :
-              `Class: ${classesData?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Subject: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}`
+              `Classe: ${classesData?.schoolsWithClasses?.[0]?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Matière: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}` :
+              `Class: ${classesData?.schoolsWithClasses?.[0]?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Subject: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}`
             }
           </CardDescription>
         </CardHeader>
