@@ -48,6 +48,12 @@ passport.use(new LocalStrategy(
         return done(null, false, { message: 'Invalid email or password' });
       }
 
+      // Check if account has been deleted
+      if (user.deletionRequested || user.deletionApprovedAt) {
+        console.log(`[AUTH_STRATEGY] Blocked login attempt for deleted account: ${email}`);
+        return done(null, false, { message: 'Ce compte a été supprimé' });
+      }
+
       const isValidPassword = await storage.verifyPassword(user, password);
       if (!isValidPassword) {
         return done(null, false, { message: 'Invalid email or password' });
@@ -1102,52 +1108,87 @@ router.post('/delete-account', async (req, res) => {
 
     const userId = req.user.id;
     const userEmail = req.user.email;
+    const userRole = req.user.role;
     const userName = req.user.firstName && req.user.lastName 
       ? `${req.user.firstName} ${req.user.lastName}`
       : req.user.email;
 
-    console.log(`[ACCOUNT_DELETION] Deletion request received from user ${userId} (${userEmail})`);
+    console.log(`[ACCOUNT_DELETION] Deletion request received from user ${userId} (${userEmail}) - Role: ${userRole}`);
 
-    // Send notification to school admin and site admin
-    try {
-      // Get school administrators
-      const schoolAdmins = await storage.getSchoolAdministrators(req.user.schoolId || 0);
-      
-      // Notification message
-      const message = `DEMANDE DE SUPPRESSION DE COMPTE\n\nUtilisateur: ${userName}\nEmail: ${userEmail}\nRôle: ${req.user.role}\nDate: ${new Date().toLocaleString('fr-FR')}\n\nCette demande nécessite une action de votre part. Veuillez contacter l'utilisateur pour confirmer la suppression.`;
+    // Students need admin approval, Parents can delete directly
+    if (userRole === 'Student') {
+      // For students: send request to administrators
+      try {
+        const schoolAdmins = await storage.getSchoolAdministrators(req.user.schoolId || 0);
+        
+        const message = `DEMANDE DE SUPPRESSION DE COMPTE (ÉTUDIANT)\n\nÉtudiant: ${userName}\nEmail: ${userEmail}\nDate: ${new Date().toLocaleString('fr-FR')}\n\nCette demande nécessite votre approbation. Veuillez contacter l'étudiant et ses parents pour confirmer la suppression.`;
 
-      // Send email to admins
-      for (const admin of schoolAdmins) {
-        if (admin.email) {
-          await hostingerMailService.sendEmail({
-            to: admin.email,
-            subject: `⚠️ Demande de suppression de compte - ${userName}`,
-            text: message,
-            html: `
-              <div style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2 style="color: #dc2626;">⚠️ Demande de suppression de compte</h2>
-                <p><strong>Utilisateur:</strong> ${userName}</p>
-                <p><strong>Email:</strong> ${userEmail}</p>
-                <p><strong>Rôle:</strong> ${req.user.role}</p>
-                <p><strong>Date:</strong> ${new Date().toLocaleString('fr-FR')}</p>
-                <p style="margin-top: 20px; padding: 15px; background-color: #fef2f2; border-left: 4px solid #dc2626;">
-                  Cette demande nécessite une action de votre part. Veuillez contacter l'utilisateur pour confirmer la suppression.
-                </p>
-              </div>
-            `
-          });
+        // Send email to admins
+        for (const admin of schoolAdmins) {
+          if (admin.email) {
+            await hostingerMailService.sendEmail({
+              to: admin.email,
+              subject: `⚠️ Demande de suppression de compte étudiant - ${userName}`,
+              text: message,
+              html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px;">
+                  <h2 style="color: #dc2626;">⚠️ Demande de suppression de compte étudiant</h2>
+                  <p><strong>Étudiant:</strong> ${userName}</p>
+                  <p><strong>Email:</strong> ${userEmail}</p>
+                  <p><strong>Date:</strong> ${new Date().toLocaleString('fr-FR')}</p>
+                  <p style="margin-top: 20px; padding: 15px; background-color: #fef2f2; border-left: 4px solid #dc2626;">
+                    Cette demande nécessite votre approbation. Veuillez contacter l'étudiant et ses parents pour confirmer la suppression.
+                  </p>
+                </div>
+              `
+            });
+          }
         }
+
+        console.log(`[ACCOUNT_DELETION] Student deletion request sent to ${schoolAdmins.length} administrators`);
+      } catch (notificationError) {
+        console.error('[ACCOUNT_DELETION] Error sending notifications:', notificationError);
       }
 
-      console.log(`[ACCOUNT_DELETION] Notification sent to ${schoolAdmins.length} administrators`);
-    } catch (notificationError) {
-      console.error('[ACCOUNT_DELETION] Error sending notifications:', notificationError);
-    }
+      res.json({
+        success: true,
+        message: 'Demande de suppression envoyée aux administrateurs'
+      });
 
-    res.json({
-      success: true,
-      message: 'Demande de suppression envoyée avec succès'
-    });
+    } else if (userRole === 'Parent') {
+      // For parents: delete account directly (soft delete)
+      try {
+        // Mark account as deleted to preserve data integrity
+        await storage.updateUser(userId, {
+          deletionRequested: true,
+          deletionRequestedAt: new Date(),
+          deletionApprovedBy: userId, // Self-approved for parents
+          deletionApprovedAt: new Date(),
+          email: `deleted_${userId}_${userEmail}`, // Prefix email to free it up
+          password: null, // Clear password to prevent login
+          firebaseUid: null, // Clear Firebase UID
+          stripeCustomerId: null // Clear sensitive payment data
+        });
+
+        console.log(`[ACCOUNT_DELETION] Parent account ${userId} marked as deleted`);
+
+        res.json({
+          success: true,
+          message: 'Votre compte a été supprimé avec succès'
+        });
+
+      } catch (deleteError) {
+        console.error('[ACCOUNT_DELETION] Error deleting parent account:', deleteError);
+        throw deleteError;
+      }
+
+    } else {
+      // For other roles: require admin approval
+      res.status(403).json({
+        success: false,
+        message: 'La suppression de compte n\'est pas disponible pour votre rôle. Veuillez contacter l\'administration.'
+      });
+    }
 
   } catch (error) {
     console.error('[ACCOUNT_DELETION] Error processing deletion request:', error);

@@ -91,10 +91,10 @@ const ParentSettings = () => {
       }
 
       toast({
-        title: language === 'fr' ? 'Demande envoyée' : 'Request sent',
+        title: language === 'fr' ? 'Compte supprimé' : 'Account deleted',
         description: language === 'fr' 
-          ? 'Votre demande de suppression de compte a été envoyée à l\'administration. Vous serez déconnecté dans 3 secondes.'
-          : 'Your account deletion request has been sent to administration. You will be logged out in 3 seconds.',
+          ? 'Votre compte a été supprimé avec succès. Vous serez déconnecté dans 3 secondes.'
+          : 'Your account has been successfully deleted. You will be logged out in 3 seconds.',
         variant: 'default'
       });
 
@@ -149,10 +149,10 @@ const ParentSettings = () => {
       newPassword: 'Nouveau mot de passe',
       confirmPassword: 'Confirmer le mot de passe',
       deleteAccount: 'Suppression du compte',
-      deleteAccountDesc: 'Demander la suppression permanente de toutes vos données',
-      requestDeletion: 'Demander la suppression',
+      deleteAccountDesc: 'Supprimer définitivement votre compte et toutes vos données',
+      requestDeletion: 'Supprimer mon compte',
       deleteDialogTitle: 'Confirmer la suppression du compte',
-      deleteDialogDesc: 'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données seront supprimées. Vous devrez contacter l\'administration pour confirmer cette demande.',
+      deleteDialogDesc: 'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données seront supprimées immédiatement. Vous serez déconnecté automatiquement.',
       cancel: 'Annuler',
       confirmDelete: 'Confirmer la suppression'
     },
@@ -188,10 +188,10 @@ const ParentSettings = () => {
       newPassword: 'New Password',
       confirmPassword: 'Confirm Password',
       deleteAccount: 'Account Deletion',
-      deleteAccountDesc: 'Request permanent deletion of all your data',
-      requestDeletion: 'Request Deletion',
+      deleteAccountDesc: 'Permanently delete your account and all your data',
+      requestDeletion: 'Delete My Account',
       deleteDialogTitle: 'Confirm Account Deletion',
-      deleteDialogDesc: 'Are you sure you want to delete your account? This action is irreversible and all your data will be deleted. You will need to contact administration to confirm this request.',
+      deleteDialogDesc: 'Are you sure you want to delete your account? This action is irreversible and all your data will be deleted immediately. You will be automatically logged out.',
       cancel: 'Cancel',
       confirmDelete: 'Confirm Deletion'
     }
