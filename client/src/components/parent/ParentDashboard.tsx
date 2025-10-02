@@ -8,7 +8,7 @@ import {
   Calendar, FileText, Clock, Bell, DollarSign,
   MapPin, Award, Users, Smartphone, User, GraduationCap,
   CheckCircle2, AlertCircle, Target, Star, CreditCard, HelpCircle,
-  ChevronDown, Mail, Heart, BarChart3
+  ChevronDown, Mail, Heart, BarChart3, Video
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -276,6 +276,13 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600',
       component: createDynamicModule('parent-library')
+    },
+    {
+      id: 'online-classes',
+      label: language === 'fr' ? 'Classes en Ligne' : 'Online Classes',
+      icon: <Video className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-purple-600',
+      component: createDynamicModule('parent-online-classes')
     },
     {
       id: 'attendance',

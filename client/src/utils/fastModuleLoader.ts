@@ -249,6 +249,7 @@ class FastModuleLoader {
       // =============================================
       'teacher-online-classes': () => import('@/components/teacher/modules/TeacherOnlineClasses'),
       'student-online-classes': () => import('@/components/student/modules/StudentOnlineClasses'),
+      'parent-online-classes': () => import('@/components/parent/modules/ParentOnlineClasses'),
       
       // Role-namespaced library modules
       'teacher.library': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
