@@ -209,4 +209,66 @@ router.get('/conversations/:phoneNumber', async (req, res) => {
   }
 });
 
+// Register account with certificate/registration code
+router.post('/register-account', async (req, res) => {
+  try {
+    const { phoneNumber, certificate, pin } = req.body;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        error: 'Phone number is required'
+      });
+    }
+    
+    if (!certificate) {
+      return res.status(400).json({
+        success: false,
+        error: 'Certificate/registration code is required'
+      });
+    }
+    
+    const result = await whatsappService.registerAccount(
+      phoneNumber,
+      certificate,
+      pin
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('[WhatsApp] Account registration error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to register account'
+    });
+  }
+});
+
+// Request registration code
+router.post('/request-code', async (req, res) => {
+  try {
+    const { phoneNumber, method = 'sms' } = req.body;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        error: 'Phone number is required'
+      });
+    }
+    
+    const result = await whatsappService.requestRegistrationCode(
+      phoneNumber,
+      method
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('[WhatsApp] Code request error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to request registration code'
+    });
+  }
+});
+
 export default router;

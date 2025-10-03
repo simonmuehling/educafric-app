@@ -652,6 +652,140 @@ Immediate contact: {{emergencyContact}}
       return data[key] || match;
     });
   }
+
+  // Request registration code for phone number
+  async requestRegistrationCode(phoneNumber: string, method: 'sms' | 'voice' = 'sms') {
+    if (!this.config.accessToken) {
+      throw new Error('WhatsApp access token not configured');
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/phone_numbers/request_code`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.config.accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          code_method: method
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log(`[WhatsApp] Registration code requested for ${phoneNumber} via ${method}`);
+        return {
+          success: true,
+          message: `Registration code sent via ${method}`,
+          data: result
+        };
+      } else {
+        console.error('[WhatsApp] Code request failed:', result);
+        return {
+          success: false,
+          error: result.error?.message || 'Failed to request code',
+          details: result
+        };
+      }
+    } catch (error) {
+      console.error('[WhatsApp] Code request error:', error);
+      throw error;
+    }
+  }
+
+  // Register account with certificate and code
+  async registerAccount(phoneNumber: string, certificate: string, pin?: string) {
+    if (!this.config.accessToken) {
+      throw new Error('WhatsApp access token not configured');
+    }
+
+    try {
+      // For Cloud API, we use the account registration endpoint
+      const response = await fetch(`${this.baseUrl}/phone_numbers/register`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.config.accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          certificate: certificate,
+          ...(pin && { pin: pin })
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log(`[WhatsApp] Account registered successfully for ${phoneNumber}`);
+        console.log('[WhatsApp] Registration result:', result);
+        return {
+          success: true,
+          message: 'Account registered successfully',
+          data: result,
+          next_steps: [
+            'Save the phone number ID from the response',
+            'Add it to your environment as WHATSAPP_PHONE_NUMBER_ID',
+            'Verify your business account',
+            'Start sending messages'
+          ]
+        };
+      } else {
+        console.error('[WhatsApp] Registration failed:', result);
+        return {
+          success: false,
+          error: result.error?.message || 'Failed to register account',
+          details: result,
+          troubleshooting: [
+            'Verify the certificate is correct',
+            'Check if phone number is already registered',
+            'Ensure phone number format is correct (e.g., +237657004011)',
+            'Verify your access token has proper permissions'
+          ]
+        };
+      }
+    } catch (error) {
+      console.error('[WhatsApp] Registration error:', error);
+      throw error;
+    }
+  }
+
+  // Get account information
+  async getAccountInfo(phoneNumberId?: string) {
+    const numberIdToUse = phoneNumberId || this.config.phoneNumberId;
+    
+    if (!this.config.accessToken || !numberIdToUse) {
+      throw new Error('WhatsApp credentials not configured');
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/${numberIdToUse}`, {
+        headers: {
+          'Authorization': `Bearer ${this.config.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        return {
+          success: true,
+          data: result
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error?.message || 'Failed to get account info'
+        };
+      }
+    } catch (error) {
+      console.error('[WhatsApp] Get account info error:', error);
+      throw error;
+    }
+  }
 }
 
 export const whatsappService = new WhatsAppService();
