@@ -32,7 +32,7 @@ const mintLimiter = rateLimit({
  * GET /wa/:token
  * Redirect endpoint - validates token and redirects to WhatsApp
  */
-router.get('/:token', async (req, res) => {
+router.get('/wa/:token', async (req, res) => {
   try {
     const data = verifyToken(req.params.token, WA_TOKEN_SECRET);
     

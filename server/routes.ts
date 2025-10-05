@@ -6784,8 +6784,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/vonage-messages', checkSubscriptionFeature('advanced_communications'), vonageMessagesRouter);
   
   // WhatsApp Click-to-Chat (Option A - wa.me links, no API needed)
-  app.use('/wa', waClickToChatRoutes); // Redirect endpoint
-  app.use(waClickToChatRoutes); // API endpoints (/api/wa/mint, /api/wa/templates)
+  app.use(waClickToChatRoutes); // API endpoints (/api/wa/mint, /api/wa/templates) and redirect (/wa/:token)
   app.use(waConfigRoutes); // WhatsApp user configuration
   
   // Additional routes after main registrations  
