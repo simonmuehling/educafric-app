@@ -151,11 +151,22 @@ router.post('/api/wa/mint', requireAuth, mintLimiter, async (req, res) => {
 
     const link = `/wa/${token}`;
 
+    // Also compute the direct wa.me link for debugging
+    const directWaLink = await computeWaRedirect(
+      parsed.recipientId,
+      parsed.templateId,
+      parsed.lang || recipient.waLanguage as 'fr' | 'en' || 'fr',
+      parsed.templateData || {}
+    );
+
+    console.log('[WA_MINT] Direct wa.me link:', directWaLink);
+
     res.json({
       success: true,
       token,
       link,
-      fullUrl: `${req.protocol}://${req.get('host')}${link}`
+      fullUrl: `${req.protocol}://${req.get('host')}${link}`,
+      directWaLink // Include the direct wa.me link for testing
     });
   } catch (error) {
     console.error('[WA_MINT] Error:', error);

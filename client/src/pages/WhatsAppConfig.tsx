@@ -29,6 +29,7 @@ export default function WhatsAppConfig() {
   const [waLanguage, setWaLanguage] = useState<'fr' | 'en'>('fr');
   
   const [testToken, setTestToken] = useState<string | null>(null);
+  const [directWaLink, setDirectWaLink] = useState<string | null>(null);
   const [testTemplate, setTestTemplate] = useState('payment_due');
   
   const { generateToken, loading: tokenLoading } = useWhatsAppToken();
@@ -114,6 +115,7 @@ export default function WhatsAppConfig() {
 
     if (result?.success && result.token) {
       setTestToken(result.token);
+      setDirectWaLink((result as any).directWaLink || null);
       toast({
         title: 'Lien de test généré',
         description: 'Cliquez sur le bouton WhatsApp pour tester',
@@ -270,24 +272,35 @@ export default function WhatsAppConfig() {
               <div className="mt-4 p-4 border rounded-lg bg-muted/50 space-y-4">
                 <h3 className="font-semibold">Lien de test généré :</h3>
                 
-                {/* Bouton principal - toujours visible */}
-                <div className="flex flex-col gap-3">
-                  <Button
-                    asChild
-                    className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
-                    size="lg"
-                    data-testid="button-open-whatsapp-main"
-                  >
-                    <a href={`/wa/${testToken}`} rel="noopener noreferrer">
-                      <MessageCircle className="h-5 w-5" />
-                      Ouvrir le test sur WhatsApp
-                    </a>
-                  </Button>
-                  
-                  <p className="text-xs text-center text-muted-foreground">
-                    Cliquez sur le bouton ci-dessus pour ouvrir WhatsApp avec le message pré-rempli
-                  </p>
-                </div>
+                {/* Lien direct wa.me - pour debug */}
+                {directWaLink && (
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      asChild
+                      className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+                      size="lg"
+                      data-testid="button-open-whatsapp-direct"
+                    >
+                      <a href={directWaLink} target="_blank" rel="noopener noreferrer">
+                        <MessageCircle className="h-5 w-5" />
+                        Ouvrir WhatsApp (lien direct wa.me)
+                      </a>
+                    </Button>
+                    
+                    <p className="text-xs text-center text-muted-foreground">
+                      Lien direct WhatsApp - cliquez pour tester
+                    </p>
+                    
+                    <details className="text-xs">
+                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                        Voir le lien complet
+                      </summary>
+                      <code className="block mt-2 p-2 bg-muted rounded text-xs break-all">
+                        {directWaLink}
+                      </code>
+                    </details>
+                  </div>
+                )}
 
                 {/* QR Code pour mobile */}
                 <div className="pt-3 border-t">
