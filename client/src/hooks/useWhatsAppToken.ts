@@ -29,16 +29,11 @@ export function useWhatsAppToken() {
     setError(null);
 
     try {
-      const response = await apiRequest('/api/wa/mint', {
-        method: 'POST',
-        body: JSON.stringify(params),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }) as TokenResponse;
+      const response = await apiRequest('POST', '/api/wa/mint', params);
+      const data = await response.json() as TokenResponse;
 
       setLoading(false);
-      return response;
+      return data;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to generate WhatsApp token';
       setError(errorMsg);
