@@ -7,6 +7,9 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
 import { z } from 'zod';
+import { getRecipientById } from '../services/waClickToChat';
+import { renderTemplate } from '../templates/waTemplates';
+import { buildWaUrl } from '../utils/waLink';
 
 // Unified connection types
 export type ConnectionType = 'student-parent' | 'teacher-student' | 'teacher-school' | 'family' | 'partnership';
@@ -128,6 +131,11 @@ export class UnifiedMessagingController {
         sentAt: new Date()
       });
 
+      // Send WhatsApp notification to recipient (async, don't block response)
+      this.sendWhatsAppNotification(messageData, userId, userRole, connectionType).catch(error => {
+        console.error('[UNIFIED_MESSAGING] WhatsApp notification failed:', error);
+      });
+
       res.status(201).json({
         success: true,
         message: 'Message sent successfully',
@@ -226,6 +234,95 @@ export class UnifiedMessagingController {
       console.error('[UNIFIED_MESSAGING] Send permission verification failed:', error);
       return false;
     }
+  }
+
+  /**
+   * Send WhatsApp notification about new message
+   */
+  private async sendWhatsAppNotification(
+    messageData: any,
+    senderId: number,
+    senderRole: string,
+    connectionType: ConnectionType
+  ): Promise<void> {
+    try {
+      // Get recipient ID from connection
+      const connection = await storage.getConnectionById(connectionType, messageData.connectionId);
+      if (!connection) {
+        console.log('[UNIFIED_MESSAGING] Connection not found, skipping WhatsApp notification');
+        return;
+      }
+
+      // Determine recipient ID (the person who didn't send the message)
+      const recipientId = connection.initiatorId === senderId ? connection.targetId : connection.initiatorId;
+      
+      // Get recipient info
+      const recipient = await getRecipientById(recipientId);
+      if (!recipient || !recipient.waOptIn || !recipient.whatsappE164) {
+        console.log(`[UNIFIED_MESSAGING] Recipient ${recipientId} not WhatsApp-enabled, skipping notification`);
+        return;
+      }
+
+      // Get sender info
+      const sender = await getRecipientById(senderId);
+      if (!sender) {
+        console.log(`[UNIFIED_MESSAGING] Sender ${senderId} not found, skipping notification`);
+        return;
+      }
+
+      const baseUrl = process.env.FRONTEND_URL || 'https://www.educafric.com';
+      const portalLink = `${baseUrl}/${recipient.role.toLowerCase()}/messages`;
+      
+      // Truncate message preview to 50 chars
+      const messagePreview = messageData.message.length > 50 
+        ? messageData.message.substring(0, 50) 
+        : messageData.message;
+
+      const senderName = `${sender.firstName} ${sender.lastName}`;
+      const lang = recipient.waLanguage || 'fr';
+
+      let templateId = 'new_message';
+      let templateData: Record<string, any> = {
+        sender_name: senderName,
+        sender_role: this.translateRole(senderRole, lang),
+        message_preview: messagePreview,
+        portal_link: portalLink
+      };
+
+      // Select template based on message type
+      if (messageData.messageType === 'homework' && messageData.homeworkDetails) {
+        templateId = 'message_homework';
+        templateData.teacher_name = senderName;
+        templateData.subject = messageData.homeworkDetails.subject;
+        templateData.due_date = new Date(messageData.homeworkDetails.dueDate).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US');
+      } else if (messageData.messageType === 'emergency' || messageData.emergencyLevel === 'high') {
+        templateId = 'urgent_message';
+      }
+
+      const message = renderTemplate(templateId, lang, templateData);
+      const waUrl = buildWaUrl(recipient.whatsappE164, message);
+
+      console.log(`[UNIFIED_MESSAGING] 💬 Message notification sent via WhatsApp to ${recipientId}`);
+      console.log(`[UNIFIED_MESSAGING] WhatsApp URL: ${waUrl}`);
+
+    } catch (error) {
+      console.error('[UNIFIED_MESSAGING] WhatsApp notification error:', error);
+    }
+  }
+
+  /**
+   * Translate role to French/English
+   */
+  private translateRole(role: string, lang: 'fr' | 'en'): string {
+    const translations: Record<string, Record<string, string>> = {
+      'Parent': { fr: 'Parent', en: 'Parent' },
+      'Student': { fr: 'Élève', en: 'Student' },
+      'Teacher': { fr: 'Enseignant', en: 'Teacher' },
+      'Freelancer': { fr: 'Freelance', en: 'Freelancer' },
+      'Director': { fr: 'Directeur', en: 'Director' },
+      'Commercial': { fr: 'Commercial', en: 'Sales' }
+    };
+    return translations[role]?.[lang] || role;
   }
 }
 
