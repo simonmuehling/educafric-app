@@ -20,24 +20,16 @@ DerivedData
 *.xcuserstate
 ios/.xcode.env.local
 
-# Android
-android/app/build
-android/app/release
-android/app/debug
-android/build
-android/.gradle
-android/local.properties
-android/gradle.properties
+# Android/IntelliJ
+build/
+.idea
+.gradle
+local.properties
 *.iml
 *.hprof
 .cxx/
 *.keystore
 !debug.keystore
-
-# Production keystore - NEVER COMMIT!
-educafric-release.keystore
-*.jks
-release.keystore
 
 # node.js
 node_modules/
@@ -45,38 +37,20 @@ npm-debug.log
 yarn-error.log
 
 # fastlane
-ios/fastlane/report.xml
-ios/fastlane/Preview.html
-ios/fastlane/screenshots
-ios/fastlane/test_output
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
 
 # Bundle artifact
 *.jsbundle
 
 # Ruby / CocoaPods
-ios/Pods/
-ios/Podfile.lock
+/ios/Pods/
+/vendor/bundle/
 
-# Environment
-.env
-.env.local
-.env.production
-
-# Metro
+# Temporary files created by Metro
 .metro-health-check*
 
-# Watchman
-.watchmanconfig
-
-# React Native
-.expo/
-.expo-shared/
-
-# Yarn
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-.pnp.*
+# testing
+/coverage
