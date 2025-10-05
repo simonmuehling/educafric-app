@@ -49,6 +49,9 @@ Preferred communication style: Simple, everyday language.
 - **Design**: Custom African-themed color palette, modern gradients, rounded cards, animated interactions using Nunito font. Unified UI/UX across all dashboards.
 - **Accessibility**: Progressive Web App (PWA) with strong mobile optimization.
 - **Mobile**: Separate React Native application (`educafric-mobile/`) for Android, sharing the backend.
+  - **Android Production Ready**: Build configuration with ProGuard obfuscation, release signing, AAB/APK generation
+  - **Deployment Guide**: Comprehensive setup for Google Play Store submission (keystore, versioning, optimization)
+  - **API Integration**: Connects to Express.js backend, session-based auth, production URL configuration ready
 
 ### Backend Architecture
 - **Framework**: Express.js for RESTful APIs.

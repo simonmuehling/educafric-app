@@ -12,7 +12,7 @@ react {
 }
 
 def enableSeparateBuildPerCPUArchitecture = false
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 def jscFlavor = 'org.webkit:android-jsc:+'
 def enableHermes = project.ext.react.get("enableHermes", true);
 
@@ -44,15 +44,30 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            if (project.hasProperty('EDUCAFRIC_RELEASE_STORE_FILE')) {
+                storeFile file(EDUCAFRIC_RELEASE_STORE_FILE)
+                storePassword EDUCAFRIC_RELEASE_STORE_PASSWORD
+                keyAlias EDUCAFRIC_RELEASE_KEY_ALIAS
+                keyPassword EDUCAFRIC_RELEASE_KEY_PASSWORD
+            } else {
+                // Fallback to debug signing for development
+                storeFile file('debug.keystore')
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            shrinkResources enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 

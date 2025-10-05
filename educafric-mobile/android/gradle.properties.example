@@ -1,0 +1,55 @@
+# Project-wide Gradle settings.
+
+# IDE (e.g. Android Studio) users:
+# Gradle settings configured through the IDE *will override*
+# any settings specified in this file.
+
+# AndroidX package structure to make it clearer which packages are bundled with the
+# Android operating system, and which are packaged with your app's APK
+android.useAndroidX=true
+# Automatically convert third-party libraries to use AndroidX
+android.enableJetifier=true
+
+# Version of flipper SDK to use with React Native
+FLIPPER_VERSION=0.182.0
+
+# Use this property to specify which architecture you want to build.
+# You can also override it from the CLI using
+# ./gradlew <task> -PreactNativeArchitectures=x86_64
+reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+
+# Use this property to enable support to the new architecture.
+# This will allow you to use TurboModules and the Fabric render in
+# your application. You should enable this flag either if you want
+# to write custom TurboModules/Fabric components OR use libraries that
+# are providing them.
+newArchEnabled=false
+
+# Use this property to enable or disable the Hermes JS engine.
+# If set to false, you will be using JSC instead.
+hermesEnabled=true
+
+# ======================================
+# PRODUCTION SIGNING CONFIGURATION
+# ======================================
+# IMPORTANT: Copy this file to gradle.properties and fill in your values
+# NEVER commit gradle.properties with real passwords to Git!
+# Add gradle.properties to .gitignore
+
+# Uncomment and fill in these values for release builds:
+#EDUCAFRIC_RELEASE_STORE_FILE=educafric-release.keystore
+#EDUCAFRIC_RELEASE_KEY_ALIAS=educafric
+#EDUCAFRIC_RELEASE_STORE_PASSWORD=YOUR_KEYSTORE_PASSWORD_HERE
+#EDUCAFRIC_RELEASE_KEY_PASSWORD=YOUR_KEY_PASSWORD_HERE
+
+# To generate a keystore, run:
+# keytool -genkeypair -v -storetype PKCS12 \
+#   -keystore educafric-release.keystore \
+#   -alias educafric \
+#   -keyalg RSA -keysize 2048 -validity 10000
+
+# SECURITY NOTES:
+# 1. Never share your keystore or passwords
+# 2. Store keystore file in a secure location with backup
+# 3. If you lose your keystore, you cannot update your app on Play Store!
+# 4. Use strong passwords for both keystore and key
