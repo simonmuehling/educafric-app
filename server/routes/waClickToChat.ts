@@ -119,6 +119,12 @@ router.post('/api/wa/mint', requireAuth, mintLimiter, async (req, res) => {
       });
     }
 
+    console.log('[WA_MINT] Recipient check:', { 
+      recipientId: parsed.recipientId, 
+      waOptIn: recipient.waOptIn,
+      whatsappE164: recipient.whatsappE164 
+    });
+
     if (!recipient.waOptIn) {
       return res.status(403).json({
         success: false,
