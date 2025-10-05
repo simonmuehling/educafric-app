@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // IMPORTANT: Choose the correct URL based on how you're testing:
 
 // Option 1: Testing on Mac (iOS Simulator or Expo Go)
-const API_BASE_URL = "https://api.educafric.com'";
+const API_BASE_URL = "https://educafric.com'";
 
 // Option 2: Testing in Android Emulator (virtual device on computer)
 // const API_BASE_URL = 'http://10.0.2.2:5000';
