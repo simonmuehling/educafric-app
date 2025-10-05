@@ -180,7 +180,32 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
 export function csrfWithAllowlist(req: any, res: any, next: any) {
   const p = req.path as string;
   const m = req.method as string;
-  if (CSRF_ALLOWLIST.some((fn) => fn(p, m))) return next();
+  
+  // Debug: log path to see what's being checked
+  if (p.includes('sandbox-login')) {
+    console.log('[CSRF_DEBUG] Path:', p, 'Method:', m);
+    console.log('[CSRF_DEBUG] Checking allowlist...');
+  }
+  
+  const isAllowed = CSRF_ALLOWLIST.some((fn) => {
+    const result = fn(p, m);
+    if (p.includes('sandbox-login') && result) {
+      console.log('[CSRF_DEBUG] ✅ Path allowed by allowlist');
+    }
+    return result;
+  });
+  
+  if (isAllowed) {
+    if (p.includes('sandbox-login')) {
+      console.log('[CSRF_DEBUG] ✅ Bypassing CSRF for:', p);
+    }
+    return next();
+  }
+  
+  if (p.includes('sandbox-login')) {
+    console.log('[CSRF_DEBUG] ❌ Path NOT in allowlist, applying CSRF');
+  }
+  
   return csrf(req, res, next);
 }
 
