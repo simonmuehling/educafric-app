@@ -63,7 +63,7 @@ Preferred communication style: Simple, everyday language.
 ### Key Features and System Design Choices
 - **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
 - **Educational Management System**: Grade management (African-style report cards), real-time attendance, homework assignment, flexible timetable management.
-- **Communication System**: Multi-channel notifications (Vonage SMS/WhatsApp, Hostinger SMTP Email, PWA push), bilingual, contextual templates.
+- **Communication System**: Multi-channel notifications (WhatsApp Click-to-Chat via wa.me links, Hostinger SMTP Email, PWA push), bilingual, contextual templates. SMS service removed - WhatsApp is the primary mobile notification method.
 - **Payment & Subscription Management**: Stripe integration for international payments, local African payment methods.
 - **Geolocation Services**: GPS tracking, geofencing, safe zone management, real-time monitoring, emergency alerts.
 - **Document Management System**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access.
@@ -86,7 +86,7 @@ Preferred communication style: Simple, everyday language.
 - **Neon Database**: Serverless PostgreSQL hosting.
 - **Stripe**: Payment processing.
 - **Firebase**: Authentication (Google OAuth).
-- **Vonage**: SMS and WhatsApp messaging APIs.
+- **WhatsApp**: Click-to-Chat integration via wa.me links (direct links, no API dependency).
 - **Hostinger**: SMTP services for email communication.
 
 ### Development Tools
