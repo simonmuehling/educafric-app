@@ -158,11 +158,22 @@ export function configureSecurityMiddleware(app: Express) {
 const csrf = csurf({ cookie: false });
 
 const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
+  // WhatsApp Click-to-Chat routes
   (p) => p === '/api/wa/mint',
   (p) => p.startsWith('/wa/'),
+  
+  // Webhook routes (external calls)
   (p, m) => p.startsWith('/webhooks/whatsapp') && (m === 'GET' || m === 'POST'),
   (p, m) => p.startsWith('/api/facebook/webhook') && (m === 'GET' || m === 'POST'),
-  (p) => p === '/api/health', // Health check exempt
+  
+  // Public authentication routes (no session yet)
+  (p) => p === '/api/auth/login',
+  (p) => p === '/api/auth/register',
+  (p) => p === '/api/auth/forgot-password',
+  (p) => p === '/api/auth/reset-password',
+  
+  // Health check
+  (p) => p === '/api/health',
 ];
 
 export function csrfWithAllowlist(req: any, res: any, next: any) {
