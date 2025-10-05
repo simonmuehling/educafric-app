@@ -2,6 +2,9 @@ import { hostingerMailService } from './hostingerMailService';
 import db from '../storage';
 import { users } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
+import { createWaToken, getRecipientById } from './waClickToChat';
+import { renderTemplate } from '../templates/waTemplates';
+import { buildWaUrl } from '../utils/waLink';
 
 interface AttendanceNotificationData {
   studentId: number;
@@ -72,9 +75,10 @@ class AttendanceNotificationService {
           const subject = language === 'fr' ? subjectFr : subjectEn;
           const message = language === 'fr' ? messageFr : messageEn;
 
-          // Send Email notification
+          // Send Email notification (with WhatsApp button if available)
           if (parent.email) {
-            const emailSent = await this.sendEmailNotification(parent.email, subject, message, data);
+            const waLink = await this.generateWhatsAppLink(parent.id, data, language as 'fr' | 'en');
+            const emailSent = await this.sendEmailNotification(parent.email, subject, message, data, waLink);
             if (emailSent) {
               channels.email = 'sent';
               totalSent++;
@@ -96,16 +100,13 @@ class AttendanceNotificationService {
             }
           }
 
-          // Send WhatsApp notification (if phone supports it)
-          if (parent.phone) {
-            const whatsappSent = await this.sendWhatsAppNotification(parent.phone, message);
-            if (whatsappSent) {
-              channels.whatsapp = 'sent';
-              totalSent++;
-            } else {
-              channels.whatsapp = 'failed';
-              errors.push(`WhatsApp failed for ${parent.phone}`);
-            }
+          // Generate WhatsApp Click-to-Chat link
+          const whatsappSent = await this.sendWhatsAppNotification(parent.id, data, language as 'fr' | 'en');
+          if (whatsappSent) {
+            channels.whatsapp = 'sent';
+            totalSent++;
+          } else {
+            channels.whatsapp = 'not_provided';
           }
 
           // Send PWA push notification
@@ -217,9 +218,9 @@ ${data.schoolName} Team`;
   }
 
   /**
-   * Send email notification
+   * Send email notification (with optional WhatsApp button)
    */
-  private async sendEmailNotification(email: string, subject: string, message: string, data: AttendanceNotificationData): Promise<boolean> {
+  private async sendEmailNotification(email: string, subject: string, message: string, data: AttendanceNotificationData, waLink?: string | null): Promise<boolean> {
     try {
       const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -246,7 +247,13 @@ ${data.schoolName} Team`;
             </div>
             
             <div style="text-align: center; margin-top: 30px;">
-              <a href="https://www.educafric.com" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              ${waLink ? `
+                <a href="${waLink}" style="background: #25D366; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 5px;">
+                  📱 Contacter sur WhatsApp
+                </a>
+                <br>
+              ` : ''}
+              <a href="https://www.educafric.com" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 5px;">
                 🔗 Accéder à Educafric
               </a>
             </div>
@@ -280,11 +287,68 @@ ${data.schoolName} Team`;
   }
 
   /**
-   * Send WhatsApp notification - DISABLED (Vonage WhatsApp service removed, use Click-to-Chat instead)
+   * Generate WhatsApp Click-to-Chat link for attendance notification
    */
-  private async sendWhatsAppNotification(phone: string, message: string): Promise<boolean> {
-    console.log('[ATTENDANCE_NOTIFICATIONS] Vonage WhatsApp notifications are disabled - use WhatsApp Click-to-Chat instead');
-    return false;
+  private async generateWhatsAppLink(parentId: number, data: AttendanceNotificationData, language: 'fr' | 'en' = 'fr'): Promise<string | null> {
+    try {
+      console.log(`[ATTENDANCE_NOTIFICATIONS] 📱 Generating WhatsApp link for parent ${parentId}`);
+      
+      // Get parent WhatsApp info
+      const recipient = await getRecipientById(parentId);
+      
+      if (!recipient?.whatsappE164 || !recipient?.waOptIn) {
+        console.log(`[ATTENDANCE_NOTIFICATIONS] ⚠️ Parent ${parentId} not WhatsApp-enabled`);
+        return null;
+      }
+      
+      // Prepare template data for absence_alert
+      const statusTranslations = {
+        present: { fr: 'présent(e)', en: 'present' },
+        absent: { fr: 'absent(e)', en: 'absent' },
+        late: { fr: 'en retard', en: 'late' },
+        excused: { fr: 'absent(e) excusé(e)', en: 'excused absence' }
+      };
+      
+      const templateData = {
+        student_name: data.studentName,
+        date: data.date,
+        reason: data.notes || statusTranslations[data.status][language]
+      };
+      
+      // Render the absence_alert template
+      const message = renderTemplate('absence_alert', language, templateData);
+      
+      // Build wa.me URL
+      const waUrl = buildWaUrl(recipient.whatsappE164, message);
+      
+      console.log(`[ATTENDANCE_NOTIFICATIONS] ✅ WhatsApp link generated for parent ${parentId}`);
+      return waUrl;
+      
+    } catch (error) {
+      console.error('[ATTENDANCE_NOTIFICATIONS] WhatsApp link generation error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Send WhatsApp notification using Click-to-Chat (embedded in email)
+   */
+  private async sendWhatsAppNotification(parentId: number, data: AttendanceNotificationData, language: 'fr' | 'en' = 'fr'): Promise<boolean> {
+    try {
+      const waLink = await this.generateWhatsAppLink(parentId, data, language);
+      
+      if (waLink) {
+        console.log(`[ATTENDANCE_NOTIFICATIONS] ✅ WhatsApp Click-to-Chat link ready for parent ${parentId}`);
+        return true;
+      }
+      
+      console.log(`[ATTENDANCE_NOTIFICATIONS] ⚠️ Could not generate WhatsApp link for parent ${parentId}`);
+      return false;
+      
+    } catch (error) {
+      console.error('[ATTENDANCE_NOTIFICATIONS] WhatsApp notification error:', error);
+      return false;
+    }
   }
 
   /**
