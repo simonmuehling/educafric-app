@@ -63,8 +63,14 @@ Preferred communication style: Simple, everyday language.
 ### Key Features and System Design Choices
 - **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
 - **Educational Management System**: Grade management (African-style report cards), real-time attendance, homework assignment, flexible timetable management.
-- **Communication System**: Multi-channel notifications (WhatsApp Click-to-Chat via wa.me links, Hostinger SMTP Email, PWA push), bilingual, contextual templates. SMS service removed - WhatsApp is the primary mobile notification method.
-  - **Attendance/Absence Notifications (Oct 2025)**: Automatic WhatsApp Click-to-Chat integration for student absences. When teachers/directors mark students as absent/late/excused, parents receive email notifications with embedded WhatsApp buttons linking to wa.me with pre-filled messages. Uses `absence_alert` template, opt-in based, supports bilingual FR/EN messages.
+- **Communication System**: Multi-channel notifications (WhatsApp Business API direct messaging + Click-to-Chat fallback, Hostinger SMTP Email, PWA push), bilingual, contextual templates. SMS service removed - WhatsApp is the primary mobile notification method.
+  - **Attendance/Absence Notifications (Oct 2025)**: Automatic WhatsApp direct messaging for student absences. When teachers/directors mark students as absent/late/excused:
+    - **Primary**: WhatsApp Business API sends direct message to parent's phone (instant, no email required)
+    - **Fallback**: Email notification with embedded WhatsApp Click-to-Chat button
+    - **Template**: Uses `absence` education template with student name, date, period, reason, monthly total
+    - **Configuration**: Requires Meta WhatsApp Business API credentials (WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_BUSINESS_ACCOUNT_ID)
+    - **Opt-in**: Parents must enable WhatsApp notifications (waOptIn) and provide E.164 phone number
+    - **Bilingual**: Supports FR/EN automatic language detection
 - **Payment & Subscription Management**: Stripe integration for international payments, local African payment methods.
 - **Geolocation Services**: GPS tracking, geofencing, safe zone management, real-time monitoring, emergency alerts.
 - **Document Management System**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access.
