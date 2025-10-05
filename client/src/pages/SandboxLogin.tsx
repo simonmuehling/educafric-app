@@ -101,21 +101,6 @@ const SandboxLogin = () => {
       details: language === 'fr' ? 'Prof de Maths/Physique, 8 ans d\'expérience' : 'Math/Physics teacher, 8 years experience'
     },
     {
-      id: 'freelancer',
-      name: 'Sophie Biya',
-      realName: language === 'fr' ? 'Répétiteur (Sophie Biya)' : 'Tutor (Sophie Biya)',
-      email: 'sandbox.freelancer@educafric.demo',
-      password: 'sandbox123',
-      icon: <User className="w-8 h-8" />,
-      color: 'bg-orange-500',
-      role: 'Freelancer',
-      description: t?.features?.freelancer,
-      modules: 11,
-      details: language === 'fr' ? 'Répétiteur de Junior, spécialiste examens' : 'Junior\'s tutor, exam specialist'
-    },
-
-
-    {
       id: 'director',
       name: 'Dr. Christiane Fouda',
       realName: language === 'fr' ? 'Directrice (Dr. Christiane Fouda)' : 'Director (Dr. Christiane Fouda)',
@@ -341,8 +326,8 @@ const SandboxLogin = () => {
               </div>
               <p className="text-sm text-gray-600 mb-4">
                 {language === 'fr' 
-                  ? 'Environnement éducatif isolé avec données fictives réalistes. Famille connectée: Marie Kamga (parent) ↔ Junior Kamga (élève, 3ème A) ↔ Paul Mvondo (enseignant) ↔ Sophie Biya (répétiteur).'
-                  : 'Isolated educational environment with realistic fictional data. Connected family: Marie Kamga (parent) ↔ Junior Kamga (student, Grade 9A) ↔ Paul Mvondo (teacher) ↔ Sophie Biya (tutor).'
+                  ? 'Environnement éducatif isolé avec données fictives réalistes. Famille connectée: Marie Kamga (parent) ↔ Junior Kamga (élève, 3ème A) ↔ Paul Mvondo (enseignant).'
+                  : 'Isolated educational environment with realistic fictional data. Connected family: Marie Kamga (parent) ↔ Junior Kamga (student, Grade 9A) ↔ Paul Mvondo (teacher).'
                 }
               </p>
               <div className="flex flex-wrap justify-center gap-2 text-xs">
