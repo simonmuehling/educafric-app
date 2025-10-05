@@ -60,12 +60,22 @@ export default function PasswordReset() {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          toast({
-            title: language === 'fr' ? 'Lien envoyé' : 'Link sent',
-            description: recoveryMethod === 'email' 
-              ? (language === 'fr' ? 'Vérifiez votre email' : 'Check your email')
-              : (language === 'fr' ? 'Lien WhatsApp envoyé' : 'WhatsApp link sent'),
-          });
+          // WhatsApp method returns a URL to open
+          if (recoveryMethod === 'whatsapp' && data.whatsappUrl) {
+            toast({
+              title: language === 'fr' ? 'WhatsApp ouvert' : 'WhatsApp opened',
+              description: language === 'fr' 
+                ? 'Cliquez sur le lien dans WhatsApp pour réinitialiser' 
+                : 'Click the link in WhatsApp to reset',
+            });
+            // Open WhatsApp with pre-filled message
+            window.open(data.whatsappUrl, '_blank');
+          } else {
+            toast({
+              title: language === 'fr' ? 'Email envoyé' : 'Email sent',
+              description: language === 'fr' ? 'Vérifiez votre email' : 'Check your email',
+            });
+          }
           setEmail('');
           setPhoneNumber('');
         } else {

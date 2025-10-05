@@ -840,15 +840,15 @@ router.get('/status', (req, res) => {
 
 // ============= PASSWORD RESET ENDPOINTS =============
 
-// POST /api/auth/forgot-password - Request password reset via email or SMS
+// POST /api/auth/forgot-password - Request password reset via email or WhatsApp
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email, phoneNumber, method } = req.body;
     
-    if (!method || !['email', 'sms'].includes(method)) {
+    if (!method || !['email', 'whatsapp'].includes(method)) {
       return res.status(400).json({
         success: false,
-        message: 'Method must be either email or sms'
+        message: 'Method must be either email or whatsapp'
       });
     }
 
@@ -872,14 +872,14 @@ router.post('/forgot-password', async (req, res) => {
       if (!phoneNumber) {
         return res.status(400).json({
           success: false,
-          message: 'Phone number is required for SMS method'
+          message: 'Phone number is required for WhatsApp method'
         });
       }
       identifier = phoneNumber;
       try {
-        // Find user by phone number - using a query since getUserByPhone doesn't exist
+        // Find user by phone number (WhatsApp number)
         const allUsers = await storage.getAllUsers();
-        user = allUsers.find((u: any) => u.phoneNumber === phoneNumber) || null;
+        user = allUsers.find((u: any) => u.phoneNumber === phoneNumber || u.whatsappE164 === phoneNumber) || null;
       } catch (error) {
         user = null;
       }
@@ -961,10 +961,44 @@ router.post('/forgot-password', async (req, res) => {
         }
 
       } else {
-        // SMS/WhatsApp reset no longer supported - only email reset available
-        return res.status(400).json({
-          success: false,
-          message: 'La réinitialisation par SMS n\'est plus disponible. Veuillez utiliser votre email.'
+        // WhatsApp reset
+        const resetUrl = `${process.env.FRONTEND_URL || 'https://educafric.com'}/reset-password/${resetToken}`;
+        
+        // Import WhatsApp service
+        const { createWaToken } = await import('../services/waClickToChat');
+        const { renderTemplate } = await import('../templates/waTemplates');
+        
+        // Get user's WhatsApp language preference (default to French)
+        const userLang = (user.waLanguage || 'fr') as 'fr' | 'en';
+        
+        // Create WhatsApp message with password reset link
+        const waMessage = renderTemplate('password_reset', userLang, {
+          user_name: user.firstName || user.name || 'Utilisateur',
+          reset_link: resetUrl
+        });
+        
+        // Create WhatsApp Click-to-Chat token (5 min expiry for security)
+        const waToken = await createWaToken({
+          recipientId: user.id,
+          templateId: 'password_reset',
+          templateData: {
+            user_name: user.firstName || user.name || 'Utilisateur',
+            reset_link: resetUrl
+          },
+          lang: userLang,
+          campaign: 'password_reset',
+          ttlSeconds: 300 // 5 minutes
+        });
+        
+        // Return WhatsApp Click-to-Chat URL for frontend to open
+        const waClickUrl = `${process.env.FRONTEND_URL || 'https://educafric.com'}/wa/${waToken}`;
+        
+        console.log(`[PASSWORD_RESET] WhatsApp reset initiated for user ${user.id}`);
+        
+        return res.json({
+          success: true,
+          message: 'Lien WhatsApp généré avec succès',
+          whatsappUrl: waClickUrl // Frontend will open this URL
         });
       }
 
