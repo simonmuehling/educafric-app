@@ -106,10 +106,13 @@ export default function PasswordReset() {
       return;
     }
 
+    console.log('[PASSWORD_RESET] Validating password length:', password.length, 'characters');
     if (password.length < 8) {
+      console.log('[PASSWORD_RESET] ❌ Password too short:', password.length);
       setError(getErrorMessage('passwordTooShort'));
       return;
     }
+    console.log('[PASSWORD_RESET] ✅ Password length valid');
 
     setIsResetLoading(true);
     try {
