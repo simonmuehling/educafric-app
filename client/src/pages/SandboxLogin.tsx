@@ -6,10 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import NotificationTester from '@/components/sandbox/NotificationTester';
 import { 
   User, GraduationCap, Users, BookOpen, Briefcase, 
-  Settings, Shield, School, Crown, Bell
+  Settings, Shield, School, Crown
 } from 'lucide-react';
 
 const SandboxLogin = () => {
@@ -17,7 +16,6 @@ const SandboxLogin = () => {
   const auth = useAuth();
   const [, setLocation] = useLocation();
   const [isLogging, setIsLogging] = useState<string | null>(null);
-  const [showNotificationTester, setShowNotificationTester] = useState(false);
 
   const text = {
     fr: {
@@ -112,31 +110,10 @@ const SandboxLogin = () => {
       description: t?.features?.director,
       modules: 13,
       details: language === 'fr' ? 'Directrice Générale, Doctorat en Éducation' : 'General Director, PhD in Education'
-    },
-    {
-      id: 'notifications',
-      name: language === 'fr' ? 'Test Notifications' : 'Notifications Testing',
-      realName: language === 'fr' ? 'Centre de Test Notifications' : 'Notification Testing Center',
-      email: '',
-      password: '',
-      icon: <Bell className="w-8 h-8" />,
-      color: 'bg-red-500',
-      role: 'NotificationTester',
-      description: language === 'fr' ? 'Test complet des notifications Email, SMS, WhatsApp et Push avec templates prédéfinis' : 'Complete testing for Email, SMS, WhatsApp and Push notifications with predefined templates',
-      modules: 4,
-      details: language === 'fr' ? 'Email, SMS, WhatsApp, Push • Templates • Historique' : 'Email, SMS, WhatsApp, Push • Templates • History',
-      isSpecial: true
-    },
-
+    }
   ];
 
   const handleSandboxLogin = async (profile: typeof sandboxProfiles[0]) => {
-    // Special handling for notification tester
-    if (profile.id === 'notifications') {
-      setShowNotificationTester(true);
-      return;
-    }
-
     setIsLogging(profile.id);
     
     try {
@@ -215,37 +192,7 @@ const SandboxLogin = () => {
           </div>
         </div>
 
-        {/* Conditional Content */}
-        {showNotificationTester ? (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center text-white shadow-lg">
-                  <Bell className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
-                    {language === 'fr' ? 'Centre de Test Notifications' : 'Notification Testing Center'}
-                  </h2>
-                  <p className="text-gray-600">
-                    {language === 'fr' ? 'Test complet des systèmes de notifications' : 'Complete notification systems testing'}
-                  </p>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowNotificationTester(false)}
-                className="flex items-center gap-2"
-              >
-                <Users className="w-4 h-4" />
-                {language === 'fr' ? 'Retour aux Profils' : 'Back to Profiles'}
-              </Button>
-            </div>
-            <NotificationTester />
-          </div>
-        ) : (
-
-          <div className="space-y-6">
+        <div className="space-y-6">
             {/* Profile Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {(Array.isArray(sandboxProfiles) ? sandboxProfiles : []).map((profile) => (
@@ -289,16 +236,12 @@ const SandboxLogin = () => {
                   onClick={() => handleSandboxLogin(profile)}
                   disabled={isLogging === profile.id}
                   className={`w-full ${profile.color} hover:opacity-90 text-white font-medium`}
+                  data-testid={`button-login-${profile.id}`}
                 >
                   {isLogging === profile.id ? (
                     <>
                       <GraduationCap className="w-4 h-4 mr-2 animate-spin" />
                       {language === 'fr' ? 'Connexion...' : 'Connecting...'}
-                    </>
-                  ) : profile.id === 'notifications' ? (
-                    <>
-                      <Bell className="w-4 h-4 mr-2" />
-                      {language === 'fr' ? 'Ouvrir Test Notifications' : 'Open Notification Testing'}
                     </>
                   ) : (
                     <>
@@ -312,7 +255,6 @@ const SandboxLogin = () => {
           ))}
             </div>
           </div>
-        )}
 
         {/* Footer Info */}
         <div className="mt-12 text-center">
