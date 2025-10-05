@@ -429,7 +429,7 @@ export default function ReportCardPreview({
                   <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'COMPÉTENCES ÉVALUÉES' : 'COMPETENCIES EVALUATED'}
                   </th>
-                  {!isTechnicalSchool && (
+                  {!isTechnicalSchool ? (
                     <>
                       <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                         {language === 'fr' ? 'N/20' : 'MK/20'}
@@ -438,6 +438,10 @@ export default function ReportCardPreview({
                         {language === 'fr' ? 'M/20' : 'AV/20'}
                       </th>
                     </>
+                  ) : (
+                    <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                      {language === 'fr' ? 'Note/20' : 'Mark/20'}
+                    </th>
                   )}
                   <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     Coef
@@ -517,7 +521,7 @@ export default function ReportCardPreview({
                           })()}
                         </div>
                       </td>
-                      {!isTechnicalSchool && (
+                      {!isTechnicalSchool ? (
                         <>
                           <td className="border border-black p-0.5 text-center text-[6px]">
                             {mk20}
@@ -526,6 +530,10 @@ export default function ReportCardPreview({
                             {av20}
                           </td>
                         </>
+                      ) : (
+                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">
+                          {av20}
+                        </td>
                       )}
                       <td className="border border-black p-0.5 text-center text-[6px]">
                         {r.coef}
@@ -561,11 +569,13 @@ export default function ReportCardPreview({
                 <tr className="bg-gray-200">
                   <td className="border border-black p-0.5 font-bold text-[6px] text-center">TOTAL</td>
                   <td className="border border-black p-1"></td>
-                  {!isTechnicalSchool && (
+                  {!isTechnicalSchool ? (
                     <>
                       <td className="border border-black p-1"></td>
                       <td className="border border-black p-1"></td>
                     </>
+                  ) : (
+                    <td className="border border-black p-1"></td>
                   )}
                   <td className="border border-black p-0.5 text-center font-bold text-[6px]">{totalCoef}</td>
                   <td className="border border-black p-0.5 text-center font-bold text-[6px]">{round2(totalMxCoef)}</td>
