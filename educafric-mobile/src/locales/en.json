@@ -1,0 +1,40 @@
+{
+  "common": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back",
+    "loginToContinue": "Login to continue",
+    "invalidCredentials": "Invalid email or password",
+    "networkError": "Network error. Please check your connection."
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "overview": "Overview",
+    "attendance": "Attendance",
+    "grades": "Grades",
+    "homework": "Homework",
+    "timetable": "Timetable",
+    "library": "Library",
+    "documents": "Documents"
+  },
+  "roles": {
+    "director": "Director",
+    "teacher": "Teacher",
+    "student": "Student",
+    "parent": "Parent",
+    "freelancer": "Freelancer",
+    "commercial": "Commercial"
+  }
+}

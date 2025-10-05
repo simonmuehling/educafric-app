@@ -1,0 +1,40 @@
+{
+  "common": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès"
+  },
+  "auth": {
+    "welcomeBack": "Bon retour",
+    "loginToContinue": "Connectez-vous pour continuer",
+    "invalidCredentials": "Email ou mot de passe invalide",
+    "networkError": "Erreur réseau. Vérifiez votre connexion."
+  },
+  "dashboard": {
+    "welcome": "Bienvenue",
+    "overview": "Aperçu",
+    "attendance": "Présence",
+    "grades": "Notes",
+    "homework": "Devoirs",
+    "timetable": "Emploi du temps",
+    "library": "Bibliothèque",
+    "documents": "Documents"
+  },
+  "roles": {
+    "director": "Directeur",
+    "teacher": "Enseignant",
+    "student": "Étudiant",
+    "parent": "Parent",
+    "freelancer": "Freelance",
+    "commercial": "Commercial"
+  }
+}
