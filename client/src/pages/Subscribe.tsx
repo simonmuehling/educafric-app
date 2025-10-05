@@ -412,6 +412,9 @@ const Subscribe: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [stripeLoaded, setStripeLoaded] = useState<any>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+  
+  // 🔧 MODE MAINTENANCE ACTIVÉ
+  const MAINTENANCE_MODE = true;
 
   // 🚀 Charger Stripe uniquement quand on utilise la carte de crédit
   useEffect(() => {
@@ -511,6 +514,65 @@ const Subscribe: React.FC = () => {
     };
     return labels[feature] || feature;
   };
+
+  // 🔧 AFFICHAGE MODE MAINTENANCE
+  if (MAINTENANCE_MODE) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/20 p-4">
+        <div className="container mx-auto max-w-4xl pt-8">
+          {/* Language Toggle */}
+          <div className="flex justify-end mb-4">
+            <LanguageToggle variant="buttons" size="md" />
+          </div>
+          <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-orange-200 dark:border-orange-800">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-xl flex items-center justify-center">
+                <AlertCircle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+              </div>
+              <CardTitle className="text-2xl text-orange-800 dark:text-orange-200">
+                🔧 Maintenance en cours
+              </CardTitle>
+              <CardDescription className="text-lg mt-2">
+                Maintenance in Progress
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-6">
+              <div className="space-y-4">
+                <p className="text-gray-700 dark:text-gray-300 text-lg">
+                  <strong>Français:</strong> Notre système de paiement est actuellement en maintenance pour améliorer votre expérience.
+                </p>
+                <p className="text-gray-700 dark:text-gray-300 text-lg">
+                  <strong>English:</strong> Our payment system is currently under maintenance to improve your experience.
+                </p>
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                  <p className="text-blue-800 dark:text-blue-200 font-semibold">
+                    ⏰ Le service sera bientôt disponible
+                  </p>
+                  <p className="text-blue-600 dark:text-blue-300">
+                    ⏰ Service will be available soon
+                  </p>
+                </div>
+              </div>
+              
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  En attendant, vous pouvez retourner à la page d'accueil<br />
+                  Meanwhile, you can return to the home page
+                </p>
+                <Button 
+                  onClick={() => window.location.href = '/'}
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                  data-testid="button-back-home"
+                >
+                  🏠 Retour à l'accueil / Back to Home
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (subscriptionStatus?.success && subscriptionStatus?.isActive) {
     return (

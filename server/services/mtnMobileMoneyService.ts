@@ -105,37 +105,26 @@ export class MTNMobileMoneyService {
   private readonly callbackBase: string;
 
   private constructor() {
+    // ⚠️ SERVICE DÉSACTIVÉ - EN MAINTENANCE
+    console.log('[Y-NOTE] ⚠️ Service MTN Mobile Money temporairement désactivé pour maintenance');
+    
     // Déterminer l'environnement (sandbox par défaut)
     this.environment = process.env.MOMO_ENV || 'sandbox';
     this.callbackBase = process.env.BASE_URL || 'https://your-replit-app.replit.dev';
     
-    // Configuration Y-Note (même endpoints pour sandbox et production)
+    // Configuration Y-Note DÉSACTIVÉE - Credentials vides pour bloquer les appels API
     this.config = {
-      CLIENT_ID: process.env.MOMO_USER_ID || process.env.MTN_CLIENT_ID || '',
-      CLIENT_SECRET: process.env.MOMO_API_KEY || process.env.MTN_CLIENT_SECRET || '',
-      CUSTOMER_KEY: process.env.MOMO_SUBSCRIPTION_KEY || process.env.MTN_CUSTOMER_KEY || '',
-      CUSTOMER_SECRET: process.env.MOMO_CUSTOMER_SECRET || process.env.MTN_CUSTOMER_SECRET || '',
+      CLIENT_ID: '', // DÉSACTIVÉ
+      CLIENT_SECRET: '', // DÉSACTIVÉ
+      CUSTOMER_KEY: '', // DÉSACTIVÉ
+      CUSTOMER_SECRET: '', // DÉSACTIVÉ
       TOKEN_URL: 'https://omapi-token.ynote.africa/oauth2/token',
       PAYMENT_URL: 'https://omapi.ynote.africa/prod/webpayment',
       STATUS_URL: 'https://omapi.ynote.africa/prod/webpaymentmtn/status'
     };
     
-    // Validation des credentials
-    if (!this.config.CLIENT_ID || !this.config.CLIENT_SECRET || !this.config.CUSTOMER_KEY || !this.config.CUSTOMER_SECRET) {
-      console.error('[Y-NOTE] ❌ Y-Note credentials not found for environment:', this.environment);
-      console.error('[Y-NOTE] 🔍 Expected variables:');
-      console.error('[Y-NOTE] - MOMO_USER_ID (or MTN_CLIENT_ID) - ClientId');
-      console.error('[Y-NOTE] - MOMO_API_KEY (or MTN_CLIENT_SECRET) - ClientSecret');
-      console.error('[Y-NOTE] - MOMO_SUBSCRIPTION_KEY (or MTN_CUSTOMER_KEY) - CustomerKey');
-      console.error('[Y-NOTE] - MOMO_CUSTOMER_SECRET (or MTN_CUSTOMER_SECRET) - CustomerSecret');
-      throw new Error(`Y-Note MTN credentials not configured for ${this.environment}`);
-    }
-    
-    console.log(`[Y-NOTE] ✅ Y-Note MTN Mobile Money API initialized (${this.environment})`);
-    console.log(`[Y-NOTE] 🔗 Token URL: ${this.config.TOKEN_URL}`);
-    console.log(`[Y-NOTE] 🔗 Payment URL: ${this.config.PAYMENT_URL}`);
-    console.log(`[Y-NOTE] 🔑 Client ID: ${this.config.CLIENT_ID.substring(0, 8)}...`);
-    console.log(`[Y-NOTE] 🔑 Customer Key: ${this.config.CUSTOMER_KEY.substring(0, 8)}...`);
+    // Service désactivé - pas d'initialisation nécessaire
+    console.log('[Y-NOTE] 🔧 Service en maintenance - Les paiements MTN Mobile Money seront bientôt disponibles');
   }
 
   public static getInstance(): MTNMobileMoneyService {
