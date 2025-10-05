@@ -106,59 +106,53 @@ router.post('/api/user/whatsapp-config', requireAuth, async (req, res) => {
       updateData.whatsappE164 = parsed.whatsappE164;
     }
 
-    // UPSERT: Try to update, if fails (sandbox user), insert minimal record
-    try {
-      const result = await db
+    // UPSERT: Check if user exists first, then insert or update
+    const [existing] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    
+    if (existing) {
+      // User exists, update
+      await db
         .update(users)
         .set(updateData)
         .where(eq(users.id, userId));
-      
-      // Check if update affected any rows (drizzle doesn't return rowCount easily, so we check differently)
-      // For sandbox users (9001-9006), we need to insert if they don't exist
+      console.log('[WA_CONFIG_UPDATE] Updated existing user:', userId);
+    } else {
+      // User doesn't exist - for sandbox users (9001-9006), create them
       if (userId >= 9001 && userId <= 9006) {
-        // Check if user exists
-        const [existing] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        const sandboxData: Record<number, { email: string; role: string; firstName: string; lastName: string }> = {
+          9001: { email: 'sandbox.parent@educafric.demo', role: 'Parent', firstName: 'Marie', lastName: 'Kamga' },
+          9002: { email: 'sandbox.teacher@educafric.demo', role: 'Teacher', firstName: 'Paul', lastName: 'Mvondo' },
+          9003: { email: 'sandbox.freelancer@educafric.demo', role: 'Freelancer', firstName: 'Sophie', lastName: 'Biya' },
+          9004: { email: 'sandbox.student@educafric.demo', role: 'Student', firstName: 'Junior', lastName: 'Kamga' },
+          9005: { email: 'sandbox.admin@educafric.demo', role: 'Admin', firstName: 'Carine', lastName: 'Nguetsop' },
+          9006: { email: 'sandbox.director@educafric.demo', role: 'Director', firstName: 'Michel', lastName: 'Atangana' }
+        };
         
-        if (!existing) {
-          // Sandbox user doesn't exist in DB, create minimal record
-          const sandboxEmails: Record<number, string> = {
-            9001: 'sandbox.parent@educafric.demo',
-            9002: 'sandbox.teacher@educafric.demo',
-            9003: 'sandbox.freelancer@educafric.demo',
-            9004: 'sandbox.student@educafric.demo',
-            9005: 'sandbox.admin@educafric.demo',
-            9006: 'sandbox.director@educafric.demo'
-          };
-          
-          const sandboxRoles: Record<number, string> = {
-            9001: 'Parent',
-            9002: 'Teacher',
-            9003: 'Freelancer',
-            9004: 'Student',
-            9005: 'Admin',
-            9006: 'Director'
-          };
-          
-          await db.insert(users).values({
-            id: userId,
-            email: sandboxEmails[userId] || `sandbox-${userId}@educafric.demo`,
-            role: sandboxRoles[userId] || 'Student',
-            firstName: 'Sandbox',
-            lastName: 'User',
-            schoolId: 999,
-            password: 'sandbox', // Dummy password, not used for sandbox login
-            ...updateData
-          });
-          
-          console.log('[WA_CONFIG_INSERT] Created sandbox user in DB:', userId);
-        }
+        const userData = sandboxData[userId] || {
+          email: `sandbox-${userId}@educafric.demo`,
+          role: 'Student',
+          firstName: 'Sandbox',
+          lastName: 'User'
+        };
+        
+        await db.insert(users).values({
+          id: userId,
+          email: userData.email,
+          role: userData.role,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          schoolId: 999,
+          password: 'sandbox', // Dummy password, not used for sandbox login
+          ...updateData
+        });
+        
+        console.log('[WA_CONFIG_INSERT] Created sandbox user in DB:', { userId, email: userData.email });
+      } else {
+        throw new Error('User not found and not a sandbox user');
       }
-    } catch (error) {
-      console.error('[WA_CONFIG_UPDATE] Error:', error);
-      throw error;
     }
 
-    console.log('[WA_CONFIG_UPDATE] User WhatsApp config updated:', {
+    console.log('[WA_CONFIG_SUCCESS] WhatsApp config saved:', {
       userId,
       waOptIn: parsed.waOptIn,
       hasPhone: !!parsed.whatsappE164
