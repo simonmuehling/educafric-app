@@ -89,6 +89,55 @@ export const WA_TEMPLATES: MessageTemplate = {
   password_reset: {
     fr: "🔐 Réinitialisation de mot de passe Educafric\n\nBonjour {user_name},\n\nVous avez demandé la réinitialisation de votre mot de passe.\n\n✅ Cliquez sur ce lien pour réinitialiser : {reset_link}\n\n⏰ Ce lien expire dans 1 heure.\n\n❌ Si vous n'avez pas demandé cette réinitialisation, ignorez ce message.\n\n— Équipe Educafric",
     en: "🔐 Educafric Password Reset\n\nHello {user_name},\n\nYou requested a password reset.\n\n✅ Click this link to reset: {reset_link}\n\n⏰ This link expires in 1 hour.\n\n❌ If you didn't request this, ignore this message.\n\n— Educafric Team"
+  },
+
+  // ========== GEOLOCATION ALERTS ==========
+  
+  geolocation_zone_exit: {
+    fr: "⚠️ ALERTE GÉOLOCALISATION\n\n{student_name} est sorti(e) de la zone de sécurité \"{zone_name}\" à {time}.\n\n📍 Position actuelle : {location_url}\n\n🔗 Voir sur Educafric : {portal_link}\n\n— Système de sécurité Educafric",
+    en: "⚠️ GEOLOCATION ALERT\n\n{student_name} exited the safe zone \"{zone_name}\" at {time}.\n\n📍 Current position: {location_url}\n\n🔗 View on Educafric: {portal_link}\n\n— Educafric Security System"
+  },
+
+  geolocation_zone_entry: {
+    fr: "✅ NOTIFICATION GÉOLOCALISATION\n\n{student_name} est entré(e) dans la zone \"{zone_name}\" à {time}.\n\n📍 Position : {location_url}\n\n🔗 Voir sur Educafric : {portal_link}\n\n— Système de sécurité Educafric",
+    en: "✅ GEOLOCATION NOTIFICATION\n\n{student_name} entered zone \"{zone_name}\" at {time}.\n\n📍 Position: {location_url}\n\n🔗 View on Educafric: {portal_link}\n\n— Educafric Security System"
+  },
+
+  geolocation_emergency: {
+    fr: "🚨 ALERTE URGENCE !\n\n{student_name} a activé le bouton d'urgence à {time}.\n\n📍 Position d'urgence : {location_url}\n\n🔗 Agir immédiatement : {portal_link}\n\n⚠️ CONTACTER LES AUTORITÉS SI NÉCESSAIRE\n\n— Système d'urgence Educafric",
+    en: "🚨 EMERGENCY ALERT!\n\n{student_name} activated the emergency button at {time}.\n\n📍 Emergency position: {location_url}\n\n🔗 Take action immediately: {portal_link}\n\n⚠️ CONTACT AUTHORITIES IF NECESSARY\n\n— Educafric Emergency System"
+  },
+
+  geolocation_low_battery: {
+    fr: "🔋 ALERTE BATTERIE FAIBLE\n\n{student_name} - Dispositif GPS : batterie à {battery_level}%.\n\n📍 Dernière position connue : {location_url}\n\n⚠️ Rechargez le dispositif rapidement.\n\n— Système de sécurité Educafric",
+    en: "🔋 LOW BATTERY ALERT\n\n{student_name} - GPS Device: battery at {battery_level}%.\n\n📍 Last known position: {location_url}\n\n⚠️ Recharge the device quickly.\n\n— Educafric Security System"
+  },
+
+  geolocation_offline: {
+    fr: "📡 ALERTE CONNEXION\n\n{student_name} - Dispositif GPS hors ligne depuis {duration}.\n\n📍 Dernière position : {location_url} ({last_update})\n\n🔗 Vérifier sur Educafric : {portal_link}\n\n— Système de sécurité Educafric",
+    en: "📡 CONNECTION ALERT\n\n{student_name} - GPS Device offline for {duration}.\n\n📍 Last position: {location_url} ({last_update})\n\n🔗 Check on Educafric: {portal_link}\n\n— Educafric Security System"
+  },
+
+  // ========== MESSAGING NOTIFICATIONS ==========
+
+  new_message: {
+    fr: "💬 NOUVEAU MESSAGE\n\nVous avez reçu un message de {sender_name} ({sender_role}).\n\n📄 Aperçu : \"{message_preview}...\"\n\n🔗 Lire le message complet : {portal_link}\n\n— Messagerie Educafric",
+    en: "💬 NEW MESSAGE\n\nYou received a message from {sender_name} ({sender_role}).\n\n📄 Preview: \"{message_preview}...\"\n\n🔗 Read full message: {portal_link}\n\n— Educafric Messaging"
+  },
+
+  urgent_message: {
+    fr: "🚨 MESSAGE URGENT !\n\nMessage urgent de {sender_name} ({sender_role}).\n\n📄 \"{message_preview}...\"\n\n🔗 Répondre immédiatement : {portal_link}\n\n⚠️ Nécessite votre attention\n\n— Messagerie Educafric",
+    en: "🚨 URGENT MESSAGE!\n\nUrgent message from {sender_name} ({sender_role}).\n\n📄 \"{message_preview}...\"\n\n🔗 Reply immediately: {portal_link}\n\n⚠️ Requires your attention\n\n— Educafric Messaging"
+  },
+
+  message_homework: {
+    fr: "📚 DEVOIRS ASSIGNÉS\n\n{teacher_name} a envoyé des devoirs pour {subject}.\n\n📄 Détails : \"{message_preview}...\"\n📅 À rendre le : {due_date}\n\n🔗 Voir les devoirs : {portal_link}\n\n— Educafric",
+    en: "📚 HOMEWORK ASSIGNED\n\n{teacher_name} sent homework for {subject}.\n\n📄 Details: \"{message_preview}...\"\n📅 Due date: {due_date}\n\n🔗 View homework: {portal_link}\n\n— Educafric"
+  },
+
+  message_with_attachment: {
+    fr: "📎 NOUVEAU MESSAGE AVEC FICHIER\n\n{sender_name} ({sender_role}) vous a envoyé un message avec {attachment_count} fichier(s).\n\n📄 Message : \"{message_preview}...\"\n\n🔗 Ouvrir et télécharger : {portal_link}\n\n— Messagerie Educafric",
+    en: "📎 NEW MESSAGE WITH FILE\n\n{sender_name} ({sender_role}) sent you a message with {attachment_count} file(s).\n\n📄 Message: \"{message_preview}...\"\n\n🔗 Open and download: {portal_link}\n\n— Educafric Messaging"
   }
 };
 
