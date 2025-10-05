@@ -12,7 +12,7 @@ import { marked } from "marked";
 import cookieParser from "cookie-parser";
 
 // Import middleware
-import { configureSecurityMiddleware, productionSessionConfig } from "./middleware/security";
+import { configureSecurityMiddleware, productionSessionConfig, csrfWithAllowlist, attachCsrfTokenRoute } from "./middleware/security";
 import { requireAuth, requireAnyRole } from "./middleware/auth";
 import { checkSubscriptionFeature, checkFreemiumLimits } from "./middleware/subscriptionMiddleware";
 
@@ -187,6 +187,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize passport middleware - MUST be after session middleware
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // CSRF protection with WhatsApp/webhook exemptions - MUST be after session/passport, before routes
+  app.use(csrfWithAllowlist);
+  attachCsrfTokenRoute(app); // Expose GET /api/csrf-token
+  console.log('[SECURITY] CSRF protection enabled with WhatsApp exemptions (/api/wa/mint, /wa/:token)');
   
   // Add connection tracking middleware for authenticated users
   app.use('/api', trackConnection);
