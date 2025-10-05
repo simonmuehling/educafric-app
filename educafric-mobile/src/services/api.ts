@@ -1,10 +1,10 @@
 import axios, {AxiosInstance} from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// API Configuration - UPDATE THIS URL
+// API Configuration
 const API_BASE_URL = __DEV__
-  ? 'http://10.0.2.2:5000' // Android emulator localhost
-  : 'https://educafric.com'; // Production
+  ? 'http://10.0.2.2:5000' // Android emulator (for local testing, change to your computer's IP for physical devices)
+  : 'https://educafric.com'; // Production domain
 
 export interface User {
   id: number;
