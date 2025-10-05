@@ -1,0 +1,27 @@
+{
+  "auth": {
+    "login": "Login",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Sign In",
+    "logout": "Logout",
+    "deleteAccount": "Delete my account",
+    "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone.",
+    "deleteSuccess": "Account deleted successfully"
+  },
+  "dashboard": {
+    "welcome": "Welcome"
+  },
+  "permissions": {
+    "notificationsTitle": "Allow Notifications",
+    "notificationsMessage": "We use notifications to inform you about important messages, homework, and school updates. You can change this setting anytime.",
+    "allow": "Allow",
+    "notNow": "Not now"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  }
+}
