@@ -991,7 +991,9 @@ router.post('/forgot-password', async (req, res) => {
         });
         
         // Return WhatsApp Click-to-Chat URL for frontend to open
-        const waClickUrl = `${process.env.FRONTEND_URL || 'https://educafric.com'}/wa/${waToken}`;
+        // This is a backend route that redirects to WhatsApp
+        const baseUrl = req.protocol + '://' + req.get('host');
+        const waClickUrl = `${baseUrl}/wa/${waToken}`;
         
         console.log(`[PASSWORD_RESET] WhatsApp reset initiated for user ${user.id}`);
         
