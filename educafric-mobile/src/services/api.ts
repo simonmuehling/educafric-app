@@ -2,22 +2,18 @@ import axios, { AxiosResponse } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // API Configuration
-// IMPORTANT: Choose the correct URL based on how you're testing:
+// Production: Points to your published Educafric platform
+const API_BASE_URL = 'https://educafric.com';
 
-// Option 1: Testing on Mac (iOS Simulator or Expo Go)
-const API_BASE_URL = "https://educafric.com'";
-
-// Option 2: Testing in Android Emulator (virtual device on computer)
+// Development Options (uncomment for local testing):
+// Option 1: Testing in Android Emulator
 // const API_BASE_URL = 'http://10.0.2.2:5000';
 
-// Option 3: Testing on Real Device (uncomment line below and replace YOUR_COMPUTER_IP)
-// const API_BASE_URL = 'http://YOUR_COMPUTER_IP:5000';
+// Option 2: Testing on Real Device (replace with your computer's IP)
+// const API_BASE_URL = 'http://192.168.1.45:5000';
 
-// To find YOUR_COMPUTER_IP:
-// 1. Mac: Open Terminal → type "ifconfig en0 | grep inet" → look for "inet" address
-// 2. Windows: Open Command Prompt → type "ipconfig" → look for "IPv4 Address"
-// 3. Linux: Open Terminal → type "hostname -I"
-// Example: if your computer's IP is 192.168.1.45, use 'http://192.168.1.45:5000'
+// Option 3: Replit Development
+// const API_BASE_URL = 'https://your-repl-name.replit.app';
 
 // Create axios instance
 const apiClient = axios.create({
