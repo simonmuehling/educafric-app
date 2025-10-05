@@ -898,8 +898,8 @@ router.post('/forgot-password', async (req, res) => {
 
     // Store reset token in user (you may want to create a separate table for this)
     await storage.updateUser(user.id, {
-      resetToken,
-      resetExpiry: resetExpiry.toISOString()
+      passwordResetToken: resetToken,
+      passwordResetExpiry: resetExpiry
     });
 
     try {
@@ -1060,7 +1060,7 @@ router.post('/reset-password', async (req, res) => {
       // Email reset with token
       user = await storage.getUserByPasswordResetToken(token);
       
-      if (!user || !user.resetExpiry || new Date(user.resetExpiry) < new Date()) {
+      if (!user || !user.passwordResetExpiry || new Date(user.passwordResetExpiry) < new Date()) {
         return res.status(400).json({
           success: false,
           message: 'Token de réinitialisation invalide ou expiré'
@@ -1094,8 +1094,8 @@ router.post('/reset-password', async (req, res) => {
     // Update password and clear reset tokens
     await storage.updateUser(user.id, {
       password: hashedPassword,
-      resetToken: null,
-      resetExpiry: null,
+      passwordResetToken: null,
+      passwordResetExpiry: null,
       smsResetCode: null,
       smsResetExpiry: null
     });
