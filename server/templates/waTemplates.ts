@@ -83,6 +83,12 @@ export const WA_TEMPLATES: MessageTemplate = {
   portal_access: {
     fr: "Problème de connexion au portail Educafric. Email : {user_email}.",
     en: "Educafric portal login issue. Email: {user_email}."
+  },
+  
+  // Password reset via WhatsApp
+  password_reset: {
+    fr: "🔐 Réinitialisation de mot de passe Educafric\n\nBonjour {user_name},\n\nVous avez demandé la réinitialisation de votre mot de passe.\n\n✅ Cliquez sur ce lien pour réinitialiser : {reset_link}\n\n⏰ Ce lien expire dans 1 heure.\n\n❌ Si vous n'avez pas demandé cette réinitialisation, ignorez ce message.\n\n— Équipe Educafric",
+    en: "🔐 Educafric Password Reset\n\nHello {user_name},\n\nYou requested a password reset.\n\n✅ Click this link to reset: {reset_link}\n\n⏰ This link expires in 1 hour.\n\n❌ If you didn't request this, ignore this message.\n\n— Educafric Team"
   }
 };
 
