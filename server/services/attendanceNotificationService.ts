@@ -5,7 +5,6 @@ import { eq, and } from 'drizzle-orm';
 import { createWaToken, getRecipientById } from './waClickToChat';
 import { renderTemplate } from '../templates/waTemplates';
 import { buildWaUrl } from '../utils/waLink';
-import { whatsappService } from './whatsappService';
 
 interface AttendanceNotificationData {
   studentId: number;
@@ -333,65 +332,25 @@ ${data.schoolName} Team`;
   }
 
   /**
-   * Send WhatsApp notification directly using Meta WhatsApp Business API
+   * Send WhatsApp notification using Click-to-Chat (instant, free, no API needed)
+   * Generates a wa.me link that the parent can click from their email
    */
   private async sendWhatsAppNotification(parentId: number, data: AttendanceNotificationData, language: 'fr' | 'en' = 'fr'): Promise<boolean> {
     try {
-      // Get parent WhatsApp info
-      const recipient = await getRecipientById(parentId);
+      const waLink = await this.generateWhatsAppLink(parentId, data, language);
       
-      if (!recipient?.whatsappE164 || !recipient?.waOptIn) {
-        console.log(`[ATTENDANCE_NOTIFICATIONS] ⚠️ Parent ${parentId} not WhatsApp-enabled`);
-        return false;
+      if (waLink) {
+        console.log(`[ATTENDANCE_NOTIFICATIONS] ✅ WhatsApp Click-to-Chat link generated for parent ${parentId}`);
+        return true; // Link is embedded in email, parent can click to contact school
       }
       
-      // Format phone number (remove + for WhatsApp API)
-      const phoneNumber = recipient.whatsappE164.replace('+', '');
-      
-      // Prepare data for WhatsApp template
-      const templateData = {
-        studentName: data.studentName,
-        date: data.date,
-        period: 'Journée', // Could be extracted from data if available
-        reason: data.notes || this.getStatusLabel(data.status, language),
-        monthlyTotal: '3', // Would be fetched from DB in real implementation
-        schoolName: data.schoolName,
-        schoolPhone: '+237 657 004 011' // School contact
-      };
-      
-      // Send via WhatsApp Business API
-      const result = await whatsappService.sendEducationNotification(
-        phoneNumber,
-        'absence',
-        templateData,
-        language
-      );
-      
-      if (result.success) {
-        console.log(`[ATTENDANCE_NOTIFICATIONS] ✅ WhatsApp sent directly to parent ${parentId}: ${result.messageId}`);
-        return true;
-      } else {
-        console.log(`[ATTENDANCE_NOTIFICATIONS] ❌ WhatsApp failed for parent ${parentId}: ${result.error}`);
-        return false;
-      }
+      console.log(`[ATTENDANCE_NOTIFICATIONS] ⚠️ Parent ${parentId} doesn't have WhatsApp configured`);
+      return false;
       
     } catch (error) {
-      console.error('[ATTENDANCE_NOTIFICATIONS] WhatsApp notification error:', error);
+      console.error('[ATTENDANCE_NOTIFICATIONS] WhatsApp link generation error:', error);
       return false;
     }
-  }
-  
-  /**
-   * Get status label in specified language
-   */
-  private getStatusLabel(status: string, language: 'fr' | 'en'): string {
-    const labels = {
-      absent: { fr: 'Absent(e)', en: 'Absent' },
-      late: { fr: 'En retard', en: 'Late' },
-      excused: { fr: 'Absence excusée', en: 'Excused absence' },
-      present: { fr: 'Présent(e)', en: 'Present' }
-    };
-    return labels[status as keyof typeof labels]?.[language] || status;
   }
 
   /**
