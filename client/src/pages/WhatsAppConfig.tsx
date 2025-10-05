@@ -267,13 +267,36 @@ export default function WhatsAppConfig() {
             </Button>
 
             {testToken && (
-              <div className="mt-4 p-4 border rounded-lg bg-muted/50">
-                <h3 className="font-semibold mb-3">Lien de test généré :</h3>
-                <WhatsAppNotify 
-                  token={testToken} 
-                  label="Ouvrir le test sur WhatsApp"
-                  variant="default"
-                />
+              <div className="mt-4 p-4 border rounded-lg bg-muted/50 space-y-4">
+                <h3 className="font-semibold">Lien de test généré :</h3>
+                
+                {/* Bouton principal - toujours visible */}
+                <div className="flex flex-col gap-3">
+                  <Button
+                    asChild
+                    className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+                    size="lg"
+                    data-testid="button-open-whatsapp-main"
+                  >
+                    <a href={`/wa/${testToken}`} rel="noopener noreferrer">
+                      <MessageCircle className="h-5 w-5" />
+                      Ouvrir le test sur WhatsApp
+                    </a>
+                  </Button>
+                  
+                  <p className="text-xs text-center text-muted-foreground">
+                    Cliquez sur le bouton ci-dessus pour ouvrir WhatsApp avec le message pré-rempli
+                  </p>
+                </div>
+
+                {/* QR Code pour mobile */}
+                <div className="pt-3 border-t">
+                  <WhatsAppNotify 
+                    token={testToken} 
+                    label="Voir le QR Code"
+                    variant="outline"
+                  />
+                </div>
               </div>
             )}
           </CardContent>
