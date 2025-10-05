@@ -114,7 +114,6 @@ import partnershipsRoutes from "./routes/partnerships";
 import unifiedMessagingRoutes from "./routes/unified-messaging";
 import connectionsRoutes from "./routes/connections";
 import educationalContentRoutes from "./routes/api/educational-content";
-import vonageMessagesRouter from "./routes/vonage-messages";
 import fcmRoutes from "./routes/fcm";
 import onlineClassesRoutes from "./routes/onlineClassesRoutes";
 import onlineClassActivationsRouter from "./routes/api/online-class-activations";
@@ -6778,10 +6777,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/subscription', subscriptionRoutes);
   app.use('/api/pwa', pwaRoutes);
   app.use('/api/analytics', analyticsRoutes);
-  // 🔥 PREMIUM RESTRICTED: Advanced communications (unlimited SMS/WhatsApp)
+  // 🔥 PREMIUM RESTRICTED: Advanced communications (WhatsApp only, SMS removed)
   app.use('/api/whatsapp', checkSubscriptionFeature('advanced_communications'), whatsappRoutes);
   app.use('/api/whatsapp-setup', checkSubscriptionFeature('advanced_communications'), whatsappMsSolutionsSetup);
-  app.use('/api/vonage-messages', checkSubscriptionFeature('advanced_communications'), vonageMessagesRouter);
   
   // WhatsApp Click-to-Chat (Option A - wa.me links, no API needed)
   app.use(waClickToChatRoutes); // API endpoints (/api/wa/mint, /api/wa/templates) and redirect (/wa/:token)

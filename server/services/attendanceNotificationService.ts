@@ -1,4 +1,3 @@
-import { vonageMessagesService } from './vonageMessagesService';
 import { hostingerMailService } from './hostingerMailService';
 import db from '../storage';
 import { users } from '../../shared/schema';
@@ -23,7 +22,6 @@ interface NotificationChannelResult {
 }
 
 class AttendanceNotificationService {
-  private vonageService = vonageMessagesService;
   private hostingerService = hostingerMailService;
 
   constructor() {
@@ -274,37 +272,19 @@ ${data.schoolName} Team`;
   }
 
   /**
-   * Send SMS notification
+   * Send SMS notification - DISABLED (SMS service removed)
    */
   private async sendSMSNotification(phone: string, message: string): Promise<boolean> {
-    try {
-      // Format message for SMS (shorter version)
-      const smsMessage = message.substring(0, 160) + (message.length > 160 ? '...' : '');
-      
-      const result = await this.vonageService.sendSMS(phone, smsMessage);
-      return result.success;
-    } catch (error) {
-      console.error('[ATTENDANCE_NOTIFICATIONS] SMS error:', error);
-      return false;
-    }
+    console.log('[ATTENDANCE_NOTIFICATIONS] SMS notifications are disabled');
+    return false;
   }
 
   /**
-   * Send WhatsApp notification
+   * Send WhatsApp notification - DISABLED (Vonage WhatsApp service removed, use Click-to-Chat instead)
    */
   private async sendWhatsAppNotification(phone: string, message: string): Promise<boolean> {
-    try {
-      const result = await this.vonageService.sendWhatsAppMessage({
-        to: phone,
-        text: message,
-        from: '41783044077', // Your WhatsApp Business number
-        messageType: 'text'
-      });
-      return result.success;
-    } catch (error) {
-      console.error('[ATTENDANCE_NOTIFICATIONS] WhatsApp error:', error);
-      return false;
-    }
+    console.log('[ATTENDANCE_NOTIFICATIONS] Vonage WhatsApp notifications are disabled - use WhatsApp Click-to-Chat instead');
+    return false;
   }
 
   /**
@@ -342,7 +322,7 @@ ${data.schoolName} Team`;
    * Get service health status
    */
   async getServiceHealth() {
-    const vonageHealth = await this.vonageService.getServiceHealth();
+    const vonageHealth = { status: 'disabled', message: 'Vonage service removed' };
     const emailHealth = await this.hostingerService.getServiceHealth();
     
     return {

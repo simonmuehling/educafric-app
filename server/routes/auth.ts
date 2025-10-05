@@ -8,7 +8,6 @@ import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordRese
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
 import { hostingerMailService } from '../services/hostingerMailService.js';
-import { vonageMessagesService } from '../services/vonageMessagesService.js';
 
 const router = Router();
 
@@ -962,24 +961,11 @@ router.post('/forgot-password', async (req, res) => {
         }
 
       } else {
-        // Send SMS with reset code (6-digit code for SMS)
-        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        // Store the SMS code separately
-        await storage.updateUser(user.id, {
-          smsResetCode: resetCode,
-          smsResetExpiry: resetExpiry.toISOString()
+        // SMS/WhatsApp reset no longer supported - only email reset available
+        return res.status(400).json({
+          success: false,
+          message: 'La réinitialisation par SMS n\'est plus disponible. Veuillez utiliser votre email.'
         });
-
-        const smsSent = await vonageMessagesService.sendWhatsAppMessage({
-          from: '14157386102',
-          to: user.phoneNumber,
-          text: `EDUCAFRIC: Votre code de réinitialisation est: ${resetCode}. Valide 15 minutes. Ne partagez pas ce code.`
-        });
-
-        if (!smsSent.success) {
-          throw new Error('Failed to send SMS');
-        }
       }
 
       console.log(`[PASSWORD_RESET] Reset ${method} sent successfully to ${identifier}`);
