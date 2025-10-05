@@ -6195,54 +6195,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 📊 ROUTES ABONNEMENT ÉCOLE - Support module subscription director
-  app.get('/api/school/subscription', requireAuth, async (req, res) => {
-    try {
-      const user = req.user;
-      const { SubscriptionService } = await import('./services/subscriptionService');
-      const subscriptionDetails = await SubscriptionService.getSchoolSubscriptionDetails(user.id, user.email);
-      
-      res.json({
-        success: true,
-        ...subscriptionDetails,
-        // Ajouter infos spécifiques école
-        price: subscriptionDetails.isFreemium ? 0 : -50000, // École reçoit de l'argent
-        billingCycle: subscriptionDetails.isFreemium ? 'Gratuit' : 'Mensuel',
-        nextRenewal: subscriptionDetails.isFreemium ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        limits: {
-          students: subscriptionDetails.isFreemium ? 30 : 500,
-          teachers: subscriptionDetails.isFreemium ? 5 : 50,
-          classes: subscriptionDetails.isFreemium ? 5 : 25
-        }
-      });
-    } catch (error) {
-      console.error('[SCHOOL_SUBSCRIPTION] Error:', error);
-      res.status(500).json({ success: false, error: 'Failed to fetch school subscription details' });
-    }
-  });
-
-  app.get('/api/school/gateway-status', requireAuth, async (req, res) => {
-    try {
-      const user = req.user;
-      const { SubscriptionService } = await import('./services/subscriptionService');
-      
-      // Pour école: compter connexions actives/inactives avec parents
-      const gatewayStats = {
-        activeConnections: 12, // Parents avec abonnement
-        inactiveConnections: 3, // Parents sans abonnement
-        totalParents: 15,
-        revenueFromParents: 18000 // CFA par mois
-      };
-      
-      res.json({
-        success: true,
-        ...gatewayStats
-      });
-    } catch (error) {
-      console.error('[SCHOOL_GATEWAY_STATUS] Error:', error);
-      res.status(500).json({ success: false, error: 'Failed to fetch school gateway status' });
-    }
-  });
 
   // 📊 ROUTES ABONNEMENT FREELANCER - Support module subscription freelancer
   app.get('/api/freelancer/subscription', requireAuth, async (req, res) => {

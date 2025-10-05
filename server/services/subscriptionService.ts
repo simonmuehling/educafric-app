@@ -3,28 +3,16 @@ import { type School, type User } from "../../shared/schema";
 export interface SubscriptionPlan {
   id: string;
   name: string;
-  type: 'school' | 'freelancer';
+  type: 'freelancer';
   price: number;
   currency: string;
   billing: 'annual' | 'monthly';
   features: string[];
   limitations?: {
     maxStudents?: number;
-    maxTeachers?: number;
-    maxClasses?: number;
+    maxSessions?: number;
   };
   isActive: boolean;
-}
-
-export interface SchoolSubscription {
-  schoolId: number;
-  planId: string;
-  status: 'freemium' | 'premium' | 'trial' | 'expired';
-  startDate: Date;
-  endDate?: Date;
-  paymentMethod?: 'stripe' | 'orange_money' | 'mtn_money' | 'bank_transfer';
-  lastPaymentDate?: Date;
-  autoRenew: boolean;
 }
 
 /**
@@ -67,51 +55,10 @@ export class SubscriptionService {
   }
   
   /**
-   * Plans d'abonnement disponibles
+   * Plans d'abonnement disponibles - FREELANCERS ONLY
+   * Note: Schools use Educafric for free (no subscription plans for schools)
    */
   static readonly SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
-    // Plans pour écoles - NOUVEAU MODÈLE: EDUCAFRIC PAIE LES ÉCOLES
-    'ecole_500_plus': {
-      id: 'ecole_500_plus',
-      name: 'École 500+ élèves',
-      type: 'school',
-      price: -150000, // Négatif car EDUCAFRIC paie l'école
-      currency: 'XAF',
-      billing: 'annual',
-      features: [
-        'EDUCAFRIC verse 150.000 CFA/an à l\'école',
-        'Paiement trimestriel: 50.000 CFA',
-        'Gestion académique complète',
-        'Bulletins personnalisés',
-        'Communication parents-enseignants',
-        'Géolocalisation des élèves',
-        'Notifications SMS/Email',
-        'Support prioritaire',
-        'Formation équipe gratuite'
-      ],
-      isActive: true
-    },
-    'ecole_500_moins': {
-      id: 'ecole_500_moins',
-      name: 'École moins de 500 élèves',
-      type: 'school',
-      price: -200000, // Négatif car EDUCAFRIC paie l'école
-      currency: 'XAF',
-      billing: 'annual',
-      features: [
-        'EDUCAFRIC verse 200.000 CFA/an à l\'école',
-        'Paiement trimestriel: 66.670 CFA',
-        'Gestion académique complète',
-        'Bulletins personnalisés',
-        'Communication parents-enseignants',
-        'Géolocalisation des élèves',
-        'Notifications SMS/Email',
-        'Support prioritaire',
-        'Formation équipe gratuite',
-        'Bonus école petite taille'
-      ],
-      isActive: true
-    },
     // Plans pour répétiteurs/freelancers - Prix actualisés
     'repetiteur_professionnel_semestriel': {
       id: 'repetiteur_professionnel_semestriel',
@@ -135,7 +82,7 @@ export class SubscriptionService {
       ],
       limitations: {
         maxStudents: 50,
-        maxClasses: 10
+        maxSessions: 100
       },
       isActive: true
     },
@@ -156,7 +103,7 @@ export class SubscriptionService {
       ],
       limitations: {
         maxStudents: 50,
-        maxClasses: 10
+        maxSessions: 100
       },
       isActive: true
     }
@@ -274,32 +221,6 @@ export class SubscriptionService {
     return freemiumFeatures.includes(feature);
   }
 
-  /**
-   * Obtenir l'abonnement d'une école
-   */
-  static async getSchoolSubscription(schoolId: number): Promise<SchoolSubscription | null> {
-    // En production, ceci viendrait de la base de données
-    // Pour l'instant, on simule
-    
-    if (this.isSandboxSchool(schoolId)) {
-      return {
-        schoolId,
-        planId: 'sandbox_unlimited',
-        status: 'premium',
-        startDate: new Date(),
-        autoRenew: true
-      };
-    }
-
-    // Par défaut, les nouvelles écoles sont en freemium
-    return {
-      schoolId,
-      planId: 'freemium',
-      status: 'freemium',
-      startDate: new Date(),
-      autoRenew: false
-    };
-  }
 
   /**
    * Vérifier les limites freemium
@@ -593,40 +514,6 @@ export class SubscriptionService {
     ];
   }
 
-  /**
-   * Obtenir les détails d'abonnement pour une école spécifique
-   */
-  static async getSchoolSubscriptionDetails(schoolId: number, schoolEmail: string) {
-    try {
-      // Vérifier si compte exempt
-      if (this.isSandboxOrTestUser(schoolEmail)) {
-        console.log(`[PREMIUM_EXEMPT] School ${schoolEmail} is exempt from premium restrictions`);
-        return {
-          isFreemium: false,
-          planName: 'École Test Premium',
-          features: ['Toutes fonctionnalités', 'Support illimité', 'Test environnement'],
-          hasPremiumAccess: true,
-          exemptReason: 'test_account'
-        };
-      }
-
-      // Logique d'abonnement école réelle
-      return {
-        isFreemium: true,
-        planName: 'École Freemium',
-        features: ['30 élèves max', '5 enseignants max', '5 classes max'],
-        hasPremiumAccess: false
-      };
-    } catch (error) {
-      console.error('[SCHOOL_SUBSCRIPTION] Error:', error);
-      return {
-        isFreemium: true,
-        planName: 'École Freemium',
-        features: ['30 élèves max', '5 enseignants max', '5 classes max'],
-        hasPremiumAccess: false
-      };
-    }
-  }
 
   /**
    * Obtenir les détails d'abonnement pour un freelancer spécifique
