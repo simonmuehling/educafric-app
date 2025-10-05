@@ -19,9 +19,13 @@ export const waClicks = pgTable("wa_clicks", {
 });
 
 // Zod schemas
-export const insertWaClickSchema = createInsertSchema(waClicks).omit({
-  id: true,
-  createdAt: true
+export const insertWaClickSchema = z.object({
+  recipientId: z.number().int(),
+  templateId: z.string(),
+  campaign: z.string().optional(),
+  ip: z.string().optional(),
+  userAgent: z.string().optional(),
+  metadata: z.any().optional()
 });
 
 export type InsertWaClick = z.infer<typeof insertWaClickSchema>;

@@ -4,17 +4,29 @@
  */
 
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireAuth } from '../middleware/auth';
-import { verifyToken, buildWaUrl } from '../utils/waLink';
+import { verifyToken } from '../utils/waLink';
+import { WaMintRequestSchema } from '../../shared/schemas/waValidation';
 import { 
-  getRecipientById, 
+  getRecipientById,
   createWaToken, 
-  logWaClick, 
-  renderTemplate,
+  logWaClick,
+  computeWaRedirect,
   WA_TOKEN_SECRET 
 } from '../services/waClickToChat';
+import { WA_TEMPLATES } from '../templates/waTemplates';
 
 const router = express.Router();
+
+// Rate limiter for token generation (60 requests per minute per IP)
+const mintLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60,
+  message: 'Too many WhatsApp token requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 /**
  * GET /wa/:token
@@ -51,47 +63,37 @@ router.get('/:token', async (req, res) => {
       `);
     }
 
-    const { recipientId, templateId, templateData, lang = 'fr' } = data;
-    const recipient = await getRecipientById(recipientId);
-
-    if (!recipient?.waOptIn || !recipient?.whatsappE164) {
-      return res.status(403).send(`
-        <!DOCTYPE html>
-        <html>
-          <head><title>WhatsApp non activé</title></head>
-          <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-            <h2>🚫 WhatsApp non activé</h2>
-            <p>Les notifications WhatsApp ne sont pas activées pour ce compte.</p>
-          </body>
-        </html>
-      `);
-    }
-
-    const message = renderTemplate(templateId, lang, templateData);
-    const waUrl = buildWaUrl(recipient.whatsappE164, message);
+    const { recipientId, templateId, templateData, lang = 'fr', campaign } = data;
+    const waUrl = await computeWaRedirect(recipientId, templateId, lang, templateData);
 
     // Track click (async, non-blocking)
+    const recipient = await getRecipientById(recipientId);
     logWaClick({ 
       recipientId, 
-      templateId, 
-      ts: Date.now(), 
+      templateId,
+      campaign,
       ip: req.ip,
-      userAgent: req.get('user-agent')
+      userAgent: req.get('user-agent'),
+      metadata: {
+        role: recipient?.role,
+        schoolId: recipient?.schoolId
+      }
     }).catch(() => {});
 
-    console.log('[WA_REDIRECT] Redirecting to WhatsApp:', { recipientId, templateId });
+    console.log('[WA_REDIRECT] Redirecting to WhatsApp:', { recipientId, templateId, campaign });
 
     // 302 redirect to WhatsApp
     res.redirect(302, waUrl);
   } catch (error) {
     console.error('[WA_REDIRECT] Error:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Une erreur s\'est produite';
     res.status(500).send(`
       <!DOCTYPE html>
       <html>
         <head><title>Erreur</title></head>
         <body style="font-family: sans-serif; text-align: center; padding: 50px;">
           <h2>❌ Erreur</h2>
-          <p>Une erreur s'est produite. Veuillez réessayer.</p>
+          <p>${errorMsg}</p>
         </body>
       </html>
     `);
@@ -102,19 +104,13 @@ router.get('/:token', async (req, res) => {
  * POST /api/wa/mint
  * Generate a WhatsApp Click-to-Chat token
  */
-router.post('/api/wa/mint', requireAuth, async (req, res) => {
+router.post('/api/wa/mint', requireAuth, mintLimiter, async (req, res) => {
   try {
-    const { recipientId, templateId, templateData, lang } = req.body;
-
-    if (!recipientId || !templateId) {
-      return res.status(400).json({
-        success: false,
-        error: 'recipientId and templateId are required'
-      });
-    }
-
+    // Validate request body with Zod
+    const parsed = WaMintRequestSchema.parse(req.body);
+    
     // Verify recipient exists and has WhatsApp enabled
-    const recipient = await getRecipientById(recipientId);
+    const recipient = await getRecipientById(parsed.recipientId);
     
     if (!recipient) {
       return res.status(404).json({
@@ -137,11 +133,14 @@ router.post('/api/wa/mint', requireAuth, async (req, res) => {
       });
     }
 
+    // Generate token with all parameters
     const token = await createWaToken({
-      recipientId,
-      templateId,
-      templateData: templateData || {},
-      lang: lang || recipient.waLanguage || 'fr'
+      recipientId: parsed.recipientId,
+      templateId: parsed.templateId,
+      templateData: parsed.templateData,
+      lang: parsed.lang || recipient.waLanguage as 'fr' | 'en' || 'fr',
+      campaign: parsed.campaign,
+      ttlSeconds: parsed.ttlSeconds
     });
 
     const link = `/wa/${token}`;
@@ -154,6 +153,16 @@ router.post('/api/wa/mint', requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('[WA_MINT] Error:', error);
+    
+    // Return Zod validation errors
+    if (error && typeof error === 'object' && 'issues' in error) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid request data',
+        details: error
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to generate token'
@@ -167,15 +176,14 @@ router.post('/api/wa/mint', requireAuth, async (req, res) => {
  */
 router.get('/api/wa/templates', requireAuth, async (req, res) => {
   try {
-    const { WA_TEMPLATES } = await import('../templates/waTemplates');
-    
     res.json({
       success: true,
       templates: Object.keys(WA_TEMPLATES).map(id => ({
         id,
         fr: WA_TEMPLATES[id].fr,
         en: WA_TEMPLATES[id].en
-      }))
+      })),
+      languages: ['fr', 'en']
     });
   } catch (error) {
     console.error('[WA_TEMPLATES] Error:', error);

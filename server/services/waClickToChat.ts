@@ -4,23 +4,21 @@
  */
 
 import { db } from '../db';
-import { users } from '../../shared/schema';
+import { users, waClicks } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
-import { signPayload } from '../utils/waLink';
+import { signPayload, buildWaUrl } from '../utils/waLink';
 import { renderTemplate } from '../templates/waTemplates';
 
 const WA_TOKEN_SECRET = process.env.WA_TOKEN_SECRET || 'educafric-wa-secret-2025';
 
-export interface WaClickLog {
+export interface CreateTokenInput {
   recipientId: number;
   templateId: string;
-  ts: number;
-  ip?: string;
-  userAgent?: string;
+  templateData?: Record<string, any>;
+  lang?: 'fr' | 'en';
+  campaign?: string;
+  ttlSeconds?: number; // Default 30 minutes
 }
-
-// In-memory click tracking (can be moved to DB later)
-const clickLogs: WaClickLog[] = [];
 
 export async function getRecipientById(recipientId: number) {
   const [recipient] = await db
@@ -30,7 +28,9 @@ export async function getRecipientById(recipientId: number) {
       waLanguage: users.waLanguage,
       firstName: users.firstName,
       lastName: users.lastName,
-      email: users.email
+      email: users.email,
+      role: users.role,
+      schoolId: users.schoolId
     })
     .from(users)
     .where(eq(users.id, recipientId))
@@ -39,48 +39,72 @@ export async function getRecipientById(recipientId: number) {
   return recipient || null;
 }
 
-export async function createWaToken(params: {
-  recipientId: number;
-  templateId: string;
-  templateData: Record<string, any>;
-  lang?: 'fr' | 'en';
-}): Promise<string> {
-  const { recipientId, templateId, templateData, lang = 'fr' } = params;
+export async function createWaToken(input: CreateTokenInput): Promise<string> {
+  const { 
+    recipientId, 
+    templateId, 
+    templateData = {}, 
+    lang = 'fr',
+    campaign,
+    ttlSeconds = 1800 // 30 minutes default
+  } = input;
   
-  // Optional: add expiration (30 minutes)
-  const exp = Date.now() + 1000 * 60 * 30;
+  const exp = Date.now() + ttlSeconds * 1000;
   
   const payload = {
     recipientId,
     templateId,
     templateData,
     lang,
+    campaign,
     exp
   };
   
   return signPayload(payload, WA_TOKEN_SECRET);
 }
 
-export async function logWaClick(log: WaClickLog): Promise<void> {
-  clickLogs.push(log);
-  
-  // Keep only last 1000 logs in memory
-  if (clickLogs.length > 1000) {
-    clickLogs.shift();
+export async function logWaClick(params: {
+  recipientId: number;
+  templateId: string;
+  campaign?: string;
+  ip?: string;
+  userAgent?: string;
+  metadata?: any;
+}): Promise<void> {
+  try {
+    await db.insert(waClicks).values({
+      recipientId: params.recipientId,
+      templateId: params.templateId,
+      campaign: params.campaign,
+      ip: params.ip,
+      userAgent: params.userAgent,
+      metadata: params.metadata
+    });
+    
+    console.log('[WA_CLICK_TO_CHAT] Click logged:', {
+      recipientId: params.recipientId,
+      templateId: params.templateId,
+      campaign: params.campaign
+    });
+  } catch (error) {
+    console.error('[WA_CLICK_TO_CHAT] Failed to log click:', error);
   }
-  
-  console.log('[WA_CLICK_TO_CHAT] Click tracked:', {
-    recipientId: log.recipientId,
-    templateId: log.templateId,
-    timestamp: new Date(log.ts).toISOString()
-  });
 }
 
-export function getClickLogs(recipientId?: number): WaClickLog[] {
-  if (recipientId) {
-    return clickLogs.filter(log => log.recipientId === recipientId);
+export async function computeWaRedirect(
+  recipientId: number,
+  templateId: string,
+  lang: 'fr' | 'en',
+  templateData: Record<string, any>
+): Promise<string> {
+  const recipient = await getRecipientById(recipientId);
+  
+  if (!recipient?.waOptIn || !recipient?.whatsappE164) {
+    throw new Error('Recipient not WhatsApp-enabled');
   }
-  return clickLogs;
+  
+  const message = renderTemplate(templateId, lang, templateData);
+  return buildWaUrl(recipient.whatsappE164, message);
 }
 
 export { renderTemplate, WA_TOKEN_SECRET };
