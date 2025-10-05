@@ -3,9 +3,6 @@
 // Eliminated excessive console statements and memory overhead
 
 import { CoreNotificationService } from './notifications/coreNotifications';
-import { SMS_TEMPLATES } from './notifications/smsTemplates';
-import { EMAIL_TEMPLATES } from './notifications/emailTemplates';
-import { WHATSAPP_TEMPLATES } from './notifications/whatsappTemplates';
 import { createWaToken, getRecipientById } from './waClickToChat';
 import { renderTemplate } from '../templates/waTemplates';
 import { buildWaUrl } from '../utils/waLink';

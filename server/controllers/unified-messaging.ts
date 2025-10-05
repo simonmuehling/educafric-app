@@ -10,6 +10,9 @@ import { z } from 'zod';
 import { getRecipientById } from '../services/waClickToChat';
 import { renderTemplate } from '../templates/waTemplates';
 import { buildWaUrl } from '../utils/waLink';
+import { db } from '../db';
+import { connections } from '../../shared/schema';
+import { eq } from 'drizzle-orm';
 
 // Unified connection types
 export type ConnectionType = 'student-parent' | 'teacher-student' | 'teacher-school' | 'family' | 'partnership';
@@ -246,8 +249,13 @@ export class UnifiedMessagingController {
     connectionType: ConnectionType
   ): Promise<void> {
     try {
-      // Get recipient ID from connection
-      const connection = await storage.getConnectionById(connectionType, messageData.connectionId);
+      // Get recipient ID from connection using database query
+      const [connection] = await db
+        .select()
+        .from(connections)
+        .where(eq(connections.id, messageData.connectionId))
+        .limit(1);
+
       if (!connection) {
         console.log('[UNIFIED_MESSAGING] Connection not found, skipping WhatsApp notification');
         return;
