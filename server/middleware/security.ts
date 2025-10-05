@@ -171,9 +171,7 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
   (p) => p === '/api/auth/register',
   (p) => p === '/api/auth/forgot-password',
   (p) => p === '/api/auth/reset-password',
-  
-  // Sandbox routes
-  (p) => p === '/sandbox-login',
+  (p) => p === '/api/auth/sandbox-login',
   
   // Health check
   (p) => p === '/api/health',
