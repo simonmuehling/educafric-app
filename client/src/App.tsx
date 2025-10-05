@@ -85,6 +85,7 @@ import FCMTestPage from "@/pages/FCMTestPage";
 import MTNPaymentTest from "@/components/payments/MTNPaymentTest";
 import MTNTestPage from "@/pages/MTNTestPage";
 import WhatsAppTest from "@/pages/WhatsAppTest";
+import WhatsAppConfig from "@/pages/WhatsAppConfig";
 
 // Deferred module preloader - Only load when user is about to need dashboard access
 const useGlobalModulePreloader = () => {
@@ -466,6 +467,7 @@ function Router() {
       <Route path="/pwa-notifications-test" component={PWANotificationTest} />
       <Route path="/websocket-test" component={WebSocketTest} />
       <Route path="/whatsapp-test" component={WhatsAppTest} />
+      <Route path="/whatsapp-config" component={WhatsAppConfig} />
       
       {/* Fallback to 404 */}
       <Route path="/parent-connect" component={lazy(() => import('./pages/ParentConnect'))} />

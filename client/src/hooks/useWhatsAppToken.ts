@@ -10,6 +10,8 @@ interface TokenParams {
   templateId: string;
   templateData?: Record<string, any>;
   lang?: 'fr' | 'en';
+  campaign?: string;
+  ttlSeconds?: number;
 }
 
 interface TokenResponse {
