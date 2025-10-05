@@ -1,7 +1,17 @@
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import { Express } from 'express';
+import type { Express } from 'express';
+import type { SessionOptions } from 'express-session';
+import csurf from 'csurf';
+
+/**
+ * Centralized security middleware for Educafric
+ * - Helmet with CSP
+ * - CORS with credentials
+ * - Rate limits
+ * - CSRF protection with WhatsApp exemptions
+ */
 
 export function configureSecurityMiddleware(app: Express) {
   // Trust proxy for rate limiting in cloud environments
@@ -15,42 +25,39 @@ export function configureSecurityMiddleware(app: Express) {
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: isProduction 
-          ? ["'self'", "https://js.stripe.com"]
-          : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "*.replit.dev", "*.replit.app", "*.educafric.com"],
+          ? ["'self'", "https://js.stripe.com", "https://8x8.vc", "https://meet.jit.si"]
+          : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://8x8.vc", "https://meet.jit.si", "*.replit.dev", "*.replit.app", "*.educafric.com"],
         styleSrc: ["'self'", "'unsafe-inline'", "*.googleapis.com", "*.gstatic.com"],
         imgSrc: isProduction
-          ? ["'self'", "data:", "https://q.stripe.com", "https://www.educafric.com"]
-          : ["'self'", "data:", "https://q.stripe.com", "*.educafric.com", "*.replit.app", "*.replit.dev"],
+          ? ["'self'", "data:", "blob:", "https://q.stripe.com", "https://www.educafric.com"]
+          : ["'self'", "data:", "blob:", "https://q.stripe.com", "*.educafric.com", "*.replit.app", "*.replit.dev"],
         connectSrc: isProduction
-          ? ["'self'", "https://api.stripe.com", "https://m.stripe.network"]
-          : ["'self'", "*.replit.dev", "*.replit.app", "*.educafric.com", "https://api.stripe.com", "https://m.stripe.network", "wss://localhost:*", "ws://localhost:*"],
+          ? ["'self'", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "https://meet.educafric.com", "wss://meet.educafric.com"]
+          : ["'self'", "*.replit.dev", "*.replit.app", "*.educafric.com", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "wss://meet.educafric.com", "wss://localhost:*", "ws://localhost:*"],
         fontSrc: ["'self'", "*.googleapis.com", "*.gstatic.com"],
         objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"]
+        mediaSrc: ["'self'", "blob:"],
+        frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com", "https://8x8.vc", "https://meet.jit.si", "https://meet.educafric.com"]
       }
     },
-    crossOriginEmbedderPolicy: false, // Keep disabled for compatibility
+    crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     hsts: isProduction ? {
       maxAge: 31536000, // 1 year
       includeSubDomains: true,
       preload: true
-    } : false, // Disable HSTS in development
-    frameguard: { action: 'deny' }, // Prevent clickjacking
-    noSniff: true, // Prevent MIME type sniffing
-    // Remove xssFilter - ineffective and confusing (Helmet sets X-XSS-Protection: 0)
+    } : false,
+    frameguard: { action: 'deny' },
+    noSniff: true,
     referrerPolicy: { policy: "strict-origin-when-cross-origin" }
   }));
 
-  // CORS configuration - Environment-aware for security
+  // CORS configuration - Environment-aware with credentials
   const allowedOrigins = isProduction ? [
-    // Production: Only specific trusted domains
     'https://educafric.com',
     'https://www.educafric.com'
   ] : [
-    // Development: Include localhost and development domains
     'http://localhost:3000',
     'http://localhost:5000',
     'https://localhost:3000',
@@ -68,10 +75,8 @@ export function configureSecurityMiddleware(app: Express) {
 
   app.use(cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, Postman, server-to-server)
       if (!origin) return callback(null, true);
       
-      // Check against allowed origins list
       const isAllowed = allowedOrigins.some(allowedOrigin => {
         if (typeof allowedOrigin === 'string') {
           return origin === allowedOrigin;
@@ -85,32 +90,31 @@ export function configureSecurityMiddleware(app: Express) {
         return callback(null, true);
       }
       
-      // Reject unauthorized origins with specific error
       console.warn(`[SECURITY] CORS blocked origin: ${origin}`);
       return callback(new Error(`CORS: Origin ${origin} not allowed`), false);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-csrf-token'],
     credentials: true,
     optionsSuccessStatus: 200
   }));
 
-  // Production-grade rate limiting - Fixed stacked limiters and static asset exclusion
+  // Production-grade rate limiting
   const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // 5 login attempts per 15 minutes per IP
+    max: 5,
     message: {
       error: 'Too many authentication attempts, please try again later',
       retryAfter: '15 minutes'
     },
     standardHeaders: true,
     legacyHeaders: false,
-    skipSuccessfulRequests: true, // Don't count successful logins
+    skipSuccessfulRequests: true,
   });
 
   const apiLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 minute  
-    max: 300, // 300 requests per minute per IP (5 per second average)
+    windowMs: 1 * 60 * 1000,
+    max: 300,
     message: {
       error: 'Too many requests, please try again later',
       retryAfter: '1 minute'
@@ -118,7 +122,6 @@ export function configureSecurityMiddleware(app: Express) {
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => {
-      // Skip rate limiting for static assets, WebSocket, and development routes
       const path = req.path;
       return path.startsWith('/public/') ||
              path.startsWith('/assets/') ||
@@ -135,29 +138,44 @@ export function configureSecurityMiddleware(app: Express) {
     }
   });
 
-  // Apply rate limiting to specific endpoints only (no stacking)
   app.use('/api/auth/', authLimiter);
   app.use('/api/', apiLimiter);
-  // Remove general limiter to avoid double-counting and blocking static assets
   
-  console.log('[RATE_LIMITING] ENABLED - Production security configured (no stacking)');
+  console.log('[RATE_LIMITING] ENABLED - Production security configured');
   
-  // Minimal auth logging for performance
-  app.use((req, res, next) => {
-    // Remove auth logging to improve login speed
-    next();
-  });
-
-  // Request size limits for African mobile networks
+  // Request size limits and timeouts
   app.use((req, res, next) => {
     if (req.path.includes('/upload')) {
-      // Higher limit for file uploads
-      req.setTimeout(60000); // 60 seconds for uploads
+      req.setTimeout(60000);
     } else {
-      // Timeout étendu pour les API requests - augmenté pour éviter déconnexions
-      req.setTimeout(300000); // 5 minutes (au lieu de 30 secondes)
+      req.setTimeout(300000); // 5 minutes
     }
     next();
+  });
+}
+
+// ====== CSRF with WhatsApp allowlist ======
+const csrf = csurf({ cookie: false });
+
+const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
+  (p) => p === '/api/wa/mint',
+  (p) => p.startsWith('/wa/'),
+  (p, m) => p.startsWith('/webhooks/whatsapp') && (m === 'GET' || m === 'POST'),
+  (p, m) => p.startsWith('/api/facebook/webhook') && (m === 'GET' || m === 'POST'),
+  (p) => p === '/api/health', // Health check exempt
+];
+
+export function csrfWithAllowlist(req: any, res: any, next: any) {
+  const p = req.path as string;
+  const m = req.method as string;
+  if (CSRF_ALLOWLIST.some((fn) => fn(p, m))) return next();
+  return csrf(req, res, next);
+}
+
+export function attachCsrfTokenRoute(app: Express) {
+  app.get('/api/csrf-token', (req: any, res) => {
+    const token = typeof req.csrfToken === 'function' ? req.csrfToken() : null;
+    res.json({ csrfToken: token });
   });
 }
 
@@ -179,7 +197,6 @@ export function securityLogger(req: any, res: any, next: any) {
       userRole: req.user?.role || null
     };
 
-    // Log security-relevant events
     if (req.url.includes('/auth/') || res.statusCode >= 400) {
       console.log(`[SECURITY] ${JSON.stringify(logData)}`);
     }
@@ -188,21 +205,19 @@ export function securityLogger(req: any, res: any, next: any) {
   next();
 }
 
-// Production session configuration - PWA-optimized for persistent login experience
-export const productionSessionConfig = {
+// Production session configuration
+export const productionSessionConfig: SessionOptions = {
   secret: process.env.SESSION_SECRET || 'educafric-session-secret-change-in-production',
-  resave: false, // Changed from true - can cause session race conditions
-  saveUninitialized: false, // Don't create session until something stored
-  rolling: true, // Reset expiration on each request - keeps active users logged in
-  name: 'educafric.sid', // Explicit session name for consistency
+  resave: false,
+  saveUninitialized: false,
+  rolling: true,
+  name: 'educafric.sid',
   proxy: true,
   cookie: {
-    // 🔧 CRITICAL FIX: Environment-aware cookie security
-    secure: process.env.NODE_ENV === 'production', // Only secure in production (HTTPS), allow HTTP in development
-    httpOnly: true, // Standard session cookie security
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 JOURS (au lieu de 24h) - Durée largement augmentée
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const, // 'none' for production iframe, 'lax' for development
-    path: '/', // Available for all paths
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'lax' | 'strict' | 'none',
+    path: '/',
   }
-  // genid: removed - using express-session's secure default crypto-based generator
 };
