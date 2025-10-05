@@ -27,6 +27,7 @@ router.get('/api/user/whatsapp-config', requireAuth, async (req, res) => {
       });
     }
 
+    // Try to get config from database first
     const [user] = await db
       .select({
         whatsappE164: users.whatsappE164,
@@ -38,21 +39,34 @@ router.get('/api/user/whatsapp-config', requireAuth, async (req, res) => {
       .where(eq(users.id, userId))
       .limit(1);
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
+    if (user) {
+      return res.json({
+        success: true,
+        config: {
+          whatsappE164: user.whatsappE164,
+          waOptIn: user.waOptIn || false,
+          waLanguage: user.waLanguage || 'fr',
+          preferredChannel: user.preferredChannel || 'email'
+        }
       });
     }
 
-    res.json({
-      success: true,
-      config: {
-        whatsappE164: user.whatsappE164,
-        waOptIn: user.waOptIn || false,
-        waLanguage: user.waLanguage || 'fr',
-        preferredChannel: user.preferredChannel || 'email'
-      }
+    // If not found, check if it's a sandbox user (9001-9006)
+    if (userId >= 9001 && userId <= 9006) {
+      return res.json({
+        success: true,
+        config: {
+          whatsappE164: null,
+          waOptIn: false,
+          waLanguage: 'fr',
+          preferredChannel: 'email'
+        }
+      });
+    }
+
+    return res.status(404).json({
+      success: false,
+      error: 'User not found'
     });
   } catch (error) {
     console.error('[WA_CONFIG_GET] Error:', error);

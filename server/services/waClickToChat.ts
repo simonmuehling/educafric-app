@@ -21,6 +21,50 @@ export interface CreateTokenInput {
 }
 
 export async function getRecipientById(recipientId: number) {
+  // Check sandbox users first (IDs 9001-9006)
+  if (recipientId >= 9001 && recipientId <= 9006) {
+    const sandboxUsers: Record<number, any> = {
+      9001: { id: 9001, firstName: 'Marie', lastName: 'Kamga', role: 'Parent', email: 'sandbox.parent@educafric.demo', schoolId: 999, whatsappE164: null, waOptIn: false, waLanguage: 'fr' },
+      9002: { id: 9002, firstName: 'Paul', lastName: 'Mvondo', role: 'Teacher', email: 'sandbox.teacher@educafric.demo', schoolId: 999, whatsappE164: null, waOptIn: false, waLanguage: 'fr' },
+      9003: { id: 9003, firstName: 'Sophie', lastName: 'Biya', role: 'Freelancer', email: 'sandbox.freelancer@educafric.demo', schoolId: 999, whatsappE164: null, waOptIn: false, waLanguage: 'fr' },
+      9004: { id: 9004, firstName: 'Junior', lastName: 'Kamga', role: 'Student', email: 'sandbox.student@educafric.demo', schoolId: 999, whatsappE164: null, waOptIn: false, waLanguage: 'fr' },
+      9005: { id: 9005, firstName: 'Carine', lastName: 'Nguetsop', role: 'Admin', email: 'sandbox.admin@educafric.demo', schoolId: 999, whatsappE164: null, waOptIn: false, waLanguage: 'fr' },
+      9006: { id: 9006, firstName: 'Michel', lastName: 'Atangana', role: 'Director', email: 'sandbox.director@educafric.demo', schoolId: 999, whatsappE164: null, waOptIn: false, waLanguage: 'fr' }
+    };
+    
+    const sandboxUser = sandboxUsers[recipientId];
+    if (sandboxUser) {
+      // Check if WhatsApp config exists in database for this sandbox user
+      try {
+        const [waConfig] = await db
+          .select({
+            whatsappE164: users.whatsappE164,
+            waOptIn: users.waOptIn,
+            waLanguage: users.waLanguage
+          })
+          .from(users)
+          .where(eq(users.id, recipientId))
+          .limit(1);
+        
+        if (waConfig) {
+          // Merge sandbox user data with WhatsApp config from database
+          return {
+            ...sandboxUser,
+            whatsappE164: waConfig.whatsappE164,
+            waOptIn: waConfig.waOptIn,
+            waLanguage: waConfig.waLanguage || 'fr'
+          };
+        }
+      } catch (error) {
+        console.log('[WA_SERVICE] No database config for sandbox user', recipientId);
+      }
+      
+      // Return sandbox user with default WhatsApp settings
+      return sandboxUser;
+    }
+  }
+  
+  // Regular database users
   const [recipient] = await db
     .select({
       whatsappE164: users.whatsappE164,
