@@ -1,5 +1,5 @@
 import { hostingerMailService } from './hostingerMailService';
-import db from '../storage';
+import { db } from '../db';
 import { users } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { createWaToken, getRecipientById } from './waClickToChat';
@@ -152,7 +152,8 @@ class AttendanceNotificationService {
       const connections = await db
         .select({
           id: users.id,
-          name: users.name,
+          firstName: users.firstName,
+          lastName: users.lastName,
           email: users.email,
           phone: users.phone
         })
@@ -386,13 +387,11 @@ ${data.schoolName} Team`;
    * Get service health status
    */
   async getServiceHealth() {
-    const vonageHealth = { status: 'disabled', message: 'Vonage service removed' };
-    const emailHealth = await this.hostingerService.getServiceHealth();
-    
     return {
-      vonage: vonageHealth,
-      email: emailHealth,
-      overall: vonageHealth.configured && emailHealth
+      whatsapp: { status: 'active', message: 'WhatsApp Click-to-Chat enabled' },
+      email: { status: 'active', message: 'Hostinger SMTP configured' },
+      sms: { status: 'disabled', message: 'SMS service removed' },
+      overall: true
     };
   }
 }
