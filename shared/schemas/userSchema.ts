@@ -50,6 +50,13 @@ export const users = pgTable("users", {
   isTestAccount: boolean("is_test_account").default(false),
   preferredLanguage: varchar("preferred_language", { length: 2 }).default("en"),
   whatsappNumber: varchar("whatsapp_number", { length: 20 }).unique(),
+  
+  // WhatsApp Click-to-Chat fields (Option A - wa.me links)
+  whatsappE164: varchar("whatsapp_e164", { length: 20 }), // E.164 format: +237612345678
+  waOptIn: boolean("wa_opt_in").default(false), // User consent for WhatsApp notifications
+  waLanguage: varchar("wa_language", { length: 2 }).default("fr"), // 'fr' | 'en'
+  preferredChannel: text("preferred_channel").default("email"), // 'whatsapp' | 'sms' | 'email'
+  
   passwordResetToken: text("password_reset_token"),
   passwordResetExpiry: timestamp("password_reset_expiry"),
   deletionRequested: boolean("deletion_requested").default(false),

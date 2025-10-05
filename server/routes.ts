@@ -77,6 +77,7 @@ import pwaRoutes from "./routes/pwaRoutes";
 import analyticsRoutes from "./routes/analytics";
 import whatsappRoutes from "./routes/whatsapp";
 import whatsappMsSolutionsSetup from "./routes/whatsapp-ms-solutions-setup";
+import waClickToChatRoutes from "./routes/waClickToChat";
 import classesRoutes from "./routes/classes";
 // gradesRoutes removed - using unified comprehensive bulletin system
 import teachersStandalone from "./routes/teachers";
@@ -6780,6 +6781,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/whatsapp', checkSubscriptionFeature('advanced_communications'), whatsappRoutes);
   app.use('/api/whatsapp-setup', checkSubscriptionFeature('advanced_communications'), whatsappMsSolutionsSetup);
   app.use('/api/vonage-messages', checkSubscriptionFeature('advanced_communications'), vonageMessagesRouter);
+  
+  // WhatsApp Click-to-Chat (Option A - wa.me links, no API needed)
+  app.use('/wa', waClickToChatRoutes); // Redirect endpoint
+  app.use(waClickToChatRoutes); // API endpoints (/api/wa/mint, /api/wa/templates)
   
   // Additional routes after main registrations  
   // 🔥 PREMIUM RESTRICTED: Advanced class management (unlimited classes + analytics)
