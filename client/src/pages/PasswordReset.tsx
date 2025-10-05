@@ -106,7 +106,7 @@ export default function PasswordReset() {
       return;
     }
 
-    if ((Array.isArray(password) ? password.length : 0) < 8) {
+    if (password.length < 8) {
       setError(getErrorMessage('passwordTooShort'));
       return;
     }
