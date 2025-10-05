@@ -80,7 +80,6 @@ import { WebSocketTest } from "@/components/testing/WebSocketTest";
 import SubscriptionManagement from "@/pages/SubscriptionManagement";
 import SignatureTest from "@/pages/SignatureTest";
 import TestBulletinPDF from "@/pages/TestBulletinPDF";
-import VonageTest from "@/pages/VonageTest";
 import FCMTestPage from "@/pages/FCMTestPage";
 import MTNPaymentTest from "@/components/payments/MTNPaymentTest";
 import MTNTestPage from "@/pages/MTNTestPage";
@@ -456,7 +455,6 @@ function Router() {
       <Route path="/terms-of-service" component={TermsOfService} />
       <Route path="/modern-forms" component={ModernFormDemo} />
       <Route path="/signature-test" component={SignatureTest} />
-      <Route path="/vonage-test" component={VonageTest} />
       <Route path="/fcm-test" component={FCMTestPage} />
       <Route path="/mtn-test" component={MTNPaymentTest} />
       <Route path="/mtn-production" component={MTNTestPage} />

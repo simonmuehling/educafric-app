@@ -1,9 +1,11 @@
 /**
  * Refactored Notification Service for EDUCAFRIC
  * Improved organization, error handling, and African optimization
+ * NOTE: SMS functionality removed - use WhatsApp Click-to-Chat instead
  */
 
-import { SMS_TEMPLATES } from './notifications/smsTemplates';
+// Empty SMS templates stub (SMS functionality removed)
+const SMS_TEMPLATES = {} as const;
 
 export interface NotificationRecipient {
   id: string;
@@ -16,7 +18,7 @@ export interface NotificationRecipient {
 
 export interface NotificationPayload {
   type: 'sms' | 'email' | 'whatsapp' | 'push';
-  template: keyof typeof SMS_TEMPLATES;
+  template: string; // Changed from keyof typeof SMS_TEMPLATES
   recipients: NotificationRecipient[];
   data: Record<string, any>;
   priority: 'low' | 'medium' | 'high' | 'urgent';
@@ -89,52 +91,15 @@ export class RefactoredNotificationService {
   }
 
   /**
-   * Send SMS with African network optimization
+   * Send SMS - DISABLED (SMS service removed, use WhatsApp Click-to-Chat instead)
    */
   private async sendSMS(payload: NotificationPayload, recipient: NotificationRecipient): Promise<NotificationResult> {
-    if (!recipient.phone) {
-      throw new Error('Phone number required for SMS');
-    }
-
-    // Get template
-    const template = SMS_TEMPLATES[payload.template];
-    if (!template) {
-      throw new Error(`SMS template not found: ${payload.template}`);
-    }
-
-    const templateFn = template[recipient.preferredLanguage];
-    if (!templateFn) {
-      throw new Error(`Template not available in ${recipient.preferredLanguage}`);
-    }
-
-    // Build message
-    const dataValues = Object.values(payload.data);
-    const message = templateFn.apply(null, dataValues);
-
-    // African network optimization
-    const optimizedMessage = this.optimizeForAfricanNetworks(message);
-    
-    // In development mode, simulate sending
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`📱 SMS [${payload.priority.toUpperCase()}]: ${optimizedMessage.slice(0, 50)}...`);
-      console.log(`📍 To: ${recipient.phone} (${recipient.name})`);
-      
-      return {
-        success: true,
-        messageId: `dev_${Date.now()}`,
-        recipientId: recipient.id,
-        deliveredAt: new Date(),
-        cost: this.calculateSMSCost(optimizedMessage, recipient.phone)
-      };
-    }
-
-    // Production SMS sending would happen here
-    // Implementation depends on configured SMS provider (Vonage, etc.)
+    console.log('[NOTIFICATION] SMS notifications are disabled - use WhatsApp Click-to-Chat instead');
     
     return {
       success: false,
       recipientId: recipient.id,
-      error: 'SMS provider not configured'
+      error: 'SMS service has been removed - please use WhatsApp Click-to-Chat instead'
     };
   }
 
