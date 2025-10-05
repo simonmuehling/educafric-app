@@ -1,0 +1,166 @@
+
+🌍 EDUCAFRIC ENDPOINT MONITORING REPORT
+=====================================
+Generated: 7/23/2025, 6:15:07 AM
+Total Time: 1038ms
+Total Endpoints Tested: 63
+
+📊 SUMMARY:
+✅ Successful: 48
+⚠️  Warnings (4xx): 15
+❌ Errors (5xx): 0
+🔍 Not Found (404): 0
+
+⚠️ CLIENT ERRORS (MEDIUM PRIORITY):
+==================================================
+⚠️ GET /api/auth/me
+   Status: 401
+   Response Time: 103ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ POST /api/auth/login
+   Status: 401
+   Response Time: 1021ms
+   Requires Auth: false
+   Body: {"message":"Invalid email or password"}
+   
+⚠️ POST /api/auth/register
+   Status: 400
+   Response Time: 122ms
+   Requires Auth: false
+   Body: {"message":"[\n  {\n    \"received\": \"student\",\n    \"code\": \"invalid_enum_value\",\n    \"options\": [\n      \"SiteAdmin\",\n      \"Admin\",\n      \"Director\",\n      \"Teacher\",\n      \"...
+   
+⚠️ GET /api/users
+   Status: 401
+   Response Time: 120ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ GET /api/schools
+   Status: 401
+   Response Time: 122ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ GET /api/students
+   Status: 401
+   Response Time: 122ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ GET /api/classes
+   Status: 401
+   Response Time: 115ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ GET /api/grades
+   Status: 401
+   Response Time: 115ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ POST /api/grades
+   Status: 401
+   Response Time: 116ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ GET /api/attendance
+   Status: 401
+   Response Time: 117ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ POST /api/attendance
+   Status: 401
+   Response Time: 117ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ GET /api/homework
+   Status: 401
+   Response Time: 126ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ POST /api/create-payment-intent
+   Status: 401
+   Response Time: 124ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ POST /api/get-or-create-subscription
+   Status: 401
+   Response Time: 124ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+⚠️ GET /api/dashboard/recent-activity
+   Status: 401
+   Response Time: 122ms
+   Requires Auth: true
+   Body: {"message":"Authentication required"}
+   
+
+✅ SUCCESSFUL ENDPOINTS:
+==============================
+✅ POST /api/auth/logout (200) - 171ms
+✅ POST /api/auth/forgot-password (200) - 178ms
+✅ POST /api/auth/reset-password (200) - 179ms
+✅ GET /api/users/profile (200) - 212ms
+✅ PUT /api/users/profile (200) - 211ms
+✅ POST /api/schools (200) - 211ms
+✅ GET /api/schools/1 (200) - 211ms
+✅ PUT /api/schools/1 (200) - 214ms
+✅ DELETE /api/schools/1 (200) - 211ms
+✅ POST /api/students (200) - 210ms
+✅ GET /api/students/1 (200) - 207ms
+✅ PUT /api/students/1 (200) - 206ms
+✅ DELETE /api/students/1 (200) - 206ms
+✅ GET /api/teachers (200) - 206ms
+✅ POST /api/teachers (200) - 205ms
+✅ GET /api/teachers/1 (200) - 206ms
+✅ PUT /api/teachers/1 (200) - 206ms
+✅ DELETE /api/teachers/1 (200) - 204ms
+✅ POST /api/classes (200) - 202ms
+✅ GET /api/classes/1 (200) - 202ms
+✅ PUT /api/classes/1 (200) - 235ms
+✅ DELETE /api/classes/1 (200) - 236ms
+✅ GET /api/grades/1 (200) - 233ms
+✅ PUT /api/grades/1 (200) - 234ms
+✅ DELETE /api/grades/1 (200) - 234ms
+✅ GET /api/attendance/1 (200) - 232ms
+✅ PUT /api/attendance/1 (200) - 233ms
+✅ POST /api/homework (200) - 233ms
+✅ GET /api/homework/1 (200) - 235ms
+✅ PUT /api/homework/1 (200) - 235ms
+✅ DELETE /api/homework/1 (200) - 234ms
+✅ GET /api/payments (200) - 222ms
+✅ GET /api/payments/history (200) - 233ms
+✅ POST /api/notifications/send (200) - 232ms
+✅ GET /api/notifications/settings (200) - 232ms
+✅ PUT /api/notifications/settings (200) - 232ms
+✅ GET /api/reports/students (200) - 231ms
+✅ GET /api/reports/teachers (200) - 216ms
+✅ GET /api/reports/attendance (200) - 217ms
+✅ GET /api/reports/grades (200) - 216ms
+✅ POST /api/upload/avatar (200) - 260ms
+✅ POST /api/upload/documents (200) - 260ms
+✅ GET /api/dashboard/stats (200) - 256ms
+✅ GET /api/admin/users (200) - 255ms
+✅ GET /api/admin/schools (200) - 255ms
+✅ GET /api/admin/system-stats (200) - 254ms
+✅ GET /api/health (200) - 254ms
+✅ GET /api/version (200) - 253ms
+
+📈 PERFORMANCE ANALYSIS:
+==============================
+Average Response Time: 223ms
+Slowest Endpoint: POST /api/auth/login (1021ms)
+Fastest Endpoint: GET /api/auth/me (103ms)
+
+🔧 RECOMMENDATIONS:
+====================
+• Review authentication and validation logic

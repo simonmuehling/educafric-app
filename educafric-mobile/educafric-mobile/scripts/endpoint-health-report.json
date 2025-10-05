@@ -1,0 +1,803 @@
+{
+  "summary": {
+    "totalEndpoints": 54,
+    "passed": 4,
+    "failed": 50,
+    "warnings": 0,
+    "startTime": "2025-07-23T10:20:16.746Z",
+    "endTime": "2025-07-23T10:20:17.235Z"
+  },
+  "categories": {
+    "auth": {
+      "total": 8,
+      "passed": 4,
+      "failed": 4,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "auth",
+          "method": "POST",
+          "path": "/api/register",
+          "requiresAuth": false,
+          "roles": [],
+          "status": "passed",
+          "statusCode": 200,
+          "responseTime": 8,
+          "error": null,
+          "warnings": []
+        },
+        {
+          "category": "auth",
+          "method": "POST",
+          "path": "/api/login",
+          "requiresAuth": false,
+          "roles": [],
+          "status": "passed",
+          "statusCode": 200,
+          "responseTime": 10,
+          "error": null,
+          "warnings": []
+        },
+        {
+          "category": "auth",
+          "method": "POST",
+          "path": "/api/logout",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "auth",
+          "method": "GET",
+          "path": "/api/profile",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "auth",
+          "method": "PATCH",
+          "path": "/api/profile",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "auth",
+          "method": "POST",
+          "path": "/api/forgot-password",
+          "requiresAuth": false,
+          "roles": [],
+          "status": "passed",
+          "statusCode": 200,
+          "responseTime": 9,
+          "error": null,
+          "warnings": []
+        },
+        {
+          "category": "auth",
+          "method": "POST",
+          "path": "/api/reset-password",
+          "requiresAuth": false,
+          "roles": [],
+          "status": "passed",
+          "statusCode": 200,
+          "responseTime": 7,
+          "error": null,
+          "warnings": []
+        },
+        {
+          "category": "auth",
+          "method": "POST",
+          "path": "/api/change-password",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        }
+      ]
+    },
+    "users": {
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "users",
+          "method": "GET",
+          "path": "/api/users",
+          "requiresAuth": true,
+          "roles": [
+            "Admin",
+            "Teacher"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "users",
+          "method": "POST",
+          "path": "/api/users",
+          "requiresAuth": true,
+          "roles": [
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "users",
+          "method": "GET",
+          "path": "/api/users/1",
+          "requiresAuth": true,
+          "roles": [
+            "Admin",
+            "Teacher"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "users",
+          "method": "PATCH",
+          "path": "/api/users/1",
+          "requiresAuth": true,
+          "roles": [
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "users",
+          "method": "DELETE",
+          "path": "/api/users/1",
+          "requiresAuth": true,
+          "roles": [
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        }
+      ]
+    },
+    "schools": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "schools",
+          "method": "GET",
+          "path": "/api/schools",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "schools",
+          "method": "POST",
+          "path": "/api/schools",
+          "requiresAuth": true,
+          "roles": [
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "schools",
+          "method": "GET",
+          "path": "/api/schools/1",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "schools",
+          "method": "PATCH",
+          "path": "/api/schools/1",
+          "requiresAuth": true,
+          "roles": [
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        }
+      ]
+    },
+    "classes": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "classes",
+          "method": "GET",
+          "path": "/api/classes",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "classes",
+          "method": "POST",
+          "path": "/api/classes",
+          "requiresAuth": true,
+          "roles": [
+            "Admin",
+            "Teacher"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "classes",
+          "method": "GET",
+          "path": "/api/classes/1",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "classes",
+          "method": "PATCH",
+          "path": "/api/classes/1",
+          "requiresAuth": true,
+          "roles": [
+            "Admin",
+            "Teacher"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        }
+      ]
+    },
+    "students": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "students",
+          "method": "GET",
+          "path": "/api/students",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "students",
+          "method": "POST",
+          "path": "/api/students",
+          "requiresAuth": true,
+          "roles": [
+            "Admin",
+            "Teacher"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "students",
+          "method": "GET",
+          "path": "/api/students/1",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "students",
+          "method": "PATCH",
+          "path": "/api/students/1",
+          "requiresAuth": true,
+          "roles": [
+            "Admin",
+            "Teacher"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        }
+      ]
+    },
+    "grades": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "grades",
+          "method": "GET",
+          "path": "/api/grades",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "grades",
+          "method": "POST",
+          "path": "/api/grades",
+          "requiresAuth": true,
+          "roles": [
+            "Teacher",
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for teacher: Login failed for teacher: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "grades",
+          "method": "GET",
+          "path": "/api/grades/1",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "grades",
+          "method": "PATCH",
+          "path": "/api/grades/1",
+          "requiresAuth": true,
+          "roles": [
+            "Teacher",
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for teacher: Login failed for teacher: Unknown error",
+          "warnings": []
+        }
+      ]
+    },
+    "attendance": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "attendance",
+          "method": "GET",
+          "path": "/api/attendance",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "attendance",
+          "method": "POST",
+          "path": "/api/attendance",
+          "requiresAuth": true,
+          "roles": [
+            "Teacher",
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for teacher: Login failed for teacher: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "attendance",
+          "method": "GET",
+          "path": "/api/attendance/1",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "attendance",
+          "method": "PATCH",
+          "path": "/api/attendance/1",
+          "requiresAuth": true,
+          "roles": [
+            "Teacher",
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for teacher: Login failed for teacher: Unknown error",
+          "warnings": []
+        }
+      ]
+    },
+    "homework": {
+      "total": 4,
+      "passed": 0,
+      "failed": 4,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "homework",
+          "method": "GET",
+          "path": "/api/homework",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "homework",
+          "method": "POST",
+          "path": "/api/homework",
+          "requiresAuth": true,
+          "roles": [
+            "Teacher",
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for teacher: Login failed for teacher: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "homework",
+          "method": "GET",
+          "path": "/api/homework/1",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "homework",
+          "method": "PATCH",
+          "path": "/api/homework/1",
+          "requiresAuth": true,
+          "roles": [
+            "Teacher",
+            "Admin"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for teacher: Login failed for teacher: Unknown error",
+          "warnings": []
+        }
+      ]
+    },
+    "tracking": {
+      "total": 13,
+      "passed": 0,
+      "failed": 13,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "tracking",
+          "method": "POST",
+          "path": "/api/tracking/devices",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "GET",
+          "path": "/api/tracking/devices/test-device-id",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "GET",
+          "path": "/api/tracking/students/1/devices",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "GET",
+          "path": "/api/tracking/parents/1/devices",
+          "requiresAuth": true,
+          "roles": [
+            "Parent"
+          ],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for parent: Login failed for parent: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "POST",
+          "path": "/api/tracking/devices/test-device-id/location",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "PATCH",
+          "path": "/api/tracking/devices/test-device-id/settings",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "POST",
+          "path": "/api/tracking/devices/test-device-id/safe-zones",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "POST",
+          "path": "/api/tracking/alerts",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "GET",
+          "path": "/api/tracking/devices/test-device-id/alerts",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "GET",
+          "path": "/api/tracking/devices/test-device-id/zone-status/test-zone-id",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "POST",
+          "path": "/api/tracking/devices/test-device-id/zone-status/test-zone-id",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "GET",
+          "path": "/api/tracking/devices/test-device-id/last-location",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "tracking",
+          "method": "POST",
+          "path": "/api/tracking/emergency-alert",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        }
+      ]
+    },
+    "payments": {
+      "total": 2,
+      "passed": 0,
+      "failed": 2,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "payments",
+          "method": "POST",
+          "path": "/api/create-payment-intent",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "payments",
+          "method": "POST",
+          "path": "/api/get-or-create-subscription",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        }
+      ]
+    },
+    "activity": {
+      "total": 2,
+      "passed": 0,
+      "failed": 2,
+      "warnings": 0,
+      "endpoints": [
+        {
+          "category": "activity",
+          "method": "GET",
+          "path": "/api/activity",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        },
+        {
+          "category": "activity",
+          "method": "POST",
+          "path": "/api/activity",
+          "requiresAuth": true,
+          "roles": [],
+          "status": "failed",
+          "statusCode": null,
+          "responseTime": 0,
+          "error": "Authentication failed: Login failed for admin: Login failed for admin: Unknown error",
+          "warnings": []
+        }
+      ]
+    }
+  },
+  "sessions": {},
+  "errors": [
+    "Failed to establish admin session: Login failed for admin: Login failed for admin: Unknown error",
+    "Failed to establish teacher session: Login failed for teacher: Login failed for teacher: Unknown error",
+    "Failed to establish parent session: Login failed for parent: Login failed for parent: Unknown error",
+    "Failed to establish student session: Login failed for student: Login failed for student: Unknown error"
+  ]
+}

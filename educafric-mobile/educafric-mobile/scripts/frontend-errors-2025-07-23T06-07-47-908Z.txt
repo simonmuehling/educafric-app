@@ -1,0 +1,1360 @@
+
+🖥️ EDUCAFRIC FRONTEND ERROR DETECTION REPORT
+==========================================
+Generated: 7/23/2025, 6:07:47 AM
+
+📊 SUMMARY:
+❌ Critical Errors: 0
+⚠️ High Priority: 336
+🔸 Medium Priority: 70
+
+🚨 CRITICAL & HIGH PRIORITY ISSUES:
+==================================================
+1. IMPORT: Broken import: @/components/ui/toaster
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/toaster
+
+2. IMPORT: Broken import: @/components/ui/tooltip
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/tooltip
+
+3. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+4. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+5. IMPORT: Broken import: @/pages/Home
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/Home
+
+6. IMPORT: Broken import: @/pages/Login
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/Login
+
+7. IMPORT: Broken import: @/pages/PasswordReset
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/PasswordReset
+
+8. IMPORT: Broken import: @/pages/not-found
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/not-found
+
+9. IMPORT: Broken import: @/pages/Subscribe
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/Subscribe
+
+10. IMPORT: Broken import: @/pages/Demo
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/Demo
+
+11. IMPORT: Broken import: @/pages/UIShowcase
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/UIShowcase
+
+12. IMPORT: Broken import: @/pages/Schools
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/Schools
+
+13. IMPORT: Broken import: @/pages/TeachersPage
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/TeachersPage
+
+14. IMPORT: Broken import: @/pages/StudentsPage
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/StudentsPage
+
+15. IMPORT: Broken import: @/pages/ParentsPage
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/ParentsPage
+
+16. IMPORT: Broken import: @/pages/FreelancerPage
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/FreelancerPage
+
+17. IMPORT: Broken import: @/pages/CommercialPage
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/CommercialPage
+
+18. IMPORT: Broken import: @/pages/AdminPage
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/AdminPage
+
+19. IMPORT: Broken import: @/pages/TermsOfService
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/TermsOfService
+
+20. IMPORT: Broken import: @/pages/PrivacyPolicy
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/pages/PrivacyPolicy
+
+21. IMPORT: Broken import: @/components/EducafricFooter
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/EducafricFooter
+
+22. IMPORT: Broken import: @/components/Sidebar
+   File: src/App.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/Sidebar
+
+23. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/components/ClassOverview.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+24. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/ClassOverview.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+25. IMPORT: Broken import: @/components/ui/card
+   File: src/components/ClassOverview.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+26. IMPORT: Broken import: @/components/ui/button
+   File: src/components/ClassOverview.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+27. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/components/ClassOverview.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+28. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/components/CommunicationCenter.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+29. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/CommunicationCenter.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+30. IMPORT: Broken import: @/components/ui/card
+   File: src/components/CommunicationCenter.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+31. IMPORT: Broken import: @/components/ui/button
+   File: src/components/CommunicationCenter.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+32. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/components/CommunicationCenter.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+33. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/components/DashboardHeader.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+34. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/DashboardHeader.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+35. IMPORT: Broken import: @/components/ui/button
+   File: src/components/DashboardHeader.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+36. IMPORT: Broken import: @/components/ui/badge
+   File: src/components/DashboardHeader.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/badge
+
+37. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/EducafricFeatures.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+38. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/EducafricFooter.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+39. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/EducafricHero.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+40. IMPORT: Broken import: @/lib/utils
+   File: src/components/EducafricHero.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+41. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/FrontpageNavbar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+42. IMPORT: Broken import: @/lib/utils
+   File: src/components/FrontpageNavbar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+43. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/components/PaymentSubscription.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+44. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/PaymentSubscription.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+45. IMPORT: Broken import: @/components/ui/card
+   File: src/components/PaymentSubscription.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+46. IMPORT: Broken import: @/components/ui/button
+   File: src/components/PaymentSubscription.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+47. IMPORT: Broken import: @/components/ui/badge
+   File: src/components/PaymentSubscription.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/badge
+
+48. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/components/PaymentSubscription.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+49. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/QuickActions.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+50. IMPORT: Broken import: @/components/ui/card
+   File: src/components/QuickActions.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+51. IMPORT: Broken import: @/components/ui/button
+   File: src/components/QuickActions.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+52. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/components/RecentActivity.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+53. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/RecentActivity.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+54. IMPORT: Broken import: @/components/ui/card
+   File: src/components/RecentActivity.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+55. IMPORT: Broken import: @/components/ui/button
+   File: src/components/RecentActivity.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+56. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/components/RecentActivity.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+57. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/components/Sidebar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+58. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/Sidebar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+59. IMPORT: Broken import: @/lib/utils
+   File: src/components/Sidebar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+60. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/components/StatsCards.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+61. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/StatsCards.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+62. IMPORT: Broken import: @/components/ui/card
+   File: src/components/StatsCards.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+63. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/components/StatsCards.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+64. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/components/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+65. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+66. IMPORT: Broken import: @/components/ui/card
+   File: src/components/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+67. IMPORT: Broken import: @/components/ui/button
+   File: src/components/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+68. IMPORT: Broken import: @/components/ui/input
+   File: src/components/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/input
+
+69. IMPORT: Broken import: @/components/ui/badge
+   File: src/components/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/badge
+
+70. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/components/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+71. IMPORT: Broken import: @/components/ui/badge
+   File: src/components/admin/SiteAdminDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/badge
+
+72. IMPORT: Broken import: @/components/ui/button
+   File: src/components/admin/SiteAdminDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+73. IMPORT: Broken import: @/components/ui/progress
+   File: src/components/admin/SiteAdminDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/progress
+
+74. IMPORT: Broken import: @/components/ui/badge
+   File: src/components/admin/SiteAdminManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/badge
+
+75. IMPORT: Broken import: @/components/ui/button
+   File: src/components/admin/SiteAdminManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+76. IMPORT: Broken import: @/components/ui/ResponsiveLayout
+   File: src/components/commercial/CommercialDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/ResponsiveLayout
+
+77. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/components/commercial/CommercialDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+78. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/commercial/CommercialDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+79. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/commercial/CommercialDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+80. IMPORT: Broken import: @/components/ui/ResponsiveLayout
+   File: src/components/commercial/CommercialManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/ResponsiveLayout
+
+81. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/components/commercial/CommercialManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+82. IMPORT: Broken import: @/components/ui/DataTable
+   File: src/components/commercial/CommercialManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/DataTable
+
+83. IMPORT: Broken import: @/components/ui/FormBuilder
+   File: src/components/commercial/CommercialManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/FormBuilder
+
+84. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/commercial/CommercialManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+85. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/commercial/CommercialManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+86. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/freelancer/FreelancerDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+87. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/components/freelancer/FreelancerDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+88. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/freelancer/FreelancerManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+89. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/components/freelancer/FreelancerManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+90. IMPORT: Broken import: @/components/ui/DataTable
+   File: src/components/freelancer/FreelancerManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/DataTable
+
+91. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/parent/ParentDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+92. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/parent/ParentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+93. IMPORT: Broken import: @/components/ui/ResponsiveLayout
+   File: src/components/school/SchoolManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/ResponsiveLayout
+
+94. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/components/school/SchoolManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+95. IMPORT: Broken import: @/components/ui/DataTable
+   File: src/components/school/SchoolManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/DataTable
+
+96. IMPORT: Broken import: @/components/ui/FormBuilder
+   File: src/components/school/SchoolManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/FormBuilder
+
+97. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/school/SchoolManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+98. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/school/SchoolManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+99. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/school/SchoolStats.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+100. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/components/school/SchoolStats.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+101. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/school/SchoolStats.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+102. IMPORT: Broken import: @/components/ui/ResponsiveLayout
+   File: src/components/student/StudentDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/ResponsiveLayout
+
+103. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/components/student/StudentDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+104. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/student/StudentDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+105. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/student/StudentDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+106. IMPORT: Broken import: @/components/ui/ResponsiveLayout
+   File: src/components/student/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/ResponsiveLayout
+
+107. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/components/student/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+108. IMPORT: Broken import: @/components/ui/DataTable
+   File: src/components/student/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/DataTable
+
+109. IMPORT: Broken import: @/components/ui/FormBuilder
+   File: src/components/student/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/FormBuilder
+
+110. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/student/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+111. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/student/StudentManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+112. IMPORT: Broken import: @/components/ui/ResponsiveLayout
+   File: src/components/teacher/TeacherDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/ResponsiveLayout
+
+113. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/components/teacher/TeacherDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+114. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/teacher/TeacherDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+115. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/teacher/TeacherDashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+116. IMPORT: Broken import: @/components/ui/ResponsiveLayout
+   File: src/components/teacher/TeacherManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/ResponsiveLayout
+
+117. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/components/teacher/TeacherManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+118. IMPORT: Broken import: @/components/ui/DataTable
+   File: src/components/teacher/TeacherManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/DataTable
+
+119. IMPORT: Broken import: @/components/ui/FormBuilder
+   File: src/components/teacher/TeacherManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/FormBuilder
+
+120. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/components/teacher/TeacherManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+121. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/teacher/TeacherManagement.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+122. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/CardLayout.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+123. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/ui/CardLayout.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+124. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/DataTable.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+125. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/ui/DataTable.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+126. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/FormBuilder.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+127. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/ui/FormBuilder.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+128. IMPORT: Broken import: @/components/ui/button
+   File: src/components/ui/LanguageToggle.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+129. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/ui/LanguageToggle.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+130. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/LanguageToggle.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+131. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/MobileErrorDisplay.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+132. IMPORT: Broken import: @/components/ui/button
+   File: src/components/ui/MobileErrorDisplay.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+133. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/ui/MobileErrorDisplay.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+134. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/MobileMenu.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+135. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/ui/MobileMenu.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+136. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/ResponsiveLayout.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+137. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/ui/ResponsiveLayout.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+138. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/TabNavigation.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+139. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/components/ui/TabNavigation.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+140. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/accordion.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+141. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/alert-dialog.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+142. IMPORT: Broken import: @/components/ui/button
+   File: src/components/ui/alert-dialog.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+143. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/alert.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+144. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/avatar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+145. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/badge.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+146. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/breadcrumb.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+147. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/button.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+148. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/calendar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+149. IMPORT: Broken import: @/components/ui/button
+   File: src/components/ui/calendar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+150. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/card.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+151. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/carousel.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+152. IMPORT: Broken import: @/components/ui/button
+   File: src/components/ui/carousel.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+153. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/chart.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+154. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/checkbox.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+155. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/command.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+156. IMPORT: Broken import: @/components/ui/dialog
+   File: src/components/ui/command.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/dialog
+
+157. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/context-menu.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+158. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/dialog.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+159. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/drawer.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+160. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/dropdown-menu.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+161. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/form.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+162. IMPORT: Broken import: @/components/ui/label
+   File: src/components/ui/form.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/label
+
+163. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/hover-card.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+164. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/input-otp.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+165. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/input.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+166. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/label.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+167. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/menubar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+168. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/navigation-menu.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+169. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/pagination.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+170. IMPORT: Broken import: @/components/ui/button
+   File: src/components/ui/pagination.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+171. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/popover.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+172. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/progress.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+173. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/radio-group.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+174. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/resizable.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+175. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/scroll-area.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+176. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/select.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+177. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/separator.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+178. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/sheet.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+179. IMPORT: Broken import: @/hooks/use-mobile
+   File: src/components/ui/sidebar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/hooks/use-mobile
+
+180. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/sidebar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+181. IMPORT: Broken import: @/components/ui/button
+   File: src/components/ui/sidebar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+182. IMPORT: Broken import: @/components/ui/input
+   File: src/components/ui/sidebar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/input
+
+183. IMPORT: Broken import: @/components/ui/separator
+   File: src/components/ui/sidebar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/separator
+
+184. IMPORT: Broken import: @/components/ui/sheet
+   File: src/components/ui/sidebar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/sheet
+
+185. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/components/ui/sidebar.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+186. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/skeleton.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+187. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/slider.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+188. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/switch.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+189. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/table.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+190. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/tabs.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+191. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/textarea.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+192. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/toast.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+193. IMPORT: Broken import: @/hooks/use-toast
+   File: src/components/ui/toaster.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/hooks/use-toast
+
+194. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/toggle-group.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+195. IMPORT: Broken import: @/components/ui/toggle
+   File: src/components/ui/toggle-group.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/toggle
+
+196. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/toggle.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+197. IMPORT: Broken import: @/lib/utils
+   File: src/components/ui/tooltip.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+198. IMPORT: Broken import: @/lib/queryClient
+   File: src/contexts/AuthContext.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/queryClient
+
+199. IMPORT: Broken import: @/lib/translations
+   File: src/contexts/LanguageContext.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/translations
+
+200. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/hooks/useAuth.ts
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+201. IMPORT: Broken import: @/hooks/use-toast
+   File: src/lib/errorHandler.ts
+   Details: Cannot find: /home/runner/workspace/client/src/hooks/use-toast
+
+202. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/lib/errorMessages.ts
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+203. IMPORT: Broken import: @/lib/translations
+   File: src/lib/errorMessages.ts
+   Details: Cannot find: /home/runner/workspace/client/src/lib/translations
+
+204. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/AdminPage.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+205. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+206. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+207. IMPORT: Broken import: @/components/DashboardHeader
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/DashboardHeader
+
+208. IMPORT: Broken import: @/components/ui/card
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+209. IMPORT: Broken import: @/components/ui/button
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+210. IMPORT: Broken import: @/components/ui/input
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/input
+
+211. IMPORT: Broken import: @/components/ui/select
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/select
+
+212. IMPORT: Broken import: @/components/ui/badge
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/badge
+
+213. IMPORT: Broken import: @/components/ui/calendar
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/calendar
+
+214. IMPORT: Broken import: @/components/ui/popover
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/popover
+
+215. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+216. IMPORT: Broken import: @/components/ui/alert
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/alert
+
+217. IMPORT: Broken import: @/lib/utils
+   File: src/pages/Attendance.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+218. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+219. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+220. IMPORT: Broken import: @/components/DashboardHeader
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/DashboardHeader
+
+221. IMPORT: Broken import: @/components/StatsCards
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/StatsCards
+
+222. IMPORT: Broken import: @/components/RecentActivity
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/RecentActivity
+
+223. IMPORT: Broken import: @/components/QuickActions
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/QuickActions
+
+224. IMPORT: Broken import: @/components/ClassOverview
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ClassOverview
+
+225. IMPORT: Broken import: @/components/PaymentSubscription
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/PaymentSubscription
+
+226. IMPORT: Broken import: @/components/CommunicationCenter
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/CommunicationCenter
+
+227. IMPORT: Broken import: @/components/StudentManagement
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/StudentManagement
+
+228. IMPORT: Broken import: @/components/EducafricCardSlider
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/EducafricCardSlider
+
+229. IMPORT: Broken import: @/components/ui/card
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+230. IMPORT: Broken import: @/components/ui/alert
+   File: src/pages/Dashboard.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/alert
+
+231. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/Demo.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+232. IMPORT: Broken import: @/components/FrontpageNavbar
+   File: src/pages/Demo.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/FrontpageNavbar
+
+233. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/FreelancerPage.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+234. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/pages/Grades.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+235. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/Grades.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+236. IMPORT: Broken import: @/components/DashboardHeader
+   File: src/pages/Grades.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/DashboardHeader
+
+237. IMPORT: Broken import: @/components/ui/card
+   File: src/pages/Grades.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+238. IMPORT: Broken import: @/components/ui/button
+   File: src/pages/Grades.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+239. IMPORT: Broken import: @/components/ui/input
+   File: src/pages/Grades.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/input
+
+240. IMPORT: Broken import: @/components/ui/select
+   File: src/pages/Grades.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/select
+
+241. IMPORT: Broken import: @/components/ui/badge
+   File: src/pages/Grades.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/badge
+
+242. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/pages/Grades.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+243. IMPORT: Broken import: @/components/ui/alert
+   File: src/pages/Grades.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/alert
+
+244. IMPORT: Broken import: @/components/FrontpageNavbar
+   File: src/pages/Home.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/FrontpageNavbar
+
+245. IMPORT: Broken import: @/components/EducafricHero
+   File: src/pages/Home.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/EducafricHero
+
+246. IMPORT: Broken import: @/components/EducafricFeatures
+   File: src/pages/Home.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/EducafricFeatures
+
+247. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/Home.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+248. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+249. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+250. IMPORT: Broken import: @/lib/firebase
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/firebase
+
+251. IMPORT: Broken import: @/components/ui/card
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+252. IMPORT: Broken import: @/components/ui/button
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+253. IMPORT: Broken import: @/components/ui/input
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/input
+
+254. IMPORT: Broken import: @/components/ui/label
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/label
+
+255. IMPORT: Broken import: @/components/ui/separator
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/separator
+
+256. IMPORT: Broken import: @/components/ui/alert
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/alert
+
+257. IMPORT: Broken import: @/hooks/use-toast
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/hooks/use-toast
+
+258. IMPORT: Broken import: @/lib/utils
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+259. IMPORT: Broken import: @/components/Logo
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/Logo
+
+260. IMPORT: Broken import: @/lib/errorMessages
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/errorMessages
+
+261. IMPORT: Broken import: @/components/ui/MobileErrorDisplay
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/MobileErrorDisplay
+
+262. IMPORT: Broken import: @/components/ui/LanguageToggle
+   File: src/pages/Login.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/LanguageToggle
+
+263. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/ParentsPage.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+264. IMPORT: Broken import: @/components/ui/card
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+265. IMPORT: Broken import: @/components/ui/button
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+266. IMPORT: Broken import: @/components/ui/input
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/input
+
+267. IMPORT: Broken import: @/components/ui/label
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/label
+
+268. IMPORT: Broken import: @/hooks/use-toast
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/hooks/use-toast
+
+269. IMPORT: Broken import: @/lib/queryClient
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/queryClient
+
+270. IMPORT: Broken import: @/components/Logo
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/Logo
+
+271. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+272. IMPORT: Broken import: @/lib/utils
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/utils
+
+273. IMPORT: Broken import: @/lib/errorMessages
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/errorMessages
+
+274. IMPORT: Broken import: @/components/ui/MobileErrorDisplay
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/MobileErrorDisplay
+
+275. IMPORT: Broken import: @/components/ui/LanguageToggle
+   File: src/pages/PasswordReset.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/LanguageToggle
+
+276. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/PrivacyPolicy.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+277. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/pages/PrivacyPolicy.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+278. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/pages/Profile.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+279. IMPORT: Broken import: @/components/ui/card
+   File: src/pages/Profile.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+280. IMPORT: Broken import: @/components/ui/button
+   File: src/pages/Profile.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+281. IMPORT: Broken import: @/components/ui/input
+   File: src/pages/Profile.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/input
+
+282. IMPORT: Broken import: @/components/ui/label
+   File: src/pages/Profile.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/label
+
+283. IMPORT: Broken import: @/components/ui/select
+   File: src/pages/Profile.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/select
+
+284. IMPORT: Broken import: @/components/ui/tabs
+   File: src/pages/Profile.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/tabs
+
+285. IMPORT: Broken import: @/hooks/use-toast
+   File: src/pages/Profile.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/hooks/use-toast
+
+286. IMPORT: Broken import: @/lib/queryClient
+   File: src/pages/Profile.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/queryClient
+
+287. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/Schools.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+288. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+289. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+290. IMPORT: Broken import: @/components/DashboardHeader
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/DashboardHeader
+
+291. IMPORT: Broken import: @/components/ui/card
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+292. IMPORT: Broken import: @/components/ui/button
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+293. IMPORT: Broken import: @/components/ui/input
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/input
+
+294. IMPORT: Broken import: @/components/ui/badge
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/badge
+
+295. IMPORT: Broken import: @/components/ui/dialog
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/dialog
+
+296. IMPORT: Broken import: @/components/ui/form
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/form
+
+297. IMPORT: Broken import: @/components/ui/select
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/select
+
+298. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+299. IMPORT: Broken import: @/components/ui/alert
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/alert
+
+300. IMPORT: Broken import: @/lib/queryClient
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/queryClient
+
+301. IMPORT: Broken import: @/hooks/use-toast
+   File: src/pages/Students.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/hooks/use-toast
+
+302. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/StudentsPage.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+303. IMPORT: Broken import: @/lib/queryClient
+   File: src/pages/Subscribe.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/lib/queryClient
+
+304. IMPORT: Broken import: @/hooks/use-toast
+   File: src/pages/Subscribe.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/hooks/use-toast
+
+305. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/pages/Subscribe.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+306. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/Subscribe.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+307. IMPORT: Broken import: @/components/DashboardHeader
+   File: src/pages/Subscribe.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/DashboardHeader
+
+308. IMPORT: Broken import: @/components/ui/card
+   File: src/pages/Subscribe.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+309. IMPORT: Broken import: @/components/ui/button
+   File: src/pages/Subscribe.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+310. IMPORT: Broken import: @/components/ui/badge
+   File: src/pages/Subscribe.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/badge
+
+311. IMPORT: Broken import: @/components/ui/alert
+   File: src/pages/Subscribe.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/alert
+
+312. IMPORT: Broken import: @/contexts/AuthContext
+   File: src/pages/Teachers.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/AuthContext
+
+313. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/Teachers.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+314. IMPORT: Broken import: @/components/DashboardHeader
+   File: src/pages/Teachers.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/DashboardHeader
+
+315. IMPORT: Broken import: @/components/ui/card
+   File: src/pages/Teachers.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+316. IMPORT: Broken import: @/components/ui/button
+   File: src/pages/Teachers.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/button
+
+317. IMPORT: Broken import: @/components/ui/input
+   File: src/pages/Teachers.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/input
+
+318. IMPORT: Broken import: @/components/ui/badge
+   File: src/pages/Teachers.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/badge
+
+319. IMPORT: Broken import: @/components/ui/skeleton
+   File: src/pages/Teachers.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/skeleton
+
+320. IMPORT: Broken import: @/components/ui/alert
+   File: src/pages/Teachers.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/alert
+
+321. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/TeachersPage.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+322. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/TermsOfService.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+323. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/pages/TermsOfService.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+324. IMPORT: Broken import: @/components/ui/ResponsiveLayout
+   File: src/pages/UIShowcase.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/ResponsiveLayout
+
+325. IMPORT: Broken import: @/components/ui/TabNavigation
+   File: src/pages/UIShowcase.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/TabNavigation
+
+326. IMPORT: Broken import: @/components/ui/MobileMenu
+   File: src/pages/UIShowcase.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/MobileMenu
+
+327. IMPORT: Broken import: @/components/ui/DataTable
+   File: src/pages/UIShowcase.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/DataTable
+
+328. IMPORT: Broken import: @/components/ui/FormBuilder
+   File: src/pages/UIShowcase.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/FormBuilder
+
+329. IMPORT: Broken import: @/components/ui/CardLayout
+   File: src/pages/UIShowcase.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/CardLayout
+
+330. IMPORT: Broken import: @/contexts/LanguageContext
+   File: src/pages/UIShowcase.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/contexts/LanguageContext
+
+331. IMPORT: Broken import: @/components/ui/card
+   File: src/pages/not-found.tsx
+   Details: Cannot find: /home/runner/workspace/client/src/components/ui/card
+
+332. TYPESCRIPT: Found 14 TypeScript errors
+   Details: client/src/hooks/useLazyLoad.ts(18,17): error TS1005: '>' expected.
+            client/src/hooks/useLazyLoad.ts(18,25): error TS1005: ')' expected.
+            client/src/hooks/useLazyLoad.ts(18,36): error TS1005: ',' expected.
+            client/src/hooks/useLazyLoad.ts(18,44): error TS1005: '>' expected.
+            client/src/hooks/useLazyLoad.ts(18,53): error TS1005: ';' expected.
+            client/src/hooks/useLazyLoad.ts(19,14): error TS1005: '>' expected.
+            client/src/hooks/useLazyLoad.ts(19,23): error TS1005: ';' expected.
+            client/src/hooks/useLazyLoad.ts(19,117): error TS1109: Expression expected.
+            client/src/hooks/useLazyLoad.ts(20,8): error TS1110: Type expected.
+            client/src/hooks/useLazyLoad.ts(21,20): error TS1005: '>' expected.
+
+333. ACCESSIBILITY: Found 3 inputs without labels
+   File: src/components/ui/DataTable.tsx
+
+334. ACCESSIBILITY: Found 7 inputs without labels
+   File: src/components/ui/FormBuilder.tsx
+
+335. ACCESSIBILITY: Found 2 inputs without labels
+   File: src/components/ui/ResponsiveLayout.tsx
+
+336. ACCESSIBILITY: Found 1 inputs without labels
+   File: src/components/ui/input.tsx
+

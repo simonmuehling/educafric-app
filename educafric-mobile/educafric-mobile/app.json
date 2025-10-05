@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "EDUCAFRIC",
+    "slug": "educafric",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./public/android-icon-192x192.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./public/splash-icon-512x512.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.educafric.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./public/android-icon-192x192.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.educafric.app",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED"
+      ],
+      "useNextNotificationsApi": true
+    },
+    "web": {
+      "favicon": "./public/favicon.ico",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./public/android-icon-192x192.png",
+          "color": "#ffffff"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Cette application utilise la localisation pour la sécurité des étudiants et le suivi de présence."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "educafric-cameroon-app"
+      }
+    }
+  }
+}

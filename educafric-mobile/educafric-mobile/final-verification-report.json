@@ -1,0 +1,50 @@
+{
+  "timestamp": "2025-07-31T07:17:55.339Z",
+  "status": "NEEDS_ATTENTION",
+  "verified": [
+    "React runtime safe: client/src/components/director/modules/SchoolAdministration.tsx",
+    "React runtime safe: client/src/components/director/modules/TeacherManagement.tsx",
+    "React runtime safe: client/src/components/director/modules/StudentManagement.tsx",
+    "Routes verification: 42 routes, 31 pages",
+    "Component exports: 320/346 valid"
+  ],
+  "warnings": [
+    "client/src/App.tsx: Potential object rendering without String() wrapper",
+    "Missing export in: client/src/components/EducafricCardSlider.tsx",
+    "Missing export in: client/src/components/FirebaseDomainHelper.tsx",
+    "Missing export in: client/src/components/LazyLoader.tsx",
+    "Missing export in: client/src/components/auth/MultiRoleDetectionPopup.tsx",
+    "Missing export in: client/src/components/commercial/modules/FunctionalCommercialLeads.tsx",
+    "Missing export in: client/src/components/commercial/modules/FunctionalCommercialSchools.tsx",
+    "Missing export in: client/src/components/dashboard/MultiSchoolSelector.tsx",
+    "Missing export in: client/src/components/director/modules/FunctionalDirectorOverview.tsx",
+    "Missing export in: client/src/components/director/modules/FunctionalDirectorTeachers.tsx",
+    "Missing export in: client/src/components/parent/modules/ParentNotifications.tsx",
+    "Missing export in: client/src/components/parent/modules/ParentPremiumServices.tsx",
+    "Missing export in: client/src/components/parent/modules/ParentResources.tsx",
+    "Missing export in: client/src/components/pwa/ConsolidatedNotificationSystem.tsx",
+    "Missing export in: client/src/components/student/modules/DetailedGrades.tsx",
+    "Missing export in: client/src/components/student/modules/ScheduleView.tsx",
+    "Missing export in: client/src/components/student/modules/StudentModules.tsx",
+    "Missing export in: client/src/components/teacher/modules/ReportCards.tsx",
+    "Missing export in: client/src/components/timetable/TimetableCreation.tsx",
+    "Missing export in: client/src/components/ui/CelebrationToast.tsx",
+    "Missing export in: client/src/components/ui/LanguageToggle.tsx",
+    "Missing export in: client/src/components/ui/MobileCompactSearch.tsx",
+    "Missing export in: client/src/components/ui/MobileDashboardLayout.tsx",
+    "Missing export in: client/src/components/ui/MobileErrorDisplay.tsx",
+    "Missing export in: client/src/components/ui/ModernFormWrapper.tsx",
+    "Missing export in: client/src/components/ui/SuccessNotification.tsx",
+    "Missing export in: client/src/components/ui/toaster.tsx"
+  ],
+  "errors": [
+    "Endpoint connection failed: http://localhost:5000/api/health",
+    "Endpoint connection failed: http://localhost:5000/api/auth/me",
+    "Endpoint connection failed: http://localhost:5000/api/currency/detect"
+  ],
+  "summary": {
+    "verifiedCount": 5,
+    "warningCount": 27,
+    "errorCount": 3
+  }
+}

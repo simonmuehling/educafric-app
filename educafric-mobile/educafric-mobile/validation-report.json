@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-07-31T07:17:19.298Z",
+  "testResults": [
+    "ParentAttendance properly exported",
+    "WhatsAppNotifications properly exported"
+  ],
+  "errors": [
+    "Authentication connection failed",
+    "Student Content connection failed",
+    "Student Grades connection failed",
+    "Parent Children connection failed",
+    "Teacher Classes connection failed"
+  ],
+  "summary": {
+    "totalTests": 7,
+    "passedTests": 2,
+    "failedTests": 5,
+    "successRate": 29,
+    "overallStatus": "SOME_FAILED"
+  },
+  "recommendation": "Certains problèmes subsistent, vérifier les erreurs listées"
+}

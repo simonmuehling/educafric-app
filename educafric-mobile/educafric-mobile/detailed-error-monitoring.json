@@ -1,0 +1,110 @@
+{
+  "timestamp": "2025-07-31T07:16:01.670Z",
+  "summary": {
+    "total": 6,
+    "successful": 6,
+    "failed": 0,
+    "avgResponseTime": 643,
+    "fixesApplied": 0
+  },
+  "errorsByType": {},
+  "criticalIssues": [],
+  "automationActions": [],
+  "recommendations": [],
+  "detailedResults": [
+    {
+      "url": "http://localhost:5000/api/health",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:15:54.804Z",
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": 3617,
+      "error": null,
+      "errorType": null,
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/auth/me",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:15:58.923Z",
+      "status": "success",
+      "statusCode": 401,
+      "responseTime": 44,
+      "error": null,
+      "errorType": null,
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/users",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:15:59.468Z",
+      "status": "success",
+      "statusCode": 401,
+      "responseTime": 44,
+      "error": null,
+      "errorType": null,
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/auth/profile",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:00.013Z",
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": 62,
+      "error": null,
+      "errorType": null,
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/schools",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:00.576Z",
+      "status": "success",
+      "statusCode": 401,
+      "responseTime": 44,
+      "error": null,
+      "errorType": null,
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/tracking/status",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:01.120Z",
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": 49,
+      "error": null,
+      "errorType": null,
+      "autoActions": []
+    }
+  ],
+  "errorLog": [],
+  "alertHistory": [],
+  "automationRules": [
+    {
+      "name": "restart_server",
+      "priority": "critical",
+      "cooldown": 300000,
+      "lastExecuted": 0
+    },
+    {
+      "name": "fix_translation_errors",
+      "priority": "high",
+      "cooldown": 60000,
+      "lastExecuted": 0
+    },
+    {
+      "name": "fix_react_errors",
+      "priority": "high",
+      "cooldown": 120000,
+      "lastExecuted": 0
+    },
+    {
+      "name": "database_reconnect",
+      "priority": "critical",
+      "cooldown": 120000,
+      "lastExecuted": 0
+    }
+  ]
+}

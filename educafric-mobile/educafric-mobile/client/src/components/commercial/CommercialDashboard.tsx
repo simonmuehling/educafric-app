@@ -1,0 +1,293 @@
+import React, { useEffect } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { 
+  TrendingUp, Users, CreditCard, FileText, BarChart3, Phone, 
+  Building2, Calendar, DollarSign, Target, UserCheck, Archive,
+  MessageSquare, Settings, HelpCircle, User, Activity, Mail, Bell
+} from 'lucide-react';
+import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
+import { useFastModules } from '@/utils/fastModuleLoader';
+import ActivitySummary from './modules/ActivitySummary';
+// Optimized: Removed static imports - using dynamic loading only for better bundle size
+// UniversalMultiRoleSwitch now loaded dynamically via fastModuleLoader
+
+interface CommercialDashboardProps {
+  activeModule?: string;
+}
+
+const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
+  const { language } = useLanguage();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { getModule, preloadModule } = useFastModules();
+  const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
+  
+  // AGGRESSIVE API DATA PRELOADING - Commercial APIs
+  React.useEffect(() => {
+    if (!user) return;
+    
+    const preloadCommercialApiData = async () => {
+      
+      const apiEndpoints = [
+        '/api/commercial/leads',
+        '/api/commercial/appointments',
+        '/api/commercial/schools',
+        '/api/commercial/contacts',
+        '/api/commercial/statistics',
+        '/api/commercial/documents',
+        '/api/commercial/offer-templates'
+      ];
+      
+      const promises = apiEndpoints.map(async (endpoint) => {
+        try {
+          await queryClient.prefetchQuery({
+            queryKey: [endpoint],
+            queryFn: async () => {
+              const response = await fetch(endpoint);
+              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
+              return response.json();
+            },
+            staleTime: 1000 * 60 * 5
+          });
+          return true;
+        } catch (error) {
+          console.error(`[COMMERCIAL_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      setApiDataPreloaded(true);
+    };
+    
+    preloadCommercialApiData();
+  }, [user, queryClient]);
+  
+  // ULTRA-FAST module component creator
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
+    
+    // ALWAYS call hooks in the same order - move useEffect before conditional return
+    React.useEffect(() => {
+      if (!ModuleComponent) {
+        preloadModule(moduleName);
+      }
+    }, [ModuleComponent, moduleName]);
+    
+    if (ModuleComponent) {
+      const isCritical = ['leads', 'appointments', 'schools', 'contacts', 'statistics', 'documents'].includes(moduleName);
+      if (isCritical && apiDataPreloaded) {
+      }
+      return React.createElement(ModuleComponent);
+    }
+    
+    return fallbackComponent || (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-2 text-orange-600">
+            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  // FORCE IMMEDIATE preload of critical slow modules - Commercial specific
+  React.useEffect(() => {
+    const criticalModules = ['commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 'commercial-whatsapp', 'offer-letters'];
+    
+    const forceLoadCriticalModules = async () => {
+      console.log('[COMMERCIAL_DASHBOARD] 🚀 FORCE LOADING critical modules...');
+      
+      const promises = criticalModules.map(async (moduleName) => {
+        try {
+          console.log(`[COMMERCIAL_DASHBOARD] ⚡ Force loading ${moduleName}...`);
+          await preloadModule(moduleName);
+          console.log(`[COMMERCIAL_DASHBOARD] ✅ ${moduleName} module ready!`);
+          return true;
+        } catch (error) {
+          console.error(`[COMMERCIAL_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      console.log('[COMMERCIAL_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
+    };
+    
+    forceLoadCriticalModules();
+  }, [preloadModule]);
+
+  // Preload modules when dashboard loads (LEGACY - keeping for compatibility)
+  useEffect(() => {
+    const criticalModules = [
+      'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement', 
+      'MySchools', 'WhatsAppManager', 'CommercialCRM'
+    ];
+    
+    criticalModules.forEach(module => {
+      preloadModule(module);
+    });
+  }, [preloadModule]);
+  
+  const text = {
+    fr: {
+      title: 'Tableau de Bord Commercial',
+      subtitle: 'Gestion des ventes et relations clients éducatives',
+      overview: 'Aperçu',
+      mySchools: 'Mes Écoles',
+      leads: 'Prospects',
+      contacts: 'Contacts',
+      payments: 'Paiements',
+      documents: 'Documents',
+      statistics: 'Statistiques',
+      reports: 'Rapports',
+      appointments: 'Rendez-vous',
+      whatsapp: 'WhatsApp Business',
+      offerLetters: 'Lettres d\'Offres',
+      settings: 'Paramètres',
+      help: 'Aide'
+    },
+    en: {
+      title: 'Commercial Dashboard',
+      subtitle: 'Sales management and educational client relationships',
+      overview: 'Overview',
+      mySchools: 'My Schools',
+      leads: 'Leads',
+      contacts: 'Contacts',
+      payments: 'Payments',
+      documents: 'Documents',
+      statistics: 'Statistics',
+      reports: 'Reports',
+      appointments: 'Calls & Appointments',
+      whatsapp: 'WhatsApp Business',
+      offerLetters: 'Offer Letters',
+      settings: 'Settings',
+      help: 'Help'
+    }
+  };
+
+  const t = text[language as keyof typeof text];
+
+  const modules = [
+    {
+      id: 'schools',
+      label: t.mySchools,
+      icon: <Building2 className="w-6 h-6" />,
+      color: 'bg-blue-500',
+      component: createDynamicModule('commercial-schools')
+    },
+    {
+      id: 'leads',
+      label: t.leads,
+      icon: <Target className="w-6 h-6" />,
+      color: 'bg-orange-500',
+      component: createDynamicModule('commercial-contacts')
+    },
+    {
+      id: 'contacts',
+      label: t.contacts,
+      icon: <Users className="w-6 h-6" />,
+      color: 'bg-green-500',
+      component: createDynamicModule('commercial-contacts')
+    },
+    {
+      id: 'payments',
+      label: t.payments,
+      icon: <CreditCard className="w-6 h-6" />,
+      color: 'bg-purple-500',
+      component: createDynamicModule('commercial-documents')
+    },
+    {
+      id: 'documents',
+      label: t.documents,
+      icon: <FileText className="w-6 h-6" />,
+      color: 'bg-orange-500',
+      component: createDynamicModule('commercial-documents')
+    },
+    {
+      id: 'statistics',
+      label: t.statistics,
+      icon: <BarChart3 className="w-6 h-6" />,
+      color: 'bg-red-500',
+      component: createDynamicModule('commercial-statistics')
+    },
+    {
+      id: 'reports',
+      label: t.reports,
+      icon: <TrendingUp className="w-6 h-6" />,
+      color: 'bg-pink-500',
+      component: createDynamicModule('commercial-statistics')
+    },
+    {
+      id: 'appointments',
+      label: t.appointments,
+      icon: <Calendar className="w-6 h-6" />,
+      color: 'bg-indigo-500',
+      component: createDynamicModule('commercial-contacts')
+    },
+    {
+      id: 'whatsapp',
+      label: t.whatsapp,
+      icon: <MessageSquare className="w-6 h-6" />,
+      color: 'bg-green-600',
+      component: createDynamicModule('commercial-whatsapp')
+    },
+    {
+      id: 'offer-letters',
+      label: t.offerLetters,
+      icon: <Mail className="w-6 h-6" />,
+      color: 'bg-yellow-500',
+      component: createDynamicModule('offer-letters')
+    },
+    {
+      id: 'activity',
+      label: language === 'fr' ? 'Mon Activité' : 'My Activity',
+      icon: <Activity className="w-6 h-6" />,
+      color: 'bg-indigo-500',
+      component: createDynamicModule('activity-summary')
+    },
+    {
+      id: 'notifications',
+      label: language === 'fr' ? 'Notifications' : 'Notifications',
+      icon: <Bell className="w-6 h-6" />,
+      color: 'bg-orange-600',
+      component: createDynamicModule('commercial-notifications')
+    },
+    {
+      id: 'settings',
+      label: t.settings,
+      icon: <Settings className="w-6 h-6" />,
+      color: 'bg-gray-600',
+      component: createDynamicModule('settings')
+    },
+    {
+      id: 'multirole',
+      label: 'Multi-Rôles',
+      icon: <User className="w-6 h-6" />,
+      color: 'bg-purple-600',
+      component: createDynamicModule('multirole')
+    },
+    {
+      id: 'help',
+      label: t.help,
+      icon: <HelpCircle className="w-6 h-6" />,
+      color: 'bg-gray-500',
+      component: createDynamicModule('help')
+    }
+  ];
+
+  return (
+    <UnifiedIconDashboard
+      title={t.title || ''}
+      subtitle={t.subtitle}
+      modules={modules}
+      activeModule={activeModule}
+    />
+  );
+};
+
+export default CommercialDashboard;

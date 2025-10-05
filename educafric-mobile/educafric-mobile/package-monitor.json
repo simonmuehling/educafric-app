@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-07-23T07:20:59.417Z",
+  "packageStatus": "valid",
+  "dependencies": {
+    "total": 93,
+    "installed": 93,
+    "missing": 0,
+    "outdated": 0
+  },
+  "scripts": {
+    "total": 5,
+    "validated": 5,
+    "errors": []
+  },
+  "health": {
+    "score": 100,
+    "issues": [],
+    "recommendations": []
+  },
+  "packageData": {
+    "name": "rest-express",
+    "version": "1.0.0",
+    "type": "module",
+    "dependencies": 71,
+    "devDependencies": 22,
+    "scripts": 5
+  }
+}

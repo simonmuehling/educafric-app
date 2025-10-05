@@ -1,0 +1,46 @@
+{
+  "scripts": {
+    "duplications": {
+      "description": "Scripts de gestion des duplications EDUCAFRIC",
+      "analyze": {
+        "description": "Analyser les duplications sans les corriger",
+        "script": "node scripts/eliminate-duplications.js --dry-run"
+      },
+      "fix": {
+        "description": "Analyser et corriger automatiquement les duplications",
+        "script": "node scripts/eliminate-duplications.js --fix"
+      },
+      "watch": {
+        "description": "Surveillance en temps réel des duplications",
+        "script": "node scripts/watch-duplications.js"
+      },
+      "watch-fix": {
+        "description": "Surveillance avec correction automatique",
+        "script": "node scripts/watch-duplications.js --auto-fix"
+      },
+      "report": {
+        "description": "Générer un rapport détaillé",
+        "script": "bash scripts/run-duplication-analysis.sh --report"
+      },
+      "full": {
+        "description": "Analyse complète avec rapport",
+        "script": "bash scripts/run-duplication-analysis.sh"
+      },
+      "full-fix": {
+        "description": "Analyse complète avec correction",
+        "script": "bash scripts/run-duplication-analysis.sh --fix"
+      }
+    },
+    "quality": {
+      "description": "Scripts de qualité de code",
+      "lint-duplications": {
+        "description": "Linter pour détecter les duplications",
+        "script": "eslint --ext .js,.jsx,.ts,.tsx --config scripts/eslint-duplication-rules.js client/src/"
+      },
+      "pre-commit": {
+        "description": "Vérifications avant commit",
+        "script": "npm run duplications:analyze && npm run quality:lint-duplications"
+      }
+    }
+  }
+}

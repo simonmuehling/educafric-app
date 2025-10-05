@@ -1,0 +1,5 @@
+rootProject.name = 'Educafric'
+apply from: file("../node_modules/@react-native/gradle-plugin/dist/autolink-settings.gradle");
+linkAndroidProject(':app')
+include ':app'
+includeBuild('../node_modules/@react-native/gradle-plugin')

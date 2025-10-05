@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide École - Configuration de Profil EDUCAFRIC</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .subtitle {
+            color: #764ba2;
+            font-size: 1.2em;
+            font-weight: 300;
+        }
+        h2 {
+            color: #667eea;
+            border-left: 5px solid #667eea;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #764ba2;
+            margin-top: 25px;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .step-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #f39c12;
+        }
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #28a745;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #764ba2;
+        }
+        .notification-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .notification-card {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        ol, ul {
+            padding-left: 30px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏫 GUIDE ÉCOLE</h1>
+            <div class="subtitle">Configuration Complète Dashboard Directeur</div>
+        </div>
+
+        <div class="highlight-box">
+            <h2>📱 Aperçu de votre Dashboard École</h2>
+            <p>Voici à quoi ressemble l'interface principale de votre dashboard directeur d'école :</p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0; background: #f8f9fa; padding: 20px; border-radius: 10px;">
+            <img src="/attached_assets/generated_images/School_Director_Dashboard_Mockup_daad3b59.png" 
+                 alt="Dashboard École - Interface Directeur" 
+                 style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <p style="margin-top: 15px; color: #666; font-style: italic;">
+                Interface moderne et intuitive pour la gestion complète de votre établissement
+            </p>
+        </div>
+
+        <div class="success-box">
+            <h3>🎯 Modules Disponibles dans votre Dashboard</h3>
+            <div class="feature-grid">
+                <div class="notification-card">
+                    <strong>👥 Gestion Étudiants</strong><br>
+                    Inscrire, modifier, suivre les élèves
+                </div>
+                <div class="notification-card">
+                    <strong>👨‍🏫 Gestion Enseignants</strong><br>
+                    Gérer l'équipe pédagogique
+                </div>
+                <div class="notification-card">
+                    <strong>📚 Gestion Classes</strong><br>
+                    Organiser les promotions et sections
+                </div>
+                <div class="notification-card">
+                    <strong>📊 Validation Bulletins</strong><br>
+                    Approuver les notes et bulletins
+                </div>
+                <div class="notification-card">
+                    <strong>📅 Suivi Présence</strong><br>
+                    Contrôler les absences et retards
+                </div>
+                <div class="notification-card">
+                    <strong>💬 Communications</strong><br>
+                    Échanger avec parents et enseignants
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <h2>🎯 Objectif du Guide</h2>
+            <p>Ce guide vous accompagne pas à pas pour créer et configurer votre profil école sur EDUCAFRIC, activer les notifications et exploiter toutes les fonctionnalités de la plateforme éducative.</p>
+        </div>
+
+        <h2>📋 ÉTAPE 1: CRÉATION DU PROFIL ÉCOLE</h2>
+
+        <div class="step-card">
+            <h3>1.1 Inscription Initiale</h3>
+            <ol>
+                <li>Accédez à <strong>https://www.educafric.com</strong></li>
+                <li>Cliquez sur <strong>"Créer un compte"</strong></li>
+                <li>Sélectionnez <strong>"École/Établissement"</strong></li>
+                <li>Remplissez les informations de base:
+                    <ul>
+                        <li>Nom de l'école</li>
+                        <li>Email administrateur</li>
+                        <li>Mot de passe sécurisé</li>
+                        <li>Numéro de téléphone principal</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="step-card">
+            <h3>1.2 Informations Administratives</h3>
+            <ol>
+                <li><strong>Type d'établissement:</strong>
+                    <ul>
+                        <li>École Publique (50,000 XAF/an)</li>
+                        <li>École Privée (75,000 XAF/an)</li>
+                        <li>École Entreprise (150,000 XAF/an)</li>
+                    </ul>
+                </li>
+                <li><strong>Adresse complète:</strong> Ville, quartier, rue</li>
+                <li><strong>Coordonnées GPS:</strong> Activées automatiquement</li>
+                <li><strong>Nombre d'élèves:</strong> Estimation actuelle</li>
+                <li><strong>Directeur/Principal:</strong> Nom et contact</li>
+            </ol>
+        </div>
+
+        <h2>⚙️ ÉTAPE 2: CONFIGURATION DU DASHBOARD</h2>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>📚 Gestion Académique</h3>
+                <ul>
+                    <li>Créer les classes et niveaux</li>
+                    <li>Ajouter les matières enseignées</li>
+                    <li>Définir l'année scolaire</li>
+                    <li>Configurer les trimestres/semestres</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h3>👥 Gestion des Utilisateurs</h3>
+                <ul>
+                    <li>Ajouter enseignants par classe</li>
+                    <li>Inscrire les élèves</li>
+                    <li>Inviter les parents</li>
+                    <li>Attribuer les rôles</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h3>📊 Système de Bulletins</h3>
+                <ul>
+                    <li>Activer la validation automatique</li>
+                    <li>Configurer les signatures numériques</li>
+                    <li>Définir les seuils de réussite</li>
+                    <li>Personnaliser les commentaires</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h3>📍 Géolocalisation (Option)</h3>
+                <ul>
+                    <li>Définir les zones sécurisées</li>
+                    <li>Configurer les alertes</li>
+                    <li>Activer le suivi temps réel</li>
+                    <li>Gérer les autorisations</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>🔔 ÉTAPE 3: CONFIGURATION DES NOTIFICATIONS</h2>
+
+        <div class="warning-box">
+            <strong>Important:</strong> Les notifications bien configurées améliorent drastiquement la communication école-parents et réduisent les absences non signalées.
+        </div>
+
+        <div class="step-card">
+            <h3>3.1 Types de Notifications Disponibles</h3>
+            <div class="notification-types">
+                <div class="notification-card">
+                    <strong>📱 SMS</strong><br>
+                    Alertes urgentes, absences, retards
+                </div>
+                <div class="notification-card">
+                    <strong>📧 Email</strong><br>
+                    Bulletins, rapports, communications officielles
+                </div>
+                <div class="notification-card">
+                    <strong>💬 WhatsApp</strong><br>
+                    Messages rapides, confirmations, rappels
+                </div>
+                <div class="notification-card">
+                    <strong>🔔 Push App</strong><br>
+                    Notifications temps réel sur mobile
+                </div>
+            </div>
+        </div>
+
+        <div class="step-card">
+            <h3>3.2 Configuration par Type d'Événement</h3>
+            <ol>
+                <li><strong>Absences et Retards</strong>
+                    <ul>
+                        <li>SMS automatique aux parents si absence > 30 min</li>
+                        <li>Email récapitulatif hebdomadaire</li>
+                        <li>Push notification temps réel</li>
+                    </ul>
+                </li>
+                <li><strong>Résultats Scolaires</strong>
+                    <ul>
+                        <li>Email lors de publication des bulletins</li>
+                        <li>SMS si moyenne < seuil défini</li>
+                        <li>WhatsApp pour félicitations</li>
+                    </ul>
+                </li>
+                <li><strong>Communications Générales</strong>
+                    <ul>
+                        <li>Email pour circulaires importantes</li>
+                        <li>SMS pour urgences/fermetures</li>
+                        <li>WhatsApp pour rappels événements</li>
+                    </ul>
+                </li>
+                <li><strong>Géolocalisation (si activée)</strong>
+                    <ul>
+                        <li>SMS immédiat si sortie zone sécurisée</li>
+                        <li>Push notification entrée/sortie école</li>
+                        <li>Email rapport journalier parents</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <h2>🚀 ÉTAPE 4: ACTIVATION DES FONCTIONNALITÉS</h2>
+
+        <div class="step-card">
+            <h3>4.1 Fonctionnalités Automatiques</h3>
+            <p>Ces fonctionnalités s'activent automatiquement selon votre configuration:</p>
+            <ul>
+                <li><strong>Pointage Automatique:</strong> Les élèves sont marqués présents/absents selon leur géolocalisation</li>
+                <li><strong>Génération Bulletins:</strong> Calculs automatiques des moyennes et classements</li>
+                <li><strong>Validation Hiérarchique:</strong> Workflow enseignant → directeur → parents</li>
+                <li><strong>Sauvegarde Cloud:</strong> Toutes les données sont sécurisées automatiquement</li>
+            </ul>
+        </div>
+
+        <div class="step-card">
+            <h3>4.2 Intégrations Activées</h3>
+            <ul>
+                <li><strong>Système de Paiement:</strong> EDUCAFRIC paie votre école selon votre forfait</li>
+                <li><strong>Support Technique:</strong> Chat intégré et assistance prioritaire</li>
+                <li><strong>Rapports Analytiques:</strong> Tableaux de bord performance et statistiques</li>
+                <li><strong>API Mobile:</strong> Synchronisation automatique avec l'app mobile</li>
+            </ul>
+        </div>
+
+        <h2>📱 ÉTAPE 5: UTILISATION QUOTIDIENNE</h2>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>🌅 Début de Journée</h3>
+                <ol>
+                    <li>Vérifier les présences automatiques</li>
+                    <li>Confirmer les signalements d'absence</li>
+                    <li>Consulter les alertes de géolocalisation</li>
+                    <li>Vérifier les notifications urgentes</li>
+                </ol>
+            </div>
+            <div class="feature-card">
+                <h3>📖 Gestion Pédagogique</h3>
+                <ol>
+                    <li>Suivre la progression des bulletins</li>
+                    <li>Valider les notes soumises</li>
+                    <li>Envoyer communications aux parents</li>
+                    <li>Générer les rapports périodiques</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="success-box">
+            <h3>✅ Points Clés de Réussite</h3>
+            <ul>
+                <li><strong>Communication Active:</strong> Utilisez tous les canaux de notification</li>
+                <li><strong>Formation Équipe:</strong> Tous les enseignants doivent maîtriser le système</li>
+                <li><strong>Engagement Parents:</strong> Encouragez l'utilisation de l'application mobile</li>
+                <li><strong>Suivi Régulier:</strong> Consultez les rapports hebdomadaires</li>
+            </ul>
+        </div>
+
+        <h2>🆘 SUPPORT ET ASSISTANCE</h2>
+        <div class="step-card">
+            <h3>Contacts Utiles</h3>
+            <ul>
+                <li><strong>Email général:</strong> info@educafric.com</li>
+                <li><strong>Téléphone:</strong> +237 6 56 20 04 72</li>
+                <li><strong>WhatsApp:</strong> https://wa.me/237657004011</li>
+                <li><strong>Urgence 24/7:</strong> Chat intégré dans l'application</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 EDUCAFRIC - Plateforme Éducative Technologique Africaine</p>
+            <p>Votre succès éducatif, notre priorité technologique</p>
+        </div>
+    </div>
+</body>
+</html>

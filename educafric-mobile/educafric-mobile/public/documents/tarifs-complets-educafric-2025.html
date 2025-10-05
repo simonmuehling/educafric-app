@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarifs Complets EducAfric 2025</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #ffffff;
+            font-size: 14px;
+            max-width: 210mm;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 { font-size: 32px; font-weight: 700; margin-bottom: 10px; }
+        .header .subtitle { font-size: 16px; opacity: 0.9; font-weight: 300; }
+        .content { padding: 0 30px 30px 30px; }
+        
+        h1 { color: #667eea; font-size: 28px; font-weight: 600; margin: 30px 0 20px 0; border-bottom: 3px solid #667eea; padding-bottom: 10px; }
+        h2 { color: #4a5568; font-size: 22px; font-weight: 600; margin: 25px 0 15px 0; }
+        h3 { color: #2d3748; font-size: 18px; font-weight: 500; margin: 20px 0 12px 0; }
+        
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin: 25px 0; }
+        
+        .plan-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .plan-card.featured {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            transform: scale(1.05);
+        }
+        
+        .plan-card.featured::before {
+            content: "RECOMMANDÉ";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .plan-title { font-size: 24px; font-weight: 700; margin-bottom: 15px; color: #2d3748; }
+        .plan-price { font-size: 42px; font-weight: 800; color: #667eea; margin: 20px 0; }
+        .plan-period { font-size: 16px; color: #718096; font-weight: 400; }
+        .plan-description { color: #4a5568; margin: 15px 0; font-style: italic; }
+        
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .features-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .features-list li:last-child { border-bottom: none; }
+        
+        .check-icon {
+            color: #38a169;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .highlight-box { background: #f7fafc; border-left: 4px solid #667eea; padding: 25px; margin: 25px 0; border-radius: 0 12px 12px 0; }
+        .contact-box { background: #667eea; color: white; padding: 30px; border-radius: 16px; text-align: center; margin: 30px 0; }
+        
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 13px; }
+        .comparison-table th, .comparison-table td { border: 1px solid #e2e8f0; padding: 15px; text-align: center; }
+        .comparison-table th { background: #667eea; color: white; font-weight: 600; }
+        .comparison-table tr:nth-child(even) { background: #f8f9fa; }
+        
+        .footer { text-align: center; padding: 30px; border-top: 2px solid #e2e8f0; margin-top: 40px; color: #718096; font-size: 12px; }
+        .logo { font-weight: 700; color: #667eea; font-size: 24px; margin-bottom: 10px; }
+        .educafric-branding { color: #667eea; font-weight: 600; }
+        
+        @media print { body { font-size: 12px; } .plan-card.featured { transform: none; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">EducAfric</div>
+        <h1>Tarifs Complets 2025</h1>
+        <div class="subtitle">Plans d'Abonnement - Plateforme Éducative Africaine</div>
+    </div>
+    
+    <div class="content">
+        <h1>🏫 Plans pour Établissements Scolaires</h1>
+        
+        <div class="pricing-grid">
+            <div class="plan-card">
+                <h3 class="plan-title">École Publique</h3>
+                <div class="plan-price">25,000<span class="plan-period"> CFA/an</span></div>
+                <p class="plan-description">Solution complète pour établissements publics</p>
+                
+                <ul class="features-list">
+                    <li><span class="check-icon">✓</span> <strong>Étudiants illimités</strong></li>
+                    <li><span class="check-icon">✓</span> Gestion complète des notes</li>
+                    <li><span class="check-icon">✓</span> Suivi des présences</li>
+                    <li><span class="check-icon">✓</span> Communication parents</li>
+                    <li><span class="check-icon">✓</span> Bulletins automatiques</li>
+                    <li><span class="check-icon">✓</span> Support technique standard</li>
+                    <li><span class="check-icon">✓</span> Formation équipe incluse</li>
+                    <li><span class="check-icon">✓</span> Sauvegardes automatiques</li>
+                </ul>
+            </div>
+            
+            <div class="plan-card featured">
+                <h3 class="plan-title">École Privée</h3>
+                <div class="plan-price">75,000<span class="plan-period"> CFA/an</span></div>
+                <p class="plan-description">Solution premium avec fonctionnalités avancées</p>
+                
+                <ul class="features-list">
+                    <li><span class="check-icon">✓</span> <strong>Toutes fonctionnalités École Publique</strong></li>
+                    <li><span class="check-icon">✓</span> Modules Premium inclus</li>
+                    <li><span class="check-icon">✓</span> Géolocalisation avancée</li>
+                    <li><span class="check-icon">✓</span> Analytics et rapports détaillés</li>
+                    <li><span class="check-icon">✓</span> Support prioritaire 24/7</li>
+                    <li><span class="check-icon">✓</span> Personnalisation complète</li>
+                    <li><span class="check-icon">✓</span> API et intégrations</li>
+                    <li><span class="check-icon">✓</span> Consultations stratégiques</li>
+                </ul>
+            </div>
+            
+        </div>
+        
+        <h1>👨‍💼 Plans pour Freelancers et Professionnels</h1>
+        
+        <div class="pricing-grid">
+            <div class="plan-card">
+                <h3 class="plan-title">Plan Professionnel</h3>
+                <div class="plan-price">12,500<span class="plan-period"> CFA/semestre</span></div>
+                <p class="plan-description">Ou 25,000 CFA/an (économie de 50%)</p>
+                
+                <ul class="features-list">
+                    <li><span class="check-icon">✓</span> <strong>Jusqu'à 50 étudiants</strong></li>
+                    <li><span class="check-icon">✓</span> Gestion cours particuliers</li>
+                    <li><span class="check-icon">✓</span> Planification flexible</li>
+                    <li><span class="check-icon">✓</span> Facturation automatique</li>
+                    <li><span class="check-icon">✓</span> Communication parents</li>
+                    <li><span class="check-icon">✓</span> Rapports de progression</li>
+                    <li><span class="check-icon">✓</span> Support technique</li>
+                    <li><span class="check-icon">✓</span> Formation incluse</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h1>📊 Comparaison Détaillée des Fonctionnalités</h1>
+        
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Fonctionnalité</th>
+                    <th>École Publique</th>
+                    <th>École Privée</th>
+                    <th>École Entreprise</th>
+                    <th>Freelancer</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Nombre d'étudiants</strong></td>
+                    <td>Illimité</td>
+                    <td>Illimité</td>
+                    <td>Illimité</td>
+                    <td>50 max</td>
+                </tr>
+                <tr>
+                    <td><strong>Gestion des notes</strong></td>
+                    <td>✓</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td><strong>Suivi présences</strong></td>
+                    <td>✓</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td><strong>Géolocalisation Premium</strong></td>
+                    <td>❌</td>
+                    <td>✓</td>
+                    <td>Basic</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td><strong>Analytics avancées</strong></td>
+                    <td>Basic</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                    <td>Basic</td>
+                </tr>
+                <tr>
+                    <td><strong>Support 24/7</strong></td>
+                    <td>❌</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td><strong>Personnalisation</strong></td>
+                    <td>Limitée</td>
+                    <td>Complète</td>
+                    <td>Avancée</td>
+                    <td>Basic</td>
+                </tr>
+                <tr>
+                    <td><strong>Formation équipe</strong></td>
+                    <td>✓</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="highlight-box">
+            <h3>💡 Économies et Avantages <span class="educafric-branding">EducAfric</span></h3>
+            <ul>
+                <li><strong>Tarification Réelle 2025</strong> : Prix fixes transparents adaptés au marché africain</li>
+                <li><strong>Pas de frais cachés</strong> : Tarification transparente, tout inclus</li>
+                <li><strong>Évolutions gratuites</strong> : Mises à jour et nouvelles fonctionnalités incluses</li>
+                <li><strong>Support local</strong> : Équipe africaine qui comprend vos besoins</li>
+                <li><strong>Paiement flexible</strong> : Possibilité de paiement échelonné pour écoles publiques</li>
+                <li><strong>Garantie satisfait</strong> : Remboursement 30 jours si non satisfait</li>
+            </ul>
+        </div>
+        
+        <div class="contact-box">
+            <h2>📞 Contactez-nous pour un Devis Personnalisé</h2>
+            <div style="margin: 20px 0;">
+                <div><strong>Téléphone :</strong> +237 657 004 011</div>
+                <div><strong>Email :</strong> admin@educafric.com</div>
+                <div><strong>Démonstration gratuite :</strong> Sur rendez-vous</div>
+                <div><strong>Essai gratuit :</strong> 30 jours pour tous les plans</div>
+            </div>
+            <p><em>Notre équipe commerciale vous accompagne pour choisir la solution parfaite pour votre établissement.</em></p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="logo">EducAfric</div>
+        <div class="contact-info">
+            <div><strong>Contact :</strong> +237 657 004 011 | admin@educafric.com</div>
+            <div><strong>Plateforme Éducative Africaine</strong> - Solutions Numériques pour l'Éducation</div>
+            <div>Tarification officielle <span class="educafric-branding">EducAfric</span> - Mise à jour Août 2025</div>
+        </div>
+    </div>
+    
+    <script>
+        function convertToPdf() { window.print(); }
+        document.addEventListener('DOMContentLoaded', function() {
+            const printButton = document.createElement('button');
+            printButton.textContent = 'Générer PDF';
+            printButton.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: inherit;';
+            printButton.onclick = convertToPdf;
+            document.body.appendChild(printButton);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+{
+  "timestamp": "2025-07-23T10:20:09.818Z",
+  "totalAttempts": 4,
+  "successfulFixes": 4,
+  "failedFixes": 0,
+  "categoriesFixed": {
+    "react": 1,
+    "typescript": 1,
+    "auth": 1,
+    "database": 1
+  },
+  "recentFixes": [
+    {
+      "timestamp": "2025-07-23T10:20:09.796Z",
+      "error": {
+        "message": "Objects are not valid as a React child",
+        "type": "react"
+      },
+      "fixes": [
+        {
+          "name": "react_translation_errors",
+          "success": true,
+          "result": {
+            "filesFixed": 0,
+            "details": []
+          },
+          "timestamp": "2025-07-23T10:20:09.796Z"
+        }
+      ],
+      "success": true
+    },
+    {
+      "timestamp": "2025-07-23T10:20:09.798Z",
+      "error": {
+        "message": "Property phone does not exist on type User",
+        "type": "typescript"
+      },
+      "fixes": [
+        {
+          "name": "typescript_errors",
+          "success": true,
+          "result": {
+            "message": "Could not parse TypeScript error for auto-fix"
+          },
+          "timestamp": "2025-07-23T10:20:09.798Z"
+        }
+      ],
+      "success": true
+    },
+    {
+      "timestamp": "2025-07-23T10:20:09.799Z",
+      "error": {
+        "message": "Authentication required",
+        "type": "auth"
+      },
+      "fixes": [
+        {
+          "name": "authentication_session",
+          "success": true,
+          "result": {
+            "checksPerformed": [
+              "Verify session middleware configuration",
+              "Check authentication endpoints",
+              "Validate user login flow"
+            ],
+            "recommendations": [
+              "Ensure session secret is properly configured",
+              "Check database connectivity for session storage",
+              "Verify authentication middleware is properly applied"
+            ]
+          },
+          "timestamp": "2025-07-23T10:20:09.799Z"
+        }
+      ],
+      "success": true
+    },
+    {
+      "timestamp": "2025-07-23T10:20:09.800Z",
+      "error": {
+        "message": "Database connection failed",
+        "type": "database"
+      },
+      "fixes": [
+        {
+          "name": "database_connection",
+          "success": true,
+          "result": {
+            "diagnosticsRun": [
+              "Check DATABASE_URL environment variable",
+              "Verify database server connectivity",
+              "Test connection pool settings"
+            ],
+            "recommendations": [
+              "Verify database credentials",
+              "Check network connectivity to database server",
+              "Review connection pool configuration",
+              "Ensure database server is running"
+            ]
+          },
+          "timestamp": "2025-07-23T10:20:09.800Z"
+        }
+      ],
+      "success": true
+    }
+  ]
+}

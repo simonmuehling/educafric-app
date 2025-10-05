@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Test Bilingue Français-Anglais - EDUCAFRIC</title>
+        <meta
+            name="description"
+            content="Document de test pour valider la correction définitive des caractères corrompus dans les PDFs EDUCAFRIC. Test complet français-anglais."
+        />
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Inter", sans-serif;
+                line-height: 1.6;
+                color: #1a1a1a;
+                background: #ffffff;
+                font-size: 14px;
+                max-width: 210mm;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 40px 30px;
+                text-align: center;
+                margin-bottom: 30px;
+                page-break-inside: avoid;
+            }
+
+            .header h1 {
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 10px;
+                letter-spacing: -0.5px;
+            }
+
+            .test-section {
+                background: #f7fafc;
+                border-left: 4px solid #667eea;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 0 8px 8px 0;
+            }
+
+            .problematic-chars {
+                background: #fff5f5;
+                border-left: 4px solid #f56565;
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+
+            .french-chars {
+                background: #f0fff4;
+                border-left: 4px solid #38a169;
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+
+            .english-test {
+                background: #e6f3ff;
+                border-left: 4px solid #3182ce;
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+
+            h2 {
+                color: #4a5568;
+                font-size: 20px;
+                font-weight: 600;
+                margin: 25px 0 15px 0;
+            }
+
+            ul, ol {
+                margin: 15px 0;
+                padding-left: 25px;
+            }
+
+            li {
+                margin-bottom: 8px;
+                line-height: 1.6;
+            }
+
+            .success-indicator {
+                background: #f0fff4;
+                border: 2px solid #38a169;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 8px;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🔤 Test Bilingue Français-Anglais</h1>
+            <div class="subtitle">
+                Test de Validation - Correction Définitive des Caractères Corrompus
+            </div>
+        </div>
+
+        <h2>🎯 Objectif du Test</h2>
+        <div class="test-section">
+            <p><strong>Objectif critique :</strong> Valider que le PDF généré affiche parfaitement :</p>
+            <ul>
+                <li>✅ Tous les caractères français avec accents (é, è, à, ç, ù, etc.)</li>
+                <li>✅ Tous les caractères anglais standards (A-Z, a-z)</li>
+                <li>✅ Remplacement correct des caractères problématiques</li>
+                <li>❌ ZÉRO caractère corrompu (Ø=Ý, 'þ, etc.)</li>
+            </ul>
+        </div>
+
+        <h2>🇫🇷 Test des Caractères Français</h2>
+        <div class="french-chars">
+            <h3>Accents et Caractères Spéciaux Français</h3>
+            <p><strong>Voyelles accentuées :</strong></p>
+            <ul>
+                <li>à, â, ä (a avec accents) - École, pâte, naïf</li>
+                <li>é, è, ê, ë (e avec accents) - Élève, très, être, Noël</li>
+                <li>î, ï (i avec accents) - Dîner, maïs</li>
+                <li>ô, ö (o avec accents) - Hôtel, Citroën</li>
+                <li>ù, û, ü (u avec accents) - Où, sûr, ambiguë</li>
+            </ul>
+            <p><strong>Cédille :</strong> ç, Ç - Français, leçon, garçon</p>
+            
+            <h3>Phrases Complètes en Français</h3>
+            <p>L'élève français étudie à l'école. Il apprend les mathématiques, le français et l'histoire.</p>
+            <p>Voici une phrase avec tous les accents : « L'été, nous préférons aller à la plage près de Montréal. »</p>
+            <p>Les caractères spéciaux : cœur, œuf, æsop (ligatures)</p>
+        </div>
+
+        <h2>🇺🇸 Test des Caractères Anglais</h2>
+        <div class="english-test">
+            <h3>English Characters and Text</h3>
+            <p><strong>Standard English alphabet:</strong></p>
+            <ul>
+                <li>Uppercase: A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</li>
+                <li>Lowercase: a b c d e f g h i j k l m n o p q r s t u v w x y z</li>
+                <li>Numbers: 0 1 2 3 4 5 6 7 8 9</li>
+                <li>Punctuation: . , ; : ! ? ' " - ( ) [ ] { }</li>
+            </ul>
+            
+            <h3>Complete English Sentences</h3>
+            <p>The student learns English at school. Education is important for everyone.</p>
+            <p>This is a test sentence with various punctuation marks: "Hello, world!" - isn't it great?</p>
+            <p>Numbers and symbols: $100, 50%, #1 choice, @educafric.com</p>
+        </div>
+
+        <h2>⚠️ Test des Caractères Problématiques (À Corriger)</h2>
+        <div class="problematic-chars">
+            <h3>Caractères qui causaient des corruptions :</h3>
+            <ul>
+                <li>• Bullets points (devrait être remplacé par *)</li>
+                <li>– En-dash (devrait être remplacé par -)</li>
+                <li>— Em-dash (devrait être remplacé par --)</li>
+                <li>" " Smart quotes (devrait être remplacé par " ")</li>
+                <li>' ' Smart apostrophes (devrait être remplacé par ' ')</li>
+                <li>« » Guillemets français (devrait être remplacé par " ")</li>
+                <li>… Ellipsis (devrait être remplacé par ...)</li>
+            </ul>
+            
+            <h3>Test avec ces caractères :</h3>
+            <p>Voici une liste avec des bullets :</p>
+            <ul>
+                <li>• Premier élément avec bullet</li>
+                <li>• Deuxième élément avec bullet</li>
+                <li>• Troisième élément avec bullet</li>
+            </ul>
+            
+            <p>Voici des tirets : en-dash (–) et em-dash (—) dans la phrase.</p>
+            <p>Voici des guillemets : "smart quotes" et 'smart apostrophes' et « guillemets français ».</p>
+            <p>Et des ellipsis… pour finir.</p>
+        </div>
+
+        <h2>🔬 Test Mixte Français-Anglais</h2>
+        <div class="test-section">
+            <h3>Texte Bilingue Complet</h3>
+            <p><strong>Français :</strong> L'école EDUCAFRIC offre une éducation de qualité aux élèves africains. 
+            Les enseignants utilisent des méthodes pédagogiques innovantes pour améliorer l'apprentissage.</p>
+            
+            <p><strong>English:</strong> EDUCAFRIC school provides quality education to African students. 
+            Teachers use innovative pedagogical methods to improve learning outcomes.</p>
+            
+            <p><strong>Mélange FR-EN :</strong> The "école" teaches both français et English. 
+            Students apprennent multiple langues simultanément.</p>
+        </div>
+
+        <div class="success-indicator">
+            <h3>✅ Critères de Succès</h3>
+            <p><strong>Si ce PDF s'affiche correctement, alors :</strong></p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>✅ Les accents français sont parfaitement rendus</li>
+                <li>✅ Les caractères anglais sont parfaitement rendus</li>
+                <li>✅ Les caractères problématiques sont remplacés (pas corrompus)</li>
+                <li>✅ Aucun caractère du type "Ø=Ý" ou "'þ" n'apparaît</li>
+            </ul>
+            <p><strong>🎉 MISSION ACCOMPLIE : Caractères corrompus définitivement corrigés !</strong></p>
+        </div>
+    </body>
+</html>

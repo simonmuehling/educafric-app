@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDUCAFRIC - Guide des Bulletins Scolaires</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            border-radius: 10px;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #6c5ce7;
+            background: #f8f9fa;
+        }
+        .section h2 {
+            color: #2d3436;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avantage-box {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .avantage-box h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.3em;
+        }
+        .step-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .step-card h3 {
+            color: #6c5ce7;
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .before, .after {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .before {
+            background: #fab1a0;
+            color: #2d3436;
+        }
+        .after {
+            background: #55efc4;
+            color: #2d3436;
+        }
+        .feature-list {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .feature-list ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .feature-list li {
+            margin: 8px 0;
+            font-size: 1.05em;
+        }
+        .highlight {
+            background: linear-gradient(135deg, #fdcb6e, #e17055);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+        .contact-box {
+            background: linear-gradient(135deg, #2d3436, #636e72);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .icon {
+            font-size: 1.3em;
+            margin-right: 8px;
+        }
+        @media (max-width: 768px) {
+            .before-after {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Les Bulletins EDUCAFRIC</h1>
+            <p>Comprendre le système de bulletins scolaires digitaux</p>
+        </div>
+
+        <div class="section">
+            <h2><span class="icon">🤔</span>Qu'est-ce que c'est ?</h2>
+            <p>Les bulletins EDUCAFRIC, c'est comme les bulletins papier que vous connaissez, mais <strong>en beaucoup mieux</strong> ! Au lieu d'écrire à la main et de photocopier, tout se fait automatiquement sur l'ordinateur ou le téléphone.</p>
+            
+            <div class="avantage-box">
+                <h3>🎯 L'idée simple</h3>
+                <p>L'enseignant tape les notes sur son téléphone → Le bulletin se crée tout seul → Les parents le reçoivent par SMS ou WhatsApp</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="icon">⚡</span>Avant vs Maintenant</h2>
+            
+            <div class="before-after">
+                <div class="before">
+                    <h3>😤 AVANT (Système papier)</h3>
+                    <ul style="text-align: left;">
+                        <li>Écrire à la main = 2 heures par bulletin</li>
+                        <li>Photocopier = coût papier</li>
+                        <li>Distribuer = enfants perdent souvent</li>
+                        <li>Erreurs de calcul fréquentes</li>
+                        <li>Parents pas informés rapidement</li>
+                    </ul>
+                </div>
+                <div class="after">
+                    <h3>😍 MAINTENANT (EDUCAFRIC)</h3>
+                    <ul style="text-align: left;">
+                        <li>Bulletin créé en 5 minutes</li>
+                        <li>Zéro papier = zéro coût</li>
+                        <li>Envoi direct aux parents</li>
+                        <li>Calculs automatiques parfaits</li>
+                        <li>Parents informés immédiatement</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="icon">👩‍🏫</span>Comment ça marche pour l'Enseignant ?</h2>
+            
+            <div class="step-card">
+                <h3>Étape 1 : Entrer les notes</h3>
+                <p>L'enseignant ouvre son téléphone, va sur EDUCAFRIC, et tape les notes de chaque élève. C'est aussi simple que d'envoyer un message WhatsApp.</p>
+            </div>
+
+            <div class="step-card">
+                <h3>Étape 2 : Ajouter les commentaires</h3>
+                <p>Il peut écrire des petits commentaires pour chaque matière : "Excellent travail en maths", "Doit faire plus d'efforts en français", etc.</p>
+            </div>
+
+            <div class="step-card">
+                <h3>Étape 3 : Valider</h3>
+                <p>Il clique sur "Terminer" et le bulletin se crée automatiquement avec une belle présentation professionnelle.</p>
+            </div>
+
+            <div class="step-card">
+                <h3>Étape 4 : Envoi automatique</h3>
+                <p>Tous les parents reçoivent le bulletin de leur enfant par SMS, WhatsApp ou email. Fini les bulletins perdus !</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="icon">👨‍👩‍👧‍👦</span>Qu'est-ce que les Parents voient ?</h2>
+            
+            <div class="feature-list">
+                <h3>Le bulletin contient :</h3>
+                <ul>
+                    <li><strong>Toutes les notes</strong> avec les moyennes calculées automatiquement</li>
+                    <li><strong>Les commentaires</strong> de chaque enseignant</li>
+                    <li><strong>La conduite</strong> et le comportement de l'enfant</li>
+                    <li><strong>Les absences</strong> et retards du trimestre</li>
+                    <li><strong>Le rang de l'élève</strong> dans la classe</li>
+                    <li><strong>Les recommandations</strong> pour progresser</li>
+                </ul>
+            </div>
+
+            <div class="highlight">
+                💡 <strong>Bonus :</strong> Les parents peuvent garder tous les anciens bulletins sur leur téléphone et comparer les progrès de leur enfant !
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="icon">🏆</span>Pourquoi c'est révolutionnaire ?</h2>
+            
+            <div class="avantage-box">
+                <h3>⏰ Gain de temps énorme</h3>
+                <p>Au lieu de 3 jours de travail pour tous les bulletins, maintenant c'est fini en quelques heures</p>
+            </div>
+
+            <div class="avantage-box">
+                <h3>💰 Économies importantes</h3>
+                <p>Plus besoin d'acheter du papier, de l'encre, de payer des photocopies</p>
+            </div>
+
+            <div class="avantage-box">
+                <h3>📱 Communication directe</h3>
+                <p>Les parents reçoivent les bulletins sur leur téléphone, même s'ils habitent loin</p>
+            </div>
+
+            <div class="avantage-box">
+                <h3>🎯 Zéro erreur</h3>
+                <p>Les moyennes se calculent toutes seules, aucun risque d'erreur de calcul</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="icon">📋</span>Le bulletin EDUCAFRIC ressemble à quoi ?</h2>
+            
+            <div class="feature-list">
+                <p>C'est exactement comme un vrai bulletin officiel :</p>
+                <ul>
+                    <li>En-tête avec le nom de l'école</li>
+                    <li>Photo et informations de l'élève</li>
+                    <li>Tableau des notes par matière (sur 20 comme d'habitude)</li>
+                    <li>Moyennes générales et par matière</li>
+                    <li>Appréciation du conseil de classe</li>
+                    <li>Signature numérique du directeur</li>
+                </ul>
+                <p><strong>Format PDF officiel</strong> - accepté partout, imprimable si besoin</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="icon">🔒</span>C'est sécurisé ?</h2>
+            
+            <div class="feature-list">
+                <p><strong>Oui, totalement sécurisé !</strong></p>
+                <ul>
+                    <li>Chaque parent ne voit que le bulletin de son enfant</li>
+                    <li>Les notes sont protégées par mot de passe</li>
+                    <li>Impossible de modifier les notes après validation</li>
+                    <li>Historique de toutes les modifications</li>
+                    <li>Sauvegarde automatique, impossible de perdre les données</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="icon">🌍</span>Ça marche partout en Afrique ?</h2>
+            
+            <div class="feature-list">
+                <p><strong>Absolument ! EDUCAFRIC est conçu pour l'Afrique :</strong></p>
+                <ul>
+                    <li><strong>Bilingue :</strong> Français et Anglais</li>
+                    <li><strong>SMS et WhatsApp :</strong> Communication qui marche vraiment en Afrique</li>
+                    <li><strong>Fonctionne hors-ligne :</strong> Même quand internet coupe</li>
+                    <li><strong>Système de notation africain :</strong> Notes sur 20 comme on connaît</li>
+                    <li><strong>Prix africain :</strong> Abordable pour toutes les écoles</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="icon">💡</span>Exemple concret</h2>
+            
+            <div class="step-card">
+                <h3>Situation : École Primaire de Yaoundé</h3>
+                <p><strong>Avant EDUCAFRIC :</strong><br>
+                - 3 jours pour faire tous les bulletins<br>
+                - 50,000 XAF de papier et photocopies<br>
+                - 30% des bulletins perdus par les enfants<br>
+                - Parents mécontents car pas informés</p>
+
+                <p><strong>Avec EDUCAFRIC :</strong><br>
+                - 4 heures pour tous les bulletins<br>
+                - 0 XAF de papier<br>
+                - 100% des parents reçoivent le bulletin<br>
+                - Parents satisfaits et impliqués</p>
+            </div>
+        </div>
+
+        <div class="highlight">
+            <strong>🎯 En résumé :</strong> Les bulletins EDUCAFRIC, c'est prendre ce qui marchait bien dans les bulletins papier, et enlever tout ce qui était compliqué, lent et coûteux !
+        </div>
+
+        <div class="contact-box">
+            <h3>📞 Questions ou Démonstration ?</h3>
+            <p><strong>Téléphone :</strong> +237 6 56 20 04 72</p>
+            <p><strong>Email :</strong> info@educafric.com</p>
+            <p><strong>WhatsApp :</strong> https://wa.me/237657004011</p>
+            <p><strong>Voir une démo :</strong> https://www.educafric.com</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; color: #6b7280; font-size: 0.9em;">
+            <p>© 2025 EDUCAFRIC - Guide Bulletins Scolaires</p>
+            <p>Document mis à jour : 17 août 2025</p>
+        </div>
+    </div>
+</body>
+</html>

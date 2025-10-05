@@ -1,0 +1,178 @@
+{
+  "name": "EDUCAFRIC Duplication Prevention Configuration",
+  "version": "1.0.0",
+  "description": "Configuration pour la prévention et détection des duplications",
+  
+  "scanning": {
+    "directories": [
+      "client/src",
+      "server",
+      "shared"
+    ],
+    "exclude": [
+      "node_modules",
+      ".git",
+      "dist",
+      "build",
+      ".next",
+      "coverage",
+      "*.min.js",
+      "*.map",
+      "*.test.js",
+      "*.spec.js"
+    ],
+    "fileTypes": [
+      ".js",
+      ".jsx",
+      ".ts",
+      ".tsx",
+      ".css",
+      ".scss",
+      ".json"
+    ]
+  },
+  
+  "thresholds": {
+    "component": {
+      "similarity": 85,
+      "minLines": 10,
+      "autoFix": true
+    },
+    "function": {
+      "similarity": 90,
+      "minLines": 5,
+      "autoFix": true
+    },
+    "style": {
+      "similarity": 95,
+      "minLines": 3,
+      "autoFix": true
+    },
+    "logic": {
+      "similarity": 80,
+      "minLines": 3,
+      "autoFix": false
+    }
+  },
+  
+  "consolidation": {
+    "components": {
+      "outputDir": "client/src/components/consolidated",
+      "indexFile": "client/src/components/consolidated/index.ts"
+    },
+    "functions": {
+      "outputDir": "client/src/utils",
+      "outputFile": "client/src/utils/consolidated.ts"
+    },
+    "styles": {
+      "outputDir": "client/src/styles",
+      "outputFile": "client/src/styles/consolidated.css"
+    },
+    "hooks": {
+      "outputDir": "client/src/hooks",
+      "outputFile": "client/src/hooks/consolidated.ts"
+    }
+  },
+  
+  "patterns": {
+    "components": [
+      "(?:function|const)\\s+(\\w+).*(?:=>|{)",
+      "export\\s+(?:default\\s+)?(?:function|const)\\s+(\\w+)"
+    ],
+    "functions": [
+      "(?:function\\s+(\\w+)|const\\s+(\\w+)\\s*=.*(?:=>|function))",
+      "export\\s+(?:const|function)\\s+(\\w+)"
+    ],
+    "hooks": [
+      "(?:function\\s+|const\\s+)(use\\w+)",
+      "export\\s+(?:const|function)\\s+(use\\w+)"
+    ],
+    "styles": [
+      "([.#][\\w-]+|\\w+)\\s*{[^}]*}",
+      "@media[^{]*{[^}]*}"
+    ],
+    "imports": [
+      "import\\s+(?:{([^}]*)}|\\*\\s+as\\s+(\\w+)|(\\w+))\\s+from\\s+['\"]([^'\"]*)['\"]"
+    ]
+  },
+  
+  "ignore": {
+    "files": [
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "vite.config.ts",
+      "tailwind.config.js"
+    ],
+    "directories": [
+      "node_modules",
+      ".git",
+      "dist",
+      "build"
+    ],
+    "patterns": [
+      ".*\\.test\\.(js|ts|jsx|tsx)$",
+      ".*\\.spec\\.(js|ts|jsx|tsx)$",
+      ".*\\.d\\.ts$",
+      ".*\\.min\\.(js|css)$"
+    ]
+  },
+  
+  "rules": {
+    "components": {
+      "allowSimilarNames": false,
+      "consolidateSmall": true,
+      "minSizeForConsolidation": 50
+    },
+    "functions": {
+      "allowUtilityDuplication": false,
+      "createUtilsIndex": true,
+      "groupByCategory": true
+    },
+    "styles": {
+      "createVariables": true,
+      "consolidateColors": true,
+      "consolidateSpacing": true
+    },
+    "imports": {
+      "createBarrelExports": true,
+      "sortImports": true,
+      "removeUnused": true
+    }
+  },
+  
+  "reporting": {
+    "format": "json",
+    "outputFile": "duplication-report.json",
+    "includeMetrics": true,
+    "detailLevel": "high",
+    "showSuggestions": true
+  },
+  
+  "automation": {
+    "preCommitHook": true,
+    "ciIntegration": true,
+    "eslintIntegration": true,
+    "watchMode": false
+  },
+  
+  "educafric": {
+    "priorityFiles": [
+      "client/src/components/teacher/**/*.tsx",
+      "client/src/components/student/**/*.tsx",
+      "client/src/components/parent/**/*.tsx",
+      "client/src/components/director/**/*.tsx",
+      "client/src/components/admin/**/*.tsx"
+    ],
+    "businessLogic": [
+      "client/src/utils/**/*.ts",
+      "client/src/hooks/**/*.ts",
+      "client/src/services/**/*.ts",
+      "server/routes/**/*.ts"
+    ],
+    "sharedComponents": [
+      "client/src/components/ui/**/*.tsx",
+      "client/src/components/common/**/*.tsx"
+    ]
+  }
+}

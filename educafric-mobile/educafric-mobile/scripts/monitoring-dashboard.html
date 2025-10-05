@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educafric Monitoring Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/chart.js"></script>
+    <style>
+        .status-healthy { @apply bg-green-100 text-green-800 border-green-200; }
+        .status-degraded { @apply bg-yellow-100 text-yellow-800 border-yellow-200; }
+        .status-critical { @apply bg-red-100 text-red-800 border-red-200; }
+        .alert-item { @apply bg-white border-l-4 p-4 shadow-sm rounded-r-lg; }
+        .alert-critical { @apply border-red-500; }
+        .alert-warning { @apply border-yellow-500; }
+        .alert-info { @apply border-blue-500; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">E</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900">Educafric Monitoring Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="last-update" class="text-sm text-gray-500"></div>
+                    <button id="refresh-btn" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Status Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">System Health</dt>
+                            <dd id="system-health" class="text-lg font-medium text-gray-900">Loading...</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Active Endpoints</dt>
+                            <dd id="active-endpoints" class="text-lg font-medium text-gray-900">Loading...</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Active Alerts</dt>
+                            <dd id="active-alerts" class="text-lg font-medium text-gray-900">Loading...</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Avg Response</dt>
+                            <dd id="avg-response" class="text-lg font-medium text-gray-900">Loading...</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Response Time Chart -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Response Time Trends</h3>
+                <canvas id="responseTimeChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Health Status Chart -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Endpoint Health Status</h3>
+                <canvas id="healthChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Recent Alerts</h3>
+            </div>
+            <div id="alerts-container" class="p-6">
+                <div class="text-center text-gray-500">Loading alerts...</div>
+            </div>
+        </div>
+
+        <!-- Endpoint Status Table -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Endpoint Status</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Endpoint</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Response Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Check</th>
+                        </tr>
+                    </thead>
+                    <tbody id="endpoints-table" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading endpoints...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        class MonitoringDashboard {
+            constructor() {
+                this.baseUrl = 'http://localhost:5000';
+                this.refreshInterval = 30000; // 30 seconds
+                this.charts = {};
+                this.init();
+            }
+
+            init() {
+                this.initCharts();
+                this.bindEvents();
+                this.loadData();
+                this.startAutoRefresh();
+            }
+
+            bindEvents() {
+                document.getElementById('refresh-btn').addEventListener('click', () => {
+                    this.loadData();
+                });
+            }
+
+            initCharts() {
+                // Response Time Chart
+                const responseTimeCtx = document.getElementById('responseTimeChart').getContext('2d');
+                this.charts.responseTime = new Chart(responseTimeCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Avg Response Time (ms)',
+                            data: [],
+                            borderColor: 'rgb(251, 146, 60)',
+                            backgroundColor: 'rgba(251, 146, 60, 0.1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Health Status Chart
+                const healthCtx = document.getElementById('healthChart').getContext('2d');
+                this.charts.health = new Chart(healthCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Healthy', 'Warning', 'Critical'],
+                        datasets: [{
+                            data: [0, 0, 0],
+                            backgroundColor: [
+                                'rgb(34, 197, 94)',
+                                'rgb(251, 191, 36)',
+                                'rgb(239, 68, 68)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            async loadData() {
+                try {
+                    // Simulate API call to monitoring data
+                    const data = await this.fetchMonitoringData();
+                    this.updateDashboard(data);
+                    this.updateLastRefresh();
+                } catch (error) {
+                    console.error('Failed to load monitoring data:', error);
+                }
+            }
+
+            async fetchMonitoringData() {
+                // In a real implementation, this would call your monitoring API
+                // For now, we'll simulate the data structure
+                return {
+                    systemHealth: 'HEALTHY',
+                    activeEndpoints: 48,
+                    activeAlerts: 2,
+                    avgResponseTime: '220ms',
+                    endpoints: [
+                        { path: '/api/auth/login', method: 'POST', status: 401, responseTime: 1261, lastCheck: new Date() },
+                        { path: '/api/auth/me', method: 'GET', status: 401, responseTime: 84, lastCheck: new Date() },
+                        { path: '/api/health', method: 'GET', status: 200, responseTime: 452, lastCheck: new Date() }
+                    ],
+                    alerts: [
+                        { type: 'WARNING', message: 'High response time on /api/auth/login', timestamp: new Date() },
+                        { type: 'INFO', message: 'Authentication required for protected endpoints', timestamp: new Date() }
+                    ],
+                    responseTimeHistory: [180, 200, 220, 240, 220, 210, 190, 200, 220, 230],
+                    healthDistribution: { healthy: 48, warning: 15, critical: 0 }
+                };
+            }
+
+            updateDashboard(data) {
+                // Update status cards
+                document.getElementById('system-health').textContent = data.systemHealth;
+                document.getElementById('active-endpoints').textContent = data.activeEndpoints;
+                document.getElementById('active-alerts').textContent = data.activeAlerts;
+                document.getElementById('avg-response').textContent = data.avgResponseTime;
+
+                // Update charts
+                this.updateResponseTimeChart(data.responseTimeHistory);
+                this.updateHealthChart(data.healthDistribution);
+
+                // Update alerts
+                this.updateAlerts(data.alerts);
+
+                // Update endpoints table
+                this.updateEndpointsTable(data.endpoints);
+            }
+
+            updateResponseTimeChart(history) {
+                const labels = history.map((_, index) => `T-${history.length - index}`);
+                this.charts.responseTime.data.labels = labels;
+                this.charts.responseTime.data.datasets[0].data = history;
+                this.charts.responseTime.update();
+            }
+
+            updateHealthChart(distribution) {
+                this.charts.health.data.datasets[0].data = [
+                    distribution.healthy,
+                    distribution.warning,
+                    distribution.critical
+                ];
+                this.charts.health.update();
+            }
+
+            updateAlerts(alerts) {
+                const container = document.getElementById('alerts-container');
+                
+                if (alerts.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-500">No recent alerts</div>';
+                    return;
+                }
+
+                const alertsHTML = alerts.map(alert => {
+                    const alertClass = alert.type === 'CRITICAL' ? 'alert-critical' : 
+                                     alert.type === 'WARNING' ? 'alert-warning' : 'alert-info';
+                    
+                    return `
+                        <div class="alert-item ${alertClass} mb-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${this.getAlertBadgeClass(alert.type)}">
+                                        ${alert.type}
+                                    </span>
+                                </div>
+                                <div class="ml-3 flex-1">
+                                    <p class="text-sm text-gray-900">${alert.message}</p>
+                                    <p class="text-xs text-gray-500 mt-1">${new Date(alert.timestamp).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = alertsHTML;
+            }
+
+            updateEndpointsTable(endpoints) {
+                const tbody = document.getElementById('endpoints-table');
+                
+                const endpointsHTML = endpoints.map(endpoint => {
+                    const statusClass = endpoint.status < 300 ? 'text-green-600' :
+                                       endpoint.status < 400 ? 'text-yellow-600' :
+                                       endpoint.status < 500 ? 'text-orange-600' : 'text-red-600';
+                    
+                    return `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${endpoint.path}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${endpoint.method}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm ${statusClass}">${endpoint.status}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${endpoint.responseTime}ms</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(endpoint.lastCheck).toLocaleTimeString()}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                tbody.innerHTML = endpointsHTML;
+            }
+
+            getAlertBadgeClass(type) {
+                switch (type) {
+                    case 'CRITICAL': return 'bg-red-100 text-red-800';
+                    case 'WARNING': return 'bg-yellow-100 text-yellow-800';
+                    default: return 'bg-blue-100 text-blue-800';
+                }
+            }
+
+            updateLastRefresh() {
+                document.getElementById('last-update').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+            }
+
+            startAutoRefresh() {
+                setInterval(() => {
+                    this.loadData();
+                }, this.refreshInterval);
+            }
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new MonitoringDashboard();
+        });
+    </script>
+</body>
+</html>

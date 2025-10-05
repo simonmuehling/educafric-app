@@ -1,0 +1,24 @@
+{
+  "timestamp": "2025-07-30T16:30:36.086Z",
+  "testSuite": "Administrator Management System",
+  "results": {
+    "totalTests": 8,
+    "passed": 0,
+    "failed": 8,
+    "errors": [
+      "1. GET Administrators - Empty list",
+      "2. GET Available Teachers",
+      "3. GET Module Permissions",
+      "4. POST Add Administrator (Assistant)",
+      "5. GET Administrators - After creation",
+      "7. POST Add Second Administrator (Limited)",
+      "8. POST Third Administrator - Should fail (Max 2)",
+      "9. GET Final Administrator List"
+    ]
+  },
+  "details": {
+    "baseUrl": "http://localhost:5000",
+    "testCount": 8,
+    "successRate": 0
+  }
+}

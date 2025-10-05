@@ -1,0 +1,388 @@
+{
+  "timestamp": "2025-07-31T07:16:09.827Z",
+  "summary": {
+    "total": 13,
+    "successful": 4,
+    "failed": 9,
+    "avgResponseTime": 107
+  },
+  "errorsByType": {
+    "unknown": 9
+  },
+  "criticalIssues": [],
+  "automationActions": [],
+  "recommendations": [],
+  "detailedResults": [
+    {
+      "url": "http://localhost:5000/api/health",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:03.873Z",
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": 226,
+      "error": null,
+      "errorType": null,
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/auth/login",
+      "method": "POST",
+      "timestamp": "2025-07-31T07:16:03.979Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 2716,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Invalid email or password"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 1)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/auth/register",
+      "method": "POST",
+      "timestamp": "2025-07-31T07:16:03.982Z",
+      "status": "error",
+      "statusCode": 400,
+      "responseTime": 2487,
+      "error": {
+        "message": "Request failed with status code 400",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "[\n  {\n    \"code\": \"too_small\",\n    \"minimum\": 8,\n    \"type\": \"string\",\n    \"inclusive\": true,\n    \"exact\": false,\n    \"message\": \"Password must be at least 8 characters\",\n    \"path\": [\n      \"password\"\n    ]\n  }\n]"
+        },
+        "stack": "AxiosError: Request failed with status code 400\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 2)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/auth/me",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:03.984Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 2482,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 3)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/users",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:03.987Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 2469,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 4)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/auth/profile",
+      "method": "PATCH",
+      "timestamp": "2025-07-31T07:16:07.696Z",
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": 62,
+      "error": null,
+      "errorType": null,
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/send-sms",
+      "method": "POST",
+      "timestamp": "2025-07-31T07:16:07.697Z",
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": 71,
+      "error": null,
+      "errorType": null,
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/send-email",
+      "method": "POST",
+      "timestamp": "2025-07-31T07:16:07.698Z",
+      "status": "success",
+      "statusCode": 200,
+      "responseTime": 68,
+      "error": null,
+      "errorType": null,
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/students",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:07.698Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 56,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 3)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/teachers",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:07.699Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 52,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 4)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/classes",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:08.772Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 54,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 0)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/grades",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:08.773Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 50,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 1)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/attendance",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:08.773Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 51,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 2)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    }
+  ],
+  "errorLog": [
+    {
+      "url": "http://localhost:5000/api/users",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:03.987Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 2469,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 4)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/auth/me",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:03.984Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 2482,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 3)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/auth/register",
+      "method": "POST",
+      "timestamp": "2025-07-31T07:16:03.982Z",
+      "status": "error",
+      "statusCode": 400,
+      "responseTime": 2487,
+      "error": {
+        "message": "Request failed with status code 400",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "[\n  {\n    \"code\": \"too_small\",\n    \"minimum\": 8,\n    \"type\": \"string\",\n    \"inclusive\": true,\n    \"exact\": false,\n    \"message\": \"Password must be at least 8 characters\",\n    \"path\": [\n      \"password\"\n    ]\n  }\n]"
+        },
+        "stack": "AxiosError: Request failed with status code 400\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 2)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/auth/login",
+      "method": "POST",
+      "timestamp": "2025-07-31T07:16:03.979Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 2716,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Invalid email or password"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 1)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/teachers",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:07.699Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 52,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 4)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/students",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:07.698Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 56,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 3)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/grades",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:08.773Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 50,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 1)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/attendance",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:08.773Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 51,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 2)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    },
+    {
+      "url": "http://localhost:5000/api/classes",
+      "method": "GET",
+      "timestamp": "2025-07-31T07:16:08.772Z",
+      "status": "error",
+      "statusCode": 401,
+      "responseTime": 54,
+      "error": {
+        "message": "Request failed with status code 401",
+        "code": "ERR_BAD_REQUEST",
+        "response": {
+          "message": "Authentication required"
+        },
+        "stack": "AxiosError: Request failed with status code 401\n    at settle (file:///home/runner/workspace/node_modules/axios/lib/core/settle.js:19:12)\n    at IncomingMessage.handleStreamEnd (file:///home/runner/workspace/node_modules/axios/lib/adapters/http.js:599:11)\n    at IncomingMessage.emit (node:events:536:35)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)\n    at Axios.request (file:///home/runner/workspace/node_modules/axios/lib/core/Axios.js:45:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async ErrorRecognitionSystem.testEndpoint (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:158:24)\n    at async Promise.allSettled (index 0)\n    at async ErrorRecognitionSystem.runComprehensiveHealthCheck (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:371:28)\n    at async main (file:///home/runner/workspace/scripts/enhanced-error-monitoring.js:575:24)"
+      },
+      "errorType": "unknown",
+      "autoActions": []
+    }
+  ],
+  "alertHistory": []
+}

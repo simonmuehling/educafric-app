@@ -1,0 +1,6 @@
+prenom,nom,date_naissance,classe,telephone_parent,email_parent,adresse,sexe,numero_etudiant
+Amina,Traoré,2010-05-15,6eme-A,+237600123456,parent.traore@email.cm,"Quartier Bastos, Yaoundé",F,STU001
+Kwame,Asante,2009-12-03,6eme-A,+237677234567,k.asante.parent@email.cm,"Quartier Mendong, Yaoundé",M,STU002
+Fatou,Diallo,2010-08-22,6eme-B,+237655345678,diallo.parent@email.cm,"Quartier Mfoundi, Yaoundé",F,STU003
+Emmanuel,Ngozi,2010-01-10,5eme-A,+237690456789,ngozi.famille@email.cm,"Quartier Nlongkak, Yaoundé",M,STU004
+Aisha,Kone,2009-11-18,5eme-A,+237680567890,aisha.parent@email.cm,"Quartier Essos, Yaoundé",F,STU005

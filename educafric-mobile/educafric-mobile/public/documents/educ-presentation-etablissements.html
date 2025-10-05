@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educafric - Présentation pour les Établissements</title>
+    <style>
+        body {
+            font-family: 'Nunito', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 2.5em;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .section {
+            background: white;
+            margin: 20px 0;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .benefit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .benefit-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .price-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .price-card h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        .price {
+            font-size: 2.5em;
+            font-weight: 900;
+            margin: 10px 0;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+        ul li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        .cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        .contact-info {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .header { padding: 30px 15px; }
+            .section { padding: 20px; }
+            .benefit-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎓 EDUCAFRIC</div>
+        <h1>Plateforme Éducative pour les Établissements Africains</h1>
+        <p>La solution digitale complète pour transformer l'éducation en Afrique</p>
+    </div>
+
+    <div class="section">
+        <h2>🚀 Une Révolution Éducative</h2>
+        <p>Educafric propose une plateforme éducative complète spécialement conçue pour les établissements scolaires africains. Notre solution bilingue (français/anglais) combine gestion académique, communication parents-école et outils pédagogiques modernes.</p>
+        
+        <div class="benefit-grid">
+            <div class="benefit-card">
+                <h3>📱 Mobile First</h3>
+                <p>Interface optimisée pour smartphones et tablettes</p>
+            </div>
+            <div class="benefit-card">
+                <h3>🌍 Bilingue</h3>
+                <p>Français et anglais intégrés nativement</p>
+            </div>
+            <div class="benefit-card">
+                <h3>💰 Économique</h3>
+                <p>Jusqu'à 70% d'économies vs solutions traditionnelles</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🎯 Fonctionnalités Clés</h2>
+        <ul>
+            <li><strong>Gestion Académique Complète</strong> - Notes, bulletins, emploi du temps</li>
+            <li><strong>Communication Multi-Canal</strong> - SMS, WhatsApp, Email, notifications push</li>
+            <li><strong>Suivi Présence Intelligent</strong> - Pointage automatique, alertes parents</li>
+            <li><strong>Géolocalisation GPS</strong> - Sécurité enfants, suivi transport scolaire</li>
+            <li><strong>Gestion Financière</strong> - Frais de scolarité, paiements mobiles</li>
+            <li><strong>Rapports Automatisés</strong> - Analyses de performance, statistiques</li>
+            <li><strong>Support Multi-Écoles</strong> - Architecture multi-tenant évolutive</li>
+            <li><strong>Sécurité Renforcée</strong> - Chiffrement, authentification 2FA, sauvegardes</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>💎 Plans Tarifaires Établissements</h2>
+        
+        <div class="price-card">
+            <h3>École Publique</h3>
+            <div class="price">50 000 XAF</div>
+            <p><strong>Par an - Élèves illimités</strong></p>
+            <ul style="text-align: left;">
+                <li>Gestion académique complète</li>
+                <li>Communication parents (SMS/Email)</li>
+                <li>Bulletins et relevés automatiques</li>
+                <li>Support technique standard</li>
+            </ul>
+        </div>
+
+        <div class="price-card">
+            <h3>École Privée</h3>
+            <div class="price">75 000 XAF</div>
+            <p><strong>Par an - Élèves illimités</strong></p>
+            <ul style="text-align: left;">
+                <li>Toutes fonctionnalités École Publique</li>
+                <li>WhatsApp Business intégré</li>
+                <li>Gestion financière avancée</li>
+                <li>Rapports personnalisés</li>
+                <li>Support prioritaire</li>
+            </ul>
+        </div>
+
+        <div class="price-card">
+            <h3>École Entreprise</h3>
+            <div class="price">150 000 XAF</div>
+            <p><strong>Par an - Centres de formation</strong></p>
+            <ul style="text-align: left;">
+                <li>Interface bilingue complète</li>
+                <li>Gestion formation professionnelle</li>
+                <li>Certifications et diplômes</li>
+                <li>API d'intégration</li>
+                <li>Support premium 24/7</li>
+            </ul>
+        </div>
+
+        <div class="price-card">
+            <h3>Extension GPS</h3>
+            <div class="price">+50 000 XAF</div>
+            <p><strong>Par an - Géolocalisation complète</strong></p>
+            <ul style="text-align: left;">
+                <li>Suivi GPS temps réel</li>
+                <li>Zones de sécurité (geofencing)</li>
+                <li>Alertes urgence automatiques</li>
+                <li>Historique des déplacements</li>
+                <li>Optimisation transport scolaire</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📊 Retour sur Investissement</h2>
+        <p>Les établissements utilisant Educafric constatent en moyenne :</p>
+        <ul>
+            <li><strong>Réduction 60% du temps administratif</strong> grâce à l'automatisation</li>
+            <li><strong>Amélioration 40% communication parents</strong> avec alertes temps réel</li>
+            <li><strong>Économie 70% sur les coûts IT</strong> vs solutions traditionnelles</li>
+            <li><strong>Augmentation 25% satisfaction parents</strong> grâce à la transparence</li>
+            <li><strong>Diminution 80% erreurs de saisie</strong> avec interfaces intuitives</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>🏆 Pourquoi Choisir Educafric ?</h2>
+        <ul>
+            <li><strong>Expertise Africaine</strong> - Conçu par et pour l'Afrique</li>
+            <li><strong>Support Local</strong> - Équipe francophone en Afrique de l'Ouest</li>
+            <li><strong>Paiements Locaux</strong> - Orange Money, Express Union, Afriland</li>
+            <li><strong>Conformité Réglementaire</strong> - Respect des standards éducatifs africains</li>
+            <li><strong>Formation Incluse</strong> - Accompagnement personnalisé de vos équipes</li>
+            <li><strong>Évolutivité Garantie</strong> - De 50 à 10 000+ élèves sans limitation</li>
+        </ul>
+    </div>
+
+    <div class="cta">
+        <h2>🎯 Prêt à Transformer Votre École ?</h2>
+        <p><strong>Démarrez votre essai gratuit de 30 jours aujourd'hui !</strong></p>
+        <div class="contact-info">
+            <p><strong>📧 Email :</strong> info@educafric.com</p>
+            <p><strong>📱 WhatsApp :</strong> +237 657 004 011</p>
+            <p><strong>🌐 Site Web :</strong> https://www.educafric.com</p>
+            <p><strong>🏢 Siège :</strong> Douala, Cameroun</p>
+        </div>
+        <p style="margin-top: 20px; font-style: italic;">
+            "Educafric - Ensemble, construisons l'avenir de l'éducation africaine"
+        </p>
+    </div>
+
+    <footer style="text-align: center; margin-top: 40px; padding: 20px; color: #666;">
+        <p>© 2025 Educafric. Tous droits réservés.</p>
+        <p>Document généré automatiquement - Version 1.0</p>
+    </footer>
+</body>
+</html>

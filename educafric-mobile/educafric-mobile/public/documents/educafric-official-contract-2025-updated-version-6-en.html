@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDUCAFRIC - Official Contract Updated 2025</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border: 2px solid #000000;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #000000;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #000000;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .document-info {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #000000;
+        }
+        .pricing-section {
+            background: #ffffff;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #000000;
+        }
+        .pricing-box {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #000000;
+        }
+        .price-highlight {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #000000;
+            background: #f9f9f9;
+            padding: 5px 10px;
+            border: 1px solid #000000;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        .section h2 {
+            color: #000000;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 10px;
+            font-weight: bold;
+        }
+        .section h3 {
+            color: #000000;
+            margin-top: 25px;
+            font-weight: bold;
+        }
+        .features-list {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #000000;
+        }
+        .features-list ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+        .signature-section {
+            border: 2px solid #000000;
+            padding: 20px;
+            margin: 30px 0;
+            background: #f9f9f9;
+        }
+        .contact-info {
+            background: #000000;
+            color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #000000;
+        }
+        .emoji {
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #000000;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+        .warning-box {
+            background: #f9f9f9;
+            border: 1px solid #000000;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success-box {
+            background: #f9f9f9;
+            border: 1px solid #000000;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        /* Mobile Optimization */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+                font-size: 14px;
+            }
+            .container {
+                max-width: 100%;
+                padding: 15px;
+                border: 1px solid #000000;
+                margin: 0;
+            }
+            .header h1 {
+                font-size: 1.8em;
+                line-height: 1.2;
+            }
+            .header h2 {
+                font-size: 1.3em;
+                line-height: 1.2;
+            }
+            .header h3 {
+                font-size: 1.1em;
+            }
+            .pricing-section, .document-info, .section {
+                margin: 15px 0;
+                padding: 15px;
+            }
+            .pricing-box {
+                margin: 8px 0;
+                padding: 12px;
+            }
+            .price-highlight {
+                font-size: 1.1em;
+                padding: 4px 8px;
+                display: block;
+                text-align: center;
+                margin: 8px 0;
+            }
+            .section h2 {
+                font-size: 1.4em;
+                margin-bottom: 15px;
+            }
+            .section h3 {
+                font-size: 1.2em;
+                margin-top: 20px;
+            }
+            .features-list, .success-box, .warning-box {
+                padding: 12px;
+                margin: 8px 0;
+            }
+            .signature-section {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            .contact-info {
+                padding: 15px;
+                margin: 15px 0;
+                font-size: 14px;
+            }
+            /* Mobile table optimization */
+            table {
+                font-size: 12px;
+                overflow-x: auto;
+                display: block;
+                white-space: nowrap;
+            }
+            th, td {
+                padding: 8px 6px;
+                min-width: 120px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 8px;
+                font-size: 14px;
+            }
+            .container {
+                padding: 12px;
+            }
+            .header h1 {
+                font-size: 1.6em;
+            }
+            .header h2 {
+                font-size: 1.2em;
+            }
+            .pricing-section, .document-info, .section {
+                margin: 10px 0;
+                padding: 12px;
+            }
+            .pricing-box {
+                padding: 10px;
+                margin: 6px 0;
+            }
+            .price-highlight {
+                font-size: 1.0em;
+                padding: 4px 6px;
+            }
+            .section h2 {
+                font-size: 1.3em;
+            }
+            .section h3 {
+                font-size: 1.1em;
+            }
+            .signature-section {
+                padding: 12px;
+            }
+            .contact-info {
+                padding: 12px;
+                font-size: 14px;
+            }
+            table {
+                font-size: 11px;
+            }
+            th, td {
+                padding: 6px 4px;
+                min-width: 100px;
+            }
+        }
+
+        /* A4 Print Optimization */
+        @page {
+            size: A4;
+            margin: 2cm 1.5cm;
+        }
+
+        @media print {
+            body {
+                background: white;
+                font-size: 11pt;
+                line-height: 1.4;
+                color: black;
+            }
+            .container {
+                max-width: 100%;
+                border: none;
+                padding: 0;
+                margin: 0;
+                box-shadow: none;
+            }
+            .header {
+                border-bottom: 2px solid #000;
+                page-break-after: avoid;
+                margin-bottom: 20pt;
+            }
+            .header h1 {
+                font-size: 18pt;
+                margin-bottom: 8pt;
+            }
+            .header h2 {
+                font-size: 14pt;
+                margin-bottom: 6pt;
+            }
+            .header h3 {
+                font-size: 12pt;
+            }
+            .section {
+                page-break-inside: avoid;
+                margin: 15pt 0;
+            }
+            .section h2 {
+                font-size: 14pt;
+                page-break-after: avoid;
+                margin-bottom: 10pt;
+                border-bottom: 1px solid #000;
+            }
+            .section h3 {
+                font-size: 12pt;
+                page-break-after: avoid;
+                margin-top: 15pt;
+            }
+            .pricing-section {
+                page-break-inside: avoid;
+                background: white !important;
+                border: 1px solid #000;
+                padding: 15pt;
+                margin: 10pt 0;
+            }
+            .pricing-box {
+                background: white !important;
+                border: 1px solid #000;
+                padding: 10pt;
+                margin: 8pt 0;
+                page-break-inside: avoid;
+            }
+            .price-highlight {
+                background: #f9f9f9 !important;
+                border: 1px solid #000;
+                padding: 4pt 8pt;
+                font-size: 11pt;
+                font-weight: bold;
+            }
+            .features-list, .success-box, .warning-box {
+                background: #f9f9f9 !important;
+                border: 1px solid #000;
+                padding: 10pt;
+                margin: 8pt 0;
+                page-break-inside: avoid;
+            }
+            .document-info {
+                background: #f9f9f9 !important;
+                border: 1px solid #000;
+                padding: 10pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+            }
+            .signature-section {
+                page-break-before: always;
+                background: white !important;
+                border: 2px solid #000;
+                padding: 15pt;
+                margin-top: 20pt;
+            }
+            .contact-info {
+                background: #333 !important;
+                color: white !important;
+                border: 2px solid #000;
+                padding: 15pt;
+                margin: 15pt 0;
+                page-break-inside: avoid;
+            }
+            table {
+                page-break-inside: avoid;
+                width: 100%;
+                border-collapse: collapse;
+                margin: 8pt 0;
+            }
+            th, td {
+                border: 1px solid #000;
+                padding: 6pt 8pt;
+                font-size: 10pt;
+            }
+            th {
+                background: #f9f9f9 !important;
+                font-weight: bold;
+            }
+            /* Hide page breaks for better printing */
+            .page-break {
+                page-break-before: always;
+            }
+            /* Ensure good page breaks */
+            h2, h3, h4 {
+                page-break-after: avoid;
+            }
+            ul, ol {
+                page-break-inside: avoid;
+            }
+            p {
+                orphans: 3;
+                widows: 3;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>EDUCAFRIC</h1>
+            <h2>EDUCAFRIC OFFICIAL PARTNERSHIP CONTRACT 2025 - UPDATED</h2>
+            <h3>Schools • Freelancers • Parents</h3>
+        </div>
+
+        <div class="document-info">
+            <p><strong>NEW PAYMENT MODEL:</strong> EDUCAFRIC now pays schools directly</p>
+            <p><strong>Contract Date:</strong> August 17, 2025</p>
+            <p><strong>Target:</strong> All African educational institutions</p>
+        </div>
+
+        <div class="pricing-section">
+            <h2>ARTICLE 1 - NEW PAYMENT MODEL 2025</h2>
+            
+            <h3>EDUCAFRIC (Afro Metaverse Marketing SARL) PAYS SCHOOLS</h3>
+            
+            <div class="pricing-box">
+                <h4>Schools with 500+ Students</h4>
+                <div class="price-highlight">EDUCAFRIC PAYS: 200,000 CFA/year</div>
+                <ul>
+                    <li>Quarterly payment: 66,670 CFA per quarter</li>
+                    <li>Automatic payment by EDUCAFRIC</li>
+                    <li>Immediate activation upon contract signing</li>
+                </ul>
+            </div>
+            
+            <div class="pricing-box">
+                <h4>Schools with Less Than 500 Students</h4>
+                <div class="price-highlight">EDUCAFRIC PAYS: 150,000 CFA/year</div>
+                <ul>
+                    <li>Quarterly payment: 50,000 CFA per quarter</li>
+                    <li>Automatic payment by EDUCAFRIC</li>
+                    <li>Immediate activation upon contract signing</li>
+                </ul>
+            </div>
+            
+            <h3>PAYMENT TERMS FOR SCHOOLS</h3>
+            <div class="pricing-box">
+                <h4>Payment Methods by EDUCAFRIC</h4>
+                <ul>
+                    <li><strong>Bank account:</strong> School provides banking details</li>
+                    <li><strong>Orange Money/MTN Money:</strong> Mobile money account number</li>
+                    <li><strong>Frequency:</strong> Automatic quarterly payment</li>
+                    <li><strong>Timeline:</strong> Payment within 5 business days after quarter end</li>
+                </ul>
+            </div>
+            
+            <h3>SCHOOL OBLIGATIONS - PARENT AFFILIATION</h3>
+            <div class="pricing-box">
+                <h4>Parent Affiliation Commitment</h4>
+                <ul>
+                    <li><strong>Public School:</strong> Parents pay 3,000 CFA/quarter (12,000 CFA/year)</li>
+                    <li><strong>Private School:</strong> Parents pay 4,500 CFA/quarter (18,000 CFA/year)</li>
+                    <li><strong>Responsibility:</strong> School commits to promoting parent subscriptions</li>
+                    <li><strong>Support:</strong> EDUCAFRIC provides promotion and registration tools</li>
+                </ul>
+                <div class="features-list">
+                    <strong>Included Features:</strong>
+                    <ul>
+                        <li>Complete student/teacher management</li>
+                        <li>Unlimited digital report cards</li>
+                        <li>Automated parent communication</li>
+                        <li>Interactive timetables</li>
+                        <li>Electronic attendance</li>
+                        <li>Dedicated technical support</li>
+                        <li>SMS notifications included</li>
+                        <li>Staff training included</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pricing-box">
+                <h4>Private School Plan</h4>
+                <div class="price-highlight">Price: 75,000 CFA/year</div>
+                <ul>
+                    <li>Students included: Up to 500 students</li>
+                    <li>Activation: Immediate after payment</li>
+                </ul>
+                <div class="features-list">
+                    <strong>All Public Plan Features +:</strong>
+                    <ul>
+                        <li>Student security geolocation</li>
+                        <li>Integrated payment system</li>
+                        <li>Advanced accounting module</li>
+                        <li>Customized school branding</li>
+                        <li>School mobile application</li>
+                        <li>Predictive AI analytics</li>
+                        <li>24/7 priority support</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pricing-box">
+                <h4>School Geolocation Option</h4>
+                <div class="price-highlight">Price: 25,000 CFA/year (supplement)</div>
+                <p>Secure GPS tracking for students</p>
+            </div>
+
+            <h3>Educational Freelancers Plans (Tutors)</h3>
+            
+            <div class="pricing-box">
+                <h4>Professional Tutor Plan</h4>
+                <div class="price-highlight">Semester Price: 12,500 CFA/semester</div>
+                <div class="price-highlight">Annual Price: 25,000 CFA/year</div>
+                <ul>
+                    <li>Students: Up to 50 students</li>
+                    <li>Annual savings: 50% with annual plan</li>
+                </ul>
+                <div class="features-list">
+                    <strong>Educational Tools:</strong>
+                    <ul>
+                        <li>Lesson schedule management</li>
+                        <li>Student progress tracking</li>
+                        <li>Automated billing</li>
+                        <li>Parent communication</li>
+                        <li>Travel geolocation</li>
+                        <li>Defined teaching zones</li>
+                        <li>Detailed performance analytics</li>
+                        <li>Phone support</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Parent Plans</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Plan</th>
+                        <th>Monthly Price</th>
+                        <th>Annual Price</th>
+                        <th>Features</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Public School</strong></td>
+                        <td>1,000 CFA</td>
+                        <td>12,000 CFA</td>
+                        <td>Student tracking, notifications, grades, communication</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Private School</strong></td>
+                        <td>1,500 CFA</td>
+                        <td>18,000 CFA</td>
+                        <td>+ Advanced GPS, emergency button, priority support</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GPS Only</strong></td>
+                        <td>1,000 CFA</td>
+                        <td>12,000 CFA</td>
+                        <td>Geolocation, safety zones, position history</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="features-list">
+                <h4>Parent Features</h4>
+                <ul>
+                    <li><strong>Academic tracking:</strong> Real-time school progress</li>
+                    <li><strong>Security alerts:</strong> Secure zone geolocation</li>
+                    <li><strong>Direct communication:</strong> Teacher messages</li>
+                    <li><strong>Digital report cards:</strong> Instant access to reports</li>
+                    <li><strong>Attendance tracking:</strong> Daily confirmation</li>
+                    <li><strong>Multi-child management:</strong> Single dashboard</li>
+                </ul>
+            </div>
+
+            <h3>FAMILY DISCOUNTS - PARENT PLANS</h3>
+            
+            <div class="pricing-box">
+                <h4>Large Family Discounts</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Number of Children</th>
+                            <th>Applicable Discount</th>
+                            <th>Public School (final price)</th>
+                            <th>Private School (final price)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>1 child</strong></td>
+                            <td>0%</td>
+                            <td>12,000 CFA/year</td>
+                            <td>18,000 CFA/year</td>
+                        </tr>
+                        <tr>
+                            <td><strong>2 children</strong></td>
+                            <td>10%</td>
+                            <td>21,600 CFA/year <small>(10,800 CFA/child)</small></td>
+                            <td>32,400 CFA/year <small>(16,200 CFA/child)</small></td>
+                        </tr>
+                        <tr>
+                            <td><strong>3 children</strong></td>
+                            <td>15%</td>
+                            <td>30,600 CFA/year <small>(10,200 CFA/child)</small></td>
+                            <td>45,900 CFA/year <small>(15,300 CFA/child)</small></td>
+                        </tr>
+                        <tr>
+                            <td><strong>4+ children</strong></td>
+                            <td>20%</td>
+                            <td>38,400 CFA/year <small>(9,600 CFA/child)</small></td>
+                            <td>57,600 CFA/year <small>(14,400 CFA/child)</small></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="features-list">
+                    <h5>Family Discount Benefits</h5>
+                    <ul>
+                        <li><strong>Substantial savings:</strong> Up to 20% on parent subscriptions</li>
+                        <li><strong>Automatic application:</strong> Discount calculated from 2nd child registration</li>
+                        <li><strong>Centralized management:</strong> Single parent account for all children</li>
+                        <li><strong>Dedicated support:</strong> Priority assistance for large families</li>
+                        <li><strong>Identical features:</strong> All EDUCAFRIC features for each child</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>ARTICLE 2 - OBLIGATIONS OF PARTIES</h2>
+            
+            <h3>Educafric Obligations</h3>
+            <div class="success-box">
+                <h4>Financial Obligations</h4>
+                <ul>
+                    <li><strong>Automatic quarterly payment to schools</strong></li>
+                    <li><strong>Payment within 3 business days after quarter end</strong></li>
+                    <li><strong>Payment guarantee even in case of technical failure</strong></li>
+                    <li><strong>Total transparency on payment calculations</strong></li>
+                </ul>
+                
+                <h4>Technical Guarantees</h4>
+                <ul>
+                    <li><strong>Maintain platform operational 24/7</strong></li>
+                    <li><strong>Ensure data security according to OAPI/OHADA standards</strong></li>
+                    <li><strong>Provide technical support in French and English</strong></li>
+                    <li><strong>Guarantee continuous updates and improvements</strong></li>
+                    <li><strong>Educational staff training available</strong></li>
+                </ul>
+            </div>
+
+            <h4>Technical Support</h4>
+            <ul>
+                <li>Technical assistance</li>
+                <li>Incident resolution within 24 hours</li>
+                <li>Automatic platform updates</li>
+                <li>Accessible technical documentation</li>
+            </ul>
+
+            <h3>School Obligations</h3>
+            <div class="features-list">
+                <h4>Financial and Commercial Commitment</h4>
+                <ul>
+                    <li><strong>Provide payment details:</strong> Bank account or Mobile Money number</li>
+                    <li><strong>Actively promote EDUCAFRIC parent subscriptions</strong></li>
+                    <li><strong>Facilitate parent registration:</strong> Public school (3,000 CFA/quarter), Private school (4,500 CFA/quarter)</li>
+                    <li><strong>Maintain minimum 30% parent affiliation rate</strong></li>
+                    <li><strong>Organize parent-EDUCAFRIC information sessions</strong></li>
+                </ul>
+                
+                <h4>Operational Commitment</h4>
+                <ul>
+                    <li>Respect platform terms of use</li>
+                    <li>Ensure staff training on digital tools</li>
+                    <li>Maintain student/parent data confidentiality</li>
+                    <li>Facilitate parent-student connections via platform</li>
+                    <li>Actively use school management features</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>ARTICLE 4 - ACCEPTED PAYMENT METHODS</h2>
+            
+            <div class="pricing-box">
+                <h4>Orange Money</h4>
+                <ul>
+                    <li>Number: +237 657 00 4011</li>
+                    <li>Treasury: Abanda Akak</li>
+                    <li>Reference: "www.educafric.com/Educafric"</li>
+                </ul>
+            </div>
+
+            <div class="pricing-box">
+                <h4>MTN</h4>
+                <ul>
+                    <li>Number: +237 672 12 8559</li>
+                    <li>Treasury: Abanda Akak</li>
+                    <li>Reference: "www.educafric.com/Educafric"</li>
+                </ul>
+            </div>
+
+            <div class="pricing-box">
+                <h4>Bank Transfer</h4>
+                <ul>
+                    <li>Bank: Afriland First Bank</li>
+                    <li>Account Name: AFRO METAVERSE MARKETING SARL</li>
+                    <li>Bank Code: 10005</li>
+                    <li>Branch Code: 00024</li>
+                    <li>Account Number: 08750211001</li>
+                    <li>Key: 91</li>
+                    <li>IBAN: CM21 10005 00024 08750211001-91</li>
+                    <li>SWIFT Code: CCEICMCX</li>
+                    <li>Reference: "educafric"</li>
+                </ul>
+            </div>
+
+            <div class="pricing-box">
+                <h4>Credit Card Payment</h4>
+                <p><strong>Credit card payment also available directly on the platform</strong></p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>ARTICLE 5 - LEGAL INFORMATION</h2>
+            
+            <h3>Owner</h3>
+            <p><strong>Educafric belongs to Afro Metaverse marketing Sarl (RC/YAE/2023/B1361)</strong></p>
+            
+            <h3>Contact</h3>
+            <ul>
+                <li><strong>Phone:</strong> +237 656 200 472</li>
+                <li><strong>Email:</strong> support@educafric.com</li>
+                <li><strong>Service area:</strong> Cameroon (all regions)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>ARTICLE 6 - GENERAL CONDITIONS</h2>
+            
+            <h3>Activation</h3>
+            <div class="success-box">
+                <ul>
+                    <li><strong>Immediate activation</strong> after contract signing</li>
+                    <li><strong>First EDUCAFRIC payments:</strong> Current first quarter</li>
+                    <li><strong>Technical support</strong> available from activation</li>
+                </ul>
+            </div>
+
+            <h3>Contract Duration</h3>
+            <ul>
+                <li><strong>Duration:</strong> 1 year renewable</li>
+                <li><strong>Automatic renewal:</strong> Unless terminated 30 days before expiry</li>
+                <li><strong>Early termination:</strong> 30 days written notice</li>
+            </ul>
+
+            <h3>Data Security</h3>
+            <div class="features-list">
+                <ul>
+                    <li><strong>Data protection</strong> according to GDPR standards</li>
+                    <li><strong>Absolute confidentiality</strong> of student/parent information</li>
+                    <li><strong>Maximum security</strong> of platforms</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="signature-section">
+            <h2>SIGNATURES</h2>
+            
+            <h3>For EDUCAFRIC (Afro Metaverse marketing Sarl - RC/YAE/2023/B1361):</h3>
+            <p>Name: _________________________________<br>
+            Title: General Director<br>
+            Date: _________________________________<br>
+            Signature: _________________________________</p>
+
+            <h3>For SCHOOL/FREELANCER/PARENT:</h3>
+            <p>Name: _________________________________<br>
+            Title/Capacity: _________________________________<br>
+            Date: _________________________________<br>
+            Signature: _________________________________</p>
+        </div>
+
+        <div class="contact-info">
+            <h3>EDUCAFRIC Contacts</h3>
+            <p><strong>Support Contact:</strong> support@educafric.com | +237 656 200 472<br>
+            <strong>Company:</strong> Afro Metaverse marketing Sarl (RC/YAE/2023/B1361)</p>
+        </div>
+
+        <div class="document-info">
+            <p><strong>Official Document - Version 6.0</strong><br>
+            <strong>Last Update:</strong> August 17, 2025<br>
+            <strong>New Payment Model:</strong> EDUCAFRIC pays schools<br>
+            <strong>Valid Until:</strong> December 31, 2025</p>
+        </div>
+    </div>
+</body>
+</html>

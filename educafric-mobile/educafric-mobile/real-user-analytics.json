@@ -1,0 +1,109 @@
+{
+  "timestamp": "2025-07-23T07:23:44.023Z",
+  "userDemographics": {
+    "roleDistribution": [
+      {
+        "role": "SiteAdmin",
+        "count": "1"
+      },
+      {
+        "role": "Student",
+        "count": "1"
+      },
+      {
+        "role": "Admin",
+        "count": "1"
+      }
+    ],
+    "registrationTimeline": [
+      {
+        "date": "2025-07-23T00:00:00.000Z",
+        "registrations": "1"
+      },
+      {
+        "date": "2025-07-22T00:00:00.000Z",
+        "registrations": "2"
+      }
+    ],
+    "schoolDistribution": [],
+    "totalRealUsers": 3
+  },
+  "usagePatterns": {
+    "recentActivity": [],
+    "subscriptionPatterns": [
+      {
+        "subscription_status": "inactive",
+        "count": "1",
+        "role": "SiteAdmin"
+      },
+      {
+        "subscription_status": "inactive",
+        "count": "1",
+        "role": "Admin"
+      },
+      {
+        "subscription_status": "inactive",
+        "count": "1",
+        "role": "Student"
+      }
+    ],
+    "activeUsers": 0
+  },
+  "systemHealth": {
+    "userIssues": [
+      {
+        "issue_type": "Missing Profile Info",
+        "affected_users": "0"
+      },
+      {
+        "issue_type": "No School Assignment",
+        "affected_users": "1"
+      }
+    ],
+    "dataIntegrityIssues": [
+      {
+        "data_type": "Users without Schools",
+        "count": "1"
+      }
+    ],
+    "overallHealthScore": 70
+  },
+  "recommendations": [
+    {
+      "priority": "high",
+      "category": "user_acquisition",
+      "title": "Low User Base Detected",
+      "description": "Only 3 real users registered. Focus on user acquisition.",
+      "actions": [
+        "Implement user onboarding improvements",
+        "Add referral system for existing users",
+        "Create demo accounts for school administrators",
+        "Develop marketing strategy for African educational institutions"
+      ]
+    },
+    {
+      "priority": "critical",
+      "category": "data_quality",
+      "title": "Data Quality Issues Detected",
+      "description": "System health score is 70/100. User experience may be impacted.",
+      "actions": [
+        "Fix incomplete user profiles",
+        "Ensure proper school assignments",
+        "Implement data validation on registration",
+        "Add profile completion prompts"
+      ]
+    },
+    {
+      "priority": "high",
+      "category": "user_balance",
+      "title": "Teacher Shortage Detected",
+      "description": "1 students registered but no teachers. Platform functionality limited.",
+      "actions": [
+        "Recruit teacher users",
+        "Create teacher onboarding program",
+        "Implement teacher invitation system",
+        "Provide teacher training resources"
+      ]
+    }
+  ]
+}
