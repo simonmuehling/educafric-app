@@ -138,6 +138,7 @@ export class SubscriptionService {
 
   /**
    * Vérifier si une école peut accéder à une fonctionnalité
+   * NOTE: Schools use Educafric for free - all schools have freemium access
    */
   static async canAccessFeature(schoolId: number, feature: string, userEmail?: string): Promise<boolean> {
     // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
@@ -145,24 +146,14 @@ export class SubscriptionService {
       console.log(`[SUBSCRIPTION_SERVICE] User ${userEmail} is exempt from feature restrictions - access granted`);
       return true;
     }
-    const subscription = await this.getSchoolSubscription(schoolId);
     
     // Mode sandbox : accès complet
     if (this.isSandboxSchool(schoolId)) {
       return true;
     }
 
-    // Pas d'abonnement = freemium
-    if (!subscription || subscription.status === 'freemium') {
-      return this.isFreemiumFeature(feature);
-    }
-
-    // Abonnement premium actif
-    if (subscription.status === 'premium') {
-      return true;
-    }
-
-    return false;
+    // All schools have freemium access (no school subscriptions)
+    return this.isFreemiumFeature(feature);
   }
 
   /**
@@ -224,6 +215,7 @@ export class SubscriptionService {
 
   /**
    * Vérifier les limites freemium
+   * NOTE: Schools use Educafric for free with freemium limits
    */
   static async checkFreemiumLimits(schoolId: number, resourceType: string, currentCount: number, userEmail?: string): Promise<{
     canAdd: boolean;
@@ -236,10 +228,9 @@ export class SubscriptionService {
       console.log(`[SUBSCRIPTION_SERVICE] User ${userEmail} is exempt from freemium limits`);
       return { canAdd: true, limit: 999999, remaining: 999999, message: 'Unlimited (Sandbox)' };
     }
-    const subscription = await this.getSchoolSubscription(schoolId);
     
-    // Mode sandbox ou premium : pas de limites
-    if (this.isSandboxSchool(schoolId) || subscription?.status === 'premium') {
+    // Mode sandbox : pas de limites
+    if (this.isSandboxSchool(schoolId)) {
       return {
         canAdd: true,
         limit: -1, // Illimité
@@ -247,7 +238,7 @@ export class SubscriptionService {
       };
     }
 
-    // Limites freemium
+    // All schools have freemium limits (no premium school subscriptions)
     const limits: Record<string, number> = {
       students: this.FREEMIUM_FEATURES.maxStudents,
       teachers: this.FREEMIUM_FEATURES.maxTeachers,
@@ -266,12 +257,13 @@ export class SubscriptionService {
       canAdd,
       limit,
       remaining,
-      message: canAdd ? undefined : `Limite freemium atteinte (${limit} ${resourceType} max). Passez en premium pour plus.`
+      message: canAdd ? undefined : `Limite freemium atteinte (${limit} ${resourceType} max). Contactez-nous pour plus.`
     };
   }
 
   /**
    * Obtenir les fonctionnalités disponibles pour une école
+   * NOTE: Schools use Educafric for free - all schools are freemium
    */
   static async getAvailableFeatures(schoolId: number, userEmail?: string): Promise<{
     features: string[];
@@ -279,8 +271,6 @@ export class SubscriptionService {
     planName: string;
     isFreemium: boolean;
   }> {
-    const subscription = await this.getSchoolSubscription(schoolId);
-    
     // Mode sandbox : toutes les fonctionnalités
     if (this.isSandboxSchool(schoolId)) {
       return {
@@ -291,23 +281,12 @@ export class SubscriptionService {
       };
     }
 
-    // Freemium ou pas d'abonnement
-    if (!subscription || subscription.status === 'freemium') {
-      return {
-        features: this.FREEMIUM_FEATURES.features,
-        restrictions: this.FREEMIUM_FEATURES.restrictions,
-        planName: 'Freemium',
-        isFreemium: true
-      };
-    }
-
-    // Premium - obtenir les fonctionnalités du plan
-    const plan = this.SUBSCRIPTION_PLANS[subscription.planId];
+    // All schools have freemium access (no school subscriptions)
     return {
-      features: plan?.features || [],
-      restrictions: [],
-      planName: plan?.name || 'Premium',
-      isFreemium: false
+      features: this.FREEMIUM_FEATURES.features,
+      restrictions: this.FREEMIUM_FEATURES.restrictions,
+      planName: 'Freemium',
+      isFreemium: true
     };
   }
 
@@ -359,8 +338,8 @@ export class SubscriptionService {
 
   /**
    * RÈGLE PASSERELLE: Vérifier si parent peut communiquer avec école via un enfant spécifique
-   * - École premium + Parent sans plan = PASSERELLE INACTIVE
-   * - École premium + Parent premium pour cet enfant = PASSERELLE ACTIVE
+   * NOTE: Schools are freemium - all parents have basic access
+   * Premium parents can access additional features
    */
   static async canAccessParentSchoolGateway(parentId: number, childId: number, userEmail?: string): Promise<boolean> {
     // ✅ EXEMPTION: Comptes test
@@ -369,31 +348,11 @@ export class SubscriptionService {
     }
     
     try {
-      // En production, récupérer depuis la DB :
-      // 1. L'école de l'enfant
-      // 2. Le plan de l'école
-      // 3. Le plan parent pour cet enfant spécifique
-      
-      // SIMULATION pour démonstration :
+      // All schools are now freemium (no school subscriptions)
+      // Basic communication is always allowed
       const childSchoolId = await this.getChildSchoolId(childId);
-      const schoolSubscription = await this.getSchoolSubscription(childSchoolId);
-      const parentSubscriptionForChild = await this.getParentSubscriptionForChild(parentId, childId);
-      
-      // Si l'école n'a pas de plan premium, communication de base autorisée
-      if (!schoolSubscription || schoolSubscription.status !== 'premium') {
-        console.log(`[GATEWAY] École ${childSchoolId} en freemium - communication basique autorisée`);
-        return true;
-      }
-      
-      // Si l'école est premium, le parent DOIT AUSSI avoir un plan pour cet enfant
-      if (schoolSubscription.status === 'premium') {
-        const hasParentPlan = parentSubscriptionForChild && parentSubscriptionForChild.status === 'active';
-        
-        console.log(`[GATEWAY] École ${childSchoolId} premium - Parent plan pour enfant ${childId}: ${hasParentPlan ? 'ACTIF' : 'INACTIF'}`);
-        return hasParentPlan;
-      }
-      
-      return false;
+      console.log(`[GATEWAY] École ${childSchoolId} en freemium - communication basique autorisée pour tous les parents`);
+      return true;
     } catch (error) {
       console.error('[GATEWAY] Erreur vérification passerelle:', error);
       return false;
@@ -476,12 +435,12 @@ export class SubscriptionService {
     
     for (const child of children) {
       const schoolId = await this.getChildSchoolId(child.id);
-      const schoolSub = await this.getSchoolSubscription(schoolId);
       const parentSub = await this.getParentSubscriptionForChild(parentId, child.id);
       
-      const schoolPremium = schoolSub?.status === 'premium';
+      // All schools are now freemium (no school subscriptions)
+      const schoolPremium = false;
       const parentPlanActive = parentSub?.status === 'active';
-      const gatewayActive = !schoolPremium || (schoolPremium && parentPlanActive);
+      const gatewayActive = true; // Always active since schools are freemium
       
       gatewayStatus[child.id] = {
         childName: child.name,
@@ -489,7 +448,7 @@ export class SubscriptionService {
         schoolPremium,
         parentPlanActive,
         gatewayActive,
-        needsUpgrade: schoolPremium && !parentPlanActive
+        needsUpgrade: false // No upgrades needed since schools are free
       };
     }
     
