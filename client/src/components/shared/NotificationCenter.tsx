@@ -502,13 +502,21 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="text-xs"
-                                onClick={() => {
+                                className="text-xs min-h-[44px] sm:min-h-auto"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  console.log(`[NOTIFICATION_ACTION] Clicked action button for notification ${notification.id}`);
+                                  console.log(`[NOTIFICATION_ACTION] Navigating to: ${notification.actionUrl}`);
+                                  
                                   // Mark as read when action is clicked
                                   if (!notification.isRead) {
+                                    console.log(`[NOTIFICATION_ACTION] Marking notification ${notification.id} as read`);
                                     markAsReadMutation.mutate(notification.id);
                                   }
+                                  
                                   // Navigate to the action URL
+                                  console.log(`[NOTIFICATION_ACTION] Setting location to: ${notification.actionUrl}`);
                                   setLocation(notification.actionUrl);
                                 }}
                                 data-testid={`button-action-${notification.id}`}
