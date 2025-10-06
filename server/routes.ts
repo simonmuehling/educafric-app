@@ -9960,22 +9960,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userIdNum = parseInt(userId, 10);
-      const allNotifications = await storage.getUserNotifications(userIdNum);
-      const pendingNotifications = allNotifications.filter((n: any) => !n.isDelivered && !n.isRead);
       
-      const formattedNotifications = pendingNotifications.map((n: any) => ({
-        id: n.id,
-        title: n.title,
-        message: n.content || n.message,
-        type: n.type,
-        priority: n.priority || 'normal',
-        timestamp: n.createdAt,
-        actionUrl: n.metadata?.actionUrl || '/',
-        actionText: n.metadata?.actionText || 'Voir',
-        userId: n.userId
-      }));
+      // Fetch notifications directly from database
+      const dbNotifications = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, userIdNum))
+        .orderBy(desc(notifications.createdAt))
+        .limit(50);
+      
+      // Format notifications for frontend
+      const formattedNotifications = dbNotifications.map((n: any) => {
+        const metadata = n.metadata || {};
+        return {
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          type: n.type || 'info',
+          priority: n.priority || 'medium',
+          category: metadata.category || n.type || 'general',
+          isRead: n.isRead || false,
+          readAt: n.readAt || null,
+          actionRequired: metadata.actionRequired || false,
+          actionUrl: metadata.actionUrl || null,
+          actionText: metadata.actionText || null,
+          createdAt: n.createdAt,
+          senderRole: metadata.senderRole || null,
+          relatedEntityType: metadata.relatedEntityType || null
+        };
+      });
 
-      console.log(`[PWA_NOTIFICATIONS] ✅ Returning ${pendingNotifications.length} pending notifications`);
+      console.log(`[PWA_NOTIFICATIONS] ✅ Returning ${formattedNotifications.length} notifications for user ${userIdNum}`);
       res.json(formattedNotifications);
     } catch (error: any) {
       console.error('[PWA_NOTIFICATIONS] Error:', error);
