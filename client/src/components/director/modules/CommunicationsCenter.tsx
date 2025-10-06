@@ -186,7 +186,7 @@ const CommunicationsCenter: React.FC = () => {
       selectType: 'Type de message'
     },
     en: {
-      title: 'Communications Center',
+      title: 'Communications Centre',
       subtitle: 'Complete management of communications with parents, students and teachers',
       stats: {
         totalMessages: 'Total Messages',

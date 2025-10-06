@@ -40,7 +40,7 @@ const CommunicationsCenter = () => {
       messageSent: 'Message envoyé avec succès!'
     },
     en: {
-      title: 'Communications Center',
+      title: 'Communications Centre',
       subtitle: 'Manage communications with parents, students and teachers',
       totalMessages: 'Total Messages',
       unreadMessages: 'Unread',

@@ -63,7 +63,7 @@ const BilingualEnterpriseDashboard: React.FC = () => {
     },
     en: {
       title: 'Enterprise Dashboard',
-      subtitle: 'Professional Training Center',
+      subtitle: 'Professional Training Centre',
       overview: 'Overview',
       trainees: 'Trainees',
       courses: 'Courses',

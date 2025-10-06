@@ -476,7 +476,7 @@ export default function UserGuide({ userType }: UserGuideProps) {
                     onClick={() => {
                       toast({
                         title: language === 'fr' ? 'Support' : 'Support',
-                        description: language === 'fr' ? 'Ouverture du centre de support...' : 'Opening support center...',
+                        description: language === 'fr' ? 'Ouverture du centre de support...' : 'Opening support centre...',
                       });
                     }}
                     data-testid="button-open-support"

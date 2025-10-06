@@ -23,7 +23,7 @@ router.get('/api/user/whatsapp-config', requireAuth, async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        error: 'Unauthorized'
+        error: 'Unauthorised'
       });
     }
 
@@ -88,7 +88,7 @@ router.post('/api/user/whatsapp-config', requireAuth, async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        error: 'Unauthorized'
+        error: 'Unauthorised'
       });
     }
 

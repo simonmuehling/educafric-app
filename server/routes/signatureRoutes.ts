@@ -24,7 +24,7 @@ router.post('/save', requireAuth, async (req, res) => {
         (userRole === 'principal_teacher' && user.role !== 'Teacher' && user.role !== 'Admin')) {
       return res.status(403).json({ 
         success: false, 
-        message: 'Unauthorized to create this signature type' 
+        message: 'Unauthorised to create this signature type' 
       });
     }
 
