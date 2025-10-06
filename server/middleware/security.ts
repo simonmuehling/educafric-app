@@ -173,6 +173,10 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
   (p) => p === '/api/auth/reset-password',
   (p) => p === '/api/auth/sandbox-login',
   
+  // PWA Notification routes (fetch API without CSRF token)
+  (p) => p.startsWith('/api/notifications/'),
+  (p) => p.startsWith('/pwa/notifications/'),
+  
   // Health check
   (p) => p === '/api/health',
 ];
