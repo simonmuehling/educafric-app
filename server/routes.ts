@@ -1,4 +1,11 @@
-import type { Express, Request, Response, NextFunction } from "express";
+can you tell me what the main purpose of these routes is in your backend?
+For example — is this file handling:
+
+authentication (login/signup)?
+
+CRUD for Educafric resources (schools, payments, students)?
+
+or mainly just health + static endpoints for now?import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
 import multer from "multer";
