@@ -33,7 +33,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms } from "../shared/schema.js";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications } from "../shared/schema.js";
 import { 
   predefinedAppreciations, 
   competencyEvaluationSystems, 
@@ -9961,16 +9961,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userIdNum = parseInt(userId, 10);
       
-      // Fetch notifications directly from database
-      const dbNotifications = await db
-        .select()
-        .from(notifications)
-        .where(eq(notifications.userId, userIdNum))
-        .orderBy(desc(notifications.createdAt))
-        .limit(50);
+      // Fetch notifications directly from database using raw SQL to avoid schema issues
+      const dbNotifications = await db.execute(
+        sql`SELECT * FROM notifications WHERE user_id = ${userIdNum} ORDER BY created_at DESC LIMIT 50`
+      );
       
       // Format notifications for frontend
-      const formattedNotifications = dbNotifications.map((n: any) => {
+      const formattedNotifications = dbNotifications.rows.map((n: any) => {
         const metadata = n.metadata || {};
         return {
           id: n.id,
@@ -9979,12 +9976,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: n.type || 'info',
           priority: n.priority || 'medium',
           category: metadata.category || n.type || 'general',
-          isRead: n.isRead || false,
-          readAt: n.readAt || null,
+          isRead: n.is_read || false,
+          readAt: n.read_at || null,
           actionRequired: metadata.actionRequired || false,
           actionUrl: metadata.actionUrl || null,
           actionText: metadata.actionText || null,
-          createdAt: n.createdAt,
+          createdAt: n.created_at,
           senderRole: metadata.senderRole || null,
           relatedEntityType: metadata.relatedEntityType || null
         };
