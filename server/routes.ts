@@ -10021,19 +10021,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const notificationId = parseInt(id, 10);
       
+      console.log(`[NOTIFICATIONS_API] 📝 Marking notification ${notificationId} as read...`);
+      
       if (!notificationId) {
         return res.status(400).json({ message: 'Invalid notification ID' });
       }
 
       // Mark notification as read
-      await db.execute(
+      const result = await db.execute(
         sql`UPDATE notifications SET is_read = true WHERE id = ${notificationId}`
       );
       
-      console.log(`[NOTIFICATIONS_API] ✅ Notification ${notificationId} marked as read`);
+      console.log(`[NOTIFICATIONS_API] ✅ Notification ${notificationId} marked as read - DB result:`, result);
       res.json({ success: true, message: 'Notification marked as read' });
     } catch (error: any) {
-      console.error('[NOTIFICATIONS_API] Error marking notification as read:', error);
+      console.error('[NOTIFICATIONS_API] ❌ Error marking notification as read:', error);
       res.status(500).json({ success: false, message: 'Failed to mark notification as read' });
     }
   });
