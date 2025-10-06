@@ -24,46 +24,11 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
   const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
-  // AGGRESSIVE API DATA PRELOADING - Commercial APIs
+  // PRELOADING DISABLED - Load on-demand for instant dashboard
+  // Previously: 7 APIs + 6 modules = slow initial load
   React.useEffect(() => {
-    if (!user) return;
-    
-    const preloadCommercialApiData = async () => {
-      
-      const apiEndpoints = [
-        '/api/commercial/leads',
-        '/api/commercial/appointments',
-        '/api/commercial/schools',
-        '/api/commercial/contacts',
-        '/api/commercial/statistics',
-        '/api/commercial/documents',
-        '/api/commercial/offer-templates'
-      ];
-      
-      const promises = apiEndpoints.map(async (endpoint) => {
-        try {
-          await queryClient.prefetchQuery({
-            queryKey: [endpoint],
-            queryFn: async () => {
-              const response = await fetch(endpoint);
-              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
-              return response.json();
-            },
-            staleTime: 1000 * 60 * 5
-          });
-          return true;
-        } catch (error) {
-          console.error(`[COMMERCIAL_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      setApiDataPreloaded(true);
-    };
-    
-    preloadCommercialApiData();
-  }, [user, queryClient]);
+    setApiDataPreloaded(true);
+  }, []);
   
   // ULTRA-FAST module component creator
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
@@ -95,31 +60,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     );
   };
 
-  // FORCE IMMEDIATE preload of critical slow modules - Commercial specific
-  React.useEffect(() => {
-    const criticalModules = ['commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 'commercial-whatsapp', 'offer-letters'];
-    
-    const forceLoadCriticalModules = async () => {
-      console.log('[COMMERCIAL_DASHBOARD] 🚀 FORCE LOADING critical modules...');
-      
-      const promises = criticalModules.map(async (moduleName) => {
-        try {
-          console.log(`[COMMERCIAL_DASHBOARD] ⚡ Force loading ${moduleName}...`);
-          await preloadModule(moduleName);
-          console.log(`[COMMERCIAL_DASHBOARD] ✅ ${moduleName} module ready!`);
-          return true;
-        } catch (error) {
-          console.error(`[COMMERCIAL_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      console.log('[COMMERCIAL_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
-    };
-    
-    forceLoadCriticalModules();
-  }, [preloadModule]);
+  // MODULE PRELOADING DISABLED - Load on-demand only
 
   // Preload modules when dashboard loads (LEGACY - keeping for compatibility)
   useEffect(() => {

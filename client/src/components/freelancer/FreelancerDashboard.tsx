@@ -27,71 +27,11 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
   const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
-  // AGGRESSIVE API DATA PRELOADING - Freelancer APIs
+  // PRELOADING DISABLED - Load on-demand for instant dashboard
+  // Previously: 4 APIs + 6 modules = slow initial load
   React.useEffect(() => {
-    if (!user) return;
-    
-    const preloadFreelancerApiData = async () => {
-      
-      const apiEndpoints = [
-        '/api/freelancer/students',
-        '/api/freelancer/sessions',
-        '/api/freelancer/schedule',
-        '/api/freelancer/payments'
-      ];
-      
-      const promises = apiEndpoints.map(async (endpoint) => {
-        try {
-          await queryClient.prefetchQuery({
-            queryKey: [endpoint],
-            queryFn: async () => {
-              const response = await fetch(endpoint, {
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json',
-                }
-              });
-              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
-              return response.json();
-            },
-            staleTime: 1000 * 60 * 5
-          });
-          return true;
-        } catch (error) {
-          console.error(`[FREELANCER_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      setApiDataPreloaded(true);
-    };
-    
-    preloadFreelancerApiData();
-  }, [user, queryClient]);
-  
-  // FORCE IMMEDIATE preload of critical slow modules - Freelancer specific
-  React.useEffect(() => {
-    const criticalModules = ['students', 'sessions', 'schedule', 'resources', 'communications', 'settings'];
-    
-    const forceLoadCriticalModules = async () => {
-      
-      const promises = criticalModules.map(async (moduleName) => {
-        try {
-          await preloadModule(moduleName);
-          return true;
-        } catch (error) {
-          console.error(`[FREELANCER_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      console.log('[FREELANCER_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
-    };
-    
-    forceLoadCriticalModules();
-  }, [preloadModule]);
+    setApiDataPreloaded(true);
+  }, []);
   
   // ULTRA-FAST module component creator
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {

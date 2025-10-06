@@ -25,80 +25,11 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
   const [criticalModulesReady, setCriticalModulesReady] = useState(false);
   const [apiDataPreloaded, setApiDataPreloaded] = useState(false);
   
-  // AGGRESSIVE API DATA PRELOADING - Load data BEFORE user clicks!
+  // PRELOADING DISABLED - Load on-demand for instant dashboard
+  // Previously: 6 APIs + 4 modules = slow initial load
   React.useEffect(() => {
-    if (!user) return;
-    
-    const preloadCriticalApiData = async () => {
-      
-      const apiEndpoints = [
-        '/api/student/grades',
-        '/api/student/homework', 
-        '/api/student/attendance',
-        '/api/student/messages',
-        '/api/student/geolocation/safe-zones',
-        '/api/student/geolocation/device-status'
-      ];
-      
-      // Preload all critical API data simultaneously
-      const promises = apiEndpoints.map(async (endpoint) => {
-        try {
-          
-          // Use prefetchQuery to load data into cache WITHOUT showing loading states
-          await queryClient.prefetchQuery({
-            queryKey: [endpoint],
-            queryFn: async () => {
-              const response = await fetch(endpoint, {
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json',
-                }
-              });
-              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
-              return response.json();
-            },
-            staleTime: 1000 * 60 * 5 // Keep data fresh for 5 minutes
-          });
-          
-          return true;
-        } catch (error) {
-          console.error(`[STUDENT_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      setApiDataPreloaded(true);
-    };
-    
-    preloadCriticalApiData();
-  }, [user, queryClient]);
-  
-  // FORCE IMMEDIATE preload of critical slow modules
-  React.useEffect(() => {
-    const criticalModules = ['grades', 'assignments', 'attendance', 'messages'];
-    
-    const forceLoadCriticalModules = async () => {
-      console.log('[STUDENT_DASHBOARD] 🚀 FORCE LOADING critical modules...');
-      
-      const promises = criticalModules.map(async (moduleName) => {
-        try {
-          console.log(`[STUDENT_DASHBOARD] ⚡ Force loading ${moduleName}...`);
-          await preloadModule(moduleName);
-          console.log(`[STUDENT_DASHBOARD] ✅ ${moduleName} ready!`);
-          return true;
-        } catch (error) {
-          console.error(`[STUDENT_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      setCriticalModulesReady(true);
-      console.log('[STUDENT_DASHBOARD] 🎯 ALL CRITICAL MODULES READY FOR INSTANT USE!');
-    };
-    
-    forceLoadCriticalModules();
+    setApiDataPreloaded(true);
+    setCriticalModulesReady(true);
   }, []);
   
   // ULTRA-FAST module component creator - MODULE + API DATA PRELOADED

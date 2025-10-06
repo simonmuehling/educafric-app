@@ -27,75 +27,11 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
   const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = useState(false);
   
-  // AGGRESSIVE API DATA PRELOADING - Teacher APIs
+  // PRELOADING DISABLED - Load on-demand for instant dashboard
+  // Previously: 5 APIs + 6 modules = slow initial load
   React.useEffect(() => {
-    if (!user) return;
-    
-    const preloadTeacherApiData = async () => {
-      
-      const apiEndpoints = [
-        '/api/teacher/grades',
-        '/api/teacher/classes',
-        '/api/teacher/assignments',
-        '/api/teacher/attendance',
-        '/api/teacher/communications'
-      ];
-      
-      const promises = apiEndpoints.map(async (endpoint) => {
-        try {
-          await queryClient.prefetchQuery({
-            queryKey: [endpoint],
-            queryFn: async () => {
-              const response = await fetch(endpoint, {
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json',
-                }
-              });
-              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
-              return response.json();
-            },
-            staleTime: 1000 * 60 * 5
-          });
-          return true;
-        } catch (error) {
-          console.error(`[TEACHER_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      setApiDataPreloaded(true);
-    };
-    
-    preloadTeacherApiData();
-  }, [user, queryClient]);
-  
-  // FORCE IMMEDIATE preload of critical slow modules - Teacher specific
-  React.useEffect(() => {
-    const criticalModules = ['teacher-classes', 'teacher-attendance', 'teacher-assignments', 'teacher-communications', 'teacher-timetable', 'teacher-bulletins'];
-    
-    const forceLoadCriticalModules = async () => {
-      console.log('[TEACHER_DASHBOARD] 🚀 FORCE LOADING critical modules...');
-      
-      const promises = criticalModules.map(async (moduleName) => {
-        try {
-          console.log(`[TEACHER_DASHBOARD] ⚡ Force loading ${moduleName}...`);
-          await preloadModule(moduleName);
-          console.log(`[TEACHER_DASHBOARD] ✅ ${moduleName} module ready!`);
-          return true;
-        } catch (error) {
-          console.error(`[TEACHER_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      console.log('[TEACHER_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
-    };
-    
-    forceLoadCriticalModules();
-  }, [preloadModule]);
+    setApiDataPreloaded(true);
+  }, []);
   
   // ULTRA-FAST module component creator - Fixed hook violation with DEBUG
   const createDynamicModule = React.useCallback((moduleName: string, fallbackComponent?: React.ReactNode) => {

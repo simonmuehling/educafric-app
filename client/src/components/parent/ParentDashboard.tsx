@@ -31,75 +31,11 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = useState(false);
   
-  // AGGRESSIVE API DATA PRELOADING - Parent APIs
+  // PRELOADING DISABLED - Load on-demand for instant dashboard
+  // Previously: 5 APIs + 7 modules = slow initial load
   React.useEffect(() => {
-    if (!user) return;
-    
-    const preloadParentApiData = async () => {
-      
-      const apiEndpoints = [
-        '/api/parent/children',
-        '/api/parent/grades',
-        '/api/parent/attendance',
-        '/api/parent/messages',
-        '/api/parent/payments'
-      ];
-      
-      const promises = apiEndpoints.map(async (endpoint) => {
-        try {
-          await queryClient.prefetchQuery({
-            queryKey: [endpoint],
-            queryFn: async () => {
-              const response = await fetch(endpoint, {
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json',
-                }
-              });
-              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
-              return response.json();
-            },
-            staleTime: 1000 * 60 * 5
-          });
-          return true;
-        } catch (error) {
-          console.error(`[PARENT_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      setApiDataPreloaded(true);
-    };
-    
-    preloadParentApiData();
-  }, [user, queryClient]);
-  
-  // FORCE IMMEDIATE preload of critical slow modules - Parent specific
-  React.useEffect(() => {
-    const criticalModules = ['children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 'geolocation', 'parent-timetable'];
-    
-    const forceLoadCriticalModules = async () => {
-      console.log('[PARENT_DASHBOARD] 🚀 FORCE LOADING critical modules...');
-      
-      const promises = criticalModules.map(async (moduleName) => {
-        try {
-          console.log(`[PARENT_DASHBOARD] ⚡ Force loading ${moduleName}...`);
-          await preloadModule(moduleName);
-          console.log(`[PARENT_DASHBOARD] ✅ ${moduleName} module ready!`);
-          return true;
-        } catch (error) {
-          console.error(`[PARENT_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      console.log('[PARENT_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
-    };
-    
-    forceLoadCriticalModules();
-  }, [preloadModule]);
+    setApiDataPreloaded(true);
+  }, []);
   
   // ✅ SAFE on-demand module preloading - ALL HOOKS AT COMPONENT LEVEL
   React.useEffect(() => {

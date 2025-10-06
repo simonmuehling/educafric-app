@@ -28,79 +28,15 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
-  // AGGRESSIVE API DATA PRELOADING - Director APIs (Only for Admin/Director roles)
+  // API PRELOADING DISABLED - Load data on-demand only for better performance
+  // Previously: Aggressive preloading of 5 APIs caused slow dashboard loading
   React.useEffect(() => {
-    if (!user) return;
-    
-    // Only preload director APIs for users with appropriate roles
-    const hasDirectorRole = ['Admin', 'Director'].includes(user.role);
-    if (!hasDirectorRole) {
-      console.log('[DIRECTOR_DASHBOARD] ⚠️ User lacks director privileges, skipping API preload');
-      return;
-    }
-    
-    const preloadDirectorApiData = async () => {
-      
-      const apiEndpoints = [
-        '/api/director/teachers',
-        '/api/director/students',
-        '/api/director/classes',
-        '/api/director/analytics',
-        '/api/director/settings'
-      ];
-      
-      const promises = apiEndpoints.map(async (endpoint) => {
-        try {
-          await queryClient.prefetchQuery({
-            queryKey: [endpoint],
-            queryFn: async () => {
-              const response = await fetch(endpoint, {
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json',
-                }
-              });
-              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
-              return response.json();
-            },
-            staleTime: 1000 * 60 * 5
-          });
-          return true;
-        } catch (error) {
-          console.error(`[DIRECTOR_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      setApiDataPreloaded(true);
-    };
-    
-    preloadDirectorApiData();
-  }, [user, queryClient]);
+    setApiDataPreloaded(true);
+  }, []);
   
-  // FORCE IMMEDIATE preload of critical slow modules - Director specific
-  React.useEffect(() => {
-    const criticalModules = ['teachers', 'students', 'classes', 'director-timetable', 'director-attendance', 'director-communications'];
-    
-    const forceLoadCriticalModules = async () => {
-      
-      const promises = criticalModules.map(async (moduleName) => {
-        try {
-          await preloadModule(moduleName);
-          return true;
-        } catch (error) {
-          console.error(`[DIRECTOR_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      console.log('[DIRECTOR_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
-    };
-    
-    forceLoadCriticalModules();
-  }, [preloadModule]);
+  // MODULE PRELOADING DISABLED - Load modules on-demand only for instant dashboard load
+  // Previously: Aggressive preloading of 6 modules caused slow initial load
+  // Now: Modules load instantly when clicked (better UX)
   
   // ULTRA-FAST module component creator with proper type checking
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
