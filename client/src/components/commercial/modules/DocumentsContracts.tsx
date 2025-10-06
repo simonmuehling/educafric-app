@@ -441,7 +441,7 @@ const DocumentsContracts = () => {
     },
     {
       id: 103,
-      name: 'Customized Pricing Proposal (EN)',
+      name: 'Customised Pricing Proposal (EN)',
       type: 'guide',
       category: 'marketing',
       school: 'Familles',
@@ -450,7 +450,7 @@ const DocumentsContracts = () => {
       size: '18.2 KB',
       format: 'PDF',
       url: '/documents/customized-pricing-proposal-en.html',
-      description: 'English customized pricing proposal with flexible rates for international schools'
+      description: 'English customised pricing proposal with flexible rates for international schools'
     },
     {
       id: 104,

@@ -269,7 +269,7 @@ const MobileDashboardDemo: React.FC<MobileDashboardDemoProps> = ({
               <p className="text-sm text-gray-600">
                 {language === 'fr' 
                   ? 'Interface tactile optimisée pour les écrans de smartphone'
-                  : 'Touch-optimized interface for smartphone screens'
+                  : 'Touch-optimised interface for smartphone screens'
                 }
               </p>
             </div>
@@ -290,13 +290,13 @@ const MobileDashboardDemo: React.FC<MobileDashboardDemoProps> = ({
         {/* Mobile-specific features demonstration */}
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            {language === 'fr' ? 'Optimisations Mobile' : 'Mobile Optimizations'}
+            {language === 'fr' ? 'Optimisations Mobile' : 'Mobile Optimisations'}
           </h3>
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span className="text-sm text-gray-600">
-                {language === 'fr' ? 'Espacement tactile optimisé (44px minimum)' : 'Touch-optimized spacing (44px minimum)'}
+                {language === 'fr' ? 'Espacement tactile optimisé (44px minimum)' : 'Touch-optimised spacing (44px minimum)'}
               </span>
             </div>
             <div className="flex items-center space-x-3">

@@ -43,12 +43,12 @@ router.post('/route/optimize', async (req, res) => {
     res.json({
       success: true,
       data: optimization,
-      message: `Route optimized with ${optimization.optimizedRoute.length} waypoints`
+      message: `Route optimised with ${optimization.optimizedRoute.length} waypoints`
     });
   } catch (error) {
     console.error('[ROUTE_OPTIMIZATION] Error:', error);
     res.status(500).json({ 
-      error: 'Failed to optimize route', 
+      error: 'Failed to optimise route', 
       details: error instanceof Error ? error.message : 'Unknown error' 
     });
   }
@@ -80,12 +80,12 @@ router.post('/route/batch-optimize', async (req, res) => {
     res.json({
       success: true,
       data: optimizations,
-      message: `${optimizations.length} routes optimized`
+      message: `${optimizations.length} routes optimised`
     });
   } catch (error) {
     console.error('[BATCH_ROUTE_OPTIMIZATION] Error:', error);
     res.status(500).json({ 
-      error: 'Failed to optimize routes', 
+      error: 'Failed to optimise routes', 
       details: error instanceof Error ? error.message : 'Unknown error' 
     });
   }

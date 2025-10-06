@@ -104,7 +104,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             </div>
           </div>
 
-          {/* Center: Title and subtitle - Mobile optimized */}
+          {/* Center: Title and subtitle - Mobile optimised */}
           {(title || subtitle) && (
             <div className="flex-1 text-center px-2 sm:px-4 min-w-0">
               <h1 className="text-sm sm:text-lg font-semibold text-gray-800 truncate">
@@ -118,7 +118,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             </div>
           )}
 
-          {/* Right side: Actions - Mobile optimized */}
+          {/* Right side: Actions - Mobile optimised */}
           <div className="flex items-center space-x-1 sm:space-x-3">
             {/* Home Button */}
             <Button

@@ -44,7 +44,7 @@ const MobileSmartphoneDemo: React.FC = () => {
     },
     en: {
       title: 'Smartphone View',
-      subtitle: 'Mobile-optimized interface',
+      subtitle: 'Mobile-optimised interface',
       modules: {
         children: 'Children',
         messages: 'Messages',
@@ -61,13 +61,13 @@ const MobileSmartphoneDemo: React.FC = () => {
       },
       overlayTitles: {
         children: 'Children Management',
-        messages: 'Message Center',
+        messages: 'Message Centre',
         grades: 'Grade Tracking',
         info: 'Detailed Information'
       },
       overlayContent: {
         children: 'Compact interface for managing your children. Quick access to essential information with smart overlay.',
-        messages: 'Mobile-optimized messages with short bubbles and intuitive touch navigation.',
+        messages: 'Mobile-optimised messages with short bubbles and intuitive touch navigation.',
         grades: 'Grade visualization with smartphone-first interface. Smooth scrolling and overlay information.'
       }
     }
@@ -224,7 +224,7 @@ const MobileSmartphoneDemo: React.FC = () => {
                 {language === 'fr' ? 'Fonctionnalités' : 'Features'}
               </h4>
               <ul className="text-xs text-blue-800 space-y-1">
-                <li>• {language === 'fr' ? 'Interface tactile optimisée' : 'Touch-optimized interface'}</li>
+                <li>• {language === 'fr' ? 'Interface tactile optimisée' : 'Touch-optimised interface'}</li>
                 <li>• {language === 'fr' ? 'Navigation simplifiée' : 'Simplified navigation'}</li>
                 <li>• {language === 'fr' ? 'Informations superposées' : 'Overlay information'}</li>
               </ul>

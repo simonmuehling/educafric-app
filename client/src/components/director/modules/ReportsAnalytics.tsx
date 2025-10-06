@@ -296,7 +296,7 @@ const ReportsAnalytics: React.FC = () => {
     { id: 'academic', name: t?.reports?.academic, icon: BookOpen, color: 'bg-blue-500', description: language === 'fr' ? 'Performance académique générale' : 'General academic performance' },
     { id: 'attendance', name: t?.reports?.attendance, icon: Calendar, color: 'bg-orange-500', description: language === 'fr' ? 'Statistiques de présence' : 'Attendance statistics' },
     { id: 'comparative', name: t?.reports?.comparative, icon: PieChart, color: 'bg-cyan-500', description: language === 'fr' ? 'Comparaison avec autres établissements' : 'Comparison with other institutions' },
-    { id: 'procesVerbal', name: language === 'fr' ? 'Procès Verbal/Master' : 'Master Report/Minutes', icon: FileText, color: 'bg-amber-600', description: language === 'fr' ? 'Document périodique complet avec notes, comportement et matricules par classe' : 'Complete periodic document with grades, behavior and student IDs by class' },
+    { id: 'procesVerbal', name: language === 'fr' ? 'Procès Verbal/Master' : 'Master Report/Minutes', icon: FileText, color: 'bg-amber-600', description: language === 'fr' ? 'Document périodique complet avec notes, comportement et matricules par classe' : 'Complete periodic document with grades, behaviour and student IDs by class' },
     { id: 'classReports', name: t?.reports?.classReports, icon: Users, color: 'bg-red-500', description: language === 'fr' ? 'Rapports détaillés par classe avec notes' : 'Detailed class reports with grades' }
   ];
 
@@ -716,7 +716,7 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                   )}
                   {selectedBehavior !== 'all' && (
                     <span className="ml-2">
-                      {language === 'fr' ? 'Comportement:' : 'Behavior:'} {selectedBehavior === 'na' ? 'Non évalué' : selectedBehavior}
+                      {language === 'fr' ? 'Comportement:' : 'Behaviour:'} {selectedBehavior === 'na' ? 'Non évalué' : selectedBehavior}
                     </span>
                   )}
                   {selectedPerformance !== 'all' && (

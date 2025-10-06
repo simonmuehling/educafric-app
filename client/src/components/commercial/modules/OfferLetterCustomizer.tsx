@@ -512,7 +512,7 @@ Educafric.com by Afro Metaverse
     },
     en: {
       title: 'Offer Letter Customization',
-      subtitle: 'Create and manage your customized letter templates',
+      subtitle: 'Create and manage your customised letter templates',
       templateName: 'Template Name',
       commercialPhone: 'Commercial Phone',
       recipientDetails: 'Recipient Details',

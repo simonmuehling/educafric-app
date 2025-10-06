@@ -63,7 +63,7 @@ const TimetableManager = () => {
     },
     en: {
       title: 'Timetable Management',
-      subtitle: 'Class scheduling and organization',
+      subtitle: 'Class scheduling and organisation',
       days: {
         monday: 'Monday',
         tuesday: 'Tuesday',

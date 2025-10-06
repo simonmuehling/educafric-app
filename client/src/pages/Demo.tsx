@@ -121,7 +121,7 @@ const Demo = () => {
         },
         {
           title: "Payment Integration",
-          description: "Secure payment processing optimized for African markets"
+          description: "Secure payment processing optimised for African markets"
         },
         {
           title: "Mobile-First Design",
