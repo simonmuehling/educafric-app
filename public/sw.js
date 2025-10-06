@@ -4,6 +4,54 @@ importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-comp
 
 const CACHE_NAME = 'educafric-v3-optimized';
 
+// Badge API helper functions
+let badgeCount = 0;
+
+async function updateBadgeCount(increment = 1) {
+  try {
+    // Check if Badge API is supported
+    if (!('setAppBadge' in self.navigator)) {
+      console.log('[SW_BADGE] Badge API not supported');
+      return;
+    }
+
+    badgeCount += increment;
+    if (badgeCount < 0) badgeCount = 0;
+
+    if (badgeCount === 0) {
+      await self.navigator.clearAppBadge();
+      console.log('[SW_BADGE] ✅ Badge cleared');
+    } else {
+      await self.navigator.setAppBadge(badgeCount);
+      console.log(`[SW_BADGE] ✅ Badge set to ${badgeCount}`);
+    }
+  } catch (error) {
+    console.error('[SW_BADGE] ❌ Failed to update badge:', error);
+  }
+}
+
+async function setBadgeCount(count) {
+  try {
+    if (!('setAppBadge' in self.navigator)) {
+      return;
+    }
+
+    badgeCount = count;
+    if (badgeCount === 0) {
+      await self.navigator.clearAppBadge();
+    } else {
+      await self.navigator.setAppBadge(badgeCount);
+    }
+    console.log(`[SW_BADGE] ✅ Badge count set to ${badgeCount}`);
+  } catch (error) {
+    console.error('[SW_BADGE] ❌ Failed to set badge:', error);
+  }
+}
+
+async function clearBadge() {
+  await setBadgeCount(0);
+}
+
 // Firebase configuration for FCM
 const firebaseConfig = {
   apiKey: "AIzaSyBl5dHJJdQU_PcHUOKjpIQpKX5I3WlSjDU",
@@ -23,6 +71,9 @@ if (firebase) {
   // Handle background messages
   messaging.onBackgroundMessage((payload) => {
     console.log('[SW] 📱 Received background FCM message:', payload);
+    
+    // Update badge count for new notification
+    updateBadgeCount(1);
     
     const notificationTitle = payload.notification?.title || 'EDUCAFRIC';
     const notificationOptions = {
@@ -227,6 +278,9 @@ self.addEventListener('push', (event) => {
   
   if (!event.data) return;
   
+  // Update badge count for new notification
+  updateBadgeCount(1);
+  
   const data = event.data.json();
   const options = {
     body: data.body || 'Nouvelle notification Educafric',
@@ -330,7 +384,23 @@ self.addEventListener('notificationclose', (event) => {
 
 // Handle messages from the main app
 self.addEventListener('message', (event) => {
-  const { type, title, options } = event.data;
+  const { type, title, options, count } = event.data;
+  
+  // Handle badge update messages
+  if (type === 'UPDATE_BADGE') {
+    setBadgeCount(count || 0);
+    return;
+  }
+  
+  if (type === 'CLEAR_BADGE') {
+    clearBadge();
+    return;
+  }
+  
+  if (type === 'INCREMENT_BADGE') {
+    updateBadgeCount(count || 1);
+    return;
+  }
   
   if (type === 'SHOW_NOTIFICATION') {
     console.log('[SW] Showing notification via message:', title);

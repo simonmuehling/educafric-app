@@ -29,6 +29,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import notificationService from '@/services/notificationService';
+import badgeService from '@/services/badgeService';
 import PWANotificationManager from './PWANotificationManager';
 
 interface Notification {
@@ -202,6 +203,10 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
           // Avoid duplicates
           const exists = prev.some(n => n.id === notification.id);
           if (!exists) {
+            // Increment badge for new unread notification
+            if (!notification.isRead) {
+              badgeService.incrementBadge(1);
+            }
             return [notification, ...prev];
           }
           return prev;
@@ -217,6 +222,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
     initializeNotifications();
   }, [queryClient]);
 
+  // Update badge count whenever notifications change
+  useEffect(() => {
+    if (allNotifications && allNotifications.length > 0) {
+      const unreadCount = allNotifications.filter(n => !n.isRead).length;
+      badgeService.syncWithServer(unreadCount);
+    }
+  }, [allNotifications]);
+
   // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: number) => {
@@ -229,6 +242,8 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      // Decrement badge count when marking as read
+      badgeService.decrementBadge(1);
     }
   });
 
@@ -244,6 +259,8 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      // Clear badge when all notifications are read
+      badgeService.clearBadge();
     }
   });
 
