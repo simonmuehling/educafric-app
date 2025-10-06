@@ -515,9 +515,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                                     markAsReadMutation.mutate(notification.id);
                                   }
                                   
-                                  // Navigate to the action URL
-                                  console.log(`[NOTIFICATION_ACTION] Setting location to: ${notification.actionUrl}`);
-                                  setLocation(notification.actionUrl);
+                                  // Navigate to the action URL using window.location for dynamic module
+                                  console.log(`[NOTIFICATION_ACTION] Forcing navigation to: ${notification.actionUrl}`);
+                                  window.location.href = notification.actionUrl;
                                 }}
                                 data-testid={`button-action-${notification.id}`}
                               >
