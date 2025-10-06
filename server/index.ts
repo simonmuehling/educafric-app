@@ -26,11 +26,17 @@ import {
   imageOptimizationMiddleware,
   bundleOptimizationMiddleware
 } from "./middleware/assetOptimization";
+import { requestIdMiddleware } from "./middleware/requestId";
+import { healthz, readyz, markAsReady } from "./middleware/healthChecks";
+import { logJson } from "./utils/logger";
 
 // Load environment variables
 // Stripe keys will be automatically loaded from Replit Secrets
 
 const app = express();
+
+// Request ID tracking - MUST be first
+app.use(requestIdMiddleware);
 
 // Performance optimizations
 app.use(compressionMiddleware);
@@ -138,6 +144,10 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Health check endpoints - MUST be before authentication
+app.get('/healthz', healthz);
+app.get('/readyz', readyz);
 
 // Real-time tracking middleware for API operations
 app.use('/api', realTimeTrackingMiddleware);
@@ -258,6 +268,10 @@ app.use((req, res, next) => {
 
   const server = await registerRoutes(app);
 
+  // Mark app as ready for health checks
+  markAsReady();
+  logJson('info', 'app_ready', { message: 'Application is ready to handle requests' });
+
   // Initialize real-time WebSocket service
   console.log('[REALTIME] Initializing WebSocket service...');
   realTimeService.initialize(server);
@@ -346,10 +360,33 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    logJson('info', 'server_started', { port, host: '0.0.0.0' });
   }).on('error', (err: any) => {
     console.error('[SERVER_ERROR]', err);
     if (err.code === 'EADDRINUSE') {
       console.log('[AUTOFIX] Port already in use - server may already be running');
     }
   });
+
+  // Graceful shutdown handling
+  function gracefulShutdown(signal: string) {
+    logJson('info', 'shutdown_initiated', { signal });
+    console.log(`\n[SHUTDOWN] ${signal} received, closing server gracefully...`);
+    
+    server.close(() => {
+      logJson('info', 'shutdown_complete', { signal });
+      console.log('[SHUTDOWN] ✅ HTTP server closed');
+      process.exit(0);
+    });
+
+    // Force shutdown after 10 seconds
+    setTimeout(() => {
+      logJson('error', 'shutdown_forced', { signal, reason: 'timeout' });
+      console.error('[SHUTDOWN] ❌ Forced shutdown after timeout');
+      process.exit(1);
+    }, 10000).unref();
+  }
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 })();
