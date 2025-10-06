@@ -10015,6 +10015,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🔔 NOTIFICATION ACTIONS ENDPOINTS (Mark Read, Delete)
+  app.post('/api/notifications/:id/mark-read', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const notificationId = parseInt(id, 10);
+      
+      if (!notificationId) {
+        return res.status(400).json({ message: 'Invalid notification ID' });
+      }
+
+      // Mark notification as read
+      await db.execute(
+        sql`UPDATE notifications SET is_read = true, read_at = NOW() WHERE id = ${notificationId}`
+      );
+      
+      console.log(`[NOTIFICATIONS_API] ✅ Notification ${notificationId} marked as read`);
+      res.json({ success: true, message: 'Notification marked as read' });
+    } catch (error: any) {
+      console.error('[NOTIFICATIONS_API] Error marking notification as read:', error);
+      res.status(500).json({ success: false, message: 'Failed to mark notification as read' });
+    }
+  });
+
+  app.post('/api/notifications/mark-all-read', async (req, res) => {
+    try {
+      const userId = (req.session as any)?.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // Mark all notifications as read for the user
+      await db.execute(
+        sql`UPDATE notifications SET is_read = true, read_at = NOW() WHERE user_id = ${userId} AND is_read = false`
+      );
+      
+      console.log(`[NOTIFICATIONS_API] ✅ All notifications marked as read for user ${userId}`);
+      res.json({ success: true, message: 'All notifications marked as read' });
+    } catch (error: any) {
+      console.error('[NOTIFICATIONS_API] Error marking all notifications as read:', error);
+      res.status(500).json({ success: false, message: 'Failed to mark all notifications as read' });
+    }
+  });
+
+  app.delete('/api/notifications/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const notificationId = parseInt(id, 10);
+      
+      if (!notificationId) {
+        return res.status(400).json({ message: 'Invalid notification ID' });
+      }
+
+      // Delete notification
+      await db.execute(
+        sql`DELETE FROM notifications WHERE id = ${notificationId}`
+      );
+      
+      console.log(`[NOTIFICATIONS_API] 🗑️ Notification ${notificationId} deleted`);
+      res.json({ success: true, message: 'Notification deleted' });
+    } catch (error: any) {
+      console.error('[NOTIFICATIONS_API] Error deleting notification:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete notification' });
+    }
+  });
+
   // TEST ENDPOINT FOR A4 BULLETIN - NO AUTH REQUIRED  
   app.get('/api/test-bulletin-a4', async (req, res) => {
     try {
