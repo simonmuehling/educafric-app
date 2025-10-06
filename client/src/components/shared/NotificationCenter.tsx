@@ -243,7 +243,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/pwa/notifications/pending', userId] });
       // Decrement badge count when marking as read
       badgeService.decrementBadge(1);
     }
@@ -260,7 +260,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/pwa/notifications/pending', userId] });
       // Clear badge when all notifications are read
       badgeService.clearBadge();
     }
@@ -277,7 +277,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/pwa/notifications/pending', userId] });
+      // Decrement badge when deleting a notification
+      badgeService.decrementBadge(1);
     }
   });
 
