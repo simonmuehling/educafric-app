@@ -10027,7 +10027,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Mark notification as read
       await db.execute(
-        sql`UPDATE notifications SET is_read = true, read_at = NOW() WHERE id = ${notificationId}`
+        sql`UPDATE notifications SET is_read = true WHERE id = ${notificationId}`
       );
       
       console.log(`[NOTIFICATIONS_API] ✅ Notification ${notificationId} marked as read`);
@@ -10048,7 +10048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Mark all notifications as read for the user
       await db.execute(
-        sql`UPDATE notifications SET is_read = true, read_at = NOW() WHERE user_id = ${userId} AND is_read = false`
+        sql`UPDATE notifications SET is_read = true WHERE user_id = ${userId} AND is_read = false`
       );
       
       console.log(`[NOTIFICATIONS_API] ✅ All notifications marked as read for user ${userId}`);
