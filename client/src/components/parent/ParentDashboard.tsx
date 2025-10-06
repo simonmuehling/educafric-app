@@ -60,7 +60,17 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       if (isCritical) {
         console.log(`[PARENT_DASHBOARD] 🚀 ${moduleName} served INSTANTLY - Module + Data PRELOADED!`);
       }
-      return React.createElement(ModuleComponent);
+      
+      // Prepare props for specific modules that need them
+      const moduleProps: any = {};
+      
+      // NotificationCenter needs userId and userRole
+      if (moduleName === 'notifications' || moduleName === 'parent.notifications') {
+        moduleProps.userId = user?.id;
+        moduleProps.userRole = user?.role;
+      }
+      
+      return React.createElement(ModuleComponent, moduleProps);
     }
     
     // ✅ NO useEffect here - moved to component level

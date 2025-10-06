@@ -50,7 +50,17 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       if (isCritical && apiDataPreloaded) {
         console.log(`[FREELANCER_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
-      return React.createElement(ModuleComponent);
+      
+      // Prepare props for specific modules that need them
+      const moduleProps: any = {};
+      
+      // NotificationCenter needs userId and userRole
+      if (moduleName === 'notifications' || moduleName === 'freelancer.notifications') {
+        moduleProps.userId = user?.id;
+        moduleProps.userRole = user?.role;
+      }
+      
+      return React.createElement(ModuleComponent, moduleProps);
     }
     
     return fallbackComponent || (

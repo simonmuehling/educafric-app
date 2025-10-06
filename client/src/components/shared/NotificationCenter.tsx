@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
 }) => {
   const { language } = useLanguage();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
 
@@ -499,6 +501,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                                 variant="outline"
                                 size="sm"
                                 className="text-xs"
+                                onClick={() => {
+                                  // Mark as read when action is clicked
+                                  if (!notification.isRead) {
+                                    markAsReadMutation.mutate(notification.id);
+                                  }
+                                  // Navigate to the action URL
+                                  setLocation(notification.actionUrl);
+                                }}
                                 data-testid={`button-action-${notification.id}`}
                               >
                                 <ExternalLink className="w-3 h-3 mr-1" />

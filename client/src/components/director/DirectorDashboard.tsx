@@ -54,13 +54,22 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
         console.log(`[DIRECTOR_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
       
+      // Prepare props for specific modules that need them
+      const moduleProps: any = {};
+      
+      // NotificationCenter needs userId and userRole
+      if (moduleName === 'notifications' || moduleName === 'director.notifications') {
+        moduleProps.userId = user?.id;
+        moduleProps.userRole = user?.role;
+      }
+      
       // Safe component creation with type checking
       try {
         if (typeof ModuleComponent === 'function') {
-          return React.createElement(ModuleComponent);
+          return React.createElement(ModuleComponent, moduleProps);
         } else if (ModuleComponent && typeof ModuleComponent === 'object' && 'default' in ModuleComponent) {
           // Handle default export
-          return React.createElement((ModuleComponent as any).default);
+          return React.createElement((ModuleComponent as any).default, moduleProps);
         } else {
           console.warn(`[DIRECTOR_DASHBOARD] ⚠️ Invalid component for ${moduleName}:`, typeof ModuleComponent);
           return fallbackComponent;

@@ -45,7 +45,16 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
         console.log(`[STUDENT_DASHBOARD] ⚡ ${moduleName} served INSTANTLY from cache`);
       }
       
-      return React.createElement(ModuleComponent);
+      // Prepare props for specific modules that need them
+      const moduleProps: any = {};
+      
+      // NotificationCenter needs userId and userRole
+      if (moduleName === 'notifications' || moduleName === 'student.notifications') {
+        moduleProps.userId = user?.id;
+        moduleProps.userRole = user?.role;
+      }
+      
+      return React.createElement(ModuleComponent, moduleProps);
     }
     
     // Critical modules should NEVER show spinner if properly preloaded

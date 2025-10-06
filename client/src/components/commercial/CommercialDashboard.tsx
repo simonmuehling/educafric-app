@@ -45,7 +45,17 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       const isCritical = ['leads', 'appointments', 'schools', 'contacts', 'statistics', 'documents'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
       }
-      return React.createElement(ModuleComponent);
+      
+      // Prepare props for specific modules that need them
+      const moduleProps: any = {};
+      
+      // NotificationCenter needs userId and userRole
+      if (moduleName === 'commercial-notifications' || moduleName === 'notifications') {
+        moduleProps.userId = user?.id;
+        moduleProps.userRole = user?.role;
+      }
+      
+      return React.createElement(ModuleComponent, moduleProps);
     }
     
     return fallbackComponent || (

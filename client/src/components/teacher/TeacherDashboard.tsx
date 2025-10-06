@@ -44,7 +44,17 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
         console.log(`[TEACHER_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
       console.log(`[TEACHER_DASHBOARD] ✅ Successfully creating component for "${moduleName}"`);
-      return React.createElement(ModuleComponent);
+      
+      // Prepare props for specific modules that need them
+      const moduleProps: any = {};
+      
+      // NotificationCenter needs userId and userRole
+      if (moduleName === 'notifications' || moduleName === 'teacher.notifications') {
+        moduleProps.userId = user?.id;
+        moduleProps.userRole = user?.role;
+      }
+      
+      return React.createElement(ModuleComponent, moduleProps);
     }
     
     console.log(`[TEACHER_DASHBOARD] ❌ Module "${moduleName}" not found in cache, showing fallback`);
