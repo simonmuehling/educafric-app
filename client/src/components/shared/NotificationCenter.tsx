@@ -111,7 +111,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
       timeAgo: 'il y a'
     },
     en: {
-      title: 'Notification Center',
+      title: 'Notification Centre',
       subtitle: 'All your important notifications',
       markAllRead: 'Mark all as read',
       markRead: 'Mark as read',

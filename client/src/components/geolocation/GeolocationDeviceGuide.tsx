@@ -175,7 +175,7 @@ export default function GeolocationDeviceGuide() {
         language === 'fr' ? 'Ajouter profils des enfants' : 'Add children profiles',
         language === 'fr' ? 'Configurer dispositifs de chaque enfant' : 'Configure each child device',
         language === 'fr' ? 'Définir zones maison, école, grands-parents' : 'Define home, school, grandparents zones',
-        language === 'fr' ? 'Personnaliser les notifications' : 'Customize notifications'
+        language === 'fr' ? 'Personnaliser les notifications' : 'Customise notifications'
       ],
       requirements: [
         language === 'fr' ? 'Smartphone avec EDUCAFRIC app' : 'Smartphone with EDUCAFRIC app',

@@ -93,7 +93,7 @@ const StudentHelp = () => {
       businessHours: 'Lun-Ven: 8h-17h, Sam: 9h-13h'
     },
     en: {
-      title: 'Help Center',
+      title: 'Help Centre',
       subtitle: 'Find answers and get help',
       quickHelp: 'Quick Help',
       userGuide: 'User Guide',

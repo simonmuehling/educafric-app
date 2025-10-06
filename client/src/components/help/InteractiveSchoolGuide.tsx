@@ -462,7 +462,7 @@ Start with steps 1-2-3 today to have a solid foundation, then progress according
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {language === 'fr' ? 'Retour au Centre d\'Aide' : 'Back to Help Center'}
+            {language === 'fr' ? 'Retour au Centre d\'Aide' : 'Back to Help Centre'}
           </Button>
         )}
         

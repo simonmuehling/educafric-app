@@ -133,7 +133,7 @@ export default function UserGuide({ userType }: UserGuideProps) {
           steps: [
             {
               id: 'classes',
-              title: language === 'fr' ? 'Organisation des classes' : 'Class organization',
+              title: language === 'fr' ? 'Organisation des classes' : 'Class organisation',
               description: language === 'fr'
                 ? 'Créez et organisez les classes et matières'
                 : 'Create and organize classes and subjects',
@@ -159,7 +159,7 @@ export default function UserGuide({ userType }: UserGuideProps) {
                 ? 'Accédez et gérez vos classes assignées'
                 : 'Access and manage your assigned classes',
               tips: [
-                language === 'fr' ? 'Personnalisez l\'organisation de chaque classe' : 'Customize each class organization',
+                language === 'fr' ? 'Personnalisez l\'organisation de chaque classe' : 'Customise each class organisation',
                 language === 'fr' ? 'Utilisez les groupes pour différencier' : 'Use groups for differentiation'
               ]
             },
@@ -180,7 +180,7 @@ export default function UserGuide({ userType }: UserGuideProps) {
           title: language === 'fr' ? 'Pédagogie' : 'Pedagogy',
           description: language === 'fr'
             ? 'Optimisez votre enseignement avec les outils numériques'
-            : 'Optimize your teaching with digital tools',
+            : 'Optimise your teaching with digital tools',
           steps: [
             {
               id: 'assignments',

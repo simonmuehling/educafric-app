@@ -476,7 +476,7 @@ const FreelancerGeolocation = () => {
                     <label className="text-sm font-medium text-gray-900">{t.zoneType}</label>
                     <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                       <option value="residential">{language === 'fr' ? 'Domicile Élève' : 'Student Home'}</option>
-                      <option value="educational">{language === 'fr' ? 'Centre de Cours' : 'Learning Center'}</option>
+                      <option value="educational">{language === 'fr' ? 'Centre de Cours' : 'Learning Centre'}</option>
                       <option value="library">{language === 'fr' ? 'Bibliothèque' : 'Library'}</option>
                     </select>
                   </div>

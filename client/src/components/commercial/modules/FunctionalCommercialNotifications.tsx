@@ -83,7 +83,7 @@ const FunctionalCommercialNotifications: React.FC = () => {
       loadingNotifications: 'Chargement des notifications...'
     },
     en: {
-      title: 'Notification Center',
+      title: 'Notification Centre',
       subtitle: 'Manage all your commercial notifications',
       noNotifications: 'No notifications',
       noNotificationsDesc: 'You have no notifications at the moment.',

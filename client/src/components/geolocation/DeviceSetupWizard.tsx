@@ -106,7 +106,7 @@ export default function DeviceSetupWizard({ userType, onComplete, onCancel }: De
             language === 'fr' ? 'Maison' : 'Home',
             language === 'fr' ? 'École' : 'School',
             language === 'fr' ? 'Grands-parents' : 'Grandparents',
-            language === 'fr' ? 'Centre commercial' : 'Shopping center'
+            language === 'fr' ? 'Centre commercial' : 'Shopping centre'
           ]
         };
       case 'freelancer':
@@ -119,7 +119,7 @@ export default function DeviceSetupWizard({ userType, onComplete, onCancel }: De
             language === 'fr' ? 'Domicile répétiteur' : 'Tutor home',
             language === 'fr' ? 'Domicile étudiant' : 'Student home',
             language === 'fr' ? 'Bibliothèque publique' : 'Public library',
-            language === 'fr' ? 'Centre éducatif' : 'Educational center'
+            language === 'fr' ? 'Centre éducatif' : 'Educational centre'
           ]
         };
       default:

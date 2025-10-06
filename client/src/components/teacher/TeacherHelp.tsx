@@ -134,7 +134,7 @@ export default function TeacherHelp() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-2xl">
             <BookOpen className="h-6 w-6 text-blue-600" />
-            {language === 'fr' ? 'Centre d\'aide pour enseignants' : 'Teacher Help Center'}
+            {language === 'fr' ? 'Centre d\'aide pour enseignants' : 'Teacher Help Centre'}
           </CardTitle>
           <CardDescription>
             {language === 'fr' 

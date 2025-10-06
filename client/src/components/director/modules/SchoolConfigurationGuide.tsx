@@ -753,7 +753,7 @@ const SchoolConfigurationGuide: React.FC = () => {
                   </h4>
                 </div>
                 <p className="text-orange-700 font-medium">
-                  {(Array.isArray(configStatus.missingElements) ? configStatus.missingElements.length : 0)} {language === 'fr' ? 'éléments à configurer pour optimiser votre école' : 'elements to configure to optimize your school'}
+                  {(Array.isArray(configStatus.missingElements) ? configStatus.missingElements.length : 0)} {language === 'fr' ? 'éléments à configurer pour optimiser votre école' : 'elements to configure to optimise your school'}
                 </p>
                 <div className="mt-4 p-3 bg-white/70 rounded-lg">
                   <p className="text-sm text-orange-600">
@@ -823,7 +823,7 @@ const SchoolConfigurationGuide: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <HelpCircle className="w-6 h-6 text-blue-600" />
-                {language === 'fr' ? 'Centre d\'aide École' : 'School Help Center'}
+                {language === 'fr' ? 'Centre d\'aide École' : 'School Help Centre'}
               </CardTitle>
               <CardDescription>
                 {language === 'fr'
