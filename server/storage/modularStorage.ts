@@ -50,6 +50,7 @@ export class ModularStorage {
   async createUser(user: any) { return this.userStorage.createUser(user); }
   async getUserById(id: number) { return this.userStorage.getUserById(id); }
   async getUserByEmail(email: string) { return this.userStorage.getUserByEmail(email); }
+  async getUserByPhone(phone: string) { return this.userStorage.getUserByPhone(phone); }
   async getUserByPasswordResetToken(token: string) { return this.userStorage.getUserByPasswordResetToken(token); }
   async getAllUsers() { return this.userStorage.getAllUsers(); }
   async updateUser(id: number, updates: any) { return this.userStorage.updateUser(id, updates); }

@@ -176,6 +176,109 @@ router.get('/me', async (req, res) => {
   }
 });
 
+// Check for duplicate email/phone before registration
+router.post('/check-duplicate', async (req, res) => {
+  try {
+    const { email, phoneNumber } = req.body;
+    
+    if (!email && !phoneNumber) {
+      return res.status(400).json({ message: 'Email or phone number required' });
+    }
+
+    const duplicates: any = {
+      hasDuplicate: false,
+      emailMatch: null,
+      phoneMatch: null,
+      existingUser: null
+    };
+
+    // Check email
+    if (email) {
+      const userByEmail = await storage.getUserByEmail(email);
+      if (userByEmail) {
+        duplicates.hasDuplicate = true;
+        duplicates.emailMatch = true;
+        duplicates.existingUser = {
+          id: userByEmail.id,
+          email: userByEmail.email,
+          firstName: userByEmail.firstName,
+          lastName: userByEmail.lastName,
+          role: userByEmail.role,
+          phone: userByEmail.phone,
+          schoolId: userByEmail.schoolId
+        };
+      }
+    }
+
+    // Check phone
+    if (phoneNumber) {
+      const userByPhone = await storage.getUserByPhone(phoneNumber);
+      if (userByPhone) {
+        duplicates.hasDuplicate = true;
+        duplicates.phoneMatch = true;
+        if (!duplicates.existingUser) {
+          duplicates.existingUser = {
+            id: userByPhone.id,
+            email: userByPhone.email,
+            firstName: userByPhone.firstName,
+            lastName: userByPhone.lastName,
+            role: userByPhone.role,
+            phone: userByPhone.phone,
+            schoolId: userByPhone.schoolId
+          };
+        }
+      }
+    }
+
+    res.json(duplicates);
+  } catch (error) {
+    console.error('[AUTH_ERROR] Duplicate check failed:', error);
+    res.status(500).json({ message: 'Duplicate check failed' });
+  }
+});
+
+// Import existing profile data to create new role
+router.post('/import-profile', async (req, res) => {
+  try {
+    const { existingUserId, newRole, password } = req.body;
+    
+    if (!existingUserId || !newRole || !password) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Block Freelancer registration until September 2026
+    if (newRole === 'Freelancer') {
+      return res.status(403).json({ 
+        message: 'Freelancer registration is temporarily unavailable until September 2026',
+        messageFr: 'L\'inscription en tant que Freelancer est temporairement indisponible jusqu\'à septembre 2026'
+      });
+    }
+
+    // Get existing user
+    const existingUser = await storage.getUserById(existingUserId);
+    if (!existingUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user with new role and password
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const updatedUser = await storage.updateUser(existingUserId, {
+      role: newRole,
+      password: hashedPassword
+    });
+
+    const { password: _, ...userWithoutPassword } = updatedUser;
+    res.status(200).json({
+      success: true,
+      user: userWithoutPassword,
+      message: 'Profile imported successfully'
+    });
+  } catch (error) {
+    console.error('[AUTH_ERROR] Profile import failed:', error);
+    res.status(500).json({ message: 'Profile import failed' });
+  }
+});
+
 router.post('/register', async (req, res) => {
   try {
     const validatedData = createUserSchema.parse(req.body);

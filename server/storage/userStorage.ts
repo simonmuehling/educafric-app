@@ -57,6 +57,15 @@ export class UserStorage implements IUserStorage {
     }
   }
 
+  async getUserByPhone(phone: string): Promise<any | null> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.phone, phone)).limit(1);
+      return user || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
   async getUserByPasswordResetToken(token: string): Promise<any | null> {
     try {
       const [user] = await db.select().from(users).where(eq(users.passwordResetToken, token)).limit(1);
