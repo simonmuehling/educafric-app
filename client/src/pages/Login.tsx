@@ -100,6 +100,16 @@ export default function Login() {
         newRole: formData.role,
         password: formData.password
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = language === 'fr' 
+          ? (errorData.messageFr || errorData.message || 'Échec de l\'importation du profil')
+          : (errorData.message || errorData.messageFr || 'Profile import failed');
+        setError(errorMessage);
+        return; // Keep dialog open to show error
+      }
+      
       const data = await response.json();
       
       if (data.success) {
@@ -114,10 +124,16 @@ export default function Login() {
             : `Welcome! Your ${t(`roles.${formData.role.toLowerCase()}`)} profile has been created with your existing information.`,
           userRole: formData.role
         });
+      } else {
+        const errorMessage = language === 'fr' 
+          ? (data.messageFr || data.message || 'Échec de l\'importation du profil')
+          : (data.message || data.messageFr || 'Profile import failed');
+        setError(errorMessage);
       }
     } catch (error: any) {
-      setError(getErrorMessage(error.message || 'Profile import failed'));
-      setShowDuplicateDialog(false);
+      setError(getErrorMessage(error.message || (language === 'fr' 
+        ? 'Échec de l\'importation du profil' 
+        : 'Profile import failed')));
     }
   };
 
