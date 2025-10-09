@@ -91,7 +91,7 @@ const ReportsAnalytics: React.FC = () => {
       },
       stats: {
         totalReports: 'Reports Generated',
-        studentsAnalyzed: 'Students Analyzed',
+        studentsAnalyzed: 'Students Analysed',
         performanceGrowth: 'Performance Growth',
         dataAccuracy: 'Data Accuracy'
       },

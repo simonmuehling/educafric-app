@@ -74,7 +74,7 @@ const GeolocationPricingPlans = () => {
         parent: [
           'Real-time child tracking',
           'Automatic SMS alerts',
-          'Personalized safety zones',
+          'Personalised safety zones',
           'Movement history',
           'Arrival/departure notifications',
           'Emergency panic button',

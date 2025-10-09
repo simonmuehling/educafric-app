@@ -400,7 +400,7 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
         'classes': {
           title: 'Classes',
           description: 'Class creation and organization',
-          details: 'Organize your educational structure: create classes by level (6th to 12th grade), define maximum capacity, assign homeroom teachers and organize classrooms.',
+          details: 'Organise your educational structure: create classes by level (6th to 12th grade), define maximum capacity, assign homeroom teachers and organise classrooms.',
           time: '15 min',
           instructions: [
             '1. Click "Add a class"',
@@ -431,7 +431,7 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
         'students': {
           title: 'Students',
           description: 'Student enrollment and management',
-          details: 'Enroll your students in their respective classes with all necessary information: civil status, parent contacts, basic medical records, and academic information. Organize groups and sections.',
+          details: 'Enrol your students in their respective classes with all necessary information: civil status, parent contacts, basic medical records, and academic information. Organise groups and sections.',
           time: '30 min',
           instructions: [
             '1. Prepare the list of new students',
@@ -481,7 +481,7 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
           instructions: [
             '1. Configure communication channels',
             '2. Create standard message templates',
-            '3. Organize distribution lists',
+            '3. Organise distribution lists',
             '4. Set up automatic notifications',
             '5. Test message sending',
             '6. Check delivery receipts'
@@ -495,7 +495,7 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
           instructions: [
             '1. Configure absence types',
             '2. Set up absence requests',
-            '3. Organize substitution system',
+            '3. Organise substitution system',
             '4. Configure automatic notifications',
             '5. Plan lesson continuity',
             '6. Track absence statistics'
@@ -504,7 +504,7 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
         'parent-requests': {
           title: 'Parent Requests',
           description: 'Parent request processing',
-          details: 'Centralize all parent requests: appointments, certificates, school information, complaints. Organize the processing workflow and ensure optimal follow-up.',
+          details: 'Centralise all parent requests: appointments, certificates, school information, complaints. Organise the processing workflow and ensure optimal follow-up.',
           time: '8 min',
           instructions: [
             '1. Configure request types',
@@ -518,11 +518,11 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
         'educational-content': {
           title: 'Educational Content',
           description: 'Educational resource management',
-          details: 'Organize the educational resource library: lessons, exercises, assessments, multimedia content. Manage access permissions and content validation by level.',
+          details: 'Organise the educational resource library: lessons, exercises, assessments, multimedia content. Manage access permissions and content validation by level.',
           time: '15 min',
           instructions: [
             '1. Create subject structure',
-            '2. Organize by levels and chapters',
+            '2. Organise by levels and chapters',
             '3. Upload educational resources',
             '4. Define access permissions',
             '5. Validate educational content',
@@ -532,7 +532,7 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
         'notifications': {
           title: 'Notifications',
           description: 'Integrated notification system',
-          details: 'Configure the notification center for all important activities: new grades, absences, events, emergencies. Customize alerts by user and channel.',
+          details: 'Configure the notification centre for all important activities: new grades, absences, events, emergencies. Customise alerts by user and channel.',
           time: '10 min',
           instructions: [
             '1. Configure notification types',
@@ -565,7 +565,7 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
           instructions: [
             '1. Complete general information',
             '2. Upload school logo',
-            '3. Customize colors',
+            '3. Customise colours',
             '4. Define official hours',
             '5. Configure school periods',
             '6. Set up grading system',
@@ -594,7 +594,7 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
           instructions: [
             '1. Configure programs by level',
             '2. Set up evaluation systems',
-            '3. Organize grading periods',
+            '3. Organise grading periods',
             '4. Configure automatic report cards',
             '5. Plan class councils',
             '6. Enable educational tracking'

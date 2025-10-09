@@ -137,7 +137,7 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
           },
           content: { 
             fr: 'Suivi complet : Analysez vos progrès, consultez vos présences en temps réel et utilisez les outils d\'apprentissage avancés.',
-            en: 'Complete tracking: Analyze your progress, view real-time attendance, and use advanced learning tools.'
+            en: 'Complete tracking: Analyse your progress, view real-time attendance, and use advanced learning tools.'
           },
           icon: BarChart3,
           color: 'bg-indigo-500'

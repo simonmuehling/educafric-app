@@ -97,7 +97,7 @@ const LibraryRelatedBooks: React.FC = () => {
     encouragement: {
       readMore: { fr: 'Continue ta découverte !', en: 'Keep exploring!' },
       newBooks: { fr: 'Nouveaux livres ajoutés', en: 'New books added' },
-      personalizedRecommendations: { fr: 'Recommandations personnalisées', en: 'Personalized recommendations' }
+      personalizedRecommendations: { fr: 'Recommandations personnalisées', en: 'Personalised recommendations' }
     }
   };
 

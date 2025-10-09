@@ -58,7 +58,7 @@ export default function ModernSubscriptionPlans() {
           'Private tutoring interface',
           'Schedule management & planning',
           'Student location tracking during sessions',
-          'Personalized progress tracking',
+          'Personalised progress tracking',
           'Direct parent communication',
           'Integrated billing system',
           'Semester or annual payment options'
