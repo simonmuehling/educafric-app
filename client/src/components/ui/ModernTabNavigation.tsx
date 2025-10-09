@@ -13,13 +13,18 @@ interface ModernTabNavigationProps {
   activeTab: string;
   onTabChange: (tabId: string) => void;
   className?: string;
+  ariaLabels?: {
+    selectTab?: string;
+    openDropdown?: string;
+  };
 }
 
 export const ModernTabNavigation = ({ 
   tabs, 
   activeTab, 
   onTabChange, 
-  className 
+  className,
+  ariaLabels = { selectTab: 'Select tab', openDropdown: 'Open menu' }
 }: ModernTabNavigationProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
@@ -44,6 +49,8 @@ export const ModernTabNavigation = ({
               "tab-button",
               activeTab === tab.id && "active"
             )}
+            aria-label={`${ariaLabels.selectTab}: ${tab.label}`}
+            aria-current={activeTab === tab.id ? 'page' : undefined}
           >
             <div className="tab-icon">{tab.icon}</div>
             <span className="tab-label">{tab.label}</span>
@@ -56,6 +63,8 @@ export const ModernTabNavigation = ({
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="mobile-tab-trigger"
+          aria-label={ariaLabels.openDropdown}
+          aria-expanded={isMobileMenuOpen}
         >
           <div className="tab-icon">{activeTabData?.icon}</div>
           <span className="tab-label">{activeTabData?.label}</span>
@@ -78,6 +87,8 @@ export const ModernTabNavigation = ({
                   "dropdown-item",
                   activeTab === tab.id && "active"
                 )}
+                aria-label={`${ariaLabels.selectTab}: ${tab.label}`}
+                aria-current={activeTab === tab.id ? 'page' : undefined}
               >
                 <div className="tab-icon">{tab.icon}</div>
                 <span className="tab-label">{tab.label}</span>

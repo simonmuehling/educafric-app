@@ -17,13 +17,18 @@ interface MobileMenuProps {
   trigger?: React.ReactNode;
   className?: string;
   position?: 'left' | 'right';
+  ariaLabels?: {
+    openMenu: string;
+    closeMenu: string;
+  };
 }
 
 export function MobileMenu({
   items,
   trigger,
   className,
-  position = 'right'
+  position = 'right',
+  ariaLabels = { openMenu: 'Open mobile menu', closeMenu: 'Close menu' }
 }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -99,7 +104,7 @@ export function MobileMenu({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-center w-10 h-10 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-        aria-label="Open mobile menu"
+        aria-label={isOpen ? ariaLabels.closeMenu : ariaLabels.openMenu}
       >
         {trigger || (
           isOpen ? (
@@ -132,7 +137,7 @@ export function MobileMenu({
               <button
                 onClick={() => setIsOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100"
-                aria-label="Close menu"
+                aria-label={ariaLabels.closeMenu}
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
