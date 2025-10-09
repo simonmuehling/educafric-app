@@ -63,7 +63,7 @@ export default function UserGuide({ userType }: UserGuideProps) {
               title: language === 'fr' ? 'Explorer le tableau de bord' : 'Explore the dashboard',
               description: language === 'fr'
                 ? 'Tableau de bord 2025 : notes temps réel, devoirs interactifs, emploi du temps dynamique, analytics personnalisés'
-                : 'Dashboard 2025: real-time grades, interactive homework, dynamic schedule, personalized analytics',
+                : 'Dashboard 2025: real-time grades, interactive homework, dynamic schedule, personalised analytics',
               tips: [
                 language === 'fr' ? 'Vérifiez quotidiennement vos nouveaux devoirs' : 'Check daily for new homework',
                 language === 'fr' ? 'Utilisez le calendrier pour planifier vos études' : 'Use the calendar to plan your studies'
@@ -136,9 +136,9 @@ export default function UserGuide({ userType }: UserGuideProps) {
               title: language === 'fr' ? 'Organisation des classes' : 'Class organisation',
               description: language === 'fr'
                 ? 'Créez et organisez les classes et matières'
-                : 'Create and organize classes and subjects',
+                : 'Create and organise classes and subjects',
               tips: [
-                language === 'fr' ? 'Organisez par niveaux et filières' : 'Organize by levels and streams',
+                language === 'fr' ? 'Organisez par niveaux et filières' : 'Organise by levels and streams',
                 language === 'fr' ? 'Assignez les enseignants titulaires' : 'Assign class teachers'
               ]
             }
@@ -171,7 +171,7 @@ export default function UserGuide({ userType }: UserGuideProps) {
                 : 'Enter and manage assessments',
               tips: [
                 language === 'fr' ? 'Sauvegardez régulièrement vos saisies' : 'Save your entries regularly',
-                language === 'fr' ? 'Utilisez les commentaires personnalisés' : 'Use personalized comments'
+                language === 'fr' ? 'Utilisez les commentaires personnalisés' : 'Use personalised comments'
               ]
             }
           ]

@@ -1776,7 +1776,7 @@ export default function ManualBulletinForm({
                 variant="secondary"
                 className="w-full"
                 onClick={() => {
-                  // Archive organized by class and student
+                  // Archive organised by class and student
                   const archiveData = {
                     studentId: selectedStudent?.id,
                     studentName: selectedStudent?.fullName,
@@ -1791,7 +1791,7 @@ export default function ManualBulletinForm({
                     status: 'archived'
                   };
                   
-                  // Store in organized archive
+                  // Store in organised archive
                   const existingArchives = JSON.parse(localStorage.getItem('teacher_bulletin_archives') || '{}');
                   const classKey = `${selectedClass?.name}-${currentYear}`;
                   if (!existingArchives[classKey]) {
@@ -1916,7 +1916,7 @@ export default function ManualBulletinForm({
             type="button"
             variant="secondary"
             onClick={() => {
-              // Archive organized by class and student
+              // Archive organised by class and student
               const archiveData = {
                 studentId: selectedStudent?.id,
                 studentName: selectedStudent?.fullName,
@@ -1931,7 +1931,7 @@ export default function ManualBulletinForm({
                 status: 'archived'
               };
               
-              // Store in organized archive
+              // Store in organised archive
               const existingArchives = JSON.parse(localStorage.getItem('teacher_bulletin_archives') || '{}');
               const classKey = `${selectedClass?.name}-${currentYear}`;
               if (!existingArchives[classKey]) {

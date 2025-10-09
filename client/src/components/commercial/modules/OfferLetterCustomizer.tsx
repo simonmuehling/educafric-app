@@ -261,7 +261,7 @@ const OfferLetterCustomizer: React.FC = () => {
         '- Instant communication: SMS and notifications to parents;',
         '- Financial management: tracking and payment of school fees with automatic receipts.',
         '',
-        'We would be honored to organize a free demonstration and support you in the implementation',
+        'We would be honored to organise a free demonstration and support you in the implementation',
         'of this modern solution within your institution.',
         '',
         `Looking forward to your favorable response, we remain, ${currentTemplate.recipientTitle.replace('Monsieur/Madame le/la Directeur(trice)', 'Mr./Mrs. Principal/Director').toLowerCase()},`,
@@ -463,7 +463,7 @@ This digital tool offers several advantages:
 - Instant communication: SMS and notifications to parents;
 - Financial management: tracking and payment of school fees with automatic receipts.
 
-We would be honored to organize a free demonstration and support you in the implementation 
+We would be honored to organise a free demonstration and support you in the implementation 
 of this modern solution within your institution.
 
 Looking forward to your favorable response, we remain, ${currentTemplate.recipientTitle.replace('Monsieur/Madame le/la Directeur(trice)', 'Mr./Mrs. Principal/Director').toLowerCase()},

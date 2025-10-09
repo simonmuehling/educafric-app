@@ -91,7 +91,7 @@ export default function TeacherHelp() {
       icon: <Users className="h-5 w-5" />,
       content: language === 'fr'
         ? 'Gérez vos classes, consultez les listes d\'élèves, et organisez votre enseignement par classe et matière.'
-        : 'Manage your classes, view student lists, and organize your teaching by class and subject.'
+        : 'Manage your classes, view student lists, and organise your teaching by class and subject.'
     },
     {
       id: 'attendance',

@@ -121,7 +121,7 @@ const StudentHelp = () => {
       troubleshooting: 'Troubleshooting',
       troubleshootingDesc: 'Solve common problems',
       supportEmail: 'Email Support',
-      supportEmailDesc: 'Send us an email for personalized help',
+      supportEmailDesc: 'Send us an email for personalised help',
       supportPhone: 'Phone Support',
       supportPhoneDesc: 'Call us for immediate assistance',
       onlineChat: 'Online Chat',
@@ -188,7 +188,7 @@ const StudentHelp = () => {
       question: language === 'fr' ? 'Comment puis-je voir mes notes ?' : 'How can I view my grades?',
       answer: language === 'fr' 
         ? 'Accédez à l\'onglet "Notes" dans votre tableau de bord. Vous y trouverez toutes vos notes organisées par matière et par période.'
-        : 'Go to the "Grades" tab in your dashboard. You will find all your grades organized by subject and period.',
+        : 'Go to the "Grades" tab in your dashboard. You will find all your grades organised by subject and period.',
       category: 'grades'
     },
     {

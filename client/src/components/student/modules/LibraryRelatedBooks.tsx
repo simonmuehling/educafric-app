@@ -101,7 +101,7 @@ const LibraryRelatedBooks: React.FC = () => {
     }
   };
 
-  // Fetch student's personalized recommendations
+  // Fetch student's personalised recommendations
   const { data: recommendationsData, isLoading: recommendationsLoading } = useQuery({
     queryKey: ['/api/student/library/recommendations'],
     enabled: !!user && activeTab === 'recommendations'

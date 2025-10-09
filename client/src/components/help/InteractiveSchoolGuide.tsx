@@ -417,7 +417,7 @@ Commencez par les étapes 1-2-3 dès aujourd'hui pour avoir une base solide, pui
 - [ ] Logo and signatures uploaded
 - [ ] Administrators configured
 - [ ] Teachers added with accounts
-- [ ] Classes created and organized
+- [ ] Classes created and organised
 - [ ] Students enrolled with parents
 - [ ] Timetable configured
 - [ ] Communications tested
@@ -569,7 +569,7 @@ Start with steps 1-2-3 today to have a solid foundation, then progress according
                 <p className="text-sm text-gray-600">
                   {language === 'fr'
                     ? 'Besoin d\'aide personnalisée pour configurer votre école ? Notre équipe peut vous accompagner.'
-                    : 'Need personalized help configuring your school? Our team can assist you.'
+                    : 'Need personalised help configuring your school? Our team can assist you.'
                   }
                 </p>
                 <div className="space-y-2">

@@ -168,7 +168,7 @@ const SchoolConfigurationGuide: React.FC = () => {
             readTime: 8,
             content: language === 'fr'
               ? 'Activez le suivi GPS pour la sécurité des élèves avec zones de sécurité personnalisables, alertes en temps réel, et historique des déplacements.'
-              : 'Enable GPS tracking for student safety with customizable safety zones, real-time alerts, and movement history.'
+              : 'Enable GPS tracking for student safety with customisable safety zones, real-time alerts, and movement history.'
           }
         ]
       },

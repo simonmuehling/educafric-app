@@ -27,7 +27,7 @@ interface ObjectUploaderProps {
  * file management.
  * 
  * Features:
- * - Renders as a customizable button that opens a file upload modal
+ * - Renders as a customisable button that opens a file upload modal
  * - Provides a modal interface for:
  *   - File selection
  *   - File preview

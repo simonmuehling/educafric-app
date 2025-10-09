@@ -322,7 +322,7 @@ const FunctionalMyClasses: React.FC = () => {
             <DialogHeader>
               <DialogTitle>{t.createClass}</DialogTitle>
               <DialogDescription>
-                {language === 'fr' ? 'Créez une nouvelle classe pour organiser vos étudiants' : 'Create a new class to organize your students'}
+                {language === 'fr' ? 'Créez une nouvelle classe pour organiser vos étudiants' : 'Create a new class to organise your students'}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">

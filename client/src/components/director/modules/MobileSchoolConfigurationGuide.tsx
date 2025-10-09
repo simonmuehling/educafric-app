@@ -490,7 +490,7 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
         'teacher-absences': {
           title: 'Teacher Absences',
           description: 'Staff absence management',
-          details: 'Manage teacher absence requests, organize substitutions, track leave and plan educational continuity. Automatically notify students and parents of changes.',
+          details: 'Manage teacher absence requests, organise substitutions, track leave and plan educational continuity. Automatically notify students and parents of changes.',
           time: '12 min',
           instructions: [
             '1. Configure absence types',

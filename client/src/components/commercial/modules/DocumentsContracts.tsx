@@ -180,7 +180,7 @@ const DocumentsContracts = () => {
       size: '17.8 KB',
       format: 'PDF',
       url: '/documents/commercial-bulletin-guide-educafric-2025-en.html',
-      description: 'Complete commercial guide for selling EDUCAFRIC digital report cards - Pricing: Public School 50,000 XAF/year, Private School 75,000 XAF/year, Enterprise School 150,000 XAF/year - Sales scripts, technical arguments, ROI benefits for principals and parents - African-style bulletin system with averages, rankings, personalized comments and digital signatures'
+      description: 'Complete commercial guide for selling EDUCAFRIC digital report cards - Pricing: Public School 50,000 XAF/year, Private School 75,000 XAF/year, Enterprise School 150,000 XAF/year - Sales scripts, technical arguments, ROI benefits for principals and parents - African-style bulletin system with averages, rankings, personalised comments and digital signatures'
     },
     {
       id: 9,

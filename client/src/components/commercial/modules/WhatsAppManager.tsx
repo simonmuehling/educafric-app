@@ -170,7 +170,7 @@ const WhatsAppManager = () => {
         id: '2',
         recipient: '+237677654321',
         type: 'demo',
-        content: 'Your Educafric demo is ready! Access your personalized demo...',
+        content: 'Your Educafric demo is ready! Access your personalised demo...',
         status: 'delivered',
         timestamp: '2025-01-24T09:15:00Z'
       },

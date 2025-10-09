@@ -441,7 +441,7 @@ const SchoolConfigurationGuide: React.FC = () => {
             <p className="text-sm text-blue-800">
               💡 {language === 'fr' 
                 ? 'Formation personnalisée gratuite disponible ! Contactez-nous pour programmer une session adaptée à votre école.'
-                : 'Free personalized training available! Contact us to schedule a session tailored to your school.'
+                : 'Free personalised training available! Contact us to schedule a session tailored to your school.'
               }
             </p>
           </div>

@@ -91,7 +91,7 @@ const PrivacyPolicy = () => {
         },
         cookies: {
           title: 'Cookies and Tracking',
-          content: 'We use cookies and similar technologies to enhance your experience and analyze usage patterns. You can control cookie preferences through your browser settings.'
+          content: 'We use cookies and similar technologies to enhance your experience and analyse usage patterns. You can control cookie preferences through your browser settings.'
         },
         childrens: {
           title: 'Children\'s Privacy',
