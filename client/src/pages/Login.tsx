@@ -18,6 +18,7 @@ import { MobileLanguageToggle } from '@/components/ui/LanguageToggle';
 import { celebrateLogin, celebrateSignup } from '@/lib/confetti';
 import { CelebrationToast } from '@/components/ui/CelebrationToast';
 import { MultiRoleDetectionPopup } from '@/components/auth/MultiRoleDetectionPopup';
+import { DuplicateDetectionDialog } from '@/components/auth/DuplicateDetectionDialog';
 import { apiRequest } from "@/lib/queryClient";
 import { useFacebookAuth } from '@/hooks/useFacebookAuth';
 
@@ -55,6 +56,80 @@ export default function Login() {
 
   // Multi-role detection and selection
   const [detectedRoles, setDetectedRoles] = useState<any[]>([]);
+
+  // Duplicate detection state
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateData, setDuplicateData] = useState<{
+    existingUser: any;
+    emailMatch: boolean;
+    phoneMatch: boolean;
+  } | null>(null);
+  
+  // Check for duplicate email/phone
+  const checkForDuplicates = async (email: string, phoneNumber: string) => {
+    try {
+      const response = await apiRequest('POST', '/api/auth/check-duplicate', {
+        email,
+        phoneNumber
+      });
+      const data = await response.json();
+      
+      if (data.hasDuplicate && data.existingUser) {
+        setDuplicateData({
+          existingUser: data.existingUser,
+          emailMatch: data.emailMatch || false,
+          phoneMatch: data.phoneMatch || false
+        });
+        setShowDuplicateDialog(true);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Duplicate check failed:', error);
+      return false;
+    }
+  };
+
+  // Handle import of existing profile
+  const handleImportProfile = async () => {
+    if (!duplicateData?.existingUser) return;
+    
+    try {
+      const response = await apiRequest('POST', '/api/auth/import-profile', {
+        existingUserId: duplicateData.existingUser.id,
+        newRole: formData.role,
+        password: formData.password
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setShowDuplicateDialog(false);
+        celebrateSignup();
+        setShowCelebration({
+          show: true,
+          type: 'signup',
+          title: language === 'fr' ? 'Profil importé avec succès!' : 'Profile imported successfully!',
+          message: language === 'fr' 
+            ? `Bienvenue! Votre profil ${t(`roles.${formData.role.toLowerCase()}`)} a été créé avec vos informations existantes.`
+            : `Welcome! Your ${t(`roles.${formData.role.toLowerCase()}`)} profile has been created with your existing information.`,
+          userRole: formData.role
+        });
+      }
+    } catch (error: any) {
+      setError(getErrorMessage(error.message || 'Profile import failed'));
+      setShowDuplicateDialog(false);
+    }
+  };
+
+  // Handle cancel of duplicate import
+  const handleCancelImport = () => {
+    setShowDuplicateDialog(false);
+    setDuplicateData(null);
+    setError(language === 'fr' 
+      ? 'Veuillez utiliser un autre email ou numéro de téléphone pour vous inscrire.'
+      : 'Please use a different email or phone number to register.'
+    );
+  };
   
   const handleMultiRoleDetection = async (phoneNumber: string) => {
     try {
@@ -163,7 +238,14 @@ export default function Login() {
           setError(getErrorMessage('namesRequired'));
           return;
         }
-        // Check for multi-role detection first
+        
+        // Check for duplicate email/phone FIRST
+        const hasDuplicate = await checkForDuplicates(formData.email, formData.phoneNumber);
+        if (hasDuplicate) {
+          return; // Stop here and show duplicate dialog
+        }
+        
+        // Then check for multi-role detection
         const needsRoleSelection = await handleMultiRoleDetection(formData.phoneNumber);
         
         if (needsRoleSelection) {
@@ -784,6 +866,16 @@ export default function Login() {
         onRoleSelection={(roles) => handleRoleSelection(roles.map(r => r.role))}
       />
 
+      {/* Duplicate Detection Dialog */}
+      <DuplicateDetectionDialog
+        open={showDuplicateDialog}
+        onOpenChange={setShowDuplicateDialog}
+        existingUser={duplicateData?.existingUser || null}
+        emailMatch={duplicateData?.emailMatch || false}
+        phoneMatch={duplicateData?.phoneMatch || false}
+        onImport={handleImportProfile}
+        onCancel={handleCancelImport}
+      />
 
     </div>
   );
