@@ -10,6 +10,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
 import { ImageRefreshProvider } from "@/contexts/ImageRefreshContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import { handleRedirect } from "@/lib/firebase";
 import React, { useEffect, lazy, Suspense, useState } from "react";
 import { BookOpen } from 'lucide-react';
@@ -537,10 +538,11 @@ function App() {
         <ImageRefreshProvider>
           <AuthProvider>
             <LanguageProvider>
-              <CurrencyProvider>
-                <SandboxProvider>
-                  <SandboxPremiumProvider>
-                    <ConsolidatedNotificationProvider>
+              <NotificationProvider>
+                <CurrencyProvider>
+                  <SandboxProvider>
+                    <SandboxPremiumProvider>
+                      <ConsolidatedNotificationProvider>
                     <TooltipProvider>
                       <FirebaseRedirectHandler />
                       <AppLayout>
@@ -549,10 +551,11 @@ function App() {
                       </AppLayout>
                       <Toaster />
                     </TooltipProvider>
-                    </ConsolidatedNotificationProvider>
-                  </SandboxPremiumProvider>
-                </SandboxProvider>
-              </CurrencyProvider>
+                      </ConsolidatedNotificationProvider>
+                    </SandboxPremiumProvider>
+                  </SandboxProvider>
+                </CurrencyProvider>
+              </NotificationProvider>
             </LanguageProvider>
           </AuthProvider>
         </ImageRefreshProvider>

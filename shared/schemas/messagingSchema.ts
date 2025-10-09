@@ -66,16 +66,12 @@ export const messageAttachments = pgTable("message_attachments", {
 // Zod schemas for validation
 export const createConnectionSchema = createInsertSchema(connections).omit({
   id: true,
-  createdAt: true,
-  approvedAt: true,
-  approvedBy: true
+  createdAt: true
 });
 
 export const createMessageSchema = createInsertSchema(messages).omit({
   id: true,
-  sentAt: true,
-  isRead: true,
-  readAt: true
+  sentAt: true
 });
 
 export const unifiedConnectionSchema = z.object({
@@ -130,9 +126,7 @@ export const notifications = pgTable("notifications", {
 // Zod schema for notification creation
 export const createNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
-  createdAt: true,
-  isRead: true,
-  readAt: true
+  createdAt: true
 });
 
 export type Connection = typeof connections.$inferSelect;
