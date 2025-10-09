@@ -63,7 +63,7 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
           },
           content: { 
             fr: 'Notes 2025 : Saisie vocale intelligente, évaluations interactives multimédia, notifications automatiques SMS/WhatsApp parents. Devoirs : Création multimédia avancée, soumissions temps réel, correction IA assistée, feedback personnalisé automatique.',
-            en: 'Grades 2025: Intelligent voice input, interactive multimedia assessments, automatic SMS/WhatsApp parent notifications. Assignments: Advanced multimedia creation, real-time submissions, AI-assisted correction, automatic personalized feedback.'
+            en: 'Grades 2025: Intelligent voice input, interactive multimedia assessments, automatic SMS/WhatsApp parent notifications. Assignments: Advanced multimedia creation, real-time submissions, AI-assisted correction, automatic personalised feedback.'
           },
           icon: BarChart3,
           color: 'bg-red-500'
@@ -75,7 +75,7 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
           },
           content: { 
             fr: 'Bulletins Premium 2025 : IA générative pour commentaires personnalisés, évaluations comportementales avancées, graphiques de progression interactifs, recommandations pédagogiques automatiques, export PDF personnalisable, interface bilingue complète.',
-            en: 'Premium Report Cards 2025: Generative AI for personalized comments, advanced behavioral assessments, interactive progress charts, automatic pedagogical recommendations, customizable PDF export, complete bilingual interface.'
+            en: 'Premium Report Cards 2025: Generative AI for personalised comments, advanced behavioral assessments, interactive progress charts, automatic pedagogical recommendations, customisable PDF export, complete bilingual interface.'
           },
           icon: BookOpen,
           color: 'bg-purple-500'
@@ -125,7 +125,7 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
           },
           content: { 
             fr: 'Communications 2025 : Messagerie instantanée multicanal (chat, SMS, WhatsApp), notifications intelligentes personnalisées, visioconférence intégrée, traduction automatique et modules d\'apprentissage adaptatifs avec IA.',
-            en: 'Communications 2025: Multi-channel instant messaging (chat, SMS, WhatsApp), personalized smart notifications, integrated video conferencing, automatic translation, and adaptive AI learning modules.'
+            en: 'Communications 2025: Multi-channel instant messaging (chat, SMS, WhatsApp), personalised smart notifications, integrated video conferencing, automatic translation, and adaptive AI learning modules.'
           },
           icon: MessageCircle,
           color: 'bg-teal-500'

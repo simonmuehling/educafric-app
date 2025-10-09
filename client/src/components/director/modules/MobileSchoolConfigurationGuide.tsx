@@ -589,7 +589,7 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
         'academic-management': {
           title: 'Academic Management',
           description: 'Educational activity administration',
-          details: 'Manage all academic aspects: curricula, assessments, report cards, class councils, guidance and personalized educational tracking.',
+          details: 'Manage all academic aspects: curricula, assessments, report cards, class councils, guidance and personalised educational tracking.',
           time: '20 min',
           instructions: [
             '1. Configure programs by level',

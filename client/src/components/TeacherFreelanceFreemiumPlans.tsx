@@ -264,7 +264,7 @@ export default function TeacherFreelanceFreemiumPlans() {
               <p className="text-sm text-gray-600">
                 {language === 'fr' 
                   ? 'Base de données complète des élèves avec suivi personnalisé'
-                  : 'Complete student database with personalized tracking'
+                  : 'Complete student database with personalised tracking'
                 }
               </p>
             </div>

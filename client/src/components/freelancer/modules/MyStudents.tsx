@@ -40,12 +40,12 @@ const MyStudents = () => {
       features: [
         'Private student roster management',
         'Detailed individual student profiles',
-        'Personalized academic progress tracking',
+        'Personalised academic progress tracking',
         'Performance analytics per student',
         'Parent contact management',
         'Session history per student',
         'Pedagogical notes and observations',
-        'Personalized lesson planning'
+        'Personalised lesson planning'
       ],
       benefits: [
         'Precise tracking of 50+ students simultaneously',

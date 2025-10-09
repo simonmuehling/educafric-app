@@ -47,7 +47,7 @@ const getTutorialSteps = (userRole: string): TutorialStep[] => {
         fr: 'Votre Tableau de Bord' 
       },
       content: { 
-        en: 'Your EDUCAFRIC 2025 dashboard features AI-powered insights, real-time notifications, predictive analytics, and personalized recommendations based on your role and activities.',
+        en: 'Your EDUCAFRIC 2025 dashboard features AI-powered insights, real-time notifications, predictive analytics, and personalised recommendations based on your role and activities.',
         fr: 'Votre tableau de bord EDUCAFRIC 2025 offre des insights IA, notifications temps réel, analytics prédictifs et recommandations personnalisées selon votre rôle et activités.'
       },
       position: 'bottom',
@@ -116,7 +116,7 @@ const getTutorialSteps = (userRole: string): TutorialStep[] => {
         target: '[data-testid="student-homework"]',
         title: { en: 'Assignments', fr: 'Devoirs' },
         content: { 
-          en: 'Check your assignments, submit homework, and track deadlines to stay organized.',
+          en: 'Check your assignments, submit homework, and track deadlines to stay organised.',
           fr: 'Vérifiez vos devoirs, soumettez vos travaux et suivez les échéances pour rester organisé.'
         },
         position: 'top',

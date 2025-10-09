@@ -177,7 +177,7 @@ const EnhancedTestimonials: React.FC<EnhancedTestimonialsProps> = ({ className =
       rating: 5,
       testimonial: language === 'fr'
         ? 'Educafric m\'a aidé à améliorer mes notes de 14/20 à 17/20 en utilisant les devoirs interactifs et le suivi personnalisé. Mes parents sont fiers de mes progrès !'
-        : 'Educafric helped me improve my grades from 14/20 to 17/20 using interactive assignments and personalized tracking. My parents are proud of my progress!',
+        : 'Educafric helped me improve my grades from 14/20 to 17/20 using interactive assignments and personalised tracking. My parents are proud of my progress!',
       statistics: {
         studentsImproved: 100,
         paperSaved: 85,

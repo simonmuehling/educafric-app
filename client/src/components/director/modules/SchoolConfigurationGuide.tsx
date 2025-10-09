@@ -148,7 +148,7 @@ const SchoolConfigurationGuide: React.FC = () => {
             readTime: 12,
             content: language === 'fr'
               ? 'Le système de gestion académique d\'EDUCAFRIC permet la création de bulletins personnalisés, la saisie de notes par trimestre, le suivi des comportements, et la génération automatique de rapports de classe avec signatures numériques.'
-              : 'EDUCAFRIC\'s academic management system enables creation of personalized report cards, term-based grade entry, behavior tracking, and automatic generation of class reports with digital signatures.'
+              : 'EDUCAFRIC\'s academic management system enables creation of personalised report cards, term-based grade entry, behavior tracking, and automatic generation of class reports with digital signatures.'
           },
           {
             id: 'communications',
@@ -207,7 +207,7 @@ const SchoolConfigurationGuide: React.FC = () => {
           {
             id: 'contact-support',
             title: language === 'fr' ? 'Contacter le support' : 'Contact support',
-            description: language === 'fr' ? 'Obtenir de l\'aide personnalisée' : 'Get personalized help',
+            description: language === 'fr' ? 'Obtenir de l\'aide personnalisée' : 'Get personalised help',
             category: 'advanced',
             readTime: 2,
             content: language === 'fr'

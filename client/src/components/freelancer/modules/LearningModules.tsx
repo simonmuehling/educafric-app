@@ -34,7 +34,7 @@ const LearningModules = () => {
     },
     en: {
       title: 'Learning Modules',
-      subtitle: 'Creation and management of personalized educational content',
+      subtitle: 'Creation and management of personalised educational content',
       premiumRequired: 'Premium Feature Required',
       upgradeToPremium: 'Upgrade to Premium',
       features: [
@@ -43,7 +43,7 @@ const LearningModules = () => {
         'Exercise and assessment design',
         'Multimedia content (videos, images, audio)',
         'Modules adapted to African context',
-        'Personalized pedagogical progression',
+        'Personalised pedagogical progression',
         'Content sharing between tutors',
         'Module performance analytics'
       ],
