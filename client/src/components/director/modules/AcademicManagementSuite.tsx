@@ -1668,8 +1668,13 @@ export default function AcademicManagementSuite() {
       </Card>
 
       {/* Main Content Tabs - Clean Rebuild */}
-      <Card>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <div 
+        onClickCapture={(e) => e.stopPropagation()}
+        onPointerDownCapture={(e) => e.stopPropagation()}
+        onMouseDownCapture={(e) => e.stopPropagation()}
+      >
+        <Card>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader className="pb-3">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="bulletins" className="flex items-center gap-2" data-testid="tab-bulletins">
@@ -1739,6 +1744,7 @@ export default function AcademicManagementSuite() {
           </CardContent>
         </Tabs>
       </Card>
+      </div>
     </div>
   );
 }
