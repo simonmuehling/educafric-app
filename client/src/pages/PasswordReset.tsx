@@ -52,40 +52,43 @@ export default function PasswordReset() {
 
     setIsRequestLoading(true);
     try {
-      const response = await apiRequest('POST', '/api/auth/forgot-password', { 
-        [recoveryMethod === 'email' ? 'email' : 'phoneNumber']: identifier,
-        method: recoveryMethod 
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          [recoveryMethod === 'email' ? 'email' : 'phoneNumber']: identifier,
+          method: recoveryMethod
+        })
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          // WhatsApp method returns a URL to open
-          if (recoveryMethod === 'whatsapp' && data.whatsappUrl) {
-            toast({
-              title: language === 'fr' ? 'WhatsApp ouvert' : 'WhatsApp opened',
-              description: language === 'fr' 
-                ? 'Cliquez sur le lien dans WhatsApp pour réinitialiser' 
-                : 'Click the link in WhatsApp to reset',
-            });
-            // Open WhatsApp with pre-filled message
-            window.open(data.whatsappUrl, '_blank');
-          } else {
-            toast({
-              title: language === 'fr' ? 'Email envoyé' : 'Email sent',
-              description: language === 'fr' ? 'Vérifiez votre email' : 'Check your email',
-            });
-          }
-          setEmail('');
-          setPhoneNumber('');
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // WhatsApp method returns a URL to open
+        if (recoveryMethod === 'whatsapp' && data.whatsappUrl) {
+          toast({
+            title: language === 'fr' ? 'WhatsApp ouvert' : 'WhatsApp opened',
+            description: language === 'fr' 
+              ? 'Cliquez sur le lien dans WhatsApp pour réinitialiser' 
+              : 'Click the link in WhatsApp to reset',
+          });
+          // Open WhatsApp with pre-filled message
+          window.open(data.whatsappUrl, '_blank');
         } else {
-          setError(language === 'fr' ? 'Profil non trouvé. Créez un compte d\'abord.' : 'Profile not found. Please create an account first.');
+          toast({
+            title: language === 'fr' ? 'Email envoyé' : 'Email sent',
+            description: language === 'fr' ? 'Vérifiez votre email' : 'Check your email',
+          });
         }
+        setEmail('');
+        setPhoneNumber('');
       } else {
-        const errorData = await response.json();
-        setError(errorData.message || getErrorMessage('failedToSendReset'));
+        // Show specific error message from backend
+        setError(data.message || getErrorMessage('failedToSendReset'));
       }
     } catch (error) {
+      console.error('Password reset error:', error);
       setError(getErrorMessage('failedToSendReset'));
     } finally {
       setIsRequestLoading(false);
