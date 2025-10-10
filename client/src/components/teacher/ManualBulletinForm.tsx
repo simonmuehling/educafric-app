@@ -41,7 +41,7 @@ export const TEACHER_COMMENTS = {
     { id: 'good_progress', text: 'Good progress observed.' },
     { id: 'irregular_work', text: 'Irregular work. Be more diligent.' },
     { id: 'weak_results', text: 'Weak results. Double your efforts.' },
-    { id: 'good_behavior', text: 'Good classroom behavior.' },
+    { id: 'good_behavior', text: 'Good classroom behaviour.' },
     { id: 'participation', text: 'Active participation appreciated.' },
     { id: 'homework_regular', text: 'Homework regularly done.' },
     { id: 'homework_irregular', text: 'Irregular homework.' },

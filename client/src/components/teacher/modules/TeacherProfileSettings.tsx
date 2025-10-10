@@ -88,7 +88,7 @@ const TeacherProfileSettings = () => {
       email: 'Email',
       phone: 'Phone',
       address: 'Address',
-      specialization: 'Specialization',
+      specialization: 'Specialisation',
       experience: 'Years of experience',
       bio: 'Biography',
       teachingLevel: 'Teaching level',
