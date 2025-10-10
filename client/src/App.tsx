@@ -202,7 +202,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen bg-gray-50">
       {/* Main Content - Full Width (No Sidebar) */}
       <div className="flex flex-col flex-1 h-screen overflow-y-auto">
-        {children}
+        <div className="flex-grow">
+          {children}
+        </div>
+        <EducafricFooter />
         {/* InactivityMonitor temporarily disabled to test connection issues */}
         {/* <InactivityMonitor warningTime={55} logoutTime={60} /> */}
       </div>
