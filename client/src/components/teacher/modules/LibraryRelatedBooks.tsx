@@ -78,6 +78,7 @@ const LibraryRelatedBooks: React.FC = () => {
   });
 
   const [selectedBookLanguage, setSelectedBookLanguage] = useState<'fr' | 'en'>('fr');
+  const [selectedClassForStudents, setSelectedClassForStudents] = useState<string>('all');
 
   // Centralized translation text following FunctionalTeacherGrades pattern
   const t = {
@@ -114,7 +115,10 @@ const LibraryRelatedBooks: React.FC = () => {
       audienceType: { fr: 'Type d\'audience', en: 'Audience Type' },
       note: { fr: 'Note (optionnelle)', en: 'Note (optional)' },
       selectAudience: { fr: 'Sélectionner l\'audience', en: 'Select Audience' },
-      bookLanguage: { fr: 'Langue du livre', en: 'Book Language' }
+      bookLanguage: { fr: 'Langue du livre', en: 'Book Language' },
+      filterByClass: { fr: 'Filtrer par classe', en: 'Filter by Class' },
+      allClasses: { fr: 'Toutes les classes', en: 'All Classes' },
+      selectStudents: { fr: 'Sélectionner les élèves', en: 'Select Students' }
     },
     levels: {
       all: { fr: 'Tous niveaux', en: 'All Levels' },
@@ -324,6 +328,7 @@ const LibraryRelatedBooks: React.FC = () => {
   const openRecommendDialog = (book: LibraryBook) => {
     setSelectedBook(book);
     setRecommendForm({ ...recommendForm, bookId: book.id.toString() });
+    setSelectedClassForStudents('all');
     setIsRecommendDialogOpen(true);
   };
 
@@ -652,9 +657,10 @@ const LibraryRelatedBooks: React.FC = () => {
               <Label htmlFor="audienceType">{t.form.audienceType[language]} *</Label>
               <Select 
                 value={recommendForm.audienceType} 
-                onValueChange={(value: 'student' | 'class' | 'department') => 
-                  setRecommendForm({ ...recommendForm, audienceType: value, audienceIds: [] })
-                }
+                onValueChange={(value: 'student' | 'class' | 'department') => {
+                  setRecommendForm({ ...recommendForm, audienceType: value, audienceIds: [] });
+                  setSelectedClassForStudents('all');
+                }}
               >
                 <SelectTrigger data-testid="select-audience-type">
                   <SelectValue />
@@ -669,47 +675,124 @@ const LibraryRelatedBooks: React.FC = () => {
             
             <div>
               <Label>{t.form.selectAudience[language]} *</Label>
-              <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2">
-                {recommendForm.audienceType === 'class' && classes.map((cls: any) => (
-                  <div key={cls.id} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={`class-${cls.id}`}
-                      checked={recommendForm.audienceIds.includes(cls.id)}
-                      onChange={(e) => {
-                        const newIds = e.target.checked
-                          ? [...recommendForm.audienceIds, cls.id]
-                          : recommendForm.audienceIds.filter(id => id !== cls.id);
-                        setRecommendForm({ ...recommendForm, audienceIds: newIds });
-                      }}
-                      data-testid={`checkbox-class-${cls.id}`}
-                    />
-                    <Label htmlFor={`class-${cls.id}`} className="text-sm cursor-pointer">
-                      {cls.name}
-                    </Label>
+              
+              {/* Class Selection */}
+              {recommendForm.audienceType === 'class' && (
+                <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2 mt-2">
+                  {classes.map((cls: any) => (
+                    <div key={cls.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`class-${cls.id}`}
+                        checked={recommendForm.audienceIds.includes(cls.id)}
+                        onChange={(e) => {
+                          const newIds = e.target.checked
+                            ? [...recommendForm.audienceIds, cls.id]
+                            : recommendForm.audienceIds.filter(id => id !== cls.id);
+                          setRecommendForm({ ...recommendForm, audienceIds: newIds });
+                        }}
+                        data-testid={`checkbox-class-${cls.id}`}
+                      />
+                      <Label htmlFor={`class-${cls.id}`} className="text-sm cursor-pointer">
+                        {cls.name}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Student Selection - Organized by Class */}
+              {recommendForm.audienceType === 'student' && (
+                <div className="space-y-3 mt-2">
+                  {/* Class Filter */}
+                  <div>
+                    <Label htmlFor="class-filter" className="text-sm">{t.form.filterByClass[language]}</Label>
+                    <Select 
+                      value={selectedClassForStudents} 
+                      onValueChange={setSelectedClassForStudents}
+                    >
+                      <SelectTrigger className="mt-1 bg-white border-gray-300" data-testid="select-class-filter">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="all">{t.form.allClasses[language]}</SelectItem>
+                        {classes.map((cls: any) => (
+                          <SelectItem key={cls.id} value={cls.id.toString()}>
+                            {cls.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                ))}
-                
-                {recommendForm.audienceType === 'student' && students.map((student: any) => (
-                  <div key={student.id} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={`student-${student.id}`}
-                      checked={recommendForm.audienceIds.includes(student.id)}
-                      onChange={(e) => {
-                        const newIds = e.target.checked
-                          ? [...recommendForm.audienceIds, student.id]
-                          : recommendForm.audienceIds.filter(id => id !== student.id);
-                        setRecommendForm({ ...recommendForm, audienceIds: newIds });
-                      }}
-                      data-testid={`checkbox-student-${student.id}`}
-                    />
-                    <Label htmlFor={`student-${student.id}`} className="text-sm cursor-pointer">
-                      {student.name}
-                    </Label>
+                  
+                  {/* Students List */}
+                  <div>
+                    <Label className="text-sm">{t.form.selectStudents[language]}</Label>
+                    <div className="max-h-60 overflow-y-auto border rounded-md p-2 space-y-3 mt-1">
+                      {selectedClassForStudents === 'all' ? (
+                        // Group students by class when showing all
+                        classes.map((cls: any) => {
+                          const classStudents = students.filter((s: any) => s.classId === cls.id);
+                          if (classStudents.length === 0) return null;
+                          
+                          return (
+                            <div key={cls.id} className="border-b pb-2 last:border-b-0">
+                              <div className="text-xs font-semibold text-gray-600 mb-2 flex items-center">
+                                <Building className="w-3 h-3 mr-1" />
+                                {cls.name}
+                              </div>
+                              <div className="space-y-1 ml-4">
+                                {classStudents.map((student: any) => (
+                                  <div key={student.id} className="flex items-center space-x-2">
+                                    <input
+                                      type="checkbox"
+                                      id={`student-${student.id}`}
+                                      checked={recommendForm.audienceIds.includes(student.id)}
+                                      onChange={(e) => {
+                                        const newIds = e.target.checked
+                                          ? [...recommendForm.audienceIds, student.id]
+                                          : recommendForm.audienceIds.filter(id => id !== student.id);
+                                        setRecommendForm({ ...recommendForm, audienceIds: newIds });
+                                      }}
+                                      data-testid={`checkbox-student-${student.id}`}
+                                    />
+                                    <Label htmlFor={`student-${student.id}`} className="text-sm cursor-pointer">
+                                      {student.name}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        // Show only students from selected class
+                        students
+                          .filter((s: any) => s.classId === parseInt(selectedClassForStudents))
+                          .map((student: any) => (
+                            <div key={student.id} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`student-${student.id}`}
+                                checked={recommendForm.audienceIds.includes(student.id)}
+                                onChange={(e) => {
+                                  const newIds = e.target.checked
+                                    ? [...recommendForm.audienceIds, student.id]
+                                    : recommendForm.audienceIds.filter(id => id !== student.id);
+                                  setRecommendForm({ ...recommendForm, audienceIds: newIds });
+                                }}
+                                data-testid={`checkbox-student-${student.id}`}
+                              />
+                              <Label htmlFor={`student-${student.id}`} className="text-sm cursor-pointer">
+                                {student.name}
+                              </Label>
+                            </div>
+                          ))
+                      )}
+                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
             
             <div>
