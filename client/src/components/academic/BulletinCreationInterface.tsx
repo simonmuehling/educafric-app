@@ -1137,11 +1137,21 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   <SelectValue placeholder={t.selectClass} />
                 </SelectTrigger>
                 <SelectContent>
-                  {classesData?.classes?.map((cls: any) => (
-                    <SelectItem key={cls.id} value={cls.id.toString()}>
-                      {cls.name}
+                  {loadingClasses ? (
+                    <SelectItem value="loading" disabled>
+                      {language === 'fr' ? 'Chargement...' : 'Loading...'}
                     </SelectItem>
-                  )) || []}
+                  ) : !classesData?.classes || classesData.classes.length === 0 ? (
+                    <SelectItem value="no-classes" disabled>
+                      {language === 'fr' ? 'Aucune classe trouvée' : 'No classes found'}
+                    </SelectItem>
+                  ) : (
+                    classesData.classes.map((cls: any) => (
+                      <SelectItem key={cls.id} value={cls.id.toString()}>
+                        {cls.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
