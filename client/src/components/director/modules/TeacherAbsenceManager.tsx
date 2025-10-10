@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import StandardFormHeader from '@/components/shared/StandardFormHeader';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   CalendarDays, 
   Clock, 
@@ -139,6 +140,7 @@ const TeacherAbsenceManager: React.FC = () => {
   const [notifyStudentsForSubstitute, setNotifyStudentsForSubstitute] = useState(true);
   const [pendingAbsenceData, setPendingAbsenceData] = useState<any>(null);
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
 
   // Fetch school teachers for dropdown selection
   const { data: schoolTeachersData = [], isLoading: teachersLoading } = useQuery<any[]>({
@@ -309,7 +311,7 @@ const TeacherAbsenceManager: React.FC = () => {
   // Create teacher absence mutation
   const createAbsenceMutation = useMutation({
     mutationFn: async (absenceData: any) => {
-      const response = await apiRequest('/api/teacher-absences', 'POST', absenceData);
+      const response = await apiRequest('/api/teacher/absence/declare', 'POST', absenceData);
       return response;
     },
     onSuccess: () => {
@@ -1154,31 +1156,37 @@ const TeacherAbsenceManager: React.FC = () => {
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmer la déclaration d'absence</AlertDialogTitle>
+            <AlertDialogTitle>
+              {language === 'fr' ? 'Confirmer la déclaration d\'absence' : 'Confirm Absence Declaration'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir déclarer cette absence ? Cette action enverra des notifications automatiques aux parents, élèves et administration.
+              {language === 'fr' 
+                ? 'Êtes-vous sûr de vouloir déclarer cette absence ? Cette action enverra des notifications automatiques aux parents, élèves et administration.'
+                : 'Are you sure you want to declare this absence? This action will send automatic notifications to parents, students and administration.'}
               <br /><br />
               {pendingAbsenceData && (
                 <>
-                  <strong>Enseignant:</strong> {pendingAbsenceData.teacherName}
+                  <strong>{language === 'fr' ? 'Enseignant:' : 'Teacher:'}</strong> {pendingAbsenceData.teacherName}
                   <br />
-                  <strong>Date:</strong> {pendingAbsenceData.absenceDate}
+                  <strong>{language === 'fr' ? 'Date:' : 'Date:'}</strong> {pendingAbsenceData.absenceDate}
                   <br />
-                  <strong>Période:</strong> {pendingAbsenceData.startTime} - {pendingAbsenceData.endTime}
+                  <strong>{language === 'fr' ? 'Période:' : 'Period:'}</strong> {pendingAbsenceData.startTime} - {pendingAbsenceData.endTime}
                   <br />
-                  <strong>Raison:</strong> {pendingAbsenceData.reason}
+                  <strong>{language === 'fr' ? 'Raison:' : 'Reason:'}</strong> {pendingAbsenceData.reason}
                   <br />
-                  <strong>Élèves affectés:</strong> ~{pendingAbsenceData.totalAffectedStudents || 30} élèves
+                  <strong>{language === 'fr' ? 'Élèves affectés:' : 'Affected Students:'}</strong> ~{pendingAbsenceData.totalAffectedStudents || 30} {language === 'fr' ? 'élèves' : 'students'}
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{language === 'fr' ? 'Annuler' : 'Cancel'}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmAbsenceSubmission} disabled={createAbsenceMutation.isPending}>
-              {createAbsenceMutation.isPending ? 'Déclaration...' : 'Confirmer la déclaration'}
+              {createAbsenceMutation.isPending 
+                ? (language === 'fr' ? 'Déclaration...' : 'Declaring...') 
+                : (language === 'fr' ? 'Confirmer la déclaration' : 'Confirm Declaration')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
