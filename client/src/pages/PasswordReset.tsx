@@ -85,7 +85,26 @@ export default function PasswordReset() {
         setPhoneNumber('');
       } else {
         // Show specific error message from backend
-        setError(data.message || getErrorMessage('failedToSendReset'));
+        const errorMessage = data.message || getErrorMessage('failedToSendReset');
+        
+        // If user not found, suggest signup
+        if (data.errorCode === 'USER_NOT_FOUND' || data.suggestion === 'signup') {
+          setError(
+            language === 'fr' 
+              ? 'Aucun compte trouvé avec cet identifiant. Veuillez créer un compte d\'abord.' 
+              : 'No account found with this identifier. Please create an account first.'
+          );
+          
+          // Show toast with signup suggestion
+          toast({
+            title: language === 'fr' ? 'Compte introuvable' : 'Account not found',
+            description: language === 'fr' 
+              ? 'Cliquez sur "S\'inscrire" ci-dessous pour créer un compte.' 
+              : 'Click "Sign up" below to create an account.',
+          });
+        } else {
+          setError(errorMessage);
+        }
       }
     } catch (error) {
       console.error('Password reset error:', error);
@@ -195,7 +214,7 @@ export default function PasswordReset() {
         
         <CardContent className="space-y-6 relative z-10">
           {error && (
-            <div className="mb-4">
+            <div className="mb-4 space-y-3">
               <MobileErrorDisplay
                 message={error}
                 type="error"
@@ -203,6 +222,16 @@ export default function PasswordReset() {
                 mobile={true}
                 className="bg-red-500/20 border border-red-300/30 rounded-2xl backdrop-blur-sm text-white"
               />
+              {error.includes('compte') || error.includes('account') ? (
+                <Button
+                  type="button"
+                  onClick={() => setLocation('/register')}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 rounded-xl shadow-lg"
+                  data-testid="button-signup-suggestion"
+                >
+                  {language === 'fr' ? '📝 Créer un compte maintenant' : '📝 Create an account now'}
+                </Button>
+              ) : null}
             </div>
           )}
           

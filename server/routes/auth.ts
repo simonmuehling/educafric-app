@@ -991,7 +991,9 @@ router.post('/forgot-password', async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Aucun compte trouvé avec cet identifiant'
+        message: 'Aucun compte trouvé avec cet identifiant',
+        errorCode: 'USER_NOT_FOUND',
+        suggestion: 'signup'
       });
     }
 
