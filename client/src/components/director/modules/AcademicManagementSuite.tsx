@@ -1535,6 +1535,27 @@ export default function AcademicManagementSuite() {
   const [selectedTerm, setSelectedTerm] = useState<string>("T1");
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("bulletins");
+  const tabsContainerRef = React.useRef<HTMLDivElement>(null);
+
+  // Prevent module collapse when clicking tabs
+  React.useEffect(() => {
+    const handleGlobalPointer = (e: PointerEvent) => {
+      if (tabsContainerRef.current?.contains(e.target as Node)) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+    };
+
+    document.addEventListener('pointerdown', handleGlobalPointer, { capture: true });
+    document.addEventListener('click', handleGlobalPointer, { capture: true });
+    document.addEventListener('mousedown', handleGlobalPointer, { capture: true });
+
+    return () => {
+      document.removeEventListener('pointerdown', handleGlobalPointer, { capture: true });
+      document.removeEventListener('click', handleGlobalPointer, { capture: true });
+      document.removeEventListener('mousedown', handleGlobalPointer, { capture: true });
+    };
+  }, []);
 
   // Fetch available classes
   const { data: classesData, isLoading: classesLoading } = useQuery({
@@ -1668,11 +1689,7 @@ export default function AcademicManagementSuite() {
       </Card>
 
       {/* Main Content Tabs - Clean Rebuild */}
-      <div 
-        onClickCapture={(e) => e.stopPropagation()}
-        onPointerDownCapture={(e) => e.stopPropagation()}
-        onMouseDownCapture={(e) => e.stopPropagation()}
-      >
+      <div ref={tabsContainerRef}>
         <Card>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader className="pb-3">
