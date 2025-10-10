@@ -274,6 +274,92 @@ router.get('/parent/alerts', async (req, res) => {
   }
 });
 
+// Get location details for a specific child
+router.get('/parent/children/:id/location', async (req, res) => {
+  try {
+    const childId = parseInt(req.params.id);
+    console.log('[GEOLOCATION_API] Getting location for child:', childId);
+    
+    // Mock location data - in production this would come from the database
+    const locationData = {
+      location: {
+        lat: 4.0511,
+        lng: 9.7679,
+        address: 'Douala, Cameroon',
+        timestamp: new Date().toISOString(),
+        accuracy: 10
+      },
+      childId,
+      deviceStatus: 'active',
+      batteryLevel: 85
+    };
+    
+    res.json(locationData);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch child location', details: error });
+  }
+});
+
+// Get location details for a specific alert
+router.get('/parent/alerts/:id/location', async (req, res) => {
+  try {
+    const alertId = parseInt(req.params.id);
+    console.log('[GEOLOCATION_API] Getting location for alert:', alertId);
+    
+    // Mock alert location data - in production this would come from the database
+    const alertLocationData = {
+      location: {
+        lat: 4.0511,
+        lng: 9.7679,
+        address: 'Douala, Cameroon',
+        timestamp: new Date().toISOString()
+      },
+      alertId,
+      alertType: 'zone_exit',
+      severity: 'warning'
+    };
+    
+    res.json(alertLocationData);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch alert location', details: error });
+  }
+});
+
+// Acknowledge an alert
+router.patch('/parent/alerts/:id/acknowledge', async (req, res) => {
+  try {
+    const alertId = parseInt(req.params.id);
+    console.log('[GEOLOCATION_API] Acknowledging alert:', alertId);
+    
+    res.json({ 
+      success: true, 
+      alertId, 
+      acknowledged: true,
+      acknowledgedAt: new Date().toISOString() 
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to acknowledge alert', details: error });
+  }
+});
+
+// Resolve an alert (already exists but let's make sure the path is correct)
+router.patch('/parent/alerts/:id/resolve', async (req, res) => {
+  try {
+    const alertId = parseInt(req.params.id);
+    const { action, resolution, resolvedAt } = req.body;
+    console.log('[GEOLOCATION_API] Resolving alert:', { alertId, action, resolution });
+    
+    res.json({ 
+      success: true, 
+      alertId, 
+      resolved: true,
+      resolvedAt: resolvedAt || new Date().toISOString() 
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to resolve alert', details: error });
+  }
+});
+
 // Test zone exit endpoint
 router.post('/test/zone-exit', async (req, res) => {
   try {

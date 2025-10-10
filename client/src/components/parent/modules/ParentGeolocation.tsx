@@ -273,7 +273,7 @@ export const ParentGeolocation = () => {
 
   const handleViewChildMap = useStableCallback((child: Child) => {
     console.log(`[PARENT_GEOLOCATION] 🗺️ View ${child.name || ''} on map`);
-    fetch(`/api/parent/geolocation/children/${child.id}/location`, {
+    fetch(`/api/geolocation/parent/children/${child.id}/location`, {
       method: 'GET',
       credentials: 'include'
     }).then(async response => {
@@ -294,7 +294,7 @@ export const ParentGeolocation = () => {
 
   const handleViewAlertLocation = useStableCallback((alert: GeolocationAlert) => {
     console.log(`[PARENT_GEOLOCATION] 🗺️ View alert location for ${alert.childName}`);
-    fetch(`/api/parent/geolocation/alerts/${alert.id}/location`, {
+    fetch(`/api/geolocation/parent/alerts/${alert.id}/location`, {
       method: 'GET',
       credentials: 'include'
     }).then(async response => {
@@ -312,14 +312,14 @@ export const ParentGeolocation = () => {
 
   const handleAcknowledgeAlert = useStableCallback((alert: GeolocationAlert) => {
     console.log(`[PARENT_GEOLOCATION] ✅ Acknowledging alert ${alert.id}: ${alert.message}`);
-    fetch(`/api/parent/geolocation/alerts/${alert.id}/acknowledge`, {
+    fetch(`/api/geolocation/parent/alerts/${alert.id}/acknowledge`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ action: 'acknowledge' })
     }).then(response => {
       if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/alerts'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/alerts'] });
         console.log(`[PARENT_GEOLOCATION] ✅ Successfully acknowledged alert ${alert.id}`);
       }
     }).catch(error => {
@@ -329,7 +329,7 @@ export const ParentGeolocation = () => {
 
   const handleResolveAlert = useStableCallback((alert: GeolocationAlert) => {
     console.log(`[PARENT_GEOLOCATION] 🔧 Resolving alert ${alert.id}: ${alert.message}`);
-    fetch(`/api/parent/geolocation/alerts/${alert.id}/resolve`, {
+    fetch(`/api/geolocation/parent/alerts/${alert.id}/resolve`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -340,7 +340,7 @@ export const ParentGeolocation = () => {
       })
     }).then(response => {
       if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/alerts'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/alerts'] });
         console.log(`[PARENT_GEOLOCATION] ✅ Successfully resolved alert ${alert.id}`);
       }
     }).catch(error => {
