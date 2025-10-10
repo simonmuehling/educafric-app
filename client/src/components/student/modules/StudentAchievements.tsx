@@ -58,7 +58,7 @@ const StudentAchievements: React.FC = () => {
       categories: {
         all: 'All',
         academic: 'Academic',
-        behavior: 'Behavior',
+        behavior: 'Behaviour',
         participation: 'Participation',
         special: 'Special'
       },
