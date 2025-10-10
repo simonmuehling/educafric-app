@@ -19,11 +19,13 @@ export default function Home() {
   const text = {
     fr: {
       learnMore: 'En savoir plus',
+      services: 'Nos Services',
       ctaTitle: 'Prêt à transformer l\'éducation africaine ?',
       ctaDescription: 'Rejoignez des milliers d\'écoles africaines qui utilisent déjà Educafric pour améliorer leur expérience éducative avec une technologie moderne, un support bilingue et des outils de gestion complets.'
     },
     en: {
       learnMore: 'Learn More',
+      services: 'Our Services',
       ctaTitle: 'Ready to Transform African Education?',
       ctaDescription: 'Join thousands of African schools already using Educafric to enhance their educational experience with modern technology, bilingual support, and comprehensive management tools.'
     }
@@ -71,8 +73,13 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <Link href="/services">
+              <button className="glass-card px-8 py-4 text-lg text-white border border-white/30 hover:bg-white/10 rounded-xl font-semibold transition-all" data-testid="button-services">
+                {t.services}
+              </button>
+            </Link>
             <Link href="/demo">
-              <button className="glass-card px-8 py-4 text-lg text-white border border-white/30 hover:bg-white/10 rounded-xl font-semibold transition-all">
+              <button className="glass-card px-8 py-4 text-lg text-white border border-white/30 hover:bg-white/10 rounded-xl font-semibold transition-all" data-testid="button-demo">
                 {t.learnMore}
               </button>
             </Link>
