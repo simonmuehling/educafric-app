@@ -1605,12 +1605,12 @@ export default function AcademicManagementSuite() {
                 {language === 'fr' ? 'Classe' : 'Class'}
               </Label>
               <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger id="class-select" data-testid="select-class">
+                <SelectTrigger className="bg-white border-gray-300" id="class-select" data-testid="select-class">
                   <SelectValue placeholder={
                     language === 'fr' ? 'Sélectionner une classe...' : 'Select a class...'
                   } />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   {classesLoading ? (
                     <SelectItem value="loading" disabled>
                       {language === 'fr' ? 'Chargement...' : 'Loading...'}
@@ -1636,10 +1636,10 @@ export default function AcademicManagementSuite() {
                 {language === 'fr' ? 'Trimestre' : 'Term'}
               </Label>
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                <SelectTrigger id="term-select" data-testid="select-term">
+                <SelectTrigger className="bg-white border-gray-300" id="term-select" data-testid="select-term">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   {TRIMESTERS.map((term) => (
                     <SelectItem key={term.key} value={term.key}>
                       {language === 'fr' ? term.labelFR : term.labelEN}
@@ -1655,10 +1655,10 @@ export default function AcademicManagementSuite() {
                 {language === 'fr' ? 'Année Académique' : 'Academic Year'}
               </Label>
               <Select value="2024-2025" onValueChange={() => {}}>
-                <SelectTrigger id="year-select" data-testid="select-year">
+                <SelectTrigger className="bg-white border-gray-300" id="year-select" data-testid="select-year">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   <SelectItem value="2024-2025">2024-2025</SelectItem>
                   <SelectItem value="2023-2024">2023-2024</SelectItem>
                   <SelectItem value="2022-2023">2022-2023</SelectItem>

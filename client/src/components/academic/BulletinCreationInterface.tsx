@@ -1133,10 +1133,10 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             <div>
               <Label htmlFor="class">{t.class}</Label>
               <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-                <SelectTrigger data-testid="select-class">
+                <SelectTrigger className="bg-white border-gray-300" data-testid="select-class">
                   <SelectValue placeholder={t.selectClass} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   {loadingClasses ? (
                     <SelectItem value="loading" disabled>
                       {language === 'fr' ? 'Chargement...' : 'Loading...'}
@@ -1159,10 +1159,10 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             <div>
               <Label htmlFor="trimester">{t.trimester}</Label>
               <Select value={trimester} onValueChange={setTrimester}>
-                <SelectTrigger data-testid="select-trimester">
+                <SelectTrigger className="bg-white border-gray-300" data-testid="select-trimester">
                   <SelectValue placeholder={t.selectTrimester} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   <SelectItem value="Premier">{t.firstTerm}</SelectItem>
                   <SelectItem value="Deuxième">{t.secondTerm}</SelectItem>
                   <SelectItem value="Troisième">{t.thirdTerm}</SelectItem>
@@ -3164,14 +3164,14 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
           {language === 'fr' ? 'Sélectionner un élève' : 'Select a student'}
         </Label>
         <Select value={selectedStudentId} onValueChange={handleStudentChange} disabled={!selectedClassId}>
-          <SelectTrigger data-testid="select-student">
+          <SelectTrigger className="bg-white border-gray-300" data-testid="select-student">
             <SelectValue placeholder={
               !selectedClassId
                 ? (language === 'fr' ? 'Sélectionnez d\'abord une classe' : 'Select a class first')
                 : (language === 'fr' ? 'Choisir un élève...' : 'Choose a student...')
             } />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white">
             {isLoading ? (
               <SelectItem value="loading" disabled>
                 {language === 'fr' ? 'Chargement...' : 'Loading...'}
