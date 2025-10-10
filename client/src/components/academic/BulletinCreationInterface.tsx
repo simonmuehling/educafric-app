@@ -1204,8 +1204,10 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
               <StudentSelector 
                 selectedClassId={selectedClassId}
                 onStudentSelect={(selectedStudent: any) => {
+                  console.log('[BULLETIN] onStudentSelect called with:', selectedStudent);
                   // Handle null - clear student information when class changes
                   if (!selectedStudent) {
+                    console.log('[BULLETIN] Clearing student data (null received)');
                     setStudent({
                       name: '',
                       id: '',
@@ -1230,6 +1232,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   }
                   
                   // Auto-fill student information
+                  console.log('[BULLETIN] Auto-filling student data:', selectedStudent);
                   setStudent({
                     name: selectedStudent.name || '',
                     id: selectedStudent.matricule || selectedStudent.id || '',
@@ -3111,8 +3114,10 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
     : [];
 
   const handleStudentChange = async (studentId: string) => {
+    console.log('[STUDENT_SELECTOR] Student selected:', studentId);
     setSelectedStudentId(studentId);
     const selectedStudent = studentsData.find((s: any) => s.id.toString() === studentId);
+    console.log('[STUDENT_SELECTOR] Found student data:', selectedStudent);
     
     if (selectedStudent) {
       // For real schools, we would fetch grades from teachers' submissions
@@ -3131,7 +3136,10 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
         ]
       };
       
+      console.log('[STUDENT_SELECTOR] Calling onStudentSelect with:', studentWithGrades);
       onStudentSelect(studentWithGrades);
+    } else {
+      console.log('[STUDENT_SELECTOR] No student found for id:', studentId);
     }
   };
 

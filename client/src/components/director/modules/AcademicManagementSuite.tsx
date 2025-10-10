@@ -1536,17 +1536,19 @@ export default function AcademicManagementSuite() {
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("bulletins");
   const tabsContainerRef = React.useRef<HTMLDivElement>(null);
+  const tabsListRef = React.useRef<HTMLDivElement>(null);
 
   // Track tab changes with detailed logging
   React.useEffect(() => {
     console.log(`[ACADEMIC_MGMT] 🔄 Tab changed to: ${activeTab}`);
   }, [activeTab]);
 
-  // Prevent module collapse when clicking tabs
+  // Prevent module collapse when clicking tabs - only block on TabsList, not content
   React.useEffect(() => {
     const handleGlobalPointer = (e: PointerEvent) => {
-      if (tabsContainerRef.current?.contains(e.target as Node)) {
-        console.log(`[ACADEMIC_MGMT] 🛡️ Blocking propagation for click inside tabs`);
+      // Only block propagation if clicking on the tabs list (triggers), not the content
+      if (tabsListRef.current?.contains(e.target as Node)) {
+        console.log(`[ACADEMIC_MGMT] 🛡️ Blocking propagation for click on tab trigger`);
         e.stopPropagation();
         e.stopImmediatePropagation();
       }
@@ -1699,7 +1701,7 @@ export default function AcademicManagementSuite() {
         <Card>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader className="pb-3">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList ref={tabsListRef} className="grid w-full grid-cols-4">
               <TabsTrigger value="bulletins" className="flex items-center gap-2" data-testid="tab-bulletins">
                 <FileText className="h-4 w-4" />
                 <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Report Cards'}</span>
