@@ -1192,7 +1192,33 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             </CardHeader>
             <CardContent>
               <StudentSelector 
+                selectedClassId={selectedClassId}
                 onStudentSelect={(selectedStudent: any) => {
+                  // Handle null - clear student information when class changes
+                  if (!selectedStudent) {
+                    setStudent({
+                      name: '',
+                      id: '',
+                      classLabel: '',
+                      classSize: 0,
+                      birthDate: '',
+                      birthPlace: '',
+                      gender: '',
+                      headTeacher: '',
+                      guardian: '',
+                      isRepeater: false,
+                      numberOfSubjects: 0,
+                      numberOfPassed: 0,
+                      schoolName: '',
+                      regionaleMinisterielle: '',
+                      delegationDepartementale: '',
+                      schoolAddress: '',
+                      schoolPhone: ''
+                    });
+                    setStudentPhotoUrl('');
+                    return;
+                  }
+                  
                   // Auto-fill student information
                   setStudent({
                     name: selectedStudent.name || '',
@@ -3030,17 +3056,31 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
 interface StudentSelectorProps {
   onStudentSelect: (student: any) => void;
   language: 'fr' | 'en';
+  selectedClassId?: string;
 }
 
-function StudentSelector({ onStudentSelect, language }: StudentSelectorProps) {
+function StudentSelector({ onStudentSelect, language, selectedClassId }: StudentSelectorProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   
-  // Fetch students from API
+  // Clear selected student when class changes and notify parent
+  React.useEffect(() => {
+    setSelectedStudentId('');
+    // Notify parent to clear student information
+    onStudentSelect(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClassId]);
+  
+  // Fetch students from API - only when class is selected
   const { data: apiResponse, isLoading } = useQuery({
-    queryKey: ['/api/director/students'],
+    queryKey: ['/api/director/students', selectedClassId],
     queryFn: async () => {
+      if (!selectedClassId) {
+        return { success: true, students: [] };
+      }
+      
       try {
-        const response = await fetch('/api/director/students', {
+        const url = `/api/director/students?classId=${selectedClassId}`;
+        const response = await fetch(url, {
           credentials: 'include'
         });
         if (!response.ok) throw new Error('Failed to fetch students');
@@ -3050,11 +3090,15 @@ function StudentSelector({ onStudentSelect, language }: StudentSelectorProps) {
         console.error('Error fetching students:', error);
         return { success: false, students: [] };
       }
-    }
+    },
+    enabled: !!selectedClassId, // Only fetch when class is selected
   });
 
-  // Ensure studentsData is always an array
-  const studentsData = Array.isArray(apiResponse?.students) ? apiResponse.students : [];
+  // Ensure studentsData is always an array - filter by class on frontend if needed
+  const allStudents = Array.isArray(apiResponse?.students) ? apiResponse.students : [];
+  const studentsData = selectedClassId 
+    ? allStudents.filter((s: any) => s.classId?.toString() === selectedClassId || s.class?.toString() === selectedClassId)
+    : [];
 
   const handleStudentChange = async (studentId: string) => {
     setSelectedStudentId(studentId);
@@ -3083,16 +3127,30 @@ function StudentSelector({ onStudentSelect, language }: StudentSelectorProps) {
 
   return (
     <div className="space-y-3">
+      {!selectedClassId && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mb-3">
+          <div className="flex items-center gap-2 text-amber-800">
+            <Info className="h-4 w-4" />
+            <span className="text-sm">
+              {language === 'fr' 
+                ? 'Veuillez d\'abord sélectionner une classe ci-dessus pour filtrer les élèves'
+                : 'Please first select a class above to filter students'
+              }
+            </span>
+          </div>
+        </div>
+      )}
+      
       <div>
         <Label htmlFor="student-selector">
           {language === 'fr' ? 'Sélectionner un élève' : 'Select a student'}
         </Label>
-        <Select value={selectedStudentId} onValueChange={handleStudentChange}>
+        <Select value={selectedStudentId} onValueChange={handleStudentChange} disabled={!selectedClassId}>
           <SelectTrigger data-testid="select-student">
             <SelectValue placeholder={
-              language === 'fr' 
-                ? 'Choisir un élève...' 
-                : 'Choose a student...'
+              !selectedClassId
+                ? (language === 'fr' ? 'Sélectionnez d\'abord une classe' : 'Select a class first')
+                : (language === 'fr' ? 'Choisir un élève...' : 'Choose a student...')
             } />
           </SelectTrigger>
           <SelectContent>
@@ -3102,7 +3160,10 @@ function StudentSelector({ onStudentSelect, language }: StudentSelectorProps) {
               </SelectItem>
             ) : studentsData.length === 0 ? (
               <SelectItem value="no-students" disabled>
-                {language === 'fr' ? 'Aucun élève trouvé' : 'No students found'}
+                {selectedClassId 
+                  ? (language === 'fr' ? 'Aucun élève dans cette classe' : 'No students in this class')
+                  : (language === 'fr' ? 'Aucun élève trouvé' : 'No students found')
+                }
               </SelectItem>
             ) : (
               studentsData.map((student: any) => (
