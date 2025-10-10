@@ -248,7 +248,7 @@ const FunctionalParentMessages: React.FC = () => {
       },
       category: {
         academic: 'Academic',
-        behavior: 'Behavior',
+        behavior: 'Behaviour',
         attendance: 'Attendance',
         general: 'General',
         urgent: 'Urgent',

@@ -239,7 +239,7 @@ const FunctionalParentChildren: React.FC = () => {
         attendance: 'Attendance',
         lastActivity: 'Last activity',
         nextExam: 'Next exam',
-        behavior: 'Behavior'
+        behavior: 'Behaviour'
       }
     }
   };
