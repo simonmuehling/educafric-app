@@ -1,4 +1,4 @@
-import { Mail, Phone, MessageCircle, Facebook, Shield, FileText, Youtube } from 'lucide-react';
+import { Mail, Phone, MessageCircle, Facebook, Shield, FileText, Youtube, Home, Info, Briefcase } from 'lucide-react';
 import { FaTiktok } from 'react-icons/fa';
 import { Link } from 'wouter';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -9,6 +9,10 @@ const EducafricFooter = () => {
   
   const text = {
     en: {
+      quickLinks: 'Quick Links',
+      home: 'Home',
+      aboutUs: 'About Us',
+      services: 'Services',
       legal: 'Legal',
       contact: 'Contact',
       followUs: 'Follow Us',
@@ -20,6 +24,10 @@ const EducafricFooter = () => {
       builtForAfrica: 'Built for African Education'
     },
     fr: {
+      quickLinks: 'Liens Rapides',
+      home: 'Accueil',
+      aboutUs: 'À Propos',
+      services: 'Services',
       legal: 'Légal',
       contact: 'Contact', 
       followUs: 'Suivez-nous',
@@ -35,6 +43,11 @@ const EducafricFooter = () => {
   const t = text[language];
   
   const footerLinks = {
+    quickLinks: [
+      { label: t.home, href: "/", icon: Home },
+      { label: t.aboutUs, href: "/about", icon: Info },
+      { label: t.services, href: "/services", icon: Briefcase }
+    ],
     legal: [
       { label: t.privacyPolicy, href: "/privacy-policy", icon: Shield },
       { label: t.termsOfService, href: "/terms-of-service", icon: FileText }
@@ -54,9 +67,9 @@ const EducafricFooter = () => {
   return (
     <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           {/* Brand Section */}
-          <div>
+          <div className="lg:col-span-2">
             <Logo size="lg" className="mb-6" />
             <p className="text-muted-foreground leading-relaxed mb-6">
               {t.aboutDescription}
@@ -66,10 +79,31 @@ const EducafricFooter = () => {
             </div>
           </div>
 
-          {/* Contact Information */}
+          {/* Quick Links */}
+          <div>
+            <h3 className="h4 mb-6">{t.quickLinks}</h3>
+            <ul className="space-y-4">
+              {(Array.isArray(footerLinks.quickLinks) ? footerLinks.quickLinks : []).map((link, index) => {
+                const IconComponent = link.icon;
+                return (
+                  <li key={index}>
+                    <Link
+                      href={link.href}
+                      className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <IconComponent className="w-4 h-4" />
+                      <span>{link.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Contact & Legal Combined */}
           <div>
             <h3 className="h4 mb-6">{t.contact}</h3>
-            <ul className="space-y-4">
+            <ul className="space-y-4 mb-6">
               {(Array.isArray(footerLinks.contact) ? footerLinks.contact : []).map((link, index) => {
                 const IconComponent = link.icon;
                 return (
@@ -81,6 +115,24 @@ const EducafricFooter = () => {
                       <IconComponent className="w-4 h-4" />
                       <span>{link.label}</span>
                     </a>
+                  </li>
+                );
+              })}
+            </ul>
+            
+            <h3 className="h4 mb-6 mt-8">{t.legal}</h3>
+            <ul className="space-y-4">
+              {(Array.isArray(footerLinks.legal) ? footerLinks.legal : []).map((link, index) => {
+                const IconComponent = link.icon;
+                return (
+                  <li key={index}>
+                    <Link
+                      href={link.href}
+                      className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <IconComponent className="w-4 h-4" />
+                      <span>{link.label}</span>
+                    </Link>
                   </li>
                 );
               })}
@@ -104,27 +156,6 @@ const EducafricFooter = () => {
                       <IconComponent className="w-4 h-4" />
                       <span>{link.label}</span>
                     </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
-          {/* Legal Links */}
-          <div>
-            <h3 className="h4 mb-6">{t.legal}</h3>
-            <ul className="space-y-4">
-              {(Array.isArray(footerLinks.legal) ? footerLinks.legal : []).map((link, index) => {
-                const IconComponent = link.icon;
-                return (
-                  <li key={index}>
-                    <Link
-                      href={link.href}
-                      className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <IconComponent className="w-4 h-4" />
-                      <span>{link.label}</span>
-                    </Link>
                   </li>
                 );
               })}
