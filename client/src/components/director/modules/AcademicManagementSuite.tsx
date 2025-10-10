@@ -1534,6 +1534,7 @@ export default function AcademicManagementSuite() {
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [selectedTerm, setSelectedTerm] = useState<string>("T1");
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>("bulletins");
 
   // Fetch available classes
   const { data: classesData, isLoading: classesLoading } = useQuery({
@@ -1667,7 +1668,8 @@ export default function AcademicManagementSuite() {
       </Card>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="bulletins" className="w-full">
+      <div onClick={(e) => e.stopPropagation()}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4" onClick={(e) => e.stopPropagation()}>
           <TabsTrigger value="bulletins" className="flex items-center justify-center gap-2 p-2" data-testid="tab-bulletins">
             <FileText className="h-5 w-5 sm:h-4 sm:w-4" />
@@ -1739,6 +1741,7 @@ export default function AcademicManagementSuite() {
           <ArchiveManagementContent />
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }
