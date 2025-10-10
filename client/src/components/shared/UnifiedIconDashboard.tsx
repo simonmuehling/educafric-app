@@ -26,7 +26,20 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
   activeModule: propActiveModule
 }) => {
   const { language } = useLanguage();
-  const [activeModule, setActiveModule] = useState<string | null>(propActiveModule || null);
+  const [internalActiveModule, setInternalActiveModule] = useState<string | null>(propActiveModule || null);
+  
+  // Wrapped setter with logging
+  const setActiveModule = (value: string | null) => {
+    const stack = new Error().stack;
+    console.log(`[UNIFIED_DASHBOARD] 🔧 setActiveModule called:`, {
+      from: internalActiveModule,
+      to: value,
+      stack: stack?.split('\n').slice(2, 4).join('\n')
+    });
+    setInternalActiveModule(value);
+  };
+  
+  const activeModule = internalActiveModule;
 
   const text = {
     fr: {
@@ -83,6 +96,7 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
   };
 
   const handleBackClick = () => {
+    console.log('[UNIFIED_DASHBOARD] ⬅️ Back button clicked - returning to icon grid');
     setActiveModule(null);
   };
 

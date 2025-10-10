@@ -1537,10 +1537,16 @@ export default function AcademicManagementSuite() {
   const [activeTab, setActiveTab] = useState<string>("bulletins");
   const tabsContainerRef = React.useRef<HTMLDivElement>(null);
 
+  // Track tab changes with detailed logging
+  React.useEffect(() => {
+    console.log(`[ACADEMIC_MGMT] 🔄 Tab changed to: ${activeTab}`);
+  }, [activeTab]);
+
   // Prevent module collapse when clicking tabs
   React.useEffect(() => {
     const handleGlobalPointer = (e: PointerEvent) => {
       if (tabsContainerRef.current?.contains(e.target as Node)) {
+        console.log(`[ACADEMIC_MGMT] 🛡️ Blocking propagation for click inside tabs`);
         e.stopPropagation();
         e.stopImmediatePropagation();
       }
