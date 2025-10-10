@@ -73,6 +73,8 @@ import ModernFormDemo from "@/pages/ModernFormDemo";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
 import Verify from "@/pages/Verify";
 import BulletinVerification from "@/pages/BulletinVerification";
+import About from "@/pages/About";
+import Services from "@/pages/Services";
 // PWA Install Prompt déjà importé dans les composants PWA
 import DebugInspector from "@/pages/DebugInspector";
 import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
@@ -230,6 +232,8 @@ function Router() {
       {/* Public Routes */}
       <Route path="/" component={Home} />
       <Route path="/home" component={Home} />
+      <Route path="/about" component={About} />
+      <Route path="/services" component={Services} />
       <Route path="/login" component={Login} />
       <Route path="/ui-showcase" component={LazyUIShowcase} />
       <Route path="/micro-interactions" component={MicroInteractionsDemo} />
