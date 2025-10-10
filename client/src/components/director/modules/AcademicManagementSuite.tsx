@@ -1668,22 +1668,59 @@ export default function AcademicManagementSuite() {
       </Card>
 
       {/* Main Content Tabs */}
-      <div onClick={(e) => e.stopPropagation()}>
+      <div 
+        onClick={(e) => e.stopPropagation()} 
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4" onClick={(e) => e.stopPropagation()}>
-          <TabsTrigger value="bulletins" className="flex items-center justify-center gap-2 p-2" data-testid="tab-bulletins">
+        <TabsList 
+          className="grid w-full grid-cols-4" 
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <TabsTrigger 
+            value="bulletins" 
+            className="flex items-center justify-center gap-2 p-2" 
+            data-testid="tab-bulletins"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <FileText className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline-block">{language === 'fr' ? 'Création Bulletins' : 'Create Bulletins'}</span>
           </TabsTrigger>
-          <TabsTrigger value="mastersheet" className="flex items-center justify-center gap-2 p-2" data-testid="tab-mastersheet">
+          <TabsTrigger 
+            value="mastersheet" 
+            className="flex items-center justify-center gap-2 p-2" 
+            data-testid="tab-mastersheet"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <FileSpreadsheet className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline-block">{language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}</span>
           </TabsTrigger>
-          <TabsTrigger value="transcript" className="flex items-center justify-center gap-2 p-2" data-testid="tab-transcript">
+          <TabsTrigger 
+            value="transcript" 
+            className="flex items-center justify-center gap-2 p-2" 
+            data-testid="tab-transcript"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <BookOpen className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline-block">{language === 'fr' ? 'Relevé de Notes' : 'Transcript'}</span>
           </TabsTrigger>
-          <TabsTrigger value="archives" className="flex items-center justify-center gap-2 p-2" data-testid="tab-archives">
+          <TabsTrigger 
+            value="archives" 
+            className="flex items-center justify-center gap-2 p-2" 
+            data-testid="tab-archives"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <Archive className="h-5 w-5 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline-block">{language === 'fr' ? 'Archives' : 'Archives'}</span>
           </TabsTrigger>
