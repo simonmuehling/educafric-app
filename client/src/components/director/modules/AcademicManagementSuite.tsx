@@ -1667,118 +1667,78 @@ export default function AcademicManagementSuite() {
         </CardContent>
       </Card>
 
-      {/* Main Content Tabs */}
-      <div 
-        onClick={(e) => e.stopPropagation()} 
-        onPointerDown={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
+      {/* Main Content Tabs - Clean Rebuild */}
+      <Card>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList 
-          className="grid w-full grid-cols-4" 
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <TabsTrigger 
-            value="bulletins" 
-            className="flex items-center justify-center gap-2 p-2" 
-            data-testid="tab-bulletins"
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <FileText className="h-5 w-5 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline-block">{language === 'fr' ? 'Création Bulletins' : 'Create Bulletins'}</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="mastersheet" 
-            className="flex items-center justify-center gap-2 p-2" 
-            data-testid="tab-mastersheet"
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <FileSpreadsheet className="h-5 w-5 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline-block">{language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="transcript" 
-            className="flex items-center justify-center gap-2 p-2" 
-            data-testid="tab-transcript"
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <BookOpen className="h-5 w-5 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline-block">{language === 'fr' ? 'Relevé de Notes' : 'Transcript'}</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="archives" 
-            className="flex items-center justify-center gap-2 p-2" 
-            data-testid="tab-archives"
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <Archive className="h-5 w-5 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline-block">{language === 'fr' ? 'Archives' : 'Archives'}</span>
-          </TabsTrigger>
-        </TabsList>
+          <CardHeader className="pb-3">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="bulletins" className="flex items-center gap-2" data-testid="tab-bulletins">
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Report Cards'}</span>
+              </TabsTrigger>
+              <TabsTrigger value="mastersheet" className="flex items-center gap-2" data-testid="tab-mastersheet">
+                <FileSpreadsheet className="h-4 w-4" />
+                <span className="hidden sm:inline">{language === 'fr' ? 'Feuille' : 'Sheet'}</span>
+              </TabsTrigger>
+              <TabsTrigger value="transcript" className="flex items-center gap-2" data-testid="tab-transcript">
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden sm:inline">{language === 'fr' ? 'Relevé' : 'Transcript'}</span>
+              </TabsTrigger>
+              <TabsTrigger value="archives" className="flex items-center gap-2" data-testid="tab-archives">
+                <Archive className="h-4 w-4" />
+                <span className="hidden sm:inline">{language === 'fr' ? 'Archives' : 'Archives'}</span>
+              </TabsTrigger>
+            </TabsList>
+          </CardHeader>
 
-        <TabsContent value="bulletins" className="space-y-4">
-          {/* Teacher Submissions Review Section */}
-          <TeacherSubmissionsManager selectedClass={selectedClass} selectedTerm={selectedTerm} />
-          
-          {/* Director Bulletin Creation Interface */}
-          <BulletinCreationInterface 
-            defaultClass={selectedClass}
-            defaultTerm={selectedTerm}
-            defaultYear="2025/2026"
-          />
-        </TabsContent>
+          <CardContent>
+            <TabsContent value="bulletins" className="mt-0 space-y-4">
+              <TeacherSubmissionsManager selectedClass={selectedClass} selectedTerm={selectedTerm} />
+              <BulletinCreationInterface 
+                defaultClass={selectedClass}
+                defaultTerm={selectedTerm}
+                defaultYear="2025/2026"
+              />
+            </TabsContent>
 
-        <TabsContent value="mastersheet" className="space-y-4">
-          {selectedClass ? (
-            <MasterSheet selectedClass={selectedClass} selectedTerm={selectedTerm} />
-          ) : (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  {language === 'fr' 
-                    ? 'Sélectionnez une classe pour voir la feuille maîtresse'
-                    : 'Select a class to view the master sheet'
-                  }
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+            <TabsContent value="mastersheet" className="mt-0">
+              {selectedClass ? (
+                <MasterSheet selectedClass={selectedClass} selectedTerm={selectedTerm} />
+              ) : (
+                <div className="p-8 text-center">
+                  <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    {language === 'fr' 
+                      ? 'Sélectionnez une classe'
+                      : 'Select a class'
+                    }
+                  </p>
+                </div>
+              )}
+            </TabsContent>
 
-        <TabsContent value="transcript" className="space-y-4">
-          {selectedStudentId ? (
-            <Transcript selectedStudentId={selectedStudentId} />
-          ) : (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  {language === 'fr' 
-                    ? 'Sélectionnez un élève pour voir son relevé de notes'
-                    : 'Select a student to view their transcript'
-                  }
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+            <TabsContent value="transcript" className="mt-0">
+              {selectedStudentId ? (
+                <Transcript selectedStudentId={selectedStudentId} />
+              ) : (
+                <div className="p-8 text-center">
+                  <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    {language === 'fr' 
+                      ? 'Sélectionnez un élève'
+                      : 'Select a student'
+                    }
+                  </p>
+                </div>
+              )}
+            </TabsContent>
 
-        <TabsContent value="archives" className="space-y-4">
-          <ArchiveManagementContent />
-        </TabsContent>
-      </Tabs>
-      </div>
+            <TabsContent value="archives" className="mt-0">
+              <ArchiveManagementContent />
+            </TabsContent>
+          </CardContent>
+        </Tabs>
+      </Card>
     </div>
   );
 }
