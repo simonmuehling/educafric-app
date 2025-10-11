@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ModernCard } from '@/components/ui/ModernCard';
 import { useStableCallback } from '@/hooks/useStableCallback';
 import { useToast } from '@/hooks/use-toast';
+import { csrfFetch } from '@/lib/csrf';
 import { 
   MapPin, Shield, Smartphone, Battery, AlertTriangle, 
   Clock, Navigation, Home, School, CheckCircle, 
@@ -124,10 +125,9 @@ export const ParentGeolocation = () => {
   const testZoneExitMutation = useMutation({
     mutationFn: async (data: { studentId: number; zoneName: string }) => {
       console.log('[PARENT_GEOLOCATION] 🧪 Testing zone exit alert for:', data);
-      const response = await fetch('/api/geolocation/test/zone-exit', {
+      const response = await csrfFetch('/api/geolocation/test/zone-exit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(data)
       });
       if (!response.ok) throw new Error('Failed to test zone exit');
@@ -146,10 +146,9 @@ export const ParentGeolocation = () => {
   // Create safe zone mutation
   const createSafeZoneMutation = useMutation({
     mutationFn: async (zoneData: any) => {
-      const response = await fetch('/api/geolocation/safe-zones', {
+      const response = await csrfFetch('/api/geolocation/safe-zones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(zoneData)
       });
       if (!response.ok) throw new Error('Failed to create safe zone');
@@ -312,10 +311,9 @@ export const ParentGeolocation = () => {
 
   const handleAcknowledgeAlert = useStableCallback((alert: GeolocationAlert) => {
     console.log(`[PARENT_GEOLOCATION] ✅ Acknowledging alert ${alert.id}: ${alert.message}`);
-    fetch(`/api/geolocation/parent/alerts/${alert.id}/acknowledge`, {
+    csrfFetch(`/api/geolocation/parent/alerts/${alert.id}/acknowledge`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
       body: JSON.stringify({ action: 'acknowledge' })
     }).then(response => {
       if (response.ok) {
@@ -329,10 +327,9 @@ export const ParentGeolocation = () => {
 
   const handleResolveAlert = useStableCallback((alert: GeolocationAlert) => {
     console.log(`[PARENT_GEOLOCATION] 🔧 Resolving alert ${alert.id}: ${alert.message}`);
-    fetch(`/api/geolocation/parent/alerts/${alert.id}/resolve`, {
+    csrfFetch(`/api/geolocation/parent/alerts/${alert.id}/resolve`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
       body: JSON.stringify({ 
         action: 'resolve', 
         resolution: 'Resolved by parent',
@@ -1327,14 +1324,13 @@ export const ParentGeolocation = () => {
                 console.log('[PARENT_GEOLOCATION] 💾 Saving child configuration:', configData);
                 
                 // API call to save configuration
-                fetch(`/api/parent/geolocation/children/${configData.childId}/configure`, {
+                csrfFetch(`/api/geolocation/parent/children/${configData.childId}/configure`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  credentials: 'include',
                   body: JSON.stringify(configData)
                 }).then(response => {
                   if (response.ok) {
-                    queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/children'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/children'] });
                     console.log(`[PARENT_GEOLOCATION] ✅ Configuration saved for ${showConfigureChild.child?.name}`);
                     setShowConfigureChild({show: false, child: null});
                   }
@@ -1504,17 +1500,16 @@ export const ParentGeolocation = () => {
                 console.log('[PARENT_GEOLOCATION] 💾 Updating zone:', showEditZone.zone?.id, zoneData);
                 
                 // API call to update zone
-                fetch(`/api/parent/geolocation/safe-zones/${showEditZone.zone?.id}`, {
+                csrfFetch(`/api/geolocation/parent/safe-zones/${showEditZone.zone?.id}`, {
                   method: 'PATCH',
                   headers: { 'Content-Type': 'application/json' },
-                  credentials: 'include',
                   body: JSON.stringify({ 
                     action: 'modify_zone',
                     updates: zoneData
                   })
                 }).then(response => {
                   if (response.ok) {
-                    queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
                     console.log(`[PARENT_GEOLOCATION] ✅ Zone ${showEditZone.zone?.name} updated successfully`);
                     setShowEditZone({show: false, zone: null});
                   }

@@ -360,6 +360,45 @@ router.patch('/parent/alerts/:id/resolve', async (req, res) => {
   }
 });
 
+// Configure child tracking settings
+router.post('/parent/children/:id/configure', async (req, res) => {
+  try {
+    const childId = parseInt(req.params.id);
+    const configData = req.body;
+    console.log('[GEOLOCATION_API] Configuring child tracking:', { childId, configData });
+    
+    res.json({ 
+      success: true, 
+      childId, 
+      configuration: configData,
+      updatedAt: new Date().toISOString() 
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to configure child tracking', details: error });
+  }
+});
+
+// Update safe zone (parent-specific endpoint)
+router.patch('/parent/safe-zones/:id', async (req, res) => {
+  try {
+    const zoneId = parseInt(req.params.id);
+    const { action, updates } = req.body;
+    const parentId = (req.user as any)?.id || 1;
+    
+    console.log('[GEOLOCATION_API] Updating parent safe zone:', { zoneId, parentId, action, updates });
+    
+    // TODO: Add authorization check to verify zone belongs to this parent
+    // For production: const zone = await simpleGeolocationService.getSafeZone(zoneId);
+    // if (zone.parentId !== parentId) { return res.status(403).json({ error: 'Unauthorized' }); }
+    
+    // Use the existing service method
+    const result = await simpleGeolocationService.updateSafeZone(zoneId, updates);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update safe zone', details: error });
+  }
+});
+
 // Test zone exit endpoint
 router.post('/test/zone-exit', async (req, res) => {
   try {

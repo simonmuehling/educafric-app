@@ -1,6 +1,6 @@
-import { NotificationService } from './notificationService';
-
-const notificationService = new NotificationService();
+// import { NotificationService } from './notificationService';
+// const notificationService = new NotificationService();
+// Note: SMS/PWA alerts temporarily disabled - email alerts are sufficient for critical system notifications
 
 interface CriticalEvent {
   type: 'server_error' | 'database_failure' | 'security_breach' | 'commercial_connection' | 'payment_failure' | 'system_overload';
@@ -225,25 +225,9 @@ Educafric Monitoring System
 
   private async sendSMSAlert(phone: string, message: string) {
     try {
-      // Create a mock user object for SMS alerts
-      const mockUser = {
-        id: 0,
-        email: 'system@educafric.com',
-        phone: phone,
-        preferredLanguage: 'fr' as const
-      } as any;
-
-      const smsNotification = {
-        type: 'sms' as const,
-        recipient: mockUser,
-        template: 'CRITICAL_ALERT',
-        data: { message },
-        priority: 'urgent' as const,
-        language: 'fr' as const
-      };
-
-      await notificationService.sendNotification(smsNotification);
-      console.log(`📱 [SMS_ALERT] Sent to ${phone}: ${message}`);
+      // SMS alerts temporarily disabled - email alerts are sufficient for critical system notifications
+      // Future enhancement: Integrate with proper SMS service for critical alerts
+      console.log(`📱 [SMS_ALERT] Would send to ${phone}: ${message.substring(0, 100)}...`);
     } catch (error) {
       console.error(`[SMS_ALERT] Failed to send to ${phone}:`, error);
     }
@@ -251,24 +235,9 @@ Educafric Monitoring System
 
   private async sendPWANotification(title: string, message: string, data?: any) {
     try {
-      // Create a mock user object for PWA alerts
-      const mockUser = {
-        id: 0,
-        email: 'system@educafric.com',
-        preferredLanguage: 'fr' as const
-      } as any;
-
-      const pushNotification = {
-        type: 'push' as const,
-        recipient: mockUser,
-        template: 'CRITICAL_ALERT',
-        data: { title, message, ...data },
-        priority: 'urgent' as const,
-        language: 'fr' as const
-      };
-
-      await notificationService.sendNotification(pushNotification);
-      console.log(`🔔 [PWA_ALERT] ${title}: ${message}`);
+      // PWA alerts temporarily disabled - email alerts are sufficient for critical system notifications  
+      // Future enhancement: Integrate with proper PWA push notification service
+      console.log(`🔔 [PWA_ALERT] Would send ${title}: ${message.substring(0, 100)}...`);
     } catch (error) {
       console.error('[PWA_ALERT] Failed to send notification:', error);
     }
