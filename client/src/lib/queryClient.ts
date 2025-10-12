@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { csrfFetch } from "./csrf";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -26,11 +27,11 @@ export async function apiRequest(
       throw new Error('Invalid URL provided');
     }
     
-    const res = await fetch(url, {
+    // Use csrfFetch for automatic CSRF token handling
+    const res = await csrfFetch(url, {
       method,
       headers: data ? { "Content-Type": "application/json" } : {},
       body: data ? JSON.stringify(data) : undefined,
-      credentials: "include",
     });
 
     await throwIfResNotOk(res);
