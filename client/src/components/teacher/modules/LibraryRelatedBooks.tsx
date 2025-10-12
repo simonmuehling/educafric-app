@@ -36,7 +36,7 @@ interface LibraryRecommendation {
   id: number;
   bookId: number;
   teacherId: number;
-  audienceType: 'student' | 'class' | 'department';
+  audienceType: 'student' | 'class';
   audienceIds: number[];
   note?: string;
   recommendedAt: string;
@@ -60,7 +60,7 @@ const LibraryRelatedBooks: React.FC = () => {
   
   const [recommendForm, setRecommendForm] = useState({
     bookId: '',
-    audienceType: 'class' as 'student' | 'class' | 'department',
+    audienceType: 'class' as 'student' | 'class',
     audienceIds: [] as number[],
     note: ''
   });
@@ -127,9 +127,8 @@ const LibraryRelatedBooks: React.FC = () => {
       secondary: { fr: 'Secondaire', en: 'Secondary' }
     },
     audience: {
-      student: { fr: 'Élève(s)', en: 'Student(s)' },
-      class: { fr: 'Classe(s)', en: 'Class(es)' },
-      department: { fr: 'Département(s)', en: 'Department(s)' }
+      student: { fr: 'Élève(s) + Parents', en: 'Student(s) + Parents' },
+      class: { fr: 'Classe(s) + Parents', en: 'Class(es) + Parents' }
     },
     status: {
       loading: { fr: 'Chargement...', en: 'Loading...' },
@@ -656,7 +655,7 @@ const LibraryRelatedBooks: React.FC = () => {
               <Label htmlFor="audienceType">{t.form.audienceType[language]} *</Label>
               <Select 
                 value={recommendForm.audienceType} 
-                onValueChange={(value: 'student' | 'class' | 'department') => {
+                onValueChange={(value: 'student' | 'class') => {
                   setRecommendForm({ ...recommendForm, audienceType: value, audienceIds: [] });
                   setSelectedClassForStudents('all');
                 }}
@@ -665,9 +664,8 @@ const LibraryRelatedBooks: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="student">{t.audience.student[language]}</SelectItem>
                   <SelectItem value="class">{t.audience.class[language]}</SelectItem>
-                  <SelectItem value="department">{t.audience.department[language]}</SelectItem>
+                  <SelectItem value="student">{t.audience.student[language]}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

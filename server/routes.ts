@@ -4320,6 +4320,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Validate audienceType - teachers can only recommend to their classes and students (which includes parents)
+      if (!['student', 'class'].includes(audienceType)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid audienceType. Must be "student" or "class"' 
+        });
+      }
+      
       const recommendationData = {
         bookId,
         teacherId: user.id,
