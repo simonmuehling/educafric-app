@@ -33,13 +33,13 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications } from "../shared/schema.js";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, students } from "../shared/schema.js";
 import { 
   predefinedAppreciations, 
   competencyEvaluationSystems, 
   competencyTemplates 
 } from "../shared/schemas/predefinedAppreciationsSchema.js";
-import { eq, and, or, asc, desc, sql } from "drizzle-orm";
+import { eq, and, or, asc, desc, sql, inArray } from "drizzle-orm";
 import { 
   ArchiveFilter, 
   NewArchivedDocument, 
