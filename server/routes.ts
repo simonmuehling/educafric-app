@@ -1913,61 +1913,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ success: true, schoolsWithClasses: sandboxSchoolsWithClasses });
       }
       
-      // Grouper par école avec les classes assignées (données normales)
-      const schoolsWithClasses = [
-        {
-          schoolId: 1,
-          schoolName: 'Lycée de Yaoundé',
-          schoolAddress: 'Bastos, Yaoundé',
-          schoolPhone: '+237222123456',
-          isConnected: true,
-          assignmentDate: '2024-09-01',
-          classes: [
-            {
-              id: 1,
-              name: '6ème A',
-              level: '6ème',
-              section: 'A',
-              studentCount: 28,
-              subject: 'Mathématiques',
-              room: 'Salle 12',
-              schedule: 'Lun-Mer-Ven 08:00-10:00'
-            },
-            {
-              id: 2,
-              name: '5ème B',
-              level: '5ème',
-              section: 'B', 
-              studentCount: 25,
-              subject: 'Mathématiques',
-              room: 'Salle 15',
-              schedule: 'Mar-Jeu 10:00-12:00'
-            }
-          ]
-        },
-        {
-          schoolId: 2,
-          schoolName: 'Collège Bilingue de Douala',
-          schoolAddress: 'Akwa, Douala',
-          schoolPhone: '+237233987654',
-          isConnected: true,
-          assignmentDate: '2024-08-15',
-          classes: [
-            {
-              id: 3,
-              name: '4ème C',
-              level: '4ème',
-              section: 'C',
-              studentCount: 22,
-              subject: 'Physique',
-              room: 'Labo 1',
-              schedule: 'Mar-Jeu 14:00-16:00'
-            }
-          ]
+      // Get ONLY classes assigned to this teacher from database
+      const assignedClasses = await db
+        .select({
+          classId: teacherSubjectAssignments.classId,
+          className: classes.name,
+          classLevel: classes.level,
+          subjectId: teacherSubjectAssignments.subjectId,
+          subjectName: subjects.name,
+          schoolId: classes.schoolId,
+        })
+        .from(teacherSubjectAssignments)
+        .innerJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
+        .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+        .where(
+          and(
+            eq(teacherSubjectAssignments.teacherId, user.id),
+            eq(teacherSubjectAssignments.schoolId, user.schoolId),
+            eq(teacherSubjectAssignments.active, true)
+          )
+        );
+
+      // Group classes by removing duplicates (same class, different subjects)
+      const uniqueClasses = assignedClasses.reduce((acc: any[], curr) => {
+        const existing = acc.find(c => c.id === curr.classId);
+        if (!existing) {
+          acc.push({
+            id: curr.classId,
+            name: curr.className,
+            level: curr.classLevel,
+            schoolId: curr.schoolId
+          });
         }
-      ];
+        return acc;
+      }, []);
+
+      console.log(`[TEACHER_API] ✅ Found ${uniqueClasses.length} assigned classes for teacher ${user.id}`);
       
-      res.json({ success: true, schoolsWithClasses });
+      // Return in expected format for compatibility
+      const schoolsWithClasses = uniqueClasses.length > 0 ? [
+        {
+          schoolId: user.schoolId,
+          classes: uniqueClasses
+        }
+      ] : [];
+      
+      res.json({ success: true, schoolsWithClasses, classes: uniqueClasses });
     } catch (error) {
       console.error('[TEACHER_API] Error fetching classes:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch classes' });
@@ -2294,38 +2285,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(filteredStudents);
       }
       
-      const allStudents = [
-        {
-          id: 1,
-          firstName: 'Jean',
-          lastName: 'Kamga',
-          classId: 1,
-          class: '6ème A',
-          matricule: 'MAT001',
-          average: 14.5,
-          attendance: 95,
-          parentContact: '+237657005678'
-        },
-        {
-          id: 2,
-          firstName: 'Marie', 
-          lastName: 'Nkomo',
-          classId: 2,
-          class: '5ème B',
-          matricule: 'MAT002',
-          average: 16.2,
-          attendance: 98,
-          parentContact: '+237657007890'
-        }
-      ];
+      // Get ONLY students from classes assigned to this teacher
+      // First, get assigned class IDs
+      const assignedClassIds = await db
+        .select({ classId: teacherSubjectAssignments.classId })
+        .from(teacherSubjectAssignments)
+        .where(
+          and(
+            eq(teacherSubjectAssignments.teacherId, user.id),
+            eq(teacherSubjectAssignments.schoolId, user.schoolId),
+            eq(teacherSubjectAssignments.active, true)
+          )
+        );
+
+      const classIds = [...new Set(assignedClassIds.map(a => a.classId))];
+      
+      if (classIds.length === 0) {
+        console.log('[TEACHER_API] ⚠️ No assigned classes found for teacher:', user.id);
+        return res.json({ success: true, students: [] });
+      }
+
+      // Then get students from those classes
+      const studentsQuery = db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          classId: students.classId,
+          className: classes.name,
+          matricule: students.matricule,
+        })
+        .from(students)
+        .innerJoin(users, eq(students.userId, users.id))
+        .innerJoin(classes, eq(students.classId, classes.id))
+        .where(
+          and(
+            inArray(students.classId, classIds),
+            eq(students.schoolId, user.schoolId)
+          )
+        );
+
+      const allStudents = await studentsQuery;
+
+      // Add class name property and format for compatibility
+      const formattedStudents = allStudents.map(s => ({
+        id: s.id,
+        firstName: s.firstName,
+        lastName: s.lastName,
+        name: `${s.firstName} ${s.lastName}`,
+        email: s.email,
+        classId: s.classId,
+        class: s.className,
+        className: s.className,
+        matricule: s.matricule
+      }));
       
       // Filtrer par classId si fourni
       const filteredStudents = classId 
-        ? allStudents.filter(student => student.classId === parseInt(classId as string))
-        : allStudents;
+        ? formattedStudents.filter(student => student.classId === parseInt(classId as string))
+        : formattedStudents;
       
-      console.log('[TEACHER_API] 📊 Found', filteredStudents.length, 'non-sandbox students for classId:', classId);
-      res.json({ success: true, students: filteredStudents });
+      console.log(`[TEACHER_API] ✅ Found ${filteredStudents.length} students from ${classIds.length} assigned classes for teacher ${user.id}`);
+      res.json(filteredStudents);
     } catch (error) {
       console.error('[TEACHER_API] Error fetching students:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch students' });
