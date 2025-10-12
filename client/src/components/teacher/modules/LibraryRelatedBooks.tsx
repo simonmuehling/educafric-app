@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { csrfFetch } from '@/lib/csrf';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -197,10 +198,9 @@ const LibraryRelatedBooks: React.FC = () => {
   // Create book mutation
   const createBookMutation = useMutation({
     mutationFn: async (bookData: any) => {
-      const response = await fetch('/api/teacher/library/books', {
+      const response = await csrfFetch('/api/teacher/library/books', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(bookData)
       });
       
@@ -238,10 +238,9 @@ const LibraryRelatedBooks: React.FC = () => {
   // Create recommendation mutation
   const createRecommendationMutation = useMutation({
     mutationFn: async (recommendationData: any) => {
-      const response = await fetch('/api/teacher/library/recommend', {
+      const response = await csrfFetch('/api/teacher/library/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(recommendationData)
       });
       
