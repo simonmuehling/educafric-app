@@ -181,9 +181,36 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
   const t = labels[language];
 
   return (
-    <div className="annual-report-compact max-w-4xl mx-auto bg-white p-6 text-black print:p-2" data-annual-report="true">
+    <div className="annual-report-compact max-w-4xl mx-auto bg-white p-6 text-black print:p-3 print:max-h-[297mm] print:overflow-hidden" data-annual-report="true" style={{
+      pageBreakInside: 'avoid',
+      pageBreakAfter: 'avoid',
+      pageBreakBefore: 'avoid'
+    }}>
+      <style>{`
+        @media print {
+          .annual-report-compact {
+            margin: 0 !important;
+            padding: 8mm !important;
+            max-width: 100% !important;
+            transform: scale(0.85);
+            transform-origin: top center;
+            page-break-inside: avoid !important;
+          }
+          .ministry-header { margin-bottom: 8px !important; padding-bottom: 8px !important; }
+          .student-header { margin-bottom: 8px !important; }
+          .trimester-section { margin-bottom: 8px !important; }
+          .annual-summary { margin-bottom: 8px !important; }
+          .signatures-section { margin-top: 12px !important; }
+          .signature-box .h-20 { height: 40px !important; }
+          
+          @page {
+            size: A4;
+            margin: 10mm;
+          }
+        }
+      `}</style>
       {/* Ministry Official Header - Bilingual */}
-      <div className="ministry-header text-center mb-6 border-b-2 border-black pb-4">
+      <div className="ministry-header text-center mb-6 border-b-2 border-black pb-4 print:mb-2 print:pb-2">
         <div className="grid grid-cols-2 gap-8 mb-4">
           {/* French Side */}
           <div className="text-xs leading-tight">
@@ -228,8 +255,8 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
       </div>
 
       {/* Student Information - Bilingual */}
-      <div className="student-header mb-6">
-        <h3 className="font-bold text-sm mb-3 bg-gray-100 p-2">
+      <div className="student-header mb-6 print:mb-2">
+        <h3 className="font-bold text-sm mb-3 bg-gray-100 p-2 print:mb-1 print:p-1">
           {t.studentInfo}
         </h3>
         <div className="flex gap-6">
@@ -274,8 +301,8 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
       </div>
 
       {/* Trimester Progression Table */}
-      <div className="trimester-section mb-6">
-        <h3 className="font-bold text-sm mb-3 bg-gray-100 p-2">
+      <div className="trimester-section mb-6 print:mb-2">
+        <h3 className="font-bold text-sm mb-3 bg-gray-100 p-2 print:mb-1 print:p-1">
           {t.trimesterProgression}
         </h3>
         <table className="w-full border-collapse border border-black text-xs">
@@ -354,20 +381,20 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
       </div>
 
       {/* Annual Summary */}
-      <div className="annual-summary mb-6">
-        <h3 className="font-bold text-sm mb-3 bg-orange-100 p-2">
+      <div className="annual-summary mb-6 print:mb-2">
+        <h3 className="font-bold text-sm mb-3 bg-orange-100 p-2 print:mb-1 print:p-1">
           {t.annualSummary}
         </h3>
-        <div className="stats-row grid grid-cols-3 gap-4 text-sm">
-          <div className="decision-section text-center border border-black p-3">
-            <div className="font-bold">{t.annualAverage}</div>
-            <div className="text-2xl font-bold text-blue-700">{annualSummary.annualAverage.toFixed(2)}/20</div>
+        <div className="stats-row grid grid-cols-3 gap-4 text-sm print:gap-2">
+          <div className="decision-section text-center border border-black p-3 print:p-2">
+            <div className="font-bold print:text-xs">{t.annualAverage}</div>
+            <div className="text-2xl font-bold text-blue-700 print:text-lg">{annualSummary.annualAverage.toFixed(2)}/20</div>
           </div>
-          <div className="decision-section text-center border border-black p-3">
-            <div className="font-bold">{t.annualRank}</div>
-            <div className="text-xl font-bold text-green-700">{annualSummary.annualRank}</div>
+          <div className="decision-section text-center border border-black p-3 print:p-2">
+            <div className="font-bold print:text-xs">{t.annualRank}</div>
+            <div className="text-xl font-bold text-green-700 print:text-base">{annualSummary.annualRank}</div>
           </div>
-          <div className="decision-section text-center border border-black p-3">
+          <div className="decision-section text-center border border-black p-3 print:p-2">
             <div className="font-bold">{t.finalDecision}</div>
             <div className={`text-xl font-bold ${
               annualSummary.finalDecision === 'PASSE' ? 'text-green-700' : 
@@ -380,56 +407,56 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
       </div>
 
       {/* Observations */}
-      <div className="observations mb-6 space-y-4">
+      <div className="observations mb-6 space-y-4 print:mb-2 print:space-y-2">
         <div>
-          <h4 className="font-bold text-sm mb-2">{t.principalObservations}</h4>
-          <div className="border border-black p-3 min-h-[80px] text-sm">
+          <h4 className="font-bold text-sm mb-2 print:mb-1 print:text-xs">{t.principalObservations}</h4>
+          <div className="border border-black p-3 min-h-[80px] text-sm print:p-2 print:min-h-[50px] print:text-xs">
             {annualSummary.principalObservations}
           </div>
         </div>
         
         <div>
-          <h4 className="font-bold text-sm mb-2">{t.recommendations}</h4>
-          <div className="border border-black p-3 min-h-[60px] text-sm">
+          <h4 className="font-bold text-sm mb-2 print:mb-1 print:text-xs">{t.recommendations}</h4>
+          <div className="border border-black p-3 min-h-[60px] text-sm print:p-2 print:min-h-[40px] print:text-xs">
             {annualSummary.holidayRecommendations}
           </div>
         </div>
 
         <div>
-          <h4 className="font-bold text-sm mb-2">{t.parentComments}</h4>
-          <div className="border border-black p-3 min-h-[60px] text-sm">
+          <h4 className="font-bold text-sm mb-2 print:mb-1 print:text-xs">{t.parentComments}</h4>
+          <div className="border border-black p-3 min-h-[60px] text-sm print:p-2 print:min-h-[40px] print:text-xs">
             {annualSummary.parentObservations || ''}
           </div>
         </div>
       </div>
 
       {/* Signatures Section */}
-      <div className="signatures-section mt-8">
-        <h3 className="font-bold text-sm mb-4 bg-gray-100 p-2">
+      <div className="signatures-section mt-8 print:mt-3">
+        <h3 className="font-bold text-sm mb-4 bg-gray-100 p-2 print:mb-2 print:p-1">
           {t.signatures}
         </h3>
-        <div className="grid grid-cols-3 gap-6 text-xs">
+        <div className="grid grid-cols-3 gap-6 text-xs print:gap-3">
           <div className="signature-box text-center">
-            <div className="h-20 border-b border-black mb-2"></div>
-            <div className="font-bold">{t.parentSignature}</div>
-            <div className="mt-1">{t.date}: ___________</div>
+            <div className="h-20 border-b border-black mb-2 print:h-12"></div>
+            <div className="font-bold print:text-xs">{t.parentSignature}</div>
+            <div className="mt-1 print:mt-0 print:text-xs">{t.date}: ___________</div>
           </div>
           <div className="signature-box text-center">
-            <div className="h-20 border-b border-black mb-2"></div>
-            <div className="font-bold">{t.principalSignature}</div>
-            <div className="mt-1">{t.date}: ___________</div>
+            <div className="h-20 border-b border-black mb-2 print:h-12"></div>
+            <div className="font-bold print:text-xs">{t.principalSignature}</div>
+            <div className="mt-1 print:mt-0 print:text-xs">{t.date}: ___________</div>
           </div>
           <div className="signature-box text-center">
-            <div className="h-20 border border-black mb-2 flex items-center justify-center">
-              <span className="text-gray-500">{t.schoolStamp}</span>
+            <div className="h-20 border border-black mb-2 flex items-center justify-center print:h-12">
+              <span className="text-gray-500 print:text-xs">{t.schoolStamp}</span>
             </div>
-            <div className="font-bold">{t.schoolStamp}</div>
+            <div className="font-bold print:text-xs">{t.schoolStamp}</div>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="mt-6 text-center text-xs text-gray-600 border-t pt-4">
+      <div className="mt-6 text-center text-xs text-gray-600 border-t pt-4 print:mt-2 print:pt-2 print:text-[10px]">
         {language === 'fr' 
           ? 'Document officiel du Ministère des Enseignements Secondaires - République du Cameroun'
           : 'Official document of the Ministry of Secondary Education - Republic of Cameroon'
