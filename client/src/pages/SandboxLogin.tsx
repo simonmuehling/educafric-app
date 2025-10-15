@@ -26,15 +26,14 @@ const SandboxLogin = () => {
       premiumAccess: 'Accès Premium',
       testing: 'Test en cours...',
       directAccess: 'Accès Direct',
-      description: '6 profils éducatifs avec tous les modules premium débloqués pour une démonstration complète',
+      description: '4 profils éducatifs avec tous les modules premium débloqués pour une démonstration complète',
       features: {
         parent: 'Suivi enfants, géolocalisation, paiements, communications',
         student: 'Cours, devoirs, notes, emploi du temps, ressources',
         teacher: 'Classes, présences, notes, bulletins, communications',
         freelancer: 'Élèves, séances, paiements, analyses, géolocalisation',
         admin: 'Gestion école, utilisateurs, système, sécurité',
-        director: 'Supervision, rapports, validations, communications',
-        siteadmin: 'Gestion plateforme, utilisateurs globaux, commerciaux, sécurité système'
+        director: 'Supervision, rapports, validations, communications'
       }
     },
     en: {
@@ -45,15 +44,14 @@ const SandboxLogin = () => {
       premiumAccess: 'Premium Access',
       testing: 'Testing...',
       directAccess: 'Direct Access',
-      description: '6 educational profiles with all premium modules unlocked for complete demonstration',
+      description: '4 educational profiles with all premium modules unlocked for complete demonstration',
       features: {
         parent: 'Child tracking, geolocation, payments, communications',
         student: 'Classes, homework, grades, timetable, resources',
         teacher: 'Classes, attendance, grades, reports, communications',
         freelancer: 'Students, sessions, payments, analytics, geolocation',
         admin: 'School management, users, system, security',
-        director: 'Supervision, reports, validations, communications',
-        siteadmin: 'Platform management, global users, commercials, system security'
+        director: 'Supervision, reports, validations, communications'
       }
     }
   };
@@ -112,19 +110,6 @@ const SandboxLogin = () => {
       description: t?.features?.director,
       modules: 13,
       details: language === 'fr' ? 'Directrice Générale, Doctorat en Éducation' : 'General Director, PhD in Education'
-    },
-    {
-      id: 'siteadmin',
-      name: 'Admin Système',
-      realName: language === 'fr' ? 'Site Admin (Admin Système)' : 'Site Admin (System Admin)',
-      email: 'sandbox.siteadmin@educafric.demo',
-      password: 'sandbox123',
-      icon: <Shield className="w-8 h-8" />,
-      color: 'bg-red-600',
-      role: 'SiteAdmin',
-      description: t?.features?.siteadmin,
-      modules: 10,
-      details: language === 'fr' ? 'Administrateur système, gestion plateforme globale' : 'System administrator, global platform management'
     }
   ];
 
