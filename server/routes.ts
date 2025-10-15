@@ -33,7 +33,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, students } from "../shared/schema.js";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions } from "../shared/schema.js";
 import { 
   predefinedAppreciations, 
   competencyEvaluationSystems, 
@@ -2312,17 +2312,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           firstName: users.firstName,
           lastName: users.lastName,
           email: users.email,
-          classId: students.classId,
+          classId: classEnrollments.classId,
           className: classes.name,
-          matricule: students.matricule,
+          matricule: users.matricule,
         })
-        .from(students)
-        .innerJoin(users, eq(students.userId, users.id))
-        .innerJoin(classes, eq(students.classId, classes.id))
+        .from(classEnrollments)
+        .innerJoin(users, eq(classEnrollments.studentId, users.id))
+        .innerJoin(classes, eq(classEnrollments.classId, classes.id))
         .where(
           and(
-            inArray(students.classId, classIds),
-            eq(students.schoolId, user.schoolId)
+            inArray(classEnrollments.classId, classIds),
+            eq(classEnrollments.schoolId, user.schoolId)
           )
         );
 
