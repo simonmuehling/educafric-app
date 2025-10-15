@@ -113,6 +113,7 @@ const BulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest
 const BulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
 const BulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
 const PWANotificationTest = lazy(() => import("@/pages/PWANotificationTest"));
+const TeacherActivationPurchase = lazy(() => import("@/pages/TeacherActivationPurchase"));
 
 // System components - Optimisés pour 3500+ utilisateurs
 import InactivityMonitor from "@/components/auth/InactivityMonitor";
@@ -267,6 +268,14 @@ function Router() {
       <Route path="/teacher">
         <ProtectedRoute>
           <LazyTeachers />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/teacher/activation-purchase">
+        <ProtectedRoute>
+          <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>}>
+            <TeacherActivationPurchase />
+          </Suspense>
         </ProtectedRoute>
       </Route>
 
