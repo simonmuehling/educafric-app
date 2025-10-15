@@ -84,7 +84,10 @@ const TeacherIndependentCourses: React.FC = () => {
   const [showAddStudentDialog, setShowAddStudentDialog] = useState(false);
   const [showCreateSessionDialog, setShowCreateSessionDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mtn' | ''>('');
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
   
   // New student form
   const [newStudent, setNewStudent] = useState({
@@ -192,7 +195,17 @@ const TeacherIndependentCourses: React.FC = () => {
       rejected: 'Refusée',
       sentTo: 'Envoyé à',
       expiresOn: 'Expire le',
-      invitationSent: 'Invitation envoyée avec succès'
+      invitationSent: 'Invitation envoyée avec succès',
+      paymentMethod: 'Méthode de paiement',
+      selectPaymentMethod: 'Sélectionner une méthode',
+      stripe: 'Carte bancaire (Stripe)',
+      mtn: 'MTN Mobile Money',
+      processing: 'Traitement...',
+      paymentProcessing: 'Traitement du paiement en cours...',
+      paymentSuccess: 'Paiement réussi!',
+      paymentFailed: 'Le paiement a échoué',
+      proceedToPayment: 'Procéder au paiement',
+      paymentMethodRequired: 'Veuillez sélectionner une méthode de paiement'
     },
     en: {
       title: 'My Private Courses',
@@ -268,7 +281,17 @@ const TeacherIndependentCourses: React.FC = () => {
       rejected: 'Rejected',
       sentTo: 'Sent to',
       expiresOn: 'Expires on',
-      invitationSent: 'Invitation sent successfully'
+      invitationSent: 'Invitation sent successfully',
+      paymentMethod: 'Payment method',
+      selectPaymentMethod: 'Select a method',
+      stripe: 'Credit Card (Stripe)',
+      mtn: 'MTN Mobile Money',
+      processing: 'Processing...',
+      paymentProcessing: 'Processing payment...',
+      paymentSuccess: 'Payment successful!',
+      paymentFailed: 'Payment failed',
+      proceedToPayment: 'Proceed to payment',
+      paymentMethodRequired: 'Please select a payment method'
     }
   };
 
@@ -405,6 +428,36 @@ const TeacherIndependentCourses: React.FC = () => {
     }
   });
 
+  // Payment mutation
+  const paymentMutation = useMutation({
+    mutationFn: async (method: 'stripe' | 'mtn') => {
+      if (method === 'stripe') {
+        const response = await apiRequest('POST', '/api/teacher-independent-payments/create-stripe-payment');
+        return { method: 'stripe', ...response };
+      } else {
+        const response = await apiRequest('POST', '/api/teacher-independent-payments/create-mtn-payment');
+        return { method: 'mtn', ...response };
+      }
+    },
+    onSuccess: async (data) => {
+      if (data.method === 'stripe') {
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+      } else {
+        // Redirect to MTN payment page
+        window.location.href = data.payment_url;
+      }
+    },
+    onError: (error: any) => {
+      setPaymentProcessing(false);
+      toast({
+        variant: 'destructive',
+        title: t.paymentFailed,
+        description: error.message
+      });
+    }
+  });
+
   const handleAddStudent = () => {
     addStudentMutation.mutate(newStudent);
   };
@@ -415,6 +468,19 @@ const TeacherIndependentCourses: React.FC = () => {
 
   const handleSendInvitation = () => {
     createInvitationMutation.mutate(newInvitation);
+  };
+
+  const handlePayment = () => {
+    if (!paymentMethod) {
+      toast({
+        variant: 'destructive',
+        title: t.error,
+        description: t.paymentMethodRequired
+      });
+      return;
+    }
+    setPaymentProcessing(true);
+    paymentMutation.mutate(paymentMethod as 'stripe' | 'mtn');
   };
 
   const getStatusBadge = (status: string) => {
@@ -463,7 +529,7 @@ const TeacherIndependentCourses: React.FC = () => {
               <Button 
                 size="lg" 
                 className="mt-4"
-                onClick={() => window.location.href = '/teacher/activation-purchase'}
+                onClick={() => setShowPaymentDialog(true)}
                 data-testid="button-purchase-activation"
               >
                 <CreditCard className="w-4 h-4 mr-2" />
@@ -999,6 +1065,70 @@ const TeacherIndependentCourses: React.FC = () => {
             >
               <Send className="w-4 h-4 mr-2" />
               {t.sendInvitation}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              {t.purchaseButton}
+            </DialogTitle>
+            <DialogDescription>
+              {t.price}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>{t.paymentMethod}</Label>
+              <Select 
+                value={paymentMethod} 
+                onValueChange={(value) => setPaymentMethod(value as 'stripe' | 'mtn')}
+              >
+                <SelectTrigger data-testid="select-payment-method">
+                  <SelectValue placeholder={t.selectPaymentMethod} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="stripe" data-testid="option-stripe">
+                    💳 {t.stripe}
+                  </SelectItem>
+                  <SelectItem value="mtn" data-testid="option-mtn">
+                    📱 {t.mtn}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {paymentProcessing && (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <p className="text-sm text-gray-600">{t.paymentProcessing}</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowPaymentDialog(false);
+                setPaymentMethod('');
+                setPaymentProcessing(false);
+              }}
+              disabled={paymentProcessing}
+              data-testid="button-cancel-payment"
+            >
+              {t.cancel}
+            </Button>
+            <Button 
+              onClick={handlePayment}
+              disabled={!paymentMethod || paymentProcessing}
+              data-testid="button-proceed-payment"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              {t.proceedToPayment}
             </Button>
           </DialogFooter>
         </DialogContent>
