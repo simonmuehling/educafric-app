@@ -109,7 +109,8 @@ passport.deserializeUser(async (id: string | number, done) => {
         9003: { id: 9003, name: 'Sophie Biya', role: 'Freelancer', email: 'sandbox.freelancer@educafric.demo', schoolId: 999, subjects: ['Français', 'Littérature'], students: [9004], phone: '+237652123456', address: 'Quartier Nlongkak, Yaoundé', specialization: 'Langues et Littérature', hourlyRate: 2500 },
         9004: { id: 9004, name: 'Junior Kamga', role: 'Student', email: 'sandbox.student@educafric.demo', schoolId: 999, parentId: 9001, classId: 301, className: '3ème A', age: 14, phone: '+237653123456', address: 'Quartier Bastos, Yaoundé', parentName: 'Marie Kamga', subjects: ['Mathématiques', 'Français', 'Sciences', 'Histoire'] },
         9005: { id: 9005, name: 'Dr. Nguetsop Carine', role: 'Admin', email: 'sandbox.admin@educafric.demo', schoolId: 999, phone: '+237654123456', address: 'Quartier Essos, Yaoundé', title: 'Directrice Pédagogique', department: 'Administration', qualification: 'Doctorat en Sciences de l\'Éducation' },
-        9006: { id: 9006, name: 'Prof. Atangana Michel', role: 'Director', email: 'sandbox.director@educafric.demo', schoolId: 999, phone: '+237655123456', address: 'Quartier Bastos, Yaoundé', title: 'Directeur Général', qualification: 'Doctorat en Éducation' }
+        9006: { id: 9006, name: 'Prof. Atangana Michel', role: 'Director', email: 'sandbox.director@educafric.demo', schoolId: 999, phone: '+237655123456', address: 'Quartier Bastos, Yaoundé', title: 'Directeur Général', qualification: 'Doctorat en Éducation' },
+        9008: { id: 9008, name: 'Admin Système', role: 'SiteAdmin', email: 'sandbox.siteadmin@educafric.demo', schoolId: 999, phone: '+237657123456', address: 'Bureau Central, Yaoundé', title: 'Administrateur Système', department: 'IT & Sécurité' }
       };
       
       const profile = sandboxProfiles[sandboxId as keyof typeof sandboxProfiles];
@@ -654,6 +655,10 @@ router.post('/sandbox-login', sandboxLoginLimiter, async (req, res) => {
       'sandbox.commercial@educafric.demo': { 
         id: 9007, name: 'Paul Kamga', role: 'Commercial', email: 'sandbox.commercial@educafric.demo', 
         schoolId: 999, phone: '+237656123456', sandboxMode: true 
+      },
+      'sandbox.siteadmin@educafric.demo': { 
+        id: 9008, name: 'Admin Système', role: 'SiteAdmin', email: 'sandbox.siteadmin@educafric.demo', 
+        schoolId: 999, phone: '+237657123456', sandboxMode: true 
       }
     };
     

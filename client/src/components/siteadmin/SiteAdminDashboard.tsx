@@ -52,10 +52,43 @@ const SiteAdminDashboard: React.FC = () => {
   const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
+  // Access control - Only SiteAdmin can access
+  const hasAccess = user?.role === 'SiteAdmin';
+  
+  // Show access denied for non-SiteAdmin users
+  if (user && !hasAccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-600">
+              <Lock className="w-5 h-5" />
+              Accès Refusé / Access Denied
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-600 dark:text-gray-400">
+              Vous n'avez pas les permissions nécessaires pour accéder à cette page.
+              Seuls les administrateurs système (SiteAdmin) peuvent accéder au tableau de bord administrateur.
+            </p>
+            <p className="text-gray-600 dark:text-gray-400">
+              You don't have the necessary permissions to access this page.
+              Only system administrators (SiteAdmin) can access the admin dashboard.
+            </p>
+            <div className="pt-4">
+              <Button onClick={() => window.location.href = '/'} className="w-full">
+                Retour à l'accueil / Back to Home
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   // AGGRESSIVE API DATA PRELOADING - SiteAdmin APIs
   React.useEffect(() => {
-    if (!user) {
+    if (!user || !hasAccess) {
       setApiDataPreloaded(false);
       return;
     }

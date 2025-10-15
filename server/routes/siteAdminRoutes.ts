@@ -3,8 +3,8 @@ import { storage } from "../storage";
 
 // Security middleware for SiteAdmin features
 const requireSiteAdminAccess = (req: any, res: any, next: any) => {
-  if (!req.user || !['SiteAdmin', 'SuperAdmin'].includes(req.user.role)) {
-    return res.status(403).json({ message: 'Site Admin or Super Admin access required' });
+  if (!req.user || req.user.role !== 'SiteAdmin') {
+    return res.status(403).json({ message: 'Site Admin access required' });
   }
   next();
 };

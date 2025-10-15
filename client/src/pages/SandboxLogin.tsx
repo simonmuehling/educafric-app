@@ -33,7 +33,8 @@ const SandboxLogin = () => {
         teacher: 'Classes, présences, notes, bulletins, communications',
         freelancer: 'Élèves, séances, paiements, analyses, géolocalisation',
         admin: 'Gestion école, utilisateurs, système, sécurité',
-        director: 'Supervision, rapports, validations, communications'
+        director: 'Supervision, rapports, validations, communications',
+        siteadmin: 'Gestion plateforme, utilisateurs globaux, commerciaux, sécurité système'
       }
     },
     en: {
@@ -51,7 +52,8 @@ const SandboxLogin = () => {
         teacher: 'Classes, attendance, grades, reports, communications',
         freelancer: 'Students, sessions, payments, analytics, geolocation',
         admin: 'School management, users, system, security',
-        director: 'Supervision, reports, validations, communications'
+        director: 'Supervision, reports, validations, communications',
+        siteadmin: 'Platform management, global users, commercials, system security'
       }
     }
   };
@@ -110,6 +112,19 @@ const SandboxLogin = () => {
       description: t?.features?.director,
       modules: 13,
       details: language === 'fr' ? 'Directrice Générale, Doctorat en Éducation' : 'General Director, PhD in Education'
+    },
+    {
+      id: 'siteadmin',
+      name: 'Admin Système',
+      realName: language === 'fr' ? 'Site Admin (Admin Système)' : 'Site Admin (System Admin)',
+      email: 'sandbox.siteadmin@educafric.demo',
+      password: 'sandbox123',
+      icon: <Shield className="w-8 h-8" />,
+      color: 'bg-red-600',
+      role: 'SiteAdmin',
+      description: t?.features?.siteadmin,
+      modules: 10,
+      details: language === 'fr' ? 'Administrateur système, gestion plateforme globale' : 'System administrator, global platform management'
     }
   ];
 

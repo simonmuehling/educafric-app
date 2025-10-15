@@ -131,14 +131,15 @@ const UnifiedCommercialManagement: React.FC = () => {
     password: ''
   });
 
-  // Queries
+  // Queries - Only run for SiteAdmin/SuperAdmin users
   const { data: commercials = [], isLoading: loadingCommercials } = useQuery({
     queryKey: ['/api/site-admin/commercials'],
     queryFn: async () => {
       const response = await fetch('/api/site-admin/commercials', { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch commercials');
       return response.json();
-    }
+    },
+    retry: false
   });
 
   // Global activities for all commercials
