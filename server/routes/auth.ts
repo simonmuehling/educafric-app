@@ -636,7 +636,8 @@ router.post('/sandbox-login', sandboxLoginLimiter, async (req, res) => {
       },
       'sandbox.teacher@educafric.demo': { 
         id: 9002, name: 'Paul Mvondo', role: 'Teacher', email: 'sandbox.teacher@educafric.demo', 
-        schoolId: 999, subjects: ['Mathématiques', 'Physique'], phone: '+237651123456', sandboxMode: true 
+        schoolId: 999, subjects: ['Mathématiques', 'Physique'], phone: '+237651123456', sandboxMode: true,
+        workMode: 'hybrid'
       },
       'sandbox.freelancer@educafric.demo': { 
         id: 9003, name: 'Sophie Biya', role: 'Freelancer', email: 'sandbox.freelancer@educafric.demo', 
