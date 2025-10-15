@@ -97,6 +97,76 @@ router.get('/activation/status', requireAuth, async (req, res) => {
   }
 });
 
+// Activate free trial (3 months)
+router.post('/activation/free-trial', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès refusé. Rôle enseignant requis.'
+      });
+    }
+
+    // Check if user already has an activation (free or paid)
+    const existingActivation = await db
+      .select()
+      .from(teacherIndependentActivations)
+      .where(eq(teacherIndependentActivations.teacherId, user.id))
+      .limit(1);
+
+    if (existingActivation.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vous avez déjà utilisé votre essai gratuit ou acheté une activation.'
+      });
+    }
+
+    // Create 3-month free activation
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 3); // 3 months from now
+
+    const [activation] = await db.insert(teacherIndependentActivations).values({
+      teacherId: user.id,
+      durationType: 'trial',
+      startDate,
+      endDate,
+      status: 'active',
+      activatedBy: 'free_trial',
+      paymentMethod: 'free',
+      amountPaid: 0,
+      notes: 'Essai gratuit de 3 mois'
+    }).returning();
+
+    // Update user's work_mode to hybrid
+    if (user.workMode === 'school') {
+      await db
+        .update(users)
+        .set({ workMode: 'hybrid' })
+        .where(eq(users.id, user.id));
+    }
+
+    console.log(`[TEACHER_INDEPENDENT] ✅ Free trial activated for teacher ${user.id}`);
+
+    res.json({
+      success: true,
+      message: 'Essai gratuit de 3 mois activé avec succès!',
+      activation: {
+        ...activation,
+        daysRemaining: Math.ceil((new Date(activation.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      }
+    });
+  } catch (error) {
+    console.error('[TEACHER_INDEPENDENT] Error activating free trial:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'activation de l\'essai gratuit'
+    });
+  }
+});
+
 // Get teacher's independent students
 router.get('/students', requireAuth, requireIndependentActivation, async (req, res) => {
   try {

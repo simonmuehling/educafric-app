@@ -205,7 +205,11 @@ const TeacherIndependentCourses: React.FC = () => {
       paymentSuccess: 'Paiement réussi!',
       paymentFailed: 'Le paiement a échoué',
       proceedToPayment: 'Procéder au paiement',
-      paymentMethodRequired: 'Veuillez sélectionner une méthode de paiement'
+      paymentMethodRequired: 'Veuillez sélectionner une méthode de paiement',
+      freeTrial: 'Essai gratuit 3 mois',
+      freeTrialActivated: 'Essai gratuit activé avec succès!',
+      freeTrialDescription: 'Testez le mode répétiteur indépendant gratuitement pendant 3 mois',
+      or: 'ou'
     },
     en: {
       title: 'My Private Courses',
@@ -291,7 +295,11 @@ const TeacherIndependentCourses: React.FC = () => {
       paymentSuccess: 'Payment successful!',
       paymentFailed: 'Payment failed',
       proceedToPayment: 'Proceed to payment',
-      paymentMethodRequired: 'Please select a payment method'
+      paymentMethodRequired: 'Please select a payment method',
+      freeTrial: 'Free 3-month trial',
+      freeTrialActivated: 'Free trial activated successfully!',
+      freeTrialDescription: 'Test independent tutor mode free for 3 months',
+      or: 'or'
     }
   };
 
@@ -428,6 +436,28 @@ const TeacherIndependentCourses: React.FC = () => {
     }
   });
 
+  // Free trial mutation
+  const freeTrialMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('POST', '/api/teacher/independent/activation/free-trial');
+    },
+    onSuccess: () => {
+      toast({
+        title: t.success,
+        description: t.freeTrialActivated
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/independent/activation/status'] });
+      setActiveTab('students');
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: t.error,
+        description: error.message
+      });
+    }
+  });
+
   // Payment mutation
   const paymentMutation = useMutation({
     mutationFn: async (method: 'stripe' | 'mtn') => {
@@ -524,6 +554,32 @@ const TeacherIndependentCourses: React.FC = () => {
             <div className="text-center py-8 space-y-4">
               <AlertCircle className="w-16 h-16 mx-auto text-orange-500" />
               <h3 className="text-xl font-bold">{isExpired ? t.activationExpired : t.purchaseRequired}</h3>
+              
+              {!isExpired && (
+                <>
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 my-4">
+                    <p className="text-green-700 dark:text-green-300 font-medium">{t.freeTrialDescription}</p>
+                  </div>
+                  <Button 
+                    size="lg" 
+                    variant="default"
+                    className="mt-4 bg-green-600 hover:bg-green-700"
+                    onClick={() => freeTrialMutation.mutate()}
+                    disabled={freeTrialMutation.isPending}
+                    data-testid="button-free-trial"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    {freeTrialMutation.isPending ? t.processing : t.freeTrial}
+                  </Button>
+                  
+                  <div className="flex items-center gap-3 my-4">
+                    <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm">{t.or}</span>
+                    <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
+                  </div>
+                </>
+              )}
+              
               <p className="text-gray-600">{t.purchaseDescription}</p>
               <p className="text-2xl font-bold text-primary">{t.price}</p>
               <Button 
