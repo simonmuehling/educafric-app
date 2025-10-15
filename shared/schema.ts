@@ -22,6 +22,7 @@ export * from "./schemas/onlineClassesSchema"; // NEW: Online classes with Jitsi
 export * from "./schemas/educafricNumberSchema"; // NEW: EDUCAFRIC number management system
 export * from "./schemas/waClicksSchema"; // NEW: WhatsApp Click-to-Chat clicks tracking
 export * from "./schemas/waValidation"; // NEW: WhatsApp validation schemas
+export * from "./schemas/teacherIndependentSchema"; // NEW: Teacher independent mode (fusion Freelancer → Teacher)
 
 // Import existing schema modules
 export * from "./tutorialSchema";

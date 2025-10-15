@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   secondaryRoles: text("secondary_roles").array(),
   activeRole: text("active_role"), // Currently selected role for session
   roleHistory: jsonb("role_history"), // Track role switches and affiliations
+  workMode: text("work_mode").default("school"), // "school" (assigned classes) | "independent" (private tutoring) | "hybrid" (both)
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   gender: text("gender"),
