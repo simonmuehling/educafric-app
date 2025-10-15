@@ -1705,7 +1705,6 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       const { password } = req.body;
       
       // Verify password before disabling 2FA
-      const bcrypt = require('bcryptjs');
       const isValidPassword = await bcrypt.compare(password, user.password);
       
       if (!isValidPassword) {
