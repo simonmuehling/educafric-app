@@ -7,7 +7,7 @@
  * Created: October 2025
  */
 
-import { sendEmail } from './hostingerMailService';
+import { hostingerMailService } from './hostingerMailService';
 import { createWaToken, getRecipientById } from './waClickToChat';
 import { 
   InvitationTemplateGenerator, 
@@ -70,12 +70,11 @@ export class InvitationNotificationService {
 
       let emailSent = false;
       try {
-        await sendEmail(
-          data.recipientEmail,
-          emailTemplate.subject,
-          emailTemplate.body
-        );
-        emailSent = true;
+        emailSent = await hostingerMailService.sendEmail({
+          to: data.recipientEmail,
+          subject: emailTemplate.subject,
+          html: emailTemplate.body
+        });
         console.log(`[INVITATION_NOTIFICATION] Email sent to ${data.recipientEmail}`);
       } catch (emailError) {
         console.error(`[INVITATION_NOTIFICATION] Email failed:`, emailError);
@@ -151,12 +150,11 @@ export class InvitationNotificationService {
 
       let emailSent = false;
       try {
-        await sendEmail(
-          data.teacherEmail,
-          emailTemplate.subject,
-          emailTemplate.body
-        );
-        emailSent = true;
+        emailSent = await hostingerMailService.sendEmail({
+          to: data.teacherEmail,
+          subject: emailTemplate.subject,
+          html: emailTemplate.body
+        });
         console.log(`[INVITATION_NOTIFICATION] Acceptance email sent to ${data.teacherEmail}`);
       } catch (emailError) {
         console.error(`[INVITATION_NOTIFICATION] Acceptance email failed:`, emailError);
@@ -232,12 +230,11 @@ export class InvitationNotificationService {
 
       let emailSent = false;
       try {
-        await sendEmail(
-          data.teacherEmail,
-          emailTemplate.subject,
-          emailTemplate.body
-        );
-        emailSent = true;
+        emailSent = await hostingerMailService.sendEmail({
+          to: data.teacherEmail,
+          subject: emailTemplate.subject,
+          html: emailTemplate.body
+        });
         console.log(`[INVITATION_NOTIFICATION] Rejection email sent to ${data.teacherEmail}`);
       } catch (emailError) {
         console.error(`[INVITATION_NOTIFICATION] Rejection email failed:`, emailError);
