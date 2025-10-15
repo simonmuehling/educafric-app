@@ -188,24 +188,105 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
     }}>
       <style>{`
         @media print {
+          html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+          }
+          
           .annual-report-compact {
             margin: 0 !important;
-            padding: 8mm !important;
+            padding: 6mm !important;
             max-width: 100% !important;
-            transform: scale(0.85);
+            max-height: 277mm !important;
+            height: fit-content !important;
+            transform: scale(0.95);
             transform-origin: top center;
             page-break-inside: avoid !important;
+            page-break-after: avoid !important;
+            overflow: hidden !important;
+            display: flex;
+            flex-direction: column;
           }
-          .ministry-header { margin-bottom: 8px !important; padding-bottom: 8px !important; }
-          .student-header { margin-bottom: 8px !important; }
-          .trimester-section { margin-bottom: 8px !important; }
-          .annual-summary { margin-bottom: 8px !important; }
-          .signatures-section { margin-top: 12px !important; }
-          .signature-box .h-20 { height: 40px !important; }
+          
+          /* Force all content to fit vertically */
+          .ministry-header { 
+            margin-bottom: 4px !important; 
+            padding-bottom: 4px !important;
+            flex-shrink: 0;
+          }
+          .student-header { 
+            margin-bottom: 4px !important;
+            flex-shrink: 0;
+          }
+          .trimester-section { 
+            margin-bottom: 4px !important;
+            flex-shrink: 0;
+          }
+          .annual-summary { 
+            margin-bottom: 4px !important;
+            flex-shrink: 0;
+          }
+          
+          /* Observations with auto-scaling */
+          .observations { 
+            margin-bottom: 4px !important;
+            flex: 1 1 auto;
+            min-height: 0;
+            max-height: 120px !important;
+            overflow: hidden !important;
+          }
+          .observations > div { margin-bottom: 3px !important; }
+          .observations h4 { 
+            margin-bottom: 1px !important;
+            font-size: 10px !important;
+          }
+          .observations .border { 
+            padding: 4px !important;
+            min-height: 30px !important;
+            max-height: 35px !important;
+            font-size: 9px !important;
+            line-height: 1.2 !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis;
+          }
+          
+          .signatures-section { 
+            margin-top: 4px !important;
+            flex-shrink: 0;
+          }
+          .signatures-section h3 {
+            margin-bottom: 2px !important;
+            padding: 2px !important;
+          }
+          .signature-box .h-20 { height: 30px !important; }
+          .signature-box .mb-2 { margin-bottom: 1px !important; }
+          
+          /* Footer */
+          .mt-6.text-center { 
+            margin-top: 4px !important;
+            padding-top: 2px !important;
+            font-size: 8px !important;
+            flex-shrink: 0;
+          }
+          
+          /* Table compression */
+          table { font-size: 9px !important; }
+          table th, table td { padding: 2px 4px !important; }
           
           @page {
-            size: A4;
-            margin: 10mm;
+            size: A4 portrait;
+            margin: 8mm;
+          }
+          
+          /* Force single page */
+          body {
+            counter-reset: page;
+          }
+          
+          .annual-report-compact::after {
+            content: "";
+            page-break-after: always;
           }
         }
       `}</style>
