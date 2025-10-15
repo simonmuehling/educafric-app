@@ -13,6 +13,7 @@ import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // NotificationCenter, SubscriptionStatusCard, and UniversalMultiRoleSwitch now loaded dynamically via fastModuleLoader
 import { TeacherMultiSchoolProvider } from '@/contexts/TeacherMultiSchoolContext';
 import CalendarExport from '@/components/shared/CalendarExport';
+import TeacherWorkModeToggle from './TeacherWorkModeToggle';
 
 interface TeacherDashboardProps {
   stats?: any;
@@ -165,6 +166,14 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
 
   // Show independent courses module only if workMode is 'independent' or 'hybrid'
   const showIndependentCourses = user?.workMode === 'independent' || user?.workMode === 'hybrid';
+  
+  // Current active context for hybrid teachers
+  const [activeContext, setActiveContext] = useState<'school' | 'independent'>('school');
+  
+  const handleModeChange = (mode: 'school' | 'independent') => {
+    setActiveContext(mode);
+    // Could also update backend preference here if needed
+  };
 
   const modules = [
     ...(showIndependentCourses ? [{
@@ -283,12 +292,22 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
 
   return (
     <TeacherMultiSchoolProvider>
-      <UnifiedIconDashboard
-        title={t.title || ''}
-        subtitle={t.subtitle}
-        modules={modules}
-        activeModule={currentActiveModule}
-      />
+      <div>
+        {/* Work Mode Toggle - only show if teacher has independent/hybrid capability */}
+        {showIndependentCourses && user?.workMode && (
+          <TeacherWorkModeToggle
+            currentMode={user.workMode as 'school' | 'independent' | 'hybrid'}
+            onModeChange={handleModeChange}
+          />
+        )}
+        
+        <UnifiedIconDashboard
+          title={t.title || ''}
+          subtitle={t.subtitle}
+          modules={modules}
+          activeModule={currentActiveModule}
+        />
+      </div>
     </TeacherMultiSchoolProvider>
   );
 };
