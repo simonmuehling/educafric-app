@@ -27,7 +27,9 @@ import {
   GraduationCap,
   Pencil,
   Trash2,
-  Eye
+  Eye,
+  Send,
+  User
 } from 'lucide-react';
 
 interface IndependentStudent {
@@ -55,15 +57,33 @@ interface IndependentSession {
   rating?: number;
 }
 
+interface TeacherInvitation {
+  id: number;
+  teacherId: number;
+  targetType: 'student' | 'parent';
+  targetId: number;
+  studentId?: number;
+  subjects: string[];
+  level?: string;
+  message?: string;
+  pricePerHour?: number;
+  pricePerSession?: number;
+  status: 'pending' | 'accepted' | 'rejected' | 'expired';
+  responseMessage?: string;
+  createdAt: string;
+  expiresAt?: string;
+}
+
 const TeacherIndependentCourses: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [activeTab, setActiveTab] = useState<'students' | 'sessions' | 'activation'>('activation');
+  const [activeTab, setActiveTab] = useState<'students' | 'sessions' | 'activation' | 'invitations'>('activation');
   const [showAddStudentDialog, setShowAddStudentDialog] = useState(false);
   const [showCreateSessionDialog, setShowCreateSessionDialog] = useState(false);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState('');
   
   // New student form
@@ -83,6 +103,18 @@ const TeacherIndependentCourses: React.FC = () => {
     scheduledStart: '',
     scheduledEnd: '',
     sessionType: 'online' as 'online' | 'in_person' | 'hybrid'
+  });
+
+  // New invitation form
+  const [newInvitation, setNewInvitation] = useState({
+    targetType: 'student' as 'student' | 'parent',
+    targetId: '',
+    studentId: '',
+    subjects: [] as string[],
+    level: '',
+    message: '',
+    pricePerHour: '',
+    pricePerSession: ''
   });
 
   const text = {
@@ -140,7 +172,27 @@ const TeacherIndependentCourses: React.FC = () => {
       expired: 'Expiré',
       notActivated: 'Non Activé',
       activationExpired: 'Votre activation a expiré',
-      renewNow: 'Renouveler Maintenant'
+      renewNow: 'Renouveler Maintenant',
+      invitationsTab: 'Invitations',
+      inviteStudent: 'Inviter Élève',
+      inviteParent: 'Inviter Parent',
+      sendInvitation: 'Envoyer Invitation',
+      targetType: 'Inviter',
+      student: 'Élève',
+      parent: 'Parent',
+      selectStudent: 'Sélectionner élève',
+      selectParent: 'Sélectionner parent',
+      invitationMessage: 'Message d\'invitation',
+      pricePerHour: 'Prix/heure (CFA)',
+      pricePerSession: 'Prix/session (CFA)',
+      noInvitations: 'Aucune invitation envoyée',
+      noInvitationsDesc: 'Invitez des élèves ou parents pour commencer',
+      pending: 'En attente',
+      accepted: 'Acceptée',
+      rejected: 'Refusée',
+      sentTo: 'Envoyé à',
+      expiresOn: 'Expire le',
+      invitationSent: 'Invitation envoyée avec succès'
     },
     en: {
       title: 'My Private Courses',
@@ -196,7 +248,27 @@ const TeacherIndependentCourses: React.FC = () => {
       expired: 'Expired',
       notActivated: 'Not Activated',
       activationExpired: 'Your activation has expired',
-      renewNow: 'Renew Now'
+      renewNow: 'Renew Now',
+      invitationsTab: 'Invitations',
+      inviteStudent: 'Invite Student',
+      inviteParent: 'Invite Parent',
+      sendInvitation: 'Send Invitation',
+      targetType: 'Invite',
+      student: 'Student',
+      parent: 'Parent',
+      selectStudent: 'Select student',
+      selectParent: 'Select parent',
+      invitationMessage: 'Invitation message',
+      pricePerHour: 'Price/hour (CFA)',
+      pricePerSession: 'Price/session (CFA)',
+      noInvitations: 'No invitations sent',
+      noInvitationsDesc: 'Invite students or parents to get started',
+      pending: 'Pending',
+      accepted: 'Accepted',
+      rejected: 'Rejected',
+      sentTo: 'Sent to',
+      expiresOn: 'Expires on',
+      invitationSent: 'Invitation sent successfully'
     }
   };
 
@@ -224,6 +296,15 @@ const TeacherIndependentCourses: React.FC = () => {
     queryKey: ['/api/teacher/independent/sessions'],
     queryFn: async () => {
       return await apiRequest('GET', '/api/teacher/independent/sessions');
+    },
+    enabled: activationData?.isActive
+  });
+
+  // Fetch invitations
+  const { data: invitationsData, isLoading: invitationsLoading } = useQuery({
+    queryKey: ['/api/teacher/independent/invitations'],
+    queryFn: async () => {
+      return await apiRequest('GET', '/api/teacher/independent/invitations');
     },
     enabled: activationData?.isActive
   });
@@ -282,12 +363,58 @@ const TeacherIndependentCourses: React.FC = () => {
     }
   });
 
+  // Create invitation mutation
+  const createInvitationMutation = useMutation({
+    mutationFn: async (data: typeof newInvitation) => {
+      const payload = {
+        targetType: data.targetType,
+        targetId: parseInt(data.targetId),
+        studentId: data.targetType === 'parent' ? parseInt(data.studentId) : parseInt(data.targetId),
+        subjects: data.subjects,
+        level: data.level,
+        message: data.message,
+        pricePerHour: data.pricePerHour ? parseFloat(data.pricePerHour) : undefined,
+        pricePerSession: data.pricePerSession ? parseFloat(data.pricePerSession) : undefined
+      };
+      return await apiRequest('POST', '/api/teacher/independent/invitations', payload);
+    },
+    onSuccess: () => {
+      toast({
+        title: t.success,
+        description: t.invitationSent
+      });
+      setShowInviteDialog(false);
+      setNewInvitation({
+        targetType: 'student',
+        targetId: '',
+        studentId: '',
+        subjects: [],
+        level: '',
+        message: '',
+        pricePerHour: '',
+        pricePerSession: ''
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/independent/invitations'] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: t.error,
+        description: error.message
+      });
+    }
+  });
+
   const handleAddStudent = () => {
     addStudentMutation.mutate(newStudent);
   };
 
   const handleCreateSession = () => {
     createSessionMutation.mutate(newSession);
+  };
+
+  const handleSendInvitation = () => {
+    createInvitationMutation.mutate(newInvitation);
   };
 
   const getStatusBadge = (status: string) => {
@@ -434,6 +561,85 @@ const TeacherIndependentCourses: React.FC = () => {
     );
   };
 
+  // Invitations Section
+  const InvitationsSection = () => {
+    if (invitationsLoading) {
+      return <div className="text-center py-8">{t.loading}</div>;
+    }
+
+    const invitations = (invitationsData?.invitations || []) as TeacherInvitation[];
+
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">{t.invitationsTab}</h3>
+          <Button onClick={() => setShowInviteDialog(true)} data-testid="button-send-invitation">
+            <Send className="w-4 h-4 mr-2" />
+            {t.sendInvitation}
+          </Button>
+        </div>
+
+        {invitations.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Send className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">{t.noInvitations}</h3>
+              <p className="text-gray-600 mb-4">{t.noInvitationsDesc}</p>
+              <Button onClick={() => setShowInviteDialog(true)} data-testid="button-send-first-invitation">
+                <Send className="w-4 h-4 mr-2" />
+                {t.sendInvitation}
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {invitations.map((invitation) => (
+              <Card key={invitation.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        {invitation.targetType === 'student' ? (
+                          <User className="w-4 h-4 text-blue-500" />
+                        ) : (
+                          <Users className="w-4 h-4 text-purple-500" />
+                        )}
+                        <span className="font-semibold">
+                          {invitation.targetType === 'student' ? t.student : t.parent} (ID: {invitation.targetId})
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <p><strong>{t.subjects}:</strong> {invitation.subjects.join(', ')}</p>
+                        {invitation.level && <p><strong>{t.level}:</strong> {invitation.level}</p>}
+                        {invitation.message && <p className="italic">"{invitation.message}"</p>}
+                        {(invitation.pricePerHour || invitation.pricePerSession) && (
+                          <p className="text-green-600 font-medium">
+                            {invitation.pricePerHour && `${invitation.pricePerHour} CFA/h`}
+                            {invitation.pricePerHour && invitation.pricePerSession && ' • '}
+                            {invitation.pricePerSession && `${invitation.pricePerSession} CFA/session`}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-500">
+                          {t.expiresOn}: {new Date(invitation.expiresAt || '').toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      {getStatusBadge(invitation.status)}
+                      {invitation.responseMessage && (
+                        <p className="text-xs text-gray-500 max-w-[150px] text-right">{invitation.responseMessage}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Sessions Section
   const SessionsSection = () => {
     const sessions = sessionsData?.sessions || [];
@@ -502,10 +708,11 @@ const TeacherIndependentCourses: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="activation" data-testid="tab-activation">{t.activationTab}</TabsTrigger>
           <TabsTrigger value="students" data-testid="tab-students" disabled={!activationData?.isActive}>{t.studentsTab}</TabsTrigger>
           <TabsTrigger value="sessions" data-testid="tab-sessions" disabled={!activationData?.isActive}>{t.sessionsTab}</TabsTrigger>
+          <TabsTrigger value="invitations" data-testid="tab-invitations" disabled={!activationData?.isActive}>{t.invitationsTab}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="activation" className="mt-6">
@@ -518,6 +725,10 @@ const TeacherIndependentCourses: React.FC = () => {
 
         <TabsContent value="sessions" className="mt-6">
           <SessionsSection />
+        </TabsContent>
+
+        <TabsContent value="invitations" className="mt-6">
+          <InvitationsSection />
         </TabsContent>
       </Tabs>
 
@@ -665,6 +876,129 @@ const TeacherIndependentCourses: React.FC = () => {
             </Button>
             <Button onClick={handleCreateSession} disabled={createSessionMutation.isPending} data-testid="button-save-session">
               {t.save}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Invitation Dialog */}
+      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t.sendInvitation}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>{t.targetType}</Label>
+              <Select 
+                value={newInvitation.targetType} 
+                onValueChange={(v: 'student' | 'parent') => setNewInvitation({ ...newInvitation, targetType: v })}
+              >
+                <SelectTrigger data-testid="select-target-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">{t.student}</SelectItem>
+                  <SelectItem value="parent">{t.parent}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>{newInvitation.targetType === 'student' ? t.selectStudent : t.selectParent} ID</Label>
+              <Input
+                type="number"
+                value={newInvitation.targetId}
+                onChange={(e) => setNewInvitation({ ...newInvitation, targetId: e.target.value })}
+                placeholder={newInvitation.targetType === 'student' ? 'ID Élève' : 'ID Parent'}
+                data-testid="input-target-id"
+              />
+            </div>
+
+            {newInvitation.targetType === 'parent' && (
+              <div>
+                <Label>{t.selectStudent} ID</Label>
+                <Input
+                  type="number"
+                  value={newInvitation.studentId}
+                  onChange={(e) => setNewInvitation({ ...newInvitation, studentId: e.target.value })}
+                  placeholder="ID de l'élève concerné"
+                  data-testid="input-student-id-for-parent"
+                />
+              </div>
+            )}
+
+            <div>
+              <Label>{t.subjects}</Label>
+              <Input
+                value={newInvitation.subjects.join(', ')}
+                onChange={(e) => setNewInvitation({ 
+                  ...newInvitation, 
+                  subjects: e.target.value.split(',').map(s => s.trim()).filter(s => s) 
+                })}
+                placeholder="Mathématiques, Physique, Chimie"
+                data-testid="input-invitation-subjects"
+              />
+            </div>
+
+            <div>
+              <Label>{t.level}</Label>
+              <Input
+                value={newInvitation.level}
+                onChange={(e) => setNewInvitation({ ...newInvitation, level: e.target.value })}
+                placeholder="6ème, Terminale, etc."
+                data-testid="input-invitation-level"
+              />
+            </div>
+
+            <div>
+              <Label>{t.invitationMessage}</Label>
+              <Textarea
+                value={newInvitation.message}
+                onChange={(e) => setNewInvitation({ ...newInvitation, message: e.target.value })}
+                placeholder="Message personnalisé pour l'invitation..."
+                data-testid="textarea-invitation-message"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>{t.pricePerHour}</Label>
+                <Input
+                  type="number"
+                  value={newInvitation.pricePerHour}
+                  onChange={(e) => setNewInvitation({ ...newInvitation, pricePerHour: e.target.value })}
+                  placeholder="5000"
+                  data-testid="input-price-per-hour"
+                />
+              </div>
+              <div>
+                <Label>{t.pricePerSession}</Label>
+                <Input
+                  type="number"
+                  value={newInvitation.pricePerSession}
+                  onChange={(e) => setNewInvitation({ ...newInvitation, pricePerSession: e.target.value })}
+                  placeholder="10000"
+                  data-testid="input-price-per-session"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowInviteDialog(false)} 
+              data-testid="button-cancel-invitation"
+            >
+              {t.cancel}
+            </Button>
+            <Button 
+              onClick={handleSendInvitation} 
+              disabled={createInvitationMutation.isPending} 
+              data-testid="button-submit-invitation"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              {t.sendInvitation}
             </Button>
           </DialogFooter>
         </DialogContent>

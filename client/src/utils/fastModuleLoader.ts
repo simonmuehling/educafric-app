@@ -253,6 +253,14 @@ class FastModuleLoader {
       'student-online-classes': () => import('@/components/student/modules/StudentOnlineClasses'),
       'parent-online-classes': () => import('@/components/parent/modules/ParentOnlineClasses'),
       
+      // =============================================
+      // 🎓 PRIVATE COURSES MODULES - INDEPENDENT TUTORING
+      // =============================================
+      'parent-private-courses': () => import('@/components/parent/modules/ParentPrivateCourses'),
+      'ParentPrivateCourses': () => import('@/components/parent/modules/ParentPrivateCourses'),
+      'student-private-courses': () => import('@/components/student/modules/StudentPrivateCourses'),
+      'StudentPrivateCourses': () => import('@/components/student/modules/StudentPrivateCourses'),
+      
       // Role-namespaced library modules
       'teacher.library': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
       'student.library': () => import('@/components/student/modules/LibraryRelatedBooks'),

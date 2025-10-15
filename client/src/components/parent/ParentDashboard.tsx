@@ -231,6 +231,13 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       component: createDynamicModule('parent-online-classes')
     },
     {
+      id: 'parent-private-courses',
+      label: language === 'fr' ? 'Cours Privés Enfants' : 'Children Private Courses',
+      icon: <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-indigo-600',
+      component: createDynamicModule('parent-private-courses')
+    },
+    {
       id: 'attendance',
       label: t.attendance,
       icon: <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />,

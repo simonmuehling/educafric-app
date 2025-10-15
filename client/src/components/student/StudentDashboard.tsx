@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   BookOpen, Calendar, FileText, MessageSquare, User, Clock, 
-  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart, Video
+  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart, Video, GraduationCap
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: All modules loaded dynamically for ultra-fast loading
@@ -214,6 +214,13 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       icon: <Video className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600',
       component: createDynamicModule('student-online-classes')
+    },
+    {
+      id: 'student-private-courses',
+      label: language === 'fr' ? 'Mes Cours Privés' : 'My Private Courses',
+      icon: <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-indigo-600',
+      component: createDynamicModule('student-private-courses')
     },
     {
       id: 'parentConnection',
