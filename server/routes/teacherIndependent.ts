@@ -8,6 +8,7 @@ import {
   users
 } from '../../shared/schema';
 import { eq, and, gte, desc } from 'drizzle-orm';
+import { InvitationNotificationService } from '../services/invitationNotificationService';
 
 const router = Router();
 
@@ -448,6 +449,54 @@ router.post('/invitations', requireAuth, requireIndependentActivation, async (re
       })
       .returning();
 
+    // Get recipient and student info for notification
+    const [recipient] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, targetId))
+      .limit(1);
+
+    let studentInfo = null;
+    if (targetType === 'parent' && studentId) {
+      const [student] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, studentId))
+        .limit(1);
+      studentInfo = student;
+    }
+
+    // Send notification
+    if (recipient) {
+      const notificationData = {
+        teacherId: user.id,
+        teacherName: `${user.firstName} ${user.lastName}`,
+        teacherEmail: user.email,
+        recipientId: recipient.id,
+        recipientName: `${recipient.firstName} ${recipient.lastName}`,
+        recipientEmail: recipient.email,
+        recipientPhone: recipient.whatsappE164,
+        studentId: studentInfo?.id,
+        studentName: studentInfo ? `${studentInfo.firstName} ${studentInfo.lastName}` : undefined,
+        subjects,
+        level,
+        message,
+        pricePerHour,
+        pricePerSession,
+        currency: 'XAF',
+        language: recipient.preferredLanguage as 'fr' | 'en' || 'fr'
+      };
+
+      // Send notification asynchronously (don't wait for it)
+      InvitationNotificationService.sendInvitationReceived(notificationData)
+        .then(result => {
+          console.log('[INVITATION] Notification sent:', result);
+        })
+        .catch(err => {
+          console.error('[INVITATION] Notification failed:', err);
+        });
+    }
+
     res.json({
       success: true,
       invitation,
@@ -569,6 +618,37 @@ router.post('/invitations/:id/accept', requireAuth, async (req, res) => {
         objectives: invitation.message || ''
       });
 
+    // Get teacher info for notification
+    const [teacher] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, invitation.teacherId))
+      .limit(1);
+
+    // Send acceptance notification to teacher
+    if (teacher) {
+      const notificationData = {
+        teacherId: teacher.id,
+        teacherName: `${teacher.firstName} ${teacher.lastName}`,
+        teacherEmail: teacher.email,
+        recipientId: user.id,
+        recipientName: `${user.firstName} ${user.lastName}`,
+        recipientEmail: user.email,
+        subjects: invitation.subjects || [],
+        responseMessage,
+        language: teacher.preferredLanguage as 'fr' | 'en' || 'fr'
+      };
+
+      // Send notification asynchronously
+      InvitationNotificationService.sendInvitationAccepted(notificationData)
+        .then(result => {
+          console.log('[INVITATION] Acceptance notification sent:', result);
+        })
+        .catch(err => {
+          console.error('[INVITATION] Acceptance notification failed:', err);
+        });
+    }
+
     res.json({
       success: true,
       message: 'Invitation acceptée avec succès'
@@ -620,6 +700,37 @@ router.post('/invitations/:id/reject', requireAuth, async (req, res) => {
         respondedAt: new Date()
       })
       .where(eq(teacherStudentInvitations.id, invitationId));
+
+    // Get teacher info for notification
+    const [teacher] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, invitation.teacherId))
+      .limit(1);
+
+    // Send rejection notification to teacher
+    if (teacher) {
+      const notificationData = {
+        teacherId: teacher.id,
+        teacherName: `${teacher.firstName} ${teacher.lastName}`,
+        teacherEmail: teacher.email,
+        recipientId: user.id,
+        recipientName: `${user.firstName} ${user.lastName}`,
+        recipientEmail: user.email,
+        subjects: invitation.subjects || [],
+        responseMessage,
+        language: teacher.preferredLanguage as 'fr' | 'en' || 'fr'
+      };
+
+      // Send notification asynchronously
+      InvitationNotificationService.sendInvitationRejected(notificationData)
+        .then(result => {
+          console.log('[INVITATION] Rejection notification sent:', result);
+        })
+        .catch(err => {
+          console.error('[INVITATION] Rejection notification failed:', err);
+        });
+    }
 
     res.json({
       success: true,

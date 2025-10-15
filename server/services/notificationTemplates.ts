@@ -654,5 +654,444 @@ export class BulletinTemplateGenerator {
   }
 }
 
+// ===== TEACHER INDEPENDENT INVITATION TEMPLATES =====
+export interface InvitationTemplateVariables {
+  teacherName: string;
+  teacherEmail: string;
+  recipientName: string;
+  studentName?: string; // For parent invitations
+  subjects: string;
+  level?: string;
+  message?: string;
+  pricePerHour?: number;
+  pricePerSession?: number;
+  currency?: string;
+  platformUrl?: string;
+  invitationId?: number;
+  responseMessage?: string;
+}
+
+// Email templates for invitations
+export const INVITATION_EMAIL_TEMPLATES = {
+  INVITATION_RECEIVED: {
+    fr: {
+      subject: (vars: InvitationTemplateVariables) => 
+        `Invitation pour cours privés - ${vars.teacherName}`,
+      
+      body: (vars: InvitationTemplateVariables) => `
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #2c3e50; margin: 0; padding: 0; background-color: #f8f9fa; }
+                .container { max-width: 650px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; text-align: center; }
+                .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+                .content { padding: 30px; }
+                .invitation-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
+                .price-info { background: #e8f4f8; padding: 15px; border-radius: 8px; margin: 15px 0; }
+                .action-buttons { text-align: center; margin: 25px 0; }
+                .button { display: inline-block; padding: 12px 30px; margin: 5px; border-radius: 5px; text-decoration: none; font-weight: 600; }
+                .accept-btn { background: #28a745; color: white; }
+                .whatsapp-btn { background: #25D366; color: white; }
+                .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📚 Nouvelle Invitation pour Cours Privés</h1>
+                </div>
+                <div class="content">
+                    <p>Bonjour ${vars.recipientName},</p>
+                    <p><strong>${vars.teacherName}</strong> vous invite ${vars.studentName ? `(pour ${vars.studentName})` : ''} à suivre des cours privés.</p>
+                    
+                    <div class="invitation-box">
+                        <h3>📖 Détails de l'invitation</h3>
+                        <p><strong>Matières:</strong> ${vars.subjects}</p>
+                        ${vars.level ? `<p><strong>Niveau:</strong> ${vars.level}</p>` : ''}
+                        ${vars.message ? `<p><strong>Message:</strong> ${vars.message}</p>` : ''}
+                    </div>
+                    
+                    ${vars.pricePerHour || vars.pricePerSession ? `
+                    <div class="price-info">
+                        <h4>💰 Tarifs proposés</h4>
+                        ${vars.pricePerHour ? `<p>Prix par heure: <strong>${vars.pricePerHour} ${vars.currency || 'XAF'}</strong></p>` : ''}
+                        ${vars.pricePerSession ? `<p>Prix par session: <strong>${vars.pricePerSession} ${vars.currency || 'XAF'}</strong></p>` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    <div class="action-buttons">
+                        <a href="${vars.platformUrl || 'https://www.educafric.com'}/parent/private-courses" class="button accept-btn">
+                            ✅ Voir et Répondre
+                        </a>
+                    </div>
+                    
+                    <p style="margin-top: 20px;">Vous pouvez accepter ou refuser cette invitation directement depuis votre espace parent/élève sur Educafric.</p>
+                </div>
+                <div class="footer">
+                    <p>Educafric - Plateforme Éducative Africaine</p>
+                    <p>Email: ${vars.teacherEmail}</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `
+    },
+    en: {
+      subject: (vars: InvitationTemplateVariables) => 
+        `Private Tutoring Invitation - ${vars.teacherName}`,
+      
+      body: (vars: InvitationTemplateVariables) => `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #2c3e50; margin: 0; padding: 0; background-color: #f8f9fa; }
+                .container { max-width: 650px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; text-align: center; }
+                .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+                .content { padding: 30px; }
+                .invitation-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
+                .price-info { background: #e8f4f8; padding: 15px; border-radius: 8px; margin: 15px 0; }
+                .action-buttons { text-align: center; margin: 25px 0; }
+                .button { display: inline-block; padding: 12px 30px; margin: 5px; border-radius: 5px; text-decoration: none; font-weight: 600; }
+                .accept-btn { background: #28a745; color: white; }
+                .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📚 New Private Tutoring Invitation</h1>
+                </div>
+                <div class="content">
+                    <p>Hello ${vars.recipientName},</p>
+                    <p><strong>${vars.teacherName}</strong> invites you ${vars.studentName ? `(for ${vars.studentName})` : ''} to private tutoring sessions.</p>
+                    
+                    <div class="invitation-box">
+                        <h3>📖 Invitation Details</h3>
+                        <p><strong>Subjects:</strong> ${vars.subjects}</p>
+                        ${vars.level ? `<p><strong>Level:</strong> ${vars.level}</p>` : ''}
+                        ${vars.message ? `<p><strong>Message:</strong> ${vars.message}</p>` : ''}
+                    </div>
+                    
+                    ${vars.pricePerHour || vars.pricePerSession ? `
+                    <div class="price-info">
+                        <h4>💰 Proposed Rates</h4>
+                        ${vars.pricePerHour ? `<p>Per Hour: <strong>${vars.pricePerHour} ${vars.currency || 'XAF'}</strong></p>` : ''}
+                        ${vars.pricePerSession ? `<p>Per Session: <strong>${vars.pricePerSession} ${vars.currency || 'XAF'}</strong></p>` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    <div class="action-buttons">
+                        <a href="${vars.platformUrl || 'https://www.educafric.com'}/parent/private-courses" class="button accept-btn">
+                            ✅ View and Respond
+                        </a>
+                    </div>
+                    
+                    <p style="margin-top: 20px;">You can accept or decline this invitation directly from your parent/student portal on Educafric.</p>
+                </div>
+                <div class="footer">
+                    <p>Educafric - African Educational Platform</p>
+                    <p>Email: ${vars.teacherEmail}</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `
+    }
+  },
+
+  INVITATION_ACCEPTED: {
+    fr: {
+      subject: (vars: InvitationTemplateVariables) => 
+        `✅ Votre invitation a été acceptée - ${vars.recipientName}`,
+      
+      body: (vars: InvitationTemplateVariables) => `
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: #2c3e50; margin: 0; padding: 0; background-color: #f8f9fa; }
+                .container { max-width: 650px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px 20px; text-align: center; }
+                .content { padding: 30px; }
+                .success-box { background: #d4edda; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745; }
+                .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; border-radius: 5px; text-decoration: none; font-weight: 600; }
+                .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🎉 Invitation Acceptée!</h1>
+                </div>
+                <div class="content">
+                    <p>Bonjour ${vars.teacherName},</p>
+                    <p>Bonne nouvelle! <strong>${vars.recipientName}</strong> a accepté votre invitation pour des cours privés.</p>
+                    
+                    <div class="success-box">
+                        <h3>✅ Prochaines étapes</h3>
+                        <p>Vous pouvez maintenant:</p>
+                        <ul>
+                            <li>Planifier vos premières sessions</li>
+                            <li>Organiser le contenu des cours</li>
+                            <li>Communiquer directement via la plateforme</li>
+                        </ul>
+                        ${vars.responseMessage ? `<p><strong>Message de réponse:</strong> "${vars.responseMessage}"</p>` : ''}
+                    </div>
+                    
+                    <div style="text-align: center; margin: 25px 0;">
+                        <a href="${vars.platformUrl || 'https://www.educafric.com'}/teacher/independent" class="button">
+                            📅 Gérer mes cours
+                        </a>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>Educafric - Plateforme Éducative Africaine</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `
+    },
+    en: {
+      subject: (vars: InvitationTemplateVariables) => 
+        `✅ Your invitation was accepted - ${vars.recipientName}`,
+      
+      body: (vars: InvitationTemplateVariables) => `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: #2c3e50; margin: 0; padding: 0; background-color: #f8f9fa; }
+                .container { max-width: 650px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px 20px; text-align: center; }
+                .content { padding: 30px; }
+                .success-box { background: #d4edda; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745; }
+                .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; border-radius: 5px; text-decoration: none; font-weight: 600; }
+                .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🎉 Invitation Accepted!</h1>
+                </div>
+                <div class="content">
+                    <p>Hello ${vars.teacherName},</p>
+                    <p>Great news! <strong>${vars.recipientName}</strong> has accepted your private tutoring invitation.</p>
+                    
+                    <div class="success-box">
+                        <h3>✅ Next Steps</h3>
+                        <p>You can now:</p>
+                        <ul>
+                            <li>Schedule your first sessions</li>
+                            <li>Organize course content</li>
+                            <li>Communicate directly via the platform</li>
+                        </ul>
+                        ${vars.responseMessage ? `<p><strong>Response message:</strong> "${vars.responseMessage}"</p>` : ''}
+                    </div>
+                    
+                    <div style="text-align: center; margin: 25px 0;">
+                        <a href="${vars.platformUrl || 'https://www.educafric.com'}/teacher/independent" class="button">
+                            📅 Manage My Courses
+                        </a>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>Educafric - African Educational Platform</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `
+    }
+  },
+
+  INVITATION_REJECTED: {
+    fr: {
+      subject: (vars: InvitationTemplateVariables) => 
+        `❌ Invitation déclinée - ${vars.recipientName}`,
+      
+      body: (vars: InvitationTemplateVariables) => `
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: #2c3e50; margin: 0; padding: 0; background-color: #f8f9fa; }
+                .container { max-width: 650px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                .header { background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%); color: white; padding: 30px 20px; text-align: center; }
+                .content { padding: 30px; }
+                .info-box { background: #f8d7da; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545; }
+                .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Invitation Déclinée</h1>
+                </div>
+                <div class="content">
+                    <p>Bonjour ${vars.teacherName},</p>
+                    <p><strong>${vars.recipientName}</strong> a décliné votre invitation pour des cours privés.</p>
+                    
+                    ${vars.responseMessage ? `
+                    <div class="info-box">
+                        <h3>💬 Message de réponse</h3>
+                        <p>"${vars.responseMessage}"</p>
+                    </div>
+                    ` : ''}
+                    
+                    <p>N'hésitez pas à continuer à développer votre activité d'enseignement indépendant sur Educafric.</p>
+                </div>
+                <div class="footer">
+                    <p>Educafric - Plateforme Éducative Africaine</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `
+    },
+    en: {
+      subject: (vars: InvitationTemplateVariables) => 
+        `❌ Invitation declined - ${vars.recipientName}`,
+      
+      body: (vars: InvitationTemplateVariables) => `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: #2c3e50; margin: 0; padding: 0; background-color: #f8f9fa; }
+                .container { max-width: 650px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                .header { background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%); color: white; padding: 30px 20px; text-align: center; }
+                .content { padding: 30px; }
+                .info-box { background: #f8d7da; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545; }
+                .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>Invitation Declined</h1>
+                </div>
+                <div class="content">
+                    <p>Hello ${vars.teacherName},</p>
+                    <p><strong>${vars.recipientName}</strong> has declined your private tutoring invitation.</p>
+                    
+                    ${vars.responseMessage ? `
+                    <div class="info-box">
+                        <h3>💬 Response Message</h3>
+                        <p>"${vars.responseMessage}"</p>
+                    </div>
+                    ` : ''}
+                    
+                    <p>Feel free to continue developing your independent teaching activity on Educafric.</p>
+                </div>
+                <div class="footer">
+                    <p>Educafric - African Educational Platform</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `
+    }
+  }
+};
+
+// WhatsApp Click-to-Chat messages for invitations
+export const INVITATION_WHATSAPP_MESSAGES = {
+  INVITATION_RECEIVED: {
+    fr: (vars: InvitationTemplateVariables) => 
+      `📚 *Invitation Cours Privés*\n\n` +
+      `Bonjour ${vars.recipientName},\n\n` +
+      `${vars.teacherName} vous invite ${vars.studentName ? `(pour ${vars.studentName})` : ''} à suivre des cours privés.\n\n` +
+      `📖 *Détails:*\n` +
+      `Matières: ${vars.subjects}\n` +
+      `${vars.level ? `Niveau: ${vars.level}\n` : ''}` +
+      `${vars.message ? `Message: ${vars.message}\n` : ''}` +
+      `${vars.pricePerHour ? `Prix/heure: ${vars.pricePerHour} ${vars.currency || 'XAF'}\n` : ''}` +
+      `${vars.pricePerSession ? `Prix/session: ${vars.pricePerSession} ${vars.currency || 'XAF'}\n` : ''}` +
+      `\n✅ Connectez-vous sur Educafric pour répondre à cette invitation.`,
+    
+    en: (vars: InvitationTemplateVariables) =>
+      `📚 *Private Tutoring Invitation*\n\n` +
+      `Hello ${vars.recipientName},\n\n` +
+      `${vars.teacherName} invites you ${vars.studentName ? `(for ${vars.studentName})` : ''} to private tutoring sessions.\n\n` +
+      `📖 *Details:*\n` +
+      `Subjects: ${vars.subjects}\n` +
+      `${vars.level ? `Level: ${vars.level}\n` : ''}` +
+      `${vars.message ? `Message: ${vars.message}\n` : ''}` +
+      `${vars.pricePerHour ? `Per hour: ${vars.pricePerHour} ${vars.currency || 'XAF'}\n` : ''}` +
+      `${vars.pricePerSession ? `Per session: ${vars.pricePerSession} ${vars.currency || 'XAF'}\n` : ''}` +
+      `\n✅ Log in to Educafric to respond to this invitation.`
+  },
+
+  INVITATION_ACCEPTED: {
+    fr: (vars: InvitationTemplateVariables) =>
+      `🎉 *Invitation Acceptée!*\n\n` +
+      `Bonjour ${vars.teacherName},\n\n` +
+      `Bonne nouvelle! ${vars.recipientName} a accepté votre invitation pour des cours privés.\n\n` +
+      `${vars.responseMessage ? `💬 *Message:* "${vars.responseMessage}"\n\n` : ''}` +
+      `📅 Connectez-vous sur Educafric pour planifier vos sessions.`,
+    
+    en: (vars: InvitationTemplateVariables) =>
+      `🎉 *Invitation Accepted!*\n\n` +
+      `Hello ${vars.teacherName},\n\n` +
+      `Great news! ${vars.recipientName} has accepted your private tutoring invitation.\n\n` +
+      `${vars.responseMessage ? `💬 *Message:* "${vars.responseMessage}"\n\n` : ''}` +
+      `📅 Log in to Educafric to schedule your sessions.`
+  },
+
+  INVITATION_REJECTED: {
+    fr: (vars: InvitationTemplateVariables) =>
+      `❌ *Invitation Déclinée*\n\n` +
+      `Bonjour ${vars.teacherName},\n\n` +
+      `${vars.recipientName} a décliné votre invitation pour des cours privés.\n\n` +
+      `${vars.responseMessage ? `💬 *Message:* "${vars.responseMessage}"\n\n` : ''}` +
+      `Continuez à développer votre activité sur Educafric!`,
+    
+    en: (vars: InvitationTemplateVariables) =>
+      `❌ *Invitation Declined*\n\n` +
+      `Hello ${vars.teacherName},\n\n` +
+      `${vars.recipientName} has declined your private tutoring invitation.\n\n` +
+      `${vars.responseMessage ? `💬 *Message:* "${vars.responseMessage}"\n\n` : ''}` +
+      `Keep developing your teaching activity on Educafric!`
+  }
+};
+
+// Helper class for invitation template generation
+export class InvitationTemplateGenerator {
+  static generateEmail(
+    type: 'INVITATION_RECEIVED' | 'INVITATION_ACCEPTED' | 'INVITATION_REJECTED',
+    variables: InvitationTemplateVariables,
+    language: 'fr' | 'en' = 'fr'
+  ): { subject: string; body: string } {
+    const template = INVITATION_EMAIL_TEMPLATES[type][language];
+    return {
+      subject: template.subject(variables),
+      body: template.body(variables)
+    };
+  }
+
+  static generateWhatsApp(
+    type: 'INVITATION_RECEIVED' | 'INVITATION_ACCEPTED' | 'INVITATION_REJECTED',
+    variables: InvitationTemplateVariables,
+    language: 'fr' | 'en' = 'fr'
+  ): string {
+    const template = INVITATION_WHATSAPP_MESSAGES[type][language];
+    return template(variables);
+  }
+}
+
 // Export default template generator
 export default BulletinTemplateGenerator;
