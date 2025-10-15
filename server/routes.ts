@@ -23,6 +23,7 @@ import studentsRouter from "./routes/students";
 import studentRoutesApi from "./routes/studentRoutes";
 import freelancerRouter from "./routes/freelancer";
 import teacherRouter from "./routes/teacher";
+import teacherIndependentRouter from "./routes/teacherIndependent";
 import sandboxRouter from "./routes/api/sandbox";
 import sandboxUnifiedDataRoutes from "./routes/sandbox-unified-data";
 import schoolsRouter from "./routes/api/schools";
@@ -6742,8 +6743,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/students', checkSubscriptionFeature('advanced_student_management'), checkFreemiumLimits('students'), studentsRouter);
   app.use('/api/student', studentRoutesApi);
   
-  // 🔥 PREMIUM RESTRICTED: Advanced freelancer features (unlimited students + analytics)
-  app.use('/api/freelancer', checkSubscriptionFeature('freelancer_premium'), checkFreemiumLimits('freelancer_students'), freelancerRouter);
+  // 🔥 NOUVEAU: Mode répétiteur indépendant (fusion Freelancer → Teacher)
+  app.use('/api/teacher/independent', teacherIndependentRouter);
+  
+  // 🔄 COMPATIBILITÉ: Redirection /api/freelancer → /api/teacher/independent
+  app.use('/api/freelancer', (req, res, next) => {
+    // Rediriger vers le nouveau endpoint
+    const newPath = req.originalUrl.replace('/api/freelancer', '/api/teacher/independent');
+    req.url = newPath;
+    teacherIndependentRouter(req, res, next);
+  });
   
   app.use('/api/sandbox', sandboxRouter);
   app.use('/api/sandbox-unified', sandboxUnifiedDataRoutes);
