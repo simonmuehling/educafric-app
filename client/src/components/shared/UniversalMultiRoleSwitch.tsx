@@ -4,6 +4,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 import { 
   User, Users, UserCheck, Building2, 
   ChevronRight, Settings, Shield,
@@ -21,7 +24,10 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
 }) => {
   const { user } = useAuth();
   const { language } = useLanguage();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [selectedRole, setSelectedRole] = useState<string>(currentUserRole || user?.role || 'Teacher');
+  const [isSwitching, setIsSwitching] = useState(false);
 
   // Universal multi-role data - would come from API in real implementation
   const userRoles = [
@@ -110,10 +116,58 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
 
   const t = text[language as keyof typeof text];
 
-  const handleRoleSwitch = (newRole: string) => {
-    setSelectedRole(newRole);
-    if (onRoleSwitch) {
-      onRoleSwitch(newRole);
+  const handleRoleSwitch = async (newRole: string) => {
+    if (isSwitching) return;
+    
+    try {
+      setIsSwitching(true);
+      
+      // Call API to switch role
+      const response = await apiRequest('POST', '/api/multi-role/switch-role', { newRole });
+      
+      if (response.success) {
+        setSelectedRole(newRole);
+        
+        // Show success message
+        toast({
+          title: language === 'fr' ? 'Rôle changé avec succès' : 'Role switched successfully',
+          description: language === 'fr' 
+            ? `Vous êtes maintenant connecté en tant que ${newRole}`
+            : `You are now logged in as ${newRole}`,
+        });
+        
+        // Call optional callback
+        if (onRoleSwitch) {
+          onRoleSwitch(newRole);
+        }
+        
+        // Redirect to appropriate dashboard
+        const roleRoutes: Record<string, string> = {
+          'Teacher': '/teacher',
+          'Parent': '/parent',
+          'Student': '/student',
+          'Freelancer': '/freelancer',
+          'Commercial': '/commercial',
+          'Director': '/director',
+          'Admin': '/admin'
+        };
+        
+        const targetRoute = roleRoutes[newRole] || '/';
+        setTimeout(() => setLocation(targetRoute), 500);
+      } else {
+        throw new Error(response.message || 'Failed to switch role');
+      }
+    } catch (error: any) {
+      console.error('[ROLE_SWITCH] Error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' 
+          ? 'Impossible de changer de rôle' 
+          : 'Failed to switch role'),
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSwitching(false);
     }
   };
 
@@ -247,9 +301,10 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
                     onClick={() => handleRoleSwitch(role.role)}
                     className={`w-full mt-3 ${role.color} hover:opacity-90`}
                     size="sm"
+                    disabled={isSwitching}
                     data-testid={`button-switch-${(role.role || '').toLowerCase()}`}
                   >
-                    {t.switchTo} {role.role}
+                    {isSwitching ? (language === 'fr' ? 'Changement...' : 'Switching...') : `${t.switchTo} ${role.role}`}
                   </Button>
                 </div>
               </CardContent>
