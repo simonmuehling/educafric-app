@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { storage } from "../storage";
+import bcrypt from "bcryptjs";
 
 // Security middleware for SiteAdmin features
 const requireSiteAdminAccess = (req: any, res: any, next: any) => {
@@ -560,7 +561,6 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       }
 
       // Hash password
-      const bcrypt = require('bcryptjs');
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Create new user - ALWAYS with Commercial role (server-enforced)
