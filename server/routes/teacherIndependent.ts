@@ -308,4 +308,79 @@ router.patch('/sessions/:id/status', requireAuth, requireIndependentActivation, 
   }
 });
 
+// Purchase activation - Create new activation for teacher
+router.post('/purchase-activation', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { method, phoneNumber } = req.body;
+
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Seuls les enseignants peuvent acheter une activation répétiteur'
+      });
+    }
+
+    // Check if already has active activation
+    const existingActivation = await db
+      .select()
+      .from(teacherIndependentActivations)
+      .where(
+        and(
+          eq(teacherIndependentActivations.teacherId, user.id),
+          eq(teacherIndependentActivations.status, 'active'),
+          gte(teacherIndependentActivations.endDate, new Date())
+        )
+      )
+      .limit(1);
+
+    if (existingActivation.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vous avez déjà une activation active'
+      });
+    }
+
+    // Create activation (for now, simplified - payment will be integrated later)
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setFullYear(endDate.getFullYear() + 1); // 1 year from now
+
+    const newActivation = await db
+      .insert(teacherIndependentActivations)
+      .values({
+        teacherId: user.id,
+        durationType: 'yearly',
+        startDate,
+        endDate,
+        status: 'active',
+        activatedBy: 'self_purchase',
+        paymentMethod: method,
+        amountPaid: 25000,
+        notes: `Achat via ${method === 'stripe' ? 'Stripe' : 'MTN Mobile Money'} ${phoneNumber ? `- Tel: ${phoneNumber}` : ''}`
+      })
+      .returning();
+
+    // Update user's work_mode to independent if not already
+    if (user.workMode === 'school') {
+      await db
+        .update(users)
+        .set({ workMode: 'hybrid' })
+        .where(eq(users.id, user.id));
+    }
+
+    res.json({
+      success: true,
+      activation: newActivation[0],
+      message: 'Activation répétiteur réussie! Vous pouvez maintenant gérer vos cours privés.'
+    });
+  } catch (error) {
+    console.error('[TEACHER_INDEPENDENT] Error purchasing activation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'achat de l\'activation'
+    });
+  }
+});
+
 export default router;
