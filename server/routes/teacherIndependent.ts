@@ -4,6 +4,7 @@ import {
   teacherIndependentActivations,
   teacherIndependentStudents,
   teacherIndependentSessions,
+  teacherStudentInvitations,
   users
 } from '../../shared/schema';
 import { eq, and, gte, desc } from 'drizzle-orm';
@@ -379,6 +380,256 @@ router.post('/purchase-activation', requireAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Erreur lors de l\'achat de l\'activation'
+    });
+  }
+});
+
+// ============= INVITATION ROUTES ============= 
+
+// Create invitation (Teacher → Student/Parent)
+router.post('/invitations', requireAuth, requireIndependentActivation, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { targetType, targetId, studentId, subjects, level, message, pricePerHour, pricePerSession } = req.body;
+
+    // Validation
+    if (!targetType || !targetId || !subjects || subjects.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Type de cible, ID et matières requis'
+      });
+    }
+
+    // Si targetType = parent, studentId est obligatoire
+    if (targetType === 'parent' && !studentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'L\'ID de l\'élève est requis pour une invitation parent'
+      });
+    }
+
+    // Vérifier si invitation déjà existante et pending
+    const existingInvitation = await db
+      .select()
+      .from(teacherStudentInvitations)
+      .where(
+        and(
+          eq(teacherStudentInvitations.teacherId, user.id),
+          eq(teacherStudentInvitations.targetId, targetId),
+          eq(teacherStudentInvitations.status, 'pending')
+        )
+      )
+      .limit(1);
+
+    if (existingInvitation.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: 'Une invitation est déjà en attente pour ce destinataire'
+      });
+    }
+
+    // Créer l'invitation
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // 30 jours d'expiration
+
+    const [invitation] = await db
+      .insert(teacherStudentInvitations)
+      .values({
+        teacherId: user.id,
+        targetType,
+        targetId,
+        studentId: targetType === 'parent' ? studentId : targetId,
+        subjects,
+        level,
+        message,
+        pricePerHour,
+        pricePerSession,
+        expiresAt
+      })
+      .returning();
+
+    res.json({
+      success: true,
+      invitation,
+      message: 'Invitation envoyée avec succès'
+    });
+  } catch (error) {
+    console.error('[TEACHER_INDEPENDENT] Error creating invitation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'envoi de l\'invitation'
+    });
+  }
+});
+
+// Get teacher's sent invitations
+router.get('/invitations', requireAuth, requireIndependentActivation, async (req, res) => {
+  try {
+    const user = req.user as any;
+
+    const invitations = await db
+      .select()
+      .from(teacherStudentInvitations)
+      .where(eq(teacherStudentInvitations.teacherId, user.id))
+      .orderBy(desc(teacherStudentInvitations.createdAt));
+
+    res.json({
+      success: true,
+      invitations
+    });
+  } catch (error) {
+    console.error('[TEACHER_INDEPENDENT] Error fetching invitations:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des invitations'
+    });
+  }
+});
+
+// Get invitations received by student/parent
+router.get('/invitations/received', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+
+    const invitations = await db
+      .select()
+      .from(teacherStudentInvitations)
+      .where(eq(teacherStudentInvitations.targetId, user.id))
+      .orderBy(desc(teacherStudentInvitations.createdAt));
+
+    res.json({
+      success: true,
+      invitations
+    });
+  } catch (error) {
+    console.error('[TEACHER_INDEPENDENT] Error fetching received invitations:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des invitations reçues'
+    });
+  }
+});
+
+// Accept invitation (Student/Parent)
+router.post('/invitations/:id/accept', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const invitationId = parseInt(req.params.id);
+    const { responseMessage } = req.body;
+
+    // Get invitation
+    const [invitation] = await db
+      .select()
+      .from(teacherStudentInvitations)
+      .where(eq(teacherStudentInvitations.id, invitationId))
+      .limit(1);
+
+    if (!invitation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invitation non trouvée'
+      });
+    }
+
+    // Vérifier que c'est bien le destinataire
+    if (invitation.targetId !== user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Vous n\'êtes pas autorisé à accepter cette invitation'
+      });
+    }
+
+    // Vérifier si invitation non expirée
+    if (invitation.status !== 'pending' || (invitation.expiresAt && new Date(invitation.expiresAt) < new Date())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cette invitation n\'est plus valide'
+      });
+    }
+
+    // Update invitation status
+    await db
+      .update(teacherStudentInvitations)
+      .set({
+        status: 'accepted',
+        responseMessage,
+        respondedAt: new Date()
+      })
+      .where(eq(teacherStudentInvitations.id, invitationId));
+
+    // Créer la connexion teacher-student
+    await db
+      .insert(teacherIndependentStudents)
+      .values({
+        teacherId: invitation.teacherId,
+        studentId: invitation.studentId!,
+        connectionMethod: invitation.targetType === 'parent' ? 'parent_accept' : 'student_accept',
+        subjects: invitation.subjects,
+        level: invitation.level,
+        objectives: invitation.message || ''
+      });
+
+    res.json({
+      success: true,
+      message: 'Invitation acceptée avec succès'
+    });
+  } catch (error) {
+    console.error('[TEACHER_INDEPENDENT] Error accepting invitation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'acceptation de l\'invitation'
+    });
+  }
+});
+
+// Reject invitation (Student/Parent)
+router.post('/invitations/:id/reject', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const invitationId = parseInt(req.params.id);
+    const { responseMessage } = req.body;
+
+    // Get invitation
+    const [invitation] = await db
+      .select()
+      .from(teacherStudentInvitations)
+      .where(eq(teacherStudentInvitations.id, invitationId))
+      .limit(1);
+
+    if (!invitation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invitation non trouvée'
+      });
+    }
+
+    // Vérifier que c'est bien le destinataire
+    if (invitation.targetId !== user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Vous n\'êtes pas autorisé à rejeter cette invitation'
+      });
+    }
+
+    // Update invitation status
+    await db
+      .update(teacherStudentInvitations)
+      .set({
+        status: 'rejected',
+        responseMessage,
+        respondedAt: new Date()
+      })
+      .where(eq(teacherStudentInvitations.id, invitationId));
+
+    res.json({
+      success: true,
+      message: 'Invitation rejetée'
+    });
+  } catch (error) {
+    console.error('[TEACHER_INDEPENDENT] Error rejecting invitation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors du rejet de l\'invitation'
     });
   }
 });
