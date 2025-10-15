@@ -163,7 +163,17 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
 
   const t = text[language as keyof typeof text];
 
+  // Show independent courses module only if workMode is 'independent' or 'hybrid'
+  const showIndependentCourses = user?.workMode === 'independent' || user?.workMode === 'hybrid';
+
   const modules = [
+    ...(showIndependentCourses ? [{
+      id: 'independent-courses',
+      label: language === 'fr' ? 'Mes Cours Privés' : 'My Private Courses',
+      icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-orange-500',
+      component: createDynamicModule('teacher-independent-courses')
+    }] : []),
     {
       id: 'classes',
       label: t.classes,

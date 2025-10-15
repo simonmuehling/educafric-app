@@ -104,6 +104,7 @@ export interface AuthenticatedUser {
   preferredLanguage: 'en' | 'fr';
   whatsappNumber?: string;
   twoFactorEnabled: boolean;
+  workMode?: 'school' | 'independent' | 'hybrid';
   // Subscription fields
   subscriptionPlan?: string;
   subscriptionStatus?: string;

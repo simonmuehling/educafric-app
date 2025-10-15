@@ -166,6 +166,8 @@ class FastModuleLoader {
       'teacher.messages': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'), // Role-namespaced
       'teacher-absence-declaration': () => import('@/components/teacher/modules/TeacherAbsenceDeclaration'),
       'absence-declaration': () => import('@/components/teacher/modules/TeacherAbsenceDeclaration'),
+      'teacher-independent-courses': () => import('@/components/teacher/modules/TeacherIndependentCourses'),
+      'independent-courses': () => import('@/components/teacher/modules/TeacherIndependentCourses'),
       
       // Additional Teacher module aliases
       'FunctionalMyClasses': () => import('@/components/teacher/modules/FunctionalMyClasses'),
