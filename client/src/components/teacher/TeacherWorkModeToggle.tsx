@@ -33,30 +33,39 @@ const TeacherWorkModeToggle: React.FC<TeacherWorkModeToggleProps> = ({ currentMo
 
   // For hybrid teachers, show toggle
   if (currentMode === 'hybrid') {
+    const [activeMode, setActiveMode] = React.useState<'school' | 'independent'>('school');
+    
+    const handleToggle = (mode: 'school' | 'independent') => {
+      setActiveMode(mode);
+      onModeChange(mode);
+    };
+    
     return (
-      <Card className="mb-4">
+      <Card className="mb-4 border-2 border-primary/20">
         <CardContent className="p-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" />
               <span className="font-medium">{t.currentMode}:</span>
-              <Badge variant="outline">Hybrid</Badge>
+              <Badge variant="default" className="bg-purple-500">Hybrid</Badge>
             </div>
             <div className="flex gap-2">
               <Button
-                variant="outline"
+                variant={activeMode === 'school' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => onModeChange('school')}
+                onClick={() => handleToggle('school')}
                 data-testid="button-switch-school"
+                className={activeMode === 'school' ? 'bg-blue-600 hover:bg-blue-700' : ''}
               >
                 <School className="w-4 h-4 mr-2" />
                 {t.schoolMode}
               </Button>
               <Button
-                variant="outline"
+                variant={activeMode === 'independent' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => onModeChange('independent')}
+                onClick={() => handleToggle('independent')}
                 data-testid="button-switch-independent"
+                className={activeMode === 'independent' ? 'bg-orange-600 hover:bg-orange-700' : ''}
               >
                 <User className="w-4 h-4 mr-2" />
                 {t.independentMode}

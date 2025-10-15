@@ -206,8 +206,7 @@ const TeacherIndependentCourses: React.FC = () => {
   const { data: activationData, isLoading: activationLoading } = useQuery({
     queryKey: ['/api/teacher/independent/activation/status'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/teacher/independent/activation/status');
-      return response.json();
+      return await apiRequest('GET', '/api/teacher/independent/activation/status');
     }
   });
 
@@ -215,8 +214,7 @@ const TeacherIndependentCourses: React.FC = () => {
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['/api/teacher/independent/students'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/teacher/independent/students');
-      return response.json();
+      return await apiRequest('GET', '/api/teacher/independent/students');
     },
     enabled: activationData?.isActive
   });
@@ -225,8 +223,7 @@ const TeacherIndependentCourses: React.FC = () => {
   const { data: sessionsData, isLoading: sessionsLoading } = useQuery({
     queryKey: ['/api/teacher/independent/sessions'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/teacher/independent/sessions');
-      return response.json();
+      return await apiRequest('GET', '/api/teacher/independent/sessions');
     },
     enabled: activationData?.isActive
   });
@@ -234,8 +231,7 @@ const TeacherIndependentCourses: React.FC = () => {
   // Add student mutation
   const addStudentMutation = useMutation({
     mutationFn: async (data: typeof newStudent) => {
-      const response = await apiRequest('POST', '/api/teacher/independent/students', data);
-      return response.json();
+      return await apiRequest('POST', '/api/teacher/independent/students', data);
     },
     onSuccess: () => {
       toast({
@@ -258,8 +254,7 @@ const TeacherIndependentCourses: React.FC = () => {
   // Create session mutation
   const createSessionMutation = useMutation({
     mutationFn: async (data: typeof newSession) => {
-      const response = await apiRequest('POST', '/api/teacher/independent/sessions', data);
-      return response.json();
+      return await apiRequest('POST', '/api/teacher/independent/sessions', data);
     },
     onSuccess: () => {
       toast({
