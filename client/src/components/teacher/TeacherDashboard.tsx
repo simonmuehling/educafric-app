@@ -167,6 +167,9 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
   // Show independent courses module only if workMode is 'independent' or 'hybrid'
   const showIndependentCourses = user?.workMode === 'independent' || user?.workMode === 'hybrid';
   
+  // Debug log to check workMode
+  console.log('[TEACHER_DASHBOARD] User workMode:', user?.workMode, 'Show independent courses:', showIndependentCourses);
+  
   // Current active context for hybrid teachers
   const [activeContext, setActiveContext] = useState<'school' | 'independent'>('school');
   
