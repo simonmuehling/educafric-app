@@ -2946,8 +2946,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
               }
             </p>
           </CardHeader>
-          <CardContent className="p-0">
-            <AnnualReportSheet
+          <CardContent>
+            <BulletinPrint documentTitle={`Rapport_Annuel_${student.name?.replace(/\s+/g, '_')}_${year}`}>
+              <AnnualReportSheet
               student={{
                 name: student.name,
                 id: student.id,
@@ -3021,6 +3022,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
               }}
               language={language}
             />
+            </BulletinPrint>
           </CardContent>
         </Card>
       )}
