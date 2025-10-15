@@ -90,6 +90,16 @@ Preferred communication style: Simple, everyday language.
     - MTN Mobile Money: Y-Note integration with webhook amount verification, order ID validation, server-side price calculation enforcement
     - Frontend: Real-time polling system for payment confirmation (replaces fake success timers), 2-minute timeout with graceful failure messaging
     - Protection: All webhooks validate received amounts against server-calculated prices before activation, preventing under/overpayment exploits
+- **Teacher Hybrid Work Mode (Oct 2025)**: Teacher role extended with flexible work modes to support independent tutoring:
+  - **Work Modes**: `school` (traditional), `independent` (private tutor), `hybrid` (both school and independent)
+  - **Independent Mode Activation**: 25,000 CFA/year subscription unlocks private tutoring capabilities
+  - **Features**: "Mes Cours Privés" module with private student management, session scheduling, and Jitsi video integration
+  - **Migration Status**: 3 test teachers converted to `work_mode='independent'` with 1-year free activations for validation
+  - **Database Schema**: New tables `teacher_independent_activations` (subscriptions), `teacher_independent_students` (connections), `teacher_independent_sessions` (courses)
+  - **Frontend Components**: `TeacherWorkModeToggle` (mode switcher), `TeacherIndependentCourses` (management UI), `TeacherActivationPurchase` (payment page)
+  - **Backend Routes**: `/api/teacher-independent/*` endpoints with Stripe + MTN Mobile Money payment integration
+  - **UI/UX**: Module conditionally renders when `workMode === 'independent' || 'hybrid'`, auto-hidden for school-only teachers
+  - **Future**: Freelancer dashboard deprecated - new independent teachers use Teacher dashboard with workMode toggle
 
 ## External Dependencies
 
