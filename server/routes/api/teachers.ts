@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
 import { requireAuth } from '../../middleware/auth';
+import bcrypt from 'bcryptjs';
 
 const router = Router();
 
@@ -100,8 +101,16 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'No school associated with user' });
     }
 
+    const { password, ...otherData } = req.body;
+    
+    // Hash password before creating user
+    const hashedPassword = password 
+      ? await bcrypt.hash(password, 10) 
+      : await bcrypt.hash('TempPassword123!', 10); // Default temp password if none provided
+
     const teacherData = {
-      ...req.body,
+      ...otherData,
+      password: hashedPassword,
       role: 'Teacher',
       schoolId: user.schoolId
     };
