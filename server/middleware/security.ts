@@ -189,7 +189,24 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
 export function csrfWithAllowlist(req: any, res: any, next: any) {
   const p = req.path as string;
   const m = req.method as string;
-  if (CSRF_ALLOWLIST.some((fn) => fn(p, m))) return next();
+  
+  // Debug log for SiteAdmin routes
+  if (p.includes('site-admin') || p.includes('siteadmin')) {
+    console.log(`[CSRF_DEBUG] Path: "${p}", Method: "${m}"`);
+    console.log(`[CSRF_DEBUG] Checking allowlist...`);
+  }
+  
+  if (CSRF_ALLOWLIST.some((fn) => fn(p, m))) {
+    if (p.includes('site-admin') || p.includes('siteadmin')) {
+      console.log(`[CSRF_DEBUG] ✅ Path "${p}" is ALLOWED, bypassing CSRF`);
+    }
+    return next();
+  }
+  
+  if (p.includes('site-admin') || p.includes('siteadmin')) {
+    console.log(`[CSRF_DEBUG] ❌ Path "${p}" is NOT in allowlist, enforcing CSRF`);
+  }
+  
   return csrf(req, res, next);
 }
 
