@@ -6,7 +6,7 @@ import {
   teacherIndependentSessions,
   users
 } from '../../shared/schema';
-import { eq, and, gte } from 'drizzle-orm';
+import { eq, and, gte, desc } from 'drizzle-orm';
 
 const router = Router();
 
@@ -63,7 +63,7 @@ router.get('/activation/status', requireAuth, async (req, res) => {
       .select()
       .from(teacherIndependentActivations)
       .where(eq(teacherIndependentActivations.teacherId, user.id))
-      .orderBy(teacherIndependentActivations.createdAt)
+      .orderBy(desc(teacherIndependentActivations.createdAt))
       .limit(1);
 
     if (activation.length === 0) {
