@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useOffline } from '@/hooks/useOffline';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   CheckCircle, XCircle, Clock, AlertTriangle,
   Calendar, Users, Filter, Download,
-  Search, Eye, Edit
+  Search, Eye, Edit, WifiOff
 } from 'lucide-react';
 
 interface AttendanceRecord {
@@ -28,6 +29,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isOnline, queueAction, cacheData, getCachedData } = useOffline();
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isMarkAttendanceOpen, setIsMarkAttendanceOpen] = useState(false);
@@ -112,28 +114,58 @@ const FunctionalTeacherAttendance: React.FC = () => {
       setIsMarkAttendanceOpen(false);
       setAttendanceForm({ classId: '', date: new Date().toISOString().split('T')[0], subject: '', students: [], notes: '' });
       toast({
-        title: 'Présences marquées',
-        description: 'Les présences ont été enregistrées avec succès.'
+        title: language === 'fr' ? 'Présences marquées' : 'Attendance marked',
+        description: language === 'fr' ? 'Les présences ont été enregistrées avec succès.' : 'Attendance has been recorded successfully.'
       });
     },
     onError: () => {
       toast({
-        title: 'Erreur',
-        description: 'Impossible de marquer les présences.',
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de marquer les présences.' : 'Failed to mark attendance.',
         variant: 'destructive'
       });
     }
   });
 
-  const handleMarkAttendance = () => {
+  const handleMarkAttendance = async () => {
     if (attendanceForm.classId && attendanceForm.date && attendanceForm.subject && attendanceForm.students.length > 0) {
-      markAttendanceMutation.mutate({
+      const attendanceData = {
         classId: parseInt(attendanceForm.classId),
         date: attendanceForm.date,
         subject: attendanceForm.subject,
         students: attendanceForm.students,
         notes: attendanceForm.notes
-      });
+      };
+
+      // If offline, queue for later sync
+      if (!isOnline) {
+        // Queue each student's attendance separately for proper sync
+        for (const student of attendanceForm.students) {
+          await queueAction('attendance', 'create', {
+            studentId: student.id,
+            classId: parseInt(attendanceForm.classId),
+            schoolId: user?.schoolId || 0,
+            date: attendanceForm.date,
+            status: student.status,
+            notes: attendanceForm.notes
+          }, user?.id || 0);
+        }
+        
+        setIsMarkAttendanceOpen(false);
+        setAttendanceForm({ classId: '', date: new Date().toISOString().split('T')[0], subject: '', students: [], notes: '' });
+        
+        toast({
+          title: language === 'fr' ? '📴 Marqué hors ligne' : '📴 Marked offline',
+          description: language === 'fr' ? 
+            'Présences enregistrées localement. Elles seront synchronisées automatiquement quand vous serez en ligne.' : 
+            'Attendance recorded locally. Will sync automatically when you\'re online.',
+          duration: 5000
+        });
+        return;
+      }
+
+      // If online, mark attendance normally
+      markAttendanceMutation.mutate(attendanceData);
     }
   };
 

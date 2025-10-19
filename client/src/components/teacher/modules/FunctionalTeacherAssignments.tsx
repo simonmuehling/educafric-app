@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useOffline } from '@/hooks/useOffline';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import {
   Plus, Calendar, Users, Eye, Edit,
   Download, Filter, TrendingUp, Archive,
   Trash2, RotateCcw, Settings, BookOpen,
-  MessageCircle, Timer, Star, AlertTriangle
+  MessageCircle, Timer, Star, AlertTriangle, WifiOff
 } from 'lucide-react';
 
 interface Assignment {
@@ -55,6 +56,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isOnline, queueAction } = useOffline();
   const [activeTab, setActiveTab] = useState('active');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isCreateHomeworkOpen, setIsCreateHomeworkOpen] = useState(false);
@@ -288,9 +290,9 @@ const FunctionalTeacherAssignments: React.FC = () => {
     });
   };
 
-  const handleCreateHomework = () => {
+  const handleCreateHomework = async () => {
     if (homeworkForm.title && homeworkForm.description && homeworkForm.classId && homeworkForm.dueDate) {
-      createHomeworkMutation.mutate({
+      const homeworkData = {
         title: homeworkForm.title,
         description: homeworkForm.description,
         classId: parseInt(homeworkForm.classId),
@@ -298,7 +300,30 @@ const FunctionalTeacherAssignments: React.FC = () => {
         dueDate: homeworkForm.dueDate,
         priority: homeworkForm.priority,
         instructions: homeworkForm.instructions
-      });
+      };
+
+      // If offline, queue for later sync
+      if (!isOnline) {
+        await queueAction('homework', 'create', {
+          ...homeworkData,
+          schoolId: user?.schoolId || 0
+        }, user?.id || 0);
+        
+        setIsCreateHomeworkOpen(false);
+        resetHomeworkForm();
+        
+        toast({
+          title: language === 'fr' ? '📴 Créé hors ligne' : '📴 Created offline',
+          description: language === 'fr' ? 
+            'Devoir enregistré localement. Il sera synchronisé automatiquement quand vous serez en ligne.' : 
+            'Homework saved locally. Will sync automatically when you\'re online.',
+          duration: 5000
+        });
+        return;
+      }
+
+      // If online, create homework normally
+      createHomeworkMutation.mutate(homeworkData);
     }
   };
 
