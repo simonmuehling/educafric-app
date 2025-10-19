@@ -34,8 +34,14 @@ class OfflineSyncService {
 
   private async handleOnline() {
     console.log('[SYNC] Connection restored, starting sync...');
-    await this.syncAll();
-    this.startPeriodicSync();
+    try {
+      // Ensure database is initialized before syncing
+      await offlineStorage.init();
+      await this.syncAll();
+      this.startPeriodicSync();
+    } catch (error) {
+      console.error('[SYNC] Failed to initialize sync:', error);
+    }
   }
 
   private handleOffline() {
@@ -138,10 +144,7 @@ class OfflineSyncService {
 
       console.log('[SYNC] Syncing', action.type, action.action, 'to', endpoint);
 
-      const response = await apiRequest(endpoint, {
-        method,
-        body: JSON.stringify(action.data)
-      });
+      const response = await apiRequest(method, endpoint, action.data);
 
       if (response.ok) {
         console.log('[SYNC] ✓ Action synced successfully:', action.type);
