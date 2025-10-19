@@ -48,36 +48,42 @@ const FunctionalStudentGrades: React.FC = () => {
   const { isOnline, cacheData, getCachedData } = useOffline();
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
+  const [cachedGrades, setCachedGrades] = useState<GradeData[]>([]);
 
   // Fetch grades data from PostgreSQL API
-  const { data: grades = [], isLoading, refetch } = useQuery<GradeData[]>({
+  const { data: onlineGrades = [], isLoading, refetch } = useQuery<GradeData[]>({
     queryKey: ['/api/student/grades'],
-    enabled: !!user
+    enabled: !!user && isOnline  // Only fetch when online
   });
+
+  // Use online grades or cached grades
+  const grades = isOnline ? onlineGrades : cachedGrades;
 
   // Cache grades data when fetched successfully
   useEffect(() => {
-    if (grades && grades.length > 0 && isOnline) {
-      cacheData('student-grades', grades, 120); // Cache for 2 hours
+    if (onlineGrades && onlineGrades.length > 0 && isOnline) {
+      cacheData('student-grades', onlineGrades, 120); // Cache for 2 hours
+      setCachedGrades(onlineGrades); // Update local cache
     }
-  }, [grades, isOnline, cacheData]);
+  }, [onlineGrades, isOnline, cacheData]);
 
   // Load cached grades when offline
   useEffect(() => {
-    if (!isOnline && grades.length === 0) {
-      getCachedData('student-grades').then((cachedGrades) => {
-        if (cachedGrades) {
+    if (!isOnline) {
+      getCachedData('student-grades').then((cached) => {
+        if (cached && Array.isArray(cached)) {
+          setCachedGrades(cached);
           toast({
             title: language === 'fr' ? '📴 Mode hors ligne' : '📴 Offline mode',
             description: language === 'fr' ? 
-              'Affichage des notes en cache. Connectez-vous pour voir les dernières mises à jour.' : 
-              'Showing cached grades. Go online to see latest updates.',
+              `Affichage de ${cached.length} notes en cache. Connectez-vous pour voir les dernières mises à jour.` : 
+              `Showing ${cached.length} cached grades. Go online to see latest updates.`,
             duration: 3000
           });
         }
       });
     }
-  }, [isOnline, grades, getCachedData, toast, language]);
+  }, [isOnline, getCachedData, toast, language]);
 
   // Calculate summary from real data
   const calculateSummary = (): GradeSummary => {

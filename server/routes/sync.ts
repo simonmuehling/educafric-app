@@ -10,21 +10,60 @@ import { z } from 'zod';
 
 const router = Router();
 
+// Zod schemas for sync validation
+const attendanceSyncSchema = z.object({
+  studentId: z.number().int().positive(),
+  classId: z.number().int().positive(),
+  schoolId: z.number().int().positive(),
+  date: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
+  status: z.enum(['present', 'absent', 'late', 'excused']),
+  notes: z.string().optional().nullable(),
+  timeIn: z.string().datetime().optional().nullable(),
+  timeOut: z.string().datetime().optional().nullable()
+});
+
+const gradeSyncSchema = z.object({
+  studentId: z.number().int().positive(),
+  classId: z.number().int().positive(),
+  schoolId: z.number().int().positive(),
+  subjectId: z.number().int().positive(),
+  grade: z.number().min(0),
+  term: z.string().min(1),
+  academicYear: z.string().min(1),
+  examType: z.string().optional(),
+  coefficient: z.number().min(0).optional()
+});
+
+const homeworkSyncSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional().nullable(),
+  classId: z.number().int().positive(),
+  schoolId: z.number().int().positive(),
+  subjectId: z.number().int().positive(),
+  dueDate: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional().nullable(),
+  priority: z.enum(['low', 'medium', 'high']).optional(),
+  instructions: z.string().optional().nullable()
+});
+
 // Sync attendance records with idempotency
 router.post('/attendance', requireAuth, async (req, res) => {
   try {
-    const { studentId, classId, schoolId, date, status, notes, timeIn, timeOut } = req.body;
-    const userId = req.user!.id;
-
     // Check if user has permission to mark attendance
     if (req.user!.role !== 'Teacher' && req.user!.role !== 'Director' && req.user!.role !== 'SiteAdmin') {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // Basic validation
-    if (!studentId || !classId || !schoolId || !date || !status) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    // Zod validation
+    const validation = attendanceSyncSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: validation.error.errors 
+      });
     }
+
+    const { studentId, classId, schoolId, date, status, notes, timeIn, timeOut } = validation.data;
+    const userId = req.user!.id;
 
     // Check for existing record (idempotency) - same student, class, and date
     const existing = await db
@@ -112,17 +151,21 @@ router.put('/attendance/:id', requireAuth, async (req, res) => {
 // Sync grade records with idempotency
 router.post('/grades', requireAuth, async (req, res) => {
   try {
-    const { studentId, classId, schoolId, subjectId, grade, term, academicYear, examType, coefficient } = req.body;
-    const userId = req.user!.id;
-
     if (req.user!.role !== 'Teacher' && req.user!.role !== 'Director' && req.user!.role !== 'SiteAdmin') {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // Basic validation
-    if (!studentId || !classId || !schoolId || !subjectId || grade === undefined || !term || !academicYear) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    // Zod validation
+    const validation = gradeSyncSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: validation.error.errors 
+      });
     }
+
+    const { studentId, classId, schoolId, subjectId, grade, term, academicYear, examType, coefficient } = validation.data;
+    const userId = req.user!.id;
 
     // Check for existing record (idempotency) - same student, class, subject, term, year, exam type
     const existing = await db
@@ -212,17 +255,21 @@ router.put('/grades/:id', requireAuth, async (req, res) => {
 // Sync homework records with idempotency
 router.post('/homework', requireAuth, async (req, res) => {
   try {
-    const { title, description, instructions, classId, schoolId, subjectId, dueDate, priority } = req.body;
-    const userId = req.user!.id;
-
     if (req.user!.role !== 'Teacher' && req.user!.role !== 'Director' && req.user!.role !== 'SiteAdmin') {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // Basic validation
-    if (!title || !classId || !schoolId || !subjectId) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    // Zod validation
+    const validation = homeworkSyncSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: validation.error.errors 
+      });
     }
+
+    const { title, description, instructions, classId, schoolId, subjectId, dueDate, priority } = validation.data;
+    const userId = req.user!.id;
 
     // Check for existing record (idempotency) - same title, class, subject, due date
     const existing = await db
