@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
+import { useOffline } from '@/hooks/useOffline';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import { useToast } from '@/hooks/use-toast';
@@ -13,7 +14,7 @@ import {
   BarChart3, TrendingUp, TrendingDown, Award, Target,
   Calendar, BookOpen, User, ChevronRight, Filter,
   Clock, Star, Trophy, Medal, Download, RefreshCw,
-  Eye, Mail, FileText
+  Eye, Mail, FileText, WifiOff
 } from 'lucide-react';
 
 interface GradeData {
@@ -44,6 +45,7 @@ const FunctionalStudentGrades: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isOnline, cacheData, getCachedData } = useOffline();
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
 
@@ -52,6 +54,30 @@ const FunctionalStudentGrades: React.FC = () => {
     queryKey: ['/api/student/grades'],
     enabled: !!user
   });
+
+  // Cache grades data when fetched successfully
+  useEffect(() => {
+    if (grades && grades.length > 0 && isOnline) {
+      cacheData('student-grades', grades, 120); // Cache for 2 hours
+    }
+  }, [grades, isOnline, cacheData]);
+
+  // Load cached grades when offline
+  useEffect(() => {
+    if (!isOnline && grades.length === 0) {
+      getCachedData('student-grades').then((cachedGrades) => {
+        if (cachedGrades) {
+          toast({
+            title: language === 'fr' ? '📴 Mode hors ligne' : '📴 Offline mode',
+            description: language === 'fr' ? 
+              'Affichage des notes en cache. Connectez-vous pour voir les dernières mises à jour.' : 
+              'Showing cached grades. Go online to see latest updates.',
+            duration: 3000
+          });
+        }
+      });
+    }
+  }, [isOnline, grades, getCachedData, toast, language]);
 
   // Calculate summary from real data
   const calculateSummary = (): GradeSummary => {
