@@ -98,12 +98,23 @@ if (firebase) {
   });
 }
 
-// Minimal cache to reduce memory usage
+// Enhanced cache for comprehensive offline support
 const urlsToCache = [
   '/',
+  '/offline.html',
   '/manifest.json',
-  '/educafric-logo-128.png'
+  '/educafric-logo-128.png',
+  '/educafric-logo-512.png',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
+  '/favicon.ico',
+  '/favicon.png'
 ];
+
+// Dynamic caching patterns for user data and profiles
+const PROFILE_CACHE = 'educafric-profiles-v1';
+const API_CACHE = 'educafric-api-v1';
+const IMAGE_CACHE = 'educafric-images-v1';
 
 // Simple device check (cached result to avoid repeated calculations)
 let isLowEnd = null;
@@ -131,14 +142,17 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Lightweight activate event
+// Enhanced activate event - keep profile and API caches
 self.addEventListener('activate', (event) => {
+  const validCaches = [CACHE_NAME, PROFILE_CACHE, API_CACHE, IMAGE_CACHE];
+  
   event.waitUntil(
     caches.keys()
       .then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
-            if (cacheName !== CACHE_NAME) {
+            if (!validCaches.includes(cacheName)) {
+              console.log('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
@@ -161,43 +175,132 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // 🚫 NEVER cache authentication and API endpoints
+  // 🚫 NEVER cache authentication endpoints (but allow caching other API data)
   const isAuthEndpoint = url.pathname.includes('/api/auth') || 
-                         url.pathname.includes('/auth') ||
-                         url.pathname.includes('/api/') ||
+                         url.pathname.includes('/auth/') ||
                          url.pathname.includes('/login') ||
                          url.pathname.includes('/logout');
   
   if (isAuthEndpoint) {
-    // For auth/API endpoints: ALWAYS use network, never cache
+    // For auth endpoints: ALWAYS use network, never cache
     event.respondWith(fetch(event.request));
     return;
   }
   
-  // Special handling for PWA icons to avoid cache issues
-  const isImageRequest = event.request.url.match(/\.(png|jpg|jpeg|ico|svg)$/i);
-  const isPWAIcon = event.request.url.includes('android-chrome') || 
-                   event.request.url.includes('educafric-logo') ||
-                   event.request.url.includes('favicon');
+  // ✅ Cache profile and user data for offline access
+  const isProfileData = url.pathname.includes('/api/user') ||
+                        url.pathname.includes('/api/profile') ||
+                        url.pathname.includes('/api/settings');
   
-  if (isImageRequest && isPWAIcon) {
-    // For PWA icons, try network first, then cache
+  if (isProfileData) {
+    // Network first, cache fallback - with longer cache time for profile data
     event.respondWith(
       fetch(event.request)
         .then((response) => {
           if (response.ok) {
-            // Cache the fresh response
             const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
+            caches.open(PROFILE_CACHE).then((cache) => {
               cache.put(event.request, responseClone);
             });
-            return response;
           }
-          throw new Error('Network response not ok');
+          return response;
         })
         .catch(() => {
-          // Fallback to cache if network fails
-          return caches.match(event.request);
+          // Offline: return cached profile data
+          return caches.match(event.request).then((cached) => {
+            if (cached) {
+              console.log('[SW] ✅ Serving cached profile data offline');
+              return cached;
+            }
+            return new Response(JSON.stringify({ error: 'Offline - data not cached' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          });
+        })
+    );
+    return;
+  }
+  
+  // ✅ Cache educational data (grades, attendance, homework, notifications)
+  const isEducationalData = url.pathname.includes('/api/grades') ||
+                            url.pathname.includes('/api/attendance') ||
+                            url.pathname.includes('/api/homework') ||
+                            url.pathname.includes('/api/assignments') ||
+                            url.pathname.includes('/api/notifications') ||
+                            url.pathname.includes('/api/messages');
+  
+  if (isEducationalData) {
+    // Network first, cache fallback - already handled by IndexedDB but add SW cache too
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(API_CACHE).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Offline: return cached data
+          return caches.match(event.request).then((cached) => {
+            if (cached) {
+              console.log('[SW] ✅ Serving cached educational data offline');
+              return cached;
+            }
+            return new Response(JSON.stringify({ error: 'Offline - data not cached' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          });
+        })
+    );
+    return;
+  }
+  
+  // 🚫 Don't cache other API endpoints (sync, mutations, etc.)
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  
+  // ✅ Cache user images and avatars for offline access
+  const isImageRequest = event.request.url.match(/\.(png|jpg|jpeg|gif|webp|ico|svg)$/i);
+  const isPWAIcon = event.request.url.includes('android-chrome') || 
+                   event.request.url.includes('educafric-logo') ||
+                   event.request.url.includes('favicon');
+  const isUserImage = url.pathname.includes('/uploads/') ||
+                     url.pathname.includes('/avatars/') ||
+                     url.pathname.includes('/images/users/');
+  
+  if (isImageRequest && (isPWAIcon || isUserImage)) {
+    // Cache-first for images - they don't change often
+    event.respondWith(
+      caches.match(event.request)
+        .then((cached) => {
+          if (cached) {
+            // Return cached image immediately, optionally update in background
+            return cached;
+          }
+          
+          // Not cached, fetch from network
+          return fetch(event.request)
+            .then((response) => {
+              if (response.ok) {
+                const responseClone = response.clone();
+                const cacheName = isUserImage ? IMAGE_CACHE : CACHE_NAME;
+                caches.open(cacheName).then((cache) => {
+                  cache.put(event.request, responseClone);
+                });
+              }
+              return response;
+            })
+            .catch(() => {
+              // Network failed - show placeholder or error
+              return new Response('Image not available offline', { status: 503 });
+            });
         })
     );
     return;

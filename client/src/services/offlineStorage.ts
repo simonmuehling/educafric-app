@@ -16,6 +16,9 @@ export interface OfflineQueueItem {
   retries: number;
 }
 
+// Note: Profile/settings/preferences are cached for viewing offline but not queued for editing
+// Users can view their data offline, but edits require internet connection
+
 export interface CachedData {
   id: string;
   type: string;
@@ -317,6 +320,89 @@ class OfflineStorageManager {
 
       request.onerror = () => reject(request.error);
     });
+  }
+
+  // ========== USER DATA CACHING METHODS ==========
+  
+  // Cache user profile data
+  async cacheUserProfile(userId: number, profileData: any): Promise<void> {
+    return this.cacheData(`profile-${userId}`, profileData, 120); // 2 hour TTL
+  }
+
+  // Get cached user profile
+  async getCachedUserProfile(userId: number): Promise<any | null> {
+    return this.getCachedData(`profile-${userId}`);
+  }
+
+  // Cache user settings
+  async cacheUserSettings(userId: number, settings: any): Promise<void> {
+    return this.cacheData(`settings-${userId}`, settings, 240); // 4 hour TTL
+  }
+
+  // Get cached user settings
+  async getCachedUserSettings(userId: number): Promise<any | null> {
+    return this.getCachedData(`settings-${userId}`);
+  }
+
+  // Cache user preferences (language, theme, etc.)
+  async cacheUserPreferences(userId: number, preferences: any): Promise<void> {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['userPreferences'], 'readwrite');
+      const store = transaction.objectStore('userPreferences');
+      const request = store.put({ userId, ...preferences, updatedAt: Date.now() });
+
+      request.onsuccess = () => {
+        console.log('[OFFLINE] User preferences cached');
+        resolve();
+      };
+
+      request.onerror = () => {
+        console.error('[OFFLINE] Failed to cache preferences:', request.error);
+        reject(request.error);
+      };
+    });
+  }
+
+  // Get cached user preferences
+  async getCachedUserPreferences(userId: number): Promise<any | null> {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction(['userPreferences'], 'readonly');
+      const store = transaction.objectStore('userPreferences');
+      const request = store.get(userId);
+
+      request.onsuccess = () => {
+        resolve(request.result || null);
+      };
+
+      request.onerror = () => {
+        console.error('[OFFLINE] Failed to get preferences:', request.error);
+        reject(request.error);
+      };
+    });
+  }
+
+  // Cache notifications
+  async cacheNotifications(userId: number, notifications: any[]): Promise<void> {
+    return this.cacheData(`notifications-${userId}`, notifications, 60); // 1 hour TTL
+  }
+
+  // Get cached notifications
+  async getCachedNotifications(userId: number): Promise<any[] | null> {
+    return this.getCachedData(`notifications-${userId}`);
+  }
+
+  // Cache dashboard data (role-specific)
+  async cacheDashboardData(userId: number, role: string, data: any): Promise<void> {
+    return this.cacheData(`dashboard-${role}-${userId}`, data, 30); // 30 min TTL
+  }
+
+  // Get cached dashboard data
+  async getCachedDashboardData(userId: number, role: string): Promise<any | null> {
+    return this.getCachedData(`dashboard-${role}-${userId}`);
   }
 }
 
