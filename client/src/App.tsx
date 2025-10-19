@@ -121,6 +121,7 @@ import EducafricFooter from "@/components/EducafricFooter";
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
 import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
 import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicator";
+import { OfflineBanner } from "@/components/offline/OfflineBanner";
 // WebInspector disabled to prevent fetch override interference with PWA analytics
 // import WebInspector from "@/components/developer/WebInspector";
 import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
@@ -562,6 +563,7 @@ function App() {
                     <TooltipProvider>
                       <FirebaseRedirectHandler />
                       <AppLayout>
+                        <OfflineBanner />
                         <ConnectionStatusIndicator />
                         <Router />
                       </AppLayout>

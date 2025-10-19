@@ -122,6 +122,7 @@ import onlineClassPaymentsRouter from "./routes/api/online-class-payments";
 import onlineClassSchedulerRouter from "./routes/api/online-class-scheduler";
 import teacherIndependentPaymentsRouter from "./routes/api/teacher-independent-payments";
 import calendarRoutes from "./routes/calendar";
+import syncRoutes from "./routes/sync";
 
 // Import new PDF generators routes
 import masterSheetsRouter from "./routes/api/master-sheets";
@@ -6773,6 +6774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/documents', documentsRouter);
   app.use('/api/subscription', subscriptionRoutes);
   app.use('/api/pwa', pwaRoutes);
+  app.use('/api/sync', syncRoutes);
   app.use('/api/analytics', analyticsRoutes);
   // 🔥 PREMIUM RESTRICTED: Advanced communications (WhatsApp only, SMS removed)
   app.use('/api/whatsapp', checkSubscriptionFeature('advanced_communications'), whatsappRoutes);

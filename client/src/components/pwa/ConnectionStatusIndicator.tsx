@@ -297,7 +297,7 @@ const ConnectionStatusIndicator: React.FC = () => {
 
           {/* Bouton de test */}
           <button
-            onClick={() => pwaConnectionManager.checkConnection()}
+            onClick={() => healthMonitorMigration.manualCheck()}
             className="w-full mt-3 px-3 py-2 text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md"
           >
             {t.testConnection}

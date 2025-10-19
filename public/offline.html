@@ -3,67 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hors ligne - Educafric</title>
+    <title>Mode hors ligne - Educafric</title>
+    <link rel="icon" href="/educafric-logo-128.png" />
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+        }
+
+        .offline-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
+            animation: fadeIn 0.5s ease-in;
         }
-        .container {
-            max-width: 400px;
-            padding: 40px 20px;
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .logo {
-            width: 64px;
-            height: 64px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 12px;
-            margin: 0 auto 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
+
+        .icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            position: relative;
         }
+
+        .icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .wifi-icon {
+            stroke: #ff6b6b;
+            stroke-width: 2;
+            fill: none;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
         h1 {
-            margin: 0 0 16px;
-            font-size: 24px;
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .status {
+            background: #ffe5e5;
+            border-left: 4px solid #ff6b6b;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .status-title {
+            font-weight: 600;
+            color: #c0392b;
+            margin-bottom: 8px;
+        }
+
+        .status-text {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .features {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .features h3 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 15px;
             font-weight: 600;
         }
-        p {
-            margin: 0 0 24px;
-            opacity: 0.9;
-            line-height: 1.5;
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #495057;
+            font-size: 14px;
         }
-        button {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
+
+        .feature-item::before {
+            content: "✓";
+            color: #27ae60;
+            font-weight: bold;
+            margin-right: 10px;
             font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
         }
-        button:hover {
-            background: rgba(255,255,255,0.3);
+
+        .retry-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .retry-button:active {
+            transform: translateY(0);
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading .spinner {
+            display: block;
+        }
+
+        .loading .button-text {
+            display: none;
+        }
+
+        .info {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            color: #95a5a6;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .offline-container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .icon {
+                width: 100px;
+                height: 100px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">📚</div>
+    <div class="offline-container">
+        <div class="icon">
+            <svg class="wifi-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M2 10l1.5 1.5c3.9-3.9 10.1-3.9 14 0L19 10c-4.7-4.7-12.3-4.7-17 0z"/>
+                <path d="M6 14l1.5 1.5c1.5-1.5 3.5-1.5 5 0L14 14c-2.3-2.3-6.7-2.3-9 0z"/>
+                <circle cx="12" cy="18" r="1.5"/>
+                <line x1="2" y1="2" x2="22" y2="22" stroke-width="2"/>
+            </svg>
+        </div>
+
         <h1>Vous êtes hors ligne</h1>
-        <p>Vérifiez votre connexion internet pour accéder à Educafric.</p>
-        <button onclick="window.location.reload()">Réessayer</button>
+        <p class="subtitle">
+            Vérifiez votre connexion Internet pour accéder à toutes les fonctionnalités d'Educafric.
+        </p>
+
+        <div class="status">
+            <div class="status-title">Statut de connexion</div>
+            <div class="status-text" id="connection-status">
+                Aucune connexion Internet détectée
+            </div>
+        </div>
+
+        <div class="features">
+            <h3>Mode hors ligne disponible :</h3>
+            <div class="feature-item">Consultation des données mises en cache</div>
+            <div class="feature-item">Vos actions seront synchronisées à la reconnexion</div>
+            <div class="feature-item">Accès limité aux fonctionnalités de base</div>
+        </div>
+
+        <button class="retry-button" id="retry-button" onclick="checkConnection()">
+            <span class="button-text">Réessayer la connexion</span>
+            <div class="spinner"></div>
+        </button>
+
+        <div class="info">
+            Educafric fonctionne mieux avec une connexion Internet stable.<br>
+            Optimisé pour les connexions 2G/3G en Afrique.
+        </div>
     </div>
+
+    <script>
+        let checkInterval;
+
+        function checkConnection() {
+            const button = document.getElementById('retry-button');
+            const status = document.getElementById('connection-status');
+            
+            button.classList.add('loading');
+            status.textContent = 'Vérification de la connexion...';
+
+            setTimeout(() => {
+                if (navigator.onLine) {
+                    status.textContent = 'Connexion rétablie ! Redirection...';
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    status.textContent = 'Aucune connexion Internet détectée';
+                    button.classList.remove('loading');
+                }
+            }, 1500);
+        }
+
+        // Auto-check connection every 30 seconds
+        window.addEventListener('online', () => {
+            document.getElementById('connection-status').textContent = 'Connexion rétablie ! Redirection...';
+            setTimeout(() => window.location.reload(), 1000);
+        });
+
+        // Check connection status on load
+        window.addEventListener('load', () => {
+            if (navigator.onLine) {
+                checkConnection();
+            } else {
+                // Start auto-checking
+                checkInterval = setInterval(() => {
+                    if (navigator.onLine) {
+                        checkConnection();
+                        clearInterval(checkInterval);
+                    }
+                }, 30000); // Check every 30 seconds
+            }
+        });
+
+        // Clean up on unload
+        window.addEventListener('beforeunload', () => {
+            if (checkInterval) {
+                clearInterval(checkInterval);
+            }
+        });
+    </script>
 </body>
 </html>
