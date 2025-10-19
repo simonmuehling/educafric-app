@@ -64,18 +64,28 @@ Preferred communication style: Simple, everyday language.
 - **Schema**: Comprehensive, covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation, structured by academic year/term.
 
 ### Key Features and System Design Choices
-- **Offline-First Architecture (Oct 2025 - PRODUCTION READY)**: Comprehensive offline support for poor connectivity in Africa:
-  - **Service Worker**: Intelligent caching strategies (cache-first for static assets, network-first for API calls)
-  - **IndexedDB Storage**: Local storage for offline data access (grades, attendance, homework, assignments)
+- **Offline-First Architecture (Oct 2025 - PRODUCTION READY)**: Comprehensive offline support for poor connectivity in Africa - **ENTIRE APP WORKS OFFLINE**:
+  - **Service Worker**: Enhanced caching with separate stores for profiles, API data, images, and static assets
+    - Profile/Settings Cache: `/api/user`, `/api/profile`, `/api/settings` (2-4 hour TTL)
+    - Educational Data Cache: `/api/grades`, `/api/attendance`, `/api/homework`, `/api/notifications` (network-first)
+    - Image Cache: User avatars, profile photos, uploads (cache-first for speed)
+    - Static Assets: CSS, JS, fonts, PWA icons (cache-first)
+  - **IndexedDB Storage**: Comprehensive local storage for all user data
+    - User profiles, settings, preferences (2-4 hour TTL)
+    - Grades, attendance, homework, assignments (60-120 min TTL)
+    - Notifications (1 hour TTL), Dashboard data (30 min TTL)
   - **Background Sync**: Automatic synchronization of offline actions when connection is restored
-  - **Offline Queue**: Actions queued offline are automatically synced when online (5-minute intervals)
+  - **Offline Queue**: Educational actions queued offline, synced automatically (5-minute intervals)
   - **Smart Detection**: Detects 2G/3G and switches to lite mode automatically
   - **Backend Sync Endpoints**: `/api/sync/*` endpoints with Zod validation and idempotency
-  - **User Feedback**: Offline banner shows sync status and pending actions
+  - **User Feedback**: Offline banner shows sync status, pending actions, manual sync button
   - **Data Integrity**: Idempotency prevents duplicate records, Zod schemas enforce validation
   - **Teacher Offline**: Queue attendance marking and homework creation → auto-sync when connection restores
   - **Student Offline**: Cache grades/homework/attendance in IndexedDB → view offline, refresh when online
-  - **Auto-Sync**: Syncs automatically on app load and connection restore
+  - **Universal Offline**: All dashboards (Teacher, Student, Parent, Director, Commercial, Freelancer) can view data offline
+  - **Profile Viewing Offline**: Users can view their profile, settings, and preferences when offline
+  - **Navigation Offline**: Entire app is navigable offline with cached routes and components
+  - **Auto-Sync**: Syncs automatically on app load and connection restore, with manual sync option
 - **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
 - **Educational Management System**: Grade management (African-style report cards), real-time attendance, homework assignment, flexible timetable management.
 - **Communication System**: Multi-channel notifications (WhatsApp Click-to-Chat via wa.me links, Hostinger SMTP Email, PWA push), bilingual, contextual templates. SMS service removed - WhatsApp is the primary mobile notification method.
