@@ -64,14 +64,18 @@ Preferred communication style: Simple, everyday language.
 - **Schema**: Comprehensive, covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation, structured by academic year/term.
 
 ### Key Features and System Design Choices
-- **Offline-First Architecture (Oct 2025)**: Comprehensive offline support for poor connectivity in Africa:
+- **Offline-First Architecture (Oct 2025 - PRODUCTION READY)**: Comprehensive offline support for poor connectivity in Africa:
   - **Service Worker**: Intelligent caching strategies (cache-first for static assets, network-first for API calls)
   - **IndexedDB Storage**: Local storage for offline data access (grades, attendance, homework, assignments)
   - **Background Sync**: Automatic synchronization of offline actions when connection is restored
-  - **Offline Queue**: Actions queued offline are automatically synced when online
+  - **Offline Queue**: Actions queued offline are automatically synced when online (5-minute intervals)
   - **Smart Detection**: Detects 2G/3G and switches to lite mode automatically
-  - **Backend Sync Endpoints**: `/api/sync/*` endpoints for data reconciliation
+  - **Backend Sync Endpoints**: `/api/sync/*` endpoints with Zod validation and idempotency
   - **User Feedback**: Offline banner shows sync status and pending actions
+  - **Data Integrity**: Idempotency prevents duplicate records, Zod schemas enforce validation
+  - **Teacher Offline**: Queue attendance marking and homework creation → auto-sync when connection restores
+  - **Student Offline**: Cache grades/homework/attendance in IndexedDB → view offline, refresh when online
+  - **Auto-Sync**: Syncs automatically on app load and connection restore
 - **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
 - **Educational Management System**: Grade management (African-style report cards), real-time attendance, homework assignment, flexible timetable management.
 - **Communication System**: Multi-channel notifications (WhatsApp Click-to-Chat via wa.me links, Hostinger SMTP Email, PWA push), bilingual, contextual templates. SMS service removed - WhatsApp is the primary mobile notification method.
