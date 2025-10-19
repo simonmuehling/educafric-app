@@ -1,7 +1,5 @@
-# Educafric - African Educational Technology Platform
-
 ## Overview
-Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform designed for the African market. It integrates academic management, communication, and financial features to create a digital learning ecosystem. The platform aims to reduce costs for schools, improve educational outcomes, and support high concurrent user loads, ultimately revolutionizing education in Africa and aligning with UN Sustainable Development Goals. The project has ambitions for significant market penetration and becoming a complete educational solution.
+Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform designed for the African market. It aims to revolutionize education by integrating academic management, communication, and financial features into a digital learning ecosystem. The platform seeks to reduce costs for schools, improve educational outcomes, and support high concurrent user loads, aligning with UN Sustainable Development Goals and aspiring to achieve significant market penetration as a complete educational solution.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -43,85 +41,36 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Frontend Architecture
-- **Frameworks**: React with TypeScript, Wouter for routing, TanStack Query for state management.
-- **UI Components**: Radix UI + Shadcn/UI, styled with Tailwind CSS.
-- **Design**: Custom African-themed color palette, modern gradients, rounded cards, animated interactions using Nunito font. Unified UI/UX across all dashboards.
-- **Accessibility**: Progressive Web App (PWA) with strong mobile optimization.
-- **Mobile**: Separate React Native application (`educafric-mobile/`) for Android, sharing the backend.
-  - **Android Production Ready**: Build configuration with ProGuard obfuscation, release signing, AAB/APK generation
-  - **Deployment Guide**: Comprehensive setup for Google Play Store submission (keystore, versioning, optimization)
-  - **API Integration**: Connects to Express.js backend, session-based auth, production URL configuration ready
+### Frontend
+- **Web**: React with TypeScript, Wouter for routing, TanStack Query for state management. Radix UI + Shadcn/UI for components, styled with Tailwind CSS. Custom African-themed design, PWA, and mobile optimized.
+- **Mobile**: Separate React Native application (`educafric-mobile/`) for Android, sharing the backend, with production-ready configurations and deployment guide.
 
-### Backend Architecture
-- **Framework**: Express.js for RESTful APIs.
+### Backend
+- **API**: Express.js for RESTful APIs.
 - **ORM**: Drizzle ORM with PostgreSQL.
-- **Authentication**: Session-based authentication using `express-session` and `Passport.js`.
-- **Security**: Robust role-based access control (8 user roles), BCrypt for password hashing, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
+- **Authentication**: Session-based with `express-session` and `Passport.js`.
+- **Security**: Robust role-based access control (8 roles), BCrypt for passwords, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
 
-### Database Design
+### Database
 - **Type**: PostgreSQL, hosted on Neon Serverless, with multi-tenant support.
 - **Schema**: Comprehensive, covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation, structured by academic year/term.
 
-### Key Features and System Design Choices
-- **Offline-First Architecture (Oct 2025 - PRODUCTION READY)**: Comprehensive offline support for poor connectivity in Africa - **ENTIRE APP WORKS OFFLINE**:
-  - **Service Worker**: Enhanced caching with separate stores for profiles, API data, images, and static assets
-    - Profile/Settings Cache: `/api/user`, `/api/profile`, `/api/settings` (2-4 hour TTL)
-    - Educational Data Cache: `/api/grades`, `/api/attendance`, `/api/homework`, `/api/notifications` (network-first)
-    - Image Cache: User avatars, profile photos, uploads (cache-first for speed)
-    - Static Assets: CSS, JS, fonts, PWA icons (cache-first)
-  - **IndexedDB Storage**: Comprehensive local storage for all user data
-    - User profiles, settings, preferences (2-4 hour TTL)
-    - Grades, attendance, homework, assignments (60-120 min TTL)
-    - Notifications (1 hour TTL), Dashboard data (30 min TTL)
-  - **Background Sync**: Automatic synchronization of offline actions when connection is restored
-  - **Offline Queue**: Educational actions queued offline, synced automatically (5-minute intervals)
-  - **Smart Detection**: Detects 2G/3G and switches to lite mode automatically
-  - **Backend Sync Endpoints**: `/api/sync/*` endpoints with Zod validation and idempotency
-  - **User Feedback**: Offline banner shows sync status, pending actions, manual sync button
-  - **Data Integrity**: Idempotency prevents duplicate records, Zod schemas enforce validation
-  - **Teacher Offline**: Queue attendance marking and homework creation → auto-sync when connection restores
-  - **Student Offline**: Cache grades/homework/attendance in IndexedDB → view offline, refresh when online
-  - **Universal Offline**: All dashboards (Teacher, Student, Parent, Director, Commercial, Freelancer) can view data offline
-  - **Profile Viewing Offline**: Users can view their profile, settings, and preferences when offline
-  - **Navigation Offline**: Entire app is navigable offline with cached routes and components
-  - **Auto-Sync**: Syncs automatically on app load and connection restore, with manual sync option
+### Key Features and Design Choices
+- **Offline-First Architecture**: Comprehensive offline support for low connectivity. This includes an enhanced Service Worker for caching (profiles, API data, images, static assets), IndexedDB for local data storage (with specific TTLs for various data types), and Background Sync for automatic and periodic synchronization of offline actions. Offline queue for educational actions, smart 2G/3G detection, and a user-facing offline banner are also implemented.
 - **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
-- **Educational Management System**: Grade management (African-style report cards), real-time attendance, homework assignment, flexible timetable management.
-- **Communication System**: Multi-channel notifications (WhatsApp Click-to-Chat via wa.me links, Hostinger SMTP Email, PWA push), bilingual, contextual templates. SMS service removed - WhatsApp is the primary mobile notification method.
-  - **Attendance/Absence Notifications (Oct 2025)**: Automatic notifications for student absences. When teachers/directors mark students as absent/late/excused:
-    - **Primary**: Email notification with detailed absence information
-    - **WhatsApp Button**: Embedded green WhatsApp button in email with wa.me link (instant, free, no API configuration needed)
-    - **Click-to-Chat**: Parent clicks button → WhatsApp opens → Pre-filled message ready to send to school
-    - **Template**: Uses `absence_alert` template with student name, date, reason
-    - **No Configuration**: Works immediately without Meta API setup (can upgrade to API later)
-    - **Opt-in**: Parents must enable WhatsApp (waOptIn) and provide E.164 phone number for button to appear
-    - **Bilingual**: Supports FR/EN automatic language detection
-- **Payment & Subscription Management**: Stripe integration for international payments, local African payment methods.
+- **Educational Management**: Grade management (African-style report cards), real-time attendance, homework assignment, flexible timetable management.
+- **Communication System**: Multi-channel notifications via WhatsApp Click-to-Chat (wa.me links) and Hostinger SMTP Email, with bilingual, contextual templates. Automatic absence/lateness notifications to parents via email with an embedded WhatsApp button.
+- **Payment & Subscription**: Stripe integration for international payments, local African payment methods, with production-ready security hardening for Stripe and MTN Mobile Money.
 - **Geolocation Services**: GPS tracking, geofencing, safe zone management, real-time monitoring, emergency alerts.
-- **Document Management System**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access.
-- **Bidirectional Connection System**: Facilitates parent-child, student-parent, and freelancer-student connections with duplicate detection and school verification.
-- **Bilingual Support**: Dynamic French/English language switching, complete localization of UI, content, documentation.
+- **Document Management**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access.
+- **Bidirectional Connection System**: Facilitates parent-child, student-parent, and freelancer-student connections with verification.
+- **Bilingual Support**: Dynamic French/English language switching, full localization.
 - **Sandbox Environment**: Dedicated, fully unlocked environment with realistic African demo data.
-- **Academic Calendar Integration**: Export events (timetables, online classes) via iCal/ICS with Jitsi links, restricted access for Directors and Teachers.
-- **Bulk Excel Imports**: Comprehensive service for mass importing classes, timetables, teachers, students, rooms, and school settings with bilingual templates and robust validation.
-- **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` replaces the original module, providing an end-to-end workflow (draft to sent), 8 functional system tabs, and extensive integrations including secure API routes, notifications, bilingual templates, digital signatures, and PDF export with QR codes. It supports advanced features like absences, disciplinary sanctions, and multi-level signatures, tailored for African educational needs.
-- **Online Classes with Jitsi Meet**: Paid module with manual admin activation for schools (yearly/semester/trimester/monthly) and direct purchase option for independent teachers (150,000 CFA/year). Features time-window access control based on school timetables (free usage 2h before/after school hours), JWT-secured video conferencing at meet.educafric.com, course creation and session management, attendance tracking, and integration with Stripe + MTN Mobile Money for teacher payments.
-  - **Payment Security (Oct 2025)**: Production-ready payment integration with critical security hardening:
-    - Stripe: XAF zero-decimal currency handling (no multiplication), mandatory webhook signature verification with STRIPE_WEBHOOK_SECRET (no insecure fallbacks), server-side amount reconciliation
-    - MTN Mobile Money: Y-Note integration with webhook amount verification, order ID validation, server-side price calculation enforcement
-    - Frontend: Real-time polling system for payment confirmation (replaces fake success timers), 2-minute timeout with graceful failure messaging
-    - Protection: All webhooks validate received amounts against server-calculated prices before activation, preventing under/overpayment exploits
-- **Teacher Hybrid Work Mode (Oct 2025)**: Teacher role extended with flexible work modes to support independent tutoring:
-  - **Work Modes**: `school` (traditional), `independent` (private tutor), `hybrid` (both school and independent)
-  - **Independent Mode Activation**: 25,000 CFA/year subscription unlocks private tutoring capabilities
-  - **Features**: "Mes Cours Privés" module with private student management, session scheduling, and Jitsi video integration
-  - **Migration Status**: 3 test teachers converted to `work_mode='independent'` with 1-year free activations for validation
-  - **Database Schema**: New tables `teacher_independent_activations` (subscriptions), `teacher_independent_students` (connections), `teacher_independent_sessions` (courses)
-  - **Frontend Components**: `TeacherWorkModeToggle` (mode switcher), `TeacherIndependentCourses` (management UI), `TeacherActivationPurchase` (payment page)
-  - **Backend Routes**: `/api/teacher-independent/*` endpoints with Stripe + MTN Mobile Money payment integration
-  - **UI/UX**: Module conditionally renders when `workMode === 'independent' || 'hybrid'`, auto-hidden for school-only teachers
-  - **Future**: Freelancer dashboard deprecated - new independent teachers use Teacher dashboard with workMode toggle
+- **Academic Calendar**: iCal/ICS export for events with Jitsi links.
+- **Bulk Excel Imports**: Comprehensive service for mass importing data with bilingual templates and validation.
+- **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` for end-to-end report card workflow with advanced features, digital signatures, and PDF export.
+- **Online Classes with Jitsi Meet**: Paid module for schools and independent teachers, featuring time-window access, JWT-secured video conferencing, course creation, attendance tracking, and integrated payments.
+- **Teacher Hybrid Work Mode**: Extends teacher roles to support `school`, `independent` (private tutor), and `hybrid` modes, with a subscription model for independent tutoring features and integrated payment processing.
 
 ## External Dependencies
 
@@ -129,7 +78,7 @@ Preferred communication style: Simple, everyday language.
 - **Neon Database**: Serverless PostgreSQL hosting.
 - **Stripe**: Payment processing.
 - **Firebase**: Authentication (Google OAuth).
-- **WhatsApp**: Click-to-Chat integration via wa.me links (direct links, no API dependency).
+- **WhatsApp**: Click-to-Chat integration via wa.me links.
 - **Hostinger**: SMTP services for email communication.
 
 ### Development Tools
