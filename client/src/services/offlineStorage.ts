@@ -31,14 +31,27 @@ class OfflineStorageManager {
   private dbName = 'educafric-offline';
   private dbVersion = 2;
   private db: IDBDatabase | null = null;
+  private initPromise: Promise<void> | null = null;
 
-  // Initialize IndexedDB
+  // Initialize IndexedDB - idempotent with shared pending promise
   async init(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    // If already initialized, return immediately
+    if (this.db) {
+      return Promise.resolve();
+    }
+
+    // If initialization is in progress, wait for it
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    // Start new initialization
+    this.initPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.dbVersion);
 
       request.onerror = () => {
         console.error('[OFFLINE] Failed to open database:', request.error);
+        this.initPromise = null; // Allow retry on failure
         reject(request.error);
       };
 
@@ -72,6 +85,8 @@ class OfflineStorageManager {
         console.log('[OFFLINE] Database upgraded successfully');
       };
     });
+
+    return this.initPromise;
   }
 
   // Queue an action for offline sync

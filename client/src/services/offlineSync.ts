@@ -83,6 +83,9 @@ class OfflineSyncService {
     this.notifyListeners();
 
     try {
+      // Ensure database is initialized before attempting sync
+      await offlineStorage.init();
+      
       const pendingActions = await offlineStorage.getPendingActions();
       console.log('[SYNC] Found', pendingActions.length, 'pending actions');
 
