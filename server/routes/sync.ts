@@ -3,9 +3,8 @@
 
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
-import { storage } from '../storage';
 import { db } from '../db';
-import { attendance, grades, homework, insertAttendanceSchema, insertGradeSchema, insertHomeworkSchema } from '../../shared/schema';
+import { attendance, grades, homework } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -14,7 +13,7 @@ const router = Router();
 // Sync attendance records with idempotency
 router.post('/attendance', requireAuth, async (req, res) => {
   try {
-    const { studentId, classId, date, status, clientActionId } = req.body;
+    const { studentId, classId, schoolId, date, status, notes, timeIn, timeOut } = req.body;
     const userId = req.user!.id;
 
     // Check if user has permission to mark attendance
@@ -22,13 +21,10 @@ router.post('/attendance', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // Validate input using Zod schema
-    const validatedData = insertAttendanceSchema.omit({ id: true, teacherId: true }).parse({
-      studentId,
-      classId,
-      date,
-      status
-    });
+    // Basic validation
+    if (!studentId || !classId || !schoolId || !date || !status) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
     // Check for existing record (idempotency) - same student, class, and date
     const existing = await db
@@ -36,9 +32,9 @@ router.post('/attendance', requireAuth, async (req, res) => {
       .from(attendance)
       .where(
         and(
-          eq(attendance.studentId, validatedData.studentId),
-          eq(attendance.classId, validatedData.classId),
-          eq(attendance.date, new Date(validatedData.date))
+          eq(attendance.studentId, studentId),
+          eq(attendance.classId, classId),
+          eq(attendance.date, new Date(date))
         )
       )
       .limit(1);
@@ -47,26 +43,38 @@ router.post('/attendance', requireAuth, async (req, res) => {
       // Update existing record instead of creating duplicate
       const updated = await db
         .update(attendance)
-        .set({ status: validatedData.status, teacherId: userId })
+        .set({ 
+          status, 
+          markedBy: userId,
+          notes: notes || null,
+          timeIn: timeIn ? new Date(timeIn) : null,
+          timeOut: timeOut ? new Date(timeOut) : null,
+          updatedAt: new Date()
+        })
         .where(eq(attendance.id, existing[0].id))
         .returning();
       
+      console.log('[SYNC] Attendance updated (idempotent):', existing[0].id);
       return res.json({ success: true, data: updated[0], updated: true });
     }
 
     // Create new attendance record
     const newAttendance = await db.insert(attendance).values({
-      ...validatedData,
-      date: new Date(validatedData.date),
-      teacherId: userId
+      studentId,
+      classId,
+      schoolId,
+      date: new Date(date),
+      status,
+      markedBy: userId,
+      notes: notes || null,
+      timeIn: timeIn ? new Date(timeIn) : null,
+      timeOut: timeOut ? new Date(timeOut) : null
     }).returning();
 
+    console.log('[SYNC] Attendance created:', newAttendance[0].id);
     res.json({ success: true, data: newAttendance[0], updated: false });
   } catch (error) {
     console.error('[SYNC] Attendance sync error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', details: error.errors });
-    }
     res.status(500).json({ error: 'Failed to sync attendance' });
   }
 });
@@ -75,7 +83,8 @@ router.post('/attendance', requireAuth, async (req, res) => {
 router.put('/attendance/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, notes } = req.body;
+    const userId = req.user!.id;
 
     if (req.user!.role !== 'Teacher' && req.user!.role !== 'Director' && req.user!.role !== 'SiteAdmin') {
       return res.status(403).json({ error: 'Unauthorized' });
@@ -83,10 +92,16 @@ router.put('/attendance/:id', requireAuth, async (req, res) => {
 
     const updated = await db
       .update(attendance)
-      .set({ status })
+      .set({ 
+        status, 
+        notes: notes || null,
+        markedBy: userId,
+        updatedAt: new Date()
+      })
       .where(eq(attendance.id, parseInt(id)))
       .returning();
 
+    console.log('[SYNC] Attendance updated:', id);
     res.json({ success: true, data: updated[0] });
   } catch (error) {
     console.error('[SYNC] Attendance update error:', error);
@@ -97,36 +112,30 @@ router.put('/attendance/:id', requireAuth, async (req, res) => {
 // Sync grade records with idempotency
 router.post('/grades', requireAuth, async (req, res) => {
   try {
-    const { studentId, classId, subjectName, grade, term, academicYear, type, clientActionId } = req.body;
+    const { studentId, classId, schoolId, subjectId, grade, term, academicYear, examType, coefficient } = req.body;
     const userId = req.user!.id;
 
     if (req.user!.role !== 'Teacher' && req.user!.role !== 'Director' && req.user!.role !== 'SiteAdmin') {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // Validate input using Zod schema
-    const validatedData = insertGradeSchema.omit({ id: true, teacherId: true }).parse({
-      studentId,
-      classId,
-      subjectName,
-      grade: parseFloat(grade),
-      term,
-      academicYear,
-      type: type || 'Evaluation'
-    });
+    // Basic validation
+    if (!studentId || !classId || !schoolId || !subjectId || grade === undefined || !term || !academicYear) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
-    // Check for existing record (idempotency) - same student, class, subject, term, year, type
+    // Check for existing record (idempotency) - same student, class, subject, term, year, exam type
     const existing = await db
       .select()
       .from(grades)
       .where(
         and(
-          eq(grades.studentId, validatedData.studentId),
-          eq(grades.classId, validatedData.classId),
-          eq(grades.subjectName, validatedData.subjectName),
-          eq(grades.term, validatedData.term),
-          eq(grades.academicYear, validatedData.academicYear),
-          eq(grades.type, validatedData.type)
+          eq(grades.studentId, studentId),
+          eq(grades.classId, classId),
+          eq(grades.subjectId, subjectId),
+          eq(grades.term, term),
+          eq(grades.academicYear, academicYear),
+          eq(grades.examType, examType || 'evaluation')
         )
       )
       .limit(1);
@@ -135,25 +144,37 @@ router.post('/grades', requireAuth, async (req, res) => {
       // Update existing record instead of creating duplicate
       const updated = await db
         .update(grades)
-        .set({ grade: validatedData.grade, teacherId: userId })
+        .set({ 
+          grade: grade.toString(),
+          teacherId: userId,
+          coefficient: coefficient || 1,
+          updatedAt: new Date()
+        })
         .where(eq(grades.id, existing[0].id))
         .returning();
       
+      console.log('[SYNC] Grade updated (idempotent):', existing[0].id);
       return res.json({ success: true, data: updated[0], updated: true });
     }
 
     // Create new grade record
     const newGrade = await db.insert(grades).values({
-      ...validatedData,
-      teacherId: userId
+      studentId,
+      classId,
+      schoolId,
+      subjectId,
+      teacherId: userId,
+      grade: grade.toString(),
+      term,
+      academicYear,
+      examType: examType || 'evaluation',
+      coefficient: coefficient || 1
     }).returning();
 
+    console.log('[SYNC] Grade created:', newGrade[0].id);
     res.json({ success: true, data: newGrade[0], updated: false });
   } catch (error) {
     console.error('[SYNC] Grade sync error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', details: error.errors });
-    }
     res.status(500).json({ error: 'Failed to sync grade' });
   }
 });
@@ -162,7 +183,8 @@ router.post('/grades', requireAuth, async (req, res) => {
 router.put('/grades/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { grade } = req.body;
+    const { grade, coefficient } = req.body;
+    const userId = req.user!.id;
 
     if (req.user!.role !== 'Teacher' && req.user!.role !== 'Director' && req.user!.role !== 'SiteAdmin') {
       return res.status(403).json({ error: 'Unauthorized' });
@@ -170,10 +192,16 @@ router.put('/grades/:id', requireAuth, async (req, res) => {
 
     const updated = await db
       .update(grades)
-      .set({ grade: parseFloat(grade) })
+      .set({ 
+        grade: grade.toString(),
+        coefficient: coefficient || 1,
+        teacherId: userId,
+        updatedAt: new Date()
+      })
       .where(eq(grades.id, parseInt(id)))
       .returning();
 
+    console.log('[SYNC] Grade updated:', id);
     res.json({ success: true, data: updated[0] });
   } catch (error) {
     console.error('[SYNC] Grade update error:', error);
@@ -184,21 +212,17 @@ router.put('/grades/:id', requireAuth, async (req, res) => {
 // Sync homework records with idempotency
 router.post('/homework', requireAuth, async (req, res) => {
   try {
-    const { title, description, classId, subjectName, dueDate, clientActionId } = req.body;
+    const { title, description, instructions, classId, schoolId, subjectId, dueDate, priority } = req.body;
     const userId = req.user!.id;
 
     if (req.user!.role !== 'Teacher' && req.user!.role !== 'Director' && req.user!.role !== 'SiteAdmin') {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    // Validate input using Zod schema
-    const validatedData = insertHomeworkSchema.omit({ id: true, teacherId: true }).parse({
-      title,
-      description,
-      classId,
-      subjectName,
-      dueDate
-    });
+    // Basic validation
+    if (!title || !classId || !schoolId || !subjectId) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
     // Check for existing record (idempotency) - same title, class, subject, due date
     const existing = await db
@@ -206,10 +230,10 @@ router.post('/homework', requireAuth, async (req, res) => {
       .from(homework)
       .where(
         and(
-          eq(homework.title, validatedData.title),
-          eq(homework.classId, validatedData.classId),
-          eq(homework.subjectName, validatedData.subjectName),
-          eq(homework.dueDate, new Date(validatedData.dueDate))
+          eq(homework.title, title),
+          eq(homework.classId, classId),
+          eq(homework.subjectId, subjectId),
+          dueDate ? eq(homework.dueDate, new Date(dueDate)) : eq(homework.dueDate, null)
         )
       )
       .limit(1);
@@ -218,26 +242,38 @@ router.post('/homework', requireAuth, async (req, res) => {
       // Update existing record instead of creating duplicate
       const updated = await db
         .update(homework)
-        .set({ description: validatedData.description, teacherId: userId })
+        .set({ 
+          description: description || null,
+          instructions: instructions || null,
+          teacherId: userId,
+          priority: priority || 'medium',
+          updatedAt: new Date()
+        })
         .where(eq(homework.id, existing[0].id))
         .returning();
       
+      console.log('[SYNC] Homework updated (idempotent):', existing[0].id);
       return res.json({ success: true, data: updated[0], updated: true });
     }
 
     // Create new homework record
     const newHomework = await db.insert(homework).values({
-      ...validatedData,
-      dueDate: new Date(validatedData.dueDate),
-      teacherId: userId
+      title,
+      description: description || null,
+      instructions: instructions || null,
+      classId,
+      schoolId,
+      subjectId,
+      teacherId: userId,
+      dueDate: dueDate ? new Date(dueDate) : null,
+      priority: priority || 'medium',
+      status: 'active'
     }).returning();
 
+    console.log('[SYNC] Homework created:', newHomework[0].id);
     res.json({ success: true, data: newHomework[0], updated: false });
   } catch (error) {
     console.error('[SYNC] Homework sync error:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', details: error.errors });
-    }
     res.status(500).json({ error: 'Failed to sync homework' });
   }
 });
@@ -263,12 +299,17 @@ router.post('/batch', requireAuth, async (req, res) => {
             if (action.action === 'create') {
               result = await db.insert(attendance).values({
                 ...action.data,
-                teacherId: req.user!.id
+                markedBy: req.user!.id,
+                date: new Date(action.data.date)
               }).returning();
             } else if (action.action === 'update') {
               result = await db
                 .update(attendance)
-                .set(action.data)
+                .set({ 
+                  ...action.data, 
+                  markedBy: req.user!.id,
+                  updatedAt: new Date()
+                })
                 .where(eq(attendance.id, action.data.id))
                 .returning();
             }
@@ -279,12 +320,17 @@ router.post('/batch', requireAuth, async (req, res) => {
               result = await db.insert(grades).values({
                 ...action.data,
                 teacherId: req.user!.id,
-                grade: parseFloat(action.data.grade)
+                grade: action.data.grade.toString()
               }).returning();
             } else if (action.action === 'update') {
               result = await db
                 .update(grades)
-                .set({ ...action.data, grade: parseFloat(action.data.grade) })
+                .set({ 
+                  ...action.data, 
+                  grade: action.data.grade.toString(),
+                  teacherId: req.user!.id,
+                  updatedAt: new Date()
+                })
                 .where(eq(grades.id, action.data.id))
                 .returning();
             }
@@ -294,8 +340,19 @@ router.post('/batch', requireAuth, async (req, res) => {
             if (action.action === 'create') {
               result = await db.insert(homework).values({
                 ...action.data,
-                teacherId: req.user!.id
+                teacherId: req.user!.id,
+                dueDate: action.data.dueDate ? new Date(action.data.dueDate) : null
               }).returning();
+            } else if (action.action === 'update') {
+              result = await db
+                .update(homework)
+                .set({ 
+                  ...action.data,
+                  teacherId: req.user!.id,
+                  updatedAt: new Date()
+                })
+                .where(eq(homework.id, action.data.id))
+                .returning();
             }
             break;
 
@@ -310,6 +367,7 @@ router.post('/batch', requireAuth, async (req, res) => {
       }
     }
 
+    console.log(`[SYNC] Batch sync completed: ${results.length} succeeded, ${errors.length} failed`);
     res.json({
       success: errors.length === 0,
       results,
