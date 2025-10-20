@@ -7557,6 +7557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 28, title: "Geolocation Overview EDUCAFRIC - EN", description: "Geolocation system overview and features", type: "commercial", url: "/documents/geolocation-overview-educafric-en.html" },
         { id: 31, title: "Guide Complet de Validation des Bulletins - Système EDUCAFRIC", description: "Guide complet du système de validation des bulletins EDUCAFRIC - Processus complet: Draft → Submitted → Approved → Published → Verified avec traçabilité hiérarchique", type: "commercial", url: "/documents/systeme-validation-bulletins-admin-commercial.html" },
         { id: 36, title: "Fonctionnalité Hors-Ligne - FR", description: "Solution complète pour la connectivité limitée en Afrique - Consultation et édition hors-ligne avec synchronisation automatique", type: "commercial", url: "/documents/fonctionnalite-hors-ligne.html" },
+        { id: 37, title: "Offline Functionality - EN", description: "Complete solution for limited connectivity in Africa - Offline viewing and editing with automatic synchronization", type: "commercial", url: "/documents/offline-functionality.html" },
         
         // === DEMANDES D'OFFRES OFFICIELLES (Bilingue PDF) ===
         { id: 29, title: "Demande d'Offres EDUCAFRIC - FR", description: "Document officiel de demande d'offre pour établissements", type: "commercial", url: "/documents/demande-offres-educafric-fr.pdf" },
