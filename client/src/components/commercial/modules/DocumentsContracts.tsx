@@ -208,6 +208,32 @@ const DocumentsContracts = () => {
       url: '/documents/systeme-validation-bulletins-admin-commercial.html',
       description: 'Guide complet du système de validation des bulletins EDUCAFRIC - Processus complet: Draft → Submitted → Approved → Published → Verified avec traçabilité hiérarchique. Includes database architecture, APIs de validation, surveillance système, workflows enseignants et directeurs, contrôle qualité intégré et génération PDF sécurisée. Documentation technique et commerciale pour Site Admin et équipes commerciales.'
     },
+    {
+      id: 36,
+      name: 'Fonctionnalité Hors-Ligne - FR',
+      type: 'guide',
+      category: 'technical',
+      school: 'Administration & Commercial',
+      date: '2025-10-19',
+      status: 'finalized',
+      size: '34.2 KB',
+      format: 'HTML',
+      url: '/documents/fonctionnalite-hors-ligne.html',
+      description: 'Solution complète pour la connectivité limitée en Afrique - Consultation et édition hors-ligne avec synchronisation automatique - Système complet: consultation de tous les profils, notes, devoirs, présences, images hors-ligne + édition présence/devoirs pour enseignants + synchronisation automatique toutes les 5 minutes + optimisé pour 2G/3G + cache intelligent avec TTLs - Production Ready, certifié le 19 octobre 2025'
+    },
+    {
+      id: 37,
+      name: 'Offline Functionality - EN',
+      type: 'guide',
+      category: 'technical',
+      school: 'Administration & Commercial',
+      date: '2025-10-19',
+      status: 'finalized',
+      size: '33.8 KB',
+      format: 'HTML',
+      url: '/documents/offline-functionality.html',
+      description: 'Complete solution for limited connectivity in Africa - Offline viewing and editing with automatic synchronization - Complete system: view all profiles, grades, homework, attendance, images offline + edit attendance/homework for teachers + automatic sync every 5 minutes + optimized for 2G/3G + intelligent cache with TTLs - Production Ready, certified October 19, 2025'
+    },
     
     // Proposal Request Documents - FIXED URL
     {
