@@ -91,6 +91,7 @@ export const OfflineModeIndicator: React.FC<OfflineModeIndicatorProps> = ({ vari
   const isSandboxMode = 
     typeof window !== 'undefined' && 
     (window.location.pathname.includes('/sandbox') ||
+     localStorage.getItem('educafric_sandbox_mode') === 'true' ||
      localStorage.getItem('educafric_offline_mode') === 'true');
 
   // Don't show if online and not sandbox
