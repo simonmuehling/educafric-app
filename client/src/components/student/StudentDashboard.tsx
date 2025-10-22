@@ -57,33 +57,17 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       return React.createElement(ModuleComponent, moduleProps);
     }
     
-    // Critical modules should NEVER show spinner if properly preloaded
-    const isCritical = ['grades', 'assignments', 'attendance', 'messages'].includes(moduleName);
-    
-    if (isCritical && criticalModulesReady) {
-      // Force immediate retry for critical modules
-      console.log(`[STUDENT_DASHBOARD] 🔄 RETRY loading critical module: ${moduleName}`);
-      preloadModule(moduleName);
-    }
+    // Module not loaded yet - load it
+    console.log(`[STUDENT_DASHBOARD] 🔄 Loading module: ${moduleName}`);
+    preloadModule(moduleName);
     
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
           <p className="mt-2 text-red-600 font-medium">
-            {isCritical ? 
-              (language === 'fr' ? 
-                (apiDataPreloaded ? '⚡ Finalisation...' : '⚡ Chargement prioritaire...') :
-                (apiDataPreloaded ? '⚡ Finalizing...' : '⚡ Priority loading...')
-              ) :
-              (language === 'fr' ? 'Chargement...' : 'Loading...')
-            }
+            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
           </p>
-          {isCritical && apiDataPreloaded && (
-            <p className="mt-1 text-xs text-gray-500">
-              {language === 'fr' ? 'Données préchargées ✓' : 'Data preloaded ✓'}
-            </p>
-          )}
         </div>
       </div>
     );

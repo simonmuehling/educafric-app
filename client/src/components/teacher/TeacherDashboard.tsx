@@ -58,7 +58,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       return React.createElement(ModuleComponent, moduleProps);
     }
     
-    console.log(`[TEACHER_DASHBOARD] ❌ Module "${moduleName}" not found in cache, showing fallback`);
+    console.log(`[TEACHER_DASHBOARD] ❌ Module "${moduleName}" not found in cache, loading...`);
     
     // Try to load module immediately if not in cache
     preloadModule(moduleName).then((loadedComponent) => {
@@ -78,9 +78,9 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-2 text-blue-600">
-            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
+            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
           </p>
-          <p className="mt-1 text-xs text-gray-500">Module: {moduleName}</p>
+          <p className="mt-1 text-xs text-gray-500">{moduleName}</p>
         </div>
       </div>
     );

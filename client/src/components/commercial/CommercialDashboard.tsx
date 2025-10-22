@@ -63,7 +63,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
           <p className="mt-2 text-orange-600">
-            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
+            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
           </p>
         </div>
       </div>

@@ -46,50 +46,62 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     if (!ModuleComponent) {
       console.log(`[DIRECTOR_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
       preloadModule(moduleName);
-    }
-    
-    if (ModuleComponent) {
-      const isCritical = ['teachers', 'students', 'classes', 'analytics', 'settings'].includes(moduleName);
-      if (isCritical && apiDataPreloaded) {
-        console.log(`[DIRECTOR_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
-      }
       
-      // Prepare props for specific modules that need them
-      const moduleProps: any = {};
-      
-      // NotificationCenter needs userId and userRole
-      if (moduleName === 'notifications' || moduleName === 'director.notifications') {
-        moduleProps.userId = user?.id;
-        moduleProps.userRole = user?.role;
-      }
-      
-      // Safe component creation with type checking
-      try {
-        if (typeof ModuleComponent === 'function') {
-          return React.createElement(ModuleComponent, moduleProps);
-        } else if (ModuleComponent && typeof ModuleComponent === 'object' && 'default' in ModuleComponent) {
-          // Handle default export
-          return React.createElement((ModuleComponent as any).default, moduleProps);
-        } else {
-          console.warn(`[DIRECTOR_DASHBOARD] ⚠️ Invalid component for ${moduleName}:`, typeof ModuleComponent);
-          return fallbackComponent;
-        }
-      } catch (error) {
-        console.error(`[DIRECTOR_DASHBOARD] ❌ Error creating component ${moduleName}:`, error);
-        return fallbackComponent;
-      }
-    }
-    
-    return fallbackComponent || (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-2 text-indigo-600">
-            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
-          </p>
+      // Show loading state while module is being fetched
+      return fallbackComponent || (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-2 text-indigo-600">
+              {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+            </p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+    
+    // Module is loaded - render it
+    const isCritical = ['teachers', 'students', 'classes', 'analytics', 'settings'].includes(moduleName);
+    if (isCritical && apiDataPreloaded) {
+      console.log(`[DIRECTOR_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
+    }
+    
+    // Prepare props for specific modules that need them
+    const moduleProps: any = {};
+    
+    // NotificationCenter needs userId and userRole
+    if (moduleName === 'notifications' || moduleName === 'director.notifications') {
+      moduleProps.userId = user?.id;
+      moduleProps.userRole = user?.role;
+    }
+    
+    // Safe component creation with type checking
+    try {
+      if (typeof ModuleComponent === 'function') {
+        return React.createElement(ModuleComponent, moduleProps);
+      } else if (ModuleComponent && typeof ModuleComponent === 'object' && 'default' in ModuleComponent) {
+        // Handle default export
+        return React.createElement((ModuleComponent as any).default, moduleProps);
+      } else {
+        console.warn(`[DIRECTOR_DASHBOARD] ⚠️ Invalid component for ${moduleName}:`, typeof ModuleComponent);
+        return fallbackComponent || (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-red-600">{language === 'fr' ? 'Erreur de chargement du module' : 'Module loading error'}</p>
+            </div>
+          </div>
+        );
+      }
+    } catch (error) {
+      console.error(`[DIRECTOR_DASHBOARD] ❌ Error creating component ${moduleName}:`, error);
+      return fallbackComponent || (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-red-600">{language === 'fr' ? 'Erreur de chargement du module' : 'Module loading error'}</p>
+          </div>
+        </div>
+      );
+    }
   };
 
   // Stable callback for handling quick actions

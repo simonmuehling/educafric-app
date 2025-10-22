@@ -73,13 +73,16 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       return React.createElement(ModuleComponent, moduleProps);
     }
     
-    // ✅ NO useEffect here - moved to component level
+    // Module not loaded yet - load it
+    console.log(`[PARENT_DASHBOARD] 🔄 Loading module: ${moduleName}`);
+    preloadModule(moduleName);
+    
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
           <p className="mt-2 text-green-600">
-            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
+            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
           </p>
         </div>
       </div>
