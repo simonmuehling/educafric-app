@@ -65,7 +65,7 @@ Preferred communication style: Simple, everyday language.
 - **Document Management**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access.
 - **Bidirectional Connection System**: Facilitates parent-child, student-parent, and freelancer-student connections with verification.
 - **Bilingual Support**: Dynamic French/English language switching, full localization.
-- **Sandbox Environment**: Dedicated, fully unlocked environment with realistic African demo data.
+- **Sandbox Environment**: Dedicated, fully unlocked environment with realistic African demo data. **Offline Demo Mode** allows the sandbox to work completely offline for demos, exhibitions, and low-connectivity areas with pre-bundled data, offline authentication, Service Worker caching, and IndexedDB storage. Sandbox mode is explicitly activated (not triggered by connectivity loss) to prevent data contamination of regular user accounts.
 - **Academic Calendar**: iCal/ICS export for events with Jitsi links.
 - **Bulk Excel Imports**: Comprehensive service for mass importing data with bilingual templates and validation.
 - **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` for end-to-end report card workflow with advanced features, digital signatures, and PDF export.

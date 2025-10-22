@@ -117,7 +117,44 @@ const SandboxLogin = () => {
     setIsLogging(profile.id);
     
     try {
-      // Direct login with sandbox credentials
+      // Check if we're offline
+      const isOffline = !navigator.onLine;
+      
+      if (isOffline) {
+        console.log('📡 Offline mode detected, using offline sandbox authentication');
+        
+        // Use offline authentication
+        const { offlineSandboxService } = await import('../services/offlineSandboxService');
+        const authResult = await offlineSandboxService.authenticateOffline(profile.email, 'sandbox123');
+        
+        if (authResult.success) {
+          console.log('✅ Offline sandbox login successful:', authResult.user);
+          
+          // Store user in localStorage with proper sandbox flags
+          localStorage.setItem('educafric_user', JSON.stringify(authResult.user));
+          localStorage.setItem('educafric_offline_mode', 'true');
+          localStorage.setItem('educafric_sandbox_mode', 'true');
+          
+          // Navigate to role-specific dashboard
+          const roleRoutes = {
+            Parent: '/parent',
+            Student: '/student',
+            Teacher: '/teacher',
+            Freelancer: '/freelancer',
+            Admin: '/admin',
+            Director: '/director',
+            SiteAdmin: '/admin'
+          };
+          
+          const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
+          console.log('🎯 Redirecting to:', targetRoute, '(Offline Sandbox Mode)');
+          
+          window.location.href = targetRoute;
+          return;
+        }
+      }
+
+      // Online mode - use normal authentication
       const response = await fetch('/api/auth/sandbox-login', {
         method: 'POST',
         headers: {
@@ -149,6 +186,7 @@ const SandboxLogin = () => {
         
         // Store user in localStorage
         localStorage.setItem('educafric_user', JSON.stringify(userData.user));
+        localStorage.setItem('educafric_offline_mode', 'false');
         
         // Navigate directly without reload - session should be maintained
         window.location.href = targetRoute;
@@ -158,6 +196,45 @@ const SandboxLogin = () => {
       }
     } catch (error) {
       console.error('Sandbox login error:', error);
+      
+      // CRITICAL FIX: Only try offline authentication if truly offline
+      // Don't bypass authentication on server errors when online
+      if (!navigator.onLine) {
+        console.log('📡 Connection lost, attempting offline authentication...');
+        try {
+          const { offlineSandboxService } = await import('../services/offlineSandboxService');
+          const authResult = await offlineSandboxService.authenticateOffline(profile.email, 'sandbox123');
+          
+          if (authResult.success) {
+            console.log('✅ Offline authentication successful');
+            localStorage.setItem('educafric_user', JSON.stringify(authResult.user));
+            localStorage.setItem('educafric_offline_mode', 'true');
+            localStorage.setItem('educafric_sandbox_mode', 'true');
+            
+            const roleRoutes = {
+              Parent: '/parent',
+              Student: '/student',
+              Teacher: '/teacher',
+              Freelancer: '/freelancer',
+              Admin: '/admin',
+              Director: '/director',
+              SiteAdmin: '/admin'
+            };
+            
+            window.location.href = roleRoutes[profile.role as keyof typeof roleRoutes];
+          }
+        } catch (offlineError) {
+          console.error('Offline authentication failed:', offlineError);
+          alert(language === 'fr' 
+            ? 'Échec de l\'authentification hors ligne. Veuillez réessayer.' 
+            : 'Offline authentication failed. Please try again.');
+        }
+      } else {
+        console.error('Server error while online - not attempting offline bypass');
+        alert(language === 'fr' 
+          ? 'Erreur de connexion au serveur. Veuillez réessayer.' 
+          : 'Server connection error. Please try again.');
+      }
     } finally {
       setIsLogging(null);
     }

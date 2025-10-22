@@ -85,10 +85,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await apiRequest('POST', '/api/auth/logout');
       setUser(null);
       localStorage.removeItem('educafric_user');
+      // Clear sandbox mode flags to prevent stale sandbox sessions
+      localStorage.removeItem('educafric_sandbox_mode');
+      localStorage.removeItem('educafric_offline_mode');
     } catch (error) {
       console.error('Logout error:', error);
       setUser(null); // Clear user even if API call fails
       localStorage.removeItem('educafric_user');
+      // Clear sandbox mode flags even on error
+      localStorage.removeItem('educafric_sandbox_mode');
+      localStorage.removeItem('educafric_offline_mode');
     }
   };
 

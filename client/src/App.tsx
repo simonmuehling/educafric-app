@@ -122,6 +122,7 @@ import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedN
 import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
 import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicator";
 import { OfflineBanner } from "@/components/offline/OfflineBanner";
+import { OfflineModeIndicator } from "@/components/offline/OfflineModeIndicator";
 // WebInspector disabled to prevent fetch override interference with PWA analytics
 // import WebInspector from "@/components/developer/WebInspector";
 import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
@@ -541,6 +542,26 @@ function App() {
       console.log('[PERFORMANCE] Client-side memory optimizer disabled - using server-side optimization');
     }
     
+    // Initialize offline sandbox service and service worker
+    import('@/services/registerServiceWorker').then(({ registerServiceWorker }) => {
+      registerServiceWorker().then((registration) => {
+        if (registration) {
+          console.log('[APP] ✅ Service worker registered for offline mode');
+        }
+      });
+    }).catch(error => {
+      console.error('[APP] ❌ Service worker registration failed:', error);
+    });
+
+    // Initialize offline sandbox service for demo mode
+    import('@/services/offlineSandboxService').then(({ offlineSandboxService }) => {
+      offlineSandboxService.initialize().then(() => {
+        console.log('[APP] ✅ Offline sandbox service initialized');
+      });
+    }).catch(error => {
+      console.error('[APP] ❌ Offline sandbox service initialization failed:', error);
+    });
+    
     return () => {
       // Arrêter l'optimiseur à la fermeture
       import("@/utils/memoryOptimizer").then(({ memoryOptimizer }) => {
@@ -563,6 +584,7 @@ function App() {
                     <TooltipProvider>
                       <FirebaseRedirectHandler />
                       <AppLayout>
+                        <OfflineModeIndicator variant="banner" />
                         <OfflineBanner />
                         <ConnectionStatusIndicator />
                         <Router />
