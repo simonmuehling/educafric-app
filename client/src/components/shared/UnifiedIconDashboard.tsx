@@ -208,7 +208,7 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
           {/* Mobile-optimized module content container */}
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 md:p-6 overflow-hidden">
             <div className="w-full overflow-x-auto">
-              <OptimizedModuleWrapper moduleName={activeModule || undefined} className="animate-in fade-in-0 duration-300">
+              <OptimizedModuleWrapper key={`${activeModule}-${forceUpdate}`} moduleName={activeModule || undefined} className="animate-in fade-in-0 duration-300">
                 {(() => {
                   // Si le module a un component défini, l'utiliser (mais seulement si c'est un élément React valide)
                   if (activeModuleData.component) {
@@ -223,7 +223,7 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
                   // Sinon, charger dynamiquement via fastModuleLoader
                   const DynamicComponent = getModule(activeModule || '');
                   if (DynamicComponent) {
-                    return <DynamicComponent />;
+                    return <DynamicComponent key={forceUpdate} />;
                   }
                   
                   // Afficher un loading si le module n'est pas encore chargé
