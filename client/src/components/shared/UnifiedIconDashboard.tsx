@@ -27,6 +27,7 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
 }) => {
   const { language } = useLanguage();
   const [internalActiveModule, setInternalActiveModule] = useState<string | null>(propActiveModule || null);
+  const [forceUpdate, setForceUpdate] = useState(0); // Force re-render when modules load
   
   // Wrapped setter with logging
   const setActiveModule = (value: string | null) => {
@@ -75,18 +76,26 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
   const handleModuleClick = async (moduleId: string) => {
     console.log(`[UNIFIED_DASHBOARD] ⚡ Switching to module: ${moduleId}`);
     
+    // Set active module immediately to show loading state
+    setActiveModule(moduleId);
+    
     // Check if module is already preloaded (should be instant)
     const preloadedComponent = getModule(moduleId);
     if (preloadedComponent) {
       console.log(`[UNIFIED_DASHBOARD] 🚀 Instant load: ${moduleId}`);
-      setActiveModule(moduleId);
       return;
     }
 
-    // Fallback: load module if not preloaded (should rarely happen)
-    console.log(`[UNIFIED_DASHBOARD] 🔄 Fallback loading: ${moduleId}`);
-    setActiveModule(moduleId); // Set immediately for instant UI response
-    preloadModule(moduleId); // Load in background
+    // Fallback: load module if not preloaded
+    console.log(`[UNIFIED_DASHBOARD] 🔄 Loading module: ${moduleId}`);
+    try {
+      await preloadModule(moduleId);
+      console.log(`[UNIFIED_DASHBOARD] ✅ Module ${moduleId} loaded, triggering render`);
+      // Trigger re-render to show the loaded module
+      setForceUpdate(prev => prev + 1);
+    } catch (error) {
+      console.error(`[UNIFIED_DASHBOARD] ❌ Failed to load module ${moduleId}:`, error);
+    }
   };
 
   const handleModuleHover = (moduleId: string) => {

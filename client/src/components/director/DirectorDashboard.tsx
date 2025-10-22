@@ -395,7 +395,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: language === 'fr' ? 'Gestion Académique' : 'Academic Management',
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-blue-500 to-cyan-500',
-      component: createDynamicModule('academic-management')
+      component: null // Will be loaded dynamically by UnifiedIconDashboard
     },
     {
       id: 'online-classes',
