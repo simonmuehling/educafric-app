@@ -259,14 +259,11 @@ const legacyTranslations = {
 };
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>('en');
-
-  useEffect(() => {
+  // Initialize language synchronously from localStorage to prevent render delays
+  const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('educafric-language') as Language;
-    if (saved && (saved === 'en' || saved === 'fr')) {
-      setLanguage(saved);
-    }
-  }, []);
+    return (saved === 'en' || saved === 'fr') ? saved : 'en';
+  });
 
   const changeLanguage = (lang: Language) => {
     setLanguage(lang);
