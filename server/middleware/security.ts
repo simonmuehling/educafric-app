@@ -180,6 +180,9 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
   (p) => p.startsWith('/api/notifications/'),
   (p) => p.startsWith('/pwa/notifications/'),
   
+  // Test notifications API (for testing automatic notifications)
+  (p) => p.startsWith('/api/test-notifications/'),
+  
   // SiteAdmin routes (already protected by requireSiteAdminAccess role check)
   (p) => p.startsWith('/api/site-admin/'),
   (p) => p.startsWith('/api/siteadmin/'),
