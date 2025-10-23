@@ -29,12 +29,20 @@ router.get('/webhook', (req, res) => {
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
 
+  console.log('[WhatsApp] Webhook verification attempt:', JSON.stringify({
+    mode,
+    tokenReceived: token,
+    tokenExpected: process.env.WHATSAPP_WEBHOOK_TOKEN ? '***SET***' : '***NOT_SET***',
+    tokensMatch: token === process.env.WHATSAPP_WEBHOOK_TOKEN,
+    challenge
+  }));
+
   // Verify webhook token
   if (mode === 'subscribe' && token === process.env.WHATSAPP_WEBHOOK_TOKEN) {
-    console.log('[WhatsApp] Webhook verified successfully');
+    console.log('[WhatsApp] ✅ Webhook verified successfully');
     res.status(200).send(challenge);
   } else {
-    console.log('[WhatsApp] Webhook verification failed');
+    console.log('[WhatsApp] ❌ Webhook verification failed');
     res.status(403).send('Verification failed');
   }
 });

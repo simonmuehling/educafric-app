@@ -213,6 +213,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // 🚫 CRITICAL: WhatsApp webhook verification - MUST be public for Meta
+  app.get('/api/whatsapp/webhook', (req, res) => {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    console.log('[WhatsApp] PUBLIC Webhook verification:', JSON.stringify({
+      mode,
+      tokenReceived: token,
+      tokensMatch: token === process.env.WHATSAPP_WEBHOOK_TOKEN
+    }));
+
+    if (mode === 'subscribe' && token === process.env.WHATSAPP_WEBHOOK_TOKEN) {
+      console.log('[WhatsApp] ✅ Webhook verified successfully (public route)');
+      res.status(200).send(challenge);
+    } else {
+      console.log('[WhatsApp] ❌ Webhook verification failed (public route)');
+      res.status(403).send('Verification failed');
+    }
+  });
+
   // ENHANCED: Detailed HEAD /api request tracking to identify source
   app.use((req, res, next) => {
     if (req.method === 'HEAD' && req.path.startsWith('/api')) {
@@ -269,6 +290,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🚫 CRITICAL: Authentication endpoints must be public
   app.use('/api/auth', authRoutes);
   app.use('/api/facebook', facebookWebhookRoutes);
+  
+  // 🚫 CRITICAL: WhatsApp webhook must be public for Meta verification
+  app.use('/api/whatsapp', whatsappRoutes);
 
   // Service Worker route spécifique (AVANT les autres routes static)
   app.get('/sw.js', (req, res) => {
@@ -6777,8 +6801,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/sync', syncRoutes);
   app.use('/api/analytics', analyticsRoutes);
   // 🔥 PREMIUM RESTRICTED: Advanced communications (WhatsApp only, SMS removed)
-  // WhatsApp webhook must be accessible without subscription check for Meta verification
-  app.use('/api/whatsapp', whatsappRoutes);
+  // Note: WhatsApp webhook (/api/whatsapp) is registered earlier as a public route for Meta verification
   app.use('/api/whatsapp-setup', checkSubscriptionFeature('advanced_communications'), whatsappMsSolutionsSetup);
   
   // WhatsApp Click-to-Chat (Option A - wa.me links, no API needed)

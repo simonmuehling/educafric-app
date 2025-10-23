@@ -167,6 +167,7 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
   // Webhook routes (external calls)
   (p, m) => p.startsWith('/webhooks/whatsapp') && (m === 'GET' || m === 'POST'),
   (p, m) => p.startsWith('/api/facebook/webhook') && (m === 'GET' || m === 'POST'),
+  (p, m) => p.startsWith('/api/whatsapp/webhook') && (m === 'GET' || m === 'POST'),
   
   // Public authentication routes (no session yet)
   (p) => p === '/api/auth/login',
