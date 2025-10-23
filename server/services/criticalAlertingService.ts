@@ -2,6 +2,8 @@
 // const notificationService = new NotificationService();
 // Note: SMS/PWA alerts temporarily disabled - email alerts are sufficient for critical system notifications
 
+import { PLATFORM_CONFIG, getSupportPhone } from '../config/platformConfig';
+
 interface CriticalEvent {
   type: 'server_error' | 'database_failure' | 'security_breach' | 'commercial_connection' | 'payment_failure' | 'system_overload';
   severity: 'high' | 'critical';
@@ -14,7 +16,7 @@ interface CriticalEvent {
 interface OwnerContact {
   emails: string[];
   phones: {
-    primary: string; // Cameroon +237657004011
+    primary: string; // African support number
     secondary: string; // Switzerland +41768017000
   };
   name: string;
@@ -26,16 +28,16 @@ export class CriticalAlertingService {
 
   constructor() {
     this.ownerContacts = {
-      emails: ['info@educafric.com', 'support@educafric.com'],
+      emails: PLATFORM_CONFIG.contacts.ownerEmail ? [PLATFORM_CONFIG.contacts.ownerEmail] : ['info@educafric.com', 'support@educafric.com'],
       phones: {
-        primary: '+237657004011',   // Cameroon primary contact
+        primary: PLATFORM_CONFIG.contacts.supportPhoneAfricanE164,   // African primary contact
         secondary: '+41768017000'   // Switzerland secondary contact
       },
       name: 'Platform Administrator'
     };
     
-    // Commercial connections notify to Cameroon number
-    this.commercialNotificationPhone = '+237657004011';
+    // Commercial connections notify to African number
+    this.commercialNotificationPhone = PLATFORM_CONFIG.contacts.supportPhoneAfricanE164;
     
     console.log('[CRITICAL_ALERTING] Service initialized for Educafric platform');
     console.log(`[CRITICAL_ALERTING] Owner emails: ${this.ownerContacts.emails.join(', ')}`);
@@ -57,7 +59,7 @@ export class CriticalAlertingService {
       
       // Send SMS to both phone numbers for critical system issues
       await this.sendSMSAlert('+41768017000', this.formatSMSAlert(event)); // Swiss number
-      await this.sendSMSAlert('+237657004011', this.formatSMSAlert(event)); // Cameroon number
+      await this.sendSMSAlert(PLATFORM_CONFIG.contacts.supportPhoneAfricanE164, this.formatSMSAlert(event)); // African number
       
       console.log('[CRITICAL_ALERTING] System alert sent successfully');
     } catch (error) {
@@ -92,7 +94,7 @@ export class CriticalAlertingService {
       // Send SMS to both numbers for commercial alerts
       const smsMessage = `EDUCAFRIC: Commercial user ${userInfo.name || userInfo.email} connected at ${new Date().toLocaleTimeString('fr-CH')}`;
       await this.sendSMSAlert('+41768017000', smsMessage); // Swiss number
-      await this.sendSMSAlert('+237657004011', smsMessage); // Cameroon number
+      await this.sendSMSAlert(PLATFORM_CONFIG.contacts.supportPhoneAfricanE164, smsMessage); // African number
       
       console.log('[CRITICAL_ALERTING] Commercial connection alert sent');
     } catch (error) {

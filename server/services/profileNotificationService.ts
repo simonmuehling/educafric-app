@@ -1,6 +1,7 @@
 import { type User } from "../../shared/schema";
 import { NotificationService } from "./notificationService";
-import { sendHostingerMail } from "./hostingerMail";
+import { hostingerMailService } from "./hostingerMailService";
+import { PLATFORM_CONFIG, getSupportPhone, getSupportEmail } from '../config/platformConfig';
 
 interface ProfileCreatedData {
   user: User;
@@ -95,7 +96,7 @@ export class ProfileNotificationService {
 
           <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
             <p style="color: #666; margin: 0; font-size: 14px;">
-              📞 Support : +237 657 004 011 | 📧 simonpmuehling@gmail.com
+              📞 Support : ${getSupportPhone()} | 📧 ${getSupportEmail()}
             </p>
             <p style="color: #999; margin: 10px 0 0 0; font-size: 12px;">
               © 2025 Educafric - Plateforme éducative pour l'Afrique
@@ -104,7 +105,7 @@ export class ProfileNotificationService {
         </div>
       `;
 
-      await sendHostingerMail({
+      await hostingerMailService.sendEmail({
         to: user.email,
         subject,
         html: htmlContent
@@ -128,7 +129,7 @@ Bonjour ${user.firstName},
 Votre compte ${user.role} a été créé avec succès${schoolName ? ` pour ${schoolName}` : ''}.
 
 📱 Connectez-vous sur educafric.com
-📞 Support: +237 657 004 011
+📞 Support: ${getSupportPhone()}
 
 Educafric - L'éducation digitale africaine`;
 
@@ -198,8 +199,8 @@ Educafric - L'éducation digitale africaine`;
         </div>
       `;
 
-      await sendHostingerMail({
-        to: 'simonpmuehling@gmail.com',
+      await hostingerMailService.sendEmail({
+        to: PLATFORM_CONFIG.contacts.ownerEmail,
         subject,
         html: htmlContent
       });
