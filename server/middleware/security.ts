@@ -25,19 +25,20 @@ export function configureSecurityMiddleware(app: Express) {
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: isProduction 
-          ? ["'self'", "https://js.stripe.com", "https://8x8.vc", "https://meet.jit.si"]
-          : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://8x8.vc", "https://meet.jit.si", "*.replit.dev", "*.replit.app", "*.educafric.com"],
+          ? ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://8x8.vc", "https://meet.jit.si", "https://www.googletagmanager.com", "https://connect.facebook.net", "https://replit.com"]
+          : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://8x8.vc", "https://meet.jit.si", "https://www.googletagmanager.com", "https://connect.facebook.net", "https://replit.com", "*.replit.dev", "*.replit.app", "*.educafric.com"],
         styleSrc: ["'self'", "'unsafe-inline'", "*.googleapis.com", "*.gstatic.com"],
         imgSrc: isProduction
-          ? ["'self'", "data:", "blob:", "https://q.stripe.com", "https://www.educafric.com"]
-          : ["'self'", "data:", "blob:", "https://q.stripe.com", "*.educafric.com", "*.replit.app", "*.replit.dev"],
+          ? ["'self'", "data:", "blob:", "https://q.stripe.com", "https://www.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net", "https://www.facebook.com", "https://connect.facebook.net"]
+          : ["'self'", "data:", "blob:", "https://q.stripe.com", "*.educafric.com", "*.replit.app", "*.replit.dev", "https://www.google-analytics.com", "https://stats.g.doubleclick.net", "https://www.facebook.com", "https://connect.facebook.net"],
         connectSrc: isProduction
-          ? ["'self'", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "https://meet.educafric.com", "wss://meet.educafric.com"]
-          : ["'self'", "*.replit.dev", "*.replit.app", "*.educafric.com", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "wss://meet.educafric.com", "wss://localhost:*", "ws://localhost:*"],
-        fontSrc: ["'self'", "*.googleapis.com", "*.gstatic.com"],
+          ? ["'self'", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "https://meet.educafric.com", "wss://meet.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net", "https://graph.facebook.com", "wss://*.educafric.com"]
+          : ["'self'", "*.replit.dev", "*.replit.app", "*.educafric.com", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "wss://meet.educafric.com", "wss://localhost:*", "ws://localhost:*", "wss://*.replit.dev", "wss://*.replit.app", "wss://*.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net", "https://graph.facebook.com"],
+        fontSrc: ["'self'", "data:", "*.googleapis.com", "*.gstatic.com"],
         objectSrc: ["'none'"],
-        mediaSrc: ["'self'", "blob:"],
-        frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com", "https://8x8.vc", "https://meet.jit.si", "https://meet.educafric.com"]
+        mediaSrc: ["'self'", "blob:", "https://8x8.vc", "https://meet.jit.si"],
+        frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com", "https://8x8.vc", "https://meet.jit.si", "https://meet.educafric.com", "https://www.facebook.com"],
+        workerSrc: ["'self'", "blob:"]
       }
     },
     crossOriginEmbedderPolicy: false,

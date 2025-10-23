@@ -69,27 +69,25 @@ export const useRealTimeUpdates = (options: UseRealTimeOptions = {}) => {
     enableToasts = true
   } = options;
 
-  // WebSocket URL
+  // WebSocket URL - Robust builder for production and development
   const getWebSocketURL = useCallback(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    let host = window.location.host;
+    const loc = window.location;
+    const isSecure = loc.protocol === 'https:';
+    const protocol = isSecure ? 'wss:' : 'ws:';
+    const hostname = loc.hostname || 'localhost';
+    const port = loc.port;
     
-    // Handle cases where host might be undefined or empty
-    if (!host) {
-      // Fallback for development environment
-      const hostname = window.location.hostname || 'localhost';
-      const port = window.location.port || '5000';
+    // Build host with proper port handling
+    // Only add port if:
+    // 1. Port exists AND
+    // 2. Port is not the default for the protocol (80 for HTTP, 443 for HTTPS)
+    let host: string;
+    if (port && port !== '' && port !== '80' && port !== '443') {
       host = `${hostname}:${port}`;
-      console.log('[REALTIME] 🔧 Using fallback host:', host);
-    } else if (host.includes(':undefined')) {
-      // Fix cases where port is undefined in the host string
-      const hostname = window.location.hostname || 'localhost';
-      const port = window.location.port || (protocol === 'wss:' ? '443' : '80');
-      host = port && port !== '80' && port !== '443' ? `${hostname}:${port}` : hostname;
-      console.log('[REALTIME] 🔧 Fixed undefined port in host:', host);
+    } else {
+      host = hostname;
     }
     
-    // Remove insecure sessionToken from URL - authentication should be handled via headers or cookies
     const url = `${protocol}//${host}/ws?userId=${user?.id}`;
     console.log('[REALTIME] 📡 WebSocket URL:', url);
     return url;
