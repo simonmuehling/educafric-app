@@ -1,673 +1,298 @@
-// Lightweight Service Worker for Educafric PWA - Memory Optimized with FCM Support
-importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
+// Educafric Service Worker - Enhanced Offline Support for Sandbox Demo Mode
+// Enables complete offline functionality with aggressive caching
 
-const CACHE_NAME = 'educafric-v3-optimized';
+const CACHE_VERSION = 'educafric-v1.3.0';
+const CACHE_NAME = `educafric-cache-${CACHE_VERSION}`;
 
-// Badge API helper functions
-let badgeCount = 0;
-
-async function updateBadgeCount(increment = 1) {
-  try {
-    // Check if Badge API is supported
-    if (!('setAppBadge' in self.navigator)) {
-      console.log('[SW_BADGE] Badge API not supported');
-      return;
-    }
-
-    badgeCount += increment;
-    if (badgeCount < 0) badgeCount = 0;
-
-    if (badgeCount === 0) {
-      await self.navigator.clearAppBadge();
-      console.log('[SW_BADGE] ✅ Badge cleared');
-    } else {
-      await self.navigator.setAppBadge(badgeCount);
-      console.log(`[SW_BADGE] ✅ Badge set to ${badgeCount}`);
-    }
-  } catch (error) {
-    console.error('[SW_BADGE] ❌ Failed to update badge:', error);
-  }
-}
-
-async function setBadgeCount(count) {
-  try {
-    if (!('setAppBadge' in self.navigator)) {
-      return;
-    }
-
-    badgeCount = count;
-    if (badgeCount === 0) {
-      await self.navigator.clearAppBadge();
-    } else {
-      await self.navigator.setAppBadge(badgeCount);
-    }
-    console.log(`[SW_BADGE] ✅ Badge count set to ${badgeCount}`);
-  } catch (error) {
-    console.error('[SW_BADGE] ❌ Failed to set badge:', error);
-  }
-}
-
-async function clearBadge() {
-  await setBadgeCount(0);
-}
-
-// Firebase configuration for FCM
-const firebaseConfig = {
-  apiKey: "AIzaSyBl5dHJJdQU_PcHUOKjpIQpKX5I3WlSjDU",
-  authDomain: "smartwatch-tracker-e061f.firebaseapp.com", 
-  projectId: "smartwatch-tracker-e061f",
-  storageBucket: "smartwatch-tracker-e061f.appspot.com",
-  messagingSenderId: "1044457806644",
-  appId: "1:1044457806644:web:cfcc1b5d1bd9aa8a8c2a8b"
-};
-
-// Initialize Firebase in service worker
-let messaging = null;
-if (firebase) {
-  firebase.initializeApp(firebaseConfig);
-  messaging = firebase.messaging();
-  
-  // Handle background messages
-  messaging.onBackgroundMessage((payload) => {
-    console.log('[SW] 📱 Received background FCM message:', payload);
-    
-    // Update badge count for new notification
-    updateBadgeCount(1);
-    
-    const notificationTitle = payload.notification?.title || 'EDUCAFRIC';
-    const notificationOptions = {
-      body: payload.notification?.body || 'Nouvelle notification',
-      icon: '/educafric-logo-128.png',
-      badge: '/educafric-logo-128.png',
-      tag: payload.data?.tag || 'educafric-notification',
-      data: {
-        ...payload.data,
-        timestamp: Date.now(),
-        fcm: true
-      },
-      requireInteraction: payload.data?.priority === 'high',
-      actions: payload.data?.actionUrl ? [{
-        action: 'open',
-        title: payload.data?.actionText || 'Ouvrir',
-        icon: '/educafric-logo-128.png'
-      }] : undefined
-    };
-
-    return self.registration.showNotification(notificationTitle, notificationOptions);
-  });
-}
-
-// Enhanced cache for comprehensive offline support
-const urlsToCache = [
+// Assets to cache immediately for offline demo mode
+const PRECACHE_ASSETS = [
   '/',
+  '/sandbox',
   '/offline.html',
-  '/manifest.json',
-  '/educafric-logo-128.png',
-  '/educafric-logo-512.png',
-  '/android-chrome-192x192.png',
-  '/android-chrome-512x512.png',
-  '/favicon.ico',
-  '/favicon.png'
+  
+  // Core app files (will be added by build process)
+  '/index.html',
+  
+  // Sandbox login
+  '/sandbox-login',
+  
+  // Common UI assets
+  '/assets/logo.png',
+  '/assets/school-logo.png',
+  
+  // Fonts (if any)
+  // Add font paths here
 ];
 
-// Dynamic caching patterns for user data and profiles
-const PROFILE_CACHE = 'educafric-profiles-v1';
-const API_CACHE = 'educafric-api-v1';
-const IMAGE_CACHE = 'educafric-images-v1';
+// API endpoints to cache for offline access
+const CACHEABLE_API_PATTERNS = [
+  '/api/profile',
+  '/api/settings',
+  '/api/dashboard',
+  '/api/notifications',
+  '/api/classes',
+  '/api/students',
+  '/api/grades',
+  '/api/attendance',
+  '/api/homework',
+  '/api/timetable',
+  '/api/school'
+];
 
-// Simple device check (cached result to avoid repeated calculations)
-let isLowEnd = null;
-const checkDeviceOnce = () => {
-  if (isLowEnd === null) {
-    const memory = navigator.deviceMemory || 1;
-    isLowEnd = memory <= 2;
+// Cache strategies
+const CACHE_STRATEGIES = {
+  // Network first, fallback to cache (for dynamic data)
+  networkFirst: async (request) => {
+    try {
+      const networkResponse = await fetch(request);
+      if (networkResponse.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request, networkResponse.clone());
+      }
+      return networkResponse;
+    } catch (error) {
+      const cachedResponse = await caches.match(request);
+      if (cachedResponse) {
+        console.log('[SW] Serving from cache (offline):', request.url);
+        return cachedResponse;
+      }
+      throw error;
+    }
+  },
+
+  // Cache first, fallback to network (for static assets)
+  cacheFirst: async (request) => {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    try {
+      const networkResponse = await fetch(request);
+      if (networkResponse.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request, networkResponse.clone());
+      }
+      return networkResponse;
+    } catch (error) {
+      console.error('[SW] Failed to fetch:', request.url, error);
+      throw error;
+    }
+  },
+
+  // Stale while revalidate (for semi-dynamic content)
+  staleWhileRevalidate: async (request) => {
+    const cachedResponse = await caches.match(request);
+    
+    const networkFetch = fetch(request).then(async (networkResponse) => {
+      if (networkResponse.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request, networkResponse.clone());
+      }
+      return networkResponse;
+    });
+    
+    return cachedResponse || networkFetch;
   }
-  return isLowEnd;
 };
 
-// Alias for backward compatibility
-const isLowEndDevice = checkDeviceOnce;
-
-// Lightweight install event
+// Install event - cache essential assets
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting())
-      .catch(() => {
-        // Minimal fallback cache on error
-        return caches.open(CACHE_NAME).then(cache => cache.addAll(['/']));
-      })
-  );
-});
-
-// Enhanced activate event - keep profile and API caches
-self.addEventListener('activate', (event) => {
-  const validCaches = [CACHE_NAME, PROFILE_CACHE, API_CACHE, IMAGE_CACHE];
+  console.log('[SW] Installing service worker...');
   
   event.waitUntil(
-    caches.keys()
-      .then(cacheNames => {
-        return Promise.all(
-          cacheNames.map(cacheName => {
-            if (!validCaches.includes(cacheName)) {
-              console.log('[SW] Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[SW] Caching essential assets');
+      return cache.addAll(PRECACHE_ASSETS.filter(url => url !== '/'));
+    }).catch(error => {
+      console.error('[SW] Failed to cache assets:', error);
+    })
+  );
+  
+  self.skipWaiting();
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating service worker...');
+  
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => {
+            console.log('[SW] Deleting old cache:', name);
+            return caches.delete(name);
           })
+      );
+    })
+  );
+  
+  self.clients.claim();
+});
+
+// Fetch event - handle requests with appropriate caching strategy
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+  
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Skip chrome extensions and cross-origin requests (except same origin)
+  if (url.origin !== location.origin) {
+    return;
+  }
+
+  // Determine caching strategy based on request type
+  let strategy;
+  
+  // API requests - Network first for fresh data
+  if (url.pathname.startsWith('/api/')) {
+    // Check if this API should be cached
+    const shouldCache = CACHEABLE_API_PATTERNS.some(pattern => 
+      url.pathname.includes(pattern)
+    );
+    
+    if (shouldCache) {
+      strategy = CACHE_STRATEGIES.networkFirst;
+    } else {
+      // Don't cache this API, just fetch
+      return;
+    }
+  }
+  // Static assets - Cache first
+  else if (
+    url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|gif|woff|woff2|ttf|eot|ico)$/)
+  ) {
+    strategy = CACHE_STRATEGIES.cacheFirst;
+  }
+  // HTML pages - Stale while revalidate
+  else if (
+    url.pathname.endsWith('.html') || 
+    url.pathname === '/' ||
+    url.pathname.startsWith('/sandbox') ||
+    url.pathname.startsWith('/teacher') ||
+    url.pathname.startsWith('/student') ||
+    url.pathname.startsWith('/parent') ||
+    url.pathname.startsWith('/director') ||
+    url.pathname.startsWith('/freelancer')
+  ) {
+    strategy = CACHE_STRATEGIES.staleWhileRevalidate;
+  }
+  // Default - Network first
+  else {
+    strategy = CACHE_STRATEGIES.networkFirst;
+  }
+  
+  event.respondWith(strategy(request));
+});
+
+// Message event - handle commands from the app
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'CACHE_URLS') {
+    const urls = event.data.urls || [];
+    event.waitUntil(
+      caches.open(CACHE_NAME).then((cache) => {
+        return cache.addAll(urls);
+      })
+    );
+  }
+
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((name) => caches.delete(name))
         );
       })
-      .then(() => self.clients.claim())
-  );
-});
-
-// Fetch event with improved caching strategy to fix authentication issues
-self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') return;
-  
-  const url = new URL(event.request.url);
-  
-  // 🚫 CRITICAL: Filter non-web protocols to prevent cache errors
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    // Silently ignore non-web protocols (chrome-extension, etc.) without logging
-    return;
-  }
-  
-  // 🚫 NEVER cache authentication endpoints (but allow caching other API data)
-  const isAuthEndpoint = url.pathname.includes('/api/auth') || 
-                         url.pathname.includes('/auth/') ||
-                         url.pathname.includes('/login') ||
-                         url.pathname.includes('/logout');
-  
-  if (isAuthEndpoint) {
-    // For auth endpoints: ALWAYS use network, never cache
-    event.respondWith(fetch(event.request));
-    return;
-  }
-  
-  // ✅ Cache profile and user data for offline access
-  const isProfileData = url.pathname.includes('/api/user') ||
-                        url.pathname.includes('/api/profile') ||
-                        url.pathname.includes('/api/settings');
-  
-  if (isProfileData) {
-    // Network first, cache fallback - with longer cache time for profile data
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(PROFILE_CACHE).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Offline: return cached profile data
-          return caches.match(event.request).then((cached) => {
-            if (cached) {
-              console.log('[SW] ✅ Serving cached profile data offline');
-              return cached;
-            }
-            return new Response(JSON.stringify({ error: 'Offline - data not cached' }), {
-              status: 503,
-              headers: { 'Content-Type': 'application/json' }
-            });
-          });
-        })
-    );
-    return;
-  }
-  
-  // ✅ Cache educational data (grades, attendance, homework, notifications)
-  const isEducationalData = url.pathname.includes('/api/grades') ||
-                            url.pathname.includes('/api/attendance') ||
-                            url.pathname.includes('/api/homework') ||
-                            url.pathname.includes('/api/assignments') ||
-                            url.pathname.includes('/api/notifications') ||
-                            url.pathname.includes('/api/messages');
-  
-  if (isEducationalData) {
-    // Network first, cache fallback - already handled by IndexedDB but add SW cache too
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(API_CACHE).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Offline: return cached data
-          return caches.match(event.request).then((cached) => {
-            if (cached) {
-              console.log('[SW] ✅ Serving cached educational data offline');
-              return cached;
-            }
-            return new Response(JSON.stringify({ error: 'Offline - data not cached' }), {
-              status: 503,
-              headers: { 'Content-Type': 'application/json' }
-            });
-          });
-        })
-    );
-    return;
-  }
-  
-  // 🚫 Don't cache other API endpoints (sync, mutations, etc.)
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-  
-  // ✅ Cache user images and avatars for offline access
-  const isImageRequest = event.request.url.match(/\.(png|jpg|jpeg|gif|webp|ico|svg)$/i);
-  const isPWAIcon = event.request.url.includes('android-chrome') || 
-                   event.request.url.includes('educafric-logo') ||
-                   event.request.url.includes('favicon');
-  const isUserImage = url.pathname.includes('/uploads/') ||
-                     url.pathname.includes('/avatars/') ||
-                     url.pathname.includes('/images/users/');
-  
-  if (isImageRequest && (isPWAIcon || isUserImage)) {
-    // Cache-first for images - they don't change often
-    event.respondWith(
-      caches.match(event.request)
-        .then((cached) => {
-          if (cached) {
-            // Return cached image immediately, optionally update in background
-            return cached;
-          }
-          
-          // Not cached, fetch from network
-          return fetch(event.request)
-            .then((response) => {
-              if (response.ok) {
-                const responseClone = response.clone();
-                const cacheName = isUserImage ? IMAGE_CACHE : CACHE_NAME;
-                caches.open(cacheName).then((cache) => {
-                  cache.put(event.request, responseClone);
-                });
-              }
-              return response;
-            })
-            .catch(() => {
-              // Network failed - show placeholder or error
-              return new Response('Image not available offline', { status: 503 });
-            });
-        })
-    );
-    return;
-  }
-  
-  // Stratégie adaptative pour les ressources statiques
-  const isStaticAsset = event.request.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/i) ||
-                       url.pathname.includes('/assets/') ||
-                       url.pathname.includes('/static/');
-  
-  if (isStaticAsset) {
-    event.respondWith(
-      caches.match(event.request)
-        .then(async (response) => {
-          if (response) {
-            return response;
-          }
-          
-          try {
-            const fetchResponse = await fetch(event.request);
-            
-            if (fetchResponse.ok) {
-              const responseClone = fetchResponse.clone();
-              
-              // Cache intelligent selon l'appareil
-              const cache = await caches.open(CACHE_NAME);
-              
-              if (isLowEndDevice()) {
-                // Vérifier la taille avant mise en cache
-                const cachedRequests = await cache.keys();
-                if (cachedRequests.length >= 15) {
-                  // Supprimer les plus anciens pour faire de la place
-                  await cache.delete(cachedRequests[0]);
-                }
-              }
-              
-              await cache.put(event.request, responseClone);
-            }
-            
-            return fetchResponse;
-          } catch (error) {
-            // Fallback silencieux pour erreurs réseau
-            return new Response('Ressource non disponible', { status: 404 });
-          }
-        })
-    );
-    return;
-  }
-  
-  // For navigation and dynamic content: network first, cache fallback
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Only cache successful responses for non-auth content
-        if (response.ok && !isAuthEndpoint) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        // Fallback to cache only for navigation requests
-        if (event.request.mode === 'navigate') {
-          return caches.match(event.request).then((cachedResponse) => {
-            return cachedResponse || caches.match('/offline.html');
-          });
-        }
-        return caches.match(event.request);
-      })
-  );
-});
-
-// Push notification event
-self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received:', event.data);
-  
-  if (!event.data) return;
-  
-  // Update badge count for new notification
-  updateBadgeCount(1);
-  
-  const data = event.data.json();
-  const options = {
-    body: data.body || 'Nouvelle notification Educafric',
-    icon: data.icon || '/educafric-logo-128.png',
-    badge: data.badge || '/educafric-logo-128.png',
-    tag: data.tag || 'educafric-notification',
-    data: data.data || {},
-    actions: data.actions || [],
-    requireInteraction: data.requireInteraction || false,
-    vibrate: data.vibrate || [200, 100, 200],
-    timestamp: Date.now()
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Educafric', options)
-  );
-});
-
-// Notification click event
-self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked:', event.notification.data);
-  
-  event.notification.close();
-
-  // Handle action clicks
-  if (event.action) {
-    console.log('[SW] Action clicked:', event.action);
-    
-    if (event.action === 'view_location') {
-      event.waitUntil(
-        clients.openWindow(event.notification.data.url || '/geolocation')
-      );
-    } else if (event.action === 'view') {
-      event.waitUntil(
-        clients.openWindow(event.notification.data.url || '/')
-      );
-    } else if (event.action === 'dismiss') {
-      // Just close the notification
-      return;
-    }
-  } else {
-    // Handle notification body click - improved URL handling
-    const targetUrl = event.notification.data?.url || '/';
-    
-    event.waitUntil(
-      clients.matchAll({ 
-        type: 'window',
-        includeUncontrolled: true 
-      }).then((clientsArr) => {
-        // Try to find existing window with target URL
-        const targetClient = clientsArr.find(client => {
-          try {
-            const clientUrl = new URL(client.url);
-            const target = new URL(targetUrl, clientUrl.origin);
-            return clientUrl.pathname === target.pathname;
-          } catch {
-            return false;
-          }
-        });
-        
-        if (targetClient) {
-          return targetClient.focus();
-        } else {
-          // Open new window with target URL
-          const fullUrl = targetUrl.startsWith('/') ? targetUrl : `/${targetUrl}`;
-          return clients.openWindow(fullUrl);
-        }
-      })
     );
   }
-
-  // Send message to client about notification click
-  event.waitUntil(
-    clients.matchAll({ includeUncontrolled: true }).then((clientsArr) => {
-      clientsArr.forEach(client => {
-        client.postMessage({
-          type: 'NOTIFICATION_CLICKED',
-          data: event.notification.data,
-          action: event.action || 'body_click',
-          timestamp: Date.now()
-        });
-      });
-    })
-  );
 });
 
-// Notification close event
-self.addEventListener('notificationclose', (event) => {
-  console.log('[SW] Notification closed:', event.notification.data);
-  
-  // Send message to client about notification close
-  self.clients.matchAll().then((clientsArr) => {
-    clientsArr.forEach(client => {
-      client.postMessage({
-        type: 'NOTIFICATION_CLOSED',
-        data: event.notification.data
-      });
-    });
-  });
-});
-
-// Handle messages from the main app
-self.addEventListener('message', (event) => {
-  const { type, title, options, count } = event.data;
-  
-  // Handle badge update messages
-  if (type === 'UPDATE_BADGE') {
-    setBadgeCount(count || 0);
-    return;
-  }
-  
-  if (type === 'CLEAR_BADGE') {
-    clearBadge();
-    return;
-  }
-  
-  if (type === 'INCREMENT_BADGE') {
-    updateBadgeCount(count || 1);
-    return;
-  }
-  
-  if (type === 'SHOW_NOTIFICATION') {
-    console.log('[SW] Showing notification via message:', title);
-    
-    const notificationOptions = {
-      body: options?.body || 'Notification Educafric',
-      icon: options?.icon || '/educafric-logo-128.png',
-      badge: options?.badge || '/educafric-logo-128.png',
-      tag: options?.tag || 'app-notification',
-      data: options?.data || {},
-      actions: options?.actions || [],
-      requireInteraction: options?.requireInteraction || false,
-      vibrate: options?.vibrate || [200, 100, 200],
-      timestamp: Date.now()
-    };
-
-    // Show notification and send confirmation back to client
-    self.registration.showNotification(title, notificationOptions)
-      .then(() => {
-        console.log('[SW] ✅ Notification displayed successfully');
-        
-        // Auto-open notification if configured
-        if (notificationOptions.data?.autoOpen && notificationOptions.data?.url) {
-          console.log('[SW] 🚀 Auto-opening notification:', notificationOptions.data.url);
-          
-          // Small delay to let user see the notification
-          setTimeout(() => {
-            clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
-              if (clientList.length > 0) {
-                // Focus existing window and navigate
-                const client = clientList[0];
-                client.focus();
-                client.postMessage({
-                  type: 'AUTO_OPEN_NOTIFICATION',
-                  url: notificationOptions.data.url,
-                  timestamp: Date.now()
-                });
-              } else {
-                // Open new window
-                clients.openWindow(notificationOptions.data.url);
-              }
-            });
-          }, 1500); // 1.5 second delay
-        }
-        
-        // Send confirmation back to client
-        if (event.source) {
-          event.source.postMessage({
-            type: 'NOTIFICATION_SHOWN',
-            success: true,
-            tag: notificationOptions.tag,
-            timestamp: Date.now()
-          });
-        } else {
-          // Fallback: broadcast to all clients
-          clients.matchAll().then(clientList => {
-            clientList.forEach(client => {
-              client.postMessage({
-                type: 'NOTIFICATION_SHOWN',
-                success: true,
-                tag: notificationOptions.tag,
-                timestamp: Date.now()
-              });
-            });
-          });
-        }
-      })
-      .catch(error => {
-        console.error('[SW] ❌ Failed to show notification:', error);
-        
-        // Send error back to client
-        if (event.source) {
-          event.source.postMessage({
-            type: 'NOTIFICATION_ERROR',
-            success: false,
-            error: error.message,
-            tag: notificationOptions.tag,
-            timestamp: Date.now()
-          });
-        }
-      });
-  }
-});
-
-// Handle notification click events (FCM + standard notifications)
-self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] 📱 Notification clicked:', event.notification.data);
-  
-  event.notification.close();
-
-  // Handle FCM or standard notification data
-  const data = event.notification.data || {};
-  let targetUrl = data.actionUrl || data.url || '/';
-  
-  // For FCM notifications, check click_action
-  if (data.fcm && data.click_action) {
-    targetUrl = data.click_action;
-  }
-  
-  // Handle action button clicks
-  if (event.action === 'open' && data.actionUrl) {
-    targetUrl = data.actionUrl;
-  }
-
-  event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    }).then(function(clientList) {
-      // Check if there's already a window open
-      for (let client of clientList) {
-        if (client.url === targetUrl && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      // If no existing window, open a new one
-      if (clients.openWindow) {
-        console.log('[SW] 🚀 Opening new window for FCM notification:', targetUrl);
-        return clients.openWindow(targetUrl);
-      }
-    })
-  );
-});
-
-// Background sync optimisé pour appareils bas de gamme
+// Background sync - sync offline actions when connection is restored
 self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync:', event.tag);
-  
-  // Désactiver background sync pour appareils très limités
-  if (isLowEndDevice()) {
-    const memory = navigator.deviceMemory || 0;
-    if (memory < 1) {
-      console.log('[SW] Background sync désactivé - Mémoire insuffisante');
-      return;
-    }
-  }
-  
-  if (event.tag === 'background-notifications') {
-    event.waitUntil(
-      fetch('/api/notifications/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      }).catch(err => {
-        console.log('[SW] Background sync failed:', err);
-      })
-    );
-  }
-  
-  // Nettoyage périodique du cache
-  if (event.tag === 'cache-cleanup' && isLowEndDevice()) {
-    event.waitUntil(cleanupCache());
+  if (event.tag === 'sync-offline-actions') {
+    console.log('[SW] Background sync triggered');
+    event.waitUntil(syncOfflineActions());
   }
 });
 
-// Nettoyage périodique pour éviter l'accumulation
-if (isLowEndDevice()) {
-  // Nettoyer le cache toutes les heures
-  setInterval(() => {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.ready.then(registration => {
-        if ('sync' in registration) {
-          return registration.sync.register('cache-cleanup');
+async function syncOfflineActions() {
+  try {
+    // Get all pending actions from IndexedDB
+    const db = await openOfflineDB();
+    const actions = await getAllPendingActions(db);
+    
+    console.log('[SW] Syncing', actions.length, 'offline actions');
+    
+    for (const action of actions) {
+      try {
+        const response = await fetch('/api/offline/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(action)
+        });
+        
+        if (response.ok) {
+          await markActionSynced(db, action.id);
         }
-      });
+      } catch (error) {
+        console.error('[SW] Failed to sync action:', action.id, error);
+      }
     }
-  }, 3600000); // 1 heure
+  } catch (error) {
+    console.error('[SW] Sync failed:', error);
+  }
 }
+
+function openOfflineDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('educafric-offline', 2);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getAllPendingActions(db) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['offlineQueue'], 'readonly');
+    const store = transaction.objectStore('offlineQueue');
+    const index = store.index('synced');
+    const request = index.getAll(IDBKeyRange.only(false));
+    
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function markActionSynced(db, actionId) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['offlineQueue'], 'readwrite');
+    const store = transaction.objectStore('offlineQueue');
+    const request = store.get(actionId);
+    
+    request.onsuccess = () => {
+      const action = request.result;
+      if (action) {
+        action.synced = true;
+        const updateRequest = store.put(action);
+        updateRequest.onsuccess = () => resolve();
+        updateRequest.onerror = () => reject(updateRequest.error);
+      } else {
+        resolve();
+      }
+    };
+    
+    request.onerror = () => reject(request.error);
+  });
+}
+
+console.log('[SW] Service Worker loaded successfully');

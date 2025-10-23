@@ -1,7 +1,7 @@
 // Educafric Service Worker - Enhanced Offline Support for Sandbox Demo Mode
 // Enables complete offline functionality with aggressive caching
 
-const CACHE_VERSION = 'educafric-v1.2.0';
+const CACHE_VERSION = 'educafric-v1.3.0';
 const CACHE_NAME = `educafric-cache-${CACHE_VERSION}`;
 
 // Assets to cache immediately for offline demo mode
