@@ -1,4 +1,5 @@
 import { hostingerMailService } from './hostingerMailService';
+import { whatsappService } from './whatsappService';
 import { db } from '../db';
 import { users } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
@@ -333,23 +334,57 @@ ${data.schoolName} Team`;
   }
 
   /**
-   * Send WhatsApp notification using Click-to-Chat (instant, free, no API needed)
-   * Generates a wa.me link that the parent can click from their email
+   * Send WhatsApp notification directly via WhatsApp Business API
+   * NEW: Sends message directly to parent's phone number
    */
   private async sendWhatsAppNotification(parentId: number, data: AttendanceNotificationData, language: 'fr' | 'en' = 'fr'): Promise<boolean> {
     try {
-      const waLink = await this.generateWhatsAppLink(parentId, data, language);
+      // Get parent WhatsApp info
+      const recipient = await getRecipientById(parentId);
       
-      if (waLink) {
-        console.log(`[ATTENDANCE_NOTIFICATIONS] ✅ WhatsApp Click-to-Chat link generated for parent ${parentId}`);
-        return true; // Link is embedded in email, parent can click to contact school
+      if (!recipient?.whatsappE164 || !recipient?.waOptIn) {
+        console.log(`[ATTENDANCE_NOTIFICATIONS] ⚠️ Parent ${parentId} not WhatsApp-enabled`);
+        return false;
+      }
+
+      // Prepare data for WhatsApp Business API template
+      const statusTranslations = {
+        present: { fr: 'présent(e)', en: 'present' },
+        absent: { fr: 'absent(e)', en: 'absent' },
+        late: { fr: 'en retard', en: 'late' },
+        excused: { fr: 'absent(e) excusé(e)', en: 'excused absence' }
+      };
+
+      const whatsappData = {
+        studentName: data.studentName,
+        date: data.date,
+        period: data.className || 'Cours',
+        reason: data.notes || statusTranslations[data.status][language],
+        monthlyTotal: '2', // TODO: Get from database
+        schoolPhone: getSupportPhone(),
+        schoolName: data.schoolName
+      };
+
+      // Send direct WhatsApp message via Business API
+      console.log(`[ATTENDANCE_NOTIFICATIONS] 📱 Sending direct WhatsApp to ${recipient.whatsappE164}...`);
+      const result = await whatsappService.sendEducationNotification(
+        recipient.whatsappE164,
+        'absence',
+        whatsappData,
+        language
+      );
+
+      if (result.success) {
+        console.log(`[ATTENDANCE_NOTIFICATIONS] ✅ WhatsApp message sent directly to parent ${parentId} (${recipient.whatsappE164})`);
+        console.log(`[ATTENDANCE_NOTIFICATIONS] 📨 Message ID: ${result.messageId}`);
+        return true;
+      } else {
+        console.error(`[ATTENDANCE_NOTIFICATIONS] ❌ WhatsApp sending failed:`, result.error);
+        return false;
       }
       
-      console.log(`[ATTENDANCE_NOTIFICATIONS] ⚠️ Parent ${parentId} doesn't have WhatsApp configured`);
-      return false;
-      
     } catch (error) {
-      console.error('[ATTENDANCE_NOTIFICATIONS] WhatsApp link generation error:', error);
+      console.error('[ATTENDANCE_NOTIFICATIONS] WhatsApp sending error:', error);
       return false;
     }
   }
