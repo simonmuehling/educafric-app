@@ -1923,7 +1923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           className: classes.name,
           classLevel: classes.level,
           subjectId: teacherSubjectAssignments.subjectId,
-          subjectName: subjects.name,
+          subjectName: subjects.nameFr,
           schoolId: classes.schoolId,
         })
         .from(teacherSubjectAssignments)
@@ -2301,7 +2301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         );
 
-      const classIds = [...new Set(assignedClassIds.map(a => a.classId))];
+      const classIds = Array.from(new Set(assignedClassIds.map(a => a.classId)));
       
       if (classIds.length === 0) {
         console.log('[TEACHER_API] ⚠️ No assigned classes found for teacher:', user.id);
@@ -2317,7 +2317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: users.email,
           classId: classEnrollments.classId,
           className: classes.name,
-          matricule: users.matricule,
+          matricule: users.educafricNumber,
         })
         .from(classEnrollments)
         .innerJoin(users, eq(classEnrollments.studentId, users.id))
@@ -3377,7 +3377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title: homework.title,
           description: homework.description,
           instructions: homework.instructions,
-          subjectName: subjects.name,
+          subjectName: subjects.nameFr,
           className: classes.name,
           classId: homework.classId,
           subjectId: homework.subjectId,
@@ -3539,7 +3539,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .limit(1);
         
       const [subjectInfo] = await db
-        .select({ name: subjects.name })
+        .select({ name: subjects.nameFr })
         .from(subjects)
         .where(eq(subjects.id, parseInt(subjectId)))
         .limit(1);
@@ -3743,7 +3743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title: homework.title,
           description: homework.description,
           instructions: homework.instructions,
-          subjectName: subjects.name,
+          subjectName: subjects.nameFr,
           className: classes.name,
           priority: homework.priority,
           dueDate: homework.dueDate,
@@ -3811,7 +3811,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title: homework.title,
           description: homework.description,
           instructions: homework.instructions,
-          subjectName: subjects.name,
+          subjectName: subjects.nameFr,
           className: classes.name,
           teacherName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`,
           teacherId: homework.teacherId,
@@ -3852,8 +3852,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: submission ? 'completed' : 'pending',
           submission: submission ? {
             id: submission.id,
-            content: submission.content,
-            attachments: submission.attachments,
+            content: submission.submissionText,
+            attachments: submission.attachmentUrls,
             submittedAt: submission.submittedAt,
             status: submission.status
           } : null
@@ -3985,8 +3985,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const [updatedSubmission] = await db
           .update(homeworkSubmissions)
           .set({
-            content,
-            attachments: attachments || null,
+            submissionText: content,
+            attachmentUrls: attachments || null,
             submittedAt: new Date(),
             status: 'submitted',
             updatedAt: new Date()
@@ -4008,8 +4008,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .values({
             homeworkId,
             studentId,
-            content,
-            attachments: attachments || null,
+            submissionText: content,
+            attachmentUrls: attachments || null,
             submittedAt: new Date(),
             status: 'submitted'
           })
@@ -4020,7 +4020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Send notification to teacher
         await realTimeService.broadcastTimetableNotification({
           notificationId: newSubmission.id,
-          type: 'homework_submitted',
+          type: 'created',
           message: `Nouveau devoir soumis: ${assignedHomework.title} par ${user.firstName} ${user.lastName}`,
           teacherId: assignedHomework.teacherId,
           studentId: studentId,
@@ -4069,14 +4069,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [submission] = await db
         .select({
           id: homeworkSubmissions.id,
-          content: homeworkSubmissions.content,
-          attachments: homeworkSubmissions.attachments,
+          content: homeworkSubmissions.submissionText,
+          attachments: homeworkSubmissions.attachmentUrls,
           submittedAt: homeworkSubmissions.submittedAt,
           status: homeworkSubmissions.status,
-          grade: homeworkSubmissions.grade,
+          grade: homeworkSubmissions.score,
           feedback: homeworkSubmissions.feedback,
           homeworkTitle: homework.title,
-          subjectName: subjects.name
+          subjectName: subjects.nameFr
         })
         .from(homeworkSubmissions)
         .leftJoin(homework, eq(homeworkSubmissions.homeworkId, homework.id))
@@ -6946,8 +6946,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delegationDepartementale: schools.delegationDepartementale,
         boitePostale: schools.boitePostale,
         arrondissement: schools.arrondissement,
-        subscriptionStatus: schools.subscriptionStatus,
-        subscriptionPlan: schools.subscriptionPlan,
         academicYear: schools.academicYear,
         currentTerm: schools.currentTerm
       }).from(schools).where(eq(schools.id, schoolId)).limit(1);
@@ -6993,9 +6991,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           delegationDepartementale: school.delegationDepartementale,
           boitePostale: school.boitePostale,
           arrondissement: school.arrondissement,
-          // Additional fields for completeness
-          subscriptionStatus: school.subscriptionStatus,
-          subscriptionPlan: school.subscriptionPlan,
           academicYear: school.academicYear,
           currentTerm: school.currentTerm
         }

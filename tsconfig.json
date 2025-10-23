@@ -25,6 +25,7 @@
     },
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "downlevelIteration": true,
     "noErrorTruncation": false,
     "assumeChangesOnlyAffectDirectDependencies": true
   }
