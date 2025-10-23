@@ -6777,7 +6777,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/sync', syncRoutes);
   app.use('/api/analytics', analyticsRoutes);
   // 🔥 PREMIUM RESTRICTED: Advanced communications (WhatsApp only, SMS removed)
-  app.use('/api/whatsapp', checkSubscriptionFeature('advanced_communications'), whatsappRoutes);
+  // WhatsApp webhook must be accessible without subscription check for Meta verification
+  app.use('/api/whatsapp', whatsappRoutes);
   app.use('/api/whatsapp-setup', checkSubscriptionFeature('advanced_communications'), whatsappMsSolutionsSetup);
   
   // WhatsApp Click-to-Chat (Option A - wa.me links, no API needed)
