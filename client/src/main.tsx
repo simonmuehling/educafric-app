@@ -42,7 +42,7 @@ if (isDevelopment) {
           localStorage.setItem('pwa-sw-registered', 'true');
           registered = true;
           
-          // Handle updates
+          // Handle updates - silent activation without reload
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
             console.log('[PWA] 🔄 Service Worker update found');
@@ -50,11 +50,9 @@ if (isDevelopment) {
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New version available - auto-reload after 2 seconds
-                  console.log('[PWA] ✅ New version installed - reloading...');
-                  setTimeout(() => {
-                    window.location.reload();
-                  }, 2000);
+                  // New version available - will activate on next page load
+                  console.log('[PWA] ✅ New version installed - will activate on next navigation');
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
                 }
               });
             }

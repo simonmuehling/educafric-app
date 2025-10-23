@@ -11,19 +11,18 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
       console.log('[SW_REGISTRATION] ✅ Service worker registered successfully:', registration.scope);
 
-      // Handle updates - AUTO-RELOAD without blocking dialog
+      // Handle updates - Silent update without reload
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[SW_REGISTRATION] 🔄 New service worker available - auto-reloading in 1 second...');
+              console.log('[SW_REGISTRATION] ✅ New service worker installed - will activate on next page load');
               
-              // Auto-reload without blocking the user
+              // Tell the new worker to skip waiting and take over
               newWorker.postMessage({ type: 'SKIP_WAITING' });
-              setTimeout(() => {
-                window.location.reload();
-              }, 1000);
+              
+              // Don't auto-reload - let it activate naturally on next navigation
             }
           });
         }
