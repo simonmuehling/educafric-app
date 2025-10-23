@@ -7,6 +7,7 @@
  */
 
 import { AttendanceNotificationService } from './attendanceNotificationService';
+import { whatsappDirectService } from './whatsappDirectNotificationService';
 import { shouldAutoNotify, isNotificationChannelEnabled, PLATFORM_CONFIG } from '../config/platformConfig';
 
 export interface AutoNotificationEvent {
