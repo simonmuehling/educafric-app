@@ -9,7 +9,7 @@ interface IconModule {
   label: string;
   icon: React.ReactNode;
   color: string;
-  component: React.ReactNode;
+  component?: React.ReactNode;
 }
 
 interface UnifiedIconDashboardProps {

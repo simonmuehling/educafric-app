@@ -30,47 +30,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     setApiDataPreloaded(true);
   }, []);
   
-  // ULTRA-FAST module component creator
-  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
-    const ModuleComponent = getModule(moduleName);
-    
-    // ALWAYS call hooks in the same order - move useEffect before conditional return
-    React.useEffect(() => {
-      if (!ModuleComponent) {
-        preloadModule(moduleName);
-      }
-    }, [ModuleComponent, moduleName]);
-    
-    if (ModuleComponent) {
-      const isCritical = ['leads', 'appointments', 'schools', 'contacts', 'statistics', 'documents'].includes(moduleName);
-      if (isCritical && apiDataPreloaded) {
-      }
-      
-      // Prepare props for specific modules that need them
-      const moduleProps: any = {};
-      
-      // NotificationCenter needs userId and userRole
-      if (moduleName === 'commercial-notifications' || moduleName === 'notifications') {
-        moduleProps.userId = user?.id;
-        moduleProps.userRole = user?.role;
-      }
-      
-      return React.createElement(ModuleComponent, moduleProps);
-    }
-    
-    return fallbackComponent || (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-2 text-orange-600">
-            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
-          </p>
-        </div>
-      </div>
-    );
-  };
-
-  // MODULE PRELOADING DISABLED - Load on-demand only
+  // MODULE PRELOADING DISABLED - Load on-demand only via UnifiedIconDashboard
 
   // Preload modules when dashboard loads (LEGACY - keeping for compatibility)
   useEffect(() => {
@@ -125,109 +85,94 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
 
   const modules = [
     {
-      id: 'schools',
+      id: 'commercial-schools',
       label: t.mySchools,
       icon: <Building2 className="w-6 h-6" />,
-      color: 'bg-blue-500',
-      component: createDynamicModule('commercial-schools')
+      color: 'bg-blue-500'
     },
     {
       id: 'leads',
       label: t.leads,
       icon: <Target className="w-6 h-6" />,
-      color: 'bg-orange-500',
-      component: createDynamicModule('commercial-contacts')
+      color: 'bg-orange-500'
     },
     {
-      id: 'contacts',
+      id: 'commercial-contacts',
       label: t.contacts,
       icon: <Users className="w-6 h-6" />,
-      color: 'bg-green-500',
-      component: createDynamicModule('commercial-contacts')
+      color: 'bg-green-500'
     },
     {
       id: 'payments',
       label: t.payments,
       icon: <CreditCard className="w-6 h-6" />,
-      color: 'bg-purple-500',
-      component: createDynamicModule('commercial-documents')
+      color: 'bg-purple-500'
     },
     {
-      id: 'documents',
+      id: 'commercial-documents',
       label: t.documents,
       icon: <FileText className="w-6 h-6" />,
-      color: 'bg-orange-500',
-      component: createDynamicModule('commercial-documents')
+      color: 'bg-orange-500'
     },
     {
-      id: 'statistics',
+      id: 'commercial-statistics',
       label: t.statistics,
       icon: <BarChart3 className="w-6 h-6" />,
-      color: 'bg-red-500',
-      component: createDynamicModule('commercial-statistics')
+      color: 'bg-red-500'
     },
     {
       id: 'reports',
       label: t.reports,
       icon: <TrendingUp className="w-6 h-6" />,
-      color: 'bg-pink-500',
-      component: createDynamicModule('commercial-statistics')
+      color: 'bg-pink-500'
     },
     {
       id: 'appointments',
       label: t.appointments,
       icon: <Calendar className="w-6 h-6" />,
-      color: 'bg-indigo-500',
-      component: createDynamicModule('commercial-contacts')
+      color: 'bg-indigo-500'
     },
     {
-      id: 'whatsapp',
+      id: 'commercial-whatsapp',
       label: t.whatsapp,
       icon: <MessageSquare className="w-6 h-6" />,
-      color: 'bg-green-600',
-      component: createDynamicModule('commercial-whatsapp')
+      color: 'bg-green-600'
     },
     {
       id: 'offer-letters',
       label: t.offerLetters,
       icon: <Mail className="w-6 h-6" />,
-      color: 'bg-yellow-500',
-      component: createDynamicModule('offer-letters')
+      color: 'bg-yellow-500'
     },
     {
-      id: 'activity',
+      id: 'activity-summary',
       label: language === 'fr' ? 'Mon Activité' : 'My Activity',
       icon: <Activity className="w-6 h-6" />,
-      color: 'bg-indigo-500',
-      component: createDynamicModule('activity-summary')
+      color: 'bg-indigo-500'
     },
     {
-      id: 'notifications',
+      id: 'commercial-notifications',
       label: language === 'fr' ? 'Notifications' : 'Notifications',
       icon: <Bell className="w-6 h-6" />,
-      color: 'bg-orange-600',
-      component: createDynamicModule('commercial-notifications')
+      color: 'bg-orange-600'
     },
     {
       id: 'settings',
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
-      color: 'bg-gray-600',
-      component: createDynamicModule('settings')
+      color: 'bg-gray-600'
     },
     {
       id: 'multirole',
       label: 'Multi-Rôles',
       icon: <User className="w-6 h-6" />,
-      color: 'bg-purple-600',
-      component: createDynamicModule('multirole')
+      color: 'bg-purple-600'
     },
     {
       id: 'help',
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
-      color: 'bg-gray-500',
-      component: createDynamicModule('help')
+      color: 'bg-gray-500'
     }
   ];
 
