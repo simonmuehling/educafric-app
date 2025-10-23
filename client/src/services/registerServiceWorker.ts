@@ -11,19 +11,19 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
       console.log('[SW_REGISTRATION] ✅ Service worker registered successfully:', registration.scope);
 
-      // Handle updates
+      // Handle updates - AUTO-RELOAD without blocking dialog
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[SW_REGISTRATION] 🔄 New service worker available');
+              console.log('[SW_REGISTRATION] 🔄 New service worker available - auto-reloading in 1 second...');
               
-              // Optionally notify user of update
-              if (window.confirm('Une nouvelle version est disponible. Rafraîchir maintenant?')) {
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
+              // Auto-reload without blocking the user
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+              setTimeout(() => {
                 window.location.reload();
-              }
+              }, 1000);
             }
           });
         }
