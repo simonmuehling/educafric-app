@@ -73,6 +73,7 @@ import multiRoleRoutes from "./routes/multiRoleRoutes";
 import systemReportsRoutes from "./routes/systemReportsRoutes";
 import emailPreferencesRoutes from "./routes/email-preferences-routes";
 import setupNotificationRoutes from "./routes/notificationRoutes";
+import testNotificationsRoutes from "./routes/test-notifications";
 import configurationRoutes from "./routes/configurationRoutes";
 import pwaRoutes from "./routes/pwaRoutes";
 import analyticsRoutes from "./routes/analytics";
@@ -6800,6 +6801,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/pwa', pwaRoutes);
   app.use('/api/sync', syncRoutes);
   app.use('/api/analytics', analyticsRoutes);
+  
+  // Test notifications API (for testing automatic notifications)
+  app.use('/api/test-notifications', testNotificationsRoutes);
   // 🔥 PREMIUM RESTRICTED: Advanced communications (WhatsApp only, SMS removed)
   // Note: WhatsApp webhook (/api/whatsapp) is registered earlier as a public route for Meta verification
   app.use('/api/whatsapp-setup', checkSubscriptionFeature('advanced_communications'), whatsappMsSolutionsSetup);
