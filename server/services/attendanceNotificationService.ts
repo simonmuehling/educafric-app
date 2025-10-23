@@ -5,6 +5,7 @@ import { eq, and } from 'drizzle-orm';
 import { createWaToken, getRecipientById } from './waClickToChat';
 import { renderTemplate } from '../templates/waTemplates';
 import { buildWaUrl } from '../utils/waLink';
+import { PLATFORM_CONFIG, getSupportPhone, getSupportEmail } from '../config/platformConfig';
 
 interface AttendanceNotificationData {
   studentId: number;
@@ -262,7 +263,7 @@ ${data.schoolName} Team`;
           
           <div style="background: #f8f9fa; padding: 15px; text-align: center; color: #6c757d; font-size: 12px;">
             <p>© 2025 Educafric - Plateforme Éducative Africaine</p>
-            <p>📧 <a href="mailto:support@educafric.com">support@educafric.com</a> | 📞 +237 657 004 011</p>
+            <p>📧 <a href="mailto:${getSupportEmail()}">${getSupportEmail()}</a> | 📞 ${getSupportPhone()}</p>
           </div>
         </div>
       `;
