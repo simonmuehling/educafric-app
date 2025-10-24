@@ -30,15 +30,26 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Système de contrôle renforcé** : Les écoles DOIVENT fournir un numéro EDUCAFRIC pré-assigné pour s'inscrire
 - ✅ **Format standardisé** : EDU-CM-SC-### (SC = School, séquence incrémentielle)
 - ✅ **Validation stricte** : Vérification que le numéro existe, est actif, et n'est pas déjà assigné
-- ✅ **Workflow d'inscription** : 
-  1. Site Admin crée le numéro EDUCAFRIC via interface dédiée
-  2. Numéro communiqué à l'école (email, courrier, etc.)
-  3. École s'inscrit en fournissant le numéro pré-assigné
-  4. Système valide et assigne le numéro
+- ✅ **Deux workflows d'inscription disponibles** :
+  1. **Site Admin Manual** : Site Admin crée l'école directement via interface dédiée
+  2. **Director Self-Registration** : Director s'inscrit publiquement avec numéro EDUCAFRIC pré-assigné
+- ✅ **Workflow Director Self-Registration** :
+  1. Site Admin crée et active le numéro EDUCAFRIC via interface dédiée
+  2. Numéro communiqué au futur Director (email, courrier, etc.)
+  3. Director s'inscrit via page Login/Register en sélectionnant rôle "Director"
+  4. Champ EDUCAFRIC number apparaît automatiquement (conditionnel, uniquement pour Directors)
+  5. Director entre le numéro pré-assigné reçu
+  6. Système valide le numéro → Crée compte Director → Crée école automatiquement → Assigne numéro → Lie Director à l'école
+- ✅ **Rollback complet en cas d'échec** : Suppression automatique de l'utilisateur, de l'école créée, et libération du numéro EDUCAFRIC
 - ✅ **API Endpoints** :
-  - `POST /api/siteadmin/schools` - Création école avec educafricNumber obligatoire
+  - `POST /api/siteadmin/schools` - Création école manuelle avec educafricNumber obligatoire
   - `GET /api/siteadmin/educafric/available` - Liste des numéros disponibles (non assignés)
-- ✅ **Frontend intégré** : Sélecteur de numéros disponibles dans SchoolManagement.tsx
+  - `POST /api/auth/register` - Auto-inscription Director avec validation EDUCAFRIC et création école automatique
+- ✅ **Frontend intégré** :
+  - SchoolManagement.tsx : Sélecteur de numéros disponibles pour création manuelle
+  - Login.tsx : Champ EDUCAFRIC conditionnel pour auto-inscription Directors (orange highlighted, bilingual)
+- ✅ **Messages d'erreur bilingues** : Affichage des messages d'erreur backend (FR/EN) pour validation EDUCAFRIC
+- ✅ **Service EDUCAFRIC** : `EducafricNumberService.releaseNumber()` pour libération du numéro en cas de rollback
 - ✅ **Database driver** : Utilise neon-http pour compatibilité maximale
 - ⚠️ **RÈGLE CRITIQUE** : AUCUNE école ne peut s'inscrire sans numéro EDUCAFRIC pré-assigné valide
 
