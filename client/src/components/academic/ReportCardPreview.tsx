@@ -765,25 +765,25 @@ export default function ReportCardPreview({
                   <div className="text-xs text-gray-600">
                     {language === 'fr' ? '1er T.' : '1st T.'}
                   </div>
-                  <div className="text-sm font-semibold">{annualSummary.firstTrimesterAverage}/20</div>
+                  <div className={`text-sm font-semibold ${annualSummary.firstTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.firstTrimesterAverage}/20</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-600">
                     {language === 'fr' ? '2e T.' : '2nd T.'}
                   </div>
-                  <div className="text-sm font-semibold">{annualSummary.secondTrimesterAverage}/20</div>
+                  <div className={`text-sm font-semibold ${annualSummary.secondTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.secondTrimesterAverage}/20</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xs text-gray-600">
                     {language === 'fr' ? '3e T.' : '3rd T.'}
                   </div>
-                  <div className="text-sm font-semibold">{annualSummary.thirdTrimesterAverage}/20</div>
+                  <div className={`text-sm font-semibold ${annualSummary.thirdTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.thirdTrimesterAverage}/20</div>
                 </div>
                 <div className="text-center bg-white rounded border p-2">
                   <div className="text-xs text-orange-700 font-medium">
                     {language === 'fr' ? 'Moyenne Annuelle' : 'Annual Average'}
                   </div>
-                  <div className="text-lg font-bold text-orange-800">{annualSummary.annualAverage}/20</div>
+                  <div className={`text-lg font-bold ${annualSummary.annualAverage < 10 ? 'text-red-600' : 'text-orange-800'}`}>{annualSummary.annualAverage}/20</div>
                 </div>
               </div>
 
@@ -836,7 +836,7 @@ export default function ReportCardPreview({
               <div className="text-xs text-gray-500 text-center">
                 {language === 'fr' ? 'Moyenne Générale' : 'Overall Average'}
               </div>
-              <div className="text-2xl font-semibold text-center">{moyenne}/20</div>
+              <div className={`text-2xl font-semibold text-center ${moyenne < 10 ? 'text-red-600' : ''}`}>{moyenne}/20</div>
             </div>
             {(student as any).verificationCode && (
               <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-3 w-48">
