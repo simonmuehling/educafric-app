@@ -13,6 +13,7 @@ import { AcademicStorage } from "./academicStorage";
 import { SanctionStorage } from "./sanctionsStorage";
 import { LibraryStorage } from "./libraryStorage";
 import { ArchiveStorage } from "./archiveStorage";
+import { EducafricNumberStorage } from "./educafricNumberStorage";
 import type { NotificationPreferences, InsertNotificationPreferences } from "../../shared/schema";
 import type { ArchiveFilter, ArchiveResponse, NewArchivedDocument, NewArchiveAccessLog } from "../../shared/schemas/archiveSchema";
 
@@ -30,6 +31,7 @@ export class ModularStorage {
   private sanctionStorage: SanctionStorage;
   private libraryStorage: LibraryStorage;
   private archiveStorage: ArchiveStorage;
+  private educafricNumberStorage: EducafricNumberStorage;
 
   constructor() {
     this.userStorage = new UserStorage();
@@ -44,6 +46,7 @@ export class ModularStorage {
     this.sanctionStorage = new SanctionStorage();
     this.libraryStorage = new LibraryStorage();
     this.archiveStorage = new ArchiveStorage();
+    this.educafricNumberStorage = new EducafricNumberStorage();
   }
 
   // === USER METHODS ===
@@ -1237,6 +1240,14 @@ export class ModularStorage {
   async logAccess(accessData: NewArchiveAccessLog) { return this.archiveStorage.logAccess(accessData); }
   async getAccessLogs(archiveId: number, schoolId: number, limit?: number) { return this.archiveStorage.getAccessLogs(archiveId, schoolId, limit); }
   async getArchiveStats(schoolId: number, academicYear?: string) { return this.archiveStorage.getArchiveStats(schoolId, academicYear); }
+  
+  // === EDUCAFRIC NUMBER METHODS ===
+  async generateEducafricNumber(type: 'school' | 'commercial', notes?: string) { return this.educafricNumberStorage.generateNumber(type, notes); }
+  async getEducafricNumbersByType(type: 'school' | 'commercial') { return this.educafricNumberStorage.getNumbersByType(type); }
+  async getEducafricCounterStats() { return this.educafricNumberStorage.getCounterStats(); }
+  async updateEducafricNumber(id: number, updates: { status?: string; notes?: string }) { return this.educafricNumberStorage.updateNumber(id, updates); }
+  async deleteEducafricNumber(id: number) { return this.educafricNumberStorage.deleteNumber(id); }
+  async assignEducafricNumber(educafricNumber: string, entityId: number) { return this.educafricNumberStorage.assignNumber(educafricNumber, entityId); }
   
   // === SANDBOX SEEDING METHODS - FOR TESTING BULLETIN WORKFLOW ===
   private seedData: any = null;
