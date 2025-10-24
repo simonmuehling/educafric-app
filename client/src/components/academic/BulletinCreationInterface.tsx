@@ -136,8 +136,10 @@ interface DisciplineInfo {
   sanctions: number; // Conduct Warning/Reprimand
   // NEW: Extended discipline fields from ministry documents
   punishmentHours: number; // Punishment (hours)
+  conductWarning: number; // Avertissement de conduite (CBA format - numeric)
+  conductBlame: number; // Blâme (CBA format - numeric)
   suspension: number; // Suspension days
-  dismissal: boolean; // Dismissed (yes/no)
+  dismissal: number; // Dismissed (0 = no, 1 = yes)
 }
 
 // Grade calculation functions for Cameroon system
@@ -522,8 +524,10 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     sanctions: 0,
     // NEW: Extended discipline fields
     punishmentHours: 0,
+    conductWarning: 0,
+    conductBlame: 0,
     suspension: 0,
-    dismissal: false
+    dismissal: 0
   });
   
   // Check if this is third trimester for annual summary
@@ -2481,29 +2485,62 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   {language === 'fr' ? 'Types de sanctions (format CBA)' : 'Sanction Types (CBA format)'}
                 </Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="conduct-warning" className="rounded" />
-                    <label htmlFor="conduct-warning" className="text-sm">
+                  <div>
+                    <Label className="text-xs font-medium mb-1 block">
                       {language === 'fr' ? 'Avertissement de conduite' : 'Conduct Warning'}
-                    </label>
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={discipline.conductWarning}
+                      onChange={(e) => setDiscipline({...discipline, conductWarning: parseInt(e.target.value) || 0})}
+                      className="border-orange-200 focus:border-orange-400"
+                      placeholder={language === 'fr' ? 'Nombre' : 'Number'}
+                      data-testid="input-conduct-warning"
+                    />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="reprimand" className="rounded" />
-                    <label htmlFor="reprimand" className="text-sm">
+                  <div>
+                    <Label className="text-xs font-medium mb-1 block">
                       {language === 'fr' ? 'Blâme' : 'Reprimand'}
-                    </label>
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={discipline.conductBlame}
+                      onChange={(e) => setDiscipline({...discipline, conductBlame: parseInt(e.target.value) || 0})}
+                      className="border-orange-200 focus:border-orange-400"
+                      placeholder={language === 'fr' ? 'Nombre' : 'Number'}
+                      data-testid="input-conduct-blame"
+                    />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="suspension" className="rounded" />
-                    <label htmlFor="suspension" className="text-sm">
-                      {language === 'fr' ? 'Suspension' : 'Suspension'}
-                    </label>
+                  <div>
+                    <Label className="text-xs font-medium mb-1 block">
+                      {language === 'fr' ? 'Suspension (jours)' : 'Suspension (days)'}
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={discipline.suspension}
+                      onChange={(e) => setDiscipline({...discipline, suspension: parseInt(e.target.value) || 0})}
+                      className="border-orange-200 focus:border-orange-400"
+                      placeholder={language === 'fr' ? 'Jours' : 'Days'}
+                      data-testid="input-suspension"
+                    />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" id="dismissed" className="rounded" />
-                    <label htmlFor="dismissed" className="text-sm">
-                      {language === 'fr' ? 'Renvoyé' : 'Dismissed'}
-                    </label>
+                  <div>
+                    <Label className="text-xs font-medium mb-1 block">
+                      {language === 'fr' ? 'Renvoyé (1 = oui, 0 = non)' : 'Dismissed (1 = yes, 0 = no)'}
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="1"
+                      value={discipline.dismissal}
+                      onChange={(e) => setDiscipline({...discipline, dismissal: parseInt(e.target.value) || 0})}
+                      className="border-orange-200 focus:border-orange-400"
+                      placeholder="0 or 1"
+                      data-testid="input-dismissal"
+                    />
                   </div>
                 </div>
               </div>
