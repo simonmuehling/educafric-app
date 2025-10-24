@@ -26,6 +26,15 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Architecture optimisée** : Ordre prioritaire - Settings → API Modules → System Routes → Services
 - ⚠️ **RÈGLE CRITIQUE** : Toujours maintenir l'ordre d'enregistrement des routes pour éviter conflits futurs
 
+**AUTO-GÉNÉRATION NUMÉROS EDUCAFRIC (Oct 2025)**:
+- ✅ **Auto-génération automatique** : Création de numéros EDUCAFRIC lors de l'ajout d'écoles par Site Admin
+- ✅ **Format standardisé** : EDU-CM-SC-### (SC = School, séquence incrémentielle)
+- ✅ **Protection transactionnelle** : Rollback automatique si la création d'école échoue
+- ✅ **Database driver upgrade** : Migration de neon-http vers neon-serverless avec support des transactions
+- ✅ **Configuration Pool** : max=10, idleTimeout=30s, connectionTimeout=10s pour production
+- ✅ **Shutdown graceful** : Fermeture propre du pool sans bloquer autres services
+- ⚠️ **RÈGLE CRITIQUE** : Les numéros EDUCAFRIC sont générés AVANT storage.createSchool avec revocation si échec
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
