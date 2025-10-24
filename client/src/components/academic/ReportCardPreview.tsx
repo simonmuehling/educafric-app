@@ -620,7 +620,7 @@ export default function ReportCardPreview({
                     {language === 'fr' ? 'Avertissement' : 'Conduct Warning'}
                   </td>
                   <td className="border border-black p-1 text-center">
-                    {student.discipline?.sanctions || 0}
+                    {student.discipline?.conductWarning || 0}
                   </td>
                   <td rowSpan={2} className="border border-black p-1 font-bold text-center w-20">
                     {language === 'fr' ? 'SCORE TOTAL' : 'TOTAL SCORE'}
@@ -643,7 +643,7 @@ export default function ReportCardPreview({
                     {language === 'fr' ? 'Blâme' : 'Reprimand'}
                   </td>
                   <td className="border border-black p-1 text-center">
-                    0
+                    {student.discipline?.conductBlame || 0}
                   </td>
                 </tr>
                 <tr>
@@ -667,7 +667,7 @@ export default function ReportCardPreview({
                     {language === 'fr' ? 'Suspension' : 'Suspension'}
                   </td>
                   <td className="border border-black p-1 text-center">
-                    0
+                    {student.discipline?.suspension || 0}
                   </td>
                   <td className="border border-black p-1 font-bold text-center">
                     {language === 'fr' ? 'MOYENNE DU TRIMESTRE' : 'TERM AVERAGE'}
@@ -699,7 +699,7 @@ export default function ReportCardPreview({
                     {language === 'fr' ? 'Renvoi' : 'Dismissed'}
                   </td>
                   <td className="border border-black p-1 text-center">
-                    0
+                    {student.discipline?.dismissal || 0}
                   </td>
                   <td className="border border-black p-1 font-bold text-center">
                     {language === 'fr' ? 'Mention' : 'Grade'}
