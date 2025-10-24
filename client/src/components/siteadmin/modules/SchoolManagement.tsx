@@ -243,37 +243,37 @@ const SchoolManagement = () => {
 
   // Fetch schools with filtering and pagination
   const { data: schoolsData, isLoading, error } = useQuery({
-    queryKey: ['/api/admin/schools', { 
+    queryKey: ['/api/siteadmin/schools', { 
       search: searchTerm, 
       type: typeFilter, 
       status: statusFilter, 
       page: currentPage 
     }],
-    queryFn: () => apiRequest('GET', `/api/admin/schools?search=${encodeURIComponent(searchTerm)}&type=${typeFilter}&status=${statusFilter}&page=${currentPage}&limit=20`)
+    queryFn: () => apiRequest('GET', `/api/siteadmin/schools?search=${encodeURIComponent(searchTerm)}&type=${typeFilter}&status=${statusFilter}&page=${currentPage}&limit=20`)
   });
 
   // School statistics
   const { data: schoolStats } = useQuery({
-    queryKey: ['/api/admin/school-stats'],
-    queryFn: () => apiRequest('GET', '/api/admin/school-stats')
+    queryKey: ['/api/siteadmin/school-stats'],
+    queryFn: () => apiRequest('GET', '/api/siteadmin/school-stats')
   });
 
   // Fetch subscription plans
   const { data: subscriptionPlans } = useQuery({
-    queryKey: ['/api/admin/subscription-plans'],
-    queryFn: () => apiRequest('GET', '/api/admin/subscription-plans')
+    queryKey: ['/api/siteadmin/subscription-plans'],
+    queryFn: () => apiRequest('GET', '/api/siteadmin/subscription-plans')
   });
 
   // Delete school mutation
   const deleteSchoolMutation = useMutation({
-    mutationFn: (schoolId: number) => apiRequest('DELETE', `/api/admin/schools/${schoolId}`),
+    mutationFn: (schoolId: number) => apiRequest('DELETE', `/api/siteadmin/schools/${schoolId}`),
     onSuccess: () => {
       toast({
         title: 'Succès',
         description: 'École supprimée'
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/schools'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/school-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/school-stats'] });
     },
     onError: () => {
       toast({
@@ -286,7 +286,7 @@ const SchoolManagement = () => {
 
   // Create school mutation
   const createSchoolMutation = useMutation({
-    mutationFn: (schoolData: typeof newSchoolData) => apiRequest('POST', '/api/admin/schools', schoolData),
+    mutationFn: (schoolData: typeof newSchoolData) => apiRequest('POST', '/api/siteadmin/schools', schoolData),
     onSuccess: () => {
       toast({
         title: 'Succès',
@@ -304,8 +304,8 @@ const SchoolManagement = () => {
         type: 'public',
         level: 'mixed'
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/schools'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/school-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/school-stats'] });
     },
     onError: () => {
       toast({
@@ -324,7 +324,7 @@ const SchoolManagement = () => {
       planId?: string;
       duration?: string;
       notes?: string;
-    }) => apiRequest('POST', `/api/admin/schools/${schoolId}/subscription`, { action, planId, duration, notes }),
+    }) => apiRequest('POST', `/api/siteadmin/schools/${schoolId}/subscription`, { action, planId, duration, notes }),
     onSuccess: () => {
       toast({
         title: 'Succès',
@@ -332,7 +332,7 @@ const SchoolManagement = () => {
       });
       setShowSubscriptionDialog(false);
       setSelectedSchoolForSubscription(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/schools'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
     },
     onError: () => {
       toast({
@@ -346,13 +346,13 @@ const SchoolManagement = () => {
   // Block/Unblock school mutation
   const blockSchoolMutation = useMutation({
     mutationFn: ({ schoolId, block }: { schoolId: number; block: boolean }) => 
-      apiRequest('PATCH', `/api/admin/schools/${schoolId}/block`, { isBlocked: block }),
+      apiRequest('PATCH', `/api/siteadmin/schools/${schoolId}/block`, { isBlocked: block }),
     onSuccess: (_, { block }) => {
       toast({
         title: 'Succès',
         description: block ? 'École bloquée' : 'École débloquée'
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/schools'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
     },
     onError: () => {
       toast({
