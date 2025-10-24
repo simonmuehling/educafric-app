@@ -565,10 +565,11 @@ const manualDataValidationSchema = z.object({
   detentionHours: z.string().optional().refine((val) => !val || !isNaN(parseFloat(val)), "Must be a valid number"),
   
   // Disciplinary Sanctions
-  conductWarning: z.boolean().optional(),
-  conductBlame: z.boolean().optional(),
+  conductWarning: z.number().min(0, "Must be >= 0").optional(),
+  conductBlame: z.number().min(0, "Must be >= 0").optional(),
+  suspension: z.number().min(0, "Must be >= 0").optional(),
   exclusionDays: z.number().min(0, "Must be >= 0").optional(),
-  permanentExclusion: z.boolean().optional(),
+  permanentExclusion: z.number().min(0).max(1, "Must be 0 or 1").optional(),
   
   // Academic Totals
   totalGeneral: z.string().optional().refine((val) => !val || !isNaN(parseFloat(val)), "Must be a valid number"),
@@ -908,10 +909,11 @@ export default function ComprehensiveBulletinGenerator() {
       justifiedAbsenceHours: '',
       latenessCount: 0,
       detentionHours: '',
-      conductWarning: false,
-      conductBlame: false,
+      conductWarning: 0,
+      conductBlame: 0,
+      suspension: 0,
       exclusionDays: 0,
-      permanentExclusion: false,
+      permanentExclusion: 0,
       totalGeneral: '',
       numberOfAverages: 0,
       successRate: '',
@@ -1845,10 +1847,11 @@ export default function ComprehensiveBulletinGenerator() {
         latenessCount: data.latenessCount || 0,
         detentionHours: data.detentionHours || '',
         
-        conductWarning: data.conductWarning || false,
-        conductBlame: data.conductBlame || false,
+        conductWarning: data.conductWarning || 0,
+        conductBlame: data.conductBlame || 0,
+        suspension: data.suspension || 0,
         exclusionDays: data.exclusionDays || 0,
-        permanentExclusion: data.permanentExclusion || false,
+        permanentExclusion: data.permanentExclusion || 0,
         
         totalGeneral: data.totalGeneral || '',
         numberOfAverages: data.numberOfAverages || 0,
