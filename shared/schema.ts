@@ -23,6 +23,7 @@ export * from "./schemas/educafricNumberSchema"; // NEW: EDUCAFRIC number manage
 export * from "./schemas/waClicksSchema"; // NEW: WhatsApp Click-to-Chat clicks tracking
 export * from "./schemas/waValidation"; // NEW: WhatsApp validation schemas
 export * from "./schemas/teacherIndependentSchema"; // NEW: Teacher independent mode (fusion Freelancer → Teacher)
+export * from "./schemas/systemManagementSchema"; // NEW: Teacher replacements, Audit logs, WhatsApp chatbot
 
 // Import existing schema modules
 export * from "./tutorialSchema";
