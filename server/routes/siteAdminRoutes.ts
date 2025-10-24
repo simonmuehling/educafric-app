@@ -181,6 +181,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
 
   // Create new school
   app.post("/api/siteadmin/schools", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    let educafricRecord: any = null; // Track for rollback if needed
+    
     try {
       console.log('[SITE_ADMIN_API] Creating new school');
 
@@ -201,9 +203,21 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
 
       const schoolData = validationResult.data;
 
-      // Create school in database with validated data
+      // Auto-generate EDUCAFRIC number for the school
+      const { EducafricNumberService } = await import("../services/educafricNumberService");
+      educafricRecord = await EducafricNumberService.createNumber({
+        type: 'SC',
+        entityType: 'school',
+        issuedBy: req.user!.id,
+        notes: `Auto-generated for school: ${schoolData.name}`
+      });
+
+      console.log('[SITE_ADMIN_API] Generated EDUCAFRIC number:', educafricRecord.educafricNumber);
+
+      // Create school in database with validated data and EDUCAFRIC number
       const newSchool = await storage.createSchool({
         ...schoolData,
+        educafricNumber: educafricRecord.educafricNumber,
         educationalType: schoolData.educationalType || 'general',
         academicYear: schoolData.academicYear || new Date().getFullYear().toString(),
         currentTerm: schoolData.currentTerm || 'trimestre1',
@@ -231,6 +245,19 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       });
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error creating school:', error);
+      
+      // Rollback: Delete the EDUCAFRIC number if school creation failed
+      // This prevents number leakage when school creation fails
+      if (educafricRecord && educafricRecord.id) {
+        try {
+          const { EducafricNumberService } = await import("../services/educafricNumberService");
+          await EducafricNumberService.revokeNumber(educafricRecord.id);
+          console.log('[SITE_ADMIN_API] ✅ Rolled back EDUCAFRIC number:', educafricRecord.educafricNumber);
+        } catch (rollbackError) {
+          console.error('[SITE_ADMIN_API] ⚠️ Failed to rollback EDUCAFRIC number:', rollbackError);
+        }
+      }
+      
       res.status(500).json({ 
         success: false, 
         message: error.message || 'Failed to create school' 
