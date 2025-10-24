@@ -159,31 +159,31 @@ export default function EducafricNumberManagement() {
 
   // Fetch counter statistics
   const { data: statsResponse } = useQuery<{ stats: CounterStat[] }>({
-    queryKey: ['/api/admin/educafric-numbers/stats'],
+    queryKey: ['/api/siteadmin/educafric-numbers/stats'],
   });
   const stats = statsResponse?.stats || [];
 
   // Fetch school numbers
   const { data: schoolNumbersResponse, isLoading: loadingSchools } = useQuery<{ numbers: EducafricNumber[] }>({
-    queryKey: ['/api/admin/educafric-numbers'],
+    queryKey: ['/api/siteadmin/educafric-numbers'],
   });
   const schoolNumbers = schoolNumbersResponse?.numbers || [];
 
   // Fetch commercial numbers
   const { data: commercialNumbersResponse, isLoading: loadingCommercials } = useQuery<{ numbers: EducafricNumber[] }>({
-    queryKey: ['/api/admin/educafric-numbers/commercial'],
+    queryKey: ['/api/siteadmin/educafric-numbers/commercial'],
   });
   const commercialNumbers = commercialNumbersResponse?.numbers || [];
 
   // Create school number mutation
   const createSchoolMutation = useMutation({
     mutationFn: async (notes: string) => {
-      const response = await apiRequest('POST', '/api/admin/educafric-numbers', { notes });
+      const response = await apiRequest('POST', '/api/siteadmin/educafric-numbers', { notes });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/educafric-numbers'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/educafric-numbers/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/educafric-numbers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/educafric-numbers/stats'] });
       setShowCreateDialog(false);
       setNotes('');
       toast({ title: text.messages.created });
@@ -196,12 +196,12 @@ export default function EducafricNumberManagement() {
   // Create commercial number mutation
   const createCommercialMutation = useMutation({
     mutationFn: async (notes: string) => {
-      const response = await apiRequest('POST', '/api/admin/educafric-numbers/commercial', { notes });
+      const response = await apiRequest('POST', '/api/siteadmin/educafric-numbers/commercial', { notes });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/educafric-numbers/commercial'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/educafric-numbers/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/educafric-numbers/commercial'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/educafric-numbers/stats'] });
       setShowCreateDialog(false);
       setNotes('');
       toast({ title: text.messages.created });
@@ -214,12 +214,12 @@ export default function EducafricNumberManagement() {
   // Update number mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, status, notes }: { id: number; status: string; notes: string }) => {
-      const response = await apiRequest('PATCH', `/api/admin/educafric-numbers/${id}`, { status, notes });
+      const response = await apiRequest('PATCH', `/api/siteadmin/educafric-numbers/${id}`, { status, notes });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/educafric-numbers'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/educafric-numbers/commercial'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/educafric-numbers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/educafric-numbers/commercial'] });
       setShowEditDialog(false);
       setSelectedNumber(null);
       toast({ title: text.messages.updated });
@@ -232,13 +232,13 @@ export default function EducafricNumberManagement() {
   // Delete number mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest('DELETE', `/api/admin/educafric-numbers/${id}`);
+      const response = await apiRequest('DELETE', `/api/siteadmin/educafric-numbers/${id}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/educafric-numbers'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/educafric-numbers/commercial'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/educafric-numbers/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/educafric-numbers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/educafric-numbers/commercial'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/educafric-numbers/stats'] });
       toast({ title: text.messages.deleted });
     },
     onError: () => {
