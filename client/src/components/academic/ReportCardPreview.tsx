@@ -526,12 +526,12 @@ export default function ReportCardPreview({
                           <td className="border border-black p-0.5 text-center text-[6px]">
                             {mk20}
                           </td>
-                          <td className="border border-black p-0.5 text-center text-[6px] font-bold">
+                          <td className={`border border-black p-0.5 text-center text-[6px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
                             {av20}
                           </td>
                         </>
                       ) : (
-                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">
+                        <td className={`border border-black p-0.5 text-center text-[6px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
                           {av20}
                         </td>
                       )}
@@ -587,7 +587,7 @@ export default function ReportCardPreview({
                   <td className="border border-black p-1 font-bold text-[8px]">
                     {language === 'fr' ? 'MOYENNE DE L\'\u00c9LÈVE :' : 'STUDENT AVERAGE :'}
                   </td>
-                  <td className="border border-black p-1 text-center font-bold text-[10px]">
+                  <td className={`border border-black p-1 text-center font-bold text-[10px] ${moyenne < 10 ? 'text-red-600' : ''}`}>
                     {moyenne}/20
                   </td>
                   <td colSpan={7} className="border border-black p-1"></td>

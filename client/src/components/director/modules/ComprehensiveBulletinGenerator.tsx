@@ -3635,17 +3635,19 @@ export default function ComprehensiveBulletinGenerator() {
                                 control={manualDataForm.control}
                                 name="conductWarning"
                                 render={({ field }) => (
-                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormItem>
+                                    <FormLabel>{language === 'fr' ? 'Avertissement de conduite' : 'Conduct warning'}</FormLabel>
                                     <FormControl>
-                                      <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        min="0" 
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                         data-testid="conduct-warning"
+                                        placeholder={language === 'fr' ? 'Nombre d\'avertissements' : 'Number of warnings'}
                                       />
                                     </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                      <FormLabel>{language === 'fr' ? 'Avertissement de conduite' : 'Conduct warning'}</FormLabel>
-                                    </div>
+                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
@@ -3653,17 +3655,19 @@ export default function ComprehensiveBulletinGenerator() {
                                 control={manualDataForm.control}
                                 name="conductBlame"
                                 render={({ field }) => (
-                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormItem>
+                                    <FormLabel>{language === 'fr' ? 'Blâme de conduite' : 'Conduct blame'}</FormLabel>
                                     <FormControl>
-                                      <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        min="0" 
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                         data-testid="conduct-blame"
+                                        placeholder={language === 'fr' ? 'Nombre de blâmes' : 'Number of blames'}
                                       />
                                     </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                      <FormLabel>{language === 'fr' ? 'Blâme de conduite' : 'Conduct blame'}</FormLabel>
-                                    </div>
+                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
@@ -3688,19 +3692,42 @@ export default function ComprehensiveBulletinGenerator() {
                               />
                               <FormField
                                 control={manualDataForm.control}
-                                name="permanentExclusion"
+                                name="suspension"
                                 render={({ field }) => (
-                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                  <FormItem>
+                                    <FormLabel>{language === 'fr' ? 'Suspension (jours)' : 'Suspension (days)'}</FormLabel>
                                     <FormControl>
-                                      <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                        data-testid="permanent-exclusion"
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        min="0" 
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                        data-testid="suspension"
+                                        placeholder={language === 'fr' ? 'Nombre de jours' : 'Number of days'}
                                       />
                                     </FormControl>
-                                    <div className="space-y-1 leading-none">
-                                      <FormLabel className="text-red-600 font-semibold">{language === 'fr' ? 'Exclusion définitive' : 'Permanent exclusion'}</FormLabel>
-                                    </div>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={manualDataForm.control}
+                                name="permanentExclusion"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-red-600 font-semibold">{language === 'fr' ? 'Renvoyé (1 = oui, 0 = non)' : 'Expelled (1 = yes, 0 = no)'}</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        min="0"
+                                        max="1" 
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                        data-testid="permanent-exclusion"
+                                        placeholder="0 or 1"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />

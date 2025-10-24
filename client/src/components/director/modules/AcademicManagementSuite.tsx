@@ -680,7 +680,7 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
             <div>
               <CardTitle className="flex items-center gap-2">
                 <FileSpreadsheet className="h-5 w-5" />
-                {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
+                {language === 'fr' ? 'Fiche Scolaire' : 'Mastersheet'}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 {language === 'fr' 
@@ -701,7 +701,7 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => exportCSV(rows, `feuille-maitresse-${selectedClass}-${selectedTerm}.csv`)}
+                onClick={() => exportCSV(rows, `fiche-scolaire-${selectedClass}-${selectedTerm}.csv`)}
               >
                 <Download className="h-4 w-4 mr-2" />
                 {language === 'fr' ? 'Exporter CSV' : 'Export CSV'}
@@ -713,6 +713,17 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
         {/* Ministry Official Header for Print */}
         <div className="hidden print:block p-4 border-b-2 border-black">
           <div className="text-center space-y-1">
+            {/* School Logo - Centered Above */}
+            {school?.logoUrl && (
+              <div className="flex justify-center mb-2">
+                <img 
+                  src={school.logoUrl} 
+                  alt={language === 'fr' ? 'Logo de l\'établissement' : 'School Logo'}
+                  className="h-20 w-20 object-contain"
+                />
+              </div>
+            )}
+            
             {/* Bilingual Header */}
             <div className="grid grid-cols-2 gap-4 text-xs font-bold uppercase">
               <div className="text-left">
@@ -736,7 +747,7 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
             {/* Title */}
             <div className="mt-6 pt-4 border-t-2 border-black">
               <h1 className="text-lg font-bold uppercase">
-                {language === 'fr' ? 'FEUILLE MAÎTRESSE' : 'MASTER SHEET'}
+                {language === 'fr' ? 'FICHE SCOLAIRE' : 'MASTERSHEET'}
               </h1>
               <p className="text-sm font-semibold mt-2">
                 {language === 'fr' 
@@ -1588,8 +1599,8 @@ export default function AcademicManagementSuite() {
           </h1>
           <p className="text-muted-foreground">
             {language === 'fr' 
-              ? 'Feuilles maîtresses, relevés de notes et gestion de classe'
-              : 'Master sheets, transcripts and class management'
+              ? 'Fiches scolaires, relevés de notes et gestion de classe'
+              : 'Mastersheets, transcripts and class management'
             }
           </p>
         </div>
@@ -1708,7 +1719,7 @@ export default function AcademicManagementSuite() {
               </TabsTrigger>
               <TabsTrigger value="mastersheet" className="flex items-center gap-2" data-testid="tab-mastersheet">
                 <FileSpreadsheet className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Feuille' : 'Sheet'}</span>
+                <span className="hidden sm:inline">{language === 'fr' ? 'Fiche Scolaire' : 'Mastersheet'}</span>
               </TabsTrigger>
               <TabsTrigger value="transcript" className="flex items-center gap-2" data-testid="tab-transcript">
                 <BookOpen className="h-4 w-4" />
