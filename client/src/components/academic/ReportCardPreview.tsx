@@ -721,7 +721,16 @@ export default function ReportCardPreview({
                     CA: {entries.filter(e => Number(e.m20 || e.av20) >= 10 && Number(e.m20 || e.av20) < 14).length}<br/>
                     CAA: {entries.filter(e => Number(e.m20 || e.av20) < 10).length}
                   </td>
-                  <td colSpan={3} className="border border-black p-1 text-[6px] align-top">
+                  <td colSpan={2} className="border border-black p-1 text-[6px] align-top">
+                    <div className="font-bold mb-1">
+                      {language === 'fr' ? 'Conseil de Classe:' : 'Class Council:'}
+                    </div>
+                    <div className="text-[5px] space-y-1">
+                      <div>{language === 'fr' ? 'Décision:' : 'Decision:'} ____________</div>
+                      <div>{language === 'fr' ? 'Date:' : 'Date:'} ____________</div>
+                    </div>
+                  </td>
+                  <td className="border border-black p-1 text-[6px] align-top">
                     <div className="font-bold mb-1">
                       {language === 'fr' ? 'Signatures Directeur:' : 'Principal Signatures:'}
                     </div>
@@ -729,7 +738,7 @@ export default function ReportCardPreview({
                       <div>{language === 'fr' ? 'Directeur:' : 'Principal:'} ____________</div>
                     </div>
                   </td>
-                  <td colSpan={3} className="border border-black p-1 text-[6px] align-top">
+                  <td colSpan={2} className="border border-black p-1 text-[6px] align-top">
                     <div className="font-bold mb-1">
                       {language === 'fr' ? 'Signature Parent:' : 'Parent Signature:'}
                     </div>

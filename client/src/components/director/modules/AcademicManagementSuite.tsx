@@ -1715,7 +1715,7 @@ export default function AcademicManagementSuite() {
             <TabsList ref={tabsListRef} className="grid w-full grid-cols-4">
               <TabsTrigger value="bulletins" className="flex items-center gap-2" data-testid="tab-bulletins">
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Report Cards'}</span>
+                <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Marksheet'}</span>
               </TabsTrigger>
               <TabsTrigger value="mastersheet" className="flex items-center gap-2" data-testid="tab-mastersheet">
                 <FileSpreadsheet className="h-4 w-4" />
