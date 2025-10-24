@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { storage } from "../storage";
 import bcrypt from "bcryptjs";
+import { createSchoolSchema } from "../../shared/schemas";
 
 // Security middleware for SiteAdmin features
 const requireSiteAdminAccess = (req: any, res: any, next: any) => {
@@ -181,28 +182,59 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Create new school
   app.post("/api/siteadmin/schools", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
+      console.log('[SITE_ADMIN_API] Creating new school');
 
-      const schoolData = req.body;
+      // Validate request body with Zod schema
+      const validationResult = createSchoolSchema.safeParse(req.body);
       
-      // Mock school creation
-      const newSchool = {
-        id: Date.now(),
-        ...schoolData,
-        studentCount: 0,
-        teacherCount: 0,
-        subscriptionStatus: 'trial',
-        subscriptionPlan: null,
-        subscriptionEndDate: null,
-        isBlocked: false,
-        createdAt: new Date().toISOString(),
-        lastActiveAt: null
-      };
+      if (!validationResult.success) {
+        console.error('[SITE_ADMIN_API] Validation failed:', validationResult.error.errors);
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Validation failed',
+          errors: validationResult.error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        });
+      }
 
-      console.log('[MOCK] Created school:', newSchool);
-      res.json({ message: 'School created successfully', school: newSchool });
+      const schoolData = validationResult.data;
+
+      // Create school in database with validated data
+      const newSchool = await storage.createSchool({
+        ...schoolData,
+        educationalType: schoolData.educationalType || 'general',
+        academicYear: schoolData.academicYear || new Date().getFullYear().toString(),
+        currentTerm: schoolData.currentTerm || 'trimestre1',
+        geolocationEnabled: schoolData.geolocationEnabled ?? false,
+        pwaEnabled: schoolData.pwaEnabled ?? true,
+        whatsappEnabled: schoolData.whatsappEnabled ?? false,
+        smsEnabled: schoolData.smsEnabled ?? false,
+        emailEnabled: schoolData.emailEnabled ?? true
+      });
+
+      console.log('[SITE_ADMIN_API] ✅ School created successfully:', newSchool.id);
+      res.json({ 
+        success: true, 
+        message: 'School created successfully', 
+        school: {
+          id: newSchool.id,
+          name: newSchool.name,
+          type: newSchool.type,
+          address: newSchool.address,
+          phone: newSchool.phone,
+          email: newSchool.email,
+          educafricNumber: newSchool.educafricNumber,
+          createdAt: newSchool.createdAt
+        }
+      });
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error creating school:', error);
-      res.status(500).json({ message: 'Failed to create school' });
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || 'Failed to create school' 
+      });
     }
   });
 

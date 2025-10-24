@@ -6,12 +6,31 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Building2, Search, Filter, Plus, Edit, 
   Users, DollarSign, MapPin, Phone, Mail,
   CheckCircle, AlertTriangle, Clock, Eye,
   BarChart3, TrendingUp, Calendar
 } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+// Form validation schema
+const createSchoolFormSchema = z.object({
+  name: z.string().min(1, 'School name is required'),
+  type: z.enum(['private', 'public'], { required_error: 'School type is required' }),
+  address: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  educafricNumber: z.string().optional()
+});
 
 const FunctionalSiteAdminSchools: React.FC = () => {
   const { language } = useLanguage();
@@ -23,12 +42,26 @@ const FunctionalSiteAdminSchools: React.FC = () => {
   const [planFilter, setPlanFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedSchool, setSelectedSchool] = useState<any>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
+  // Form setup with react-hook-form + zod
+  const form = useForm<z.infer<typeof createSchoolFormSchema>>({
+    resolver: zodResolver(createSchoolFormSchema),
+    defaultValues: {
+      name: '',
+      type: 'private',
+      address: '',
+      phone: '',
+      email: '',
+      educafricNumber: ''
+    }
+  });
 
   // Fetch schools
   const { data: schools, isLoading } = useQuery({
-    queryKey: ['/api/site-admin/schools', { search: searchTerm, plan: planFilter, status: statusFilter }],
+    queryKey: ['/api/siteadmin/schools', { search: searchTerm, plan: planFilter, status: statusFilter }],
     queryFn: async () => {
-      const response = await fetch(`/api/site-admin/schools?search=${searchTerm}&plan=${planFilter}&status=${statusFilter}`, {
+      const response = await fetch(`/api/siteadmin/schools?search=${searchTerm}&plan=${planFilter}&status=${statusFilter}`, {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch schools');
@@ -36,6 +69,36 @@ const FunctionalSiteAdminSchools: React.FC = () => {
     },
     enabled: !!user
   });
+
+  // Create school mutation
+  const createSchoolMutation = useMutation({
+    mutationFn: async (schoolData: z.infer<typeof createSchoolFormSchema>) => {
+      return await apiRequest('/api/siteadmin/schools', {
+        method: 'POST',
+        body: JSON.stringify(schoolData)
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'École créée avec succès' : 'School created successfully'
+      });
+      setIsCreateDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Échec de la création de l\'école' : 'Failed to create school'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const onSubmitCreateSchool = (data: z.infer<typeof createSchoolFormSchema>) => {
+    createSchoolMutation.mutate(data);
+  };
 
   const text = {
     fr: {
@@ -139,104 +202,24 @@ const FunctionalSiteAdminSchools: React.FC = () => {
     );
   }
 
-  // Mock data
-  const mockSchools = [
-    {
-      id: 1,
-      name: 'École Primaire Excellence',
-      director: 'Dr. Marie Nkomo',
-      location: 'Yaoundé, Cameroun',
-      address: '123 Avenue de l\'Indépendance',
-      phone: '+237 222 123 456',
-      email: 'contact@excellence.cm',
-      website: 'www.excellence-yaoundé.cm',
-      studentCount: 486,
-      teacherCount: 24,
-      status: 'active',
-      plan: 'premium',
-      monthlyRevenue: 350000,
-      contractDate: '2024-01-15',
-      lastActivity: '2025-08-01 07:30',
-      subscriptionExpiry: '2025-12-31',
-      features: ['Gestion des notes', 'Communication SMS', 'Rapports avancés'],
-      performanceScore: 92
-    },
-    {
-      id: 2,
-      name: 'Collège Bilingue Douala',
-      director: 'M. Jean Fotso',
-      location: 'Douala, Cameroun',
-      address: '456 Rue de la Liberté',
-      phone: '+237 233 456 789',
-      email: 'info@bilingue-douala.cm',
-      website: 'www.bilingue-douala.cm',
-      studentCount: 320,
-      teacherCount: 18,
-      status: 'active',
-      plan: 'enterprise',
-      monthlyRevenue: 280000,
-      contractDate: '2024-03-20',
-      lastActivity: '2025-08-01 06:45',
-      subscriptionExpiry: '2026-03-19',
-      features: ['Toutes fonctionnalités', 'Support prioritaire', 'API personnalisée'],
-      performanceScore: 88
-    },
-    {
-      id: 3,
-      name: 'École Maternelle Bafoussam',
-      director: 'Mme. Clarisse Tchinda',
-      location: 'Bafoussam, Cameroun',
-      address: '789 Boulevard Central',
-      phone: '+237 233 789 012',
-      email: 'direction@maternelle-baf.cm',
-      website: null,
-      studentCount: 150,
-      teacherCount: 8,
-      status: 'pending',
-      plan: 'basic',
-      monthlyRevenue: 120000,
-      contractDate: '2025-01-10',
-      lastActivity: '2025-07-30 14:20',
-      subscriptionExpiry: '2025-07-31',
-      features: ['Fonctionnalités de base'],
-      performanceScore: 76
-    },
-    {
-      id: 4,
-      name: 'Institut Technique Garoua',
-      director: 'M. Ahmed Bello',
-      location: 'Garoua, Cameroun',
-      address: '321 Avenue du Progrès',
-      phone: '+237 222 345 678',
-      email: 'bello@institut-garoua.cm',
-      website: 'www.institut-garoua.cm',
-      studentCount: 280,
-      teacherCount: 15,
-      status: 'trial',
-      plan: 'trial',
-      monthlyRevenue: 0,
-      contractDate: '2025-07-15',
-      lastActivity: '2025-07-31 16:10',
-      subscriptionExpiry: '2025-08-15',
-      features: ['Essai gratuit 30 jours'],
-      performanceScore: 84
-    }
-  ];
-
-  const mockStats = {
-    totalSchools: 847,
-    activeSchools: 792,
-    totalStudents: 45680,
-    totalRevenue: 12500000
+  // Get schools data from API
+  const schoolsList = schools?.schools ?? [];
+  
+  // Calculate stats from real data
+  const stats = {
+    totalSchools: schoolsList.length,
+    activeSchools: schoolsList.filter((s: any) => s.subscriptionStatus === 'active').length,
+    totalStudents: schoolsList.reduce((sum: number, s: any) => sum + (s.studentCount || 0), 0),
+    totalRevenue: 0 // Not available in current data
   };
 
-  const filteredSchools = (Array.isArray(mockSchools) ? mockSchools : []).filter(school => {
+  const filteredSchools = (Array.isArray(schoolsList) ? schoolsList : []).filter((school: any) => {
     if (!school) return false;
     const matchesSearch = (school.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (school.director || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (school.location || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPlan = planFilter === 'all' || school.plan === planFilter;
-    const matchesStatus = statusFilter === 'all' || school.status === statusFilter;
+                         (school.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (school.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesPlan = planFilter === 'all' || school.subscriptionStatus === planFilter;
+    const matchesStatus = statusFilter === 'all' || school.subscriptionStatus === statusFilter;
     
     return matchesSearch && matchesPlan && matchesStatus;
   });
@@ -277,9 +260,13 @@ const FunctionalSiteAdminSchools: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => setIsCreateDialogOpen(true)}
+          data-testid="button-create-school"
+        >
           <Plus className="w-4 h-4 mr-2" />
-          Nouvelle École
+          {language === 'fr' ? 'Nouvelle École' : 'New School'}
         </Button>
       </div>
 
@@ -294,7 +281,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.totalSchools}</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {mockStats.totalSchools}
+                  {stats.totalSchools}
                 </p>
               </div>
             </div>
@@ -310,7 +297,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.activeSchools}</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {mockStats.activeSchools}
+                  {stats.activeSchools}
                 </p>
               </div>
             </div>
@@ -326,7 +313,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.totalStudents}</p>
                 <p className="text-2xl font-bold text-orange-600">
-                  {mockStats.totalStudents.toLocaleString()}
+                  {stats.totalStudents.toLocaleString()}
                 </p>
               </div>
             </div>
@@ -342,7 +329,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.stats?.totalRevenue}</p>
                 <p className="text-2xl font-bold text-purple-600">
-                  {(mockStats.totalRevenue / 1000000).toFixed(1)}M CFA
+                  {stats.totalRevenue > 0 ? `${(stats.totalRevenue / 1000000).toFixed(1)}M CFA` : 'N/A'}
                 </p>
               </div>
             </div>
@@ -562,6 +549,162 @@ const FunctionalSiteAdminSchools: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Create School Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{language === 'fr' ? 'Créer une Nouvelle École' : 'Create New School'}</DialogTitle>
+            <DialogDescription>
+              {language === 'fr' 
+                ? 'Entrez les informations de la nouvelle école. Les champs marqués (*) sont obligatoires.' 
+                : 'Enter the new school information. Fields marked with (*) are required.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmitCreateSchool)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'fr' ? 'Nom de l\'école *' : 'School Name *'}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        placeholder={language === 'fr' ? 'Ex: École Primaire Excellence' : 'Ex: Excellence Primary School'}
+                        data-testid="input-school-name"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'fr' ? 'Type *' : 'Type *'}</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-school-type">
+                          <SelectValue placeholder={language === 'fr' ? 'Sélectionner le type' : 'Select type'} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="private">{language === 'fr' ? 'Privé' : 'Private'}</SelectItem>
+                        <SelectItem value="public">{language === 'fr' ? 'Public' : 'Public'}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'fr' ? 'Adresse' : 'Address'}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        placeholder={language === 'fr' ? 'Ex: 123 Avenue de l\'Indépendance, Yaoundé' : 'Ex: 123 Independence Avenue, Yaoundé'}
+                        data-testid="input-school-address"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'fr' ? 'Téléphone' : 'Phone'}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        placeholder="+237 222 123 456"
+                        data-testid="input-school-phone"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'fr' ? 'Email' : 'Email'}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="email"
+                        placeholder="contact@school.cm"
+                        data-testid="input-school-email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="educafricNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{language === 'fr' ? 'Numéro EDUCAFRIC (optionnel)' : 'EDUCAFRIC Number (optional)'}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        placeholder="EDU-CM-SC-001"
+                        data-testid="input-educafric-number"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateDialogOpen(false);
+                    form.reset();
+                  }}
+                  disabled={createSchoolMutation.isPending}
+                  data-testid="button-cancel-create"
+                >
+                  {language === 'fr' ? 'Annuler' : 'Cancel'}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createSchoolMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  data-testid="button-submit-create"
+                >
+                  {createSchoolMutation.isPending 
+                    ? (language === 'fr' ? 'Création...' : 'Creating...') 
+                    : (language === 'fr' ? 'Créer' : 'Create')}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
