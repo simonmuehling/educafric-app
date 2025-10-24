@@ -181,10 +181,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
 
   // Create new school
   app.post("/api/siteadmin/schools", requireAuth, requireSiteAdminAccess, async (req, res) => {
-    let educafricRecord: any = null; // Track for rollback if needed
-    
     try {
-      console.log('[SITE_ADMIN_API] Creating new school');
+      console.log('[SITE_ADMIN_API] Creating new school with pre-assigned EDUCAFRIC number');
 
       // Validate request body with Zod schema
       const validationResult = createSchoolSchema.safeParse(req.body);
@@ -203,21 +201,36 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
 
       const schoolData = validationResult.data;
 
-      // Auto-generate EDUCAFRIC number for the school
+      // REQUIRED: School must provide a pre-assigned EDUCAFRIC number
+      if (!schoolData.educafricNumber) {
+        console.error('[SITE_ADMIN_API] Missing EDUCAFRIC number');
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Un numéro EDUCAFRIC est obligatoire pour inscrire une école',
+          messageFr: 'Un numéro EDUCAFRIC est obligatoire pour inscrire une école',
+          messageEn: 'An EDUCAFRIC number is required to register a school'
+        });
+      }
+
+      // Verify that the EDUCAFRIC number exists and is available
       const { EducafricNumberService } = await import("../services/educafricNumberService");
-      educafricRecord = await EducafricNumberService.createNumber({
-        type: 'SC',
-        entityType: 'school',
-        issuedBy: req.user!.id,
-        notes: `Auto-generated for school: ${schoolData.name}`
-      });
+      const verification = await EducafricNumberService.verifySchoolNumber(schoolData.educafricNumber);
+      
+      if (!verification.valid) {
+        console.error('[SITE_ADMIN_API] Invalid EDUCAFRIC number:', verification.message);
+        return res.status(400).json({ 
+          success: false, 
+          message: verification.message,
+          messageFr: verification.message,
+          messageEn: verification.message
+        });
+      }
 
-      console.log('[SITE_ADMIN_API] Generated EDUCAFRIC number:', educafricRecord.educafricNumber);
+      console.log('[SITE_ADMIN_API] Verified EDUCAFRIC number:', schoolData.educafricNumber);
 
-      // Create school in database with validated data and EDUCAFRIC number
+      // Create school in database with validated data and pre-assigned EDUCAFRIC number
       const newSchool = await storage.createSchool({
         ...schoolData,
-        educafricNumber: educafricRecord.educafricNumber,
         educationalType: schoolData.educationalType || 'general',
         academicYear: schoolData.academicYear || new Date().getFullYear().toString(),
         currentTerm: schoolData.currentTerm || 'trimestre1',
@@ -228,10 +241,30 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
         emailEnabled: schoolData.emailEnabled ?? true
       });
 
+      console.log('[SITE_ADMIN_API] School created with ID:', newSchool.id);
+
+      // CRITICAL: Assign EDUCAFRIC number to the school to prevent reuse
+      try {
+        await EducafricNumberService.assignToSchool(schoolData.educafricNumber, newSchool.id);
+        console.log('[SITE_ADMIN_API] ✅ EDUCAFRIC number assigned to school:', schoolData.educafricNumber);
+      } catch (assignError: any) {
+        console.error('[SITE_ADMIN_API] Failed to assign EDUCAFRIC number:', assignError);
+        // If assignment fails, we should delete the school to maintain consistency
+        try {
+          await storage.deleteSchool(newSchool.id);
+          console.log('[SITE_ADMIN_API] Rolled back school creation due to assignment failure');
+        } catch (rollbackError) {
+          console.error('[SITE_ADMIN_API] ⚠️ Failed to rollback school creation:', rollbackError);
+        }
+        throw new Error('Failed to assign EDUCAFRIC number to school');
+      }
+
       console.log('[SITE_ADMIN_API] ✅ School created successfully:', newSchool.id);
       res.json({ 
         success: true, 
-        message: 'School created successfully', 
+        message: 'École créée avec succès',
+        messageFr: 'École créée avec succès',
+        messageEn: 'School created successfully',
         school: {
           id: newSchool.id,
           name: newSchool.name,
@@ -245,22 +278,40 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       });
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error creating school:', error);
-      
-      // Rollback: Delete the EDUCAFRIC number if school creation failed
-      // This prevents number leakage when school creation fails
-      if (educafricRecord && educafricRecord.id) {
-        try {
-          const { EducafricNumberService } = await import("../services/educafricNumberService");
-          await EducafricNumberService.revokeNumber(educafricRecord.id);
-          console.log('[SITE_ADMIN_API] ✅ Rolled back EDUCAFRIC number:', educafricRecord.educafricNumber);
-        } catch (rollbackError) {
-          console.error('[SITE_ADMIN_API] ⚠️ Failed to rollback EDUCAFRIC number:', rollbackError);
-        }
-      }
-      
       res.status(500).json({ 
         success: false, 
-        message: error.message || 'Failed to create school' 
+        message: error.message || 'Failed to create school',
+        messageFr: error.message || 'Échec de création de l\'école',
+        messageEn: error.message || 'Failed to create school'
+      });
+    }
+  });
+
+  // Get available (unassigned) EDUCAFRIC numbers for school registration
+  app.get("/api/siteadmin/educafric/available", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { EducafricNumberService } = await import("../services/educafricNumberService");
+      const allNumbers = await EducafricNumberService.getSchoolNumbers();
+      
+      // Filter only active numbers that are NOT assigned to any school
+      const availableNumbers = allNumbers.filter(num => 
+        num.status === 'active' && !num.entityId
+      );
+      
+      res.json({ 
+        success: true, 
+        numbers: availableNumbers.map(num => ({
+          id: num.id,
+          educafricNumber: num.educafricNumber,
+          notes: num.notes,
+          createdAt: num.createdAt
+        }))
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching available EDUCAFRIC numbers:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch available EDUCAFRIC numbers' 
       });
     }
   });

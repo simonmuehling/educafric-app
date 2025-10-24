@@ -26,14 +26,21 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Architecture optimisée** : Ordre prioritaire - Settings → API Modules → System Routes → Services
 - ⚠️ **RÈGLE CRITIQUE** : Toujours maintenir l'ordre d'enregistrement des routes pour éviter conflits futurs
 
-**AUTO-GÉNÉRATION NUMÉROS EDUCAFRIC (Oct 2025)**:
-- ✅ **Auto-génération automatique** : Création de numéros EDUCAFRIC lors de l'ajout d'écoles par Site Admin
+**NUMÉROS EDUCAFRIC PRÉ-ASSIGNÉS OBLIGATOIRES (Oct 2025)**:
+- ✅ **Système de contrôle renforcé** : Les écoles DOIVENT fournir un numéro EDUCAFRIC pré-assigné pour s'inscrire
 - ✅ **Format standardisé** : EDU-CM-SC-### (SC = School, séquence incrémentielle)
-- ✅ **Protection transactionnelle** : Rollback automatique si la création d'école échoue
-- ✅ **Database driver upgrade** : Migration de neon-http vers neon-serverless avec support des transactions
-- ✅ **Configuration Pool** : max=10, idleTimeout=30s, connectionTimeout=10s pour production
-- ✅ **Shutdown graceful** : Fermeture propre du pool sans bloquer autres services
-- ⚠️ **RÈGLE CRITIQUE** : Les numéros EDUCAFRIC sont générés AVANT storage.createSchool avec revocation si échec
+- ✅ **Validation stricte** : Vérification que le numéro existe, est actif, et n'est pas déjà assigné
+- ✅ **Workflow d'inscription** : 
+  1. Site Admin crée le numéro EDUCAFRIC via interface dédiée
+  2. Numéro communiqué à l'école (email, courrier, etc.)
+  3. École s'inscrit en fournissant le numéro pré-assigné
+  4. Système valide et assigne le numéro
+- ✅ **API Endpoints** :
+  - `POST /api/siteadmin/schools` - Création école avec educafricNumber obligatoire
+  - `GET /api/siteadmin/educafric/available` - Liste des numéros disponibles (non assignés)
+- ✅ **Frontend intégré** : Sélecteur de numéros disponibles dans SchoolManagement.tsx
+- ✅ **Database driver** : Utilise neon-http pour compatibilité maximale
+- ⚠️ **RÈGLE CRITIQUE** : AUCUNE école ne peut s'inscrire sans numéro EDUCAFRIC pré-assigné valide
 
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards

@@ -98,7 +98,8 @@ const SchoolManagement = () => {
     email: '',
     website: '',
     type: 'public' as 'public' | 'private',
-    level: 'mixed'
+    level: 'mixed',
+    educafricNumber: ''
   });
   const [subscriptionData, setSubscriptionData] = useState({
     planId: '',
@@ -264,6 +265,13 @@ const SchoolManagement = () => {
     queryFn: () => apiRequest('GET', '/api/siteadmin/subscription-plans')
   });
 
+  // Fetch available EDUCAFRIC numbers for school registration
+  const { data: availableNumbersData } = useQuery({
+    queryKey: ['/api/siteadmin/educafric/available'],
+    queryFn: () => apiRequest('GET', '/api/siteadmin/educafric/available'),
+    enabled: showCreateDialog
+  });
+
   // Delete school mutation
   const deleteSchoolMutation = useMutation({
     mutationFn: (schoolId: number) => apiRequest('DELETE', `/api/siteadmin/schools/${schoolId}`),
@@ -302,7 +310,8 @@ const SchoolManagement = () => {
         email: '',
         website: '',
         type: 'public',
-        level: 'mixed'
+        level: 'mixed',
+        educafricNumber: ''
       });
       queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
       queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/school-stats'] });
@@ -529,12 +538,43 @@ const SchoolManagement = () => {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
+                  <Label htmlFor="educafricNumber" className="text-red-600 font-semibold">
+                    Numéro EDUCAFRIC (Obligatoire) *
+                  </Label>
+                  <Select 
+                    value={newSchoolData.educafricNumber} 
+                    onValueChange={(value) => setNewSchoolData({...newSchoolData, educafricNumber: value})}
+                  >
+                    <SelectTrigger id="educafricNumber" data-testid="select-educafric-number">
+                      <SelectValue placeholder="Sélectionner un numéro EDUCAFRIC disponible" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(availableNumbersData as any)?.numbers?.length > 0 ? (
+                        (availableNumbersData as any).numbers.map((num: any) => (
+                          <SelectItem key={num.id} value={num.educafricNumber}>
+                            {num.educafricNumber}
+                            {num.notes && ` - ${num.notes}`}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          Aucun numéro disponible
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Sélectionnez un numéro EDUCAFRIC pré-assigné pour cette école
+                  </p>
+                </div>
+                <div>
                   <Label htmlFor="name">Nom de l'école</Label>
                   <Input
                     id="name"
                     value={newSchoolData.name}
                     onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})}
                     placeholder="Nom de l'école"
+                    data-testid="input-school-name"
                   />
                 </div>
                 <div>
@@ -611,10 +651,14 @@ const SchoolManagement = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                <Button variant="outline" onClick={() => setShowCreateDialog(false)} data-testid="button-cancel-school">
                   Annuler
                 </Button>
-                <Button onClick={handleCreateSchool} disabled={createSchoolMutation.isPending}>
+                <Button 
+                  onClick={handleCreateSchool} 
+                  disabled={createSchoolMutation.isPending || !newSchoolData.educafricNumber}
+                  data-testid="button-save-school"
+                >
                   {createSchoolMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                   Enregistrer
                 </Button>
