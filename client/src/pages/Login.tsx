@@ -318,12 +318,27 @@ export default function Login() {
     } catch (err: any) {
       // Parse error message for known authentication errors
       const errorMessage = err.message || '';
-      if (errorMessage.includes('Invalid email or password') || errorMessage.includes('Invalid credentials')) {
+      
+      // Check for EDUCAFRIC-specific errors (show backend message directly)
+      if (errorMessage.includes('EDUCAFRIC') || errorMessage.includes('numéro')) {
+        // Show backend error message directly for EDUCAFRIC validation
+        setError(language === 'fr' 
+          ? (err.messageFr || errorMessage) 
+          : (err.messageEn || errorMessage)
+        );
+      } else if (errorMessage.includes('Invalid email or password') || errorMessage.includes('Invalid credentials')) {
         setError(getErrorMessage('invalidCredentials'));
       } else if (errorMessage.includes('already exists')) {
         setError(getErrorMessage('accountExists'));
+      } else if (errorMessage.includes('Failed to create school')) {
+        // Show backend error message directly for school creation failures
+        setError(language === 'fr' 
+          ? (err.messageFr || errorMessage) 
+          : (err.messageEn || errorMessage)
+        );
       } else {
-        setError(getErrorMessage('authFailed'));
+        // For other errors, try to show backend message first, fallback to generic
+        setError(err.message || getErrorMessage('authFailed'));
       }
     }
   };

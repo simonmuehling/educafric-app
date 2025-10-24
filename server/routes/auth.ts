@@ -334,6 +334,9 @@ router.post('/register', async (req, res) => {
 
     // If Director, create the school with the EDUCAFRIC number
     if (validatedData.role === 'Director' && req.body.educafricNumber) {
+      let createdSchoolId: number | null = null;
+      let educafricAssigned = false;
+
       try {
         // Create school with EDUCAFRIC number
         const school = await storage.createSchool({
@@ -353,11 +356,13 @@ router.post('/register', async (req, res) => {
           emailEnabled: true
         });
 
-        console.log('[AUTH_REGISTER] School created with ID:', school.id);
+        createdSchoolId = school.id;
+        console.log('[AUTH_REGISTER] School created with ID:', createdSchoolId);
 
         // Assign EDUCAFRIC number to the school
         const { EducafricNumberService } = await import("../services/educafricNumberService");
         await EducafricNumberService.assignToSchool(req.body.educafricNumber, school.id);
+        educafricAssigned = true;
         console.log('[AUTH_REGISTER] ✅ EDUCAFRIC number assigned to school:', req.body.educafricNumber);
 
         // Link Director to the school
@@ -365,18 +370,43 @@ router.post('/register', async (req, res) => {
         console.log('[AUTH_REGISTER] ✅ Director linked to school ID:', school.id);
 
       } catch (schoolError: any) {
-        console.error('[AUTH_REGISTER] Failed to create school:', schoolError);
-        // Rollback: delete the user if school creation fails
+        console.error('[AUTH_REGISTER] Failed to create/assign school:', schoolError);
+        
+        // FULL ROLLBACK SEQUENCE
+        
+        // 1. Delete the user
         try {
           await storage.deleteUser(user.id);
-          console.log('[AUTH_REGISTER] Rolled back user creation due to school creation failure');
+          console.log('[AUTH_REGISTER] ✅ Rolled back user creation');
         } catch (rollbackError) {
           console.error('[AUTH_REGISTER] ⚠️ Failed to rollback user creation:', rollbackError);
         }
+
+        // 2. Delete the school if it was created
+        if (createdSchoolId) {
+          try {
+            await storage.deleteSchool(createdSchoolId);
+            console.log('[AUTH_REGISTER] ✅ Rolled back school creation, ID:', createdSchoolId);
+          } catch (schoolRollbackError) {
+            console.error('[AUTH_REGISTER] ⚠️ Failed to rollback school creation:', schoolRollbackError);
+          }
+        }
+
+        // 3. Release EDUCAFRIC number if it was assigned
+        if (educafricAssigned && req.body.educafricNumber) {
+          try {
+            const { EducafricNumberService } = await import("../services/educafricNumberService");
+            await EducafricNumberService.releaseNumber(req.body.educafricNumber);
+            console.log('[AUTH_REGISTER] ✅ Released EDUCAFRIC number:', req.body.educafricNumber);
+          } catch (releaseError) {
+            console.error('[AUTH_REGISTER] ⚠️ Failed to release EDUCAFRIC number:', releaseError);
+          }
+        }
+
         return res.status(500).json({ 
-          message: 'Failed to create school with EDUCAFRIC number. Please try again or contact support.',
-          messageFr: 'Échec de création de l\'école avec le numéro EDUCAFRIC. Veuillez réessayer ou contacter le support.',
-          messageEn: 'Failed to create school with EDUCAFRIC number. Please try again or contact support.'
+          message: schoolError.message || 'Failed to create school with EDUCAFRIC number. Please try again or contact support.',
+          messageFr: schoolError.message || 'Échec de création de l\'école avec le numéro EDUCAFRIC. Veuillez réessayer ou contacter le support.',
+          messageEn: schoolError.message || 'Failed to create school with EDUCAFRIC number. Please try again or contact support.'
         });
       }
     }

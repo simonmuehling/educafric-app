@@ -253,6 +253,27 @@ export class EducafricNumberService {
   }
 
   /**
+   * Release EDUCAFRIC number (make it available again by removing entity assignment)
+   * Used during rollback scenarios when school creation fails
+   */
+  static async releaseNumber(educafricNumber: string): Promise<void> {
+    const [updated] = await db
+      .update(educafricNumbers)
+      .set({ 
+        entityId: null,
+        updatedAt: new Date()
+      })
+      .where(eq(educafricNumbers.educafricNumber, educafricNumber))
+      .returning();
+
+    if (!updated) {
+      throw new Error(`EDUCAFRIC number not found: ${educafricNumber}`);
+    }
+
+    console.log(`[EDUCAFRIC_SERVICE] Released number ${educafricNumber}, now available`);
+  }
+
+  /**
    * Revoke/Delete EDUCAFRIC number (admin only)
    */
   static async revokeNumber(id: number): Promise<void> {
