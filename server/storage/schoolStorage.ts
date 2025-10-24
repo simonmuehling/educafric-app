@@ -24,23 +24,33 @@ export class SchoolStorage implements ISchoolStorage {
 
       console.log(`[EDUCAFRIC_NUMBER] Validated school number: ${school.educafricNumber}`);
 
-      // Create the school with EDUCAFRIC number in a transaction
-      // This ensures atomicity between school creation and EDUCAFRIC assignment
+      // Create the school with EDUCAFRIC number
+      // Note: Sequential approach due to neon-http driver limitations
       let newSchool: any;
       
-      await db.transaction(async (tx) => {
-        // Insert school
-        const [schoolResult] = await tx.insert(schools).values(school).returning();
+      try {
+        // Insert school first
+        const [schoolResult] = await db.insert(schools).values(school).returning();
         newSchool = schoolResult;
 
-        // Update educafric_numbers to link to school (atomic operation within transaction)
-        // Pass transaction client to ensure atomicity and prevent race conditions
-        await EducafricNumberService.assignToSchool(school.educafricNumber, newSchool.id, tx);
+        // Then assign EDUCAFRIC number to the school
+        await EducafricNumberService.assignToSchool(school.educafricNumber, newSchool.id);
         
         console.log(`[EDUCAFRIC_NUMBER] Assigned to school ID ${newSchool.id}: ${school.educafricNumber}`);
-      });
-
-      return newSchool;
+        
+        return newSchool;
+      } catch (assignError) {
+        // If assignment fails, delete the created school to maintain consistency
+        if (newSchool && newSchool.id) {
+          try {
+            await db.delete(schools).where(eq(schools.id, newSchool.id));
+            console.log(`[EDUCAFRIC_NUMBER] ⚠️ Rolled back school creation: ${newSchool.id}`);
+          } catch (deleteError) {
+            console.error(`[EDUCAFRIC_NUMBER] ❌ Failed to rollback school: ${deleteError}`);
+          }
+        }
+        throw assignError;
+      }
     } catch (error) {
       // Enhanced error message to help with troubleshooting
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
