@@ -291,6 +291,34 @@ router.post('/register', async (req, res) => {
         messageFr: 'L\'inscription en tant que Freelancer est temporairement indisponible jusqu\'à septembre 2026'
       });
     }
+
+    // VALIDATE EDUCAFRIC NUMBER FOR DIRECTORS
+    if (validatedData.role === 'Director') {
+      const educafricNumber = req.body.educafricNumber;
+      
+      if (!educafricNumber) {
+        return res.status(400).json({ 
+          message: 'Un numéro EDUCAFRIC est obligatoire pour l\'inscription en tant que Directeur',
+          messageFr: 'Un numéro EDUCAFRIC est obligatoire pour l\'inscription en tant que Directeur',
+          messageEn: 'An EDUCAFRIC number is required to register as a Director'
+        });
+      }
+
+      // Verify the EDUCAFRIC number is valid and available
+      const { EducafricNumberService } = await import("../services/educafricNumberService");
+      const verification = await EducafricNumberService.verifySchoolNumber(educafricNumber);
+      
+      if (!verification.valid) {
+        console.error('[AUTH_REGISTER] Invalid EDUCAFRIC number for Director registration:', verification.message);
+        return res.status(400).json({ 
+          message: verification.message,
+          messageFr: verification.message,
+          messageEn: verification.message
+        });
+      }
+
+      console.log('[AUTH_REGISTER] Verified EDUCAFRIC number for Director:', educafricNumber);
+    }
     
     const existingUser = await storage.getUserByEmail(validatedData.email);
     if (existingUser) {
@@ -303,6 +331,55 @@ router.post('/register', async (req, res) => {
       password: hashedPassword,
       phone: validatedData.phoneNumber, // Map phoneNumber to phone field
     });
+
+    // If Director, create the school with the EDUCAFRIC number
+    if (validatedData.role === 'Director' && req.body.educafricNumber) {
+      try {
+        // Create school with EDUCAFRIC number
+        const school = await storage.createSchool({
+          name: `École de ${validatedData.firstName} ${validatedData.lastName}`, // Temporary name
+          type: 'private', // Default to private, can be changed later
+          educationalType: 'general',
+          address: '',
+          phone: validatedData.phoneNumber,
+          email: validatedData.email,
+          educafricNumber: req.body.educafricNumber,
+          academicYear: new Date().getFullYear().toString(),
+          currentTerm: 'trimestre1',
+          geolocationEnabled: false,
+          pwaEnabled: true,
+          whatsappEnabled: false,
+          smsEnabled: false,
+          emailEnabled: true
+        });
+
+        console.log('[AUTH_REGISTER] School created with ID:', school.id);
+
+        // Assign EDUCAFRIC number to the school
+        const { EducafricNumberService } = await import("../services/educafricNumberService");
+        await EducafricNumberService.assignToSchool(req.body.educafricNumber, school.id);
+        console.log('[AUTH_REGISTER] ✅ EDUCAFRIC number assigned to school:', req.body.educafricNumber);
+
+        // Link Director to the school
+        await storage.updateUser(user.id, { schoolId: school.id });
+        console.log('[AUTH_REGISTER] ✅ Director linked to school ID:', school.id);
+
+      } catch (schoolError: any) {
+        console.error('[AUTH_REGISTER] Failed to create school:', schoolError);
+        // Rollback: delete the user if school creation fails
+        try {
+          await storage.deleteUser(user.id);
+          console.log('[AUTH_REGISTER] Rolled back user creation due to school creation failure');
+        } catch (rollbackError) {
+          console.error('[AUTH_REGISTER] ⚠️ Failed to rollback user creation:', rollbackError);
+        }
+        return res.status(500).json({ 
+          message: 'Failed to create school with EDUCAFRIC number. Please try again or contact support.',
+          messageFr: 'Échec de création de l\'école avec le numéro EDUCAFRIC. Veuillez réessayer ou contacter le support.',
+          messageEn: 'Failed to create school with EDUCAFRIC number. Please try again or contact support.'
+        });
+      }
+    }
 
     const { password, ...userWithoutPassword } = user;
     res.status(201).json(userWithoutPassword);

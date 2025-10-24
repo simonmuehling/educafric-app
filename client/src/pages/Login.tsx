@@ -41,6 +41,7 @@ export default function Login() {
     phoneNumber: '',
     role: 'Student',
     countryCode: '+237', // Cameroun par défaut
+    educafricNumber: '', // EDUCAFRIC number for Directors
   });
   const [error, setError] = useState('');
   const [showCelebration, setShowCelebration] = useState<{
@@ -751,6 +752,7 @@ export default function Login() {
                   value={formData.role}
                   onChange={handleInputChange}
                   className="w-full px-3 py-3 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 focus:bg-white focus:border-blue-500 transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 mobile-select"
+                  data-testid="select-role"
                 >
                   {(Array.isArray(userRoles) ? userRoles : []).map(role => (
                     <option 
@@ -763,6 +765,37 @@ export default function Login() {
                     </option>
                   ))}
                 </select>
+              </div>
+            )}
+
+            {/* EDUCAFRIC Number field - Only for Directors */}
+            {isRegisterMode && formData.role === 'Director' && (
+              <div className="space-y-2 bg-orange-50 border-2 border-orange-300 rounded-xl p-4">
+                <Label htmlFor="educafricNumber" className="text-orange-700 font-semibold flex items-center gap-2">
+                  <span className="text-lg">🎓</span>
+                  {language === 'fr' ? 'Numéro EDUCAFRIC (Obligatoire)' : 'EDUCAFRIC Number (Required)'}
+                  <span className="text-red-600">*</span>
+                </Label>
+                <Input
+                  id="educafricNumber"
+                  name="educafricNumber"
+                  type="text"
+                  value={formData.educafricNumber || ''}
+                  onChange={handleInputChange}
+                  placeholder="EDU-CM-SC-XXX"
+                  required={formData.role === 'Director'}
+                  className="bg-white border-2 border-orange-300 rounded-xl text-gray-900 placeholder:text-gray-400 focus:border-orange-500 transition-all font-mono"
+                  data-testid="input-educafric-number"
+                />
+                <p className="text-xs text-orange-700 flex items-start gap-2">
+                  <span>ℹ️</span>
+                  <span>
+                    {language === 'fr' 
+                      ? 'Entrez le numéro EDUCAFRIC qui vous a été attribué par l\'administration. Format: EDU-CM-SC-XXX (ex: EDU-CM-SC-001)'
+                      : 'Enter the EDUCAFRIC number assigned to you by the administration. Format: EDU-CM-SC-XXX (e.g., EDU-CM-SC-001)'
+                    }
+                  </span>
+                </p>
               </div>
             )}
 
