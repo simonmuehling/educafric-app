@@ -2562,5 +2562,119 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // EDUCAFRIC Number Management Routes
+  app.get("/api/siteadmin/educafric-numbers", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { EducafricNumberService } = await import("../services/educafricNumberService");
+      const numbers = await EducafricNumberService.getSchoolNumbers();
+      res.json({ numbers });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching school numbers:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/siteadmin/educafric-numbers/commercial", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { EducafricNumberService } = await import("../services/educafricNumberService");
+      const numbers = await EducafricNumberService.getCommercialNumbers();
+      res.json({ numbers });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching commercial numbers:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/siteadmin/educafric-numbers/stats", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { EducafricNumberService } = await import("../services/educafricNumberService");
+      const stats = await EducafricNumberService.getCounterStats();
+      res.json({ stats });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching stats:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/siteadmin/educafric-numbers", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { notes } = req.body;
+      const userId = req.user!.id;
+
+      const { EducafricNumberService } = await import("../services/educafricNumberService");
+      const record = await EducafricNumberService.createNumber({
+        type: 'SC',
+        entityType: 'school',
+        issuedBy: userId,
+        notes
+      });
+
+      res.json({ 
+        success: true, 
+        educafricNumber: record.educafricNumber,
+        record 
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error creating school number:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/siteadmin/educafric-numbers/commercial", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { notes } = req.body;
+      const userId = req.user!.id;
+
+      const { EducafricNumberService } = await import("../services/educafricNumberService");
+      const record = await EducafricNumberService.createNumber({
+        type: 'CO',
+        entityType: 'user',
+        issuedBy: userId,
+        notes
+      });
+
+      res.json({ 
+        success: true, 
+        educafricNumber: record.educafricNumber,
+        record 
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error creating commercial number:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/siteadmin/educafric-numbers/:id", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, notes } = req.body;
+
+      const { EducafricNumberService } = await import("../services/educafricNumberService");
+      const updated = await EducafricNumberService.updateNumber(parseInt(id), {
+        status,
+        notes
+      });
+
+      res.json({ success: true, record: updated });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating number:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/siteadmin/educafric-numbers/:id", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const { EducafricNumberService } = await import("../services/educafricNumberService");
+      await EducafricNumberService.revokeNumber(parseInt(id));
+
+      res.json({ success: true, message: 'EDUCAFRIC number deleted successfully' });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error deleting number:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   console.log('[SITE_ADMIN_API] ✅ Site Admin routes registered successfully');
 }
