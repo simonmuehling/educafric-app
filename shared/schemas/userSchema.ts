@@ -5,7 +5,7 @@ import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb } fr
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
+  email: text("email").unique(), // Email is now OPTIONAL - phone is primary identifier
   password: text("password"), // Password can be null for teachers created by admin
   role: text("role").notNull(), // Primary role: SiteAdmin, Admin, Director, Teacher, Parent, Student, Freelancer, Commercial
   secondaryRoles: text("secondary_roles").array(),
