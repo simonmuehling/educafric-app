@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { Input } from '../../ui/input';
 import { useToast } from '../../../hooks/use-toast';
+import { useLanguage } from '../../../contexts/LanguageContext';
 
 interface PendingContent {
   id: number;
@@ -55,6 +56,7 @@ interface ContentStats {
 }
 
 const EducationalContentApproval: React.FC = () => {
+  const { language } = useLanguage();
   const [selectedContent, setSelectedContent] = useState<PendingContent | null>(null);
   const [approvalComment, setApprovalComment] = useState('');
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
@@ -93,7 +95,7 @@ const EducationalContentApproval: React.FC = () => {
     },
     onSuccess: (data) => {
       toast({
-        title: "Action terminée",
+        title: language === 'fr' ? "Action terminée" : "Action completed",
         description: data.message,
         variant: "default"
       });
@@ -105,8 +107,8 @@ const EducationalContentApproval: React.FC = () => {
     },
     onError: (error) => {
       toast({
-        title: "Erreur",
-        description: "Impossible de traiter l'approbation",
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de traiter l'approbation" : "Unable to process approval",
         variant: "destructive"
       });
     }
@@ -150,28 +152,29 @@ const EducationalContentApproval: React.FC = () => {
   };
 
   const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'lesson': return 'Leçon';
-      case 'exercise': return 'Exercice';
-      case 'assessment': return 'Évaluation';
-      case 'project': return 'Projet';
-      default: return type;
-    }
+    const labels: Record<string, { fr: string; en: string }> = {
+      lesson: { fr: 'Leçon', en: 'Lesson' },
+      exercise: { fr: 'Exercice', en: 'Exercise' },
+      assessment: { fr: 'Évaluation', en: 'Assessment' },
+      project: { fr: 'Projet', en: 'Project' }
+    };
+    return labels[type]?.[language] || type;
   };
 
   const getSubjectLabel = (subject: string) => {
-    switch (subject) {
-      case 'mathematiques': return 'Mathématiques';
-      case 'francais': return 'Français';
-      case 'anglais': return 'Anglais';
-      case 'physique': return 'Physique-Chimie';
-      case 'histoire': return 'Histoire-Géo';
-      default: return subject;
-    }
+    const labels: Record<string, { fr: string; en: string }> = {
+      mathematiques: { fr: 'Mathématiques', en: 'Mathematics' },
+      francais: { fr: 'Français', en: 'French' },
+      anglais: { fr: 'Anglais', en: 'English' },
+      physique: { fr: 'Physique-Chimie', en: 'Physics-Chemistry' },
+      histoire: { fr: 'Histoire-Géo', en: 'History-Geography' }
+    };
+    return labels[subject]?.[language] || subject;
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
+    const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -200,8 +203,15 @@ const EducationalContentApproval: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Validation Contenu Pédagogique</h2>
-          <p className="text-gray-600">Approuvez ou rejetez le contenu soumis par les enseignants</p>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {language === 'fr' ? 'Validation Contenu Pédagogique' : 'Educational Content Approval'}
+          </h2>
+          <p className="text-gray-600">
+            {language === 'fr' 
+              ? 'Approuvez ou rejetez le contenu soumis par les enseignants'
+              : 'Approve or reject content submitted by teachers'
+            }
+          </p>
         </div>
       </div>
 
@@ -209,23 +219,33 @@ const EducationalContentApproval: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="p-4 text-center bg-gradient-to-br from-blue-50 to-blue-100">
           <div className="text-2xl font-bold text-blue-700">{stats.totalContent}</div>
-          <div className="text-sm text-blue-600">Total Contenu</div>
+          <div className="text-sm text-blue-600">
+            {language === 'fr' ? 'Total Contenu' : 'Total Content'}
+          </div>
         </Card>
         <Card className="p-4 text-center bg-gradient-to-br from-orange-50 to-orange-100">
           <div className="text-2xl font-bold text-orange-700">{stats.pendingApproval}</div>
-          <div className="text-sm text-orange-600">En Attente</div>
+          <div className="text-sm text-orange-600">
+            {language === 'fr' ? 'En Attente' : 'Pending'}
+          </div>
         </Card>
         <Card className="p-4 text-center bg-gradient-to-br from-green-50 to-green-100">
           <div className="text-2xl font-bold text-green-700">{stats.approved}</div>
-          <div className="text-sm text-green-600">Approuvé</div>
+          <div className="text-sm text-green-600">
+            {language === 'fr' ? 'Approuvé' : 'Approved'}
+          </div>
         </Card>
         <Card className="p-4 text-center bg-gradient-to-br from-red-50 to-red-100">
           <div className="text-2xl font-bold text-red-700">{stats.rejected}</div>
-          <div className="text-sm text-red-600">Rejeté</div>
+          <div className="text-sm text-red-600">
+            {language === 'fr' ? 'Rejeté' : 'Rejected'}
+          </div>
         </Card>
         <Card className="p-4 text-center bg-gradient-to-br from-purple-50 to-purple-100">
           <div className="text-2xl font-bold text-purple-700">{stats.shared}</div>
-          <div className="text-sm text-purple-600">Partagé</div>
+          <div className="text-sm text-purple-600">
+            {language === 'fr' ? 'Partagé' : 'Shared'}
+          </div>
         </Card>
       </div>
 
@@ -233,15 +253,15 @@ const EducationalContentApproval: React.FC = () => {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            Contenu en Attente ({stats.pendingApproval})
+            {language === 'fr' ? `Contenu en Attente (${stats.pendingApproval})` : `Pending Content (${stats.pendingApproval})`}
           </TabsTrigger>
           <TabsTrigger value="statistics" className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
-            Statistiques
+            {language === 'fr' ? 'Statistiques' : 'Statistics'}
           </TabsTrigger>
           <TabsTrigger value="contributors" className="flex items-center gap-2">
             <Award className="w-4 h-4" />
-            Contributeurs
+            {language === 'fr' ? 'Contributeurs' : 'Contributors'}
           </TabsTrigger>
         </TabsList>
 
@@ -254,12 +274,24 @@ const EducationalContentApproval: React.FC = () => {
               onChange={(e) => setFilterSubject(e.target.value)}
               className="px-3 py-2 border rounded-lg"
             >
-              <option value="all">Toutes les matières</option>
-              <option value="mathematiques">Mathématiques</option>
-              <option value="francais">Français</option>
-              <option value="anglais">Anglais</option>
-              <option value="physique">Physique-Chimie</option>
-              <option value="histoire">Histoire-Géo</option>
+              <option value="all">
+                {language === 'fr' ? 'Toutes les matières' : 'All subjects'}
+              </option>
+              <option value="mathematiques">
+                {language === 'fr' ? 'Mathématiques' : 'Mathematics'}
+              </option>
+              <option value="francais">
+                {language === 'fr' ? 'Français' : 'French'}
+              </option>
+              <option value="anglais">
+                {language === 'fr' ? 'Anglais' : 'English'}
+              </option>
+              <option value="physique">
+                {language === 'fr' ? 'Physique-Chimie' : 'Physics-Chemistry'}
+              </option>
+              <option value="histoire">
+                {language === 'fr' ? 'Histoire-Géo' : 'History-Geography'}
+              </option>
             </select>
           </div>
 
@@ -268,8 +300,15 @@ const EducationalContentApproval: React.FC = () => {
             {pendingContent.length === 0 ? (
               <Card className="p-8 text-center">
                 <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Aucun contenu en attente</h3>
-                <p className="text-gray-600">Tous les contenus soumis ont été traités.</p>
+                <h3 className="text-lg font-semibold mb-2">
+                  {language === 'fr' ? 'Aucun contenu en attente' : 'No pending content'}
+                </h3>
+                <p className="text-gray-600">
+                  {language === 'fr' 
+                    ? 'Tous les contenus soumis ont été traités.'
+                    : 'All submitted content has been processed.'
+                  }
+                </p>
               </Card>
             ) : (
               pendingContent.map((content) => (
@@ -303,14 +342,18 @@ const EducationalContentApproval: React.FC = () => {
 
                       {content.objectives && (
                         <div className="mb-3">
-                          <strong className="text-sm">Objectifs:</strong>
+                          <strong className="text-sm">
+                            {language === 'fr' ? 'Objectifs:' : 'Objectives:'}
+                          </strong>
                           <p className="text-sm text-gray-600">{content.objectives}</p>
                         </div>
                       )}
 
                       {content.files.length > 0 && (
                         <div className="mb-4">
-                          <strong className="text-sm">Fichiers joints:</strong>
+                          <strong className="text-sm">
+                            {language === 'fr' ? 'Fichiers joints:' : 'Attached files:'}
+                          </strong>
                           <div className="flex gap-2 mt-1">
                             {content.files.map((file, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
@@ -338,7 +381,7 @@ const EducationalContentApproval: React.FC = () => {
                         disabled={approvalMutation.isPending}
                       >
                         <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Approuver
+                        {language === 'fr' ? 'Approuver' : 'Approve'}
                       </Button>
                       <Button
                         onClick={() => handleApprovalAction(content, 'reject')}
@@ -346,7 +389,7 @@ const EducationalContentApproval: React.FC = () => {
                         disabled={approvalMutation.isPending}
                       >
                         <XCircle className="w-4 h-4 mr-2" />
-                        Rejeter
+                        {language === 'fr' ? 'Rejeter' : 'Reject'}
                       </Button>
                     </div>
                   </div>
@@ -363,7 +406,7 @@ const EducationalContentApproval: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
-                  Contenu par Matière
+                  {language === 'fr' ? 'Contenu par Matière' : 'Content by Subject'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -383,7 +426,7 @@ const EducationalContentApproval: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5" />
-                  Contenu par Type
+                  {language === 'fr' ? 'Contenu par Type' : 'Content by Type'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -405,7 +448,7 @@ const EducationalContentApproval: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Award className="w-5 h-5" />
-                Top Contributeurs
+                {language === 'fr' ? 'Top Contributeurs' : 'Top Contributors'}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -418,11 +461,13 @@ const EducationalContentApproval: React.FC = () => {
                       </div>
                       <div>
                         <div className="font-medium">{contributor.teacherName}</div>
-                        <div className="text-sm text-gray-500">Enseignant</div>
+                        <div className="text-sm text-gray-500">
+                          {language === 'fr' ? 'Enseignant' : 'Teacher'}
+                        </div>
                       </div>
                     </div>
                     <Badge variant="secondary" className="text-sm">
-                      {contributor.contentCount} contenus
+                      {contributor.contentCount} {language === 'fr' ? 'contenus' : 'content'}
                     </Badge>
                   </div>
                 ))}
@@ -437,12 +482,20 @@ const EducationalContentApproval: React.FC = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {approvalAction === 'approve' ? 'Approuver le contenu' : 'Rejeter le contenu'}
+              {approvalAction === 'approve' 
+                ? (language === 'fr' ? 'Approuver le contenu' : 'Approve content')
+                : (language === 'fr' ? 'Rejeter le contenu' : 'Reject content')
+              }
             </DialogTitle>
             <DialogDescription>
               {approvalAction === 'approve' 
-                ? 'Confirmez l\'approbation de ce contenu pédagogique'
-                : 'Précisez les raisons du rejet pour aider l\'enseignant à améliorer son contenu'}
+                ? (language === 'fr' 
+                    ? 'Confirmez l\'approbation de ce contenu pédagogique'
+                    : 'Confirm the approval of this educational content')
+                : (language === 'fr'
+                    ? 'Précisez les raisons du rejet pour aider l\'enseignant à améliorer son contenu'
+                    : 'Specify the reasons for rejection to help the teacher improve their content')
+              }
             </DialogDescription>
           </DialogHeader>
           
@@ -450,20 +503,29 @@ const EducationalContentApproval: React.FC = () => {
             <div className="space-y-4">
               <div className="p-3 bg-gray-50 rounded-lg">
                 <h4 className="font-medium">{selectedContent.title}</h4>
-                <p className="text-sm text-gray-600">par {selectedContent.teacherName}</p>
+                <p className="text-sm text-gray-600">
+                  {language === 'fr' ? 'par' : 'by'} {selectedContent.teacherName}
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Commentaire {approvalAction === 'reject' ? '(requis)' : '(optionnel)'}
+                  {language === 'fr' ? 'Commentaire' : 'Comment'} {approvalAction === 'reject' 
+                    ? (language === 'fr' ? '(requis)' : '(required)')
+                    : (language === 'fr' ? '(optionnel)' : '(optional)')
+                  }
                 </label>
                 <Textarea
                   value={approvalComment}
                   onChange={(e) => setApprovalComment(e.target.value)}
                   placeholder={
                     approvalAction === 'approve' 
-                      ? "Félicitations pour ce contenu de qualité..."
-                      : "Raison du rejet et suggestions d'amélioration..."
+                      ? (language === 'fr' 
+                          ? "Félicitations pour ce contenu de qualité..."
+                          : "Congratulations on this quality content...")
+                      : (language === 'fr'
+                          ? "Raison du rejet et suggestions d'amélioration..."
+                          : "Reason for rejection and suggestions for improvement...")
                   }
                   rows={4}
                 />
@@ -475,7 +537,7 @@ const EducationalContentApproval: React.FC = () => {
                   onClick={() => setIsApprovalDialogOpen(false)}
                   disabled={approvalMutation.isPending}
                 >
-                  Annuler
+                  {language === 'fr' ? 'Annuler' : 'Cancel'}
                 </Button>
                 <Button
                   onClick={submitApproval}
@@ -483,9 +545,13 @@ const EducationalContentApproval: React.FC = () => {
                   variant={approvalAction === 'reject' ? 'destructive' : 'default'}
                   disabled={approvalMutation.isPending || (approvalAction === 'reject' && !approvalComment.trim())}
                 >
-                  {approvalMutation.isPending ? 'Traitement...' : (
-                    approvalAction === 'approve' ? 'Approuver' : 'Rejeter'
-                  )}
+                  {approvalMutation.isPending 
+                    ? (language === 'fr' ? 'Traitement...' : 'Processing...')
+                    : (approvalAction === 'approve' 
+                        ? (language === 'fr' ? 'Approuver' : 'Approve')
+                        : (language === 'fr' ? 'Rejeter' : 'Reject')
+                      )
+                  }
                 </Button>
               </div>
             </div>
