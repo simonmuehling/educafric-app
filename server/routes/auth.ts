@@ -45,7 +45,13 @@ passport.use(new LocalStrategy(
   async (req, email, password, done) => {
     try {
       let user = null;
-      const phone = req.body.phoneNumber || req.body.phone;
+      let phone = req.body.phoneNumber || req.body.phone;
+
+      // Normalize phone number: add + if missing
+      if (phone && !phone.startsWith('+')) {
+        phone = '+' + phone;
+        console.log(`[AUTH_STRATEGY] Normalized phone number: ${phone}`);
+      }
 
       // Try to find user by email first (if provided)
       if (email) {
