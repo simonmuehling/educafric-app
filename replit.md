@@ -26,13 +26,20 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Architecture optimisée** : Ordre prioritaire - Settings → API Modules → System Routes → Services
 - ⚠️ **RÈGLE CRITIQUE** : Toujours maintenir l'ordre d'enregistrement des routes pour éviter conflits futurs
 
-**NUMÉROS EDUCAFRIC PRÉ-ASSIGNÉS OBLIGATOIRES (Oct 2025)**:
-- ✅ **Système de contrôle renforcé** : Les écoles DOIVENT fournir un numéro EDUCAFRIC pré-assigné pour s'inscrire
+**NUMÉROS EDUCAFRIC AVEC AUTO-GÉNÉRATION (Oct 2025)**:
+- ✅ **Système simplifié pour Site Admins** : Site Admins peuvent créer écoles SANS pré-créer numéros EDUCAFRIC
+- ✅ **Auto-génération intelligente** : Si aucun numéro fourni, le système génère automatiquement un numéro EDU-CM-SC-###
 - ✅ **Format standardisé** : EDU-CM-SC-### (SC = School, séquence incrémentielle)
-- ✅ **Validation stricte** : Vérification que le numéro existe, est actif, et n'est pas déjà assigné
-- ✅ **Deux workflows d'inscription disponibles** :
-  1. **Site Admin Manual** : Site Admin crée l'école directement via interface dédiée
-  2. **Director Self-Registration** : Director s'inscrit publiquement avec numéro EDUCAFRIC pré-assigné
+- ✅ **Trois workflows d'inscription disponibles** :
+  1. **Site Admin Direct (SIMPLIFIÉ)** : Site Admin crée école directement, numéro auto-généré
+  2. **Site Admin avec Numéro** : Site Admin crée école avec numéro pré-créé (optionnel)
+  3. **Director Self-Registration** : Director s'inscrit avec numéro EDUCAFRIC pré-assigné (obligatoire)
+- ✅ **Workflow Site Admin Direct (Nouveau)** :
+  1. Site Admin ouvre School Management
+  2. Clique "Add School" / "Ajouter École"
+  3. Remplit formulaire école (nom, adresse, etc.)
+  4. Laisse champ EDUCAFRIC vide OU sélectionne "⚡ Générer automatiquement"
+  5. Système génère automatiquement le numéro et crée l'école
 - ✅ **Workflow Director Self-Registration** :
   1. Site Admin crée et active le numéro EDUCAFRIC via interface dédiée
   2. Numéro communiqué au futur Director (email, courrier, etc.)
@@ -42,16 +49,16 @@ Preferred communication style: Simple, everyday language.
   6. Système valide le numéro → Crée compte Director → Crée école automatiquement → Assigne numéro → Lie Director à l'école
 - ✅ **Rollback complet en cas d'échec** : Suppression automatique de l'utilisateur, de l'école créée, et libération du numéro EDUCAFRIC
 - ✅ **API Endpoints** :
-  - `POST /api/siteadmin/schools` - Création école manuelle avec educafricNumber obligatoire
+  - `POST /api/siteadmin/schools` - Création école avec educafricNumber optionnel (auto-généré si vide)
   - `GET /api/siteadmin/educafric/available` - Liste des numéros disponibles (non assignés)
   - `POST /api/auth/register` - Auto-inscription Director avec validation EDUCAFRIC et création école automatique
 - ✅ **Frontend intégré** :
-  - SchoolManagement.tsx : Sélecteur de numéros disponibles pour création manuelle
+  - SchoolManagement.tsx : Champ EDUCAFRIC optionnel avec option "Générer automatiquement"
   - Login.tsx : Champ EDUCAFRIC conditionnel pour auto-inscription Directors (orange highlighted, bilingual)
 - ✅ **Messages d'erreur bilingues** : Affichage des messages d'erreur backend (FR/EN) pour validation EDUCAFRIC
-- ✅ **Service EDUCAFRIC** : `EducafricNumberService.releaseNumber()` pour libération du numéro en cas de rollback
+- ✅ **Service EDUCAFRIC** : `EducafricNumberService.releaseNumber()` et `generateSchoolNumber()` pour auto-génération
 - ✅ **Database driver** : Utilise neon-http pour compatibilité maximale
-- ⚠️ **RÈGLE CRITIQUE** : AUCUNE école ne peut s'inscrire sans numéro EDUCAFRIC pré-assigné valide
+- ⚠️ **RÈGLE CRITIQUE** : Directors DOIVENT utiliser numéro pré-assigné, Site Admins peuvent auto-générer
 
 **EMAIL OPTIONNEL - TÉLÉPHONE PRIORITAIRE (Oct 2025)**:
 - ✅ **Email est maintenant OPTIONNEL** : Le numéro de téléphone est devenu l'identifiant principal unique

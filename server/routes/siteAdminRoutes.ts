@@ -182,7 +182,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Create new school
   app.post("/api/siteadmin/schools", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      console.log('[SITE_ADMIN_API] Creating new school with pre-assigned EDUCAFRIC number');
+      console.log('[SITE_ADMIN_API] Creating new school (auto-generate EDUCAFRIC number if not provided)');
 
       // Validate request body with Zod schema
       const validationResult = createSchoolSchema.safeParse(req.body);
@@ -200,37 +200,46 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       }
 
       const schoolData = validationResult.data;
-
-      // REQUIRED: School must provide a pre-assigned EDUCAFRIC number
-      if (!schoolData.educafricNumber) {
-        console.error('[SITE_ADMIN_API] Missing EDUCAFRIC number');
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Un numéro EDUCAFRIC est obligatoire pour inscrire une école',
-          messageFr: 'Un numéro EDUCAFRIC est obligatoire pour inscrire une école',
-          messageEn: 'An EDUCAFRIC number is required to register a school'
-        });
-      }
-
-      // Verify that the EDUCAFRIC number exists and is available
       const { EducafricNumberService } = await import("../services/educafricNumberService");
-      const verification = await EducafricNumberService.verifySchoolNumber(schoolData.educafricNumber);
-      
-      if (!verification.valid) {
-        console.error('[SITE_ADMIN_API] Invalid EDUCAFRIC number:', verification.message);
-        return res.status(400).json({ 
-          success: false, 
-          message: verification.message,
-          messageFr: verification.message,
-          messageEn: verification.message
-        });
+
+      let educafricNumber = schoolData.educafricNumber;
+
+      // If no EDUCAFRIC number provided, auto-generate one
+      if (!educafricNumber) {
+        console.log('[SITE_ADMIN_API] No EDUCAFRIC number provided, auto-generating one...');
+        try {
+          const newNumber = await EducafricNumberService.generateSchoolNumber(`Created for ${schoolData.name}`);
+          educafricNumber = newNumber.educafricNumber;
+          console.log('[SITE_ADMIN_API] ✅ Auto-generated EDUCAFRIC number:', educafricNumber);
+        } catch (genError: any) {
+          console.error('[SITE_ADMIN_API] Failed to auto-generate EDUCAFRIC number:', genError);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Failed to generate EDUCAFRIC number for school',
+            messageFr: 'Échec de génération du numéro EDUCAFRIC pour l\'école',
+            messageEn: 'Failed to generate EDUCAFRIC number for school'
+          });
+        }
+      } else {
+        // If EDUCAFRIC number was provided, verify it exists and is available
+        const verification = await EducafricNumberService.verifySchoolNumber(educafricNumber);
+        
+        if (!verification.valid) {
+          console.error('[SITE_ADMIN_API] Invalid EDUCAFRIC number:', verification.message);
+          return res.status(400).json({ 
+            success: false, 
+            message: verification.message,
+            messageFr: verification.message,
+            messageEn: verification.message
+          });
+        }
+        console.log('[SITE_ADMIN_API] Verified provided EDUCAFRIC number:', educafricNumber);
       }
 
-      console.log('[SITE_ADMIN_API] Verified EDUCAFRIC number:', schoolData.educafricNumber);
-
-      // Create school in database with validated data and pre-assigned EDUCAFRIC number
+      // Create school in database with validated data and EDUCAFRIC number (provided or auto-generated)
       const newSchool = await storage.createSchool({
         ...schoolData,
+        educafricNumber: educafricNumber, // Use the determined EDUCAFRIC number
         educationalType: schoolData.educationalType || 'general',
         academicYear: schoolData.academicYear || new Date().getFullYear().toString(),
         currentTerm: schoolData.currentTerm || 'trimestre1',
@@ -245,8 +254,8 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
 
       // CRITICAL: Assign EDUCAFRIC number to the school to prevent reuse
       try {
-        await EducafricNumberService.assignToSchool(schoolData.educafricNumber, newSchool.id);
-        console.log('[SITE_ADMIN_API] ✅ EDUCAFRIC number assigned to school:', schoolData.educafricNumber);
+        await EducafricNumberService.assignToSchool(educafricNumber, newSchool.id);
+        console.log('[SITE_ADMIN_API] ✅ EDUCAFRIC number assigned to school:', educafricNumber);
       } catch (assignError: any) {
         console.error('[SITE_ADMIN_API] Failed to assign EDUCAFRIC number:', assignError);
         // If assignment fails, we should delete the school to maintain consistency

@@ -538,33 +538,33 @@ const SchoolManagement = () => {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="educafricNumber" className="text-red-600 font-semibold">
-                    Numéro EDUCAFRIC (Obligatoire) *
+                  <Label htmlFor="educafricNumber" className="text-blue-600 font-semibold">
+                    Numéro EDUCAFRIC (Optionnel)
                   </Label>
                   <Select 
                     value={newSchoolData.educafricNumber} 
                     onValueChange={(value) => setNewSchoolData({...newSchoolData, educafricNumber: value})}
                   >
                     <SelectTrigger id="educafricNumber" data-testid="select-educafric-number">
-                      <SelectValue placeholder="Sélectionner un numéro EDUCAFRIC disponible" />
+                      <SelectValue placeholder="Générer automatiquement si vide" />
                     </SelectTrigger>
                     <SelectContent>
-                      {(availableNumbersData as any)?.numbers?.length > 0 ? (
+                      <SelectItem value="">
+                        ⚡ Générer automatiquement
+                      </SelectItem>
+                      {(availableNumbersData as any)?.numbers?.length > 0 && (
                         (availableNumbersData as any).numbers.map((num: any) => (
                           <SelectItem key={num.id} value={num.educafricNumber}>
                             {num.educafricNumber}
                             {num.notes && ` - ${num.notes}`}
                           </SelectItem>
                         ))
-                      ) : (
-                        <SelectItem value="" disabled>
-                          Aucun numéro disponible
-                        </SelectItem>
                       )}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Sélectionnez un numéro EDUCAFRIC pré-assigné pour cette école
+                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                    <span>✅</span>
+                    <span>Un numéro sera généré automatiquement si vous laissez ce champ vide</span>
                   </p>
                 </div>
                 <div>
