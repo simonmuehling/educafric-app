@@ -23,11 +23,11 @@ export const createUserSchema = createInsertSchema(users).omit({
   stripeSubscriptionId: true,
   firebaseUid: true,
 }).extend({
-  email: emailSchema,
+  email: emailSchema.optional(), // Email is now OPTIONAL - phone is primary identifier
   password: passwordSchema,
   firstName: nameSchema,
   lastName: nameSchema,
-  phoneNumber: phoneSchema, // Accept phoneNumber from frontend
+  phoneNumber: z.string().min(10, "Phone number must be at least 10 characters"), // Phone is required
   role: z.enum(USER_ROLES),
 });
 

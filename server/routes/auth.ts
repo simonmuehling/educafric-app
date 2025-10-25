@@ -36,28 +36,44 @@ const sandboxLoginLimiter = rateLimit({
   }
 });
 
-// Passport configuration
+// Passport configuration - Support login with EMAIL or PHONE
 passport.use(new LocalStrategy(
-  { usernameField: 'email' },
-  async (email, password, done) => {
+  { 
+    usernameField: 'email', // We keep this for compatibility but will check both
+    passReqToCallback: true  // Access full request to check phone too
+  },
+  async (req, email, password, done) => {
     try {
-      const user = await storage.getUserByEmail(email);
+      let user = null;
+      const phone = req.body.phoneNumber || req.body.phone;
+
+      // Try to find user by email first (if provided)
+      if (email) {
+        user = await storage.getUserByEmail(email);
+      }
+      
+      // If no user found by email, try by phone number
+      if (!user && phone) {
+        user = await storage.getUserByPhone(phone);
+        console.log(`[AUTH_STRATEGY] Login attempt with phone: ${phone}`);
+      }
       
       if (!user) {
-        return done(null, false, { message: 'Invalid email or password' });
+        return done(null, false, { message: 'Invalid email/phone or password' });
       }
 
       // Check if account has been deleted
       if (user.deletionRequested || user.deletionApprovedAt) {
-        console.log(`[AUTH_STRATEGY] Blocked login attempt for deleted account: ${email}`);
+        console.log(`[AUTH_STRATEGY] Blocked login attempt for deleted account: ${user.email || user.phone}`);
         return done(null, false, { message: 'Ce compte a été supprimé' });
       }
 
       const isValidPassword = await storage.verifyPassword(user, password);
       if (!isValidPassword) {
-        return done(null, false, { message: 'Invalid email or password' });
+        return done(null, false, { message: 'Invalid email/phone or password' });
       }
 
+      console.log(`[AUTH_STRATEGY] ✅ Successful login: ${user.email || user.phone} (ID: ${user.id})`);
       return done(null, user);
     } catch (error) {
       console.error(`[AUTH_STRATEGY] Error during authentication: ${error}`);
