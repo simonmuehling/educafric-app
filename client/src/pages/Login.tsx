@@ -308,7 +308,8 @@ export default function Login() {
           setIsRegisterMode(false);
         }, 2000);
       } else {
-        await login(formData.email, formData.password);
+        const emailOrPhone = formData.email || formData.phoneNumber;
+        await login(emailOrPhone, formData.password);
         
         // Trigger confetti celebration for successful login
         celebrateLogin();
@@ -737,10 +738,13 @@ export default function Login() {
                 <Input
                   id="email"
                   name="email"
-                  type="email"
+                  type={isRegisterMode ? "email" : "text"}
                   value={formData.email || ''}
                   onChange={handleInputChange}
-                  placeholder={language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com'}
+                  placeholder={isRegisterMode 
+                    ? (language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com')
+                    : (language === 'fr' ? 'email@exemple.com ou +237650123456' : 'email@example.com or +237650123456')
+                  }
                   className="px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
                 />
               </div>

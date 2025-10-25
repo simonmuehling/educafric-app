@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (emailOrPhone: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (userData: any) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
@@ -28,10 +28,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = !!user;
 
-  const login = async (email: string, password: string) => {
+  const login = async (emailOrPhone: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest('POST', '/api/auth/login', { email, password });
+      const isEmail = emailOrPhone.includes('@');
+      const payload = isEmail 
+        ? { email: emailOrPhone, password }
+        : { phoneNumber: emailOrPhone, password };
+      
+      const response = await apiRequest('POST', '/api/auth/login', payload);
       
       let userData;
       try {
