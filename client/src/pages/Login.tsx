@@ -244,19 +244,31 @@ export default function Login() {
     e.preventDefault();
     setError('');
 
-    if (!formData.email || !formData.password) {
-      setError(getErrorMessage('emailRequired'));
-      return;
+    // LOGIN mode: require email OR phone + password
+    if (!isRegisterMode) {
+      if ((!formData.email && !formData.phoneNumber) || !formData.password) {
+        setError(language === 'fr' 
+          ? 'Email ou numéro de téléphone requis' 
+          : 'Email or phone number required'
+        );
+        return;
+      }
+    }
+
+    // REGISTER mode: require phone + password (email optional)
+    if (isRegisterMode) {
+      if (!formData.firstName || !formData.lastName || !formData.phoneNumber || !formData.password) {
+        setError(language === 'fr' 
+          ? 'Nom, prénom, téléphone et mot de passe requis' 
+          : 'First name, last name, phone and password required'
+        );
+        return;
+      }
     }
 
     try {
       if (isRegisterMode) {
-        if (!formData.firstName || !formData.lastName || !formData.phoneNumber) {
-          setError(getErrorMessage('namesRequired'));
-          return;
-        }
-        
-        // Check for duplicate email/phone FIRST
+        // Check for duplicate email/phone FIRST (only if email is provided)
         const hasDuplicate = await checkForDuplicates(formData.email, formData.phoneNumber);
         if (hasDuplicate) {
           return; // Stop here and show duplicate dialog
@@ -716,7 +728,7 @@ export default function Login() {
 
             <div className="space-y-2 mobile-input-field">
               <Label htmlFor="email" className="text-gray-700 font-medium text-sm md:text-base">
-                {language === 'fr' ? 'Adresse E-mail' : 'Email Address'}
+                {language === 'fr' ? 'Adresse E-mail (Optionnel)' : 'Email Address (Optional)'}
               </Label>
               <div className="relative">
                 <Input
@@ -727,9 +739,17 @@ export default function Login() {
                   onChange={handleInputChange}
                   placeholder={language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com'}
                   className="px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
-                  required
+                  required={!isRegisterMode}
                 />
               </div>
+              {isRegisterMode && (
+                <p className="text-xs text-gray-500">
+                  {language === 'fr' 
+                    ? '💡 Votre numéro de téléphone sera utilisé comme identifiant de connexion principal'
+                    : '💡 Your phone number will be used as your primary login identifier'
+                  }
+                </p>
+              )}
             </div>
 
             <div className="space-y-2 mobile-input-field">
