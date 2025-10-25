@@ -53,6 +53,17 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Database driver** : Utilise neon-http pour compatibilité maximale
 - ⚠️ **RÈGLE CRITIQUE** : AUCUNE école ne peut s'inscrire sans numéro EDUCAFRIC pré-assigné valide
 
+**EMAIL OPTIONNEL - TÉLÉPHONE PRIORITAIRE (Oct 2025)**:
+- ✅ **Email est maintenant OPTIONNEL** : Le numéro de téléphone est devenu l'identifiant principal unique
+- ✅ **Schéma database modifié** : Colonne `email` dans table `users` est maintenant nullable
+- ✅ **Validation Zod mise à jour** : `createUserSchema` accepte email optionnel, phone requis (min 10 caractères)
+- ✅ **Authentification hybride** : Login accepte SOIT email SOIT téléphone + mot de passe
+- ✅ **Passport strategy adaptée** : `LocalStrategy` modifiée pour vérifier phone OU email
+- ✅ **Context africain optimisé** : Téléphones mobiles plus accessibles que emails dans beaucoup de régions
+- ✅ **Compatibilité rétroactive** : Utilisateurs existants avec email restent fonctionnels
+- ✅ **Frontend adapté** : Formulaire d'inscription permet inscription sans email (téléphone obligatoire)
+- ⚠️ **RÈGLE CRITIQUE** : Numéro de téléphone DOIT être unique et valide (min 10 caractères)
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
