@@ -246,10 +246,15 @@ export default function Login() {
 
     // LOGIN mode: require email OR phone + password
     if (!isRegisterMode) {
-      if ((!formData.email && !formData.phoneNumber) || !formData.password) {
+      // Trim values to catch empty strings
+      const emailValue = formData.email?.trim();
+      const phoneValue = formData.phoneNumber?.trim();
+      const passwordValue = formData.password?.trim();
+      
+      if ((!emailValue && !phoneValue) || !passwordValue) {
         setError(language === 'fr' 
-          ? 'Email ou numéro de téléphone requis' 
-          : 'Email or phone number required'
+          ? 'Email ou numéro de téléphone et mot de passe requis' 
+          : 'Email or phone number and password required'
         );
         return;
       }
@@ -257,7 +262,13 @@ export default function Login() {
 
     // REGISTER mode: require phone + password (email optional)
     if (isRegisterMode) {
-      if (!formData.firstName || !formData.lastName || !formData.phoneNumber || !formData.password) {
+      // Trim values to catch empty strings
+      const firstNameValue = formData.firstName?.trim();
+      const lastNameValue = formData.lastName?.trim();
+      const phoneValue = formData.phoneNumber?.trim();
+      const passwordValue = formData.password?.trim();
+      
+      if (!firstNameValue || !lastNameValue || !phoneValue || !passwordValue) {
         setError(language === 'fr' 
           ? 'Nom, prénom, téléphone et mot de passe requis' 
           : 'First name, last name, phone and password required'

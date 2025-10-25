@@ -33,14 +33,21 @@ class OfflineSyncService {
   }
 
   private async handleOnline() {
-    console.log('[SYNC] Connection restored, starting sync...');
+    if (import.meta.env.DEV) {
+      console.log('[SYNC] Connection restored, starting sync...');
+    }
     try {
       // Ensure database is initialized before syncing
       await offlineStorage.init();
       await this.syncAll();
       this.startPeriodicSync();
     } catch (error) {
-      console.error('[SYNC] Failed to initialize sync:', error);
+      // Better error logging
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('[SYNC] Failed to initialize sync:', errorMessage);
+      if (import.meta.env.DEV && error instanceof Error && error.stack) {
+        console.error('[SYNC] Stack trace:', error.stack);
+      }
     }
   }
 
@@ -70,12 +77,16 @@ class OfflineSyncService {
   // Sync all pending actions
   async syncAll(): Promise<boolean> {
     if (this.isSyncing) {
-      console.log('[SYNC] Sync already in progress');
+      if (import.meta.env.DEV) {
+        console.log('[SYNC] Sync already in progress');
+      }
       return false;
     }
 
     if (!navigator.onLine) {
-      console.log('[SYNC] Cannot sync while offline');
+      if (import.meta.env.DEV) {
+        console.log('[SYNC] Cannot sync while offline');
+      }
       return false;
     }
 
@@ -87,7 +98,9 @@ class OfflineSyncService {
       await offlineStorage.init();
       
       const pendingActions = await offlineStorage.getPendingActions();
-      console.log('[SYNC] Found', pendingActions.length, 'pending actions');
+      if (import.meta.env.DEV && pendingActions.length > 0) {
+        console.log('[SYNC] Found', pendingActions.length, 'pending actions');
+      }
 
       if (pendingActions.length === 0) {
         this.lastSyncTime = Date.now();
@@ -117,13 +130,16 @@ class OfflineSyncService {
             }
           }
         } catch (error) {
-          console.error('[SYNC] Error syncing action:', error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error('[SYNC] Error syncing action:', errorMessage);
           await offlineStorage.incrementRetryCount(action.id);
           failCount++;
         }
       }
 
-      console.log(`[SYNC] Sync complete: ${successCount} succeeded, ${failCount} failed`);
+      if (import.meta.env.DEV) {
+        console.log(`[SYNC] Sync complete: ${successCount} succeeded, ${failCount} failed`);
+      }
       
       this.lastSyncTime = Date.now();
       this.isSyncing = false;
@@ -131,7 +147,12 @@ class OfflineSyncService {
 
       return failCount === 0;
     } catch (error) {
-      console.error('[SYNC] Sync failed:', error);
+      // Better error logging with actual error message
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('[SYNC] Sync failed:', errorMessage);
+      if (import.meta.env.DEV && error instanceof Error && error.stack) {
+        console.error('[SYNC] Stack trace:', error.stack);
+      }
       this.isSyncing = false;
       this.syncErrors++;
       this.notifyListeners();
@@ -145,19 +166,24 @@ class OfflineSyncService {
       const endpoint = this.getEndpointForAction(action);
       const method = this.getMethodForAction(action.action);
 
-      console.log('[SYNC] Syncing', action.type, action.action, 'to', endpoint);
+      if (import.meta.env.DEV) {
+        console.log('[SYNC] Syncing', action.type, action.action, 'to', endpoint);
+      }
 
       const response = await apiRequest(method, endpoint, action.data);
 
       if (response.ok) {
-        console.log('[SYNC] ✓ Action synced successfully:', action.type);
+        if (import.meta.env.DEV) {
+          console.log('[SYNC] ✓ Action synced successfully:', action.type);
+        }
         return true;
       } else {
         console.error('[SYNC] ✗ Action sync failed:', response.status, response.statusText);
         return false;
       }
     } catch (error) {
-      console.error('[SYNC] ✗ Action sync error:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('[SYNC] ✗ Action sync error:', errorMessage);
       return false;
     }
   }
