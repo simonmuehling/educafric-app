@@ -737,7 +737,7 @@ export default function Login() {
               <Label htmlFor="email" className="text-gray-700 font-medium text-sm md:text-base">
                 {isRegisterMode 
                   ? (language === 'fr' ? 'Adresse E-mail (Optionnel)' : 'Email Address (Optional)')
-                  : (language === 'fr' ? 'Adresse E-mail ou Téléphone' : 'Email or Phone Number')
+                  : (language === 'fr' ? '📧 E-mail OU 📱 Téléphone' : '📧 Email OR 📱 Phone Number')
                 }
               </Label>
               <div className="relative">
@@ -749,16 +749,24 @@ export default function Login() {
                   onChange={handleInputChange}
                   placeholder={isRegisterMode 
                     ? (language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com')
-                    : (language === 'fr' ? 'email@exemple.com ou +237650123456' : 'email@example.com or +237650123456')
+                    : (language === 'fr' ? '+237677332730 ou email@exemple.com' : '+237677332730 or email@example.com')
                   }
                   className="px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
+                  data-testid="input-email-or-phone"
                 />
               </div>
-              {isRegisterMode && (
+              {isRegisterMode ? (
                 <p className="text-xs text-gray-500">
                   {language === 'fr' 
                     ? '💡 Votre numéro de téléphone sera utilisé comme identifiant de connexion principal'
                     : '💡 Your phone number will be used as your primary login identifier'
+                  }
+                </p>
+              ) : (
+                <p className="text-xs text-blue-600 font-medium">
+                  {language === 'fr' 
+                    ? '✅ Vous pouvez utiliser votre numéro de téléphone ou votre e-mail pour vous connecter'
+                    : '✅ You can use your phone number or email to log in'
                   }
                 </p>
               )}
