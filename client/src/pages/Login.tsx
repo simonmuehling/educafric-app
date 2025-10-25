@@ -760,7 +760,7 @@ export default function Login() {
                   onChange={handleInputChange}
                   placeholder={isRegisterMode 
                     ? (language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com')
-                    : (language === 'fr' ? '+237677332730 ou email@exemple.com' : '+237677332730 or email@example.com')
+                    : (language === 'fr' ? '+237612345 ou email@exemple.com' : '+237612345 or email@example.com')
                   }
                   className="px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
                   data-testid="input-email-or-phone"
