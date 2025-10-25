@@ -1,23 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useStableCallback } from '@/hooks/useStableCallback';
-import { useFastModules } from '@/utils/fastModuleLoader';
-import { useQueryClient } from '@tanstack/react-query';
 import { 
-  TrendingUp, Settings, BookOpen, MessageSquare,
-  Calendar, FileText, Clock, Bell, DollarSign,
-  MapPin, Award, Users, Smartphone, User, GraduationCap,
-  CheckCircle2, AlertCircle, Target, Star, CreditCard, HelpCircle,
-  ChevronDown, Mail, Heart, BarChart3, Video
+  BookOpen, MessageSquare,
+  Calendar, FileText, Bell,
+  MapPin, Users, User, GraduationCap,
+  CheckCircle2, Star, CreditCard, HelpCircle,
+  Heart, BarChart3, Video
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-// Optimized: Removed static imports - using dynamic loading only for better bundle size
-
-// Import Premium components
-import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
-// Dynamic components loaded via fastModuleLoader
-// NotificationCenter, UniversalMultiRoleSwitch, and SubscriptionStatusCard now loaded dynamically via fastModuleLoader
-import { useAuth } from '@/contexts/AuthContext';
 
 interface ParentDashboardProps {
   activeModule?: string;
@@ -25,85 +15,7 @@ interface ParentDashboardProps {
 
 const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   const { language } = useLanguage();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
-  const { getModule, preloadModule } = useFastModules();
-  const [apiDataPreloaded, setApiDataPreloaded] = useState(false);
-  
-  // PRELOADING DISABLED - Load on-demand for instant dashboard
-  // Previously: 5 APIs + 7 modules = slow initial load
-  React.useEffect(() => {
-    setApiDataPreloaded(true);
-  }, []);
-  
-  // ✅ SAFE on-demand module preloading - ALL HOOKS AT COMPONENT LEVEL
-  React.useEffect(() => {
-    // Préchargement des modules non-critiques à la demande
-    const nonCriticalModules = ['parent-settings', 'help', 'requests'];
-    
-    nonCriticalModules.forEach((moduleName) => {
-      const ModuleComponent = getModule(moduleName);
-      if (!ModuleComponent) {
-        console.log(`[PARENT_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-        preloadModule(moduleName);
-      }
-    });
-  }, [getModule, preloadModule]);
-  
-  // ✅ SAFE module component creator - NO CONDITIONAL HOOKS
-  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
-    const ModuleComponent = getModule(moduleName);
-    
-    if (ModuleComponent) {
-      const isCritical = ['children', 'parent-grades', 'parent-attendance', 'parent-messages', 'payments', 'parent-library'].includes(moduleName);
-      if (isCritical) {
-        console.log(`[PARENT_DASHBOARD] 🚀 ${moduleName} served INSTANTLY - Module + Data PRELOADED!`);
-      }
-      
-      // Prepare props for specific modules that need them
-      const moduleProps: any = {};
-      
-      // NotificationCenter needs userId and userRole
-      if (moduleName === 'notifications' || moduleName === 'parent.notifications') {
-        moduleProps.userId = user?.id;
-        moduleProps.userRole = user?.role;
-      }
-      
-      return React.createElement(ModuleComponent, moduleProps);
-    }
-    
-    // Module not loaded yet - load it
-    console.log(`[PARENT_DASHBOARD] 🔄 Loading module: ${moduleName}`);
-    preloadModule(moduleName);
-    
-    return fallbackComponent || (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-2 text-green-600">
-            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
-          </p>
-        </div>
-      </div>
-    );
-  };
-
-  // Stable event handlers that survive server restarts
-  const handleSwitchToGrades = useStableCallback(() => {
-    console.log('[PARENT_DASHBOARD] 📊 Event received: switchToGrades');
-    setCurrentActiveModule('grades');
-  });
-
-  const handleSwitchToAttendance = useStableCallback(() => {
-    console.log('[PARENT_DASHBOARD] 📋 Event received: switchToAttendance');
-    setCurrentActiveModule('attendance');
-  });
-
-  const handleSwitchToMessages = useStableCallback(() => {
-    console.log('[PARENT_DASHBOARD] 💬 Event received: switchToMessages');
-    setCurrentActiveModule('messages');
-  });
   
   const text = {
     fr: {
@@ -149,199 +61,103 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       id: 'subscription',
       label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
       icon: <Star className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      component: createDynamicModule('subscription')
+      color: 'bg-gradient-to-r from-purple-500 to-pink-500'
     },
     {
       id: 'family',
       label: language === 'fr' ? 'Connexions Familiales' : 'Family Connections',
       icon: <Heart className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-pink-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Communication Familiale Directe"
-          userType="Parent"
-          features={[
-            "Communication directe parent-enfant",
-            "Messages chiffrés end-to-end",
-            "Connexions sécurisées par QR code",
-            "Chat temps réel avec statut en ligne"
-          ]}
-        >
-          {createDynamicModule('family')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-pink-500'
     },
     {
       id: 'children',
       label: t.myChildren,
       icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-blue-500',
-      component: createDynamicModule('children')
+      color: 'bg-blue-500'
     },
     {
-      id: 'messages',
+      id: 'parent-messages',
       label: t.communications,
       icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-purple-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Messages Enseignants"
-          userType="Parent"
-          features={[
-            "Communication directe avec les enseignants",
-            "Notifications push instantanées",
-            "Historique complet des conversations",
-            "Pièces jointes et photos"
-          ]}
-        >
-          {createDynamicModule('parent-messages')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-purple-500'
     },
     {
-      id: 'grades',
+      id: 'parent-bulletins',
       label: t.results,
       icon: <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-green-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Bulletins & Notes Détaillés"
-          userType="Parent"
-          features={[
-            "Bulletins avec graphiques détaillés",
-            "Analyse de progression par matière",
-            "Comparaison avec la moyenne de classe",
-            "Téléchargement PDF professionnel"
-          ]}
-        >
-          {createDynamicModule('parent-grades')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-green-500'
     },
     {
-      id: 'library',
+      id: 'parent-library',
       label: language === 'fr' ? 'Bibliothèque' : 'Library',
       icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-purple-600',
-      component: createDynamicModule('parent-library')
+      color: 'bg-purple-600'
     },
     {
       id: 'parent-online-classes',
       label: language === 'fr' ? 'Classes en Ligne' : 'Online Classes',
       icon: <Video className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-purple-600',
-      component: createDynamicModule('parent-online-classes')
+      color: 'bg-purple-600'
     },
     {
       id: 'parent-private-courses',
       label: language === 'fr' ? 'Cours Privés Enfants' : 'Children Private Courses',
       icon: <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-indigo-600',
-      component: createDynamicModule('parent-private-courses')
+      color: 'bg-indigo-600'
     },
     {
-      id: 'attendance',
+      id: 'parent-attendance',
       label: t.attendance,
       icon: <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-orange-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Suivi Présence Avancé"
-          userType="Parent"
-          features={[
-            "Alertes absence en temps réel",
-            "Historique de présence détaillé",
-            "Justification d'absence en ligne",
-            "Rapport mensuel automatique"
-          ]}
-        >
-          {createDynamicModule('parent-attendance')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-orange-500'
     },
     {
       id: 'payments',
       label: 'Paiements',
       icon: <CreditCard className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-red-500',
-      component: createDynamicModule('payments')
+      color: 'bg-red-500'
     },
     {
       id: 'parent-timetable',
       label: language === 'fr' ? 'Emploi du Temps Enfants' : 'Children Timetable',
       icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-purple-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Emploi du Temps des Enfants"
-          userType="Parent"
-          features={[
-            "Emploi du temps détaillé par enfant",
-            "Vue hebdomadaire interactive",
-            "Informations professeur et salle",
-            "Navigation jour par jour"
-          ]}
-        >
-          {createDynamicModule('parent-timetable')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-purple-500'
     },
     {
       id: 'geolocation',
       label: t.geolocation,
       icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-emerald-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Géolocalisation Premium"
-          userType="Parent"
-          requiredPlan="premium"
-          features={[
-            "Suivi GPS temps réel de votre enfant",
-            "Zones de sécurité personnalisées",
-            "Alertes d'arrivée/départ école",
-            "Historique des déplacements"
-          ]}
-        >
-          {createDynamicModule('geolocation')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-emerald-500'
     },
     {
       id: 'notifications',
       label: t.notifications,
       icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-blue-600',
-      component: createDynamicModule('notifications')
+      color: 'bg-blue-600'
     },
     {
       id: 'requests',
       label: t.requests,
       icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-orange-500',
-      component: createDynamicModule('requests')
+      color: 'bg-orange-500'
     },
     {
-      id: 'profile',
+      id: 'parent-settings',
       label: language === 'fr' ? 'Paramètres Parent' : 'Parent Settings',
       icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-gray-500',
-      component: createDynamicModule('parent-settings')
+      color: 'bg-gray-500'
     },
     {
       id: 'multirole',
       label: 'Multi-Rôles',
       icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-purple-600',
-      component: createDynamicModule('multirole')
+      color: 'bg-purple-600'
     },
     {
       id: 'help',
       label: t.help,
       icon: <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-cyan-500',
-      component: createDynamicModule('help')
+      color: 'bg-cyan-500'
     }
   ];
 

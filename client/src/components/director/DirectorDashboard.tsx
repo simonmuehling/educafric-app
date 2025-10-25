@@ -212,91 +212,34 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
 
   const modules = [
     {
-      id: 'settings',
+      id: 'director-settings',
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
-      color: 'bg-gray-500',
-      component: createDynamicModule('director-settings')
+      color: 'bg-gray-500'
     },
     {
       id: 'classes',
       label: t.classes,
       icon: <BookOpen className="w-6 h-6" />,
-      color: 'bg-orange-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Gestion Classes Multi-niveaux"
-          userType="School"
-          features={[
-            "Classes illimitées tous niveaux",
-            "Outils pédagogiques avancés",
-            "Affectation automatique enseignants",
-            "Analytics de performance par classe"
-          ]}
-        >
-          {createDynamicModule('classes')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-orange-500'
     },
     {
       id: 'teachers',
       label: t.teachers,
       icon: <UserCheck className="w-6 h-6" />,
-      color: 'bg-green-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Gestion Enseignants Avancée"
-          userType="School"
-          features={[
-            "Gestion illimitée d'enseignants",
-            "Rapports de performance détaillés", 
-            "Planification automatique des cours",
-            "Outils de communication intégrés"
-          ]}
-        >
-          {createDynamicModule('teachers')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-green-500'
     },
     {
       id: 'students',
       label: t.students,
       icon: <Users className="w-6 h-6" />,
-      color: 'bg-purple-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Gestion Élèves Premium"
-          userType="School"
-          features={[
-            "Base de données étudiants illimitée",
-            "Suivi personnalisé de progression",
-            "Communication automatisée avec parents",
-            "Rapports d'analyse comportementale"
-          ]}
-        >
-          {createDynamicModule('students')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-purple-500'
     },
     {
-      id: 'timetable',
+      id: 'director-timetable',
       label: t.timetable,
       icon: <Clock className="w-6 h-6" />,
-      color: 'bg-pink-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Emploi du Temps Intelligent"
-          userType="School"
-          features={[
-            "Génération automatique d'emplois du temps",
-            "Optimisation des conflits d'horaires",
-            "Synchronisation multi-classes",
-            "Notifications automatiques de changements"
-          ]}
-        >
-          {createDynamicModule('director-timetable')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-pink-500'
     },
     {
       id: 'calendar-export',
@@ -306,117 +249,76 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       component: <CalendarExport userType="school" schoolId={user?.schoolId} />
     },
     {
-      id: 'attendance',
+      id: 'director-attendance',
       label: t.attendance,
       icon: <CheckCircle className="w-6 h-6" />,
-      color: 'bg-yellow-500',
-      component: createDynamicModule('director-attendance')
+      color: 'bg-yellow-500'
     },
     {
-      id: 'communications',
+      id: 'director-communications',
       label: t.communications,
       icon: <MessageSquare className="w-6 h-6" />,
-      color: 'bg-indigo-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Centre Communications Pro"
-          userType="School"
-          features={[
-            "Messages groupés SMS/WhatsApp illimités",
-            "Templates de communication automatisés",
-            "Suivi de livraison des messages",
-            "Intégration avec systèmes de notation"
-          ]}
-        >
-          {createDynamicModule('director-communications')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-indigo-500'
     },
     {
       id: 'teacher-absence',
       label: t.teacherAbsence,
       icon: <UserX className="w-6 h-6" />,
-      color: 'bg-red-500',
-      component: createDynamicModule('teacher-absence')
+      color: 'bg-red-500'
     },
     {
       id: 'parent-requests',
       label: t.parentRequests,
       icon: <FileText className="w-6 h-6" />,
-      color: 'bg-teal-500',
-      component: createDynamicModule('parent-requests')
+      color: 'bg-teal-500'
     },
-
     {
       id: 'content-approval',
       label: language === 'fr' ? 'Contenu Pédagogique' : 'Educational Content',
       icon: <BookOpen className="w-6 h-6" />,
-      color: 'bg-emerald-500',
-      component: createDynamicModule('content-approval')
+      color: 'bg-emerald-500'
     },
     {
       id: 'notifications',
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
-      color: 'bg-blue-600',
-      component: createDynamicModule('notifications')
+      color: 'bg-blue-600'
     },
     {
       id: 'school-administrators',
       label: t.schoolAdministrators,
       icon: <Shield className="w-6 h-6" />,
-      color: 'bg-amber-500',
-      component: createDynamicModule('school-administrators')
+      color: 'bg-amber-500'
     },
     {
       id: 'reports',
       label: t.reports,
       icon: <BarChart3 className="w-6 h-6" />,
-      color: 'bg-violet-500',
-      component: createDynamicModule('reports')
+      color: 'bg-violet-500'
     },
     {
       id: 'config-guide',
       label: t.configGuide,
       icon: <Settings className="w-6 h-6" />,
-      color: 'bg-indigo-500',
-      component: createDynamicModule('config-guide')
+      color: 'bg-indigo-500'
     },
     {
       id: 'school-settings',
       label: t.schoolSettings || (language === 'fr' ? 'Paramètres École' : 'School Settings'),
       icon: <Building2 className="w-6 h-6" />,
-      color: 'bg-slate-600',
-      component: createDynamicModule('school-settings')
+      color: 'bg-slate-600'
     },
-    // comprehensive-bulletins module removed - now integrated in academic-management
     {
       id: 'academic-management',
       label: language === 'fr' ? 'Gestion Académique' : 'Academic Management',
       icon: <BookOpen className="w-6 h-6" />,
-      color: 'bg-gradient-to-r from-blue-500 to-cyan-500',
-      component: null // Will be loaded dynamically by UnifiedIconDashboard
+      color: 'bg-gradient-to-r from-blue-500 to-cyan-500'
     },
     {
       id: 'online-classes',
       label: t.onlineClasses,
       icon: <Video className="w-6 h-6" />,
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Classes en ligne avec Jitsi Meet"
-          userType="School"
-          features={[
-            "Visioconférences illimitées avec Jitsi Meet",
-            "Gestion avancée des sessions de cours",
-            "Enregistrement et suivi de présence",
-            "Interface bilingue FR/EN optimisée",
-            "Support technique dédié 24/7"
-          ]}
-        >
-          {createDynamicModule('online-classes')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-gradient-to-r from-purple-500 to-pink-500'
     }
   ];
 

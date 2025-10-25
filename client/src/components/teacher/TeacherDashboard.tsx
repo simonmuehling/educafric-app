@@ -180,25 +180,22 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
 
   const modules = [
     ...(showIndependentCourses ? [{
-      id: 'independent-courses',
+      id: 'teacher-independent-courses',
       label: language === 'fr' ? 'Mes Cours Privés' : 'My Private Courses',
       icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-orange-500',
-      component: createDynamicModule('teacher-independent-courses')
+      color: 'bg-orange-500'
     }] : []),
     {
-      id: 'classes',
+      id: 'teacher-classes',
       label: t.classes,
       icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-blue-500',
-      component: createDynamicModule('teacher-classes')
+      color: 'bg-blue-500'
     },
     {
-      id: 'timetable',
+      id: 'teacher-timetable',
       label: t.timetable,
       icon: <Clock className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-green-500',
-      component: createDynamicModule('teacher-timetable')
+      color: 'bg-green-500'
     },
     {
       id: 'calendar-export',
@@ -208,88 +205,76 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       component: <CalendarExport userType="teacher" userId={user?.id} />
     },
     {
-      id: 'attendance',
+      id: 'teacher-attendance',
       label: t.attendance,
       icon: <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-purple-500',
-      component: createDynamicModule('teacher-attendance')
+      color: 'bg-purple-500'
     },
     {
-      id: 'assignments',
+      id: 'teacher-assignments',
       label: t.assignments,
       icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-pink-500',
-      component: createDynamicModule('teacher-assignments')
+      color: 'bg-pink-500'
     },
     {
-      id: 'content',
+      id: 'teacher-content',
       label: t.content,
       icon: <PenTool className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-yellow-500',
-      component: createDynamicModule('teacher-content')
+      color: 'bg-yellow-500'
     },
     {
-      id: 'library',
+      id: 'teacher-library',
       label: language === 'fr' ? 'Bibliothèque' : 'Library',
       icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-emerald-500',
-      component: createDynamicModule('teacher-library')
+      color: 'bg-emerald-500'
     },
     {
-      id: 'reports',
+      id: 'teacher-bulletins',
       label: t.reports,
       icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-indigo-500',
-      component: createDynamicModule('teacher-bulletins')
+      color: 'bg-indigo-500'
     },
     {
-      id: 'communications',
+      id: 'teacher-communications',
       label: t.communications,
       icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-red-500',
-      component: createDynamicModule('teacher-communications')
+      color: 'bg-red-500'
     },
     {
       id: 'teacher-online-classes',
       label: t.onlineClasses,
       icon: <Video className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-purple-600',
-      component: createDynamicModule('teacher-online-classes')
+      color: 'bg-purple-600'
     },
     {
-      id: 'absence-declaration',
+      id: 'teacher-absence-declaration',
       label: t.absenceDeclaration,
       icon: <UserX className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-orange-600',
-      component: createDynamicModule('teacher-absence-declaration')
+      color: 'bg-orange-600'
     },
     {
       id: 'notifications',
       label: t.notifications,
       icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-blue-600',
-      component: createDynamicModule('notifications')
+      color: 'bg-blue-600'
     },
     {
       id: 'multirole',
       label: t.multirole,
       icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-purple-600',
-      component: createDynamicModule('multirole')
+      color: 'bg-purple-600'
     },
     {
       id: 'help',
       label: t.help,
       icon: <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-emerald-500',
-      component: createDynamicModule('help')
+      color: 'bg-emerald-500'
     },
     {
-      id: 'settings',
+      id: 'teacher-settings',
       label: language === 'fr' ? 'Paramètres' : 'Settings',
       icon: <Settings className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-gray-600',
-      component: createDynamicModule('teacher-settings')
+      color: 'bg-gray-600'
     }
   ];
 

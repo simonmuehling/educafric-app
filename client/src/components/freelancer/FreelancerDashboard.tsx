@@ -1,19 +1,10 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useFastModules } from '@/utils/fastModuleLoader';
-import { useAuth } from '@/contexts/AuthContext';
-import { useQueryClient } from '@tanstack/react-query';
 import { 
   Users, Calendar, DollarSign, BarChart3, BookOpen, MessageSquare,
   Settings, Clock, MapPin, FileText, HelpCircle, Bell, User, Star
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
-// Optimized: Removed static imports - using dynamic loading only for better bundle size
-// UniversalMultiRoleSwitch, NotificationCenter, and SubscriptionStatusCard now loaded dynamically via fastModuleLoader
-
-// Import Premium components
-import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
 
 interface FreelancerDashboardProps {
   stats?: any;
@@ -22,58 +13,6 @@ interface FreelancerDashboardProps {
 
 const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) => {
   const { language } = useLanguage();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const { getModule, preloadModule } = useFastModules();
-  const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
-  
-  // PRELOADING DISABLED - Load on-demand for instant dashboard
-  // Previously: 4 APIs + 6 modules = slow initial load
-  React.useEffect(() => {
-    setApiDataPreloaded(true);
-  }, []);
-  
-  // ULTRA-FAST module component creator
-  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
-    const ModuleComponent = getModule(moduleName);
-    
-    // ALWAYS call hooks in the same order - move useEffect before conditional return
-    React.useEffect(() => {
-      if (!ModuleComponent) {
-        console.log(`[FREELANCER_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-        preloadModule(moduleName);
-      }
-    }, [ModuleComponent, moduleName]);
-    
-    if (ModuleComponent) {
-      const isCritical = ['students', 'sessions', 'schedule', 'payments'].includes(moduleName);
-      if (isCritical && apiDataPreloaded) {
-        console.log(`[FREELANCER_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
-      }
-      
-      // Prepare props for specific modules that need them
-      const moduleProps: any = {};
-      
-      // NotificationCenter needs userId and userRole
-      if (moduleName === 'notifications' || moduleName === 'freelancer.notifications') {
-        moduleProps.userId = user?.id;
-        moduleProps.userRole = user?.role;
-      }
-      
-      return React.createElement(ModuleComponent, moduleProps);
-    }
-    
-    return fallbackComponent || (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-2 text-purple-600">
-            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
-          </p>
-        </div>
-      </div>
-    );
-  };
 
   const text = {
     fr: {
@@ -114,176 +53,73 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       id: 'subscription',
       label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
       icon: <Star className="w-6 h-6" />,
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      component: createDynamicModule('subscription')
+      color: 'bg-gradient-to-r from-purple-500 to-pink-500'
     },
     {
-      id: 'settings',
+      id: 'freelancer-settings',
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
-      color: 'bg-blue-500',
-      component: createDynamicModule('freelancer-settings')
+      color: 'bg-blue-500'
     },
     {
-      id: 'students',
+      id: 'freelancer-students',
       label: t.students,
       icon: <Users className="w-6 h-6" />,
-      color: 'bg-green-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Gestion Étudiants Premium"
-          userType="Freelancer"
-          features={[
-            "Accès à toutes les écoles partenaires",
-            "Profil d'étudiant détaillé avec historique",
-            "Système de notation avancé",
-            "Communication directe avec parents"
-          ]}
-        >
-          {createDynamicModule('students')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-green-500'
     },
     {
       id: 'sessions',
       label: t.sessions,
       icon: <Calendar className="w-6 h-6" />,
-      color: 'bg-purple-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Sessions d'Enseignement"
-          userType="Freelancer"
-          features={[
-            "Planification illimitée de sessions",
-            "Outils pédagogiques intégrés",
-            "Enregistrement des progressions",
-            "Rapports détaillés par session"
-          ]}
-        >
-          {createDynamicModule('sessions')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-purple-500'
     },
     {
       id: 'payments',
       label: t.payments,
       icon: <DollarSign className="w-6 h-6" />,
-      color: 'bg-orange-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Gestion Financière"
-          userType="Freelancer"
-          features={[
-            "Facturation automatisée",
-            "Suivi des paiements temps réel",
-            "Rapports fiscaux mensuels",
-            "Paiements Orange Money & MTN"
-          ]}
-        >
-          {createDynamicModule('payments')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-orange-500'
     },
     {
       id: 'schedule',
       label: t.schedule,
       icon: <Clock className="w-6 h-6" />,
-      color: 'bg-pink-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Planning Professionnel"
-          userType="Freelancer"
-          features={[
-            "Calendrier synchronisé multi-écoles",
-            "Gestion des disponibilités avancée",
-            "Rappels automatiques de cours",
-            "Optimisation des trajets"
-          ]}
-        >
-          {createDynamicModule('schedule')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-pink-500'
     },
     {
       id: 'resources',
       label: t.resources,
       icon: <FileText className="w-6 h-6" />,
-      color: 'bg-yellow-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Ressources Pédagogiques"
-          userType="Freelancer"
-          features={[
-            "Bibliothèque de cours premium",
-            "Outils de création de contenu",
-            "Partage sécurisé avec étudiants",
-            "Templates professionnels"
-          ]}
-        >
-          {createDynamicModule('resources')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-yellow-500'
     },
     {
-      id: 'communications',
+      id: 'freelancer-communications',
       label: t.communications,
       icon: <MessageSquare className="w-6 h-6" />,
-      color: 'bg-indigo-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Communication Professionnelle"
-          userType="Freelancer"
-          features={[
-            "Messagerie directe avec écoles",
-            "Notifications WhatsApp intégrées",
-            "Rapports de progression automatiques",
-            "Support client prioritaire"
-          ]}
-        >
-          {createDynamicModule('communications')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-indigo-500'
     },
     {
       id: 'geolocation',
       label: t.geolocation,
       icon: <MapPin className="w-6 h-6" />,
-      color: 'bg-teal-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Géolocalisation Pro"
-          userType="Freelancer"
-          features={[
-            "Optimisation d'itinéraires multi-écoles",
-            "Suivi kilométrique automatique",
-            "Zones d'intervention personnalisées",
-            "Calcul des frais de déplacement"
-          ]}
-        >
-          {createDynamicModule('geolocation')}
-        </PremiumFeatureGate>
-      )
+      color: 'bg-teal-500'
     },
     {
       id: 'notifications',
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
-      color: 'bg-blue-600',
-      component: createDynamicModule('notifications')
+      color: 'bg-blue-600'
     },
     {
       id: 'multirole',
       label: 'Multi-Rôles',
       icon: <User className="w-6 h-6" />,
-      color: 'bg-purple-600',
-      component: createDynamicModule('multirole')
+      color: 'bg-purple-600'
     },
     {
       id: 'help',
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
-      color: 'bg-cyan-500',
-      component: createDynamicModule('help')
+      color: 'bg-cyan-500'
     }
   ];
 
