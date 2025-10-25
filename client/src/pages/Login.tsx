@@ -728,7 +728,10 @@ export default function Login() {
 
             <div className="space-y-2 mobile-input-field">
               <Label htmlFor="email" className="text-gray-700 font-medium text-sm md:text-base">
-                {language === 'fr' ? 'Adresse E-mail (Optionnel)' : 'Email Address (Optional)'}
+                {isRegisterMode 
+                  ? (language === 'fr' ? 'Adresse E-mail (Optionnel)' : 'Email Address (Optional)')
+                  : (language === 'fr' ? 'Adresse E-mail ou Téléphone' : 'Email or Phone Number')
+                }
               </Label>
               <div className="relative">
                 <Input
@@ -739,7 +742,6 @@ export default function Login() {
                   onChange={handleInputChange}
                   placeholder={language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com'}
                   className="px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
-                  required={!isRegisterMode}
                 />
               </div>
               {isRegisterMode && (
