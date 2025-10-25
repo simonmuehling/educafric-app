@@ -268,8 +268,14 @@ export default function Login() {
 
     try {
       if (isRegisterMode) {
+        // Clean up email - remove if empty or placeholder
+        const cleanedData = {
+          ...formData,
+          email: (formData.email && !formData.email.includes('example.com')) ? formData.email : undefined
+        };
+        
         // Check for duplicate email/phone FIRST (only if email is provided)
-        const hasDuplicate = await checkForDuplicates(formData.email, formData.phoneNumber);
+        const hasDuplicate = await checkForDuplicates(cleanedData.email || '', formData.phoneNumber);
         if (hasDuplicate) {
           return; // Stop here and show duplicate dialog
         }
@@ -278,11 +284,11 @@ export default function Login() {
         const needsRoleSelection = await handleMultiRoleDetection(formData.phoneNumber);
         
         if (needsRoleSelection) {
-          setPendingRegistration(formData);
+          setPendingRegistration(cleanedData);
           return;
         }
         
-        await register(formData);
+        await register(cleanedData);
         
         // Trigger confetti celebration for new user
         celebrateSignup();
