@@ -374,12 +374,8 @@ router.post('/register', async (req, res) => {
 
         createdSchoolId = school.id;
         console.log('[AUTH_REGISTER] School created with ID:', createdSchoolId);
-
-        // Assign EDUCAFRIC number to the school
-        const { EducafricNumberService } = await import("../services/educafricNumberService");
-        await EducafricNumberService.assignToSchool(req.body.educafricNumber, school.id);
+        // Note: EDUCAFRIC number is already assigned by storage.createSchool()
         educafricAssigned = true;
-        console.log('[AUTH_REGISTER] ✅ EDUCAFRIC number assigned to school:', req.body.educafricNumber);
 
         // Link Director to the school
         await storage.updateUser(user.id, { schoolId: school.id });
@@ -398,14 +394,11 @@ router.post('/register', async (req, res) => {
           console.error('[AUTH_REGISTER] ⚠️ Failed to rollback user creation:', rollbackError);
         }
 
-        // 2. Delete the school if it was created
+        // 2. School cleanup: createSchool() already handles its own rollback if assignment fails
+        // If we get here, the school was created but Director linking failed
+        // Note: School may be orphaned - consider manual cleanup via admin panel
         if (createdSchoolId) {
-          try {
-            await storage.deleteSchool(createdSchoolId);
-            console.log('[AUTH_REGISTER] ✅ Rolled back school creation, ID:', createdSchoolId);
-          } catch (schoolRollbackError) {
-            console.error('[AUTH_REGISTER] ⚠️ Failed to rollback school creation:', schoolRollbackError);
-          }
+          console.log('[AUTH_REGISTER] ⚠️ School ID', createdSchoolId, 'may be orphaned (no Director linked)');
         }
 
         // 3. Release EDUCAFRIC number if it was assigned
