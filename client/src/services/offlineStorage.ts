@@ -29,7 +29,7 @@ export interface CachedData {
 
 class OfflineStorageManager {
   private dbName = 'educafric-offline';
-  private dbVersion = 2;
+  private dbVersion = 3;
   private db: IDBDatabase | null = null;
   private initPromise: Promise<void> | null = null;
 
@@ -63,21 +63,43 @@ class OfflineStorageManager {
 
       request.onupgradeneeded = (event: any) => {
         const db = event.target.result;
+        const transaction = event.target.transaction;
         console.log('[OFFLINE] Upgrading database...');
 
-        // Create object stores
+        // Create or upgrade offlineQueue object store
+        let queueStore;
         if (!db.objectStoreNames.contains('offlineQueue')) {
-          const queueStore = db.createObjectStore('offlineQueue', { keyPath: 'id' });
+          queueStore = db.createObjectStore('offlineQueue', { keyPath: 'id' });
           queueStore.createIndex('synced', 'synced', { unique: false });
           queueStore.createIndex('timestamp', 'timestamp', { unique: false });
+        } else {
+          // Object store exists, check if indexes need to be created
+          queueStore = transaction.objectStore('offlineQueue');
+          if (!queueStore.indexNames.contains('synced')) {
+            queueStore.createIndex('synced', 'synced', { unique: false });
+          }
+          if (!queueStore.indexNames.contains('timestamp')) {
+            queueStore.createIndex('timestamp', 'timestamp', { unique: false });
+          }
         }
 
+        // Create or upgrade cachedData object store
+        let cacheStore;
         if (!db.objectStoreNames.contains('cachedData')) {
-          const cacheStore = db.createObjectStore('cachedData', { keyPath: 'id' });
+          cacheStore = db.createObjectStore('cachedData', { keyPath: 'id' });
           cacheStore.createIndex('type', 'type', { unique: false });
           cacheStore.createIndex('expiresAt', 'expiresAt', { unique: false });
+        } else {
+          cacheStore = transaction.objectStore('cachedData');
+          if (!cacheStore.indexNames.contains('type')) {
+            cacheStore.createIndex('type', 'type', { unique: false });
+          }
+          if (!cacheStore.indexNames.contains('expiresAt')) {
+            cacheStore.createIndex('expiresAt', 'expiresAt', { unique: false });
+          }
         }
 
+        // Create userPreferences object store if needed
         if (!db.objectStoreNames.contains('userPreferences')) {
           db.createObjectStore('userPreferences', { keyPath: 'userId' });
         }
@@ -124,17 +146,50 @@ class OfflineStorageManager {
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction(['offlineQueue'], 'readonly');
       const store = transaction.objectStore('offlineQueue');
-      const index = store.index('synced');
-      const request = index.getAll(IDBKeyRange.only(false));
+      
+      try {
+        const index = store.index('synced');
+        const request = index.getAll(IDBKeyRange.only(false));
 
-      request.onsuccess = () => {
-        resolve(request.result || []);
-      };
+        request.onsuccess = () => {
+          resolve(request.result || []);
+        };
 
-      request.onerror = () => {
-        console.error('[OFFLINE] Failed to get pending actions:', request.error);
-        reject(request.error);
-      };
+        request.onerror = (event) => {
+          // Prevent transaction from auto-aborting so fallback can proceed
+          event.preventDefault();
+          
+          if (import.meta.env.DEV) {
+            console.warn('[OFFLINE] Index query failed, falling back to full scan:', request.error);
+          }
+          // Fallback: get all items and filter manually
+          const fallbackRequest = store.getAll();
+          fallbackRequest.onsuccess = () => {
+            const allItems = fallbackRequest.result || [];
+            const pendingItems = allItems.filter((item: OfflineQueueItem) => item.synced === false);
+            resolve(pendingItems);
+          };
+          fallbackRequest.onerror = () => {
+            console.error('[OFFLINE] Failed to get pending actions (fallback also failed):', fallbackRequest.error);
+            reject(fallbackRequest.error);
+          };
+        };
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn('[OFFLINE] Index not available, falling back to full scan:', error);
+        }
+        // Fallback for when index doesn't exist
+        const fallbackRequest = store.getAll();
+        fallbackRequest.onsuccess = () => {
+          const allItems = fallbackRequest.result || [];
+          const pendingItems = allItems.filter((item: OfflineQueueItem) => item.synced === false);
+          resolve(pendingItems);
+        };
+        fallbackRequest.onerror = () => {
+          console.error('[OFFLINE] Failed to get pending actions (fallback also failed):', fallbackRequest.error);
+          reject(fallbackRequest.error);
+        };
+      }
     });
   }
 
