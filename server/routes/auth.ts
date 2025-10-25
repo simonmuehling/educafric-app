@@ -45,7 +45,15 @@ passport.use(new LocalStrategy(
   async (req, email, password, done) => {
     try {
       let user = null;
+      
+      // Get phone from either phoneNumber field OR from email field (if it's not an email)
       let phone = req.body.phoneNumber || req.body.phone;
+      
+      // If email field doesn't contain @ symbol, treat it as a phone number
+      if (email && !email.includes('@')) {
+        phone = email;
+        email = null; // Clear email since it's actually a phone number
+      }
 
       // Normalize phone number: add + if missing
       if (phone && !phone.startsWith('+')) {
@@ -56,6 +64,7 @@ passport.use(new LocalStrategy(
       // Try to find user by email first (if provided)
       if (email) {
         user = await storage.getUserByEmail(email);
+        console.log(`[AUTH_STRATEGY] Login attempt with email: ${email}`);
       }
       
       // If no user found by email, try by phone number
