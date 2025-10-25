@@ -31,10 +31,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (emailOrPhone: string, password: string) => {
     setIsLoading(true);
     try {
-      const isEmail = emailOrPhone.includes('@');
-      const payload = isEmail 
-        ? { email: emailOrPhone, password }
-        : { phoneNumber: emailOrPhone, password };
+      // ALWAYS send via 'email' field - backend will detect if it's a phone
+      const payload = { email: emailOrPhone, password };
       
       const response = await apiRequest('POST', '/api/auth/login', payload);
       
