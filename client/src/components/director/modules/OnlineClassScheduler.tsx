@@ -1074,14 +1074,14 @@ const OnlineClassScheduler: React.FC = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>{t.createRecurrence.selectCourse} (Optional)</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
+                              <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} value={field.value || "none"}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-recurrence-course">
                                     <SelectValue placeholder={language === 'fr' ? "Aucun - Programmation directe" : "None - Direct scheduling"} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="">
+                                  <SelectItem value="none">
                                     {language === 'fr' ? "Aucun - Programmation directe" : "None - Direct scheduling"}
                                   </SelectItem>
                                   {coursesData?.courses?.map((course: OnlineCourse) => (

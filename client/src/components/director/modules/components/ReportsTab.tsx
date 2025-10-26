@@ -87,7 +87,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                   <SelectValue placeholder="Tous" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les trimestres</SelectItem>
+                  <SelectItem value="all">Tous les trimestres</SelectItem>
                   <SelectItem value="T1">Trimestre 1</SelectItem>
                   <SelectItem value="T2">Trimestre 2</SelectItem>
                   <SelectItem value="T3">Trimestre 3</SelectItem>
@@ -102,7 +102,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                   <SelectValue placeholder="Toutes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Toutes les classes</SelectItem>
+                  <SelectItem value="all">Toutes les classes</SelectItem>
                   {classes?.map((cls: any) => (
                     <SelectItem key={cls.id} value={cls.id.toString()}>
                       {cls.name}
@@ -119,7 +119,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                   <SelectValue placeholder="Tous" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les canaux</SelectItem>
+                  <SelectItem value="all">Tous les canaux</SelectItem>
                   <SelectItem value="email">Email</SelectItem>
                   <SelectItem value="sms">SMS</SelectItem>
                   <SelectItem value="whatsapp">WhatsApp</SelectItem>

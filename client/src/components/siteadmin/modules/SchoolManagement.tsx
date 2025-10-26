@@ -408,7 +408,11 @@ const SchoolManagement = () => {
 
   // Handler functions for new functionality
   const handleCreateSchool = () => {
-    createSchoolMutation.mutate(newSchoolData);
+    const dataToSend = {
+      ...newSchoolData,
+      educafricNumber: newSchoolData.educafricNumber === 'auto' ? '' : newSchoolData.educafricNumber
+    };
+    createSchoolMutation.mutate(dataToSend);
   };
 
   const handleManageSubscription = (school: School) => {
@@ -549,7 +553,7 @@ const SchoolManagement = () => {
                       <SelectValue placeholder="Générer automatiquement si vide" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">
+                      <SelectItem value="auto">
                         ⚡ Générer automatiquement
                       </SelectItem>
                       {(availableNumbersData as any)?.numbers?.length > 0 && (

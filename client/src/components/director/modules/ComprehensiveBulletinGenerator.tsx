@@ -735,8 +735,8 @@ export default function ComprehensiveBulletinGenerator() {
     classId: selectedClass,
     startDate: '',
     endDate: '',
-    status: '',
-    channel: ''
+    status: 'all',
+    channel: 'all'
   });
   
   // Report data states
@@ -2204,9 +2204,9 @@ export default function ComprehensiveBulletinGenerator() {
     queryKey: ['comprehensive-reports', 'overview', reportFilters],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (reportFilters.term) params.set('term', reportFilters.term);
-      if (reportFilters.academicYear) params.set('academicYear', reportFilters.academicYear);
-      if (reportFilters.classId) params.set('classId', reportFilters.classId);
+      if (reportFilters.term && reportFilters.term !== 'all') params.set('term', reportFilters.term);
+      if (reportFilters.academicYear && reportFilters.academicYear !== 'all') params.set('academicYear', reportFilters.academicYear);
+      if (reportFilters.classId && reportFilters.classId !== 'all') params.set('classId', reportFilters.classId);
       if (reportFilters.startDate) params.set('startDate', reportFilters.startDate);
       if (reportFilters.endDate) params.set('endDate', reportFilters.endDate);
       
@@ -2222,10 +2222,10 @@ export default function ComprehensiveBulletinGenerator() {
     queryKey: ['comprehensive-reports', 'distribution', reportFilters],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (reportFilters.term) params.set('term', reportFilters.term);
-      if (reportFilters.academicYear) params.set('academicYear', reportFilters.academicYear);
-      if (reportFilters.classId) params.set('classId', reportFilters.classId);
-      if (reportFilters.channel) params.set('channel', reportFilters.channel);
+      if (reportFilters.term && reportFilters.term !== 'all') params.set('term', reportFilters.term);
+      if (reportFilters.academicYear && reportFilters.academicYear !== 'all') params.set('academicYear', reportFilters.academicYear);
+      if (reportFilters.classId && reportFilters.classId !== 'all') params.set('classId', reportFilters.classId);
+      if (reportFilters.channel && reportFilters.channel !== 'all') params.set('channel', reportFilters.channel);
       
       const response = await apiRequest('GET', `/api/comprehensive-bulletins/reports/distribution-stats?${params.toString()}`);
       const data = await response.json();
@@ -2239,9 +2239,9 @@ export default function ComprehensiveBulletinGenerator() {
     queryKey: ['comprehensive-reports', 'timeline', reportFilters],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (reportFilters.term) params.set('term', reportFilters.term);
-      if (reportFilters.academicYear) params.set('academicYear', reportFilters.academicYear);
-      if (reportFilters.classId) params.set('classId', reportFilters.classId);
+      if (reportFilters.term && reportFilters.term !== 'all') params.set('term', reportFilters.term);
+      if (reportFilters.academicYear && reportFilters.academicYear !== 'all') params.set('academicYear', reportFilters.academicYear);
+      if (reportFilters.classId && reportFilters.classId !== 'all') params.set('classId', reportFilters.classId);
       if (reportFilters.startDate) params.set('startDate', reportFilters.startDate);
       if (reportFilters.endDate) params.set('endDate', reportFilters.endDate);
       params.set('limit', '50');
@@ -2843,9 +2843,9 @@ export default function ComprehensiveBulletinGenerator() {
       const params = new URLSearchParams();
       params.set('format', format);
       params.set('reportType', reportType);
-      if (reportFilters.term) params.set('term', reportFilters.term);
-      if (reportFilters.academicYear) params.set('academicYear', reportFilters.academicYear);
-      if (reportFilters.classId) params.set('classId', reportFilters.classId);
+      if (reportFilters.term && reportFilters.term !== 'all') params.set('term', reportFilters.term);
+      if (reportFilters.academicYear && reportFilters.academicYear !== 'all') params.set('academicYear', reportFilters.academicYear);
+      if (reportFilters.classId && reportFilters.classId !== 'all') params.set('classId', reportFilters.classId);
       if (reportFilters.startDate) params.set('startDate', reportFilters.startDate);
       if (reportFilters.endDate) params.set('endDate', reportFilters.endDate);
       
