@@ -123,10 +123,10 @@ const Td = ({ children, sticky = false, className = "", ...props }: any) => (
 function ArchiveManagementContent() {
   const { language } = useLanguage();
   const [filters, setFilters] = useState({
-    academicYear: '',
-    classId: '',
-    term: '',
-    type: '',
+    academicYear: 'all',
+    classId: 'all',
+    term: 'all',
+    type: 'all',
     search: '',
     page: 1,
     limit: 20
@@ -138,7 +138,7 @@ function ArchiveManagementContent() {
     queryFn: () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value.toString());
+        if (value && value !== 'all') params.append(key, value.toString());
       });
       return fetch(`/api/director/archives?${params}`).then(res => res.json());
     },
@@ -148,7 +148,7 @@ function ArchiveManagementContent() {
   const { data: statsData } = useQuery({
     queryKey: ['/api/director/archives/stats', filters.academicYear],
     queryFn: () => {
-      const url = filters.academicYear 
+      const url = filters.academicYear && filters.academicYear !== 'all'
         ? `/api/director/archives/stats?academicYear=${filters.academicYear}`
         : '/api/director/archives/stats';
       return fetch(url).then(res => res.json());
@@ -275,7 +275,7 @@ function ArchiveManagementContent() {
                   <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Toutes</SelectItem>
+                  <SelectItem value="all">Toutes</SelectItem>
                   <SelectItem value="2024-2025">2024-2025</SelectItem>
                   <SelectItem value="2023-2024">2023-2024</SelectItem>
                 </SelectContent>
@@ -289,7 +289,7 @@ function ArchiveManagementContent() {
                   <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous</SelectItem>
+                  <SelectItem value="all">Tous</SelectItem>
                   <SelectItem value="bulletin">Bulletins</SelectItem>
                   <SelectItem value="transcript">Relevés</SelectItem>
                   <SelectItem value="annual-report">Rapports Annuels</SelectItem>
@@ -1336,14 +1336,14 @@ export function AttendanceRegister({ selectedClass }: { selectedClass: string })
                     {days.map(d => (
                       <Td key={d} className="text-center">
                         <Select
-                          value={row[d] || ""}
-                          onValueChange={(value) => setMark(student.id, d, value)}
+                          value={row[d] || "none"}
+                          onValueChange={(value) => setMark(student.id, d, value === "none" ? "" : value)}
                         >
                           <SelectTrigger className="w-12 h-8 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">-</SelectItem>
+                            <SelectItem value="none">-</SelectItem>
                             <SelectItem value="P">P</SelectItem>
                             <SelectItem value="A">A</SelectItem>
                             <SelectItem value="L">L</SelectItem>
