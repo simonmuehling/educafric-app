@@ -199,7 +199,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
         });
       }
 
-      const schoolData = validationResult.data;
+      const schoolData: any = validationResult.data;
       const { EducafricNumberService } = await import("../services/educafricNumberService");
 
       let educafricNumber = schoolData.educafricNumber;
@@ -208,7 +208,12 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       if (!educafricNumber) {
         console.log('[SITE_ADMIN_API] No EDUCAFRIC number provided, auto-generating one...');
         try {
-          const newNumber = await EducafricNumberService.generateSchoolNumber(`Created for ${schoolData.name}`);
+          const newNumber = await EducafricNumberService.createNumber({
+            type: 'SC',
+            entityType: 'school',
+            issuedBy: req.user?.id,
+            notes: `Auto-generated for ${schoolData.name}`
+          });
           educafricNumber = newNumber.educafricNumber;
           console.log('[SITE_ADMIN_API] ✅ Auto-generated EDUCAFRIC number:', educafricNumber);
         } catch (genError: any) {
@@ -258,13 +263,9 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
         console.log('[SITE_ADMIN_API] ✅ EDUCAFRIC number assigned to school:', educafricNumber);
       } catch (assignError: any) {
         console.error('[SITE_ADMIN_API] Failed to assign EDUCAFRIC number:', assignError);
-        // If assignment fails, we should delete the school to maintain consistency
-        try {
-          await storage.deleteSchool(newSchool.id);
-          console.log('[SITE_ADMIN_API] Rolled back school creation due to assignment failure');
-        } catch (rollbackError) {
-          console.error('[SITE_ADMIN_API] ⚠️ Failed to rollback school creation:', rollbackError);
-        }
+        console.error('[SITE_ADMIN_API] ⚠️ MANUAL CLEANUP REQUIRED: School created but EDUCAFRIC number not assigned');
+        console.error('[SITE_ADMIN_API] School ID:', newSchool.id, 'EDUCAFRIC number:', educafricNumber);
+        // Note: Automatic rollback not available - manual intervention may be needed
         throw new Error('Failed to assign EDUCAFRIC number to school');
       }
 
