@@ -35,8 +35,8 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
   // Preload modules when dashboard loads (LEGACY - keeping for compatibility)
   useEffect(() => {
     const criticalModules = [
-      'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement', 
-      'MySchools', 'WhatsAppManager', 'CommercialCRM'
+      'commercial-documents', 'commercial-statistics', 'commercial-contacts', 
+      'commercial-schools', 'commercial-whatsapp'
     ];
     
     criticalModules.forEach(module => {

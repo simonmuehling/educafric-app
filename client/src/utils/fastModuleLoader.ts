@@ -53,7 +53,7 @@ class FastModuleLoader {
       'commercial-contacts': () => import('@/components/commercial/modules/ContactsManagement'),
       'commercial-documents': () => import('@/components/commercial/modules/DocumentsContracts'),
       'commercial-statistics': () => import('@/components/commercial/modules/CommercialStatistics'),
-      'commercial-whatsapp': () => import('@/components/commercial/modules/WhatsAppManager'),
+      'commercial-whatsapp': () => import('@/components/commercial/modules/WhatsAppManager'), // ✅ Using WhatsAppManager - compatible with existing API
       
       // COMMERCIAL DASHBOARD MODULE IDs
       'appointments': () => import('@/components/commercial/modules/FunctionalCommercialAppointments'),
