@@ -371,9 +371,15 @@ export const freelancerSubscriptions = pgTable("freelancer_subscriptions", {
 
 export const payments = pgTable("payments", {
   id: serial("id").primaryKey(),
-  studentId: integer("student_id").notNull(),
+  studentId: integer("student_id"), // Nullable for system/MTN payments
   amount: text("amount").notNull(),
   status: text("status").default("pending"),
+  orderId: text("order_id"), // MTN order reference
+  transactionId: text("transaction_id"), // Payment gateway transaction ID
+  phoneNumber: text("phone_number"), // Customer phone (MTN Mobile Money)
+  paymentMethod: text("payment_method"), // 'mtn', 'stripe', 'orange', etc.
+  failureReason: text("failure_reason"), // Reason for payment failure
+  metadata: jsonb("metadata"), // Additional payment details
   createdAt: timestamp("created_at").defaultNow()
 });
 

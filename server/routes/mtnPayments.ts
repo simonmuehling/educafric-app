@@ -296,8 +296,23 @@ router.post('/webhook', async (req, res) => {
         messageId: MessageId 
       });
       
-      // TODO: Intégrer avec le système de stockage des paiements MTN
-      console.log('[Y-NOTE_WEBHOOK] 💾 Should update payment status to ECHOUE for order:', order_id);
+      // Save failed payment to database
+      try {
+        await db.insert(payments).values({
+          studentId: null,
+          amount: amount?.toString() || '0',
+          status: 'failed',
+          orderId: order_id,
+          transactionId: MessageId,
+          phoneNumber: subscriberMsisdn,
+          paymentMethod: 'mtn',
+          failureReason: Reason || 'Unknown reason',
+          metadata: { ErrorCode, parameters }
+        });
+        console.log('[Y-NOTE_WEBHOOK] ✅ Failed payment saved to database for order:', order_id);
+      } catch (dbError: any) {
+        console.error('[Y-NOTE_WEBHOOK] ❌ Failed to save payment status to database:', dbError);
+      }
       
       res.status(200).json({
         success: true,
