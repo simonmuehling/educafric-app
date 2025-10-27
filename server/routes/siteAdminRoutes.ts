@@ -2336,85 +2336,10 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     try {
       console.log('[SITE_ADMIN_API] Fetching payment transactions from database');
       
-      // TODO: Fetch real payment data from database
-      // For now, return realistic African educational platform payment data
-      const payments = [
-        {
-          id: 1,
-          transactionId: 'TXN-EDU-001-2024',
-          school: 'École Primaire Bilingue Yaoundé',
-          amount: 50000,
-          status: 'pending',
-          date: '2024-01-22T14:30:00Z',
-          method: 'Bank Transfer',
-          type: 'subscription',
-          description: 'Abonnement annuel Premium',
-          userId: 101
-        },
-        {
-          id: 2,
-          transactionId: 'TXN-EDU-002-2024',
-          school: 'Lycée Excellence Douala',
-          amount: 75000,
-          status: 'completed',
-          date: '2024-01-22T13:45:00Z',
-          method: 'Orange Money',
-          type: 'subscription',
-          description: 'Abonnement mensuel Premium',
-          userId: 102
-        },
-        {
-          id: 3,
-          transactionId: 'TXN-EDU-003-2024',
-          school: 'Collège Moderne Bafoussam',
-          amount: 25000,
-          status: 'failed',
-          date: '2024-01-22T12:20:00Z',
-          method: 'MTN Mobile Money',
-          type: 'subscription',
-          description: 'Abonnement mensuel Basic',
-          userId: 103
-        },
-        {
-          id: 4,
-          transactionId: 'TXN-EDU-004-2024',
-          school: 'Institut Technique Garoua',
-          amount: 30000,
-          status: 'completed',
-          date: '2024-01-22T11:15:00Z',
-          method: 'Bank Transfer',
-          type: 'top-up',
-          description: 'Recharge SMS crédit',
-          userId: 104
-        },
-        {
-          id: 5,
-          transactionId: 'TXN-EDU-005-2024',
-          school: 'École Primaire Publique Bamenda',
-          amount: 50000,
-          status: 'pending',
-          date: '2024-01-22T10:30:00Z',
-          method: 'Orange Money',
-          type: 'subscription',
-          description: 'Abonnement trial extension',
-          userId: 105
-        },
-        {
-          id: 6,
-          transactionId: 'TXN-EDU-006-2024',
-          school: 'Université Catholique Yaoundé',
-          amount: 100000,
-          status: 'refunded',
-          date: '2024-01-21T16:45:00Z',
-          method: 'Bank Transfer',
-          type: 'subscription',
-          description: 'Abonnement Enterprise - remboursé',
-          userId: 106
-        }
-      ];
+      const paymentsData = await db.select().from(payments).orderBy(desc(payments.createdAt));
       
-      console.log(`[SITE_ADMIN_API] ✅ Retrieved ${payments.length} payment transactions`);
-      res.json(payments);
+      console.log(`[SITE_ADMIN_API] ✅ Retrieved ${paymentsData.length} payment transactions from database`);
+      res.json(paymentsData);
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error fetching payments:', error);
       res.status(500).json({ message: 'Failed to fetch payments' });
@@ -2427,8 +2352,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       const { paymentId } = req.params;
       console.log(`[SITE_ADMIN_API] Confirming payment ${paymentId}`);
       
-      // TODO: Update payment status in database to 'completed'
-      // await storage.db.update(payments).set({ status: 'completed' }).where(eq(payments.id, paymentId));
+      await db.update(payments).set({ status: 'completed' }).where(eq(payments.id, parseInt(paymentId)));
       
       console.log(`[SITE_ADMIN_API] ✅ Payment ${paymentId} confirmed successfully`);
       res.json({ 
@@ -2448,8 +2372,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       const { paymentId } = req.params;
       console.log(`[SITE_ADMIN_API] Rejecting payment ${paymentId}`);
       
-      // TODO: Update payment status in database to 'failed'
-      // await storage.db.update(payments).set({ status: 'failed' }).where(eq(payments.id, paymentId));
+      await db.update(payments).set({ status: 'failed' }).where(eq(payments.id, parseInt(paymentId)));
       
       console.log(`[SITE_ADMIN_API] ✅ Payment ${paymentId} rejected successfully`);
       res.json({ 
