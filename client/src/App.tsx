@@ -534,7 +534,9 @@ function App() {
     // Configuration du filtre de console pour réduire le spam
     import("@/utils/consoleFilter").then(({ setupConsoleFilter }) => {
       setupConsoleFilter();
-    }).catch(() => {});
+    }).catch((error) => {
+      console.error('[APP] Failed to setup console filter:', error);
+    });
 
     // DISABLED: Memory optimizer conflicts resolved - using server-side optimization only
     // Multiple optimizers were causing performance degradation instead of improvement
@@ -566,7 +568,9 @@ function App() {
       // Arrêter l'optimiseur à la fermeture
       import("@/utils/memoryOptimizer").then(({ memoryOptimizer }) => {
         memoryOptimizer.stop();
-      }).catch(() => {});
+      }).catch((error) => {
+        console.error('[APP] Failed to stop memory optimizer:', error);
+      });
     };
   }, []);
 
