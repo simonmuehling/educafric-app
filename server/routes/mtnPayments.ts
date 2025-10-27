@@ -305,7 +305,7 @@ router.post('/webhook', async (req, res) => {
           orderId: order_id,
           transactionId: MessageId,
           phoneNumber: subscriberMsisdn,
-          paymentMethod: 'mtn',
+          paymentMethod: 'mtn_mobile_money',
           failureReason: Reason || 'Unknown reason',
           metadata: { ErrorCode, parameters }
         });
