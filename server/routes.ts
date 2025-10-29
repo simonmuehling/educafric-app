@@ -9951,33 +9951,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/school/logo/upload-url', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
+      console.log(`[SCHOOL_LOGO] Getting upload URL for user: ${user.id}`);
       
       const { ObjectStorageService } = await import('./objectStorage');
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
       
+      console.log(`[SCHOOL_LOGO] ✅ Generated upload URL successfully`);
       res.json({ success: true, uploadURL });
-    } catch (error) {
-      console.error('Error getting logo upload URL:', error);
-      res.status(500).json({ success: false, message: 'Failed to get upload URL' });
+    } catch (error: any) {
+      console.error('[SCHOOL_LOGO] ❌ Error getting logo upload URL:', error.message || error);
+      res.status(500).json({ success: false, message: error.message || 'Failed to get upload URL' });
     }
   });
 
   app.put('/api/school/logo', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log(`[SCHOOL_LOGO_API] PUT /api/school/logo for user: ${user.id}`);
+      console.log(`[SCHOOL_LOGO] PUT /api/school/logo for user: ${user.id}, schoolId: ${user.schoolId}`);
       
       const { logoUrl } = req.body;
       
       if (!logoUrl) {
+        console.error('[SCHOOL_LOGO] ❌ logoUrl is missing from request body');
         return res.status(400).json({ success: false, message: 'logoUrl is required' });
       }
+      
+      console.log(`[SCHOOL_LOGO] Received logoUrl: ${logoUrl.substring(0, 100)}...`);
       
       const { ObjectStorageService } = await import('./objectStorage');
       const objectStorageService = new ObjectStorageService();
       
       // Set ACL policy for the logo (public since it appears on bulletins)
+      console.log('[SCHOOL_LOGO] Setting ACL policy to public...');
       const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
         logoUrl,
         {
@@ -9986,15 +9992,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
       
-      // Store logo URL in session for now (until DB schema is updated)
+      console.log(`[SCHOOL_LOGO] Normalized object path: ${objectPath}`);
+      
+      // Update school logo in database if user has a school
+      if (user.schoolId) {
+        try {
+          await storage.updateSchool(user.schoolId, { logo: objectPath });
+          console.log(`[SCHOOL_LOGO] ✅ Logo saved to database for school ${user.schoolId}`);
+        } catch (dbError: any) {
+          console.error(`[SCHOOL_LOGO] ⚠️ Failed to save logo to database:`, dbError.message);
+          // Still store in session as fallback
+        }
+      }
+      
+      // Store logo URL in session as fallback
       (req.session as any).schoolLogo = objectPath;
       
-      console.log(`[SCHOOL_LOGO_API] Logo updated successfully: ${objectPath}`);
+      console.log(`[SCHOOL_LOGO] ✅ Logo updated successfully: ${objectPath}`);
       res.json({ success: true, logoPath: objectPath, message: 'School logo updated successfully' });
       
-    } catch (error) {
-      console.error('Error updating school logo:', error);
-      res.status(500).json({ success: false, message: 'Failed to update logo' });
+    } catch (error: any) {
+      console.error('[SCHOOL_LOGO] ❌ Error updating school logo:', error.message || error);
+      res.status(500).json({ success: false, message: error.message || 'Failed to update logo' });
     }
   });
 
