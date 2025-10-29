@@ -586,6 +586,15 @@ export default function ManualBulletinForm({
     setLoading(false);
   }, [studentProfile]);
 
+  // Fetch school profile to get logo and other school info
+  const { data: schoolProfile, isLoading: schoolLoading } = useQuery({
+    queryKey: ['/api/school/profile'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/school/profile');
+      return await response.json();
+    }
+  });
+
   // Fetch competency evaluation systems
   const { data: competencySystems } = useQuery({
     queryKey: ['/api/competency-systems', language],
@@ -699,6 +708,9 @@ export default function ManualBulletinForm({
   // Charger les données de l'élève depuis l'API ou utiliser des données par défaut
   useEffect(() => {
     if (studentProfile) {
+      // Get school info from schoolProfile (with logo)
+      const schoolInfo = schoolProfile?.profile || schoolProfile || {};
+      
       // Adapter les données de notre API au format attendu pour eleve (legacy format)
       setEleve({
         id: (studentProfile as any).id || studentId,
@@ -713,7 +725,11 @@ export default function ManualBulletinForm({
         professeurPrincipal: "Mme NGONO", // TODO: récupérer depuis l'API
         parents: { noms: "M. & Mme Parent", contacts: "+237 6xx xx xx xx" },
         photoUrl: "",
-        etablissement: { nom: "Institut Educafric", immatriculation: "EDU-2025-001" },
+        etablissement: { 
+          nom: schoolInfo.name || "Institut Educafric", 
+          immatriculation: "EDU-2025-001",
+          logoUrl: schoolInfo.logoUrl || null // Add logo from database
+        },
       });
 
       // Also populate extended student info (matching director interface)
@@ -732,6 +748,9 @@ export default function ManualBulletinForm({
 
       setLoading(false);
     } else if (studentId && !profileLoading) {
+      // Get school info from schoolProfile (with logo)
+      const schoolInfo = schoolProfile?.profile || schoolProfile || {};
+      
       // Si pas de profil trouvé mais on a un studentId, utiliser des données basiques
       setEleve({
         id: studentId,
@@ -746,7 +765,11 @@ export default function ManualBulletinForm({
         professeurPrincipal: "",
         parents: { noms: "", contacts: "" },
         photoUrl: "",
-        etablissement: { nom: "Institut Educafric", immatriculation: "EDU-2025-001" },
+        etablissement: { 
+          nom: schoolInfo.name || "Institut Educafric", 
+          immatriculation: "EDU-2025-001",
+          logoUrl: schoolInfo.logoUrl || null // Add logo from database
+        },
       });
 
       // Also set basic extended student info
@@ -765,7 +788,7 @@ export default function ManualBulletinForm({
 
       setLoading(false);
     }
-  }, [studentId, studentProfile, profileLoading]);
+  }, [studentId, studentProfile, profileLoading, schoolProfile]);
 
   // Calculs automatiques
   const totals = useMemo(() => {

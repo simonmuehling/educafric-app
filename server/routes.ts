@@ -9924,10 +9924,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // School profile with sandbox data integration
-  app.get('/api/school/profile', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+  // School profile with sandbox data integration - ACCESSIBLE TO ALL AUTHENTICATED USERS
+  app.get('/api/school/profile', requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      console.log('[SCHOOL_PROFILE_API] GET /api/school/profile for user:', user.id, 'schoolId:', user.schoolId, 'role:', user.role);
       
       // Check if user is in sandbox/demo mode
       const isSandboxUser = user.email?.includes('@test.educafric.com') || 
@@ -9936,7 +9937,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                            user.sandboxMode;
       
       if (isSandboxUser) {
-        console.log('[SCHOOL_API] 🔧 Sandbox user detected, serving sandbox school profile');
+        console.log('[SCHOOL_PROFILE_API] 🔧 Sandbox user detected, serving sandbox school profile');
         // Use rich sandbox data for sandbox users
         const sandboxProfile = {
           id: 1,
@@ -9975,6 +9976,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(sandboxProfile);
       }
       
+      // If user has a schoolId, fetch real school data from database
+      if (user.schoolId) {
+        try {
+          const schoolData = await storage.getSchoolById(user.schoolId);
+          if (schoolData) {
+            console.log('[SCHOOL_PROFILE_API] ✅ Returning real school data from database for:', schoolData.name);
+            const profile = {
+              id: schoolData.id,
+              name: schoolData.name,
+              type: schoolData.type,
+              address: schoolData.address,
+              phone: schoolData.phone,
+              email: schoolData.email,
+              website: schoolData.website,
+              logoUrl: schoolData.logo || (req.session as any)?.schoolLogo || null, // Database first, session as fallback
+              description: schoolData.description,
+              establishedYear: schoolData.establishedYear,
+              principalName: schoolData.principalName,
+              studentCapacity: schoolData.studentCapacity,
+              regionaleMinisterielle: schoolData.regionaleMinisterielle,
+              delegationDepartementale: schoolData.delegationDepartementale,
+              boitePostale: schoolData.boitePostale,
+              arrondissement: schoolData.arrondissement,
+              academicYear: schoolData.academicYear,
+              currentTerm: schoolData.currentTerm
+            };
+            return res.json({ success: true, profile });
+          }
+        } catch (dbError: any) {
+          console.error('[SCHOOL_PROFILE_API] ⚠️ Error fetching school from database:', dbError.message);
+          // Continue to fallback data
+        }
+      }
+      
+      // Fallback to mock data if no schoolId or database fetch failed
       const profile = {
         id: 1,
         name: 'Collège Saint-Joseph',
@@ -9990,9 +10026,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       res.json({ success: true, profile });
-    } catch (error) {
-      console.error('[SCHOOL_PROFILE_API] Error:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch profile' });
+    } catch (error: any) {
+      console.error('[SCHOOL_PROFILE_API] ❌ Error:', error.message || error);
+      res.status(500).json({ success: false, message: error.message || 'Failed to fetch profile' });
     }
   });
 
