@@ -762,7 +762,11 @@ const UnifiedSchoolSettings: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="schoolType">{t.schoolType}</Label>
-                  <Select defaultValue={schoolProfile?.type || 'private'}>
+                  <Select 
+                    value={formData.type || 'private'} 
+                    onValueChange={(value) => handleFieldChange('type', value)}
+                    disabled={!isEditing}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder={t.schoolType} />
                     </SelectTrigger>
