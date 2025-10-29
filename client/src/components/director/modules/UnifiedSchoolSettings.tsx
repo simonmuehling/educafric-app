@@ -89,6 +89,9 @@ const UnifiedSchoolSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  
+  // Local state for form data
+  const [formData, setFormData] = useState<Partial<SchoolProfile>>({});
 
   const text = {
     fr: {
@@ -259,6 +262,34 @@ const UnifiedSchoolSettings: React.FC = () => {
   });
 
   const schoolProfile = schoolData?.school;
+  
+  // Initialize formData when schoolProfile loads
+  React.useEffect(() => {
+    if (schoolProfile) {
+      setFormData({
+        name: schoolProfile.name,
+        type: schoolProfile.type,
+        address: schoolProfile.address,
+        phone: schoolProfile.phone,
+        email: schoolProfile.email,
+        website: schoolProfile.website,
+        description: schoolProfile.description,
+        establishedYear: schoolProfile.establishedYear,
+        principalName: schoolProfile.principalName,
+        studentCapacity: schoolProfile.studentCapacity,
+        regionaleMinisterielle: schoolProfile.regionaleMinisterielle,
+        delegationDepartementale: schoolProfile.delegationDepartementale,
+        boitePostale: schoolProfile.boitePostale,
+        arrondissement: schoolProfile.arrondissement,
+        logoUrl: schoolProfile.logoUrl
+      });
+    }
+  }, [schoolProfile]);
+  
+  // Handle form field changes
+  const handleFieldChange = (field: keyof SchoolProfile, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   // Use dummy data for configuration for now
   const schoolConfig = {
@@ -534,7 +565,8 @@ const UnifiedSchoolSettings: React.FC = () => {
                   <Label htmlFor="schoolName">{t.schoolName}</Label>
                   <Input
                     id="schoolName"
-                    defaultValue={schoolProfile?.name || ''}
+                    value={formData.name || ''}
+                    onChange={(e) => handleFieldChange('name', e.target.value)}
                     disabled={!isEditing}
                   />
                 </div>
@@ -542,7 +574,8 @@ const UnifiedSchoolSettings: React.FC = () => {
                   <Label htmlFor="principalName">{t.principalName}</Label>
                   <Input
                     id="principalName"
-                    defaultValue={schoolProfile?.principalName || ''}
+                    value={formData.principalName || ''}
+                    onChange={(e) => handleFieldChange('principalName', e.target.value)}
                     disabled={!isEditing}
                   />
                 </div>
@@ -551,7 +584,8 @@ const UnifiedSchoolSettings: React.FC = () => {
                   <Input
                     id="phone"
                     type="tel"
-                    defaultValue={schoolProfile?.phone || ''}
+                    value={formData.phone || ''}
+                    onChange={(e) => handleFieldChange('phone', e.target.value)}
                     disabled={!isEditing}
                   />
                 </div>
@@ -560,7 +594,8 @@ const UnifiedSchoolSettings: React.FC = () => {
                   <Input
                     id="email"
                     type="email"
-                    defaultValue={schoolProfile?.email || ''}
+                    value={formData.email || ''}
+                    onChange={(e) => handleFieldChange('email', e.target.value)}
                     disabled={!isEditing}
                   />
                 </div>
@@ -569,7 +604,8 @@ const UnifiedSchoolSettings: React.FC = () => {
                   <Input
                     id="website"
                     type="url"
-                    defaultValue={schoolProfile?.website || ''}
+                    value={formData.website || ''}
+                    onChange={(e) => handleFieldChange('website', e.target.value)}
                     disabled={!isEditing}
                   />
                 </div>
@@ -578,7 +614,8 @@ const UnifiedSchoolSettings: React.FC = () => {
                   <Input
                     id="establishedYear"
                     type="number"
-                    defaultValue={schoolProfile?.establishedYear || ''}
+                    value={formData.establishedYear || ''}
+                    onChange={(e) => handleFieldChange('establishedYear', parseInt(e.target.value) || 0)}
                     disabled={!isEditing}
                   />
                 </div>
@@ -587,7 +624,8 @@ const UnifiedSchoolSettings: React.FC = () => {
                 <Label htmlFor="address">{t.address}</Label>
                 <Textarea
                   id="address"
-                  defaultValue={schoolProfile?.address || ''}
+                  value={formData.address || ''}
+                  onChange={(e) => handleFieldChange('address', e.target.value)}
                   disabled={!isEditing}
                   rows={2}
                 />
@@ -596,7 +634,8 @@ const UnifiedSchoolSettings: React.FC = () => {
                 <Label htmlFor="description">{t.description}</Label>
                 <Textarea
                   id="description"
-                  defaultValue={schoolProfile?.description || ''}
+                  value={formData.description || ''}
+                  onChange={(e) => handleFieldChange('description', e.target.value)}
                   disabled={!isEditing}
                   rows={3}
                 />
@@ -687,8 +726,9 @@ const UnifiedSchoolSettings: React.FC = () => {
                 <div className="flex gap-2">
                   <Button
                     onClick={() => {
-                      // Implement save logic
-                      updateProfileMutation.mutate({});
+                      // Save form data to backend
+                      console.log('[SCHOOL_SETTINGS] Saving form data:', formData);
+                      updateProfileMutation.mutate(formData);
                     }}
                     disabled={updateProfileMutation.isPending}
                   >
@@ -737,32 +777,40 @@ const UnifiedSchoolSettings: React.FC = () => {
                   <Label htmlFor="arrondissement">{t.arrondissement}</Label>
                   <Input
                     id="arrondissement"
-                    defaultValue={schoolProfile?.arrondissement || ''}
+                    value={formData.arrondissement || ''}
+                    onChange={(e) => handleFieldChange('arrondissement', e.target.value)}
                     placeholder={t.arrondissementExample}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="regionaleMinisterielle">{t.regionaleMinisterielle}</Label>
                   <Input
                     id="regionaleMinisterielle"
-                    defaultValue={schoolProfile?.regionaleMinisterielle || ''}
+                    value={formData.regionaleMinisterielle || ''}
+                    onChange={(e) => handleFieldChange('regionaleMinisterielle', e.target.value)}
                     placeholder={t.regionaleExample}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="delegationDepartementale">{t.delegationDepartementale}</Label>
                   <Input
                     id="delegationDepartementale"
-                    defaultValue={schoolProfile?.delegationDepartementale || ''}
+                    value={formData.delegationDepartementale || ''}
+                    onChange={(e) => handleFieldChange('delegationDepartementale', e.target.value)}
                     placeholder={t.delegationExample}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="boitePostale">{t.boitePostale}</Label>
                   <Input
                     id="boitePostale"
-                    defaultValue={schoolProfile?.boitePostale || ''}
+                    value={formData.boitePostale || ''}
+                    onChange={(e) => handleFieldChange('boitePostale', e.target.value)}
                     placeholder={t.boiteExample}
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -785,17 +833,26 @@ const UnifiedSchoolSettings: React.FC = () => {
                   {language === 'fr' ? 'Automatique' : 'Automatic'}
                 </Badge>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    // Implement save logic for official settings
-                    updateProfileMutation.mutate({});
-                  }}
-                  disabled={updateProfileMutation.isPending}
-                >
-                  {updateProfileMutation.isPending ? t.loading : t.save}
-                </Button>
-              </div>
+              {isEditing && (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      // Save form data to backend
+                      console.log('[SCHOOL_SETTINGS] Saving official info:', formData);
+                      updateProfileMutation.mutate(formData);
+                    }}
+                    disabled={updateProfileMutation.isPending}
+                  >
+                    {updateProfileMutation.isPending ? t.loading : t.save}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    {t.cancel}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
