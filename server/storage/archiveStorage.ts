@@ -260,10 +260,10 @@ export class ArchiveStorage {
    * Get archive statistics for dashboard
    */
   async getArchiveStats(schoolId: number, academicYear?: string): Promise<{
-    totalDocuments: number;
-    totalBulletins: number;
-    totalMastersheets: number;
-    totalSizeBytes: number;
+    totalArchives: number;
+    bulletinCount: number;
+    transcriptCount: number;
+    totalSize: number;
     byClass: Array<{ classId: number; count: number; }>;
     byTerm: Array<{ term: string; count: number; }>;
   }> {
@@ -285,15 +285,15 @@ export class ArchiveStorage {
         .from(archivedDocuments)
         .where(and(...conditions, eq(archivedDocuments.type, 'bulletin')));
 
-      // Mastersheets count
-      const [mastersheetsResult] = await db
+      // Transcripts count (mastersheet or transcript type)
+      const [transcriptsResult] = await db
         .select({ count: count() })
         .from(archivedDocuments)
-        .where(and(...conditions, eq(archivedDocuments.type, 'mastersheet')));
+        .where(and(...conditions, eq(archivedDocuments.type, 'transcript')));
 
       // Total size
       const [sizeResult] = await db
-        .select({ totalSize: sql<number>`sum(${archivedDocuments.sizeBytes})` })
+        .select({ totalSize: sql<number>`COALESCE(sum(${archivedDocuments.sizeBytes}), 0)` })
         .from(archivedDocuments)
         .where(and(...conditions));
 
@@ -318,10 +318,10 @@ export class ArchiveStorage {
         .groupBy(archivedDocuments.term);
 
       return {
-        totalDocuments: totalResult.count,
-        totalBulletins: bulletinsResult.count,
-        totalMastersheets: mastersheetsResult.count,
-        totalSizeBytes: sizeResult[0]?.totalSize || 0,
+        totalArchives: totalResult.count,
+        bulletinCount: bulletinsResult.count,
+        transcriptCount: transcriptsResult.count,
+        totalSize: Number(sizeResult[0]?.totalSize) || 0,
         byClass,
         byTerm
       };
