@@ -7031,18 +7031,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/director/school-settings', requireAuth, requireAnyRole(['Director']), async (req: Request, res: Response) => {
     try {
+      const user = req.user as any;
       const settings = req.body;
-      console.log('[SCHOOL_SETTINGS] Saving settings:', settings);
+      console.log('[SCHOOL_SETTINGS] Saving settings for user:', user.id, 'schoolId:', user.schoolId);
+      console.log('[SCHOOL_SETTINGS] Settings received:', JSON.stringify(settings).substring(0, 200));
       
-      // For demo purposes, just return success
-      res.json({
-        success: true,
-        message: 'School settings updated successfully',
-        school: settings
-      });
-    } catch (error) {
-      console.error('[SCHOOL_SETTINGS] Save error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (!user.schoolId) {
+        console.error('[SCHOOL_SETTINGS] ❌ User has no school associated');
+        return res.status(400).json({ success: false, error: 'No school associated with user' });
+      }
+      
+      // Prepare school updates object
+      const schoolUpdates: any = {};
+      
+      // Map fields from settings to database fields
+      if (settings.name) schoolUpdates.name = settings.name;
+      if (settings.type) schoolUpdates.type = settings.type;
+      if (settings.address) schoolUpdates.address = settings.address;
+      if (settings.phone) schoolUpdates.phone = settings.phone;
+      if (settings.email) schoolUpdates.email = settings.email;
+      if (settings.website) schoolUpdates.website = settings.website;
+      if (settings.description) schoolUpdates.description = settings.description;
+      if (settings.establishedYear) schoolUpdates.establishedYear = settings.establishedYear;
+      if (settings.principalName) schoolUpdates.principalName = settings.principalName;
+      if (settings.studentCapacity) schoolUpdates.studentCapacity = settings.studentCapacity;
+      
+      // Cameroon official fields
+      if (settings.regionaleMinisterielle) schoolUpdates.regionaleMinisterielle = settings.regionaleMinisterielle;
+      if (settings.delegationDepartementale) schoolUpdates.delegationDepartementale = settings.delegationDepartementale;
+      if (settings.boitePostale) schoolUpdates.boitePostale = settings.boitePostale;
+      if (settings.arrondissement) schoolUpdates.arrondissement = settings.arrondissement;
+      
+      // Academic settings
+      if (settings.academicYear) schoolUpdates.academicYear = settings.academicYear;
+      if (settings.currentTerm) schoolUpdates.currentTerm = settings.currentTerm;
+      
+      // Logo
+      if (settings.logoUrl) {
+        schoolUpdates.logo = settings.logoUrl;
+        (req.session as any).schoolLogo = settings.logoUrl;
+      }
+      
+      // Save to database
+      if (Object.keys(schoolUpdates).length > 0) {
+        await storage.updateSchool(user.schoolId, schoolUpdates);
+        console.log('[SCHOOL_SETTINGS] ✅ School settings saved to database successfully');
+        
+        res.json({
+          success: true,
+          message: 'School settings updated successfully',
+          school: schoolUpdates
+        });
+      } else {
+        console.log('[SCHOOL_SETTINGS] ⚠️ No valid settings to save');
+        res.json({
+          success: false,
+          message: 'No valid settings provided'
+        });
+      }
+    } catch (error: any) {
+      console.error('[SCHOOL_SETTINGS] ❌ Save error:', error.message || error);
+      res.status(500).json({ success: false, error: error.message || 'Internal server error' });
     }
   });
 
@@ -10020,22 +10069,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/school/profile', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[SCHOOL_PROFILE_API] PUT /api/school/profile for user:', user.id);
+      console.log('[SCHOOL_PROFILE_API] PUT /api/school/profile for user:', user.id, 'schoolId:', user.schoolId);
+      
+      if (!user.schoolId) {
+        console.error('[SCHOOL_PROFILE_API] ❌ User has no school associated');
+        return res.status(400).json({ success: false, message: 'No school associated with user' });
+      }
       
       const updates = req.body;
+      console.log('[SCHOOL_PROFILE_API] Updates received:', JSON.stringify(updates).substring(0, 200));
       
-      // Store any logo URL in session for now (until DB schema is properly updated)
+      // Prepare school updates object
+      const schoolUpdates: any = {};
+      
+      // Map frontend fields to database fields
+      if (updates.name) schoolUpdates.name = updates.name;
+      if (updates.type) schoolUpdates.type = updates.type;
+      if (updates.address) schoolUpdates.address = updates.address;
+      if (updates.phone) schoolUpdates.phone = updates.phone;
+      if (updates.email) schoolUpdates.email = updates.email;
+      if (updates.website) schoolUpdates.website = updates.website;
+      if (updates.description) schoolUpdates.description = updates.description;
+      if (updates.establishedYear) schoolUpdates.establishedYear = updates.establishedYear;
+      if (updates.principalName) schoolUpdates.principalName = updates.principalName;
+      if (updates.studentCapacity) schoolUpdates.studentCapacity = updates.studentCapacity;
+      
+      // Cameroon official fields
+      if (updates.regionaleMinisterielle) schoolUpdates.regionaleMinisterielle = updates.regionaleMinisterielle;
+      if (updates.delegationDepartementale) schoolUpdates.delegationDepartementale = updates.delegationDepartementale;
+      if (updates.boitePostale) schoolUpdates.boitePostale = updates.boitePostale;
+      if (updates.arrondissement) schoolUpdates.arrondissement = updates.arrondissement;
+      
+      // Store logo URL in session and database
       if (updates.logoUrl) {
+        schoolUpdates.logo = updates.logoUrl;
         (req.session as any).schoolLogo = updates.logoUrl;
       }
       
-      // In real implementation, update database with school profile changes
-      console.log('[SCHOOL_PROFILE_API] School profile updated:', updates);
+      // Save to database
+      if (Object.keys(schoolUpdates).length > 0) {
+        await storage.updateSchool(user.schoolId, schoolUpdates);
+        console.log('[SCHOOL_PROFILE_API] ✅ School profile saved to database successfully');
+      } else {
+        console.log('[SCHOOL_PROFILE_API] ⚠️ No valid updates to save');
+      }
       
       res.json({ success: true, message: 'School profile updated successfully' });
-    } catch (error) {
-      console.error('Error updating school profile:', error);
-      res.status(500).json({ success: false, message: 'Failed to update school profile' });
+    } catch (error: any) {
+      console.error('[SCHOOL_PROFILE_API] ❌ Error updating school profile:', error.message || error);
+      res.status(500).json({ success: false, message: error.message || 'Failed to update school profile' });
     }
   });
 
