@@ -6,8 +6,8 @@ import { getTranslation, type Language } from '@/lib/translations';
 export const errorMessages = {
   // Authentication Errors
   invalidCredentials: {
-    en: 'Invalid email or password',
-    fr: 'Email ou mot de passe invalide'
+    en: 'Incorrect email/phone number or password. Please check your credentials and try again.',
+    fr: 'Email, numéro de téléphone ou mot de passe incorrect. Veuillez vérifier vos informations et réessayer.'
   },
   emailRequired: {
     en: 'Email and password are required',

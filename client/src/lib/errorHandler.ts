@@ -46,6 +46,10 @@ export const handleError = (
     } else if (error?.message?.includes('403') || error?.message?.includes('Forbidden')) {
       errorMessage = getLocalizedErrorMessage('accessDenied', language);
       errorType = 'permission';
+    } else if (error?.message?.includes('/api/auth/login') && (error?.message?.includes('401') || error?.message?.includes('Unauthorized'))) {
+      // Login-specific 401 error = invalid credentials
+      errorMessage = getLocalizedErrorMessage('invalidCredentials', language);
+      errorType = 'authentication';
     } else if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
       errorMessage = getLocalizedErrorMessage('sessionExpired', language);
       errorType = 'authentication';
