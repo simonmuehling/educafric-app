@@ -266,8 +266,18 @@ export function ExcelImportButton({
                     </summary>
                     <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
                       {result.errors.slice(0, 10).map((err, idx) => (
-                        <div key={idx} className="text-xs p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                          {currentLang === 'fr' ? 'Ligne' : 'Row'} {err.row}: {err.message} ({err.field})
+                        <div key={idx} className="text-xs p-2 bg-red-50 dark:bg-red-900/20 rounded border-l-2 border-red-500">
+                          <div className="font-semibold text-red-700 dark:text-red-400">
+                            {currentLang === 'fr' ? '📍 Ligne' : '📍 Row'} {err.row}
+                            {err.field !== 'general' && (
+                              <span className="ml-1">
+                                • {currentLang === 'fr' ? 'Colonne' : 'Column'} "{err.field}"
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-1 text-gray-700 dark:text-gray-300">
+                            {err.message}
+                          </div>
                         </div>
                       ))}
                       {result.errors.length > 10 && (

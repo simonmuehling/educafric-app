@@ -406,7 +406,9 @@ export class ExcelImportService {
           result.errors.push({
             row: row._row || index + 2,
             field: t.fields.firstName,
-            message: `${t.fields.firstName} ${t.errors.required}`
+            message: lang === 'fr' 
+              ? 'Ce champ est obligatoire. Veuillez saisir le prénom de l\'élève.'
+              : 'This field is required. Please enter the student\'s first name.'
           });
           continue;
         }
@@ -415,7 +417,9 @@ export class ExcelImportService {
           result.errors.push({
             row: row._row || index + 2,
             field: t.fields.lastName,
-            message: `${t.fields.lastName} ${t.errors.required}`
+            message: lang === 'fr'
+              ? 'Ce champ est obligatoire. Veuillez saisir le nom de l\'élève.'
+              : 'This field is required. Please enter the student\'s last name.'
           });
           continue;
         }
@@ -543,7 +547,9 @@ export class ExcelImportService {
           result.errors.push({
             row: row._row || index + 2,
             field: t.fields.name,
-            message: `${t.fields.name} ${t.errors.required}`
+            message: lang === 'fr'
+              ? 'Ce champ est obligatoire. Veuillez saisir le nom de la classe (ex: 6ème A).'
+              : 'This field is required. Please enter the class name (e.g., Form 1A).'
           });
           continue;
         }
@@ -552,7 +558,9 @@ export class ExcelImportService {
           result.errors.push({
             row: row._row || index + 2,
             field: t.fields.level,
-            message: `${t.fields.level} ${t.errors.required}`
+            message: lang === 'fr'
+              ? 'Ce champ est obligatoire. Veuillez saisir le niveau (ex: Form 1, Form 2, etc.).'
+              : 'This field is required. Please enter the level (e.g., Form 1, Form 2, etc.).'
           });
           continue;
         }
@@ -564,7 +572,9 @@ export class ExcelImportService {
           result.errors.push({
             row: row._row || index + 2,
             field: t.fields.name,
-            message: `${t.fields.name} ${t.errors.duplicate}: ${classData.name}`
+            message: lang === 'fr'
+              ? `Une classe avec ce nom existe déjà: "${classData.name}". Veuillez utiliser un nom différent.`
+              : `A class with this name already exists: "${classData.name}". Please use a different name.`
           });
           continue;
         }
