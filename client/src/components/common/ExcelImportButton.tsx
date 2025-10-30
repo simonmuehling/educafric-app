@@ -113,6 +113,17 @@ export function ExcelImportButton({
       });
 
       if (!validateResponse.ok) {
+        // Check if it's a CSRF token error
+        if (validateResponse.status === 403) {
+          const errorText = await validateResponse.text();
+          if (errorText.includes('csrf') || errorText.includes('token')) {
+            const errorMsg = currentLang === 'fr' 
+              ? 'Votre session de sécurité a expiré. Veuillez recharger la page (F5) et réessayer.'
+              : 'Your security session has expired. Please reload the page (F5) and try again.';
+            throw new Error(errorMsg);
+          }
+        }
+        
         const errorMsg = currentLang === 'fr' ? 'Erreur de validation du fichier' : 'File validation error';
         throw new Error(errorMsg);
       }
