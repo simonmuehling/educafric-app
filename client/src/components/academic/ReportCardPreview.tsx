@@ -409,25 +409,31 @@ export default function ReportCardPreview({
           {/* EXACT Ministry Subject Table - MUST match documents precisely */}
           <div className="mt-2 overflow-auto">
             <table className="w-full print:text-[7px] border border-black" style={{lineHeight: '1.0', tableLayout: 'fixed'}}>
-              {/* Fixed Column Widths for A4 Fit */}
-              <colgroup>
-                <col style={{ width: '34mm' }} /> {/* Subject+Teacher */}
-                <col style={{ width: '54mm' }} /> {/* Competencies */}
-                {!isTechnicalSchool && (
-                  <>
-                    <col style={{ width: '10mm' }} /> {/* MK/20 */}
-                    <col style={{ width: '10mm' }} /> {/* AV/20 */}
-                  </>
-                )}
-                {isTechnicalSchool && (
+              {/* Fixed Column Widths for A4 Fit - Conditional for Technical vs General Schools */}
+              {!isTechnicalSchool ? (
+                <colgroup>
+                  <col style={{ width: '34mm' }} /> {/* Subject+Teacher */}
+                  <col style={{ width: '54mm' }} /> {/* Competencies */}
+                  <col style={{ width: '10mm' }} /> {/* MK/20 */}
+                  <col style={{ width: '10mm' }} /> {/* AV/20 */}
+                  <col style={{ width: '8mm' }} />  {/* Coef */}
+                  <col style={{ width: '12mm' }} /> {/* AV×Coef */}
+                  <col style={{ width: '10mm' }} /> {/* Grade */}
+                  <col style={{ width: '16mm' }} /> {/* Min-Max */}
+                  <col style={{ width: '34mm' }} /> {/* Remarks */}
+                </colgroup>
+              ) : (
+                <colgroup>
+                  <col style={{ width: '34mm' }} /> {/* Subject+Teacher */}
+                  <col style={{ width: '54mm' }} /> {/* Competencies */}
                   <col style={{ width: '20mm' }} /> {/* Note/20 (combined) */}
-                )}
-                <col style={{ width: '8mm' }} />  {/* Coef */}
-                <col style={{ width: '12mm' }} /> {/* AV×Coef */}
-                <col style={{ width: '10mm' }} /> {/* Grade */}
-                <col style={{ width: '16mm' }} /> {/* Min-Max */}
-                <col style={{ width: '34mm' }} /> {/* Remarks */}
-              </colgroup>
+                  <col style={{ width: '8mm' }} />  {/* Coef */}
+                  <col style={{ width: '12mm' }} /> {/* AV×Coef */}
+                  <col style={{ width: '10mm' }} /> {/* Grade */}
+                  <col style={{ width: '16mm' }} /> {/* Min-Max */}
+                  <col style={{ width: '34mm' }} /> {/* Remarks */}
+                </colgroup>
+              )}
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
