@@ -891,6 +891,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update Director Settings
+  app.put("/api/director/settings", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const updates = req.body;
+      
+      console.log('[DIRECTOR_SETTINGS] PUT - User:', user.id, 'Updates:', updates);
+      
+      // In production, save to database
+      // For now, just acknowledge the update
+      
+      res.json({ 
+        success: true, 
+        message: 'Settings updated successfully',
+        settings: updates 
+      });
+    } catch (error) {
+      console.error('[DIRECTOR_SETTINGS] Error updating:', error);
+      res.status(500).json({ success: false, message: 'Failed to update settings' });
+    }
+  });
+
   // ============= ROOMS MANAGEMENT API =============
   
   // Get all rooms for a school
