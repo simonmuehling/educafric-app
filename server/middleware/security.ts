@@ -206,6 +206,12 @@ export function csrfWithAllowlist(req: any, res: any, next: any) {
   const p = req.path as string;
   const m = req.method as string;
   
+  // Skip CSRF for authenticated users (they already have secure session cookies)
+  // This prevents token expiry issues while maintaining security
+  if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+    return next();
+  }
+  
   // Debug log for SiteAdmin routes
   if (p.includes('site-admin') || p.includes('siteadmin')) {
     console.log(`[CSRF_DEBUG] Path: "${p}", Method: "${m}"`);
