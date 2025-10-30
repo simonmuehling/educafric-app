@@ -195,6 +195,9 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
   (p) => p.includes('/upload-url'),
   (p) => p.includes('/upload'),
   
+  // Settings routes (already protected by authentication middleware)
+  (p) => p.endsWith('/settings'),
+  
   // Health check
   (p) => p === '/api/health',
 ];
