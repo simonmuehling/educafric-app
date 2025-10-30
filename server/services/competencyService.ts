@@ -199,11 +199,38 @@ export class CompetencyService {
   
   /**
    * Assign a competency to a subject for specific form level
+   * SECURITY: Verifies both subject and competency belong to the same school
    */
   static async assignCompetencyToSubject(
     data: NewSubjectCompetencyAssignment
   ): Promise<SubjectCompetencyAssignment> {
     console.log('[COMPETENCY_SERVICE] Assigning competency to subject:', data);
+    
+    // 🔒 SECURITY: Verify competency belongs to the school
+    const [competency] = await db
+      .select()
+      .from(competencies)
+      .where(and(
+        eq(competencies.id, data.competencyId),
+        eq(competencies.schoolId, data.schoolId)
+      ));
+    
+    if (!competency) {
+      throw new Error('Competency not found or access denied');
+    }
+    
+    // 🔒 SECURITY: Verify subject belongs to the school
+    const [subject] = await db
+      .select()
+      .from(subjects)
+      .where(and(
+        eq(subjects.id, data.subjectId),
+        eq(subjects.schoolId, data.schoolId)
+      ));
+    
+    if (!subject) {
+      throw new Error('Subject not found or access denied');
+    }
     
     const [assignment] = await db
       .insert(subjectCompetencyAssignments)
@@ -216,12 +243,17 @@ export class CompetencyService {
   
   /**
    * Get all competency assignments for a subject
+   * SECURITY: Scoped to schoolId for multi-tenant isolation
    */
   static async getSubjectCompetencyAssignments(
+    schoolId: number,
     subjectId: number,
     formLevel?: string
   ): Promise<Array<SubjectCompetencyAssignment & { competency: Competency }>> {
-    const conditions = [eq(subjectCompetencyAssignments.subjectId, subjectId)];
+    const conditions = [
+      eq(subjectCompetencyAssignments.schoolId, schoolId),
+      eq(subjectCompetencyAssignments.subjectId, subjectId)
+    ];
     
     if (formLevel) {
       conditions.push(eq(subjectCompetencyAssignments.formLevel, formLevel));
@@ -239,7 +271,10 @@ export class CompetencyService {
         const [competency] = await db
           .select()
           .from(competencies)
-          .where(eq(competencies.id, assignment.competencyId));
+          .where(and(
+            eq(competencies.id, assignment.competencyId),
+            eq(competencies.schoolId, schoolId)
+          ));
         
         return {
           ...assignment,
@@ -253,13 +288,30 @@ export class CompetencyService {
   
   /**
    * Remove competency assignment from subject
+   * SECURITY: Verifies school ownership before deletion
    */
-  static async removeCompetencyAssignment(id: number): Promise<void> {
-    console.log('[COMPETENCY_SERVICE] Removing competency assignment:', id);
+  static async removeCompetencyAssignment(id: number, schoolId: number): Promise<void> {
+    console.log('[COMPETENCY_SERVICE] Removing competency assignment:', id, 'for school:', schoolId);
+    
+    // 🔒 SECURITY: Verify ownership before delete
+    const [existing] = await db
+      .select()
+      .from(subjectCompetencyAssignments)
+      .where(and(
+        eq(subjectCompetencyAssignments.id, id),
+        eq(subjectCompetencyAssignments.schoolId, schoolId)
+      ));
+    
+    if (!existing) {
+      throw new Error('Assignment not found or access denied');
+    }
     
     await db
       .delete(subjectCompetencyAssignments)
-      .where(eq(subjectCompetencyAssignments.id, id));
+      .where(and(
+        eq(subjectCompetencyAssignments.id, id),
+        eq(subjectCompetencyAssignments.schoolId, schoolId)
+      ));
     
     console.log('[COMPETENCY_SERVICE] ✅ Assignment removed');
   }

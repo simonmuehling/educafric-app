@@ -38,8 +38,10 @@ export const competencies = pgTable("competencies", {
 
 // ===== SUBJECT-COMPETENCY ASSIGNMENTS TABLE =====
 // Links multiple competencies to a subject for a specific form level
+// 🔒 SECURITY: schoolId required for multi-tenant isolation
 export const subjectCompetencyAssignments = pgTable("subject_competency_assignments", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(), // 🔒 CRITICAL: Tenant isolation
   subjectId: integer("subject_id").notNull(),
   competencyId: integer("competency_id").notNull(),
   formLevel: text("form_level").notNull(), // "Form 4", "6ème", etc.
@@ -66,6 +68,7 @@ export const insertCompetencySchema = z.object({
 });
 
 export const insertSubjectCompetencyAssignmentSchema = z.object({
+  schoolId: z.number().min(1, "School ID is required"), // 🔒 CRITICAL: Tenant isolation
   subjectId: z.number().min(1, "Subject ID is required"),
   competencyId: z.number().min(1, "Competency ID is required"),
   formLevel: z.string().min(1, "Form level is required"),
