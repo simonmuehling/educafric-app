@@ -8,6 +8,7 @@ export const schools = pgTable("schools", {
   name: text("name").notNull(),
   type: text("type").notNull(), // public, private
   educationalType: text("educational_type").notNull().default('general'), // general, technical
+  useCBAFormat: boolean("use_cba_format").default(false), // Enable CBA (Competency-Based Approach) bulletin format
   address: text("address"),
   phone: text("phone"),
   email: text("email"),

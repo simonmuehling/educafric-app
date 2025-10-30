@@ -134,6 +134,7 @@ import timetablesRouter from "./routes/api/timetables";
 import { trackConnection, trackPageVisit } from "./middleware/connectionTrackingMiddleware";
 import { ConnectionTrackingService } from "./services/connectionTrackingService";
 import { realTimeService } from "./services/realTimeService";
+import CompetencyService from "./services/competencyService";
 
 // Import services
 import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes";
@@ -9517,6 +9518,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ================ END UNIFIED TIMETABLES API ================
 
+
+  // ============= CBA COMPETENCY MANAGEMENT API ROUTES =============
+  
+  // Get all competencies for the school
+  app.get('/api/director/competencies', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      const competencies = await CompetencyService.getCompetenciesBySchool(schoolId);
+      res.json({ success: true, competencies });
+    } catch (error) {
+      console.error('[COMPETENCY_API] Error fetching competencies:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch competencies' });
+    }
+  });
+  
+  // Get competencies for a specific subject and form level
+  app.get('/api/director/competencies/subject/:subjectId', requireAuth, requireAnyRole(['Director', 'Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      const subjectId = parseInt(req.params.subjectId);
+      const formLevel = req.query.formLevel as string;
+      
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      const competencies = await CompetencyService.getCompetenciesBySubject(schoolId, subjectId, formLevel);
+      res.json({ success: true, competencies });
+    } catch (error) {
+      console.error('[COMPETENCY_API] Error fetching subject competencies:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch subject competencies' });
+    }
+  });
+  
+  // Create a new competency
+  app.post('/api/director/competencies', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      const competency = await CompetencyService.createCompetency({
+        ...req.body,
+        schoolId,
+        createdBy: user.id
+      });
+      
+      res.json({ success: true, competency });
+    } catch (error) {
+      console.error('[COMPETENCY_API] Error creating competency:', error);
+      res.status(500).json({ success: false, message: 'Failed to create competency' });
+    }
+  });
+  
+  // Bulk create competencies for a subject
+  app.post('/api/director/competencies/bulk', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      const { subjectId, subjectName, formLevel, competencies: competencyData } = req.body;
+      
+      const created = await CompetencyService.bulkCreateCompetencies(
+        schoolId,
+        subjectId,
+        subjectName,
+        formLevel,
+        competencyData,
+        user.id
+      );
+      
+      res.json({ success: true, competencies: created });
+    } catch (error) {
+      console.error('[COMPETENCY_API] Error bulk creating competencies:', error);
+      res.status(500).json({ success: false, message: 'Failed to bulk create competencies' });
+    }
+  });
+  
+  // Update a competency
+  app.put('/api/director/competencies/:id', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      const competencyId = parseInt(req.params.id);
+      
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      if (isNaN(competencyId)) {
+        return res.status(400).json({ success: false, message: 'Invalid competency ID' });
+      }
+      
+      const updated = await CompetencyService.updateCompetency(competencyId, schoolId, req.body);
+      res.json({ success: true, competency: updated });
+    } catch (error) {
+      console.error('[COMPETENCY_API] Error updating competency:', error);
+      const message = error instanceof Error ? error.message : 'Failed to update competency';
+      res.status(500).json({ success: false, message });
+    }
+  });
+  
+  // Delete a competency (soft delete)
+  app.delete('/api/director/competencies/:id', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      const competencyId = parseInt(req.params.id);
+      
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      if (isNaN(competencyId)) {
+        return res.status(400).json({ success: false, message: 'Invalid competency ID' });
+      }
+      
+      await CompetencyService.deleteCompetency(competencyId, schoolId);
+      res.json({ success: true, message: 'Competency deleted' });
+    } catch (error) {
+      console.error('[COMPETENCY_API] Error deleting competency:', error);
+      const message = error instanceof Error ? error.message : 'Failed to delete competency';
+      res.status(500).json({ success: false, message });
+    }
+  });
+  
+  // Initialize default competencies for a subject
+  app.post('/api/director/competencies/initialize', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      const { subjectId, subjectName, formLevel } = req.body;
+      
+      const competencies = await CompetencyService.initializeDefaultCompetencies(
+        schoolId,
+        subjectId,
+        subjectName,
+        formLevel,
+        user.id
+      );
+      
+      res.json({ success: true, competencies });
+    } catch (error) {
+      console.error('[COMPETENCY_API] Error initializing competencies:', error);
+      res.status(500).json({ success: false, message: 'Failed to initialize competencies' });
+    }
+  });
 
   // ============= PREDEFINED APPRECIATIONS API ROUTES =============
   // Route pour récupérer les appréciations prédéfinies pour les enseignants

@@ -24,6 +24,7 @@ export * from "./schemas/waClicksSchema"; // NEW: WhatsApp Click-to-Chat clicks 
 export * from "./schemas/waValidation"; // NEW: WhatsApp validation schemas
 export * from "./schemas/teacherIndependentSchema"; // NEW: Teacher independent mode (fusion Freelancer → Teacher)
 export * from "./schemas/systemManagementSchema"; // NEW: Teacher replacements, Audit logs, WhatsApp chatbot
+export * from "./schemas/competencySchema"; // NEW: CBA (Competency-Based Approach) system for technical schools
 
 // Import existing schema modules
 export * from "./tutorialSchema";
@@ -64,8 +65,12 @@ import {
   educafricNumbers,
   educafricNumberCounters
 } from "./schemas/educafricNumberSchema";
+import {
+  competencies,
+  subjectCompetencyAssignments
+} from "./schemas/competencySchema";
 
-export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates, archivedDocuments, archiveAccessLogs, annualReportComprehensive, educafricNumbers, educafricNumberCounters };
+export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates, archivedDocuments, archiveAccessLogs, annualReportComprehensive, educafricNumbers, educafricNumberCounters, competencies, subjectCompetencyAssignments };
 
 // Additional simplified tables for compatibility
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric, date, unique, foreignKey } from "drizzle-orm/pg-core";
