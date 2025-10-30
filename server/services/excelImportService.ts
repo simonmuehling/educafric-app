@@ -243,8 +243,14 @@ export class ExcelImportService {
         blankrows: false 
       });
       
+      // Allow empty files (only headers) for testing/validation purposes
+      if (jsonData.length < 1) {
+        return []; // Empty file, no headers even
+      }
+      
       if (jsonData.length < 2) {
-        throw new Error(t.errors.minRows);
+        // Only headers, no data rows - this is valid for testing
+        return [];
       }
       
       // Convert array format to object format using first row as keys
