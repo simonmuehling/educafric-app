@@ -1024,6 +1024,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         subject: s.name,
         note1: s.note1,
         moyenneFinale: s.moyenneFinale,
+        mk20: s.note1, // MK/20 column (marks)
+        av20: s.moyenneFinale, // AV/20 column (average)
         m20: gradeToUse, // Use note1 for technical schools, moyenneFinale for general schools
         coef: s.coefficient,
         totalPondere: round2(gradeToUse * s.coefficient),
