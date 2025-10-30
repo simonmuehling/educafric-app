@@ -413,8 +413,15 @@ export default function ReportCardPreview({
               <colgroup>
                 <col style={{ width: '34mm' }} /> {/* Subject+Teacher */}
                 <col style={{ width: '54mm' }} /> {/* Competencies */}
-                <col style={{ width: '10mm' }} /> {/* MK/20 */}
-                <col style={{ width: '10mm' }} /> {/* AV/20 */}
+                {!isTechnicalSchool && (
+                  <>
+                    <col style={{ width: '10mm' }} /> {/* MK/20 */}
+                    <col style={{ width: '10mm' }} /> {/* AV/20 */}
+                  </>
+                )}
+                {isTechnicalSchool && (
+                  <col style={{ width: '20mm' }} /> {/* Note/20 (combined) */}
+                )}
                 <col style={{ width: '8mm' }} />  {/* Coef */}
                 <col style={{ width: '12mm' }} /> {/* AV×Coef */}
                 <col style={{ width: '10mm' }} /> {/* Grade */}
