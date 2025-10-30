@@ -860,6 +860,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Director Settings  
   app.get("/api/director/settings", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
+      const user = req.user as any;
+      
       const settings = {
         school: {
           name: 'École Saint-Joseph',
@@ -880,6 +882,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
           notifications: true,
           reportFrequency: 'weekly',
           theme: 'modern'
+        },
+        profile: {
+          id: user.id,
+          firstName: user.firstName || 'Directeur',
+          lastName: user.lastName || 'Principal',
+          email: user.email,
+          phone: user.phone || '+237657001111',
+          dateOfBirth: '1975-06-15',
+          address: 'Douala, Cameroun',
+          schoolName: 'École Saint-Joseph',
+          position: 'Directeur Principal',
+          qualifications: ['Master en Sciences de l\'Éducation', 'Licence en Pédagogie', 'Certificat de Gestion Scolaire'],
+          experience: 15,
+          bio: 'Directeur passionné avec 15 ans d\'expérience dans la gestion d\'établissements scolaires d\'excellence.',
+          languages: ['Français', 'Anglais'],
+          totalTeachers: 45,
+          totalStudents: 850,
+          totalClasses: 32,
+          yearsInPosition: 8,
+          achievements: [
+            {
+              id: 1,
+              title: 'Excellence Académique 2024',
+              description: 'L\'école a atteint un taux de réussite de 98% au Baccalauréat',
+              date: '2024-09-15',
+              type: 'Académique'
+            },
+            {
+              id: 2,
+              title: 'Modernisation Numérique',
+              description: 'Implémentation réussie de la plateforme Educafric pour toute l\'école',
+              date: '2024-06-20',
+              type: 'Innovation'
+            },
+            {
+              id: 3,
+              title: 'Expansion Infrastructure',
+              description: 'Construction de 5 nouvelles salles de classe et un laboratoire scientifique',
+              date: '2024-03-10',
+              type: 'Infrastructure'
+            },
+            {
+              id: 4,
+              title: 'Reconnaissance Ministérielle',
+              description: 'Prix du Ministère de l\'Éducation pour l\'excellence pédagogique',
+              date: '2023-12-05',
+              type: 'Distinction'
+            }
+          ]
         }
       };
       res.json({ success: true, settings });
