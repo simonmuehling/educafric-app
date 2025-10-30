@@ -295,6 +295,12 @@ export default function ReportCardPreview({
   const totalMxCoef = entries.reduce((s, x) => s + (Number(x.m20) || 0) * (x.coef || 0), 0);
   const moyenne = totalCoef ? round2(totalMxCoef / totalCoef) : 0;
 
+  // DEBUG LOGS
+  console.log('[PREVIEW] isTechnicalSchool:', isTechnicalSchool);
+  console.log('[PREVIEW] First line data:', entries[0]);
+  console.log('[PREVIEW] Sample mk20:', entries[0]?.mk20);
+  console.log('[PREVIEW] Sample av20:', entries[0]?.av20);
+
   const labels = LABELS[language];
 
   return (
