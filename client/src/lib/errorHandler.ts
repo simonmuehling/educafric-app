@@ -50,6 +50,12 @@ export const handleError = (
       // Login-specific 401 error = invalid credentials
       errorMessage = getLocalizedErrorMessage('invalidCredentials', language);
       errorType = 'authentication';
+    } else if (error?.message?.includes('upload') && (error?.message?.includes('403') || error?.message?.includes('Forbidden'))) {
+      // Upload-specific 403 error = session expired
+      errorMessage = language === 'fr' 
+        ? 'Votre session a expiré. Veuillez recharger la page (F5) et réessayer.'
+        : 'Your session has expired. Please reload the page (F5) and try again.';
+      errorType = 'authentication';
     } else if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
       errorMessage = getLocalizedErrorMessage('sessionExpired', language);
       errorType = 'authentication';

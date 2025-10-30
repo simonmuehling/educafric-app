@@ -190,6 +190,11 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
   // Bulk import routes (FormData uploads can't easily include CSRF token in headers)
   (p) => p.startsWith('/api/bulk-import/'),
   
+  // File upload routes (FormData/Uppy uploads can't easily include CSRF token)
+  (p) => p.startsWith('/api/school/logo/'),
+  (p) => p.includes('/upload-url'),
+  (p) => p.includes('/upload'),
+  
   // Health check
   (p) => p === '/api/health',
 ];
