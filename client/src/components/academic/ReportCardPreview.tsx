@@ -1,6 +1,7 @@
 // EXACT Ministry of Education CBA Report Card - Pixel Perfect Implementation
 import React, { useMemo } from "react";
 import { TEACHER_COMMENTS } from './BulletinCreationInterface';
+import { EducafricFooterCompact } from '../shared/EducafricFooter';
 
 // Smart text compression utilities for single-page fit with 20 subjects
 const compressCompetence = (text: string): string => {
@@ -332,7 +333,6 @@ export default function ReportCardPreview({
     // Mapping: general→General, scientific→Scientific, literary→General, technical→Technical, other→General
     const general = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
-      console.log('[PREVIEW_FILTER] Subject:', e.name, 'bulletinSection:', e.bulletinSection, 'subjectType:', e.subjectType, 'section:', section, 'goesToGeneral:', section === 'general' || section === 'literary' || section === 'other' || !section);
       return section === 'general' || section === 'literary' || section === 'other' || !section;
     });
     const scientific = entries.filter(e => {
@@ -343,9 +343,6 @@ export default function ReportCardPreview({
       const section = e.bulletinSection || e.subjectType;
       return section === 'technical';
     });
-    
-    console.log('[PREVIEW_GROUPED] General:', general.length, 'Scientific:', scientific.length, 'Technical:', technical.length);
-    console.log('[PREVIEW_GROUPED] General subjects:', general.map(g => ({ name: g.name, section: g.bulletinSection || g.subjectType })));
     
     return { general, scientific, technical };
   }, [entries, isTechnicalBulletin]);
@@ -1055,6 +1052,9 @@ export default function ReportCardPreview({
               </div>
             </div>
           )}
+
+          {/* Educafric Footer - Bilingual */}
+          <EducafricFooterCompact language={language} className="mt-6 print:mt-4" />
 
         </div>
       </A4Sheet>

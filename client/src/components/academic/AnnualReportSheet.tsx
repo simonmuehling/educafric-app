@@ -1,6 +1,7 @@
 // MINISTRY OFFICIAL ANNUAL REPORT SHEET - Bilingual Implementation
 // FICHE DE RAPPORT ANNUEL - Implementation Bilingue Officielle
 import React from "react";
+import { EducafricFooterCompact } from '../shared/EducafricFooter';
 
 interface AnnualReportSheetProps {
   student: {
@@ -536,13 +537,16 @@ const AnnualReportSheet: React.FC<AnnualReportSheetProps> = ({
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="mt-6 text-center text-xs text-gray-600 border-t pt-4 print:mt-2 print:pt-2 print:text-[10px]">
+      {/* Official Ministry Footer */}
+      <div className="mt-4 text-center text-xs text-gray-600 border-t pt-2 print:pt-1 print:text-[10px]">
         {language === 'fr' 
           ? 'Document officiel du Ministère des Enseignements Secondaires - République du Cameroun'
           : 'Official document of the Ministry of Secondary Education - Republic of Cameroon'
         }
       </div>
+
+      {/* Educafric Footer - Bilingual */}
+      <EducafricFooterCompact language={language} className="mt-4 print:mt-2" />
     </div>
   );
 };
