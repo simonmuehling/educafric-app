@@ -2055,12 +2055,12 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                             </div>
                           </td>
 
-                          {/* Section Bulletin - Only for technical bulletins (3 sections ONLY) */}
+                          {/* Section Bulletin - Only for technical bulletins */}
                           {isTechnicalBulletin && (
                             <td className="px-2 py-2 border bg-amber-50/50" data-testid={`cell-bulletin-section-${index}`}>
                               <Select 
                                 value={subject.bulletinSection || ''} 
-                                onValueChange={(value: 'general' | 'scientific' | 'technical') => 
+                                onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => 
                                   updateSubject(subject.id, 'bulletinSection', value)
                                 }
                               >
@@ -2074,8 +2074,14 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                   <SelectItem value="scientific">
                                     🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}
                                   </SelectItem>
+                                  <SelectItem value="literary">
+                                    📖 {language === 'fr' ? 'Littéraire' : 'Literary'}
+                                  </SelectItem>
                                   <SelectItem value="technical">
                                     🔧 {language === 'fr' ? 'Technique' : 'Technical'}
+                                  </SelectItem>
+                                  <SelectItem value="other">
+                                    🎨 {language === 'fr' ? 'Autre' : 'Other'}
                                   </SelectItem>
                                 </SelectContent>
                               </Select>
@@ -2400,11 +2406,11 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                               {isTechnicalBulletin && (
                                 <div className="space-y-1">
                                   <Label className="text-xs text-gray-600 bg-amber-50 px-1 rounded">
-                                    {language === 'fr' ? '📋 Section Bulletin (3 sections)' : '📋 Bulletin Section (3 sections)'}
+                                    {language === 'fr' ? '📋 Section Bulletin' : '📋 Bulletin Section'}
                                   </Label>
                                   <Select 
                                     value={subject.bulletinSection || ''} 
-                                    onValueChange={(value: 'general' | 'scientific' | 'technical') => updateSubject(subject.id, 'bulletinSection', value)}
+                                    onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => updateSubject(subject.id, 'bulletinSection', value)}
                                   >
                                     <SelectTrigger className="h-10">
                                       <SelectValue placeholder={language === 'fr' ? 'Section...' : 'Section...'} />
@@ -2412,7 +2418,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                     <SelectContent>
                                       <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
                                       <SelectItem value="scientific">🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}</SelectItem>
+                                      <SelectItem value="literary">📖 {language === 'fr' ? 'Littéraire' : 'Literary'}</SelectItem>
                                       <SelectItem value="technical">🔧 {language === 'fr' ? 'Technique' : 'Technical'}</SelectItem>
+                                      <SelectItem value="other">🎨 {language === 'fr' ? 'Autre' : 'Other'}</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
