@@ -96,6 +96,7 @@ interface Subject {
   competencies?: string;
   competencyLevel?: 'CTBA' | 'CBA' | 'CA' | 'CMA' | 'CNA' | 'CVWA' | 'CWA' | 'CAA';
   competencyEvaluation?: string;
+  subjectType?: 'general' | 'technical' | 'other'; // Subject type for technical schools (3 sections)
   // Additional fields for official Cameroon format
   note1: number;
   moyenneFinale: number;

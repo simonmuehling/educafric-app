@@ -481,7 +481,7 @@ const ClassManagement: React.FC = () => {
         title: language === 'fr' ? 'Salle ajoutée' : 'Room added',
         description: language === 'fr' ? 'La salle a été ajoutée avec succès.' : 'Room has been added successfully.'
       });
-      setNewRoomName('');
+      setNewRoom({ name: '', type: 'classroom', capacity: 30, building: '', floor: '', equipment: '' });
     },
     onError: (error) => {
       toast({
