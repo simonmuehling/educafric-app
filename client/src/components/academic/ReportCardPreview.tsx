@@ -256,6 +256,7 @@ interface SubjectLine {
   minMax?: string; // [Min – Max] range
   remarksAndSignature?: string; // Remarks and Teacher's signature
   teacherComments?: string[]; // Per-subject teacher comments (Ministry)
+  subjectType?: 'general' | 'technical' | 'other'; // Subject type for technical schools
   // Legacy fields for backward compatibility
   note1?: number;
   moyenneFinale?: number;
@@ -308,6 +309,20 @@ export default function ReportCardPreview({
   annualSummary = null,
 }: ReportCardProps) {
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
+  
+  // Group subjects by type for technical schools (3 sections: General, Technical, Other)
+  const groupedEntries = useMemo(() => {
+    if (!isTechnicalSchool) {
+      return { all: entries };
+    }
+    
+    const general = entries.filter(e => e.subjectType === 'general' || !e.subjectType);
+    const technical = entries.filter(e => e.subjectType === 'technical');
+    const other = entries.filter(e => e.subjectType === 'other');
+    
+    return { general, technical, other };
+  }, [entries, isTechnicalSchool]);
+  
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
   const totalMxCoef = entries.reduce((s, x) => s + (Number(x.m20) || 0) * (x.coef || 0), 0);
   const moyenne = totalCoef ? round2(totalMxCoef / totalCoef) : 0;
