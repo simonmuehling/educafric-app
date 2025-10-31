@@ -497,28 +497,9 @@ export default function ReportCardPreview({
             <table className="w-full print:text-[7px] border border-black" style={{lineHeight: isTechnicalBulletin ? '1.0' : '1.3', tableLayout: 'fixed'}}>
               {/* Fixed Column Widths for A4 Fit - Conditional for Technical vs General Schools */}
               {showTwoColumns ? (
-                <colgroup>
-                  <col style={{ width: '30mm' }} /> {/* Subject+Teacher */}
-                  <col style={{ width: '45mm' }} /> {/* Competencies */}
-                  <col style={{ width: '10mm' }} /> {/* MK/20 */}
-                  <col style={{ width: '10mm' }} /> {/* AV/20 */}
-                  <col style={{ width: '8mm' }} />  {/* Coef */}
-                  <col style={{ width: '12mm' }} /> {/* AV×Coef */}
-                  <col style={{ width: '10mm' }} /> {/* Grade */}
-                  <col style={{ width: '16mm' }} /> {/* Remarks */}
-                  <col style={{ width: '38mm' }} /> {/* Comments */}
-                </colgroup>
+                <colgroup><col style={{ width: '30mm' }} /><col style={{ width: '45mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '8mm' }} /><col style={{ width: '12mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '16mm' }} /><col style={{ width: '38mm' }} /></colgroup>
               ) : (
-                <colgroup>
-                  <col style={{ width: '35mm' }} /> {/* Subject+Teacher */}
-                  <col style={{ width: '65mm' }} /> {/* Competencies */}
-                  <col style={{ width: '16mm' }} /> {/* Note/20 (combined) */}
-                  <col style={{ width: '10mm' }} />  {/* Coef */}
-                  <col style={{ width: '14mm' }} /> {/* AV×Coef */}
-                  <col style={{ width: '14mm' }} /> {/* Grade */}
-                  <col style={{ width: '22mm' }} /> {/* Remarks */}
-                  <col style={{ width: '24mm' }} /> {/* Comments */}
-                </colgroup>
+                <colgroup><col style={{ width: '35mm' }} /><col style={{ width: '65mm' }} /><col style={{ width: '16mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '14mm' }} /><col style={{ width: '14mm' }} /><col style={{ width: '22mm' }} /><col style={{ width: '24mm' }} /></colgroup>
               )}
               <thead>
                 <tr className="bg-gray-100">
