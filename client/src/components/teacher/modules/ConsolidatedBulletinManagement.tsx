@@ -11,8 +11,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import TeacherBulletinInterface from '../TeacherBulletinInterface';
-import ManualBulletinForm from '../ManualBulletinForm';
 import BulletinCreationInterface from '@/components/academic/BulletinCreationInterface';
 import TeacherGradeSubmission from '../TeacherGradeSubmission';
 import { 
@@ -48,7 +46,6 @@ const ConsolidatedBulletinManagement: React.FC = () => {
   const [selectedTerm, setSelectedTerm] = useState<'T1' | 'T2' | 'T3'>('T1');
   const [academicYear, setAcademicYear] = useState('2024-2025');
   const [activeTab, setActiveTab] = useState('submit-grades');
-  const [selectedStudentForEntry, setSelectedStudentForEntry] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -233,14 +230,12 @@ const ConsolidatedBulletinManagement: React.FC = () => {
   const handleSchoolChange = useCallback((schoolId: string) => {
     setSelectedSchool(schoolId);
     setSelectedClass('');
-    setSelectedStudentForEntry(null);
     setSearchQuery('');
   }, []);
 
   // Class change handler
   const handleClassChange = useCallback((classId: string) => {
     setSelectedClass(classId);
-    setSelectedStudentForEntry(null);
     setSearchQuery('');
   }, []);
 
@@ -425,22 +420,18 @@ const ConsolidatedBulletinManagement: React.FC = () => {
       {/* Main Interface */}
       {selectedSchool && selectedClass && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="submit-grades" className="flex items-center gap-2" data-testid="tab-submit-grades">
               <Send className="h-4 w-4" />
               {t.submitGrades}
             </TabsTrigger>
-            <TabsTrigger value="overview" className="flex items-center gap-2" data-testid="tab-overview">
-              <Eye className="h-4 w-4" />
-              {t.overview}
-            </TabsTrigger>
-            <TabsTrigger value="manual-entry" className="flex items-center gap-2" data-testid="tab-manual-entry">
-              <Edit3 className="h-4 w-4" />
-              {t.manualDataEntry}
-            </TabsTrigger>
             <TabsTrigger value="bulletin-interface" className="flex items-center gap-2" data-testid="tab-bulletin-interface">
               <ClipboardEdit className="h-4 w-4" />
               {t.bulletinInterface}
+            </TabsTrigger>
+            <TabsTrigger value="overview" className="flex items-center gap-2" data-testid="tab-overview">
+              <Eye className="h-4 w-4" />
+              {t.overview}
             </TabsTrigger>
           </TabsList>
 
@@ -481,8 +472,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
                           <Button 
                             size="sm" 
                             onClick={() => {
-                              setSelectedStudentForEntry(student.id);
-                              setActiveTab('manual-entry');
+                              setActiveTab('bulletin-interface');
                             }}
                           >
                             <Edit3 className="w-4 h-4 mr-1" />
@@ -496,64 +486,6 @@ const ConsolidatedBulletinManagement: React.FC = () => {
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>Aucun élève dans cette classe</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Manual Entry Tab */}
-          <TabsContent value="manual-entry" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Edit3 className="h-5 w-5" />
-                  {t.manualDataEntry} - Format CBA
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Student Selection */}
-                <div className="space-y-4">
-                  <Label>{t.selectStudentForEntry}</Label>
-                  <Select 
-                    value={selectedStudentForEntry?.toString() || 'none'} 
-                    onValueChange={(value) => setSelectedStudentForEntry(value === 'none' ? null : parseInt(value))}
-                  >
-                    <SelectTrigger data-testid="student-select-manual">
-                      <SelectValue placeholder={t.selectStudentForEntry} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">-- {t.selectStudentForEntry} --</SelectItem>
-                      {filteredStudents.map((student: any) => (
-                        <SelectItem key={student.id} value={student.id.toString()}>
-                          {student.firstName} {student.lastName} - {student.matricule}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {/* Bulletin Creation Interface */}
-                {selectedStudentForEntry && (
-                  <div className="border-t pt-6">
-                    <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
-                      <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                        Mode Enseignant - Bulletin CBA
-                      </h3>
-                      <p className="text-blue-700 dark:text-blue-300 text-sm">
-                        Élève sélectionné: {filteredStudents.find((s: any) => s.id === selectedStudentForEntry)?.firstName} {filteredStudents.find((s: any) => s.id === selectedStudentForEntry)?.lastName} | 
-                        Trimestre: {getTrimesterLabel(selectedTerm)} | 
-                        Année: {academicYear}
-                      </p>
-                    </div>
-                    
-                    {/* Manual Bulletin Form for Grade Input */}
-                    <ManualBulletinForm
-                      studentId={selectedStudentForEntry.toString()}
-                      trimestre={selectedTerm}
-                      classId={selectedClass}
-                      academicYear={academicYear}
-                    />
                   </div>
                 )}
               </CardContent>

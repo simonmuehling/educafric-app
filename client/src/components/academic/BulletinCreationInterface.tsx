@@ -3107,48 +3107,110 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             </Card>
           )}
 
-          {/* Actions */}
-          <div className="flex flex-wrap gap-3 justify-end print:hidden no-print">
-            <Button variant="outline" onClick={() => setShowPreview(!showPreview)} data-testid="button-preview">
-              <Eye className="h-4 w-4 mr-2" />
-              {showPreview ? t.hide : t.preview}
-            </Button>
+          {/* Actions Enseignant Section */}
+          <div className="print:hidden no-print mt-8 mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              {language === 'fr' ? 'Actions Enseignant' : 'Teacher Actions'}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              {language === 'fr' 
+                ? 'Les enseignants soumettent les notes uniquement à l\'école. L\'école gère la signature et l\'envoi aux parents.'
+                : 'Teachers submit grades only to the school. The school manages signing and sending to parents.'
+              }
+            </p>
             
-            <Button 
-              variant="outline" 
-              onClick={() => setShowAnnualReport(!showAnnualReport)} 
-              data-testid="button-annual-report"
-              className="border-orange-300 text-orange-700 hover:bg-orange-50"
-            >
-              <School className="h-4 w-4 mr-2" />
-              {language === 'fr' ? 'Rapport Annuel' : 'Annual Report'}
-            </Button>
-            
-            {/* PDF printing is now handled by BulletinPrint component in the preview */}
-            
-            <Button 
-              variant={isSigned ? "default" : "outline"}
-              onClick={signBulletin}
-              disabled={isSigned}
-              data-testid="button-sign-bulletin"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              {isSigned ? t.signed : t.signBulletin}
-            </Button>
-            
-            <Button 
-              onClick={sendToStudentsParents}
-              disabled={!isSigned}
-              data-testid="button-send-bulletin"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              {t.sendToStudentParent}
-            </Button>
-            
-            <Button onClick={handleSaveBulletin} data-testid="button-save">
-              <Download className="h-4 w-4 mr-2" />
-              {t.save}
-            </Button>
+            {/* Action Buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Button
+                onClick={handleSaveBulletin}
+                variant="outline"
+                className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                data-testid="button-save-draft"
+              >
+                <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div className="text-center">
+                  <div className="font-semibold text-sm">
+                    {language === 'fr' ? 'Sauvegarder Brouillon' : 'Save Draft'}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {language === 'fr' ? 'Travail temporaire' : 'Temporary work'}
+                  </div>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/50"
+                data-testid="button-archive-class"
+              >
+                <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div className="text-center">
+                  <div className="font-semibold text-sm">
+                    {language === 'fr' ? 'Archiver par Classe' : 'Archive by Class'}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {language === 'fr' ? 'Organisation par classe' : 'Class organization'}
+                  </div>
+                </div>
+              </Button>
+
+              <Button
+                onClick={sendToStudentsParents}
+                className="flex flex-col items-center gap-2 h-auto py-4 bg-green-600 hover:bg-green-700 border-2 border-green-500"
+                data-testid="button-submit-school"
+              >
+                <Upload className="h-5 w-5 text-white" />
+                <div className="text-center text-white">
+                  <div className="font-semibold text-sm">
+                    {language === 'fr' ? 'Soumettre à l\'École' : 'Submit to School'}
+                  </div>
+                  <div className="text-xs opacity-90">
+                    {language === 'fr' ? 'Validation finale par l\'école' : 'Final validation by school'}
+                  </div>
+                </div>
+              </Button>
+            </div>
+
+            {/* Teacher Role Reminder */}
+            <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
+              <div className="flex gap-3">
+                <Info className="h-5 w-5 text-yellow-700 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-2">
+                    {language === 'fr' ? 'Rappel du rôle enseignant :' : 'Teacher role reminder:'}
+                  </h4>
+                  <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
+                      <span>
+                        {language === 'fr' 
+                          ? 'Les enseignants soumettent les notes uniquement à l\'école'
+                          : 'Teachers submit grades only to the school'
+                        }
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
+                      <span>
+                        {language === 'fr'
+                          ? 'L\'école valide, signe et envoie aux parents'
+                          : 'The school validates, signs and sends to parents'
+                        }
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
+                      <span>
+                        {language === 'fr'
+                          ? 'Aucune communication directe enseignant ↔ parents via cette interface'
+                          : 'No direct teacher ↔ parent communication via this interface'
+                        }
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
