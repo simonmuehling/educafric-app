@@ -33,7 +33,7 @@ const ClassManagement: React.FC = () => {
     subjects: [] as Array<{
       name: string;
       coefficient: number;
-      category: 'general' | 'technical' | 'other';
+      category: 'general' | 'scientific' | 'literary' | 'technical' | 'other';
       hoursPerWeek: number;
       isRequired: boolean;
     }>
@@ -58,7 +58,7 @@ const ClassManagement: React.FC = () => {
   const [newSubject, setNewSubject] = useState({
     name: '',
     coefficient: 1,
-    category: 'general' as 'general' | 'technical' | 'other',
+    category: 'general' as 'general' | 'scientific' | 'literary' | 'technical' | 'other',
     hoursPerWeek: 2,
     isRequired: true
   });
@@ -91,10 +91,12 @@ const ClassManagement: React.FC = () => {
         subjects: template.subjects.map(subject => ({
           name: subject.name,
           coefficient: subject.coefficient,
-          // Map old categories to new 3-type system
+          // Map template categories to 5-type system
           category: (subject.category === 'professional' ? 'technical' : 
+                    subject.category === 'sciences' ? 'scientific' :
+                    subject.category === 'languages' ? 'literary' :
                     (subject.category === 'arts' || subject.category === 'sports') ? 'other' : 
-                    'general') as 'general' | 'technical' | 'other',
+                    'general') as 'general' | 'scientific' | 'literary' | 'technical' | 'other',
           hoursPerWeek: subject.hoursPerWeek,
           isRequired: subject.isRequired
         }))
@@ -889,7 +891,7 @@ const ClassManagement: React.FC = () => {
                       <div className="flex gap-2">
                         <Select 
                           value={newSubject.category} 
-                          onValueChange={(value: 'general' | 'technical' | 'other') => 
+                          onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => 
                             setNewSubject(prev => ({ ...prev, category: value }))
                           }
                         >
@@ -898,6 +900,8 @@ const ClassManagement: React.FC = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
+                            <SelectItem value="scientific">🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}</SelectItem>
+                            <SelectItem value="literary">📖 {language === 'fr' ? 'Littéraire' : 'Literary'}</SelectItem>
                             <SelectItem value="technical">🔧 {language === 'fr' ? 'Technique' : 'Technical'}</SelectItem>
                             <SelectItem value="other">🎨 {language === 'fr' ? 'Autre' : 'Other'}</SelectItem>
                           </SelectContent>
@@ -1844,6 +1848,8 @@ const ClassManagement: React.FC = () => {
                           </div>
                           <Badge variant="outline" className="mt-2 text-xs">
                             {subject.category === 'general' ? (language === 'fr' ? 'Générale' : 'General') :
+                             subject.category === 'scientific' ? (language === 'fr' ? 'Scientifique' : 'Scientific') :
+                             subject.category === 'literary' ? (language === 'fr' ? 'Littéraire' : 'Literary') :
                              subject.category === 'technical' ? (language === 'fr' ? 'Technique' : 'Technical') :
                              (language === 'fr' ? 'Autre' : 'Other')}
                           </Badge>

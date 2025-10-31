@@ -96,7 +96,7 @@ interface Subject {
   competencies?: string;
   competencyLevel?: 'CTBA' | 'CBA' | 'CA' | 'CMA' | 'CNA' | 'CVWA' | 'CWA' | 'CAA';
   competencyEvaluation?: string;
-  subjectType?: 'general' | 'technical' | 'other'; // Subject type for technical schools (3 sections)
+  subjectType?: 'general' | 'scientific' | 'literary' | 'technical' | 'other'; // Subject type for technical schools (5 sections)
   // Additional fields for official Cameroon format
   note1: number;
   moyenneFinale: number;
@@ -2303,13 +2303,15 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                 <Label className="text-xs text-gray-600">{language === 'fr' ? 'Type' : 'Type'}</Label>
                                 <Select 
                                   value={subject.subjectType || 'general'} 
-                                  onValueChange={(value: 'general' | 'technical' | 'other') => updateSubject(subject.id, 'subjectType', value)}
+                                  onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => updateSubject(subject.id, 'subjectType', value)}
                                 >
                                   <SelectTrigger className="h-10">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
+                                    <SelectItem value="scientific">🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}</SelectItem>
+                                    <SelectItem value="literary">📖 {language === 'fr' ? 'Littéraire' : 'Literary'}</SelectItem>
                                     <SelectItem value="technical">🔧 {language === 'fr' ? 'Technique' : 'Technical'}</SelectItem>
                                     <SelectItem value="other">🎨 {language === 'fr' ? 'Autre' : 'Other'}</SelectItem>
                                   </SelectContent>

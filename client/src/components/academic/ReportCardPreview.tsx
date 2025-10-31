@@ -256,7 +256,7 @@ interface SubjectLine {
   minMax?: string; // [Min – Max] range
   remarksAndSignature?: string; // Remarks and Teacher's signature
   teacherComments?: string[]; // Per-subject teacher comments (Ministry)
-  subjectType?: 'general' | 'technical' | 'other'; // Subject type for technical schools
+  subjectType?: 'general' | 'scientific' | 'literary' | 'technical' | 'other'; // Subject type for technical schools (5 sections)
   // Legacy fields for backward compatibility
   note1?: number;
   moyenneFinale?: number;
@@ -310,17 +310,19 @@ export default function ReportCardPreview({
 }: ReportCardProps) {
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
   
-  // Group subjects by type for technical schools (3 sections: General, Technical, Other)
+  // Group subjects by type for technical schools (5 sections: General, Scientific, Literary, Technical, Other)
   const groupedEntries = useMemo(() => {
     if (!isTechnicalSchool) {
       return { all: entries };
     }
     
     const general = entries.filter(e => e.subjectType === 'general' || !e.subjectType);
+    const scientific = entries.filter(e => e.subjectType === 'scientific');
+    const literary = entries.filter(e => e.subjectType === 'literary');
     const technical = entries.filter(e => e.subjectType === 'technical');
     const other = entries.filter(e => e.subjectType === 'other');
     
-    return { general, technical, other };
+    return { general, scientific, literary, technical, other };
   }, [entries, isTechnicalSchool]);
   
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
@@ -681,10 +683,12 @@ export default function ReportCardPreview({
                     );
                   };
 
-                  // For technical schools, render 3 separate sections with subtotals
+                  // For technical schools, render 5 separate sections with subtotals
                   if (isTechnicalSchool) {
                     const sectionTitles = {
                       general: language === 'fr' ? 'Matières Générales' : 'General Subjects',
+                      scientific: language === 'fr' ? 'Matières Scientifiques' : 'Scientific Subjects',
+                      literary: language === 'fr' ? 'Matières Littéraires' : 'Literary Subjects',
                       technical: language === 'fr' ? 'Matières Techniques' : 'Technical Subjects',
                       other: language === 'fr' ? 'Autres Matières' : 'Other Subjects'
                     };
@@ -706,6 +710,38 @@ export default function ReportCardPreview({
                               return renderSubjectRow(r, uniqueKey);
                             })}
                             {renderSectionSubtotal(sectionTitles.general, groupedEntries.general)}
+                          </>
+                        )}
+
+                        {/* Scientific Subjects Section */}
+                        {groupedEntries.scientific && groupedEntries.scientific.length > 0 && (
+                          <>
+                            <tr className="bg-blue-100" key="section-scientific-header">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-blue-800">
+                                🔬 {sectionTitles.scientific}
+                              </td>
+                            </tr>
+                            {groupedEntries.scientific.map((r, idx) => {
+                              const uniqueKey = `scientific-${globalIndex++}`;
+                              return renderSubjectRow(r, uniqueKey);
+                            })}
+                            {renderSectionSubtotal(sectionTitles.scientific, groupedEntries.scientific)}
+                          </>
+                        )}
+
+                        {/* Literary Subjects Section */}
+                        {groupedEntries.literary && groupedEntries.literary.length > 0 && (
+                          <>
+                            <tr className="bg-yellow-100" key="section-literary-header">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-yellow-800">
+                                📖 {sectionTitles.literary}
+                              </td>
+                            </tr>
+                            {groupedEntries.literary.map((r, idx) => {
+                              const uniqueKey = `literary-${globalIndex++}`;
+                              return renderSubjectRow(r, uniqueKey);
+                            })}
+                            {renderSectionSubtotal(sectionTitles.literary, groupedEntries.literary)}
                           </>
                         )}
 
