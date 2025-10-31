@@ -322,21 +322,15 @@ export default function ReportCardPreview({
   // Determine if we show 2 columns (only for general-en)
   const showTwoColumns = effectiveBulletinType === 'general-en';
   
-  // Group subjects by type for technical schools (3 sections ONLY: General, Scientific, Technical)
+  // Group subjects by type for technical schools (5 input types → 3 display sections)
   const groupedEntries = useMemo(() => {
     if (!isTechnicalBulletin) {
       return { all: entries };
     }
     
-    // DEBUG: Log each entry with its section values
-    console.log('[PREVIEW_FILTER] Total entries:', entries.length);
-    entries.forEach((e, idx) => {
-      console.log(`[PREVIEW_FILTER] Entry ${idx}: subject="${e.subject}", bulletinSection="${e.bulletinSection}", subjectType="${e.subjectType}"`);
-    });
-    
     // Technical bulletins: 5 subject types → 3 bulletin sections mapping
-    // Use bulletinSection if defined (manual mapping), otherwise fallback to subjectType
-    // Mapping: general→General, scientific→Scientific, literary→General, technical→Technical, other→General
+    // User selects from 5 types, but bulletin displays only 3 sections
+    // Mapping: general→Général, literary→Général, scientific→Scientifique, technical→Technique, other→Général
     const general = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
       return section === 'general' || section === 'literary' || section === 'other' || !section;
@@ -349,11 +343,6 @@ export default function ReportCardPreview({
       const section = e.bulletinSection || e.subjectType;
       return section === 'technical';
     });
-    
-    // DEBUG: Log grouped results
-    console.log('[PREVIEW_GROUPED] General:', general.length, 'subjects:', general.map(e => e.subject));
-    console.log('[PREVIEW_GROUPED] Scientific:', scientific.length, 'subjects:', scientific.map(e => e.subject));
-    console.log('[PREVIEW_GROUPED] Technical:', technical.length, 'subjects:', technical.map(e => e.subject));
     
     return { general, scientific, technical };
   }, [entries, isTechnicalBulletin]);
