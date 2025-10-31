@@ -738,9 +738,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       
       // Calculate overall average
       const totalCoef = subjects.reduce((sum, s) => sum + (s.coefficient || 0), 0);
-      // For technical schools, use note1; for general schools, use moyenneFinale
+      // For technical schools (2 columns), use moyenneFinale (M/20); for general schools (1 column), use note1
       const totalMxCoef = subjects.reduce((sum, s) => {
-        const gradeToUse = isTechnicalSchool ? (s.note1 || 0) : (s.moyenneFinale || 0);
+        const gradeToUse = isTechnicalSchool ? (s.moyenneFinale || 0) : (s.note1 || 0);
         return sum + gradeToUse * (s.coefficient || 0);
       }, 0);
       const overallAverage = totalCoef ? (totalMxCoef / totalCoef).toFixed(2) : '0.00';
@@ -1018,8 +1018,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       }
     },
     lines: subjects.map(s => {
-      // For technical schools, use note1; for general schools, use moyenneFinale
-      const gradeToUse = isTechnicalSchool ? (s.note1 || 0) : (s.moyenneFinale || 0);
+      // For technical schools (2 columns), use moyenneFinale (M/20); for general schools (1 column), use note1
+      const gradeToUse = isTechnicalSchool ? (s.moyenneFinale || 0) : (s.note1 || 0);
       return {
         subject: s.name,
         note1: s.note1,
@@ -1098,8 +1098,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                       toast({
                         title: language === 'fr' ? 'Type d\'école modifié' : 'School type changed',
                         description: language === 'fr' 
-                          ? `Basculé vers école ${newType === 'technical' ? 'TECHNIQUE' : 'GÉNÉRALE'} - ${newType === 'technical' ? 'Une seule colonne Note/20' : 'Deux colonnes N/20 et M/20'}`
-                          : `Switched to ${newType.toUpperCase()} school - ${newType === 'technical' ? 'Single Note/20 column' : 'Two columns N/20 and M/20'}`,
+                          ? `Basculé vers école ${newType === 'technical' ? 'TECHNIQUE' : 'GÉNÉRALE'} - ${newType === 'technical' ? 'Deux colonnes N/20 et M/20' : 'Une seule colonne Note/20'}`
+                          : `Switched to ${newType.toUpperCase()} school - ${newType === 'technical' ? 'Two columns N/20 and M/20' : 'Single Note/20 column'}`,
                         duration: 5000,
                       });
                       return newType;
@@ -1128,8 +1128,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                       toast({
                         title: language === 'fr' ? 'Type d\'école modifié' : 'School type changed',
                         description: language === 'fr' 
-                          ? `Basculé vers école ${newType === 'technical' ? 'TECHNIQUE' : 'GÉNÉRALE'} - ${newType === 'technical' ? 'Une seule colonne Note/20' : 'Deux colonnes N/20 et M/20'}`
-                          : `Switched to ${newType.toUpperCase()} school - ${newType === 'technical' ? 'Single Note/20 column' : 'Two columns N/20 and M/20'}`,
+                          ? `Basculé vers école ${newType === 'technical' ? 'TECHNIQUE' : 'GÉNÉRALE'} - ${newType === 'technical' ? 'Deux colonnes N/20 et M/20' : 'Une seule colonne Note/20'}`
+                          : `Switched to ${newType.toUpperCase()} school - ${newType === 'technical' ? 'Two columns N/20 and M/20' : 'Single Note/20 column'}`,
                         duration: 5000,
                       });
                       return newType;
@@ -1933,8 +1933,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   <tbody>
                     {subjects.map((subject, index) => {
                       // Use manually entered values - no automatic calculation
-                      // For technical schools, use note1; for general schools, use moyenneFinale
-                      const gradeToUse = isTechnicalSchool ? (subject.note1 || 0) : (subject.moyenneFinale || 0);
+                      // For technical schools (2 columns), use moyenneFinale (M/20); for general schools (1 column), use note1
+                      const gradeToUse = isTechnicalSchool ? (subject.moyenneFinale || 0) : (subject.note1 || 0);
                       const moyenneFinale = subject.moyenneFinale || 0;
                       const totalPondere = round2(gradeToUse * subject.coefficient);
                       const notePercent = round2((gradeToUse / 20) * 100);
@@ -2187,8 +2187,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
               <div className="block md:hidden">
                 <Accordion type="single" collapsible className="space-y-2">
                   {subjects.map((subject, index) => {
-                    // For technical schools, use note1; for general schools, use moyenneFinale
-                    const gradeToUse = isTechnicalSchool ? (subject.note1 || 0) : (subject.moyenneFinale || 0);
+                    // For technical schools (2 columns), use moyenneFinale (M/20); for general schools (1 column), use note1
+                    const gradeToUse = isTechnicalSchool ? (subject.moyenneFinale || 0) : (subject.note1 || 0);
                     const moyenneFinale = subject.moyenneFinale || 0;
                     const totalPondere = round2(gradeToUse * subject.coefficient);
                     const notePercent = round2((gradeToUse / 20) * 100);

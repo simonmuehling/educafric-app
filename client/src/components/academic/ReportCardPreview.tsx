@@ -420,8 +420,8 @@ export default function ReportCardPreview({
               </span>
               <span>
                 {language === 'fr' 
-                  ? (isTechnicalSchool ? 'École TECHNIQUE - Une colonne Note/20' : 'École GÉNÉRALE - Deux colonnes N/20 et M/20')
-                  : (isTechnicalSchool ? 'TECHNICAL School - Single Note/20 column' : 'GENERAL School - Two columns N/20 and M/20')
+                  ? (isTechnicalSchool ? 'École TECHNIQUE - Deux colonnes N/20 et M/20' : 'École GÉNÉRALE - Une colonne Note/20')
+                  : (isTechnicalSchool ? 'TECHNICAL School - Two columns N/20 and M/20' : 'GENERAL School - Single Note/20 column')
                 }
               </span>
             </div>
@@ -431,7 +431,7 @@ export default function ReportCardPreview({
           <div className="mt-2 overflow-auto">
             <table className="w-full print:text-[7px] border border-black" style={{lineHeight: '1.0', tableLayout: 'fixed'}}>
               {/* Fixed Column Widths for A4 Fit - Conditional for Technical vs General Schools */}
-              {!isTechnicalSchool ? (
+              {isTechnicalSchool ? (
                 <colgroup>
                   <col style={{ width: '34mm' }} /> {/* Subject+Teacher */}
                   <col style={{ width: '54mm' }} /> {/* Competencies */}
@@ -463,7 +463,7 @@ export default function ReportCardPreview({
                   <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'COMPÉTENCES ÉVALUÉES' : 'COMPETENCIES EVALUATED'}
                   </th>
-                  {!isTechnicalSchool ? (
+                  {isTechnicalSchool ? (
                     <>
                       <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                         {language === 'fr' ? 'N/20' : 'MK/20'}
@@ -555,7 +555,7 @@ export default function ReportCardPreview({
                           })()}
                         </div>
                       </td>
-                      {!isTechnicalSchool ? (
+                      {isTechnicalSchool ? (
                         <>
                           <td className="border border-black p-0.5 text-center text-[6px]">
                             {mk20}
@@ -603,7 +603,7 @@ export default function ReportCardPreview({
                 <tr className="bg-gray-200">
                   <td className="border border-black p-0.5 font-bold text-[6px] text-center">TOTAL</td>
                   <td className="border border-black p-1"></td>
-                  {!isTechnicalSchool ? (
+                  {isTechnicalSchool ? (
                     <>
                       <td className="border border-black p-1"></td>
                       <td className="border border-black p-1"></td>
