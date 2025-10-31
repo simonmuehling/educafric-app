@@ -468,14 +468,14 @@ export default function ReportCardPreview({
                 </colgroup>
               ) : (
                 <colgroup>
-                  <col style={{ width: '32mm' }} /> {/* Subject+Teacher */}
-                  <col style={{ width: '50mm' }} /> {/* Competencies */}
-                  <col style={{ width: '15mm' }} /> {/* Note/20 (combined) */}
-                  <col style={{ width: '9mm' }} />  {/* Coef */}
-                  <col style={{ width: '12mm' }} /> {/* AV×Coef */}
-                  <col style={{ width: '10mm' }} /> {/* Grade */}
-                  <col style={{ width: '18mm' }} /> {/* Remarks */}
-                  <col style={{ width: '34mm' }} /> {/* Comments */}
+                  <col style={{ width: '35mm' }} /> {/* Subject+Teacher */}
+                  <col style={{ width: '65mm' }} /> {/* Competencies */}
+                  <col style={{ width: '16mm' }} /> {/* Note/20 (combined) */}
+                  <col style={{ width: '10mm' }} />  {/* Coef */}
+                  <col style={{ width: '14mm' }} /> {/* AV×Coef */}
+                  <col style={{ width: '14mm' }} /> {/* Grade */}
+                  <col style={{ width: '22mm' }} /> {/* Remarks */}
+                  <col style={{ width: '24mm' }} /> {/* Comments */}
                 </colgroup>
               )}
               <thead>
