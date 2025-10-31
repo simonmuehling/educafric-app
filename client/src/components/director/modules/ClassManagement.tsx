@@ -33,7 +33,7 @@ const ClassManagement: React.FC = () => {
     subjects: [] as Array<{
       name: string;
       coefficient: number;
-      category: 'general' | 'professional';
+      category: 'general' | 'technical' | 'other';
       hoursPerWeek: number;
       isRequired: boolean;
     }>
@@ -58,7 +58,7 @@ const ClassManagement: React.FC = () => {
   const [newSubject, setNewSubject] = useState({
     name: '',
     coefficient: 1,
-    category: 'general' as 'general' | 'professional',
+    category: 'general' as 'general' | 'technical' | 'other',
     hoursPerWeek: 2,
     isRequired: true
   });
@@ -91,7 +91,10 @@ const ClassManagement: React.FC = () => {
         subjects: template.subjects.map(subject => ({
           name: subject.name,
           coefficient: subject.coefficient,
-          category: subject.category,
+          // Map old categories to new 3-type system
+          category: (subject.category === 'professional' ? 'technical' : 
+                    (subject.category === 'arts' || subject.category === 'sports') ? 'other' : 
+                    'general') as 'general' | 'technical' | 'other',
           hoursPerWeek: subject.hoursPerWeek,
           isRequired: subject.isRequired
         }))
@@ -839,6 +842,20 @@ const ClassManagement: React.FC = () => {
                       <div className="text-sm font-medium mb-2 text-blue-800">
                         {String(t?.form?.addSubject) || "Ajouter Matière"}
                       </div>
+                      {/* Important reminder for technical schools */}
+                      <div className="bg-amber-50 border border-amber-200 rounded-md p-2 mb-3 text-xs text-amber-800">
+                        <div className="flex items-start gap-2">
+                          <span className="text-base">⚠️</span>
+                          <div>
+                            <strong>{language === 'fr' ? 'Important pour établissements techniques' : 'Important for technical schools'}:</strong>
+                            <p className="mt-1">
+                              {language === 'fr' 
+                                ? 'Le type de matière (Général/Technique/Autre) est essentiel pour la création correcte des bulletins. Les bulletins techniques afficheront 3 sections distinctes selon ce classement.'
+                                : 'Subject type (General/Technical/Other) is essential for correct bulletin creation. Technical bulletins will display 3 distinct sections based on this classification.'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                       <div className="grid grid-cols-2 gap-2 mb-3">
                         <div>
                           <Input
@@ -872,7 +889,7 @@ const ClassManagement: React.FC = () => {
                       <div className="flex gap-2">
                         <Select 
                           value={newSubject.category} 
-                          onValueChange={(value: 'general' | 'professional') => 
+                          onValueChange={(value: 'general' | 'technical' | 'other') => 
                             setNewSubject(prev => ({ ...prev, category: value }))
                           }
                         >
@@ -881,7 +898,8 @@ const ClassManagement: React.FC = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
-                            <SelectItem value="professional">🔧 {language === 'fr' ? 'Professionnel' : 'Professional'}</SelectItem>
+                            <SelectItem value="technical">🔧 {language === 'fr' ? 'Technique' : 'Technical'}</SelectItem>
+                            <SelectItem value="other">🎨 {language === 'fr' ? 'Autre' : 'Other'}</SelectItem>
                           </SelectContent>
                         </Select>
                         <Button
@@ -1826,7 +1844,8 @@ const ClassManagement: React.FC = () => {
                           </div>
                           <Badge variant="outline" className="mt-2 text-xs">
                             {subject.category === 'general' ? (language === 'fr' ? 'Générale' : 'General') :
-                             (language === 'fr' ? 'Professionnelle' : 'Professional')}
+                             subject.category === 'technical' ? (language === 'fr' ? 'Technique' : 'Technical') :
+                             (language === 'fr' ? 'Autre' : 'Other')}
                           </Badge>
                         </div>
                       ))}
