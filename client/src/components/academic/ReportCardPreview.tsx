@@ -257,6 +257,7 @@ interface SubjectLine {
   remarksAndSignature?: string; // Remarks and Teacher's signature
   teacherComments?: string[]; // Per-subject teacher comments (Ministry)
   subjectType?: 'general' | 'scientific' | 'literary' | 'technical' | 'other'; // Subject type for technical schools (5 sections)
+  bulletinSection?: 'general' | 'scientific' | 'technical'; // Manual bulletin section mapping for technical schools (overrides subjectType for bulletin grouping)
   // Legacy fields for backward compatibility
   note1?: number;
   moyenneFinale?: number;
@@ -328,9 +329,19 @@ export default function ReportCardPreview({
     
     // Technical bulletins: Only 3 sections (Général, Scientifique, Technique)
     // Literary and Other are NOT displayed
-    const general = entries.filter(e => e.subjectType === 'general' || !e.subjectType);
-    const scientific = entries.filter(e => e.subjectType === 'scientific');
-    const technical = entries.filter(e => e.subjectType === 'technical');
+    // Use bulletinSection if defined (manual mapping), otherwise fallback to subjectType
+    const general = entries.filter(e => {
+      const section = e.bulletinSection || e.subjectType;
+      return section === 'general' || !section;
+    });
+    const scientific = entries.filter(e => {
+      const section = e.bulletinSection || e.subjectType;
+      return section === 'scientific';
+    });
+    const technical = entries.filter(e => {
+      const section = e.bulletinSection || e.subjectType;
+      return section === 'technical';
+    });
     
     return { general, scientific, technical };
   }, [entries, isTechnicalBulletin]);
