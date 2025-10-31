@@ -88,6 +88,7 @@ Preferred communication style: Simple, everyday language.
 - **Bulk Excel Imports**: Comprehensive service for mass importing data with bilingual templates and validation.
 - **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` for end-to-end report card workflow with advanced features, digital signatures, and PDF export.
 - **CBA (Competency-Based Approach) Bulletins**: Full support for Cameroon Ministry of Secondary Education CBA format for technical schools, including Competency Library, Letter Grading System (A-F), Performance Bands (CVWA, CWA, CA, CAA, CNA), subject min-max ranges, teacher remarks, and enhanced discipline tracking. Enabled via `useCBAFormat` flag per school.
+- **5-Section Technical Bulletins**: Technical school bulletins support 5 distinct subject sections that appear conditionally based on content: General (📚 green), Literary (📖 purple), Scientific (🔬 blue), Technical (🔧 orange), Other (🎨 pink). Each section displays only if it contains subjects and includes its own subtotal calculation.
 - **Online Classes with Jitsi Meet**: Paid module for schools and independent teachers, featuring time-window access, JWT-secured video conferencing, course creation, attendance tracking, and integrated payments.
 - **Teacher Hybrid Work Mode**: Extends teacher roles to support `school`, `independent` (private tutor), and `hybrid` modes, with a subscription model and integrated payment processing.
 
