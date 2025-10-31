@@ -97,6 +97,7 @@ interface Subject {
   competencyLevel?: 'CTBA' | 'CBA' | 'CA' | 'CMA' | 'CNA' | 'CVWA' | 'CWA' | 'CAA';
   competencyEvaluation?: string;
   subjectType?: 'general' | 'scientific' | 'literary' | 'technical' | 'other'; // Subject type for technical schools (5 sections)
+  bulletinSection?: 'general' | 'scientific' | 'technical'; // Manual bulletin section mapping for technical schools (overrides subjectType for bulletin grouping)
   // Additional fields for official Cameroon format
   note1: number;
   moyenneFinale: number;
@@ -407,6 +408,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   };
   
   const [bulletinType, setBulletinType] = useState<'general-fr' | 'general-en' | 'technical-fr' | 'technical-en'>(getInitialBulletinType());
+  const isTechnicalBulletin = bulletinType === 'technical-fr' || bulletinType === 'technical-en';
   const [selectedClassId, setSelectedClassId] = useState<string>(defaultClass || '');
   const [year, setYear] = useState(defaultYear || '2025/2026');
   
@@ -633,13 +635,13 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       grade: 0,
       remark: '',
       note1: 0,
-
       moyenneFinale: 0,
       competence1: '',
       competence2: '',
       competence3: '',
       totalPondere: 0,
-      cote: ''
+      cote: '',
+      bulletinSection: undefined
     };
     setSubjects([...subjects, newSubject]);
   };
@@ -656,7 +658,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       const numValue = Number(value) || 0;
       const updatedSubject = { 
         ...s, 
-        [field]: (field === 'name' || field === 'remark' || field === 'customAppreciation' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'competence3' || field === 'teacher' || field === 'comments' || field === 'subjectType') ? value : numValue 
+        [field]: (field === 'name' || field === 'remark' || field === 'customAppreciation' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'competence3' || field === 'teacher' || field === 'comments' || field === 'subjectType' || field === 'bulletinSection') ? value : numValue 
       };
       
       // Always recalculate derived values
@@ -1087,6 +1089,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         remark: s.remark,
         customAppreciation: s.customAppreciation,
         subjectType: s.subjectType || 'general',
+        bulletinSection: s.bulletinSection,
         teacher: s.teacher,
         teacherComments: Array.isArray(s.comments) 
           ? s.comments.map(commentId => {
@@ -1998,6 +2001,11 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   <thead>
                     <tr className="bg-blue-50 border-b-2 border-blue-200">
                       <th className="px-3 py-2 text-left text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Matière' : 'Subject'}</th>
+                      {isTechnicalBulletin && (
+                        <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border bg-amber-50">
+                          {language === 'fr' ? '📋 Section Bulletin' : '📋 Bulletin Section'}
+                        </th>
+                      )}
                       <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border">
                         {isTechnicalSchool 
                           ? (language === 'fr' ? 'N/20' : 'N/20')
@@ -2046,6 +2054,33 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                               />
                             </div>
                           </td>
+
+                          {/* Section Bulletin - Only for technical bulletins */}
+                          {isTechnicalBulletin && (
+                            <td className="px-2 py-2 border bg-amber-50/50" data-testid={`cell-bulletin-section-${index}`}>
+                              <Select 
+                                value={subject.bulletinSection || ''} 
+                                onValueChange={(value: 'general' | 'scientific' | 'technical') => 
+                                  updateSubject(subject.id, 'bulletinSection', value)
+                                }
+                              >
+                                <SelectTrigger className="w-full text-xs">
+                                  <SelectValue placeholder={language === 'fr' ? 'Section...' : 'Section...'} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="general">
+                                    📚 {language === 'fr' ? 'Général' : 'General'}
+                                  </SelectItem>
+                                  <SelectItem value="scientific">
+                                    🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}
+                                  </SelectItem>
+                                  <SelectItem value="technical">
+                                    🔧 {language === 'fr' ? 'Technique' : 'Technical'}
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </td>
+                          )}
 
                           {/* N/20-M/20 */}
                           <td className="px-2 py-2 border" data-testid={`cell-nm20-${index}`}>
@@ -2362,6 +2397,26 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                   </SelectContent>
                                 </Select>
                               </div>
+                              {isTechnicalBulletin && (
+                                <div className="space-y-1">
+                                  <Label className="text-xs text-gray-600 bg-amber-50 px-1 rounded">
+                                    {language === 'fr' ? '📋 Section Bulletin' : '📋 Bulletin Section'}
+                                  </Label>
+                                  <Select 
+                                    value={subject.bulletinSection || ''} 
+                                    onValueChange={(value: 'general' | 'scientific' | 'technical') => updateSubject(subject.id, 'bulletinSection', value)}
+                                  >
+                                    <SelectTrigger className="h-10">
+                                      <SelectValue placeholder={language === 'fr' ? 'Section...' : 'Section...'} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
+                                      <SelectItem value="scientific">🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}</SelectItem>
+                                      <SelectItem value="technical">🔧 {language === 'fr' ? 'Technique' : 'Technical'}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
                               <div className="space-y-1">
                                 <Label className="text-xs text-gray-600">COTE</Label>
                                 <div className="h-10 px-3 border rounded-md bg-gray-50 flex items-center justify-center font-medium">
