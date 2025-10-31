@@ -394,8 +394,24 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     defaultTerm === 'T2' ? 'Deuxième' : 
     defaultTerm === 'T3' ? 'Troisième' : 'Premier'
   );
+  
+  // Initialize bulletin type based on school type and language
+  const getInitialBulletinType = (): 'general-fr' | 'general-en' | 'technical' => {
+    // Check school data
+    const schoolType = testModeEducationalType || schoolData?.school?.educationalType;
+    if (schoolType === 'technical') return 'technical';
+    // For general schools, use language-specific format
+    return language === 'en' ? 'general-en' : 'general-fr';
+  };
+  
+  const [bulletinType, setBulletinType] = useState<'general-fr' | 'general-en' | 'technical'>(getInitialBulletinType());
   const [selectedClassId, setSelectedClassId] = useState<string>(defaultClass || '');
   const [year, setYear] = useState(defaultYear || '2025/2026');
+  
+  // Update bulletin type when school data or language changes
+  useEffect(() => {
+    setBulletinType(getInitialBulletinType());
+  }, [schoolData, testModeEducationalType, language]);
 
   // Fetch available classes
   const { data: classesData, isLoading: loadingClasses } = useQuery({
@@ -859,6 +875,11 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     fr: {
       title: "Création de Bulletin Trimestriel",
       trimester: "Trimestre",
+      bulletinType: "Type de Bulletin",
+      selectBulletinType: "Sélectionner le type",
+      generalFr: "Général Francophone",
+      generalEn: "Général Anglophone",
+      technical: "Technique (FR/EN)",
       selectClass: "Sélectionner la classe",
       selectTrimester: "Sélectionner le trimestre",
       firstTerm: "Premier Trimestre",
@@ -938,6 +959,11 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     en: {
       title: "Quarterly Report Creation",
       trimester: "Term",
+      bulletinType: "Report Type",
+      selectBulletinType: "Select type",
+      generalFr: "General Francophone",
+      generalEn: "General Anglophone",
+      technical: "Technical (FR/EN)",
       selectClass: "Select class",
       selectTrimester: "Select term",
       firstTerm: "First Term",
@@ -1208,6 +1234,20 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   <SelectItem value="Premier">{t.firstTerm}</SelectItem>
                   <SelectItem value="Deuxième">{t.secondTerm}</SelectItem>
                   <SelectItem value="Troisième">{t.thirdTerm}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="bulletinType">{t.bulletinType}</Label>
+              <Select value={bulletinType} onValueChange={(value: any) => setBulletinType(value)}>
+                <SelectTrigger className="bg-white border-gray-300" data-testid="select-bulletin-type">
+                  <SelectValue placeholder={t.selectBulletinType} />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="general-fr">{t.generalFr}</SelectItem>
+                  <SelectItem value="general-en">{t.generalEn}</SelectItem>
+                  <SelectItem value="technical">{t.technical}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -3053,7 +3093,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
           </CardHeader>
           <CardContent>
             <BulletinPrint documentTitle={`${student.name?.replace(/\s+/g, '_')}_${trimester}_${year}`}>
-              <ReportCardPreview {...bulletinData} isTechnicalSchool={isTechnicalSchool} />
+              <ReportCardPreview {...bulletinData} bulletinType={bulletinType} />
             </BulletinPrint>
           </CardContent>
         </Card>

@@ -279,6 +279,7 @@ interface ReportCardProps {
   language?: 'fr' | 'en'; // NEW: Language support
   isThirdTrimester?: boolean;
   isTechnicalSchool?: boolean; // NEW: Hide MK/20 and AV/20 columns for technical schools
+  bulletinType?: 'general-fr' | 'general-en' | 'technical'; // NEW: Explicit bulletin type selection
   registrationNumber?: string; // School registration number (EDUCAFRIC or government)
   // selectedTeacherComments removed - now using per-subject comments in SubjectLine
   annualSummary?: {
@@ -305,14 +306,17 @@ export default function ReportCardPreview({
   language = 'fr', // Default to French
   isThirdTrimester = false,
   isTechnicalSchool = false, // Default to general school (show MK/20 and AV/20)
+  bulletinType, // NEW: Explicit bulletin type selection
   registrationNumber = "",
   annualSummary = null,
 }: ReportCardProps) {
+  // Determine effective bulletin type
+  const effectiveBulletinType = bulletinType || (isTechnicalSchool ? 'technical' : 'general-fr');
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
   
   // Group subjects by type for technical schools (5 sections: General, Scientific, Literary, Technical, Other)
   const groupedEntries = useMemo(() => {
-    if (!isTechnicalSchool) {
+    if (effectiveBulletinType !== 'technical') {
       return { all: entries };
     }
     
@@ -323,14 +327,14 @@ export default function ReportCardPreview({
     const other = entries.filter(e => e.subjectType === 'other');
     
     return { general, scientific, literary, technical, other };
-  }, [entries, isTechnicalSchool]);
+  }, [entries, effectiveBulletinType]);
   
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
   const totalMxCoef = entries.reduce((s, x) => s + (Number(x.m20) || 0) * (x.coef || 0), 0);
   const moyenne = totalCoef ? round2(totalMxCoef / totalCoef) : 0;
 
   // DEBUG LOGS
-  console.log('[PREVIEW] isTechnicalSchool:', isTechnicalSchool);
+  console.log('[PREVIEW] effectiveBulletinType:', effectiveBulletinType);
   console.log('[PREVIEW] First line data:', entries[0]);
   console.log('[PREVIEW] Sample mk20:', entries[0]?.mk20);
   console.log('[PREVIEW] Sample av20:', entries[0]?.av20);
@@ -454,14 +458,14 @@ export default function ReportCardPreview({
 
           {/* TYPE INDICATOR - Visible only on screen, not in print */}
           <div className="mb-2 print:hidden flex items-center gap-2">
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium ${isTechnicalSchool ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-900 border border-blue-300'}`}>
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium ${effectiveBulletinType === 'technical' ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-900 border border-blue-300'}`}>
               <span className="font-bold">
-                {isTechnicalSchool ? '🔧' : '📚'}
+                {effectiveBulletinType === 'technical' ? '🔧' : '📚'}
               </span>
               <span>
                 {language === 'fr' 
-                  ? (isTechnicalSchool ? 'École TECHNIQUE - Deux colonnes N/20 et M/20' : 'École GÉNÉRALE - Une colonne Note/20')
-                  : (isTechnicalSchool ? 'TECHNICAL School - Two columns N/20 and M/20' : 'GENERAL School - Single Note/20 column')
+                  ? (effectiveBulletinType === 'technical' ? 'École TECHNIQUE - Deux colonnes N/20 et M/20' : 'École GÉNÉRALE - Une colonne Note/20')
+                  : (effectiveBulletinType === 'technical' ? 'TECHNICAL School - Two columns N/20 and M/20' : 'GENERAL School - Single Note/20 column')
                 }
               </span>
             </div>
@@ -469,9 +473,9 @@ export default function ReportCardPreview({
 
           {/* EXACT Ministry Subject Table - MUST match documents precisely */}
           <div className="mt-2 overflow-auto">
-            <table className="w-full print:text-[7px] border border-black" style={{lineHeight: isTechnicalSchool ? '1.0' : '1.3', tableLayout: 'fixed'}}>
+            <table className="w-full print:text-[7px] border border-black" style={{lineHeight: effectiveBulletinType === 'technical' ? '1.0' : '1.3', tableLayout: 'fixed'}}>
               {/* Fixed Column Widths for A4 Fit - Conditional for Technical vs General Schools */}
-              {isTechnicalSchool ? (
+              {effectiveBulletinType === 'technical' ? (
                 <colgroup>
                   <col style={{ width: '30mm' }} /> {/* Subject+Teacher */}
                   <col style={{ width: '45mm' }} /> {/* Competencies */}
@@ -788,7 +792,7 @@ export default function ReportCardPreview({
                 <tr className="bg-gray-200">
                   <td className="border border-black p-0.5 font-bold text-[6px] text-center">TOTAL</td>
                   <td className="border border-black p-1"></td>
-                  {isTechnicalSchool ? (
+                  {effectiveBulletinType === 'technical' ? (
                     <>
                       <td className="border border-black p-1"></td>
                       <td className="border border-black p-1"></td>
@@ -816,7 +820,7 @@ export default function ReportCardPreview({
           </div>
 
           {/* Ministry Discipline and Class Profile Section - EXACT format */}
-          <div className={isTechnicalSchool ? "mt-6" : "mt-4"}>
+          <div className={effectiveBulletinType === 'technical' ? "mt-6" : "mt-4"}>
             <table className="w-full text-[8px] border border-black">
               <tbody>
                 <tr>
@@ -973,7 +977,7 @@ export default function ReportCardPreview({
 
           {/* Third Trimester Annual Summary */}
           {isThirdTrimester && annualSummary && (
-            <div className={`${isTechnicalSchool ? "mt-6" : "mt-10"} border-2 border-orange-300 rounded-xl p-4 bg-orange-50`}>
+            <div className={`${effectiveBulletinType === 'technical' ? "mt-6" : "mt-10"} border-2 border-orange-300 rounded-xl p-4 bg-orange-50`}>
               <h3 className="text-lg font-semibold text-orange-800 mb-3">
                 {language === 'fr' ? 'Résumé Annuel' : 'Annual Summary'}
               </h3>
@@ -1051,7 +1055,7 @@ export default function ReportCardPreview({
 
           {/* Verification Code */}
           {(student as any).verificationCode && (
-            <div className={`${isTechnicalSchool ? "mt-4" : "mt-6"} flex justify-center`}>
+            <div className={`${effectiveBulletinType === 'technical' ? "mt-4" : "mt-6"} flex justify-center`}>
               <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-3 w-64">
                 <div className="text-xs text-blue-700 text-center font-medium">{language === 'fr' ? 'Code de Vérification' : 'Verification Code'}</div>
                 <div className="text-lg font-bold text-blue-800 text-center">{(student as any).verificationCode}</div>
