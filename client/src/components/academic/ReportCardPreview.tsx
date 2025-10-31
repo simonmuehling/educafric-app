@@ -518,6 +518,7 @@ export default function ReportCardPreview({
                 </tr>
               </thead>
               <tbody>
+                {/* Render actual subject entries */}
                 {entries.map((r, idx) => {
                   const mk20 = r.mk20 || r.note1 || 0;
                   const av20 = r.av20 || r.moyenneFinale || r.m20 || 0;
@@ -632,6 +633,26 @@ export default function ReportCardPreview({
                     </tr>
                   );
                 })}
+                
+                {/* Add filler rows for general schools to fill Ministry template space */}
+                {!isTechnicalSchool && (() => {
+                  const MIN_SUBJECT_ROWS = 18;
+                  const fillerCount = Math.max(0, MIN_SUBJECT_ROWS - entries.length);
+                  const cellPadding = "p-2";
+                  
+                  return Array.from({ length: fillerCount }).map((_, idx) => (
+                    <tr key={`filler-${idx}`}>
+                      <td className={`border border-black ${cellPadding} text-[6px]`}>&nbsp;</td>
+                      <td className={`border border-black ${cellPadding} text-[6px]`}>&nbsp;</td>
+                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>&nbsp;</td>
+                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>&nbsp;</td>
+                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>&nbsp;</td>
+                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>&nbsp;</td>
+                      <td className={`border border-black ${cellPadding} text-[5px]`}>&nbsp;</td>
+                      <td className={`border border-black ${cellPadding} text-[5px]`}>&nbsp;</td>
+                    </tr>
+                  ));
+                })()}
               </tbody>
               <tfoot>
                 <tr className="bg-gray-200">
@@ -665,7 +686,7 @@ export default function ReportCardPreview({
           </div>
 
           {/* Ministry Discipline and Class Profile Section - EXACT format */}
-          <div className={isTechnicalSchool ? "mt-6" : "mt-12"}>
+          <div className={isTechnicalSchool ? "mt-6" : "mt-4"}>
             <table className="w-full text-[8px] border border-black">
               <tbody>
                 <tr>
