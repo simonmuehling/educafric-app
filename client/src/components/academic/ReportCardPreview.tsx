@@ -452,7 +452,7 @@ export default function ReportCardPreview({
 
           {/* EXACT Ministry Subject Table - MUST match documents precisely */}
           <div className="mt-2 overflow-auto">
-            <table className="w-full print:text-[7px] border border-black" style={{lineHeight: '1.0', tableLayout: 'fixed'}}>
+            <table className="w-full print:text-[7px] border border-black" style={{lineHeight: isTechnicalSchool ? '1.0' : '1.3', tableLayout: 'fixed'}}>
               {/* Fixed Column Widths for A4 Fit - Conditional for Technical vs General Schools */}
               {isTechnicalSchool ? (
                 <colgroup>
@@ -539,7 +539,7 @@ export default function ReportCardPreview({
                   const cote = getCBAGrade(grade);
                   const minMax = r.minMax || '[Min - Max]';
                   
-                  const cellPadding = isTechnicalSchool ? "p-0.5" : "p-1.5";
+                  const cellPadding = isTechnicalSchool ? "p-0.5" : "p-2";
                   
                   return (
                     <tr key={idx}>
@@ -665,7 +665,7 @@ export default function ReportCardPreview({
           </div>
 
           {/* Ministry Discipline and Class Profile Section - EXACT format */}
-          <div className={isTechnicalSchool ? "mt-6" : "mt-10"}>
+          <div className={isTechnicalSchool ? "mt-6" : "mt-12"}>
             <table className="w-full text-[8px] border border-black">
               <tbody>
                 <tr>
