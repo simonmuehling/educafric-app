@@ -126,6 +126,7 @@ interface StudentInfo {
   delegationDepartementale?: string; // DÉLÉGATION DÉPARTEMENTALE DE
   schoolAddress?: string;
   schoolPhone?: string;
+  registrationNumber?: string; // School registration number (EDUCAFRIC or government)
 }
 
 // Ministry-compliant DisciplineInfo interface with extended fields
@@ -455,13 +456,24 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     regionaleMinisterielle: '',
     delegationDepartementale: '',
     schoolAddress: '',
-    schoolPhone: ''
+    schoolPhone: '',
+    registrationNumber: '' // Will be auto-filled from educafricNumber
   });
 
   const [studentPhotoUrl, setStudentPhotoUrl] = useState('');
   const [schoolLogoUrl, setSchoolLogoUrl] = useState('');
   // Use the existing schoolInfo from line 194 - consolidate real school logo URL
   const realSchoolLogoUrl = schoolInfo?.data?.logoUrl || schoolLogoUrl;
+
+  // Auto-fill registration number from educafricNumber when school data loads
+  React.useEffect(() => {
+    if (schoolInfo?.data?.educafricNumber && !student.registrationNumber) {
+      setStudent(prev => ({
+        ...prev,
+        registrationNumber: schoolInfo.data.educafricNumber
+      }));
+    }
+  }, [schoolInfo?.data?.educafricNumber]);
 
   const [subjects, setSubjects] = useState<Subject[]>([
     { 
@@ -1017,6 +1029,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         }
       }
     },
+    registrationNumber: student.registrationNumber || schoolInfo?.data?.educafricNumber || '',
     lines: subjects.map(s => {
       // For technical schools (2 columns), use moyenneFinale (M/20); for general schools (1 column), use note1
       const gradeToUse = isTechnicalSchool ? (s.moyenneFinale || 0) : (s.note1 || 0);
@@ -1526,6 +1539,25 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                           placeholder="BP 1234, Douala, Cameroun"
                           data-testid="input-school-address"
                         />
+                      </div>
+
+                      {/* Registration Number Field */}
+                      <div>
+                        <Label htmlFor="registrationNumber">
+                          {language === 'fr' ? 'Numéro d\'enregistrement' : 'Registration Number'}
+                        </Label>
+                        <Input
+                          id="registrationNumber"
+                          value={student.registrationNumber}
+                          onChange={(e) => setStudent({...student, registrationNumber: e.target.value})}
+                          placeholder={language === 'fr' ? 'EDU-CM-SC-001' : 'EDU-CM-SC-001'}
+                          data-testid="input-registration-number"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {language === 'fr' 
+                            ? 'Auto-rempli depuis le numéro EDUCAFRIC de l\'école' 
+                            : 'Auto-filled from school EDUCAFRIC number'}
+                        </p>
                       </div>
                     </div>
                   </div>
