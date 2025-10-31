@@ -468,14 +468,14 @@ export default function ReportCardPreview({
                 </colgroup>
               ) : (
                 <colgroup>
-                  <col style={{ width: '38mm' }} /> {/* Subject+Teacher */}
-                  <col style={{ width: '60mm' }} /> {/* Competencies */}
-                  <col style={{ width: '18mm' }} /> {/* Note/20 (combined) */}
-                  <col style={{ width: '10mm' }} />  {/* Coef */}
-                  <col style={{ width: '14mm' }} /> {/* AV×Coef */}
-                  <col style={{ width: '12mm' }} /> {/* Grade */}
+                  <col style={{ width: '32mm' }} /> {/* Subject+Teacher */}
+                  <col style={{ width: '50mm' }} /> {/* Competencies */}
+                  <col style={{ width: '15mm' }} /> {/* Note/20 (combined) */}
+                  <col style={{ width: '9mm' }} />  {/* Coef */}
+                  <col style={{ width: '12mm' }} /> {/* AV×Coef */}
+                  <col style={{ width: '10mm' }} /> {/* Grade */}
                   <col style={{ width: '18mm' }} /> {/* Remarks */}
-                  <col style={{ width: '40mm' }} /> {/* Comments */}
+                  <col style={{ width: '34mm' }} /> {/* Comments */}
                 </colgroup>
               )}
               <thead>
@@ -761,7 +761,7 @@ export default function ReportCardPreview({
                   <td className="border border-black p-1 font-bold text-center">
                     {language === 'fr' ? 'MOYENNE DU TRIMESTRE' : 'TERM AVERAGE'}
                   </td>
-                  <td className="border border-black p-1 text-center font-bold text-lg">
+                  <td className={`border border-black p-1 text-center font-bold text-lg ${moyenne < 10 ? 'text-red-600' : 'text-green-700'}`}>
                     {moyenne}/20
                   </td>
                   <td rowSpan={3} className="border border-black p-1 text-[6px] align-top">
@@ -919,22 +919,16 @@ export default function ReportCardPreview({
             </div>
           )}
 
-          {/* Overall Average and Verification Code */}
-          <div className={`${isTechnicalSchool ? "mt-4" : "mt-8"} flex justify-center gap-4`}>
-            <div className="rounded-xl border p-3 w-48">
-              <div className="text-xs text-gray-500 text-center">
-                {language === 'fr' ? 'Moyenne Générale' : 'Overall Average'}
-              </div>
-              <div className={`text-2xl font-semibold text-center ${moyenne < 10 ? 'text-red-600' : ''}`}>{moyenne}/20</div>
-            </div>
-            {(student as any).verificationCode && (
-              <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-3 w-48">
+          {/* Verification Code */}
+          {(student as any).verificationCode && (
+            <div className={`${isTechnicalSchool ? "mt-4" : "mt-6"} flex justify-center`}>
+              <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-3 w-64">
                 <div className="text-xs text-blue-700 text-center font-medium">{language === 'fr' ? 'Code de Vérification' : 'Verification Code'}</div>
                 <div className="text-lg font-bold text-blue-800 text-center">{(student as any).verificationCode}</div>
                 <div className="text-xs text-blue-600 text-center mt-1">{language === 'fr' ? 'Vérifiez sur educafric.com/verify' : 'Verify on educafric.com/verify'}</div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
         </div>
       </A4Sheet>
