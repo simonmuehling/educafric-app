@@ -633,26 +633,6 @@ export default function ReportCardPreview({
                     </tr>
                   );
                 })}
-                
-                {/* Add filler rows for general schools to fill Ministry template space */}
-                {!isTechnicalSchool && (() => {
-                  const MIN_SUBJECT_ROWS = 18;
-                  const fillerCount = Math.max(0, MIN_SUBJECT_ROWS - entries.length);
-                  const cellPadding = "p-2";
-                  
-                  return Array.from({ length: fillerCount }).map((_, idx) => (
-                    <tr key={`filler-${idx}`}>
-                      <td className={`border border-black ${cellPadding} text-[6px]`}>&nbsp;</td>
-                      <td className={`border border-black ${cellPadding} text-[6px]`}>&nbsp;</td>
-                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>&nbsp;</td>
-                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>&nbsp;</td>
-                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>&nbsp;</td>
-                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>&nbsp;</td>
-                      <td className={`border border-black ${cellPadding} text-[5px]`}>&nbsp;</td>
-                      <td className={`border border-black ${cellPadding} text-[5px]`}>&nbsp;</td>
-                    </tr>
-                  ));
-                })()}
               </tbody>
               <tfoot>
                 <tr className="bg-gray-200">
