@@ -456,26 +456,26 @@ export default function ReportCardPreview({
               {/* Fixed Column Widths for A4 Fit - Conditional for Technical vs General Schools */}
               {isTechnicalSchool ? (
                 <colgroup>
-                  <col style={{ width: '34mm' }} /> {/* Subject+Teacher */}
-                  <col style={{ width: '54mm' }} /> {/* Competencies */}
+                  <col style={{ width: '30mm' }} /> {/* Subject+Teacher */}
+                  <col style={{ width: '45mm' }} /> {/* Competencies */}
                   <col style={{ width: '10mm' }} /> {/* MK/20 */}
                   <col style={{ width: '10mm' }} /> {/* AV/20 */}
                   <col style={{ width: '8mm' }} />  {/* Coef */}
                   <col style={{ width: '12mm' }} /> {/* AV×Coef */}
                   <col style={{ width: '10mm' }} /> {/* Grade */}
-                  <col style={{ width: '16mm' }} /> {/* Min-Max */}
-                  <col style={{ width: '34mm' }} /> {/* Remarks */}
+                  <col style={{ width: '16mm' }} /> {/* Remarks */}
+                  <col style={{ width: '38mm' }} /> {/* Comments */}
                 </colgroup>
               ) : (
                 <colgroup>
-                  <col style={{ width: '34mm' }} /> {/* Subject+Teacher */}
-                  <col style={{ width: '54mm' }} /> {/* Competencies */}
-                  <col style={{ width: '20mm' }} /> {/* Note/20 (combined) */}
-                  <col style={{ width: '8mm' }} />  {/* Coef */}
-                  <col style={{ width: '12mm' }} /> {/* AV×Coef */}
-                  <col style={{ width: '10mm' }} /> {/* Grade */}
-                  <col style={{ width: '16mm' }} /> {/* Min-Max */}
-                  <col style={{ width: '34mm' }} /> {/* Remarks */}
+                  <col style={{ width: '38mm' }} /> {/* Subject+Teacher */}
+                  <col style={{ width: '60mm' }} /> {/* Competencies */}
+                  <col style={{ width: '18mm' }} /> {/* Note/20 (combined) */}
+                  <col style={{ width: '10mm' }} />  {/* Coef */}
+                  <col style={{ width: '14mm' }} /> {/* AV×Coef */}
+                  <col style={{ width: '12mm' }} /> {/* Grade */}
+                  <col style={{ width: '18mm' }} /> {/* Remarks */}
+                  <col style={{ width: '40mm' }} /> {/* Comments */}
                 </colgroup>
               )}
               <thead>
