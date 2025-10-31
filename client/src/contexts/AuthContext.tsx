@@ -186,18 +186,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuthStatus = async () => {
     try {
       // For @test.educafric.com accounts, always use server authentication
-      // For sandbox users, prioritize localStorage
+      // For sandbox users, check if offline first
+      const isOffline = localStorage.getItem('educafric_offline_mode') === 'true';
       const cachedUser = localStorage.getItem('educafric_user');
+      
       if (cachedUser) {
         try {
           const userData = JSON.parse(cachedUser);
-          // Only use localStorage for actual sandbox users, not @test.educafric.com
-          if (userData.sandboxMode && !userData.email?.includes('@test.educafric.com')) {
+          // Only use localStorage for OFFLINE sandbox users
+          if (userData.sandboxMode && !userData.email?.includes('@test.educafric.com') && isOffline) {
             setUser(userData);
             setIsLoading(false);
             return;
           }
-          // For @test.educafric.com and all real users, verify with server first
+          // For @test.educafric.com and all online users (including online sandbox), verify with server first
           setUser(userData); // Set temporarily while checking server
         } catch (parseError) {
           localStorage.removeItem('educafric_user');
