@@ -638,7 +638,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       const numValue = Number(value) || 0;
       const updatedSubject = { 
         ...s, 
-        [field]: (field === 'name' || field === 'remark' || field === 'customAppreciation' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'competence3' || field === 'teacher' || field === 'comments') ? value : numValue 
+        [field]: (field === 'name' || field === 'remark' || field === 'customAppreciation' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'competence3' || field === 'teacher' || field === 'comments' || field === 'subjectType') ? value : numValue 
       };
       
       // Always recalculate derived values
@@ -1056,6 +1056,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         competencyEvaluation: s.competencyEvaluation,
         remark: s.remark,
         customAppreciation: s.customAppreciation,
+        subjectType: s.subjectType || 'general',
         teacher: s.teacher,
         teacherComments: Array.isArray(s.comments) 
           ? s.comments.map(commentId => {
@@ -2297,6 +2298,22 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                   onChange={(e) => updateSubject(subject.id, 'coefficient', parseInt(e.target.value) || 1)}
                                   data-testid={`mobile-input-coef-${index}`}
                                 />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs text-gray-600">{language === 'fr' ? 'Type' : 'Type'}</Label>
+                                <Select 
+                                  value={subject.subjectType || 'general'} 
+                                  onValueChange={(value: 'general' | 'technical' | 'other') => updateSubject(subject.id, 'subjectType', value)}
+                                >
+                                  <SelectTrigger className="h-10">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
+                                    <SelectItem value="technical">🔧 {language === 'fr' ? 'Technique' : 'Technical'}</SelectItem>
+                                    <SelectItem value="other">🎨 {language === 'fr' ? 'Autre' : 'Other'}</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
                               <div className="space-y-1">
                                 <Label className="text-xs text-gray-600">COTE</Label>

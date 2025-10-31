@@ -533,12 +533,13 @@ export default function ReportCardPreview({
                 </tr>
               </thead>
               <tbody>
-                {/* Render actual subject entries */}
-                {entries.map((r, idx) => {
-                  const mk20 = r.mk20 || r.note1 || 0;
-                  const av20 = r.av20 || r.moyenneFinale || r.m20 || 0;
-                  const avXcoef = round2(Number(av20) * (r.coef || 0));
-                  const grade = Number(av20) || 0;
+                {/* Helper function to render a section of subjects */}
+                {(() => {
+                  const renderSubjectRow = (r: SubjectLine, rowKey: string | number) => {
+                    const mk20 = r.mk20 || r.note1 || 0;
+                    const av20 = r.av20 || r.moyenneFinale || r.m20 || 0;
+                    const avXcoef = round2(Number(av20) * (r.coef || 0));
+                    const grade = Number(av20) || 0;
                   
                   // Ministry CBA Grade Calculation
                   const getCBAGrade = (g: number) => {
@@ -558,7 +559,7 @@ export default function ReportCardPreview({
                   const cellPadding = isTechnicalSchool ? "p-0.5" : "p-2";
                   
                   return (
-                    <tr key={idx}>
+                    <tr key={rowKey}>
                       <td className={`border border-black ${cellPadding} text-[6px]`}>
                         <div className="font-bold">{r.subject}</div>
                         <div className="text-[6px] text-gray-600">{r.teacher || ''}</div>
@@ -646,8 +647,106 @@ export default function ReportCardPreview({
                         )}
                       </td>
                     </tr>
-                  );
-                })}
+                    );
+                  };
+
+                  const renderSectionSubtotal = (sectionName: string, sectionEntries: SubjectLine[]) => {
+                    if (sectionEntries.length === 0) return null;
+                    
+                    const sectionTotalCoef = sectionEntries.reduce((sum, r) => sum + Number(r.coef || 0), 0);
+                    const sectionTotalMxCoef = sectionEntries.reduce((sum, r) => {
+                      const av20 = r.av20 || r.moyenneFinale || r.m20 || 0;
+                      return sum + (Number(av20) * Number(r.coef || 0));
+                    }, 0);
+                    const sectionMoyenne = sectionTotalCoef > 0 ? round2(sectionTotalMxCoef / sectionTotalCoef) : 0;
+
+                    return (
+                      <tr className="bg-blue-50 font-semibold">
+                        <td colSpan={2} className="border border-black p-0.5 text-[7px] italic text-blue-700">
+                          {language === 'fr' ? `Sous-total - ${sectionName}` : `Subtotal - ${sectionName}`}
+                        </td>
+                        {isTechnicalSchool ? (
+                          <>
+                            <td className="border border-black p-0.5"></td>
+                            <td className="border border-black p-0.5"></td>
+                          </>
+                        ) : (
+                          <td className="border border-black p-0.5"></td>
+                        )}
+                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">{sectionTotalCoef}</td>
+                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">{round2(sectionTotalMxCoef)}</td>
+                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">{sectionMoyenne}/20</td>
+                        <td colSpan={2} className="border border-black p-0.5"></td>
+                      </tr>
+                    );
+                  };
+
+                  // For technical schools, render 3 separate sections with subtotals
+                  if (isTechnicalSchool) {
+                    const sectionTitles = {
+                      general: language === 'fr' ? 'Matières Générales' : 'General Subjects',
+                      technical: language === 'fr' ? 'Matières Techniques' : 'Technical Subjects',
+                      other: language === 'fr' ? 'Autres Matières' : 'Other Subjects'
+                    };
+
+                    let globalIndex = 0;
+
+                    return (
+                      <>
+                        {/* General Subjects Section */}
+                        {groupedEntries.general && groupedEntries.general.length > 0 && (
+                          <>
+                            <tr className="bg-green-100" key="section-general-header">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-green-800">
+                                📚 {sectionTitles.general}
+                              </td>
+                            </tr>
+                            {groupedEntries.general.map((r, idx) => {
+                              const uniqueKey = `general-${globalIndex++}`;
+                              return renderSubjectRow(r, uniqueKey);
+                            })}
+                            {renderSectionSubtotal(sectionTitles.general, groupedEntries.general)}
+                          </>
+                        )}
+
+                        {/* Technical Subjects Section */}
+                        {groupedEntries.technical && groupedEntries.technical.length > 0 && (
+                          <>
+                            <tr className="bg-orange-100" key="section-technical-header">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-orange-800">
+                                🔧 {sectionTitles.technical}
+                              </td>
+                            </tr>
+                            {groupedEntries.technical.map((r, idx) => {
+                              const uniqueKey = `technical-${globalIndex++}`;
+                              return renderSubjectRow(r, uniqueKey);
+                            })}
+                            {renderSectionSubtotal(sectionTitles.technical, groupedEntries.technical)}
+                          </>
+                        )}
+
+                        {/* Other Subjects Section */}
+                        {groupedEntries.other && groupedEntries.other.length > 0 && (
+                          <>
+                            <tr className="bg-purple-100" key="section-other-header">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-purple-800">
+                                🎨 {sectionTitles.other}
+                              </td>
+                            </tr>
+                            {groupedEntries.other.map((r, idx) => {
+                              const uniqueKey = `other-${globalIndex++}`;
+                              return renderSubjectRow(r, uniqueKey);
+                            })}
+                            {renderSectionSubtotal(sectionTitles.other, groupedEntries.other)}
+                          </>
+                        )}
+                      </>
+                    );
+                  }
+
+                  // For general schools, render all subjects without sections
+                  return entries.map((r, idx) => renderSubjectRow(r, `subject-${idx}`));
+                })()}
               </tbody>
               <tfoot>
                 <tr className="bg-gray-200">
