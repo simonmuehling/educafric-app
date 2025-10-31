@@ -396,15 +396,17 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   );
   
   // Initialize bulletin type based on school type and language
-  const getInitialBulletinType = (): 'general-fr' | 'general-en' | 'technical' => {
+  const getInitialBulletinType = (): 'general-fr' | 'general-en' | 'technical-fr' | 'technical-en' => {
     // Check school data
     const schoolType = testModeEducationalType || schoolData?.school?.educationalType;
-    if (schoolType === 'technical') return 'technical';
+    if (schoolType === 'technical') {
+      return language === 'en' ? 'technical-en' : 'technical-fr';
+    }
     // For general schools, use language-specific format
     return language === 'en' ? 'general-en' : 'general-fr';
   };
   
-  const [bulletinType, setBulletinType] = useState<'general-fr' | 'general-en' | 'technical'>(getInitialBulletinType());
+  const [bulletinType, setBulletinType] = useState<'general-fr' | 'general-en' | 'technical-fr' | 'technical-en'>(getInitialBulletinType());
   const [selectedClassId, setSelectedClassId] = useState<string>(defaultClass || '');
   const [year, setYear] = useState(defaultYear || '2025/2026');
   
@@ -877,9 +879,10 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       trimester: "Trimestre",
       bulletinType: "Type de Bulletin",
       selectBulletinType: "Sélectionner le type",
-      generalFr: "Général Francophone",
-      generalEn: "Général Anglophone",
-      technical: "Technique (FR/EN)",
+      generalFr: "Général Francophone (1 colonne)",
+      generalEn: "Général Anglophone (2 colonnes)",
+      technicalFr: "Technique Francophone (3 sections)",
+      technicalEn: "Technique Anglophone (3 sections)",
       selectClass: "Sélectionner la classe",
       selectTrimester: "Sélectionner le trimestre",
       firstTerm: "Premier Trimestre",
@@ -961,9 +964,10 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       trimester: "Term",
       bulletinType: "Report Type",
       selectBulletinType: "Select type",
-      generalFr: "General Francophone",
-      generalEn: "General Anglophone",
-      technical: "Technical (FR/EN)",
+      generalFr: "General Francophone (1 column)",
+      generalEn: "General Anglophone (2 columns)",
+      technicalFr: "Technical Francophone (3 sections)",
+      technicalEn: "Technical Anglophone (3 sections)",
       selectClass: "Select class",
       selectTrimester: "Select term",
       firstTerm: "First Term",
@@ -1247,7 +1251,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                 <SelectContent className="bg-white">
                   <SelectItem value="general-fr">{t.generalFr}</SelectItem>
                   <SelectItem value="general-en">{t.generalEn}</SelectItem>
-                  <SelectItem value="technical">{t.technical}</SelectItem>
+                  <SelectItem value="technical-fr">{t.technicalFr}</SelectItem>
+                  <SelectItem value="technical-en">{t.technicalEn}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

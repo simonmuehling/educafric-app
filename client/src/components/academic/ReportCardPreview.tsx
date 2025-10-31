@@ -278,8 +278,8 @@ interface ReportCardProps {
   qrValue?: string;
   language?: 'fr' | 'en'; // NEW: Language support
   isThirdTrimester?: boolean;
-  isTechnicalSchool?: boolean; // NEW: Hide MK/20 and AV/20 columns for technical schools
-  bulletinType?: 'general-fr' | 'general-en' | 'technical'; // NEW: Explicit bulletin type selection
+  isTechnicalSchool?: boolean; // DEPRECATED: Use bulletinType instead
+  bulletinType?: 'general-fr' | 'general-en' | 'technical-fr' | 'technical-en'; // NEW: Explicit bulletin type selection
   registrationNumber?: string; // School registration number (EDUCAFRIC or government)
   // selectedTeacherComments removed - now using per-subject comments in SubjectLine
   annualSummary?: {
@@ -305,29 +305,35 @@ export default function ReportCardPreview({
   qrValue = "https://www.educafric.com",
   language = 'fr', // Default to French
   isThirdTrimester = false,
-  isTechnicalSchool = false, // Default to general school (show MK/20 and AV/20)
+  isTechnicalSchool = false, // DEPRECATED: Use bulletinType instead
   bulletinType, // NEW: Explicit bulletin type selection
   registrationNumber = "",
   annualSummary = null,
 }: ReportCardProps) {
   // Determine effective bulletin type
-  const effectiveBulletinType = bulletinType || (isTechnicalSchool ? 'technical' : 'general-fr');
+  const effectiveBulletinType = bulletinType || (isTechnicalSchool ? 'technical-fr' : 'general-fr');
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
   
-  // Group subjects by type for technical schools (5 sections: General, Scientific, Literary, Technical, Other)
+  // Determine if this is a technical bulletin (shows 3 sections: General, Scientific, Technical only)
+  const isTechnicalBulletin = effectiveBulletinType === 'technical-fr' || effectiveBulletinType === 'technical-en';
+  
+  // Determine if we show 2 columns (only for general-en)
+  const showTwoColumns = effectiveBulletinType === 'general-en';
+  
+  // Group subjects by type for technical schools (3 sections ONLY: General, Scientific, Technical)
   const groupedEntries = useMemo(() => {
-    if (effectiveBulletinType !== 'technical') {
+    if (!isTechnicalBulletin) {
       return { all: entries };
     }
     
+    // Technical bulletins: Only 3 sections (Général, Scientifique, Technique)
+    // Literary and Other are NOT displayed
     const general = entries.filter(e => e.subjectType === 'general' || !e.subjectType);
     const scientific = entries.filter(e => e.subjectType === 'scientific');
-    const literary = entries.filter(e => e.subjectType === 'literary');
     const technical = entries.filter(e => e.subjectType === 'technical');
-    const other = entries.filter(e => e.subjectType === 'other');
     
-    return { general, scientific, literary, technical, other };
-  }, [entries, effectiveBulletinType]);
+    return { general, scientific, technical };
+  }, [entries, isTechnicalBulletin]);
   
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
   const totalMxCoef = entries.reduce((s, x) => s + (Number(x.m20) || 0) * (x.coef || 0), 0);
@@ -458,14 +464,17 @@ export default function ReportCardPreview({
 
           {/* TYPE INDICATOR - Visible only on screen, not in print */}
           <div className="mb-2 print:hidden flex items-center gap-2">
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium ${effectiveBulletinType === 'technical' ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-900 border border-blue-300'}`}>
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium ${isTechnicalBulletin ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-900 border border-blue-300'}`}>
               <span className="font-bold">
-                {effectiveBulletinType === 'technical' ? '🔧' : '📚'}
+                {isTechnicalBulletin ? '🔧' : '📚'}
               </span>
               <span>
-                {language === 'fr' 
-                  ? (effectiveBulletinType === 'technical' ? 'École TECHNIQUE - Deux colonnes N/20 et M/20' : 'École GÉNÉRALE - Une colonne Note/20')
-                  : (effectiveBulletinType === 'technical' ? 'TECHNICAL School - Two columns N/20 and M/20' : 'GENERAL School - Single Note/20 column')
+                {isTechnicalBulletin 
+                  ? (language === 'fr' ? 'École TECHNIQUE - 3 sections (Général, Scientifique, Technique)' : 'TECHNICAL School - 3 sections (General, Scientific, Technical)')
+                  : (showTwoColumns 
+                    ? (language === 'fr' ? 'École GÉNÉRALE - Deux colonnes N/20 et M/20' : 'GENERAL School - Two columns N/20 and M/20')
+                    : (language === 'fr' ? 'École GÉNÉRALE - Une colonne Note/20' : 'GENERAL School - Single Note/20 column')
+                  )
                 }
               </span>
             </div>
@@ -473,9 +482,9 @@ export default function ReportCardPreview({
 
           {/* EXACT Ministry Subject Table - MUST match documents precisely */}
           <div className="mt-2 overflow-auto">
-            <table className="w-full print:text-[7px] border border-black" style={{lineHeight: effectiveBulletinType === 'technical' ? '1.0' : '1.3', tableLayout: 'fixed'}}>
+            <table className="w-full print:text-[7px] border border-black" style={{lineHeight: isTechnicalBulletin ? '1.0' : '1.3', tableLayout: 'fixed'}}>
               {/* Fixed Column Widths for A4 Fit - Conditional for Technical vs General Schools */}
-              {effectiveBulletinType === 'technical' ? (
+              {showTwoColumns ? (
                 <colgroup>
                   <col style={{ width: '30mm' }} /> {/* Subject+Teacher */}
                   <col style={{ width: '45mm' }} /> {/* Competencies */}
@@ -507,7 +516,7 @@ export default function ReportCardPreview({
                   <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                     {language === 'fr' ? 'COMPÉTENCES ÉVALUÉES' : 'COMPETENCIES EVALUATED'}
                   </th>
-                  {isTechnicalSchool ? (
+                  {showTwoColumns ? (
                     <>
                       <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
                         {language === 'fr' ? 'N/20' : 'MK/20'}
@@ -603,7 +612,7 @@ export default function ReportCardPreview({
                           })()}
                         </div>
                       </td>
-                      {isTechnicalSchool ? (
+                      {showTwoColumns ? (
                         <>
                           <td className={`border border-black ${cellPadding} text-center text-[6px]`}>
                             {mk20}
@@ -671,7 +680,7 @@ export default function ReportCardPreview({
                         <td colSpan={2} className="border border-black p-0.5 text-[7px] italic text-blue-700">
                           {language === 'fr' ? `Sous-total - ${sectionName}` : `Subtotal - ${sectionName}`}
                         </td>
-                        {isTechnicalSchool ? (
+                        {showTwoColumns ? (
                           <>
                             <td className="border border-black p-0.5"></td>
                             <td className="border border-black p-0.5"></td>
@@ -687,8 +696,8 @@ export default function ReportCardPreview({
                     );
                   };
 
-                  // For technical schools, render 5 separate sections with subtotals
-                  if (isTechnicalSchool) {
+                  // For technical bulletins, render 3 separate sections with subtotals (General, Scientific, Technical ONLY)
+                  if (isTechnicalBulletin) {
                     const sectionTitles = {
                       general: language === 'fr' ? 'Matières Générales' : 'General Subjects',
                       scientific: language === 'fr' ? 'Matières Scientifiques' : 'Scientific Subjects',
@@ -733,22 +742,6 @@ export default function ReportCardPreview({
                           </>
                         )}
 
-                        {/* Literary Subjects Section */}
-                        {groupedEntries.literary && groupedEntries.literary.length > 0 && (
-                          <>
-                            <tr className="bg-yellow-100" key="section-literary-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-yellow-800">
-                                📖 {sectionTitles.literary}
-                              </td>
-                            </tr>
-                            {groupedEntries.literary.map((r, idx) => {
-                              const uniqueKey = `literary-${globalIndex++}`;
-                              return renderSubjectRow(r, uniqueKey);
-                            })}
-                            {renderSectionSubtotal(sectionTitles.literary, groupedEntries.literary)}
-                          </>
-                        )}
-
                         {/* Technical Subjects Section */}
                         {groupedEntries.technical && groupedEntries.technical.length > 0 && (
                           <>
@@ -764,22 +757,6 @@ export default function ReportCardPreview({
                             {renderSectionSubtotal(sectionTitles.technical, groupedEntries.technical)}
                           </>
                         )}
-
-                        {/* Other Subjects Section */}
-                        {groupedEntries.other && groupedEntries.other.length > 0 && (
-                          <>
-                            <tr className="bg-purple-100" key="section-other-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-purple-800">
-                                🎨 {sectionTitles.other}
-                              </td>
-                            </tr>
-                            {groupedEntries.other.map((r, idx) => {
-                              const uniqueKey = `other-${globalIndex++}`;
-                              return renderSubjectRow(r, uniqueKey);
-                            })}
-                            {renderSectionSubtotal(sectionTitles.other, groupedEntries.other)}
-                          </>
-                        )}
                       </>
                     );
                   }
@@ -792,7 +769,7 @@ export default function ReportCardPreview({
                 <tr className="bg-gray-200">
                   <td className="border border-black p-0.5 font-bold text-[6px] text-center">TOTAL</td>
                   <td className="border border-black p-1"></td>
-                  {effectiveBulletinType === 'technical' ? (
+                  {showTwoColumns ? (
                     <>
                       <td className="border border-black p-1"></td>
                       <td className="border border-black p-1"></td>
@@ -820,7 +797,7 @@ export default function ReportCardPreview({
           </div>
 
           {/* Ministry Discipline and Class Profile Section - EXACT format */}
-          <div className={effectiveBulletinType === 'technical' ? "mt-6" : "mt-4"}>
+          <div className={isTechnicalBulletin ? "mt-6" : "mt-4"}>
             <table className="w-full text-[8px] border border-black">
               <tbody>
                 <tr>
@@ -977,7 +954,7 @@ export default function ReportCardPreview({
 
           {/* Third Trimester Annual Summary */}
           {isThirdTrimester && annualSummary && (
-            <div className={`${effectiveBulletinType === 'technical' ? "mt-6" : "mt-10"} border-2 border-orange-300 rounded-xl p-4 bg-orange-50`}>
+            <div className={`${isTechnicalBulletin ? "mt-6" : "mt-10"} border-2 border-orange-300 rounded-xl p-4 bg-orange-50`}>
               <h3 className="text-lg font-semibold text-orange-800 mb-3">
                 {language === 'fr' ? 'Résumé Annuel' : 'Annual Summary'}
               </h3>
@@ -1055,7 +1032,7 @@ export default function ReportCardPreview({
 
           {/* Verification Code */}
           {(student as any).verificationCode && (
-            <div className={`${effectiveBulletinType === 'technical' ? "mt-4" : "mt-6"} flex justify-center`}>
+            <div className={`${isTechnicalBulletin ? "mt-4" : "mt-6"} flex justify-center`}>
               <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-3 w-64">
                 <div className="text-xs text-blue-700 text-center font-medium">{language === 'fr' ? 'Code de Vérification' : 'Verification Code'}</div>
                 <div className="text-lg font-bold text-blue-800 text-center">{(student as any).verificationCode}</div>
