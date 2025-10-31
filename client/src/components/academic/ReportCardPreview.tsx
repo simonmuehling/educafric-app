@@ -412,6 +412,21 @@ export default function ReportCardPreview({
           </div>
 
 
+          {/* TYPE INDICATOR - Visible only on screen, not in print */}
+          <div className="mb-2 print:hidden flex items-center gap-2">
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium ${isTechnicalSchool ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-900 border border-blue-300'}`}>
+              <span className="font-bold">
+                {isTechnicalSchool ? '🔧' : '📚'}
+              </span>
+              <span>
+                {language === 'fr' 
+                  ? (isTechnicalSchool ? 'École TECHNIQUE - Une colonne Note/20' : 'École GÉNÉRALE - Deux colonnes N/20 et M/20')
+                  : (isTechnicalSchool ? 'TECHNICAL School - Single Note/20 column' : 'GENERAL School - Two columns N/20 and M/20')
+                }
+              </span>
+            </div>
+          </div>
+
           {/* EXACT Ministry Subject Table - MUST match documents precisely */}
           <div className="mt-2 overflow-auto">
             <table className="w-full print:text-[7px] border border-black" style={{lineHeight: '1.0', tableLayout: 'fixed'}}>

@@ -1088,11 +1088,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   onClick={() => {
                     setTestModeEducationalType(prev => {
                       const newType = prev === 'technical' ? 'general' : 'technical';
+                      
+                      // Force preview refresh by toggling it off and on
+                      if (showPreview) {
+                        setShowPreview(false);
+                        setTimeout(() => setShowPreview(true), 100);
+                      }
+                      
                       toast({
                         title: language === 'fr' ? 'Type d\'école modifié' : 'School type changed',
                         description: language === 'fr' 
-                          ? `Basculé vers école ${newType === 'technical' ? 'technique' : 'générale'}`
-                          : `Switched to ${newType} school`,
+                          ? `Basculé vers école ${newType === 'technical' ? 'TECHNIQUE' : 'GÉNÉRALE'} - ${newType === 'technical' ? 'Une seule colonne Note/20' : 'Deux colonnes N/20 et M/20'}`
+                          : `Switched to ${newType.toUpperCase()} school - ${newType === 'technical' ? 'Single Note/20 column' : 'Two columns N/20 and M/20'}`,
+                        duration: 5000,
                       });
                       return newType;
                     });
@@ -1110,11 +1118,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   onClick={() => {
                     setTestModeEducationalType(prev => {
                       const newType = prev === 'technical' ? 'general' : 'technical';
+                      
+                      // Force preview refresh by toggling it off and on
+                      if (showPreview) {
+                        setShowPreview(false);
+                        setTimeout(() => setShowPreview(true), 100);
+                      }
+                      
                       toast({
                         title: language === 'fr' ? 'Type d\'école modifié' : 'School type changed',
                         description: language === 'fr' 
-                          ? `Basculé vers école ${newType === 'technical' ? 'technique' : 'générale'}`
-                          : `Switched to ${newType} school`,
+                          ? `Basculé vers école ${newType === 'technical' ? 'TECHNIQUE' : 'GÉNÉRALE'} - ${newType === 'technical' ? 'Une seule colonne Note/20' : 'Deux colonnes N/20 et M/20'}`
+                          : `Switched to ${newType.toUpperCase()} school - ${newType === 'technical' ? 'Single Note/20 column' : 'Two columns N/20 and M/20'}`,
+                        duration: 5000,
                       });
                       return newType;
                     });
