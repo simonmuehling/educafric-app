@@ -36,6 +36,7 @@ const ClassManagement: React.FC = () => {
       category: 'general' | 'scientific' | 'literary' | 'technical' | 'other';
       hoursPerWeek: number;
       isRequired: boolean;
+      bulletinSection?: 'general' | 'scientific' | 'technical';
     }>
   });
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -60,7 +61,8 @@ const ClassManagement: React.FC = () => {
     coefficient: 1,
     category: 'general' as 'general' | 'scientific' | 'literary' | 'technical' | 'other',
     hoursPerWeek: 2,
-    isRequired: true
+    isRequired: true,
+    bulletinSection: undefined as 'general' | 'scientific' | 'technical' | undefined
   });
   
   // Ref for triggering dialogs from quick actions
@@ -136,7 +138,8 @@ const ClassManagement: React.FC = () => {
       coefficient: 1,
       category: 'general',
       hoursPerWeek: 2,
-      isRequired: true
+      isRequired: true,
+      bulletinSection: undefined
     });
 
     toast({
@@ -331,6 +334,20 @@ const ClassManagement: React.FC = () => {
   });
 
   const classesData = classesResponse?.classes || [];
+
+  // Fetch school data to determine if it's a technical school
+  const { data: schoolData } = useQuery({
+    queryKey: ['/api/director/school'],
+    queryFn: async () => {
+      const response = await fetch('/api/director/school', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch school');
+      return response.json();
+    }
+  });
+
+  const isTechnicalSchool = schoolData?.educationalType === 'technical';
 
   // Filter classes based on search and level selection
   const filteredClasses = (Array.isArray(classesData) ? classesData : []).filter((classItem: any) => {
@@ -822,6 +839,11 @@ const ClassManagement: React.FC = () => {
                                 <span className="font-medium text-sm">{subject.name}</span>
                                 <div className="text-xs text-gray-500">
                                   Coeff. {subject.coefficient} • {subject.hoursPerWeek}h/sem • {subject.category}
+                                  {isTechnicalSchool && subject.bulletinSection && (
+                                    <span className="ml-2 text-blue-600 font-medium">
+                                      → {language === 'fr' ? 'Bulletin' : 'Report'}: {subject.bulletinSection}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               <Button
@@ -888,7 +910,7 @@ const ClassManagement: React.FC = () => {
                           />
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 mb-2">
                         <Select 
                           value={newSubject.category} 
                           onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => 
@@ -906,13 +928,38 @@ const ClassManagement: React.FC = () => {
                             <SelectItem value="other">🎨 {language === 'fr' ? 'Autre' : 'Other'}</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+                      {isTechnicalSchool && (
+                        <div className="mb-2">
+                          <Label className="text-xs mb-1 block">
+                            {language === 'fr' ? '📋 Section Bulletin (3 sections)' : '📋 Bulletin Section (3 sections)'}
+                          </Label>
+                          <Select 
+                            value={newSubject.bulletinSection || ''} 
+                            onValueChange={(value: 'general' | 'scientific' | 'technical') => 
+                              setNewSubject(prev => ({ ...prev, bulletinSection: value }))
+                            }
+                          >
+                            <SelectTrigger className="bg-white text-sm">
+                              <SelectValue placeholder={language === 'fr' ? 'Sélectionner section' : 'Select section'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
+                              <SelectItem value="scientific">🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}</SelectItem>
+                              <SelectItem value="technical">🔧 {language === 'fr' ? 'Technique' : 'Technical'}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
                         <Button
                           type="button"
                           onClick={addSubject}
                           size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                          className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
                         >
-                          <Plus className="w-4 h-4" />
+                          <Plus className="w-4 h-4 mr-1" />
+                          {language === 'fr' ? 'Ajouter' : 'Add'}
                         </Button>
                       </div>
                     </div>
