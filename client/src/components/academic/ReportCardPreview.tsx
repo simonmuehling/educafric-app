@@ -61,6 +61,21 @@ const PERFORMANCE_GRID = {
   }
 };
 
+// Bilingual appreciation mapping
+const getAppreciationText = (code: string, lang: 'fr' | 'en'): string => {
+  const appreciations: Record<string, { fr: string; en: string }> = {
+    'CTBA': { fr: 'Compétences Très Bien Acquises', en: 'Competences Very Well Acquired' },
+    'CVWA': { fr: 'Compétences Très Bien Acquises', en: 'Competences Very Well Acquired' },
+    'CBA': { fr: 'Compétences Bien Acquises', en: 'Competences Well Acquired' },
+    'CWA': { fr: 'Compétences Bien Acquises', en: 'Competences Well Acquired' },
+    'CA': { fr: 'Compétences Acquises', en: 'Competences Acquired' },
+    'CMA': { fr: 'Compétences Moyennement Acquises', en: 'Competences Averagely Acquired' },
+    'CAA': { fr: 'Compétences Moyennement Acquises', en: 'Competences Averagely Acquired' },
+    'CNA': { fr: 'Compétences Non Acquises', en: 'Competences Not Acquired' }
+  };
+  return appreciations[code]?.[lang] || code;
+};
+
 // EXACT Ministry Header Format - Bilingual Side by Side
 const MINISTRY_HEADER = {
   line1: { fr: "RÉPUBLIQUE DU CAMEROUN", en: "REPUBLIC OF CAMEROON" },
@@ -590,7 +605,16 @@ export default function ReportCardPreview({
                         <div className="text-[5px]">{minMax}</div>
                       </td>
                       <td className={`border border-black ${cellPadding} text-[5px]`}>
-                        {r.remarksAndSignature || r.remark || ''}
+                        {(() => {
+                          // Hybrid appreciation: Manual custom > Predefined bilingual > Legacy
+                          const customApp = (r as any).customAppreciation;
+                          if (customApp) return customApp;
+                          
+                          const remarkCode = r.remark;
+                          if (remarkCode) return getAppreciationText(remarkCode, language);
+                          
+                          return r.remarksAndSignature || '';
+                        })()}
                       </td>
                       <td className={`border border-black ${cellPadding} text-[5px] align-top`}>
                         {r.teacherComments && r.teacherComments.length > 0 ? (

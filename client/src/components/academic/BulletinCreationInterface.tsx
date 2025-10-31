@@ -1054,6 +1054,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         competencyLevel: s.competencyLevel,
         competencyEvaluation: s.competencyEvaluation,
         remark: s.remark,
+        customAppreciation: s.customAppreciation,
+        teacher: s.teacher,
         teacherComments: Array.isArray(s.comments) 
           ? s.comments.map(commentId => {
               const comment = TEACHER_COMMENTS[language].find(c => c.id === commentId);
