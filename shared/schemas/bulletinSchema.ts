@@ -100,6 +100,40 @@ export const teacherGradeSubmissions = pgTable("teacher_grade_submissions", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// Saved bulletins from BulletinCreationInterface - Simple, flexible storage
+export const savedBulletins = pgTable("saved_bulletins", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  studentId: integer("student_id").notNull(),
+  studentName: text("student_name").notNull(),
+  classLabel: text("class_label").notNull(),
+  trimester: text("trimester").notNull(),
+  academicYear: text("academic_year").notNull(),
+  
+  // Subjects as JSON for flexibility (supports all bulletin types)
+  subjects: jsonb("subjects").notNull(), // Array of subject objects with all CBA fields
+  
+  // Discipline data
+  discipline: jsonb("discipline").notNull(), // {absJ, absNJ, late, sanctions}
+  
+  // General remarks and appreciations
+  generalRemark: text("general_remark"),
+  
+  // Bulletin type and language
+  bulletinType: text("bulletin_type"), // 'general-fr', 'general-en', 'technical-fr', 'technical-en'
+  language: text("language").default("fr"), // 'fr' | 'en'
+  
+  // Status tracking
+  status: text("status").notNull().default("draft"), // 'draft' | 'finalized' | 'archived'
+  
+  // Audit fields
+  createdBy: integer("created_by").notNull(), // User ID who created
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  archivedAt: timestamp("archived_at"), // When it was archived
+  archiveId: integer("archive_id"), // Reference to archivedDocuments if archived
+});
+
 // Bulletin workflow tracking - manages the complete process
 export const bulletinWorkflow = pgTable("bulletin_workflow", {
   id: serial("id").primaryKey(),
@@ -236,6 +270,7 @@ export const insertTeacherGradeSubmissionSchema = createInsertSchema(teacherGrad
 export const insertBulletinWorkflowSchema = createInsertSchema(bulletinWorkflow);
 export const insertBulletinNotificationSchema = createInsertSchema(bulletinNotifications);
 export const insertGradeReviewHistorySchema = createInsertSchema(gradeReviewHistory);
+export const insertSavedBulletinSchema = createInsertSchema(savedBulletins).omit({ id: true, createdAt: true, updatedAt: true, archivedAt: true, archiveId: true });
 
 // Specific schemas for review actions
 export const reviewGradeSubmissionSchema = z.object({
