@@ -263,6 +263,7 @@ interface ReportCardProps {
   language?: 'fr' | 'en'; // NEW: Language support
   isThirdTrimester?: boolean;
   isTechnicalSchool?: boolean; // NEW: Hide MK/20 and AV/20 columns for technical schools
+  registrationNumber?: string; // School registration number (EDUCAFRIC or government)
   // selectedTeacherComments removed - now using per-subject comments in SubjectLine
   annualSummary?: {
     firstTrimesterAverage: number;
@@ -288,6 +289,7 @@ export default function ReportCardPreview({
   language = 'fr', // Default to French
   isThirdTrimester = false,
   isTechnicalSchool = false, // Default to general school (show MK/20 and AV/20)
+  registrationNumber = "",
   annualSummary = null,
 }: ReportCardProps) {
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
@@ -307,54 +309,58 @@ export default function ReportCardPreview({
     <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0 bulletin-compact print:w-[210mm] print:h-[297mm] print:overflow-hidden print:text-[8px]" data-bulletin-preview="true">
       <A4Sheet>
         <div className="p-2">
-          {/* EXACT Ministry Header - Bilingual Side by Side with School Logo */}
+          {/* EXACT Ministry Header - Bilingual 3-Column Layout (EN - Logo - FR) */}
           <div className="text-center mb-3 relative header-section">
-            {/* School Logo - Positioned Above/Center */}
-            <div className="flex justify-center mb-4">
-              {schoolLogoUrl ? (
-                <img 
-                  src={schoolLogoUrl} 
-                  alt="Logo de l'école" 
-                  className="w-16 h-16 object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              ) : (
-                <div className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center text-[6px] text-gray-400">
-                  LOGO<br/>ÉCOLE
-                </div>
-              )}
-            </div>
-
-            {/* Bilingual Information - Full Width Side by Side */}
-            <div className="grid grid-cols-2 gap-8">
-              {/* Left Column: French */}
-              <div className="text-xs text-center">
-                <div className="font-bold mb-1">{MINISTRY_HEADER.line1.fr}</div>
-                <div className="italic mb-2">{MINISTRY_HEADER.line2.fr}</div>
-                <div className="mb-2">*************</div>
-                <div className="font-semibold mb-2">{MINISTRY_HEADER.line3.fr}</div>
-                <div className="mb-2">*************</div>
-                <div className="font-semibold mb-1">{student.school?.officialInfo?.regionaleMinisterielle || MINISTRY_HEADER.line4.fr}</div>
-                <div className="mb-2">*************</div>
-                <div className="font-semibold mb-1">{student.school?.officialInfo?.delegationDepartementale || MINISTRY_HEADER.line5.fr}</div>
-                <div className="mb-2">*************</div>
-                <div className="font-semibold mb-4">{student.school?.name || MINISTRY_HEADER.line6.fr}</div>
+            <div className="grid grid-cols-3 gap-4">
+              {/* Left Column: English */}
+              <div className="text-[9px] text-center leading-tight">
+                <div className="font-bold mb-0.5">{MINISTRY_HEADER.line1.en}</div>
+                <div className="italic mb-1 text-[8px]">{MINISTRY_HEADER.line2.en}</div>
+                <div className="mb-1">*************</div>
+                <div className="font-semibold mb-1">{MINISTRY_HEADER.line3.en}</div>
+                <div className="mb-1">*************</div>
+                <div className="font-semibold mb-0.5">{MINISTRY_HEADER.line4.en}</div>
+                <div className="mb-1">***********</div>
+                <div className="font-semibold mb-0.5">{MINISTRY_HEADER.line5.en}</div>
+                <div className="mb-1">*************</div>
+                <div className="font-semibold">{MINISTRY_HEADER.line6.en}</div>
               </div>
 
-              {/* Right Column: English */}
-              <div className="text-xs text-center">
-                <div className="font-bold mb-1">{MINISTRY_HEADER.line1.en}</div>
-                <div className="italic mb-2">{MINISTRY_HEADER.line2.en}</div>
-                <div className="mb-2">*************</div>
-                <div className="font-semibold mb-2">{MINISTRY_HEADER.line3.en}</div>
-                <div className="mb-2">*************</div>
-                <div className="font-semibold mb-1">{MINISTRY_HEADER.line4.en}</div>
-                <div className="mb-2">***********</div>
-                <div className="font-semibold mb-1">{MINISTRY_HEADER.line5.en}</div>
-                <div className="mb-2">*************</div>
-                <div className="font-semibold mb-4">{MINISTRY_HEADER.line6.en}</div>
+              {/* Center Column: School Logo and Registration Number */}
+              <div className="flex flex-col items-center justify-start gap-1">
+                {schoolLogoUrl ? (
+                  <img 
+                    src={schoolLogoUrl} 
+                    alt="School logo" 
+                    className="w-20 h-20 object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-[7px] text-gray-400 bg-gray-50">
+                    LOGO<br/>SCHOOL
+                  </div>
+                )}
+                {registrationNumber && (
+                  <div className="text-[8px] font-semibold text-gray-700 mt-1">
+                    {registrationNumber}
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: French */}
+              <div className="text-[9px] text-center leading-tight">
+                <div className="font-bold mb-0.5">{MINISTRY_HEADER.line1.fr}</div>
+                <div className="italic mb-1 text-[8px]">{MINISTRY_HEADER.line2.fr}</div>
+                <div className="mb-1">*************</div>
+                <div className="font-semibold mb-1">{MINISTRY_HEADER.line3.fr}</div>
+                <div className="mb-1">*************</div>
+                <div className="font-semibold mb-0.5">{student.school?.officialInfo?.regionaleMinisterielle || MINISTRY_HEADER.line4.fr}</div>
+                <div className="mb-1">*************</div>
+                <div className="font-semibold mb-0.5">{student.school?.officialInfo?.delegationDepartementale || MINISTRY_HEADER.line5.fr}</div>
+                <div className="mb-1">*************</div>
+                <div className="font-semibold">{student.school?.name || MINISTRY_HEADER.line6.fr}</div>
               </div>
             </div>
           </div>
@@ -365,49 +371,51 @@ export default function ReportCardPreview({
             <div className="text-xs mb-2">{language === 'fr' ? 'Année scolaire' : 'School Year'}: {year}</div>
           </div>
 
-          {/* Ministry Student Information Layout - 2 Rows near Photo */}
-          <div className="flex justify-between items-start mb-3 student-info">
-            {/* Left Side: Student Information in 2 Rows */}
-            <div className="flex-1 text-xs">
-              {/* First Row */}
-              <div className="grid grid-cols-3 gap-4 mb-2">
-                <div><strong>{language === 'fr' ? 'Nom de l\'élève' : 'Name of Student'}:</strong> {student.name || ""}</div>
-                <div><strong>{language === 'fr' ? 'Classe' : 'Class'}:</strong> {student.classLabel || ""}</div>
-                <div><strong>{language === 'fr' ? 'Date et lieu de naissance' : 'Date and place of birth'}:</strong> {student.birthPlace || "Douala"}</div>
-              </div>
-              
-              {/* Second Row */}
-              <div className="grid grid-cols-3 gap-4 mb-2">
-                <div><strong>{language === 'fr' ? 'Genre' : 'Gender'}:</strong> {student.gender || "F"}</div>
-                <div><strong>{language === 'fr' ? 'Effectif de la classe' : 'Class enrolment'}:</strong> {student.classSize || ""}</div>
-                <div><strong>{language === 'fr' ? 'Numéro d\'identification unique' : 'Unique Identification number'}:</strong> {student.id || ""}</div>
-              </div>
-              
-              {/* Third Row */}
-              <div className="grid grid-cols-3 gap-4 mb-2">
-                <div><strong>{language === 'fr' ? 'Redoublant' : 'Repeater'}:</strong> {student.isRepeater ? (language === 'fr' ? 'Oui' : 'Yes') : (language === 'fr' ? 'Non' : 'No')}</div>
-                <div><strong>{language === 'fr' ? 'Nombre de matières' : 'Number of subjects'}:</strong> {entries.length}</div>
-                <div><strong>{language === 'fr' ? 'Nom et contact des parents/tuteurs' : 'Parent\'s/Guardian\'s name and contact'}:</strong> {student.guardian || "Che Avuk"}</div>
-              </div>
-              
-              {/* Fourth Row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div><strong>{language === 'fr' ? 'Nombre de matières réussies' : 'Number passed'}:</strong> {student.numberOfPassed || ""}</div>
-                <div><strong>{language === 'fr' ? 'Professeur principal' : 'Class master'}:</strong> {student.headTeacher || ""}</div>
-              </div>
-            </div>
-            
-            {/* Right Side: Student Photo - EXACT position as ministry docs */}
-            <div className="ml-4">
+          {/* Ministry Student Information Layout - Photo on LEFT as per PDF */}
+          <div className="flex justify-between items-start mb-3 student-info gap-3">
+            {/* LEFT: Student Photo - EXACT position as ministry PDF */}
+            <div className="flex-shrink-0">
               {studentPhotoUrl ? (
-                <img src={studentPhotoUrl} alt="Student's photograph" className="w-24 h-32 object-cover border-2 border-black" onError={(e) => {
+                <img src={studentPhotoUrl} alt="Student's photograph" className="w-20 h-28 object-cover border-2 border-black" onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }} />
               ) : (
-                <div className="w-24 h-32 border-2 border-black flex items-center justify-center text-[8px] text-gray-500 bg-gray-50">
-                  {language === 'fr' ? 'Photo de l\'élève' : 'Student\'s photograph'}
+                <div className="w-20 h-28 border-2 border-black flex items-center justify-center text-[7px] text-gray-500 bg-gray-50">
+                  <div className="text-center">
+                    {language === 'fr' ? 'Photo de l\'élève' : 'Student\'s photograph'}
+                  </div>
                 </div>
               )}
+            </div>
+            
+            {/* RIGHT: Student Information in compact rows */}
+            <div className="flex-1 text-[9px] leading-tight">
+              {/* First Row */}
+              <div className="grid grid-cols-3 gap-3 mb-1.5">
+                <div><strong>{language === 'fr' ? 'Nom de l\'élève' : 'Name of Student'}:</strong> {student.name || ""}</div>
+                <div><strong>{language === 'fr' ? 'Classe' : 'Class'}:</strong> {student.classLabel || ""}</div>
+                <div><strong>{language === 'fr' ? 'Effectif de la classe' : 'Class enrolment'}:</strong> {student.classSize || ""}</div>
+              </div>
+              
+              {/* Second Row */}
+              <div className="grid grid-cols-3 gap-3 mb-1.5">
+                <div><strong>{language === 'fr' ? 'Date et lieu de naissance' : 'Date and place of birth'}:</strong> {student.birthPlace || ""}</div>
+                <div><strong>{language === 'fr' ? 'Genre' : 'Gender'}:</strong> {student.gender || ""}</div>
+                <div><strong>{language === 'fr' ? 'Nombre de matières' : 'Number of subjects'}:</strong> {entries.length}</div>
+              </div>
+              
+              {/* Third Row */}
+              <div className="grid grid-cols-3 gap-3 mb-1.5">
+                <div><strong>{language === 'fr' ? 'Numéro d\'identification unique' : 'Unique Identification number'}:</strong> {student.id || ""}</div>
+                <div><strong>{language === 'fr' ? 'Redoublant' : 'Repeater'}:</strong> {student.isRepeater ? (language === 'fr' ? 'Oui' : 'Yes') : (language === 'fr' ? 'Non' : 'No')}</div>
+                <div><strong>{language === 'fr' ? 'Nombre réussi' : 'Number passed'}:</strong> {student.numberOfPassed || ""}</div>
+              </div>
+              
+              {/* Fourth Row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div><strong>{language === 'fr' ? 'Nom et contact des parents/tuteurs' : 'Parent\'s/Guardian\'s name and contact'}:</strong> {student.guardian || ""}</div>
+                <div><strong>{language === 'fr' ? 'Professeur principal' : 'Class master'}:</strong> {student.headTeacher || ""}</div>
+              </div>
             </div>
           </div>
 
