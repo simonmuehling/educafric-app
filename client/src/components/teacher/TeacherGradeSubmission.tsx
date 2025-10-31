@@ -18,7 +18,9 @@ import {
   AlertCircle,
   Loader2,
   Save,
-  Eye
+  Eye,
+  Archive,
+  Info
 } from 'lucide-react';
 
 interface GradeEntry {
@@ -39,12 +41,26 @@ const TeacherGradeSubmission: React.FC = () => {
   const [selectedTerm, setSelectedTerm] = useState<'T1' | 'T2' | 'T3'>('T1');
   const [academicYear, setAcademicYear] = useState('2024-2025');
   const [grades, setGrades] = useState<Map<string, string>>(new Map());
+  const [isSaving, setIsSaving] = useState(false);
 
   // Bilingual text
   const text = {
     fr: {
       title: 'Soumettre les Notes à l\'École',
       subtitle: 'Entrez les notes pour vos matières et soumettez-les au directeur pour approbation',
+      actionsTeacher: 'Actions Enseignant',
+      actionsDesc: 'Les enseignants soumettent les notes uniquement à l\'école. L\'école gère la signature et l\'envoi aux parents.',
+      saveDraft: 'Sauvegarder Brouillon',
+      saveDraftDesc: 'Travail temporaire',
+      archiveByClass: 'Archiver par Classe',
+      archiveByClassDesc: 'Organisation par classe',
+      submitToSchool: 'Soumettre à l\'École',
+      submitToSchoolDesc: 'Validation finale par l\'école',
+      archive: 'Archiver',
+      teacherRoleReminder: 'Rappel du rôle enseignant :',
+      teacherRole1: 'Les enseignants soumettent les notes uniquement à l\'école',
+      teacherRole2: 'L\'école valide, signe et envoie aux parents',
+      teacherRole3: 'Aucune communication directe enseignant ↔ parents via cette interface',
       selectSchool: 'Sélectionner une école',
       selectClass: 'Sélectionner une classe',
       selectTerm: 'Sélectionner un trimestre',
@@ -53,7 +69,6 @@ const TeacherGradeSubmission: React.FC = () => {
       subjects: 'Matières',
       enterGrade: 'Entrer la note',
       saveGrades: 'Sauvegarder les notes',
-      submitToSchool: 'Soumettre au Directeur',
       submitting: 'Soumission en cours...',
       saving: 'Sauvegarde...',
       noStudents: 'Aucun élève dans cette classe',
@@ -73,6 +88,19 @@ const TeacherGradeSubmission: React.FC = () => {
     en: {
       title: 'Submit Grades to School',
       subtitle: 'Enter grades for your subjects and submit them to the director for approval',
+      actionsTeacher: 'Teacher Actions',
+      actionsDesc: 'Teachers submit grades only to the school. The school manages signing and sending to parents.',
+      saveDraft: 'Save Draft',
+      saveDraftDesc: 'Temporary work',
+      archiveByClass: 'Archive by Class',
+      archiveByClassDesc: 'Class organization',
+      submitToSchool: 'Submit to School',
+      submitToSchoolDesc: 'Final validation by school',
+      archive: 'Archive',
+      teacherRoleReminder: 'Teacher role reminder:',
+      teacherRole1: 'Teachers submit grades only to the school',
+      teacherRole2: 'The school validates, signs and sends to parents',
+      teacherRole3: 'No direct teacher ↔ parent communication via this interface',
       selectSchool: 'Select a school',
       selectClass: 'Select a class',
       selectTerm: 'Select a term',
@@ -81,7 +109,6 @@ const TeacherGradeSubmission: React.FC = () => {
       subjects: 'Subjects',
       enterGrade: 'Enter grade',
       saveGrades: 'Save grades',
-      submitToSchool: 'Submit to Director',
       submitting: 'Submitting...',
       saving: 'Saving...',
       noStudents: 'No students in this class',
@@ -237,6 +264,75 @@ const TeacherGradeSubmission: React.FC = () => {
     });
   };
 
+  // Save draft to localStorage
+  const handleSaveDraft = () => {
+    if (!selectedClass || grades.size === 0) {
+      toast({
+        title: language === 'fr' ? 'Aucune donnée à sauvegarder' : 'No data to save',
+        description: language === 'fr' ? 'Veuillez sélectionner une classe et entrer des notes' : 'Please select a class and enter grades',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const draftKey = `grade_draft_${selectedSchool}_${selectedClass}_${selectedTerm}_${academicYear}`;
+      const draftData = {
+        schoolId: selectedSchool,
+        classId: selectedClass,
+        term: selectedTerm,
+        academicYear,
+        grades: Array.from(grades.entries()),
+        savedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
+      
+      toast({
+        title: t.gradesSaved,
+        description: t.gradesSavedDesc,
+      });
+    } catch (error) {
+      toast({
+        title: t.errorSaving,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Archive grades by class
+  const handleArchive = () => {
+    if (!selectedClass || grades.size === 0) {
+      toast({
+        title: language === 'fr' ? 'Aucune donnée à archiver' : 'No data to archive',
+        description: language === 'fr' ? 'Veuillez sélectionner une classe et entrer des notes' : 'Please select a class and enter grades',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // For now, this archives to localStorage similar to draft but in a separate archive section
+    const archiveKey = `grade_archive_${selectedSchool}_${selectedClass}_${selectedTerm}_${academicYear}_${Date.now()}`;
+    const archiveData = {
+      schoolId: selectedSchool,
+      classId: selectedClass,
+      term: selectedTerm,
+      academicYear,
+      grades: Array.from(grades.entries()),
+      archivedAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem(archiveKey, JSON.stringify(archiveData));
+    
+    toast({
+      title: language === 'fr' ? 'Notes archivées' : 'Grades archived',
+      description: language === 'fr' ? 'Les notes ont été archivées avec succès' : 'Grades have been archived successfully',
+    });
+  };
+
   const handleSubmit = () => {
     const gradesArray: GradeEntry[] = [];
     grades.forEach((grade, key) => {
@@ -358,6 +454,86 @@ const TeacherGradeSubmission: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
+            {/* Actions Enseignant Header */}
+            <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                {t.actionsTeacher}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                {t.actionsDesc}
+              </p>
+              
+              {/* Top Action Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Button
+                  onClick={handleSaveDraft}
+                  disabled={isSaving || !selectedClass || grades.size === 0}
+                  variant="outline"
+                  className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                  data-testid="button-save-draft"
+                >
+                  <Save className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <div className="text-center">
+                    <div className="font-semibold text-sm">{t.saveDraft}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{t.saveDraftDesc}</div>
+                  </div>
+                </Button>
+
+                <Button
+                  onClick={handleArchive}
+                  disabled={!selectedClass || grades.size === 0}
+                  variant="outline"
+                  className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/50"
+                  data-testid="button-archive-class"
+                >
+                  <Archive className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <div className="text-center">
+                    <div className="font-semibold text-sm">{t.archiveByClass}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{t.archiveByClassDesc}</div>
+                  </div>
+                </Button>
+
+                <Button
+                  onClick={handleSubmit}
+                  disabled={submitGradesMutation.isPending || grades.size === 0}
+                  className="flex flex-col items-center gap-2 h-auto py-4 bg-green-600 hover:bg-green-700 border-2 border-green-500"
+                  data-testid="button-submit-school-top"
+                >
+                  <Send className="h-5 w-5 text-white" />
+                  <div className="text-center text-white">
+                    <div className="font-semibold text-sm">{t.submitToSchool}</div>
+                    <div className="text-xs opacity-90">{t.submitToSchoolDesc}</div>
+                  </div>
+                </Button>
+              </div>
+
+              {/* Teacher Role Reminder */}
+              <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
+                <div className="flex gap-3">
+                  <Info className="h-5 w-5 text-yellow-700 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-2">
+                      {t.teacherRoleReminder}
+                    </h4>
+                    <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                      <li className="flex items-start gap-2">
+                        <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
+                        <span>{t.teacherRole1}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
+                        <span>{t.teacherRole2}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
+                        <span>{t.teacherRole3}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
@@ -408,13 +584,35 @@ const TeacherGradeSubmission: React.FC = () => {
               </table>
             </div>
 
-            {/* Submit Button */}
-            <div className="mt-6 flex justify-end gap-3">
+            {/* Bottom Action Buttons */}
+            <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3">
+              <Button
+                onClick={handleSaveDraft}
+                disabled={isSaving || !selectedClass || grades.size === 0}
+                variant="outline"
+                className="border-2 border-blue-400 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                data-testid="button-save-draft-bottom"
+              >
+                <Save className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
+                {t.saveDraft}
+              </Button>
+
+              <Button
+                onClick={handleArchive}
+                disabled={!selectedClass || grades.size === 0}
+                variant="outline"
+                className="border-2 border-purple-400 dark:border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50"
+                data-testid="button-archive-bottom"
+              >
+                <Archive className="h-4 w-4 mr-2 text-purple-600 dark:text-purple-400" />
+                {t.archive}
+              </Button>
+
               <Button
                 onClick={handleSubmit}
                 disabled={submitGradesMutation.isPending || grades.size === 0}
-                className="bg-green-600 hover:bg-green-700"
-                data-testid="button-submit-grades"
+                className="bg-green-600 hover:bg-green-700 border-2 border-green-500"
+                data-testid="button-submit-school-bottom"
               >
                 {submitGradesMutation.isPending ? (
                   <>
