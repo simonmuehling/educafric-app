@@ -1,5 +1,9 @@
 import { Router } from 'express';
 import { storage } from '../storage';
+import { db } from '../db';
+import { teacherClassSubjects, classSubjects } from '../../shared/schemas/classSubjectsSchema';
+import { subjects } from '../../shared/schema';
+import { eq, and } from 'drizzle-orm';
 
 const router = Router();
 
@@ -72,6 +76,63 @@ router.get('/students', requireAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch class students',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Get teacher's subjects for a specific class
+router.get('/class-subjects', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { classId } = req.query;
+    
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Teacher role required.'
+      });
+    }
+
+    if (!classId) {
+      return res.status(400).json({
+        success: false,
+        message: 'classId parameter is required'
+      });
+    }
+
+    console.log('[TEACHER_SUBJECTS] Fetching subjects for teacher:', user.id, 'classId:', classId);
+
+    // Get teacher's assigned subjects for this class from teacher_class_subjects table
+    const teacherSubjects = await db
+      .select({
+        id: subjects.id,
+        name: subjects.nameFr,
+        code: subjects.code,
+        coefficient: subjects.coefficient
+      })
+      .from(teacherClassSubjects)
+      .innerJoin(classSubjects, eq(classSubjects.id, teacherClassSubjects.classSubjectId))
+      .innerJoin(subjects, eq(subjects.id, classSubjects.subjectId))
+      .where(
+        and(
+          eq(teacherClassSubjects.teacherId, user.id),
+          eq(teacherClassSubjects.classId, parseInt(classId as string)),
+          eq(teacherClassSubjects.isActive, true)
+        )
+      );
+    
+    console.log('[TEACHER_SUBJECTS] ✅ Found', teacherSubjects.length, 'subjects');
+    
+    res.json({
+      success: true,
+      subjects: teacherSubjects
+    });
+  } catch (error) {
+    console.error('[TEACHER_API] Error fetching class subjects:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch class subjects',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

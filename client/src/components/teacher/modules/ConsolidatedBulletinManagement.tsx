@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import TeacherBulletinInterface from '../TeacherBulletinInterface';
 import ManualBulletinForm from '../ManualBulletinForm';
 import BulletinCreationInterface from '@/components/academic/BulletinCreationInterface';
+import TeacherGradeSubmission from '../TeacherGradeSubmission';
 import { 
   FileText, 
   Edit3, 
@@ -27,7 +28,8 @@ import {
   Award,
   TrendingUp,
   CheckSquare,
-  ClipboardEdit
+  ClipboardEdit,
+  Send
 } from 'lucide-react';
 
 /**
@@ -45,7 +47,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedTerm, setSelectedTerm] = useState<'T1' | 'T2' | 'T3'>('T1');
   const [academicYear, setAcademicYear] = useState('2024-2025');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('submit-grades');
   const [selectedStudentForEntry, setSelectedStudentForEntry] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +62,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
       selectTerm: 'Sélectionner un trimestre',
       manualDataEntry: 'Saisie manuelle',
       bulletinInterface: 'Interface Bulletins',
+      submitGrades: 'Soumettre Notes',
       overview: 'Vue d\'ensemble',
       classStatistics: 'Statistiques de classe',
       selectStudentForEntry: 'Sélectionner un élève pour la saisie',
@@ -91,6 +94,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
       selectTerm: 'Select a term',
       manualDataEntry: 'Manual Entry',
       bulletinInterface: 'Bulletin Interface',
+      submitGrades: 'Submit Grades',
       overview: 'Overview',
       classStatistics: 'Class Statistics',
       selectStudentForEntry: 'Select a student for entry',
@@ -421,7 +425,11 @@ const ConsolidatedBulletinManagement: React.FC = () => {
       {/* Main Interface */}
       {selectedSchool && selectedClass && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="submit-grades" className="flex items-center gap-2" data-testid="tab-submit-grades">
+              <Send className="h-4 w-4" />
+              {t.submitGrades}
+            </TabsTrigger>
             <TabsTrigger value="overview" className="flex items-center gap-2" data-testid="tab-overview">
               <Eye className="h-4 w-4" />
               {t.overview}
@@ -435,6 +443,11 @@ const ConsolidatedBulletinManagement: React.FC = () => {
               {t.bulletinInterface}
             </TabsTrigger>
           </TabsList>
+
+          {/* Submit Grades Tab - PRIMARY INTERFACE */}
+          <TabsContent value="submit-grades" className="space-y-4">
+            <TeacherGradeSubmission />
+          </TabsContent>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
