@@ -328,6 +328,12 @@ export default function ReportCardPreview({
       return { all: entries };
     }
     
+    // DEBUG: Log each entry with its section values
+    console.log('[PREVIEW_FILTER] Total entries:', entries.length);
+    entries.forEach((e, idx) => {
+      console.log(`[PREVIEW_FILTER] Entry ${idx}: subject="${e.subject}", bulletinSection="${e.bulletinSection}", subjectType="${e.subjectType}"`);
+    });
+    
     // Technical bulletins: 5 subject types → 3 bulletin sections mapping
     // Use bulletinSection if defined (manual mapping), otherwise fallback to subjectType
     // Mapping: general→General, scientific→Scientific, literary→General, technical→Technical, other→General
@@ -343,6 +349,11 @@ export default function ReportCardPreview({
       const section = e.bulletinSection || e.subjectType;
       return section === 'technical';
     });
+    
+    // DEBUG: Log grouped results
+    console.log('[PREVIEW_GROUPED] General:', general.length, 'subjects:', general.map(e => e.subject));
+    console.log('[PREVIEW_GROUPED] Scientific:', scientific.length, 'subjects:', scientific.map(e => e.subject));
+    console.log('[PREVIEW_GROUPED] Technical:', technical.length, 'subjects:', technical.map(e => e.subject));
     
     return { general, scientific, technical };
   }, [entries, isTechnicalBulletin]);
