@@ -322,18 +322,21 @@ export default function ReportCardPreview({
   // Determine if we show 2 columns (only for general-en)
   const showTwoColumns = effectiveBulletinType === 'general-en';
   
-  // Group subjects by type for technical schools (5 input types → 3 display sections)
+  // Group subjects by type for technical schools (5 distinct sections)
   const groupedEntries = useMemo(() => {
     if (!isTechnicalBulletin) {
       return { all: entries };
     }
     
-    // Technical bulletins: 5 subject types → 3 bulletin sections mapping
-    // User selects from 5 types, but bulletin displays only 3 sections
-    // Mapping: general→Général, literary→Général, scientific→Scientifique, technical→Technique, other→Général
+    // Technical bulletins: 5 distinct sections based on bulletinSection/subjectType
+    // Each type displays as its own section (no mapping)
     const general = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
-      return section === 'general' || section === 'literary' || section === 'other' || !section;
+      return section === 'general';
+    });
+    const literary = entries.filter(e => {
+      const section = e.bulletinSection || e.subjectType;
+      return section === 'literary';
     });
     const scientific = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
@@ -343,8 +346,12 @@ export default function ReportCardPreview({
       const section = e.bulletinSection || e.subjectType;
       return section === 'technical';
     });
+    const other = entries.filter(e => {
+      const section = e.bulletinSection || e.subjectType;
+      return section === 'other';
+    });
     
-    return { general, scientific, technical };
+    return { general, literary, scientific, technical, other };
   }, [entries, isTechnicalBulletin]);
   
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
@@ -719,6 +726,22 @@ export default function ReportCardPreview({
                           </>
                         )}
 
+                        {/* Literary Subjects Section */}
+                        {groupedEntries.literary && groupedEntries.literary.length > 0 && (
+                          <>
+                            <tr className="bg-purple-100" key="section-literary-header">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-purple-800">
+                                📖 {sectionTitles.literary}
+                              </td>
+                            </tr>
+                            {groupedEntries.literary.map((r, idx) => {
+                              const uniqueKey = `literary-${globalIndex++}`;
+                              return renderSubjectRow(r, uniqueKey);
+                            })}
+                            {renderSectionSubtotal(sectionTitles.literary, groupedEntries.literary)}
+                          </>
+                        )}
+
                         {/* Scientific Subjects Section */}
                         {groupedEntries.scientific && groupedEntries.scientific.length > 0 && (
                           <>
@@ -748,6 +771,22 @@ export default function ReportCardPreview({
                               return renderSubjectRow(r, uniqueKey);
                             })}
                             {renderSectionSubtotal(sectionTitles.technical, groupedEntries.technical)}
+                          </>
+                        )}
+
+                        {/* Other Subjects Section */}
+                        {groupedEntries.other && groupedEntries.other.length > 0 && (
+                          <>
+                            <tr className="bg-pink-100" key="section-other-header">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-pink-800">
+                                🎨 {sectionTitles.other}
+                              </td>
+                            </tr>
+                            {groupedEntries.other.map((r, idx) => {
+                              const uniqueKey = `other-${globalIndex++}`;
+                              return renderSubjectRow(r, uniqueKey);
+                            })}
+                            {renderSectionSubtotal(sectionTitles.other, groupedEntries.other)}
                           </>
                         )}
                       </>
