@@ -13,6 +13,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import TeacherBulletinInterface from '../TeacherBulletinInterface';
 import ManualBulletinForm from '../ManualBulletinForm';
+import BulletinCreationInterface from '@/components/academic/BulletinCreationInterface';
 import { 
   FileText, 
   Edit3, 
@@ -25,7 +26,8 @@ import {
   Calculator,
   Award,
   TrendingUp,
-  CheckSquare
+  CheckSquare,
+  ClipboardEdit
 } from 'lucide-react';
 
 /**
@@ -57,6 +59,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
       selectClass: 'Sélectionner une classe',
       selectTerm: 'Sélectionner un trimestre',
       manualDataEntry: 'Saisie manuelle',
+      bulletinInterface: 'Interface Bulletins',
       overview: 'Vue d\'ensemble',
       classStatistics: 'Statistiques de classe',
       selectStudentForEntry: 'Sélectionner un élève pour la saisie',
@@ -87,6 +90,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
       selectClass: 'Select a class',
       selectTerm: 'Select a term',
       manualDataEntry: 'Manual Entry',
+      bulletinInterface: 'Bulletin Interface',
       overview: 'Overview',
       classStatistics: 'Class Statistics',
       selectStudentForEntry: 'Select a student for entry',
