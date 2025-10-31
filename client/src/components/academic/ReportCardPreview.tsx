@@ -327,12 +327,12 @@ export default function ReportCardPreview({
       return { all: entries };
     }
     
-    // Technical bulletins: Only 3 sections (Général, Scientifique, Technique)
-    // Literary and Other are NOT displayed
+    // Technical bulletins: 5 subject types → 3 bulletin sections mapping
     // Use bulletinSection if defined (manual mapping), otherwise fallback to subjectType
+    // Mapping: general→General, scientific→Scientific, literary→General, technical→Technical, other→General
     const general = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
-      return section === 'general' || !section;
+      return section === 'general' || section === 'literary' || section === 'other' || !section;
     });
     const scientific = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
