@@ -524,13 +524,15 @@ export default function ReportCardPreview({
                   const cote = getCBAGrade(grade);
                   const minMax = r.minMax || '[Min - Max]';
                   
+                  const cellPadding = isTechnicalSchool ? "p-0.5" : "p-1.5";
+                  
                   return (
                     <tr key={idx}>
-                      <td className="border border-black p-0.5 text-[6px]">
+                      <td className={`border border-black ${cellPadding} text-[6px]`}>
                         <div className="font-bold">{r.subject}</div>
                         <div className="text-[6px] text-gray-600">{r.teacher || ''}</div>
                       </td>
-                      <td className="border border-black p-0.5 text-[6px] leading-tight">
+                      <td className={`border border-black ${cellPadding} text-[6px] leading-tight`}>
                         <div className="space-y-1">
                           {(() => {
                             // Use individual competencies if available, fallback to splitting concatenated string
@@ -565,32 +567,32 @@ export default function ReportCardPreview({
                       </td>
                       {isTechnicalSchool ? (
                         <>
-                          <td className="border border-black p-0.5 text-center text-[6px]">
+                          <td className={`border border-black ${cellPadding} text-center text-[6px]`}>
                             {mk20}
                           </td>
-                          <td className={`border border-black p-0.5 text-center text-[6px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
+                          <td className={`border border-black ${cellPadding} text-center text-[6px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
                             {av20}
                           </td>
                         </>
                       ) : (
-                        <td className={`border border-black p-0.5 text-center text-[6px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
+                        <td className={`border border-black ${cellPadding} text-center text-[6px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
                           {av20}
                         </td>
                       )}
-                      <td className="border border-black p-0.5 text-center text-[6px]">
+                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>
                         {r.coef}
                       </td>
-                      <td className="border border-black p-0.5 text-center text-[6px]">
+                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>
                         {r.avXcoef || avXcoef}
                       </td>
-                      <td className="border border-black p-0.5 text-center text-[6px] font-bold">
+                      <td className={`border border-black ${cellPadding} text-center text-[6px] font-bold`}>
                         <div>{r.grade || cote}</div>
                         <div className="text-[5px]">{minMax}</div>
                       </td>
-                      <td className="border border-black p-0.5 text-[5px]">
+                      <td className={`border border-black ${cellPadding} text-[5px]`}>
                         {r.remarksAndSignature || r.remark || ''}
                       </td>
-                      <td className="border border-black p-0.5 text-[5px] align-top">
+                      <td className={`border border-black ${cellPadding} text-[5px] align-top`}>
                         {r.teacherComments && r.teacherComments.length > 0 ? (
                           <ul className="list-decimal list-inside space-y-0.5">
                             {r.teacherComments.map((commentText, index) => (
@@ -639,7 +641,7 @@ export default function ReportCardPreview({
           </div>
 
           {/* Ministry Discipline and Class Profile Section - EXACT format */}
-          <div className="mt-6">
+          <div className={isTechnicalSchool ? "mt-6" : "mt-10"}>
             <table className="w-full text-[8px] border border-black">
               <tbody>
                 <tr>
@@ -662,7 +664,7 @@ export default function ReportCardPreview({
                     {language === 'fr' ? 'Avertissement' : 'Conduct Warning'}
                   </td>
                   <td className="border border-black p-1 text-center">
-                    {student.discipline?.conductWarning || 0}
+                    {(student.discipline as any)?.conductWarning || 0}
                   </td>
                   <td rowSpan={2} className="border border-black p-1 font-bold text-center w-20">
                     {language === 'fr' ? 'SCORE TOTAL' : 'TOTAL SCORE'}
@@ -685,7 +687,7 @@ export default function ReportCardPreview({
                     {language === 'fr' ? 'Blâme' : 'Reprimand'}
                   </td>
                   <td className="border border-black p-1 text-center">
-                    {student.discipline?.conductBlame || 0}
+                    {(student.discipline as any)?.conductBlame || 0}
                   </td>
                 </tr>
                 <tr>
@@ -709,7 +711,7 @@ export default function ReportCardPreview({
                     {language === 'fr' ? 'Suspension' : 'Suspension'}
                   </td>
                   <td className="border border-black p-1 text-center">
-                    {student.discipline?.suspension || 0}
+                    {(student.discipline as any)?.suspension || 0}
                   </td>
                   <td className="border border-black p-1 font-bold text-center">
                     {language === 'fr' ? 'MOYENNE DU TRIMESTRE' : 'TERM AVERAGE'}
@@ -741,7 +743,7 @@ export default function ReportCardPreview({
                     {language === 'fr' ? 'Renvoi' : 'Dismissed'}
                   </td>
                   <td className="border border-black p-1 text-center">
-                    {student.discipline?.dismissal || 0}
+                    {(student.discipline as any)?.dismissal || 0}
                   </td>
                   <td className="border border-black p-1 font-bold text-center">
                     {language === 'fr' ? 'Mention' : 'Grade'}
@@ -796,7 +798,7 @@ export default function ReportCardPreview({
 
           {/* Third Trimester Annual Summary */}
           {isThirdTrimester && annualSummary && (
-            <div className="mt-6 border-2 border-orange-300 rounded-xl p-4 bg-orange-50">
+            <div className={`${isTechnicalSchool ? "mt-6" : "mt-10"} border-2 border-orange-300 rounded-xl p-4 bg-orange-50`}>
               <h3 className="text-lg font-semibold text-orange-800 mb-3">
                 {language === 'fr' ? 'Résumé Annuel' : 'Annual Summary'}
               </h3>
@@ -873,7 +875,7 @@ export default function ReportCardPreview({
           )}
 
           {/* Overall Average and Verification Code */}
-          <div className="mt-4 flex justify-center gap-4">
+          <div className={`${isTechnicalSchool ? "mt-4" : "mt-8"} flex justify-center gap-4`}>
             <div className="rounded-xl border p-3 w-48">
               <div className="text-xs text-gray-500 text-center">
                 {language === 'fr' ? 'Moyenne Générale' : 'Overall Average'}

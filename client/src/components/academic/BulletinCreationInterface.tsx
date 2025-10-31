@@ -91,6 +91,7 @@ interface Subject {
   coefficient: number;
   grade: number;
   remark: string;
+  customAppreciation?: string; // Manual custom appreciation field
   comments?: string[]; // Per-subject ministry teacher comments
   competencies?: string;
   competencyLevel?: 'CTBA' | 'CBA' | 'CA' | 'CMA' | 'CNA' | 'CVWA' | 'CWA' | 'CAA';
@@ -587,8 +588,10 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         sanctions: baseSanctions,
         // NEW: Extended discipline fields
         punishmentHours: 0,
+        conductWarning: 0,
+        conductBlame: 0,
         suspension: 0,
-        dismissal: false
+        dismissal: 0
       });
 
       // Show success message
@@ -634,7 +637,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       const numValue = Number(value) || 0;
       const updatedSubject = { 
         ...s, 
-        [field]: (field === 'name' || field === 'remark' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'competence3' || field === 'teacher' || field === 'comments') ? value : numValue 
+        [field]: (field === 'name' || field === 'remark' || field === 'customAppreciation' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'competence3' || field === 'teacher' || field === 'comments') ? value : numValue 
       };
       
       // Always recalculate derived values
@@ -2088,29 +2091,37 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
 
                           {/* Appréciation */}
                           <td className="px-3 py-2 border" data-testid={`cell-appreciation-${index}`}>
-                            <div className="flex gap-1 items-start">
+                            <div className="space-y-2">
                               <Select onValueChange={(value) => updateSubject(subject.id, 'remark', value)} value={subject.remark}>
-                                <SelectTrigger className="flex-1 border-0 bg-transparent text-xs min-h-[2.5rem] text-left">
-                                  <SelectValue placeholder={language === 'fr' ? "Sélectionnez une appréciation..." : "Select an appreciation..."} />
+                                <SelectTrigger className="w-full border-0 bg-transparent text-xs min-h-[2.5rem] text-left">
+                                  <SelectValue placeholder={language === 'fr' ? "Sélectionnez..." : "Select..."} />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="CTBA">
-                                    {language === 'fr' ? 'Compétences Très Bien Acquises (CTBA)' : 'Competences Very Well Acquired (CVWA)'}
+                                    {language === 'fr' ? 'CTBA' : 'CVWA'}
                                   </SelectItem>
                                   <SelectItem value="CBA">
-                                    {language === 'fr' ? 'Compétences Bien Acquises (CBA)' : 'Competences Well Acquired (CWA)'}
+                                    {language === 'fr' ? 'CBA' : 'CWA'}
                                   </SelectItem>
                                   <SelectItem value="CA">
-                                    {language === 'fr' ? 'Compétences Acquises (CA)' : 'Competences Acquired (CA)'}
+                                    {language === 'fr' ? 'CA' : 'CA'}
                                   </SelectItem>
                                   <SelectItem value="CMA">
-                                    {language === 'fr' ? 'Compétences Moyennement Acquises (CMA)' : 'Competences Averagely Acquired (CAA)'}
+                                    {language === 'fr' ? 'CMA' : 'CAA'}
                                   </SelectItem>
                                   <SelectItem value="CNA">
-                                    {language === 'fr' ? 'Compétences Non Acquises (CNA)' : 'Competences Not Acquired (CNA)'}
+                                    {language === 'fr' ? 'CNA' : 'CNA'}
                                   </SelectItem>
                                 </SelectContent>
                               </Select>
+                              <textarea
+                                className="w-full border rounded text-xs p-1 resize-none"
+                                rows={2}
+                                placeholder={language === 'fr' ? "Appréciation personnalisée..." : "Custom appreciation..."}
+                                value={subject.customAppreciation || ''}
+                                onChange={(e) => updateSubject(subject.id, 'customAppreciation', e.target.value)}
+                                data-testid={`input-custom-appreciation-${index}`}
+                              />
                             </div>
                           </td>
 
@@ -2327,7 +2338,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                             </div>
 
                             {/* Appreciation */}
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                               <Label className="text-xs text-gray-600">{language === 'fr' ? 'Appréciation' : 'Appreciation'}</Label>
                               <Select onValueChange={(value) => updateSubject(subject.id, 'remark', value)} value={subject.remark}>
                                 <SelectTrigger className="h-10">
@@ -2335,22 +2346,30 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="CTBA">
-                                    {language === 'fr' ? 'Compétences Très Bien Acquises (CTBA)' : 'Competences Very Well Acquired (CVWA)'}
+                                    {language === 'fr' ? 'CTBA' : 'CVWA'}
                                   </SelectItem>
                                   <SelectItem value="CBA">
-                                    {language === 'fr' ? 'Compétences Bien Acquises (CBA)' : 'Competences Well Acquired (CWA)'}
+                                    {language === 'fr' ? 'CBA' : 'CWA'}
                                   </SelectItem>
                                   <SelectItem value="CA">
-                                    {language === 'fr' ? 'Compétences Acquises (CA)' : 'Competences Acquired (CA)'}
+                                    {language === 'fr' ? 'CA' : 'CA'}
                                   </SelectItem>
                                   <SelectItem value="CMA">
-                                    {language === 'fr' ? 'Compétences Moyennement Acquises (CMA)' : 'Competences Averagely Acquired (CAA)'}
+                                    {language === 'fr' ? 'CMA' : 'CAA'}
                                   </SelectItem>
                                   <SelectItem value="CNA">
-                                    {language === 'fr' ? 'Compétences Non Acquises (CNA)' : 'Competences Not Acquired (CNA)'}
+                                    {language === 'fr' ? 'CNA' : 'CNA'}
                                   </SelectItem>
                                 </SelectContent>
                               </Select>
+                              <textarea
+                                className="w-full border rounded text-xs p-2 resize-none"
+                                rows={2}
+                                placeholder={language === 'fr' ? "Appréciation personnalisée..." : "Custom appreciation..."}
+                                value={subject.customAppreciation || ''}
+                                onChange={(e) => updateSubject(subject.id, 'customAppreciation', e.target.value)}
+                                data-testid={`mobile-input-custom-appreciation-${index}`}
+                              />
                             </div>
 
                             {/* Comments - Mobile Sheet */}
