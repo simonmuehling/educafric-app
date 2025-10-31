@@ -421,14 +421,18 @@ const ConsolidatedBulletinManagement: React.FC = () => {
       {/* Main Interface */}
       {selectedSchool && selectedClass && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview" className="flex items-center gap-2" data-testid="tab-overview">
               <Eye className="h-4 w-4" />
               {t.overview}
             </TabsTrigger>
-            <TabsTrigger value="manual-entry" className="flex items-center gap-2">
+            <TabsTrigger value="manual-entry" className="flex items-center gap-2" data-testid="tab-manual-entry">
               <Edit3 className="h-4 w-4" />
               {t.manualDataEntry}
+            </TabsTrigger>
+            <TabsTrigger value="bulletin-interface" className="flex items-center gap-2" data-testid="tab-bulletin-interface">
+              <ClipboardEdit className="h-4 w-4" />
+              {t.bulletinInterface}
             </TabsTrigger>
           </TabsList>
 
@@ -541,6 +545,15 @@ const ConsolidatedBulletinManagement: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Bulletin Interface Tab */}
+          <TabsContent value="bulletin-interface" className="space-y-4">
+            <BulletinCreationInterface 
+              defaultClass={selectedClass}
+              defaultTerm={getTrimesterLabel(selectedTerm)}
+              defaultYear={academicYear}
+            />
           </TabsContent>
         </Tabs>
       )}
