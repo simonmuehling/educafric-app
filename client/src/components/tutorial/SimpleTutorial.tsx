@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ArrowRight, ArrowLeft, Users, Calendar, ClipboardCheck, BarChart3, FileText, BookOpen, MessageCircle, MessageSquare, User, Building2, DollarSign, Settings, UserCheck, Clock, CheckCircle, UserX, Bell, Shield, Video, HelpCircle, CheckSquare, PenTool, Star, Heart, CheckCircle2, CreditCard, MapPin, GraduationCap } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Users, Calendar, ClipboardCheck, BarChart3, FileText, BookOpen, MessageCircle, MessageSquare, User, Building2, DollarSign, Settings, UserCheck, Clock, CheckCircle, UserX, Bell, Shield, Video, HelpCircle, CheckSquare, PenTool, Star, Heart, CheckCircle2, CreditCard, MapPin, GraduationCap, Target, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -458,125 +458,413 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
       'Student': [
         {
           title: { 
-            fr: '🎓 Bienvenue, Étudiant !', 
-            en: '🎓 Welcome, Student!' 
+            fr: '🎓 Bienvenue dans EDUCAFRIC 2025', 
+            en: '🎓 Welcome to EDUCAFRIC 2025' 
           },
           content: { 
-            fr: 'Découvrez EDUCAFRIC 2025 : 13 modules évolués avec 5 gratuits (Paramètres avancés, Emploi du Temps interactif, Notes temps réel, Devoirs collaboratifs, Guide IA) et 8 premium avec géolocalisation, bulletins intelligents et analytics prédictifs.',
-            en: 'Discover EDUCAFRIC 2025: 13 evolved modules with 5 free (Advanced Settings, Interactive Schedule, Real-time Grades, Collaborative Homework, AI Guide) and 8 premium with geolocation, smart reports, and predictive analytics.'
+            fr: 'Ce tutoriel vous présente les 17 modules du tableau de bord Étudiant. Cliquez sur "Suivant" pour découvrir chaque module et ses fonctionnalités.',
+            en: 'This tutorial presents the 17 modules of the Student dashboard. Click "Next" to discover each module and its features.'
           },
           icon: User,
-          color: 'bg-green-500'
+          color: 'bg-gradient-to-r from-green-500 to-blue-500'
         },
         {
           title: { 
-            fr: '📚 Fonctions Gratuites', 
-            en: '📚 Free Features' 
+            fr: '🕐 Emploi du temps', 
+            en: '🕐 Timetable' 
           },
           content: { 
-            fr: 'Accès gratuit : Consultez votre emploi du temps, vos notes de base, vos devoirs et gérez votre profil personnel.',
-            en: 'Free access: View your timetable, basic grades, basic homework, and manage your personal profile.'
+            fr: 'Consultez votre emploi du temps personnalisé : horaires de cours, salles, enseignants, matières. Vue quotidienne et hebdomadaire. Notifications avant chaque cours. Synchronisation calendrier.',
+            en: 'View your personalized timetable: class times, rooms, teachers, subjects. Daily and weekly view. Notifications before each class. Calendar synchronization.'
           },
-          icon: Calendar,
+          icon: Clock,
           color: 'bg-blue-500'
         },
         {
           title: { 
-            fr: '⭐ Premium Avancé', 
-            en: '⭐ Advanced Premium' 
+            fr: '📊 Notes', 
+            en: '📊 Grades' 
           },
           content: { 
-            fr: 'Premium 2025 : Notes avec analytics IA, devoirs interactifs multimédias, bulletins avec commentaires génératifs, suivi comportemental avancé, géolocalisation intelligente avec zones sécurisées et alertes automatiques.',
-            en: 'Premium 2025: AI analytics grades, interactive multimedia homework, reports with generative comments, advanced behavioral tracking, smart geolocation with secure zones and automatic alerts.'
+            fr: 'Consultez vos notes en temps réel : notes par matière, moyennes, coefficients, progression. Graphiques de performance, comparaison avec la classe. Notifications pour chaque nouvelle note.',
+            en: 'View your grades in real-time: grades by subject, averages, coefficients, progression. Performance charts, comparison with class. Notifications for each new grade.'
           },
           icon: BarChart3,
+          color: 'bg-green-500'
+        },
+        {
+          title: { 
+            fr: '📝 Devoirs', 
+            en: '📝 Assignments' 
+          },
+          content: { 
+            fr: 'Gérez vos devoirs : consultez les devoirs assignés, dates limites, instructions détaillées. Soumettez vos travaux en ligne (texte, fichiers, liens). Suivez vos soumissions et corrections.',
+            en: 'Manage your assignments: view assigned homework, deadlines, detailed instructions. Submit your work online (text, files, links). Track your submissions and corrections.'
+          },
+          icon: FileText,
           color: 'bg-purple-500'
         },
         {
           title: { 
-            fr: '💬 Communications', 
-            en: '💬 Communications' 
+            fr: '📋 Mes Notes (Bulletins)', 
+            en: '📋 My Notes (Report Cards)' 
           },
           content: { 
-            fr: 'Communications 2025 : Messagerie instantanée multicanal (chat, SMS, WhatsApp), notifications intelligentes personnalisées, visioconférence intégrée, traduction automatique et modules d\'apprentissage adaptatifs avec IA.',
-            en: 'Communications 2025: Multi-channel instant messaging (chat, SMS, WhatsApp), personalised smart notifications, integrated video conferencing, automatic translation, and adaptive AI learning modules.'
+            fr: 'Accédez à vos bulletins scolaires : notes par trimestre, moyennes générales, rangs, commentaires des enseignants. Téléchargement PDF. Graphiques de progression académique.',
+            en: 'Access your report cards: grades by term, overall averages, ranks, teacher comments. PDF download. Academic progression charts.'
           },
-          icon: MessageCircle,
+          icon: FileText,
+          color: 'bg-orange-500'
+        },
+        {
+          title: { 
+            fr: '📚 Bibliothèque', 
+            en: '📚 Library' 
+          },
+          content: { 
+            fr: 'Accédez aux ressources pédagogiques : cours, exercices, documents partagés par vos enseignants. Recherche par matière et niveau. Téléchargement et consultation en ligne.',
+            en: 'Access educational resources: lessons, exercises, documents shared by your teachers. Search by subject and level. Download and online consultation.'
+          },
+          icon: BookOpen,
+          color: 'bg-emerald-500'
+        },
+        {
+          title: { 
+            fr: '✅ Présences', 
+            en: '✅ Attendance' 
+          },
+          content: { 
+            fr: 'Suivez vos présences : historique complet des absences, retards, justificatifs. Statistiques d\'assiduité par matière. Alertes pour absences non justifiées. Vos parents sont notifiés automatiquement.',
+            en: 'Track your attendance: complete history of absences, tardiness, justifications. Attendance statistics by subject. Alerts for unjustified absences. Your parents are automatically notified.'
+          },
+          icon: Calendar,
+          color: 'bg-pink-500'
+        },
+        {
+          title: { 
+            fr: '🎯 Mon Progrès', 
+            en: '🎯 My Progress' 
+          },
+          content: { 
+            fr: 'Analysez votre progression académique : évolution des notes, points forts et faibles, recommandations personnalisées. Objectifs d\'apprentissage, badges de réussite, suivi de performance.',
+            en: 'Analyze your academic progress: grade evolution, strengths and weaknesses, personalized recommendations. Learning goals, achievement badges, performance tracking.'
+          },
+          icon: Target,
+          color: 'bg-yellow-500'
+        },
+        {
+          title: { 
+            fr: '💬 Messages', 
+            en: '💬 Messages' 
+          },
+          content: { 
+            fr: 'Communiquez avec vos enseignants : messages individuels, questions sur les cours, demandes d\'aide. Notifications en temps réel. Historique complet des conversations.',
+            en: 'Communicate with your teachers: individual messages, questions about classes, requests for help. Real-time notifications. Complete conversation history.'
+          },
+          icon: MessageSquare,
+          color: 'bg-indigo-500'
+        },
+        {
+          title: { 
+            fr: '📹 Cours en Ligne', 
+            en: '📹 Online Classes' 
+          },
+          content: { 
+            fr: 'Participez aux cours en ligne : rejoignez les salles virtuelles Jitsi Meet, accédez aux enregistrements des sessions passées. Interaction en temps réel avec vos enseignants.',
+            en: 'Participate in online classes: join Jitsi Meet virtual rooms, access recordings of past sessions. Real-time interaction with your teachers.'
+          },
+          icon: Video,
+          color: 'bg-purple-600'
+        },
+        {
+          title: { 
+            fr: '🎓 Mes Cours Privés', 
+            en: '🎓 My Private Courses' 
+          },
+          content: { 
+            fr: 'Gérez vos cours particuliers : consultez vos sessions avec enseignants indépendants, planning personnalisé, progression, paiements. Notes et recommandations des tuteurs.',
+            en: 'Manage your private lessons: view your sessions with independent teachers, personalized schedule, progression, payments. Notes and tutor recommendations.'
+          },
+          icon: GraduationCap,
+          color: 'bg-indigo-600'
+        },
+        {
+          title: { 
+            fr: '❤️ Trouver mes parents', 
+            en: '❤️ Find my parents' 
+          },
+          content: { 
+            fr: 'Connectez-vous avec vos parents : générez un code de connexion unique pour que vos parents puissent vous ajouter. Validation sécurisée. Vos parents pourront suivre votre scolarité.',
+            en: 'Connect with your parents: generate a unique connection code for your parents to add you. Secure validation. Your parents can track your education.'
+          },
+          icon: Heart,
+          color: 'bg-pink-600'
+        },
+        {
+          title: { 
+            fr: '🏆 Réussites', 
+            en: '🏆 Achievements' 
+          },
+          content: { 
+            fr: 'Consultez vos réussites et badges : meilleures notes, assiduité parfaite, progrès remarquables, participations actives. Système de gamification pour motiver votre apprentissage.',
+            en: 'View your achievements and badges: best grades, perfect attendance, remarkable progress, active participation. Gamification system to motivate your learning.'
+          },
+          icon: Award,
+          color: 'bg-red-500'
+        },
+        {
+          title: { 
+            fr: '⚙️ Paramètres Étudiant', 
+            en: '⚙️ Student Settings' 
+          },
+          content: { 
+            fr: 'Gérez votre profil étudiant : informations personnelles, photo, classe, préférences de notification, langue (Français/English). Sécurité du compte et confidentialité.',
+            en: 'Manage your student profile: personal information, photo, class, notification preferences, language (Français/English). Account security and privacy.'
+          },
+          icon: User,
           color: 'bg-teal-500'
         },
         {
           title: { 
-            fr: '🏆 Réussite Académique', 
-            en: '🏆 Academic Success' 
+            fr: '❓ Aide', 
+            en: '❓ Help' 
           },
           content: { 
-            fr: 'Suivi complet : Analysez vos progrès, consultez vos présences en temps réel et utilisez les outils d\'apprentissage avancés.',
-            en: 'Complete tracking: Analyse your progress, view real-time attendance, and use advanced learning tools.'
+            fr: 'Centre d\'aide étudiant : guides d\'utilisation, FAQ, tutoriels vidéo, conseils d\'apprentissage. Documentation complète bilingue. Contact support pour assistance.',
+            en: 'Student help center: user guides, FAQ, video tutorials, learning tips. Complete bilingual documentation. Support contact for assistance.'
           },
-          icon: BarChart3,
-          color: 'bg-indigo-500'
+          icon: HelpCircle,
+          color: 'bg-slate-500'
+        },
+        {
+          title: { 
+            fr: '🔔 Notifications', 
+            en: '🔔 Notifications' 
+          },
+          content: { 
+            fr: 'Centre de notifications : nouveaux devoirs, notes ajoutées, messages enseignants, cours en ligne, rappels. Filtrage par type, marquage lu/non lu, actions rapides.',
+            en: 'Notification center: new assignments, added grades, teacher messages, online classes, reminders. Filter by type, mark read/unread, quick actions.'
+          },
+          icon: Bell,
+          color: 'bg-blue-600'
+        },
+        {
+          title: { 
+            fr: '📍 Géolocalisation', 
+            en: '📍 Geolocation' 
+          },
+          content: { 
+            fr: 'Service de sécurité partagé avec vos parents : localisation en temps réel, zones de sécurité (école, maison), alertes automatiques. Respect de votre vie privée avec contrôle parental.',
+            en: 'Security service shared with your parents: real-time location, safety zones (school, home), automatic alerts. Privacy respected with parental control.'
+          },
+          icon: MapPin,
+          color: 'bg-emerald-500'
+        },
+        {
+          title: { 
+            fr: '👥 Multi-Rôles', 
+            en: '👥 Multi-Roles' 
+          },
+          content: { 
+            fr: 'Basculez entre vos rôles si vous en avez plusieurs : Étudiant, Parent (si vous êtes aussi parent), etc. Interface unique, changement de contexte rapide.',
+            en: 'Switch between your roles if you have multiple: Student, Parent (if you are also a parent), etc. Single interface, quick context switching.'
+          },
+          icon: User,
+          color: 'bg-purple-600'
         }
       ],
       'Commercial': [
         {
           title: { 
-            fr: '💼 Bienvenue, Commercial !', 
-            en: '💼 Welcome, Sales Rep!' 
+            fr: '💼 Bienvenue dans EDUCAFRIC 2025', 
+            en: '💼 Welcome to EDUCAFRIC 2025' 
           },
           content: { 
-            fr: 'EDUCAFRIC 2025 Commercial : 6 modules CRM avancés avec IA prédictive - Mes Écoles (analytics 360°), Contacts intelligents, Paiements automatisés, Documents numériques sécurisés, Statistiques temps réel et Rendez-vous avec visioconférence.',
-            en: 'EDUCAFRIC 2025 Commercial: 6 advanced CRM modules with predictive AI - My Schools (360° analytics), Smart Contacts, Automated Payments, Secure Digital Documents, Real-time Statistics, and Video Conferencing Appointments.'
+            fr: 'Ce tutoriel vous présente les 15 modules du tableau de bord Commercial. Cliquez sur "Suivant" pour découvrir chaque module et ses fonctionnalités.',
+            en: 'This tutorial presents the 15 modules of the Commercial dashboard. Click "Next" to discover each module and its features.'
           },
           icon: Building2,
-          color: 'bg-blue-600'
+          color: 'bg-gradient-to-r from-blue-600 to-indigo-600'
         },
         {
           title: { 
-            fr: '🏫 Gestion CRM', 
-            en: '🏫 CRM Management' 
+            fr: '🏫 Mes Écoles', 
+            en: '🏫 My Schools' 
           },
           content: { 
-            fr: 'Mes Écoles : Gérez les écoles partenaires, suivez les prospects et optimisez vos relations clients avec un CRM complet.',
-            en: 'My Schools: Manage partner schools, track prospects, and optimize client relationships with complete CRM.'
+            fr: 'Gérez votre portefeuille d\'écoles clientes : informations complètes, statut d\'abonnement, historique de paiements, contacts associés. CRM complet avec notes, rappels et suivi d\'activité.',
+            en: 'Manage your portfolio of client schools: complete information, subscription status, payment history, associated contacts. Complete CRM with notes, reminders and activity tracking.'
           },
           icon: Building2,
           color: 'bg-blue-500'
         },
         {
           title: { 
-            fr: '💰 Paiements & Contrats', 
-            en: '💰 Payments & Contracts' 
+            fr: '🎯 Prospects', 
+            en: '🎯 Leads' 
           },
           content: { 
-            fr: 'Confirmez les paiements, gérez les transactions, accédez aux documents commerciaux et suivez les contrats actifs.',
-            en: 'Confirm payments, manage transactions, access commercial documents, and track active contracts.'
+            fr: 'Gérez vos prospects : nouvelles écoles potentielles, suivi du pipeline de vente, qualification des leads, conversion. Assignez priorités, statuts et étapes du processus commercial.',
+            en: 'Manage your leads: new potential schools, sales pipeline tracking, lead qualification, conversion. Assign priorities, statuses and sales process stages.'
           },
-          icon: DollarSign,
+          icon: Building2,
+          color: 'bg-orange-500'
+        },
+        {
+          title: { 
+            fr: '👥 Contacts', 
+            en: '👥 Contacts' 
+          },
+          content: { 
+            fr: 'Gérez vos contacts professionnels : directeurs d\'école, décideurs, administrateurs. Coordonnées complètes, historique des interactions, notes de réunions, rappels de suivi.',
+            en: 'Manage your professional contacts: school directors, decision makers, administrators. Complete contact details, interaction history, meeting notes, follow-up reminders.'
+          },
+          icon: Users,
           color: 'bg-green-500'
         },
         {
           title: { 
-            fr: '📊 Analytics Avancés', 
-            en: '📊 Advanced Analytics' 
+            fr: '💳 Paiements', 
+            en: '💳 Payments' 
           },
           content: { 
-            fr: 'Statistiques : Suivez les nouveaux prospects, taux de conversion, revenus et performances avec des métriques détaillées.',
-            en: 'Statistics: Track new leads, conversion rates, revenue, and performance with detailed metrics.'
+            fr: 'Gérez les paiements des écoles : confirmation de transactions, suivi des abonnements, historique complet, factures. Paiements en ligne (Stripe, MTN Mobile Money). Alertes de renouvellement.',
+            en: 'Manage school payments: transaction confirmation, subscription tracking, complete history, invoices. Online payments (Stripe, MTN Mobile Money). Renewal alerts.'
           },
-          icon: BarChart3,
+          icon: CreditCard,
           color: 'bg-purple-500'
         },
         {
           title: { 
-            fr: '🎯 Outils Professionnels', 
-            en: '🎯 Professional Tools' 
+            fr: '📄 Documents', 
+            en: '📄 Documents' 
           },
           content: { 
-            fr: 'Rendez-vous : Planifiez des meetings clients, suivez les appels et gérez votre pipeline commercial avec efficacité.',
-            en: 'Appointments: Schedule client meetings, track calls, and manage your sales pipeline efficiently.'
+            fr: 'Accédez aux documents commerciaux : contrats, propositions commerciales, présentations, brochures, conditions générales. Téléchargement PDF, partage sécurisé, suivi des consultations.',
+            en: 'Access commercial documents: contracts, business proposals, presentations, brochures, terms and conditions. PDF download, secure sharing, consultation tracking.'
+          },
+          icon: FileText,
+          color: 'bg-orange-500'
+        },
+        {
+          title: { 
+            fr: '📊 Statistiques', 
+            en: '📊 Statistics' 
+          },
+          content: { 
+            fr: 'Tableaux de bord analytiques : nombre d\'écoles actives, revenus mensuels, taux de conversion prospects, performances par région. Graphiques interactifs, export Excel/PDF.',
+            en: 'Analytical dashboards: number of active schools, monthly revenue, lead conversion rate, performance by region. Interactive charts, Excel/PDF export.'
+          },
+          icon: BarChart3,
+          color: 'bg-red-500'
+        },
+        {
+          title: { 
+            fr: '📈 Rapports', 
+            en: '📈 Reports' 
+          },
+          content: { 
+            fr: 'Rapports d\'activité détaillés : performances commerciales, objectifs atteints, analyse des tendances, prévisions. Rapports hebdomadaires, mensuels, trimestriels. Export et partage.',
+            en: 'Detailed activity reports: sales performance, targets achieved, trend analysis, forecasts. Weekly, monthly, quarterly reports. Export and sharing.'
+          },
+          icon: BarChart3,
+          color: 'bg-pink-500'
+        },
+        {
+          title: { 
+            fr: '📅 Rendez-vous', 
+            en: '📅 Calls & Appointments' 
+          },
+          content: { 
+            fr: 'Planifiez et suivez vos rendez-vous clients : meetings, appels téléphoniques, visioconférences. Calendrier intégré, rappels automatiques, notes de réunion, compte-rendus.',
+            en: 'Schedule and track client appointments: meetings, phone calls, video conferences. Integrated calendar, automatic reminders, meeting notes, reports.'
           },
           icon: Calendar,
-          color: 'bg-orange-500'
+          color: 'bg-indigo-500'
+        },
+        {
+          title: { 
+            fr: '💬 WhatsApp Business', 
+            en: '💬 WhatsApp Business' 
+          },
+          content: { 
+            fr: 'Communication WhatsApp professionnelle : envoyez des messages groupés aux écoles, campagnes marketing, suivi des conversations, modèles de messages, réponses rapides.',
+            en: 'Professional WhatsApp communication: send bulk messages to schools, marketing campaigns, conversation tracking, message templates, quick replies.'
+          },
+          icon: MessageSquare,
+          color: 'bg-green-600'
+        },
+        {
+          title: { 
+            fr: '✉️ Lettres d\'Offres', 
+            en: '✉️ Offer Letters' 
+          },
+          content: { 
+            fr: 'Créez et envoyez des lettres d\'offre commerciale : modèles personnalisables, tarification, conditions, avantages. Génération PDF professionnelle, envoi Email automatique, suivi d\'ouverture.',
+            en: 'Create and send commercial offer letters: customizable templates, pricing, conditions, benefits. Professional PDF generation, automatic email sending, open tracking.'
+          },
+          icon: FileText,
+          color: 'bg-yellow-500'
+        },
+        {
+          title: { 
+            fr: '📊 Mon Activité', 
+            en: '📊 My Activity' 
+          },
+          content: { 
+            fr: 'Résumé de votre activité commerciale : actions récentes, écoles contactées, rendez-vous du jour, tâches en attente, objectifs personnels. Vue d\'ensemble quotidienne.',
+            en: 'Summary of your sales activity: recent actions, schools contacted, today\'s appointments, pending tasks, personal goals. Daily overview.'
+          },
+          icon: BarChart3,
+          color: 'bg-indigo-500'
+        },
+        {
+          title: { 
+            fr: '🔔 Notifications', 
+            en: '🔔 Notifications' 
+          },
+          content: { 
+            fr: 'Centre de notifications : nouveaux prospects, paiements reçus, renouvellements proches, rendez-vous à venir, messages clients. Filtrage par type, actions rapides.',
+            en: 'Notification center: new leads, payments received, upcoming renewals, upcoming appointments, client messages. Filter by type, quick actions.'
+          },
+          icon: Bell,
+          color: 'bg-orange-600'
+        },
+        {
+          title: { 
+            fr: '⚙️ Paramètres', 
+            en: '⚙️ Settings' 
+          },
+          content: { 
+            fr: 'Gérez votre profil commercial : informations personnelles, photo, région assignée, objectifs de vente, préférences de notification, langue (Français/English). Sécurité du compte.',
+            en: 'Manage your sales profile: personal information, photo, assigned region, sales targets, notification preferences, language (Français/English). Account security.'
+          },
+          icon: Settings,
+          color: 'bg-gray-600'
+        },
+        {
+          title: { 
+            fr: '👥 Multi-Rôles', 
+            en: '👥 Multi-Roles' 
+          },
+          content: { 
+            fr: 'Basculez entre vos rôles si vous en avez plusieurs : Commercial, Directeur, Enseignant, etc. Interface unique, changement de contexte rapide. Préférences sauvegardées par rôle.',
+            en: 'Switch between your roles if you have multiple: Commercial, Director, Teacher, etc. Single interface, quick context switching. Preferences saved per role.'
+          },
+          icon: User,
+          color: 'bg-purple-600'
+        },
+        {
+          title: { 
+            fr: '❓ Aide', 
+            en: '❓ Help' 
+          },
+          content: { 
+            fr: 'Centre d\'aide commerciale : guides de vente, meilleures pratiques, FAQ, tutoriels vidéo, contact support. Documentation complète bilingue. Chat en ligne avec équipe support.',
+            en: 'Commercial help center: sales guides, best practices, FAQ, video tutorials, support contact. Complete bilingual documentation. Online chat with support team.'
+          },
+          icon: HelpCircle,
+          color: 'bg-gray-500'
         }
       ],
       'Parent': [
