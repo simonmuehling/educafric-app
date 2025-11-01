@@ -74,18 +74,18 @@ passport.use(new LocalStrategy(
       }
       
       if (!user) {
-        return done(null, false, { message: 'Invalid email/phone or password' });
+        return done(null, false, { message: 'Email, téléphone ou mot de passe incorrect / Invalid email, phone or password' });
       }
 
       // Check if account has been deleted
       if (user.deletionRequested || user.deletionApprovedAt) {
         console.log(`[AUTH_STRATEGY] Blocked login attempt for deleted account: ${user.email || user.phone}`);
-        return done(null, false, { message: 'Ce compte a été supprimé' });
+        return done(null, false, { message: 'Ce compte a été supprimé / This account has been deleted' });
       }
 
       const isValidPassword = await storage.verifyPassword(user, password);
       if (!isValidPassword) {
-        return done(null, false, { message: 'Invalid email/phone or password' });
+        return done(null, false, { message: 'Email, téléphone ou mot de passe incorrect / Invalid email, phone or password' });
       }
 
       console.log(`[AUTH_STRATEGY] ✅ Successful login: ${user.email || user.phone} (ID: ${user.id})`);

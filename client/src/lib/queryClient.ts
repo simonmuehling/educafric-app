@@ -5,10 +5,20 @@ async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     try {
       const text = await res.text();
-      throw new Error(`${res.status}: ${text || res.statusText || 'Unknown error'}`);
+      let errorMessage = '';
+      
+      try {
+        const json = JSON.parse(text);
+        errorMessage = json.message || json.error || text;
+      } catch {
+        errorMessage = text;
+      }
+      
+      // Return user-friendly error message without technical details
+      throw new Error(errorMessage || 'Request failed');
     } catch (parseError) {
-      // If response parsing fails, throw original status error
-      throw new Error(`${res.status}: ${res.statusText || 'Request failed'}`);
+      // Generic user-friendly error for network issues
+      throw new Error('Network error. Please check your connection.');
     }
   }
 }
@@ -21,10 +31,10 @@ export async function apiRequest(
   try {
     // Validate inputs
     if (!method || typeof method !== 'string') {
-      throw new Error('Invalid HTTP method provided');
+      throw new Error('Invalid request');
     }
     if (!url || typeof url !== 'string') {
-      throw new Error('Invalid URL provided');
+      throw new Error('Invalid request');
     }
     
     // Use csrfFetch for automatic CSRF token handling
@@ -37,10 +47,7 @@ export async function apiRequest(
     await throwIfResNotOk(res);
     return res;
   } catch (error) {
-    // Enhance error with context for better debugging
-    if (error instanceof Error) {
-      error.message = `API Request failed (${method} ${url}): ${error.message}`;
-    }
+    // Keep error message user-friendly - no technical details
     throw error;
   }
 }
