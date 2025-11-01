@@ -1062,28 +1062,7 @@ export class ExcelImportService {
           t.fields.classes, 
           t.fields.qualification
         ];
-        sampleData = [
-          [
-            'Marie', 
-            'Nguyen', 
-            'marie.nguyen@educafric.com', 
-            '+237677123456', 
-            lang === 'fr' ? '5 ans' : '5 years',
-            lang === 'fr' ? 'Mathématiques;Physique' : 'Mathematics;Physics',
-            '6ème A, 5ème B',
-            lang === 'fr' ? 'Master en Mathématiques - Université de Yaoundé I' : 'Master in Mathematics - University of Yaoundé I'
-          ],
-          [
-            'Paul', 
-            'Ateba', 
-            'paul.ateba@educafric.com', 
-            '+237698765432', 
-            lang === 'fr' ? '8 ans' : '8 years',
-            lang === 'fr' ? 'Français;Histoire' : 'French;History',
-            '4ème C, 3ème A',
-            lang === 'fr' ? 'Doctorat en Lettres - Université de Douala' : 'PhD in Literature - University of Douala'
-          ]
-        ];
+        sampleData = [];
         break;
         
       case 'students':
@@ -1103,48 +1082,12 @@ export class ExcelImportService {
           t.fields.parentPhone,
           t.fields.isRepeating
         ];
-        sampleData = [
-          [
-            'Amina', 
-            'Kouakou', 
-            'amina.kouakou@educafric.com', 
-            '+237677111222', 
-            t.genders.female, 
-            '2010-03-15',
-            lang === 'fr' ? 'Yaoundé, Cameroun' : 'Yaounde, Cameroon',
-            'STU-2025-001', 
-            '6ème A', 
-            lang === 'fr' ? 'Collège' : 'Middle School', 
-            lang === 'fr' ? 'Jean Kouakou' : 'Jean Kouakou',
-            'parent.kouakou@gmail.com', 
-            '+237677888999',
-            lang === 'fr' ? 'Non' : 'No'
-          ],
-          [
-            'Pierre', 
-            'Mballa', 
-            '', 
-            '', 
-            t.genders.male, 
-            '2008-08-22',
-            lang === 'fr' ? 'Douala, Cameroun' : 'Douala, Cameroon',
-            'STU-2025-002', 
-            '4ème B', 
-            lang === 'fr' ? 'Collège' : 'Middle School',
-            lang === 'fr' ? 'Marie Mballa' : 'Marie Mballa', 
-            'mballa.parent@yahoo.fr', 
-            '+237698555444',
-            lang === 'fr' ? 'Oui' : 'Yes'
-          ]
-        ];
+        sampleData = [];
         break;
         
       case 'parents':
         headers = [t.fields.firstName, t.fields.lastName, t.fields.email, t.fields.phone, t.fields.gender, t.fields.relation, t.fields.profession, t.fields.address, t.fields.childrenMatricules];
-        sampleData = [
-          ['Marie', 'Kouakou', 'parent.kouakou@gmail.com', '+237677888999', t.genders.female, lang === 'fr' ? 'Mère' : 'Mother', lang === 'fr' ? 'Infirmière' : 'Nurse', lang === 'fr' ? 'Yaoundé, Bastos' : 'Yaounde, Bastos', 'STU-2025-001'],
-          ['Jean', 'Mballa', 'mballa.parent@yahoo.fr', '+237698555444', t.genders.male, lang === 'fr' ? 'Père' : 'Father', lang === 'fr' ? 'Ingénieur' : 'Engineer', 'Douala, Bonanjo', 'STU-2025-002;STU-2025-003']
-        ];
+        sampleData = [];
         break;
         
       case 'classes':
@@ -1156,76 +1099,17 @@ export class ExcelImportService {
           t.fields.room,
           lang === 'fr' ? 'Matières (nom;coeff;heures;catégorie | séparées par |)' : 'Subjects (name;coeff;hours;category | separated by |)'
         ];
-        sampleData = [
-          [
-            '6ème A', 
-            '6ème', 
-            '40', 
-            'prof.math@educafric.com', 
-            lang === 'fr' ? 'Salle A1' : 'Room A1',
-            lang === 'fr' 
-              ? 'Mathématiques;4;6;general | Français;4;6;literary | Histoire;2;4;literary | Géographie;2;4;general'
-              : 'Mathematics;4;6;general | French;4;6;literary | History;2;4;literary | Geography;2;4;general'
-          ],
-          [
-            '3ème Scientifique', 
-            '3ème', 
-            '35', 
-            'prof.sciences@educafric.com', 
-            lang === 'fr' ? 'Labo B2' : 'Lab B2',
-            lang === 'fr'
-              ? 'Mathématiques;5;7;scientific | Physique;5;6;scientific | Chimie;4;5;scientific | Biologie;4;5;scientific'
-              : 'Mathematics;5;7;scientific | Physics;5;6;scientific | Chemistry;4;5;scientific | Biology;4;5;scientific'
-          ],
-          [
-            'Terminale Technique', 
-            'Terminale', 
-            '30', 
-            'prof.tech@educafric.com',
-            lang === 'fr' ? 'Atelier A' : 'Workshop A',
-            lang === 'fr'
-              ? 'Mathématiques;3;4;general | Électricité;5;8;technical | Mécanique;5;8;technical | Dessin Technique;4;6;technical'
-              : 'Mathematics;3;4;general | Electricity;5;8;technical | Mechanics;5;8;technical | Technical Drawing;4;6;technical'
-          ],
-          [
-            '1ère Littéraire', 
-            '1ère', 
-            '38', 
-            'prof.lettres@educafric.com',
-            lang === 'fr' ? 'Salle C3' : 'Room C3',
-            lang === 'fr'
-              ? 'Français;6;8;literary | Philosophie;5;6;literary | Littérature;4;5;literary | Anglais;3;4;general'
-              : 'French;6;8;literary | Philosophy;5;6;literary | Literature;4;5;literary | English;3;4;general'
-          ],
-          [
-            'CP Maternelle', 
-            'Maternelle', 
-            '25', 
-            'prof.maternelle@educafric.com',
-            lang === 'fr' ? 'Salle Maternelle' : 'Kindergarten Room',
-            lang === 'fr'
-              ? 'Éveil;3;5;other | Lecture;4;6;other | Calcul;3;4;other | Arts;2;3;other'
-              : 'Discovery;3;5;other | Reading;4;6;other | Math;3;4;other | Arts;2;3;other'
-          ]
-        ];
+        sampleData = [];
         break;
         
       case 'timetables':
         headers = [t.fields.className, t.fields.teacherEmail, t.fields.subject, t.fields.day, t.fields.startTime, t.fields.endTime, t.fields.room, t.fields.academicYear, t.fields.term];
-        sampleData = [
-          ['6ème A', 'prof.math@educafric.com', lang === 'fr' ? 'Mathématiques' : 'Mathematics', '1', '08:00', '09:00', lang === 'fr' ? 'Salle A1' : 'Room A1', '2024-2025', 'Term 1'],
-          ['6ème A', 'prof.francais@educafric.com', lang === 'fr' ? 'Français' : 'French', '2', '09:00', '10:00', lang === 'fr' ? 'Salle A1' : 'Room A1', '2024-2025', 'Term 1'],
-          ['6ème B', 'prof.sciences@educafric.com', lang === 'fr' ? 'Sciences' : 'Sciences', '3', '10:00', '11:00', lang === 'fr' ? 'Labo 1' : 'Lab 1', '2024-2025', 'Term 1']
-        ];
+        sampleData = [];
         break;
         
       case 'rooms':
         headers = [t.fields.name, t.fields.type, t.fields.capacity, t.fields.building, t.fields.floor, t.fields.equipment];
-        sampleData = [
-          [lang === 'fr' ? 'Salle A1' : 'Room A1', 'classroom', '40', lang === 'fr' ? 'Bâtiment A' : 'Building A', lang === 'fr' ? 'Rez-de-chaussée' : 'Ground Floor', lang === 'fr' ? 'Projecteur, Tableau blanc' : 'Projector, Whiteboard'],
-          [lang === 'fr' ? 'Labo Sciences' : 'Science Lab', 'laboratory', '30', lang === 'fr' ? 'Bâtiment B' : 'Building B', lang === 'fr' ? '1er étage' : '1st Floor', lang === 'fr' ? 'Microscopes, Matériel chimie' : 'Microscopes, Chemistry equipment'],
-          [lang === 'fr' ? 'Salle Informatique' : 'Computer Room', 'computer_lab', '35', lang === 'fr' ? 'Bâtiment A' : 'Building A', lang === 'fr' ? '2ème étage' : '2nd Floor', lang === 'fr' ? '35 ordinateurs, Vidéoprojecteur' : '35 computers, Video projector']
-        ];
+        sampleData = [];
         break;
         
       case 'settings':
@@ -1245,24 +1129,7 @@ export class ExcelImportService {
           t.fields.boitePostale,
           t.fields.arrondissement
         ];
-        sampleData = [
-          [
-            lang === 'fr' ? 'Collège Bilingue de Yaoundé' : 'Bilingual College of Yaoundé',
-            'private',
-            lang === 'fr' ? 'Avenue Kennedy, Quartier Bastos, Yaoundé' : 'Kennedy Avenue, Bastos District, Yaoundé',
-            '+237677123456',
-            'contact@college-yaounde.cm',
-            'https://www.college-yaounde.cm',
-            lang === 'fr' ? 'Établissement bilingue d\'excellence offrant une éducation de qualité' : 'Bilingual institution of excellence offering quality education',
-            '1985',
-            lang === 'fr' ? 'Dr. Marie NGUESSO' : 'Dr. Marie NGUESSO',
-            '850',
-            lang === 'fr' ? 'Délégation Régionale du Centre' : 'Centre Regional Delegation',
-            lang === 'fr' ? 'Délégation Départementale du Mfoundi' : 'Mfoundi Departmental Delegation',
-            'B.P. 8524 Yaoundé',
-            lang === 'fr' ? 'Yaoundé 1er' : 'Yaoundé 1st'
-          ]
-        ];
+        sampleData = [];
         break;
         
       default:
