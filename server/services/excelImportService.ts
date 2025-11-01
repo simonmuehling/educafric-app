@@ -256,13 +256,23 @@ export class ExcelImportService {
       
       // Convert array format to object format using first row as keys
       const headers = jsonData[0] as string[];
-      const data = jsonData.slice(1).map((row: any[], index: number) => {
-        const obj: any = { _row: index + 2 }; // Track original row number
-        headers.forEach((header, i) => {
-          obj[header] = row[i] || '';
+      const data = jsonData.slice(1)
+        .map((row: any[], index: number) => {
+          const obj: any = { _row: index + 2 }; // Track original row number
+          headers.forEach((header, i) => {
+            obj[header] = row[i] || '';
+          });
+          return obj;
+        })
+        .filter((row: any) => {
+          // Filter out completely empty rows (all fields are empty strings)
+          const hasAnyData = Object.keys(row).some(key => {
+            if (key === '_row') return false; // Ignore the _row tracking field
+            const value = row[key];
+            return value !== '' && value !== null && value !== undefined;
+          });
+          return hasAnyData;
         });
-        return obj;
-      });
       
       return data;
     } catch (error) {
