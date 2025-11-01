@@ -44,6 +44,16 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Passport strategy adaptée** : `LocalStrategy` modifiée pour vérifier phone OU email
 - ⚠️ **RÈGLE CRITIQUE** : Numéro de téléphone DOIT être unique et valide (min 10 caractères)
 
+**NIVEAUX SCOLAIRES PERSONNALISABLES**:
+- ✅ **Système flexible** : Écoles définissent leurs propres niveaux académiques (Form 1, 6ème, etc.) au lieu d'une liste fixe
+- ✅ **Table `school_levels`** : Stocke les niveaux par école avec name, nameFr, nameEn, order, isActive
+- ✅ **API CRUD complète** : Routes `/api/director/school-levels` pour GET, POST, PUT, DELETE avec isolation multi-tenant
+- ✅ **Interface UI** : Composant SchoolLevelsManager intégré dans Paramètres > Académique pour gérer les niveaux
+- ✅ **Validation Excel Import** : Import de classes valide les niveaux contre les niveaux définis par l'école
+- ✅ **Normalisation robuste** : Gère strings, nombres, espaces blancs, casse mixte avant comparaison
+- ✅ **Messages d'erreur clairs** : Guide l'utilisateur avec la liste des niveaux valides et instructions pour créer de nouveaux niveaux
+- ⚠️ **RÈGLE CRITIQUE** : Écoles DOIVENT d'abord définir leurs niveaux dans Paramètres > Académique avant d'importer des classes
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
