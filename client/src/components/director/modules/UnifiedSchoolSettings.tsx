@@ -29,6 +29,7 @@ import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation
 import { ObjectUploader } from '@/components/ObjectUploader';
 import type { UploadResult } from '@uppy/core';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
+import { SchoolLevelsManager } from '../SchoolLevelsManager';
 
 interface SchoolProfile {
   id: number;
@@ -470,6 +471,7 @@ const UnifiedSchoolSettings: React.FC = () => {
   const tabs = [
     { id: 'profile', label: t.profileTab, icon: School },
     { id: 'official', label: t.officialTab, icon: Flag },
+    { id: 'academic', label: language === 'fr' ? 'Académique' : 'Academic', icon: BookOpen },
     { id: 'configuration', label: t.configTab, icon: Settings },
     { id: 'notifications', label: t.notificationsTab, icon: Bell },
     { id: 'security', label: t.securityTab, icon: Shield }
@@ -1091,6 +1093,11 @@ const UnifiedSchoolSettings: React.FC = () => {
         </TabsContent>
 
         {/* Security Tab */}
+        {/* Academic Tab */}
+        <TabsContent value="academic" className="space-y-6">
+          <SchoolLevelsManager />
+        </TabsContent>
+
         <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
