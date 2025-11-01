@@ -1381,7 +1381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { users, classes: classesTable } = await import('@shared/schema');
         const { eq, and, count } = await import('drizzle-orm');
         
-        const userSchoolId = user.school_id || 1;
+        const userSchoolId = user.schoolId || user.school_id || 1;
         
         // Get all classes for this school
         const schoolClasses = await db.select()
@@ -1465,7 +1465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { subjects: subjectsTable } = await import('@shared/schema');
         const { eq, and } = await import('drizzle-orm');
         
-        const userSchoolId = user.school_id || 1;
+        const userSchoolId = user.schoolId || user.school_id || 1;
         
         // Get subjects for this class and school
         const classSubjects = await db.select()
@@ -1692,7 +1692,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { users } = await import('@shared/schema');
         const { eq, and } = await import('drizzle-orm');
         
-        const userSchoolId = user.school_id || 1;
+        const userSchoolId = user.schoolId || user.school_id || 1;
         
         // Get all teachers for this school
         const schoolTeachers = await db.select()
@@ -1839,7 +1839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { subjects: subjectsTable } = await import('@shared/schema');
         const { eq } = await import('drizzle-orm');
         
-        const userSchoolId = user.school_id || 1;
+        const userSchoolId = user.schoolId || user.school_id || 1;
         
         // Get all subjects for this school
         const schoolSubjects = await db.select()
@@ -1918,7 +1918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { grades: gradesTable, users } = await import('@shared/schema');
         const { eq, and } = await import('drizzle-orm');
         
-        const userSchoolId = user.school_id || 1;
+        const userSchoolId = user.schoolId || user.school_id || 1;
         
         let query = db.select()
           .from(gradesTable)
@@ -2016,7 +2016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { grades: gradesTable, users } = await import('@shared/schema');
         const { eq, and } = await import('drizzle-orm');
         
-        const userSchoolId = user.school_id || 1;
+        const userSchoolId = user.schoolId || user.school_id || 1;
         
         // Get student info
         const studentData = await db.select()
@@ -5027,7 +5027,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { users } = await import('@shared/schema');
         const { eq, and } = await import('drizzle-orm');
         
-        const userSchoolId = user.school_id || 1;
+        const userSchoolId = user.schoolId || user.school_id || 1;
         
         // Get all teachers for this school
         const schoolTeachers = await db.select()
