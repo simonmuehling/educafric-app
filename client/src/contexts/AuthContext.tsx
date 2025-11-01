@@ -16,7 +16,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   register: (userData: any) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
-  resetPassword: (token: string, password: string, confirmPassword: string) => Promise<void>;
+  resetPassword: (token: string, password: string, confirmPassword: string, language?: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -155,12 +155,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const resetPassword = async (token: string, password: string, confirmPassword: string) => {
+  const resetPassword = async (token: string, password: string, confirmPassword: string, language: string = 'fr') => {
     try {
       const response = await apiRequest('POST', '/api/auth/reset-password', {
         token,
         password,
-        confirmPassword
+        confirmPassword,
+        language
       });
       
       let data;

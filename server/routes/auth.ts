@@ -1105,12 +1105,16 @@ router.get('/status', (req, res) => {
 // POST /api/auth/forgot-password - Request password reset via email or WhatsApp
 router.post('/forgot-password', async (req, res) => {
   try {
-    const { email, phoneNumber, method } = req.body;
+    const { email, phoneNumber, method, language = 'fr' } = req.body;
     
     if (!method || !['email', 'whatsapp'].includes(method)) {
       return res.status(400).json({
         success: false,
-        message: 'Method must be either email or whatsapp'
+        message: language === 'fr' 
+          ? 'La méthode doit être email ou whatsapp'
+          : 'Method must be either email or whatsapp',
+        messageFr: 'La méthode doit être email ou whatsapp',
+        messageEn: 'Method must be either email or whatsapp'
       });
     }
 
@@ -1121,7 +1125,11 @@ router.post('/forgot-password', async (req, res) => {
       if (!email) {
         return res.status(400).json({
           success: false,
-          message: 'Email is required for email method'
+          message: language === 'fr'
+            ? 'Email requis pour la méthode email'
+            : 'Email is required for email method',
+          messageFr: 'Email requis pour la méthode email',
+          messageEn: 'Email is required for email method'
         });
       }
       identifier = email;
@@ -1137,7 +1145,11 @@ router.post('/forgot-password', async (req, res) => {
       if (!phoneNumber) {
         return res.status(400).json({
           success: false,
-          message: 'Phone number is required for WhatsApp method'
+          message: language === 'fr'
+            ? 'Numéro de téléphone requis pour la méthode WhatsApp'
+            : 'Phone number is required for WhatsApp method',
+          messageFr: 'Numéro de téléphone requis pour la méthode WhatsApp',
+          messageEn: 'Phone number is required for WhatsApp method'
         });
       }
       identifier = phoneNumber;
@@ -1153,7 +1165,11 @@ router.post('/forgot-password', async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Aucun compte trouvé avec cet identifiant',
+        message: language === 'fr'
+          ? 'Aucun compte trouvé avec cet identifiant'
+          : 'No account found with this identifier',
+        messageFr: 'Aucun compte trouvé avec cet identifiant',
+        messageEn: 'No account found with this identifier',
         errorCode: 'USER_NOT_FOUND',
         suggestion: 'signup'
       });
@@ -1266,7 +1282,11 @@ router.post('/forgot-password', async (req, res) => {
         
         return res.json({
           success: true,
-          message: 'Lien WhatsApp généré avec succès',
+          message: language === 'fr'
+            ? 'Lien WhatsApp généré avec succès'
+            : 'WhatsApp link generated successfully',
+          messageFr: 'Lien WhatsApp généré avec succès',
+          messageEn: 'WhatsApp link generated successfully',
           whatsappUrl: waClickUrl // Frontend will open this URL
         });
       }
@@ -1275,16 +1295,22 @@ router.post('/forgot-password', async (req, res) => {
       
       res.json({
         success: true,
-        message: method === 'email' 
-          ? 'Email de réinitialisation envoyé avec succès'
-          : 'SMS avec code de réinitialisation envoyé avec succès'
+        message: language === 'fr'
+          ? (method === 'email' ? 'Email de réinitialisation envoyé avec succès' : 'SMS avec code de réinitialisation envoyé avec succès')
+          : (method === 'email' ? 'Reset email sent successfully' : 'Reset SMS sent successfully'),
+        messageFr: method === 'email' ? 'Email de réinitialisation envoyé avec succès' : 'SMS avec code de réinitialisation envoyé avec succès',
+        messageEn: method === 'email' ? 'Reset email sent successfully' : 'Reset SMS sent successfully'
       });
 
     } catch (sendError) {
       console.error(`[PASSWORD_RESET] Failed to send ${method}:`, sendError);
       res.status(500).json({
         success: false,
-        message: `Échec de l'envoi de l'${method === 'email' ? 'email' : 'SMS'} de réinitialisation`
+        message: language === 'fr'
+          ? `Échec de l'envoi de l'${method === 'email' ? 'email' : 'SMS'} de réinitialisation`
+          : `Failed to send reset ${method === 'email' ? 'email' : 'SMS'}`,
+        messageFr: `Échec de l'envoi de l'${method === 'email' ? 'email' : 'SMS'} de réinitialisation`,
+        messageEn: `Failed to send reset ${method === 'email' ? 'email' : 'SMS'}`
       });
     }
 
@@ -1292,7 +1318,11 @@ router.post('/forgot-password', async (req, res) => {
     console.error('[PASSWORD_RESET] Forgot password error:', error);
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la demande de réinitialisation'
+      message: language === 'fr'
+        ? 'Erreur lors de la demande de réinitialisation'
+        : 'Error during password reset request',
+      messageFr: 'Erreur lors de la demande de réinitialisation',
+      messageEn: 'Error during password reset request'
     });
   }
 });
@@ -1300,26 +1330,38 @@ router.post('/forgot-password', async (req, res) => {
 // POST /api/auth/reset-password - Reset password with token or SMS code
 router.post('/reset-password', async (req, res) => {
   try {
-    const { token, smsCode, newPassword, confirmPassword } = req.body;
+    const { token, smsCode, newPassword, confirmPassword, language = 'fr' } = req.body;
 
     if (!newPassword || !confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Nouveau mot de passe et confirmation requis'
+        message: language === 'fr'
+          ? 'Nouveau mot de passe et confirmation requis'
+          : 'New password and confirmation required',
+        messageFr: 'Nouveau mot de passe et confirmation requis',
+        messageEn: 'New password and confirmation required'
       });
     }
 
     if (newPassword !== confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Les mots de passe ne correspondent pas'
+        message: language === 'fr'
+          ? 'Les mots de passe ne correspondent pas'
+          : 'Passwords do not match',
+        messageFr: 'Les mots de passe ne correspondent pas',
+        messageEn: 'Passwords do not match'
       });
     }
 
     if (newPassword.length < 8) {
       return res.status(400).json({
         success: false,
-        message: 'Le mot de passe doit contenir au moins 8 caractères'
+        message: language === 'fr'
+          ? 'Le mot de passe doit contenir au moins 8 caractères'
+          : 'Password must be at least 8 characters',
+        messageFr: 'Le mot de passe doit contenir au moins 8 caractères',
+        messageEn: 'Password must be at least 8 characters'
       });
     }
 
@@ -1332,7 +1374,11 @@ router.post('/reset-password', async (req, res) => {
       if (!user || !user.passwordResetExpiry || new Date(user.passwordResetExpiry) < new Date()) {
         return res.status(400).json({
           success: false,
-          message: 'Token de réinitialisation invalide ou expiré'
+          message: language === 'fr'
+            ? 'Token de réinitialisation invalide ou expiré'
+            : 'Invalid or expired reset token',
+          messageFr: 'Token de réinitialisation invalide ou expiré',
+          messageEn: 'Invalid or expired reset token'
         });
       }
     } else if (smsCode) {

@@ -58,7 +58,8 @@ export default function PasswordReset() {
         credentials: 'include',
         body: JSON.stringify({
           [recoveryMethod === 'email' ? 'email' : 'phoneNumber']: identifier,
-          method: recoveryMethod
+          method: recoveryMethod,
+          language
         })
       });
       
@@ -138,7 +139,7 @@ export default function PasswordReset() {
       if (!params?.token) {
         throw new Error('Token manquant');
       }
-      await resetPassword(params.token, password, confirmPassword);
+      await resetPassword(params.token, password, confirmPassword, language);
       
       toast({
         title: language === 'fr' ? 'Mot de passe réinitialisé' : 'Password reset successful',
