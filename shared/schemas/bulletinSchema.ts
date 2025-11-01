@@ -134,6 +134,50 @@ export const savedBulletins = pgTable("saved_bulletins", {
   archiveId: integer("archive_id"), // Reference to archivedDocuments if archived
 });
 
+// Teacher bulletins - Bulletins created by teachers and sent to schools for director review
+export const teacherBulletins = pgTable("teacher_bulletins", {
+  id: serial("id").primaryKey(),
+  teacherId: integer("teacher_id").notNull(), // Teacher who created the bulletin
+  schoolId: integer("school_id").notNull(), // School the bulletin is sent to
+  studentId: integer("student_id").notNull(), // Student the bulletin is for
+  classId: integer("class_id").notNull(), // Student's class
+  
+  // Academic information
+  term: text("term").notNull(), // "T1", "T2", "T3"
+  academicYear: text("academic_year").notNull(), // "2024-2025"
+  
+  // Student and class information
+  studentInfo: jsonb("student_info").notNull(), // Full student information
+  
+  // Bulletin data - stored as JSON for flexibility
+  subjects: jsonb("subjects").notNull(), // Array of subjects with grades, coefficients, remarks, competencies
+  discipline: jsonb("discipline").notNull(), // {absJ, absNJ, late, sanctions}
+  
+  // Bulletin settings
+  bulletinType: text("bulletin_type"), // 'general-fr', 'general-en', 'technical-fr', 'technical-en'
+  language: text("language").default("fr"),
+  
+  // Status tracking
+  status: text("status").notNull().default("draft"), // 'draft', 'signed', 'sent', 'reviewed', 'approved', 'rejected'
+  
+  // Digital signature and timestamps
+  signedAt: timestamp("signed_at"), // When teacher signed
+  signatureHash: text("signature_hash"), // Digital signature hash
+  sentToSchoolAt: timestamp("sent_to_school_at"), // When sent to school
+  
+  // Director review
+  reviewedBy: integer("reviewed_by"), // Director who reviewed
+  reviewedAt: timestamp("reviewed_at"),
+  reviewStatus: text("review_status"), // 'pending', 'approved', 'rejected', 'changes_requested'
+  reviewComments: text("review_comments"), // Director's feedback
+  
+  // Metadata
+  metadata: jsonb("metadata"), // Additional data
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // Bulletin workflow tracking - manages the complete process
 export const bulletinWorkflow = pgTable("bulletin_workflow", {
   id: serial("id").primaryKey(),
@@ -271,6 +315,7 @@ export const insertBulletinWorkflowSchema = createInsertSchema(bulletinWorkflow)
 export const insertBulletinNotificationSchema = createInsertSchema(bulletinNotifications);
 export const insertGradeReviewHistorySchema = createInsertSchema(gradeReviewHistory);
 export const insertSavedBulletinSchema = createInsertSchema(savedBulletins).omit({ id: true, createdAt: true, updatedAt: true, archivedAt: true, archiveId: true });
+export const insertTeacherBulletinSchema = createInsertSchema(teacherBulletins).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Specific schemas for review actions
 export const reviewGradeSubmissionSchema = z.object({
@@ -301,3 +346,5 @@ export type GradeReviewHistory = typeof gradeReviewHistory.$inferSelect;
 export type InsertGradeReviewHistory = z.infer<typeof insertGradeReviewHistorySchema>;
 export type ReviewGradeSubmissionInput = z.infer<typeof reviewGradeSubmissionSchema>;
 export type BulkReviewInput = z.infer<typeof bulkReviewSchema>;
+export type TeacherBulletin = typeof teacherBulletins.$inferSelect;
+export type InsertTeacherBulletin = z.infer<typeof insertTeacherBulletinSchema>;

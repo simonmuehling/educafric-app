@@ -34,7 +34,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements } from "../shared/schema.js";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins } from "../shared/schema.js";
 import bcrypt from 'bcryptjs';
 import { 
   predefinedAppreciations, 
@@ -7390,6 +7390,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
+  // ===== TEACHER-SUBMITTED BULLETINS API =====
+  app.get('/api/director/teacher-bulletins', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as { schoolId: number; id: number; role: string };
+      const schoolId = user.schoolId || user.school_id || 1;
+      
+      console.log('[DIRECTOR_BULLETINS] Fetching teacher-submitted bulletins for school:', schoolId);
+      
+      // Fetch all bulletins sent by teachers to this school
+      const bulletins = await db.select()
+        .from(teacherBulletins)
+        .where(eq(teacherBulletins.schoolId, schoolId))
+        .orderBy(desc(teacherBulletins.sentToSchoolAt));
+      
+      // Enrich with teacher names
+      const enrichedBulletins = await Promise.all(bulletins.map(async (bulletin) => {
+        const [teacher] = await db.select({
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email
+        }).from(users).where(eq(users.id, bulletin.teacherId));
+        
+        return {
+          ...bulletin,
+          teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Unknown Teacher',
+          teacherEmail: teacher?.email,
+          studentName: bulletin.studentInfo?.name || 'Unknown Student'
+        };
+      }));
+      
+      console.log(`[DIRECTOR_BULLETINS] ✅ Found ${enrichedBulletins.length} bulletins`);
+      
+      res.json({
+        success: true,
+        bulletins: enrichedBulletins
+      });
+    } catch (error) {
+      console.error('[DIRECTOR_BULLETINS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher bulletins' });
+    }
+  });
+
+  // Update bulletin review status
+  app.post('/api/director/teacher-bulletins/:id/review', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as { schoolId: number; id: number; role: string };
+      const bulletinId = parseInt(req.params.id);
+      const { reviewStatus, reviewComments } = req.body;
+      
+      console.log('[DIRECTOR_BULLETINS] Reviewing bulletin:', bulletinId, 'Status:', reviewStatus);
+      
+      // Verify bulletin belongs to director's school
+      const [bulletin] = await db.select()
+        .from(teacherBulletins)
+        .where(and(
+          eq(teacherBulletins.id, bulletinId),
+          eq(teacherBulletins.schoolId, user.schoolId || user.school_id || 1)
+        ));
+      
+      if (!bulletin) {
+        return res.status(404).json({ success: false, message: 'Bulletin not found' });
+      }
+      
+      // Update review status
+      await db.update(teacherBulletins)
+        .set({
+          reviewStatus,
+          reviewComments,
+          reviewedBy: user.id,
+          reviewedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(teacherBulletins.id, bulletinId));
+      
+      console.log('[DIRECTOR_BULLETINS] ✅ Bulletin reviewed successfully');
+      
+      res.json({
+        success: true,
+        message: 'Bulletin reviewed successfully'
+      });
+    } catch (error) {
+      console.error('[DIRECTOR_BULLETINS] Error reviewing bulletin:', error);
+      res.status(500).json({ success: false, message: 'Failed to review bulletin' });
+    }
+  });
 
   // Class Reports API Routes
   // ===== SCHOOL OFFICIAL SETTINGS API =====

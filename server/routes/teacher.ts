@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { storage } from '../storage';
 import { db } from '../db';
 import { teacherClassSubjects, classSubjects } from '../../shared/schemas/classSubjectsSchema';
-import { subjects } from '../../shared/schema';
+import { subjects, teacherBulletins, users } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { MultiRoleService } from '../services/multiRoleService';
 
@@ -1953,30 +1953,63 @@ router.post('/bulletins/send-to-school', requireAuth, async (req, res) => {
       });
     }
 
-    // TODO: Implement actual database send to school
-    // await storage.sendBulletinToSchool(user.id, bulletinData);
-    
-    const sentBulletin = {
-      ...bulletinData,
+    // Save bulletin to database
+    const [savedBulletin] = await db.insert(teacherBulletins).values({
+      teacherId: user.id,
+      schoolId: parseInt(bulletinData.schoolId),
+      studentId: parseInt(bulletinData.studentId),
+      classId: parseInt(bulletinData.classId),
+      term: bulletinData.term,
+      academicYear: bulletinData.academicYear,
+      studentInfo: bulletinData.studentInfo,
+      subjects: bulletinData.subjects,
+      discipline: bulletinData.discipline,
+      bulletinType: bulletinData.bulletinType || null,
+      language: bulletinData.language || 'fr',
       status: 'sent',
-      sentToSchoolAt: new Date().toISOString(),
-      lastModified: new Date().toISOString()
-    };
+      signedAt: bulletinData.signature?.signedAt ? new Date(bulletinData.signature.signedAt) : new Date(),
+      signatureHash: bulletinData.signature?.hash || null,
+      sentToSchoolAt: new Date(),
+      reviewStatus: 'pending',
+      metadata: {
+        teacherName: `${user.firstName} ${user.lastName}`,
+        schoolName: bulletinData.schoolName,
+        className: bulletinData.className,
+        originalBulletinId: bulletinData.id
+      }
+    }).returning();
 
-    console.log('[TEACHER_BULLETINS] ✅ Bulletin sent to school successfully:', sentBulletin.id);
+    console.log('[TEACHER_BULLETINS] ✅ Bulletin saved to database and sent to school:', savedBulletin.id);
 
-    // TODO: Send notification to school administration
-    // await storage.sendNotificationToSchool(bulletinData.schoolId, {
-    //   type: 'bulletin_received',
-    //   message: `New bulletin received from ${user.firstName} ${user.lastName}`,
-    //   studentId: bulletinData.studentId,
-    //   teacherId: user.id
-    // });
+    // Send notification to school directors
+    try {
+      // Get all directors for this school
+      const directors = await db.select().from(users)
+        .where(and(
+          eq(users.schoolId, parseInt(bulletinData.schoolId)),
+          eq(users.role, 'Director')
+        ));
+
+      // Create notifications for each director
+      for (const director of directors) {
+        console.log(`[TEACHER_BULLETINS] 📧 Sending notification to director:`, director.id);
+        // TODO: Implement actual notification system (Email, WhatsApp, Push)
+        // For now, we just log it - the director will see it in their interface
+      }
+    } catch (notifError) {
+      console.error('[TEACHER_BULLETINS] ⚠️ Error sending notifications:', notifError);
+      // Continue even if notification fails
+    }
 
     res.json({
       success: true,
       message: 'Bulletin sent to school successfully',
-      bulletin: sentBulletin
+      bulletin: {
+        id: savedBulletin.id,
+        status: 'sent',
+        sentToSchoolAt: savedBulletin.sentToSchoolAt,
+        reviewStatus: savedBulletin.reviewStatus
+      }
     });
   } catch (error) {
     console.error('[TEACHER_BULLETINS] Error sending bulletin to school:', error);
