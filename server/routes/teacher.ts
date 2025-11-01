@@ -4,8 +4,20 @@ import { db } from '../db';
 import { teacherClassSubjects, classSubjects } from '../../shared/schemas/classSubjectsSchema';
 import { subjects } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
+import { MultiRoleService } from '../services/multiRoleService';
 
 const router = Router();
+
+// Helper function to verify teacher has access to a school
+async function verifyTeacherSchoolAccess(teacherId: number, schoolId: number): Promise<boolean> {
+  try {
+    const teacherSchools = await MultiRoleService.getTeacherSchools(teacherId);
+    return teacherSchools.some(school => school.id === schoolId && school.isActive);
+  } catch (error) {
+    console.error('[TEACHER_ACCESS] Error verifying school access:', error);
+    return false;
+  }
+}
 
 // Get students for a specific class with real database integration
 router.get('/students', requireAuth, async (req, res) => {
@@ -1721,8 +1733,14 @@ router.get('/saved-bulletins', requireAuth, async (req, res) => {
 
     console.log('[TEACHER_BULLETINS] Fetching saved bulletins for teacher:', user.id);
 
-    // TODO: Replace with actual database implementation
-    // For now, return mock data organized by school and class
+    // Get all schools the teacher has access to
+    const teacherSchools = await MultiRoleService.getTeacherSchools(user.id);
+    const schoolIds = teacherSchools.filter(s => s.isActive).map(s => s.id);
+
+    console.log('[TEACHER_BULLETINS] Teacher has access to schools:', schoolIds);
+
+    // TODO: Replace with actual database query filtering by teacherId and schoolIds
+    // For now, return mock data filtered by accessible schools
     const savedBulletins = [
       {
         id: 'bulletin_1',
@@ -1736,7 +1754,7 @@ router.get('/saved-bulletins', requireAuth, async (req, res) => {
         academicYear: '2024-2025',
         status: 'draft',
         lastModified: new Date().toISOString(),
-        createdDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+        createdDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
       },
       {
         id: 'bulletin_2', 
@@ -1749,10 +1767,10 @@ router.get('/saved-bulletins', requireAuth, async (req, res) => {
         term: 'T2',
         academicYear: '2024-2025',
         status: 'signed',
-        lastModified: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-        createdDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days ago
+        lastModified: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        createdDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
       }
-    ];
+    ].filter(bulletin => schoolIds.includes(parseInt(bulletin.schoolId)));
 
     res.json({
       success: true,
@@ -1787,6 +1805,16 @@ router.post('/bulletins/save', requireAuth, async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields: schoolId, classId, studentId'
+      });
+    }
+
+    // Verify teacher has access to the school
+    const hasAccess = await verifyTeacherSchoolAccess(user.id, parseInt(bulletinData.schoolId));
+    if (!hasAccess) {
+      console.log('[TEACHER_BULLETINS] ❌ Access denied to school:', bulletinData.schoolId);
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You are not assigned to this school.'
       });
     }
 
@@ -1838,6 +1866,16 @@ router.post('/bulletins/sign', requireAuth, async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields: schoolId, classId, studentId'
+      });
+    }
+
+    // Verify teacher has access to the school
+    const hasAccess = await verifyTeacherSchoolAccess(user.id, parseInt(bulletinData.schoolId));
+    if (!hasAccess) {
+      console.log('[TEACHER_BULLETINS] ❌ Access denied to school:', bulletinData.schoolId);
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You are not assigned to this school.'
       });
     }
 
@@ -1893,6 +1931,16 @@ router.post('/bulletins/send-to-school', requireAuth, async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields: schoolId, classId, studentId'
+      });
+    }
+
+    // Verify teacher has access to the school
+    const hasAccess = await verifyTeacherSchoolAccess(user.id, parseInt(bulletinData.schoolId));
+    if (!hasAccess) {
+      console.log('[TEACHER_BULLETINS] ❌ Access denied to school:', bulletinData.schoolId);
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You are not assigned to this school.'
       });
     }
 
