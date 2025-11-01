@@ -16,9 +16,71 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
 
   if (!isVisible) return null;
 
-  // Role-specific tutorial content based on EDUCAFRIC 2025 presentation
+  // Role-specific tutorial content - UPDATED AUTOMATICALLY for EDUCAFRIC 2025
   const getStepsForRole = (role: string) => {
     const roleSteps = {
+      'Director': [
+        {
+          title: { 
+            fr: '🏫 Bienvenue, Directeur !', 
+            en: '🏫 Welcome, Director!' 
+          },
+          content: { 
+            fr: 'EDUCAFRIC 2025 Direction : 17 modules professionnels - Profil Directeur, Classes, Enseignants, Élèves, Emploi du temps, Export Calendrier, Présences École, Communications, Absences Profs, Demandes Parents, Contenu Pédagogique, Notifications, Administrateurs Délégués, Rapports, Guide Configuration, Paramètres École, Gestion Académique et Classes en ligne.',
+            en: 'EDUCAFRIC 2025 Director: 17 professional modules - Director Profile, Classes, Teachers, Students, Schedule, Calendar Export, School Attendance, Communications, Teacher Absences, Parent Requests, Educational Content, Notifications, Delegate Administrators, Reports, Configuration Guide, School Settings, Academic Management and Online Classes.'
+          },
+          icon: Building2,
+          color: 'bg-blue-600'
+        },
+        {
+          title: { 
+            fr: '📊 Gestion Pédagogique', 
+            en: '📊 Educational Management' 
+          },
+          content: { 
+            fr: 'Classes, Enseignants, Élèves : Gérez l\'ensemble de votre établissement avec des outils de gestion avancés. Suivez les performances, assignez les ressources et optimisez l\'organisation.',
+            en: 'Classes, Teachers, Students: Manage your entire institution with advanced management tools. Track performance, assign resources and optimize organization.'
+          },
+          icon: Users,
+          color: 'bg-green-500'
+        },
+        {
+          title: { 
+            fr: '📅 Planning & Présences', 
+            en: '📅 Scheduling & Attendance' 
+          },
+          content: { 
+            fr: 'Emploi du temps, Export Calendrier, Présences École : Planifiez les cours, gérez les horaires et suivez les présences en temps réel avec synchronisation calendrier.',
+            en: 'Schedule, Calendar Export, School Attendance: Plan classes, manage schedules and track attendance in real-time with calendar sync.'
+          },
+          icon: Calendar,
+          color: 'bg-pink-500'
+        },
+        {
+          title: { 
+            fr: '📱 Communications & Alertes', 
+            en: '📱 Communications & Alerts' 
+          },
+          content: { 
+            fr: 'Communications, Absences Profs, Demandes Parents, Notifications : Communiquez avec l\'équipe et les parents, gérez les absences enseignants et traitez les demandes en temps réel.',
+            en: 'Communications, Teacher Absences, Parent Requests, Notifications: Communicate with staff and parents, manage teacher absences and handle requests in real-time.'
+          },
+          icon: MessageSquare,
+          color: 'bg-indigo-500'
+        },
+        {
+          title: { 
+            fr: '⚙️ Administration Avancée', 
+            en: '⚙️ Advanced Administration' 
+          },
+          content: { 
+            fr: 'Administrateurs Délégués, Rapports, Paramètres École, Gestion Académique, Classes en ligne : Déléguez les tâches, analysez les données et configurez votre établissement. Organisez les sessions en ligne.',
+            en: 'Delegate Administrators, Reports, School Settings, Academic Management, Online Classes: Delegate tasks, analyze data and configure your institution. Organize online sessions.'
+          },
+          icon: Settings,
+          color: 'bg-slate-600'
+        }
+      ],
       'Teacher': [
         {
           title: { 
@@ -26,8 +88,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '👨‍🏫 Welcome, Teacher!' 
           },
           content: { 
-            fr: 'Accédez à 8 modules EDUCAFRIC 2025 : Mes Classes avec analytics IA, Emploi du Temps interactif, Présences automatisées, Notes temps réel, Devoirs numériques, Bulletins Premium intelligents, Communications multicanal (SMS/WhatsApp), et Mon Profil enrichi.',
-            en: 'Access 8 EDUCAFRIC 2025 modules: My Classes with AI analytics, Interactive Timetable, Automated Attendance, Real-time Grades, Digital Assignments, Smart Premium Report Cards, Multi-channel Communications (SMS/WhatsApp), and Enhanced Profile.'
+            fr: 'Accédez à vos modules EDUCAFRIC 2025 : Mes Classes avec analytics, Emploi du Temps, Présences automatisées, Notes temps réel, Devoirs numériques, Bulletins intelligents, Communications multicanal et Profil enseignant.',
+            en: 'Access your EDUCAFRIC 2025 modules: My Classes with analytics, Schedule, Automated Attendance, Real-time Grades, Digital Assignments, Smart Report Cards, Multi-channel Communications and Teacher Profile.'
           },
           icon: Users,
           color: 'bg-blue-500'
