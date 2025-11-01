@@ -123,6 +123,7 @@ import onlineClassActivationsRouter from "./routes/api/online-class-activations"
 import onlineClassPaymentsRouter from "./routes/api/online-class-payments";
 import onlineClassSchedulerRouter from "./routes/api/online-class-scheduler";
 import teacherIndependentPaymentsRouter from "./routes/api/teacher-independent-payments";
+import schoolLevelsRoutes from "./routes/schoolLevelsRoutes";
 import calendarRoutes from "./routes/calendar";
 import syncRoutes from "./routes/sync";
 
@@ -7057,6 +7058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', educafricNumberRoutes); // EDUCAFRIC number management (admin & public verify)
   app.use('/api/director', adminRoutes); // Map director to admin routes
   app.use('/api/permissions', adminRoutes); // Map permissions to admin routes
+  app.use('/api/director/school-levels', requireAuth, schoolLevelsRoutes); // School levels management
 
   // Register existing route modules
   // 🔥 PREMIUM RESTRICTED: GPS tracking and geolocation (premium schools only)

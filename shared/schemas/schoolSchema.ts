@@ -46,6 +46,18 @@ export const schools = pgTable("schools", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+export const schoolLevels = pgTable("school_levels", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  name: text("name").notNull(), // e.g., "Form 1", "6ème", "Year 7"
+  nameFr: text("name_fr"), // French version
+  nameEn: text("name_en"), // English version
+  order: integer("order").notNull(), // Display order (1, 2, 3...)
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 export const classes = pgTable("classes", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
