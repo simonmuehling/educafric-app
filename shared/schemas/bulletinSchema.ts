@@ -314,8 +314,8 @@ export const insertTeacherGradeSubmissionSchema = createInsertSchema(teacherGrad
 export const insertBulletinWorkflowSchema = createInsertSchema(bulletinWorkflow);
 export const insertBulletinNotificationSchema = createInsertSchema(bulletinNotifications);
 export const insertGradeReviewHistorySchema = createInsertSchema(gradeReviewHistory);
-export const insertSavedBulletinSchema = createInsertSchema(savedBulletins).omit({ id: true, createdAt: true, updatedAt: true, archivedAt: true, archiveId: true });
-export const insertTeacherBulletinSchema = createInsertSchema(teacherBulletins).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertSavedBulletinSchema = createInsertSchema(savedBulletins);
+export const insertTeacherBulletinSchema = createInsertSchema(teacherBulletins);
 
 // Specific schemas for review actions
 export const reviewGradeSubmissionSchema = z.object({

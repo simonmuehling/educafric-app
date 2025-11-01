@@ -1977,7 +1977,7 @@ router.post('/bulletins/send-to-school', requireAuth, async (req, res) => {
         className: bulletinData.className,
         originalBulletinId: bulletinData.id
       }
-    }).returning();
+    } as any).returning();
 
     console.log('[TEACHER_BULLETINS] ✅ Bulletin saved to database and sent to school:', savedBulletin.id);
 

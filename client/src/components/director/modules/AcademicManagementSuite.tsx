@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import BulletinCreationInterface from "@/components/academic/BulletinCreationInterface";
+import TeacherSubmittedBulletins from "./TeacherSubmittedBulletins";
 import { 
   FileSpreadsheet, 
   Download, 
@@ -24,7 +25,8 @@ import {
   Archive,
   Eye,
   Search,
-  School
+  School,
+  UserCheck
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
@@ -1734,6 +1736,10 @@ export default function AcademicManagementSuite() {
 
           <CardContent>
             <TabsContent value="bulletins" className="mt-0 space-y-4">
+              {/* Bulletins soumis par les enseignants */}
+              <TeacherSubmittedBulletins />
+              
+              {/* Interface de création de bulletins */}
               <TeacherSubmissionsManager selectedClass={selectedClass} selectedTerm={selectedTerm} />
               <BulletinCreationInterface 
                 defaultClass={selectedClass}
