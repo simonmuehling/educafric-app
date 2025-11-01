@@ -950,8 +950,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_SETTINGS] PUT - User:', user.id, 'Updates:', updates);
       
-      // In production, save to database
-      // For now, just acknowledge the update
+      // Extract profile data from updates
+      const profileUpdates = updates.profile || updates;
+      
+      // Build update object for database - only include fields that can be updated
+      const userUpdates: any = {};
+      
+      if (profileUpdates.firstName) userUpdates.firstName = profileUpdates.firstName;
+      if (profileUpdates.lastName) userUpdates.lastName = profileUpdates.lastName;
+      if (profileUpdates.email) userUpdates.email = profileUpdates.email;
+      if (profileUpdates.phone) userUpdates.phone = profileUpdates.phone;
+      if (profileUpdates.dateOfBirth) userUpdates.dateOfBirth = profileUpdates.dateOfBirth;
+      if (profileUpdates.address) userUpdates.address = profileUpdates.address;
+      if (profileUpdates.bio) userUpdates.bio = profileUpdates.bio;
+      if (profileUpdates.position) userUpdates.position = profileUpdates.position;
+      if (profileUpdates.profileImage) userUpdates.profileImage = profileUpdates.profileImage;
+      if (profileUpdates.profileImageUrl) userUpdates.profileImageUrl = profileUpdates.profileImageUrl;
+      
+      // Handle JSON fields
+      if (profileUpdates.qualifications) userUpdates.qualifications = JSON.stringify(profileUpdates.qualifications);
+      if (profileUpdates.languages) userUpdates.languages = JSON.stringify(profileUpdates.languages);
+      
+      console.log('[DIRECTOR_SETTINGS] Updating user fields:', Object.keys(userUpdates));
+      
+      // Update user in database
+      if (Object.keys(userUpdates).length > 0) {
+        await db.update(users)
+          .set(userUpdates)
+          .where(eq(users.id, user.id));
+        
+        console.log('[DIRECTOR_SETTINGS] ✅ Profile updated successfully for user:', user.id);
+      } else {
+        console.log('[DIRECTOR_SETTINGS] No valid fields to update');
+      }
       
       res.json({ 
         success: true, 
