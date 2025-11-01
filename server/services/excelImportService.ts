@@ -625,7 +625,7 @@ export class ExcelImportService {
           continue;
         }
         
-        // Validate level against school's defined levels
+        // Validate level against school's defined levels (only if school has defined custom levels)
         if (validLevelNames.size > 0 && !validLevelNames.has(normalizedInputLevel)) {
           const originalLevel = String(classData.level ?? '').trim();
           const validLevelsDisplay = validSchoolLevels.map(l => l.name).join(', ');
@@ -637,6 +637,11 @@ export class ExcelImportService {
               : `Level not defined: "${originalLevel}". Your school uses these levels: ${validLevelsDisplay}. Please either use one of these levels, or first create "${originalLevel}" in Settings > Academic before importing.`
           });
           continue;
+        }
+        
+        // If no custom levels are defined, log a suggestion but allow the import (backwards compatibility)
+        if (validLevelNames.size === 0 && normalizedInputLevel) {
+          console.log(`[IMPORT_CLASSES] ℹ️ No custom levels defined for school ${schoolId}. Consider defining levels in Settings > Academic. Current level: "${classData.level}"`);
         }
         
         // Check for duplicate class name using Drizzle
