@@ -1598,6 +1598,263 @@ select:focus-visible {
   }
 }
 
+/* ==========================================
+   EDUCAFRIC MODULE THEME
+   Design moderne inspiré du dashboard professionnel
+   ========================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Amiko:wght@400;600;700&display=swap');
+
+/* Module Container avec le nouveau design */
+.module-content {
+  font-family: 'Amiko', Verdana, Geneva, Tahoma, sans-serif !important;
+  background: linear-gradient(135deg, #F8FAF9 0%, #E8EFEF 100%) !important;
+  min-height: 100vh;
+}
+
+/* Headers des modules - Style professionnel */
+.module-header {
+  background: linear-gradient(135deg, #1B2E58 0%, #17294D 100%) !important;
+  color: white !important;
+  font-family: 'Amiko', sans-serif !important;
+  font-weight: 600 !important;
+  padding: 1.5rem 2rem !important;
+  box-shadow: 0 4px 12px rgba(27, 46, 88, 0.15) !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.module-header h1,
+.module-header h2,
+.module-header h3 {
+  color: white !important;
+  font-family: 'Amiko', sans-serif !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* Cards à l'intérieur des modules */
+.module-card {
+  background: white !important;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(27, 46, 88, 0.08) !important;
+  transition: all 0.3s ease !important;
+}
+
+.module-card:hover {
+  box-shadow: 0 8px 24px rgba(27, 46, 88, 0.12) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Sections de filtres style professionnel */
+.module-filters {
+  background: linear-gradient(135deg, #17294D 0%, #132344 100%) !important;
+  color: white !important;
+  padding: 1.5rem !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(23, 41, 77, 0.15) !important;
+}
+
+.module-filters input,
+.module-filters select {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  font-family: 'Amiko', sans-serif !important;
+}
+
+.module-filters input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Boutons avec gradient moderne */
+.module-btn-primary {
+  background: linear-gradient(135deg, #0196C0 0%, #07C4CB 100%) !important;
+  color: white !important;
+  font-family: 'Amiko', sans-serif !important;
+  font-weight: 600 !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 8px !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(1, 150, 192, 0.3) !important;
+  transition: all 0.3s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.module-btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(1, 150, 192, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+.module-btn-secondary {
+  background: #63A7B2 !important;
+  color: white !important;
+  font-family: 'Amiko', sans-serif !important;
+  font-weight: 600 !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 8px !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+}
+
+.module-btn-secondary:hover {
+  background: #5596A0 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Tableaux style moderne */
+.module-table {
+  font-family: 'Amiko', sans-serif !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: white !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(27, 46, 88, 0.08) !important;
+}
+
+.module-table thead {
+  background: linear-gradient(135deg, #1B2E58 0%, #17294D 100%) !important;
+  color: white !important;
+}
+
+.module-table thead th {
+  padding: 1rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-size: 0.875rem !important;
+  color: white !important;
+}
+
+.module-table tbody tr {
+  border-bottom: 1px solid #E5E7EB !important;
+  transition: background 0.2s ease !important;
+}
+
+.module-table tbody tr:hover {
+  background: #F8FAF9 !important;
+}
+
+.module-table tbody td {
+  padding: 1rem !important;
+  color: #1B2E58 !important;
+}
+
+/* Badges et indicateurs */
+.module-badge {
+  font-family: 'Amiko', sans-serif !important;
+  font-weight: 600 !important;
+  padding: 0.375rem 0.875rem !important;
+  border-radius: 6px !important;
+  font-size: 0.875rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.module-badge-success {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+  color: white !important;
+}
+
+.module-badge-warning {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+  color: white !important;
+}
+
+.module-badge-danger {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+  color: white !important;
+}
+
+.module-badge-info {
+  background: linear-gradient(135deg, #0196C0 0%, #07C4CB 100%) !important;
+  color: white !important;
+}
+
+/* Tabs avec le nouveau style */
+.module-tabs {
+  background: white !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(27, 46, 88, 0.08) !important;
+}
+
+.module-tab-trigger {
+  font-family: 'Amiko', sans-serif !important;
+  font-weight: 600 !important;
+  color: #64748B !important;
+  transition: all 0.3s ease !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.module-tab-trigger[data-state="active"] {
+  background: linear-gradient(135deg, #0196C0 0%, #07C4CB 100%) !important;
+  color: white !important;
+}
+
+/* Input fields moderne */
+.module-input {
+  font-family: 'Amiko', sans-serif !important;
+  background: white !important;
+  border: 2px solid #E5E7EB !important;
+  border-radius: 8px !important;
+  padding: 0.75rem 1rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.module-input:focus {
+  border-color: #0196C0 !important;
+  box-shadow: 0 0 0 3px rgba(1, 150, 192, 0.1) !important;
+  outline: none !important;
+}
+
+/* Stats cards */
+.module-stat-card {
+  background: linear-gradient(135deg, white 0%, #F8FAF9 100%) !important;
+  border-left: 4px solid #0196C0 !important;
+  border-radius: 12px !important;
+  padding: 1.5rem !important;
+  box-shadow: 0 2px 8px rgba(27, 46, 88, 0.08) !important;
+}
+
+.module-stat-value {
+  font-family: 'Amiko', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 2rem !important;
+  color: #1B2E58 !important;
+  line-height: 1 !important;
+}
+
+.module-stat-label {
+  font-family: 'Amiko', sans-serif !important;
+  font-weight: 600 !important;
+  color: #64748B !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-size: 0.875rem !important;
+  margin-top: 0.5rem !important;
+}
+
+/* Animations fluides */
+@keyframes moduleSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.module-animate-in {
+  animation: moduleSlideIn 0.3s ease-out !important;
+}
+
 /* Print isolation - hide everything except explicitly marked printable content */
 @media print {
   body * {
