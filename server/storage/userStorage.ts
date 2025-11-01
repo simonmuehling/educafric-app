@@ -58,11 +58,9 @@ export class UserStorage implements IUserStorage {
         return null;
       }
       
-      // Search using case-insensitive comparison
-      const [user] = await db.select()
-        .from(users)
-        .where(sql`LOWER(TRIM(${users.email})) = ${normalizedEmail}`)
-        .limit(1);
+      // Simple query - let Drizzle handle column selection automatically
+      const allUsers = await db.select().from(users);
+      const user = allUsers.find(u => u.email?.trim().toLowerCase() === normalizedEmail);
       
       if (user) {
         console.log(`[USER_STORAGE] Found user by email: ${user.email} (ID: ${user.id})`);
