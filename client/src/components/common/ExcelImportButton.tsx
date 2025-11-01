@@ -153,16 +153,24 @@ export function ExcelImportButton({
       const importResult = await importResponse.json();
       setResult(importResult);
 
-      // Invalidate queries
+      // Invalidate and refetch queries to force immediate update
       if (invalidateQueries.length > 0) {
         await Promise.all(
-          invalidateQueries.map(key => queryClient.invalidateQueries({ queryKey: [key] }))
+          invalidateQueries.map(key => 
+            queryClient.invalidateQueries({ queryKey: [key], refetchType: 'active' })
+          )
+        );
+        // Force immediate refetch
+        await Promise.all(
+          invalidateQueries.map(key => 
+            queryClient.refetchQueries({ queryKey: [key], type: 'active' })
+          )
         );
       }
 
       if (importResult.success) {
         toast({
-          title: currentLang === 'fr' ? 'Import réussi' : 'Import successful',
+          title: currentLang === 'fr' ? '✅ Import réussi' : '✅ Import successful',
           description: importResult.message || `${importResult.created} ${currentLang === 'fr' ? 'entrées créées' : 'entries created'}`
         });
         onImportSuccess?.();
