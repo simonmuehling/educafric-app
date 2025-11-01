@@ -50,25 +50,22 @@ export class UserStorage implements IUserStorage {
 
   async getUserByEmail(email: string): Promise<any | null> {
     try {
-      // Normalize email: trim spaces and convert to lowercase for comparison
+      // Normalize email: trim spaces and convert to lowercase
       const normalizedEmail = email?.trim().toLowerCase();
       
       if (!normalizedEmail) {
-        console.log('[USER_STORAGE] Empty email provided to getUserByEmail');
         return null;
       }
       
-      // Simple query - let Drizzle handle column selection automatically
-      const allUsers = await db.select().from(users);
-      const user = allUsers.find(u => u.email?.trim().toLowerCase() === normalizedEmail);
+      // Use simple where clause with direct email match
+      const result = await db.execute(sql`SELECT * FROM users WHERE LOWER(TRIM(email)) = ${normalizedEmail} LIMIT 1`);
+      const user = result.rows[0] || null;
       
       if (user) {
-        console.log(`[USER_STORAGE] Found user by email: ${user.email} (ID: ${user.id})`);
-      } else {
-        console.log(`[USER_STORAGE] No user found with email: ${normalizedEmail}`);
+        console.log(`[USER_STORAGE] ✅ Found user: ${user.email} (ID: ${user.id})`);
       }
       
-      return user || null;
+      return user;
     } catch (error) {
       console.error('[USER_STORAGE] Error in getUserByEmail:', error);
       return null;
