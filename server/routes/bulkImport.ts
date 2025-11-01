@@ -40,8 +40,11 @@ const requireAuth = (req: any, res: any, next: any) => {
 
 // Authentication middleware for template downloads (allows commercial access)
 const requireTemplateAuth = (req: any, res: any, next: any) => {
-  if (!req.user || !['Director', 'Admin', 'SiteAdmin', 'Commercial'].includes(req.user.role)) {
-    return res.status(403).json({ message: 'Accès autorisé: Administrateurs et Commercial' });
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required. Please log in to download templates.' });
+  }
+  if (!['Director', 'Admin', 'SiteAdmin', 'Commercial'].includes(req.user.role)) {
+    return res.status(403).json({ message: 'Accès autorisé: Administrateurs et Commercial uniquement' });
   }
   next();
 };
