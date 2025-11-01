@@ -50,9 +50,29 @@ export class UserStorage implements IUserStorage {
 
   async getUserByEmail(email: string): Promise<any | null> {
     try {
-      const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      // Normalize email: trim spaces and convert to lowercase for comparison
+      const normalizedEmail = email?.trim().toLowerCase();
+      
+      if (!normalizedEmail) {
+        console.log('[USER_STORAGE] Empty email provided to getUserByEmail');
+        return null;
+      }
+      
+      // Search using case-insensitive comparison
+      const [user] = await db.select()
+        .from(users)
+        .where(sql`LOWER(TRIM(${users.email})) = ${normalizedEmail}`)
+        .limit(1);
+      
+      if (user) {
+        console.log(`[USER_STORAGE] Found user by email: ${user.email} (ID: ${user.id})`);
+      } else {
+        console.log(`[USER_STORAGE] No user found with email: ${normalizedEmail}`);
+      }
+      
       return user || null;
     } catch (error) {
+      console.error('[USER_STORAGE] Error in getUserByEmail:', error);
       return null;
     }
   }
