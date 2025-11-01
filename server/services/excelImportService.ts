@@ -532,14 +532,14 @@ export class ExcelImportService {
           for (const subjectStr of subjectParts) {
             const [name, coeff, hours, category] = subjectStr.split(';').map((s: string) => s.trim());
             if (name) {
-              // Validate subject category
-              const validCategories = ['general', 'professional'];
+              // Validate subject category - Support all 5 types
+              const validCategories = ['general', 'scientific', 'literary', 'technical', 'other'];
               const normalizedCategory = category?.toLowerCase();
               if (category && !validCategories.includes(normalizedCategory)) {
                 result.errors.push({
                   row: row._row || index + 2,
                   field: lang === 'fr' ? 'Catégorie Matière' : 'Subject Category',
-                  message: `${lang === 'fr' ? 'Catégorie matière invalide' : 'Invalid subject category'}: "${category}". ${lang === 'fr' ? 'Valeurs valides' : 'Valid values'}: general, professional`
+                  message: `${lang === 'fr' ? 'Catégorie matière invalide' : 'Invalid subject category'}: "${category}". ${lang === 'fr' ? 'Valeurs valides' : 'Valid values'}: general, scientific, literary, technical, other`
                 });
                 hasSubjectValidationError = true;
                 break;
@@ -549,7 +549,7 @@ export class ExcelImportService {
                 name,
                 coefficient: parseInt(coeff) || 1,
                 hoursPerWeek: parseInt(hours) || 1,
-                category: normalizedCategory === 'professional' ? 'professional' : 'general',
+                category: normalizedCategory || 'general', // Support all 5 types: general, scientific, literary, technical, other
                 isRequired: true
               });
             }
@@ -1164,18 +1164,18 @@ export class ExcelImportService {
             'prof.math@educafric.com', 
             lang === 'fr' ? 'Salle A1' : 'Room A1',
             lang === 'fr' 
-              ? 'Mathématiques;4;6;general | Français;4;6;general | Histoire;2;4;general | Sciences;3;5;general'
-              : 'Mathematics;4;6;general | French;4;6;general | History;2;4;general | Sciences;3;5;general'
+              ? 'Mathématiques;4;6;general | Français;4;6;literary | Histoire;2;4;literary | Géographie;2;4;general'
+              : 'Mathematics;4;6;general | French;4;6;literary | History;2;4;literary | Geography;2;4;general'
           ],
           [
-            '5ème B', 
-            '5ème', 
+            '3ème Scientifique', 
+            '3ème', 
             '35', 
-            'prof.francais@educafric.com', 
-            lang === 'fr' ? 'Salle B2' : 'Room B2',
+            'prof.sciences@educafric.com', 
+            lang === 'fr' ? 'Labo B2' : 'Lab B2',
             lang === 'fr'
-              ? 'Mathématiques;4;6;general | Français;4;6;general | Anglais;3;4;general'
-              : 'Mathematics;4;6;general | French;4;6;general | English;3;4;general'
+              ? 'Mathématiques;5;7;scientific | Physique;5;6;scientific | Chimie;4;5;scientific | Biologie;4;5;scientific'
+              : 'Mathematics;5;7;scientific | Physics;5;6;scientific | Chemistry;4;5;scientific | Biology;4;5;scientific'
           ],
           [
             'Terminale Technique', 
@@ -1184,8 +1184,28 @@ export class ExcelImportService {
             'prof.tech@educafric.com',
             lang === 'fr' ? 'Atelier A' : 'Workshop A',
             lang === 'fr'
-              ? 'Mathématiques;3;4;general | Électricité;5;8;professional | Mécanique;5;8;professional'
-              : 'Mathematics;3;4;general | Electricity;5;8;professional | Mechanics;5;8;professional'
+              ? 'Mathématiques;3;4;general | Électricité;5;8;technical | Mécanique;5;8;technical | Dessin Technique;4;6;technical'
+              : 'Mathematics;3;4;general | Electricity;5;8;technical | Mechanics;5;8;technical | Technical Drawing;4;6;technical'
+          ],
+          [
+            '1ère Littéraire', 
+            '1ère', 
+            '38', 
+            'prof.lettres@educafric.com',
+            lang === 'fr' ? 'Salle C3' : 'Room C3',
+            lang === 'fr'
+              ? 'Français;6;8;literary | Philosophie;5;6;literary | Littérature;4;5;literary | Anglais;3;4;general'
+              : 'French;6;8;literary | Philosophy;5;6;literary | Literature;4;5;literary | English;3;4;general'
+          ],
+          [
+            'CP Maternelle', 
+            'Maternelle', 
+            '25', 
+            'prof.maternelle@educafric.com',
+            lang === 'fr' ? 'Salle Maternelle' : 'Kindergarten Room',
+            lang === 'fr'
+              ? 'Éveil;3;5;other | Lecture;4;6;other | Calcul;3;4;other | Arts;2;3;other'
+              : 'Discovery;3;5;other | Reading;4;6;other | Math;3;4;other | Arts;2;3;other'
           ]
         ];
         break;
@@ -1257,7 +1277,123 @@ export class ExcelImportService {
     // Set column widths
     ws['!cols'] = headers.map(() => ({ width: 20 }));
     
-    XLSX.utils.book_append_sheet(wb, ws, lang === 'fr' ? 'Importer' : 'Import');
+    XLSX.utils.book_append_sheet(wb, ws, lang === 'fr' ? 'Données' : 'Data');
+    
+    // Add instructions sheet for classes template
+    if (type === 'classes') {
+      const instructionsHeaders = [lang === 'fr' ? 'INSTRUCTIONS - IMPORT EN MASSE DES CLASSES' : 'INSTRUCTIONS - BULK CLASS IMPORT'];
+      const instructionsData = lang === 'fr' ? [
+        instructionsHeaders,
+        [''],
+        ['📋 OBJECTIF'],
+        ['Cet outil d\'import Excel facilite la création de plusieurs classes en une seule fois,'],
+        ['SANS avoir besoin d\'utiliser le bouton "Créer Classe" pour chaque classe individuellement.'],
+        [''],
+        ['✅ AVANTAGES'],
+        ['• Gain de temps: créez des dizaines de classes en quelques minutes'],
+        ['• Moins d\'erreurs: les données sont validées automatiquement'],
+        ['• Matières incluses: chaque classe est créée avec ses matières (coefficients, heures, types)'],
+        [''],
+        ['📝 FORMAT DES COLONNES'],
+        ['1. Nom: Nom de la classe (ex: 6ème A, Terminale D, CM2)'],
+        ['2. Niveau: Niveau scolaire (ex: 6ème, Form 1, Primary 5)'],
+        ['3. MaxÉlèves: Nombre maximum d\'élèves (ex: 40)'],
+        ['4. EmailEnseignant: Email du professeur principal (optionnel)'],
+        ['5. Salle: Nom de la salle de classe (optionnel)'],
+        ['6. Matières: Liste des matières avec leurs détails (voir format ci-dessous)'],
+        [''],
+        ['🎯 FORMAT DES MATIÈRES (Colonne 6)'],
+        ['Format: nom;coefficient;heures;catégorie | nom;coefficient;heures;catégorie | ...'],
+        [''],
+        ['Exemple: Mathématiques;4;6;general | Français;4;6;literary | Physique;5;6;scientific'],
+        [''],
+        ['⚠️ IMPORTANT: Séparez chaque matière par le symbole |'],
+        [''],
+        ['📚 CATÉGORIES DE MATIÈRES (5 types disponibles)'],
+        ['• general     → Matières générales (Maths, Géographie, EPS, etc.)'],
+        ['• scientific  → Matières scientifiques (Physique, Chimie, Biologie, SVT)'],
+        ['• literary    → Matières littéraires (Français, Philosophie, Littérature, Histoire)'],
+        ['• technical   → Matières techniques (Électricité, Mécanique, Dessin Technique)'],
+        ['• other       → Autres matières (Éveil, Arts, Musique, activités spéciales)'],
+        [''],
+        ['💡 EXEMPLES PRATIQUES'],
+        ['Classe générale: Mathématiques;4;6;general | Français;4;6;literary'],
+        ['Classe scientifique: Maths;5;7;scientific | Physique;5;6;scientific | Chimie;4;5;scientific'],
+        ['Classe technique: Électricité;5;8;technical | Mécanique;5;8;technical'],
+        ['Classe maternelle: Éveil;3;5;other | Lecture;4;6;other | Arts;2;3;other'],
+        [''],
+        ['🚀 COMMENT UTILISER CE FICHIER'],
+        ['1. Remplissez les données dans l\'onglet "Données" (gardez les exemples ou remplacez-les)'],
+        ['2. Sauvegardez le fichier Excel'],
+        ['3. Dans l\'interface EDUCAFRIC, allez dans "Gestion des Classes"'],
+        ['4. Cliquez sur "Import Excel en Masse"'],
+        ['5. Sélectionnez ce fichier et importez'],
+        ['6. Vos classes seront créées automatiquement avec toutes leurs matières!'],
+        [''],
+        ['✨ IMPORTANT: Vous n\'avez PAS besoin d\'utiliser le bouton "Créer Classe" individuellement.'],
+        ['L\'import crée tout automatiquement pour vous!'],
+        [''],
+        ['❓ BESOIN D\'AIDE?'],
+        ['Contactez le support EDUCAFRIC: support@educafric.cm']
+      ] : [
+        instructionsHeaders,
+        [''],
+        ['📋 PURPOSE'],
+        ['This Excel import tool allows you to create multiple classes at once,'],
+        ['WITHOUT needing to use the "Create Class" button for each class individually.'],
+        [''],
+        ['✅ BENEFITS'],
+        ['• Time-saving: create dozens of classes in minutes'],
+        ['• Fewer errors: data is validated automatically'],
+        ['• Subjects included: each class is created with its subjects (coefficients, hours, types)'],
+        [''],
+        ['📝 COLUMN FORMAT'],
+        ['1. Name: Class name (e.g., Form 1A, Grade 6, CM2)'],
+        ['2. Level: School level (e.g., Form 1, Grade 6, Primary 5)'],
+        ['3. MaxStudents: Maximum number of students (e.g., 40)'],
+        ['4. TeacherEmail: Main teacher\'s email (optional)'],
+        ['5. Room: Classroom name (optional)'],
+        ['6. Subjects: List of subjects with their details (see format below)'],
+        [''],
+        ['🎯 SUBJECTS FORMAT (Column 6)'],
+        ['Format: name;coefficient;hours;category | name;coefficient;hours;category | ...'],
+        [''],
+        ['Example: Mathematics;4;6;general | French;4;6;literary | Physics;5;6;scientific'],
+        [''],
+        ['⚠️ IMPORTANT: Separate each subject with the | symbol'],
+        [''],
+        ['📚 SUBJECT CATEGORIES (5 types available)'],
+        ['• general     → General subjects (Math, Geography, PE, etc.)'],
+        ['• scientific  → Scientific subjects (Physics, Chemistry, Biology, Life Sciences)'],
+        ['• literary    → Literary subjects (French, Philosophy, Literature, History)'],
+        ['• technical   → Technical subjects (Electricity, Mechanics, Technical Drawing)'],
+        ['• other       → Other subjects (Discovery, Arts, Music, special activities)'],
+        [''],
+        ['💡 PRACTICAL EXAMPLES'],
+        ['General class: Mathematics;4;6;general | French;4;6;literary'],
+        ['Science class: Math;5;7;scientific | Physics;5;6;scientific | Chemistry;4;5;scientific'],
+        ['Technical class: Electricity;5;8;technical | Mechanics;5;8;technical'],
+        ['Kindergarten: Discovery;3;5;other | Reading;4;6;other | Arts;2;3;other'],
+        [''],
+        ['🚀 HOW TO USE THIS FILE'],
+        ['1. Fill in the data in the "Data" tab (keep the examples or replace them)'],
+        ['2. Save the Excel file'],
+        ['3. In the EDUCAFRIC interface, go to "Class Management"'],
+        ['4. Click on "Bulk Excel Import"'],
+        ['5. Select this file and import'],
+        ['6. Your classes will be created automatically with all their subjects!'],
+        [''],
+        ['✨ IMPORTANT: You do NOT need to use the "Create Class" button individually.'],
+        ['The import creates everything automatically for you!'],
+        [''],
+        ['❓ NEED HELP?'],
+        ['Contact EDUCAFRIC support: support@educafric.cm']
+      ];
+      
+      const wsInstructions = XLSX.utils.aoa_to_sheet(instructionsData);
+      wsInstructions['!cols'] = [{ width: 100 }];
+      XLSX.utils.book_append_sheet(wb, wsInstructions, lang === 'fr' ? 'Instructions' : 'Instructions');
+    }
     
     // Generate buffer
     return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
