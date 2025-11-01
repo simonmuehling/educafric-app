@@ -490,6 +490,10 @@ router.post('/login', (req, res, next) => {
           return res.status(500).json({ message: 'Failed to save session' });
         }
         
+        console.log('[AUTH_SESSION] Session saved successfully');
+        console.log('[AUTH_SESSION] Session ID:', req.sessionID);
+        console.log('[AUTH_SESSION] Session data:', { userId: req.session.passport?.user });
+        
         // Send commercial login alert and track activity if user is Commercial role
         if (user.role === 'Commercial') {
           // Exclude demo commercial from alerts (case-insensitive)
