@@ -62,6 +62,14 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Architecture** : Tous les modules utilisent ExcelImportButton avec prop `invalidateQueries` correctement configurée
 - ⚠️ **RÈGLE CRITIQUE** : Tout nouveau module utilisant ExcelImportButton DOIT passer les queryKeys appropriées dans la prop `invalidateQueries`
 
+**ISOLATION MULTI-TENANT STRICTE (SCHOOL_ID)**:
+- ✅ **Bug critique résolu** : Toutes les APIs Director utilisaient `user.school_id` (toujours undefined) au lieu de `user.schoolId` (valeur correcte)
+- ✅ **Pattern de correction systématique** : Remplacer `user.school_id || 1` par `user.schoolId || user.school_id || 1` dans TOUTES les APIs
+- ✅ **8 APIs corrigées** : Classes (1), Subjects (2), Students (1), Teachers (2), Grades (2) - toutes filtraient sur school_id = 1 par défaut
+- ✅ **Impact résolu** : Les écoles voient maintenant LEURS propres données au lieu des données de l'école 1
+- ✅ **Routes d'import Excel** : `/api/bulk-import/` pour templates, validation et import de Classes, Teachers, Students, Timetables, Rooms
+- ⚠️ **RÈGLE CRITIQUE** : TOUJOURS utiliser `user.schoolId` (avec majuscule I) pour isolation multi-tenant, JAMAIS `user.school_id`
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
