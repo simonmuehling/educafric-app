@@ -1643,6 +1643,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new student
+  app.post("/api/director/students", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { 
+        name, firstName, lastName, email, phone, className, level, age, gender,
+        dateOfBirth, placeOfBirth, matricule, 
+        parentName, parentEmail, parentPhone,
+        redoublant
+      } = req.body;
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      // Split name into firstName and lastName if not provided separately
+      let fName = firstName;
+      let lName = lastName;
+      if (!fName && !lName && name) {
+        const nameParts = name.split(' ');
+        fName = nameParts[0];
+        lName = nameParts.slice(1).join(' ') || nameParts[0];
+      }
+      
+      if (!fName || !phone) {
+        return res.status(400).json({ success: false, message: 'Name and phone are required' });
+      }
+      
+      console.log('[CREATE_STUDENT] Creating student:', { firstName: fName, lastName: lName, phone, schoolId: userSchoolId });
+      
+      // Generate default password
+      const defaultPassword = `${lName.toLowerCase()}${new Date().getFullYear()}`;
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+      
+      // Create student in database
+      const [newStudent] = await db.insert(users).values({
+        firstName: fName,
+        lastName: lName,
+        email: email || null, // Email is optional
+        phone,
+        password: hashedPassword,
+        role: 'Student',
+        schoolId: userSchoolId,
+        gender: gender || null,
+        dateOfBirth: dateOfBirth || null,
+        placeOfBirth: placeOfBirth || null,
+        matricule: matricule || null,
+        isVerified: false,
+        isActive: true
+      }).returning();
+      
+      console.log('[CREATE_STUDENT] ✅ Student created:', { id: newStudent.id, name: `${fName} ${lName}` });
+      
+      res.json({ 
+        success: true, 
+        student: newStudent,
+        message: `Student ${fName} ${lName} created successfully. Default password: ${defaultPassword}`
+      });
+    } catch (error) {
+      console.error('[CREATE_STUDENT] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to create student' });
+    }
+  });
+
   // Get student transcript data (all terms/years for specific student)
   app.get("/api/director/student-transcript", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
