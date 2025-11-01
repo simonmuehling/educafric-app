@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ArrowRight, ArrowLeft, Users, Calendar, ClipboardCheck, BarChart3, FileText, BookOpen, MessageCircle, MessageSquare, User, Building2, DollarSign, Settings } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Users, Calendar, ClipboardCheck, BarChart3, FileText, BookOpen, MessageCircle, MessageSquare, User, Building2, DollarSign, Settings, UserCheck, Clock, CheckCircle, UserX, Bell, Shield, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -22,63 +22,231 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
       'Director': [
         {
           title: { 
-            fr: '🏫 Bienvenue, Directeur !', 
-            en: '🏫 Welcome, Director!' 
+            fr: '🏫 Bienvenue dans EDUCAFRIC 2025', 
+            en: '🏫 Welcome to EDUCAFRIC 2025' 
           },
           content: { 
-            fr: 'EDUCAFRIC 2025 Direction : 17 modules professionnels - Profil Directeur, Classes, Enseignants, Élèves, Emploi du temps, Export Calendrier, Présences École, Communications, Absences Profs, Demandes Parents, Contenu Pédagogique, Notifications, Administrateurs Délégués, Rapports, Guide Configuration, Paramètres École, Gestion Académique et Classes en ligne.',
-            en: 'EDUCAFRIC 2025 Director: 17 professional modules - Director Profile, Classes, Teachers, Students, Schedule, Calendar Export, School Attendance, Communications, Teacher Absences, Parent Requests, Educational Content, Notifications, Delegate Administrators, Reports, Configuration Guide, School Settings, Academic Management and Online Classes.'
+            fr: 'Ce tutoriel vous présente les 18 modules du tableau de bord Directeur. Cliquez sur "Suivant" pour découvrir chaque module et ses fonctionnalités.',
+            en: 'This tutorial presents the 18 modules of the Director dashboard. Click "Next" to discover each module and its features.'
           },
           icon: Building2,
-          color: 'bg-blue-600'
+          color: 'bg-gradient-to-r from-blue-600 to-purple-600'
         },
         {
           title: { 
-            fr: '📊 Gestion Pédagogique', 
-            en: '📊 Educational Management' 
+            fr: '⚙️ Profil Directeur', 
+            en: '⚙️ Director Profile' 
           },
           content: { 
-            fr: 'Classes, Enseignants, Élèves : Gérez l\'ensemble de votre établissement avec des outils de gestion avancés. Suivez les performances, assignez les ressources et optimisez l\'organisation.',
-            en: 'Classes, Teachers, Students: Manage your entire institution with advanced management tools. Track performance, assign resources and optimize organization.'
+            fr: 'Gérez votre profil personnel : informations de contact, photo, préférences de notification, sécurité du compte, et paramètres de langue (Français/English).',
+            en: 'Manage your personal profile: contact information, photo, notification preferences, account security, and language settings (Français/English).'
           },
-          icon: Users,
+          icon: Settings,
+          color: 'bg-gray-500'
+        },
+        {
+          title: { 
+            fr: '📚 Classes', 
+            en: '📚 Classes' 
+          },
+          content: { 
+            fr: 'Créez et gérez les classes de votre école : niveaux personnalisables, salles, effectifs, matières enseignées. Import Excel massif disponible avec validation automatique.',
+            en: 'Create and manage your school classes: customizable levels, rooms, class sizes, subjects taught. Bulk Excel import available with automatic validation.'
+          },
+          icon: BookOpen,
+          color: 'bg-orange-500'
+        },
+        {
+          title: { 
+            fr: '👨‍🏫 Enseignants', 
+            en: '👨‍🏫 Teachers' 
+          },
+          content: { 
+            fr: 'Ajoutez et gérez les enseignants : coordonnées, matières enseignées, classes assignées, horaires. Import Excel pour ajout massif. Les enseignants reçoivent automatiquement leurs identifiants.',
+            en: 'Add and manage teachers: contact details, subjects taught, assigned classes, schedules. Excel import for bulk addition. Teachers automatically receive their credentials.'
+          },
+          icon: UserCheck,
           color: 'bg-green-500'
         },
         {
           title: { 
-            fr: '📅 Planning & Présences', 
-            en: '📅 Scheduling & Attendance' 
+            fr: '👥 Élèves', 
+            en: '👥 Students' 
           },
           content: { 
-            fr: 'Emploi du temps, Export Calendrier, Présences École : Planifiez les cours, gérez les horaires et suivez les présences en temps réel avec synchronisation calendrier.',
-            en: 'Schedule, Calendar Export, School Attendance: Plan classes, manage schedules and track attendance in real-time with calendar sync.'
+            fr: 'Gérez les élèves de votre école : inscription, informations personnelles, classe assignée, coordonnées des parents. Import Excel massif avec validation automatique des données.',
+            en: 'Manage your school students: enrollment, personal information, assigned class, parent contact details. Bulk Excel import with automatic data validation.'
           },
-          icon: Calendar,
+          icon: Users,
+          color: 'bg-purple-500'
+        },
+        {
+          title: { 
+            fr: '🕐 Emploi du temps', 
+            en: '🕐 Schedule' 
+          },
+          content: { 
+            fr: 'Créez l\'emploi du temps de votre école : horaires par classe, enseignants assignés, salles, matières. Visualisation graphique et notifications automatiques aux enseignants.',
+            en: 'Create your school schedule: timetables by class, assigned teachers, rooms, subjects. Graphical visualization and automatic teacher notifications.'
+          },
+          icon: Clock,
           color: 'bg-pink-500'
         },
         {
           title: { 
-            fr: '📱 Communications & Alertes', 
-            en: '📱 Communications & Alerts' 
+            fr: '📅 Export Calendrier', 
+            en: '📅 Calendar Export' 
           },
           content: { 
-            fr: 'Communications, Absences Profs, Demandes Parents, Notifications : Communiquez avec l\'équipe et les parents, gérez les absences enseignants et traitez les demandes en temps réel.',
-            en: 'Communications, Teacher Absences, Parent Requests, Notifications: Communicate with staff and parents, manage teacher absences and handle requests in real-time.'
+            fr: 'Exportez les événements scolaires au format iCal/ICS : cours, examens, réunions. Compatible avec Google Calendar, Outlook, Apple Calendar. Synchronisation automatique.',
+            en: 'Export school events in iCal/ICS format: classes, exams, meetings. Compatible with Google Calendar, Outlook, Apple Calendar. Automatic synchronization.'
+          },
+          icon: Calendar,
+          color: 'bg-blue-500'
+        },
+        {
+          title: { 
+            fr: '✅ Présence École', 
+            en: '✅ School Attendance' 
+          },
+          content: { 
+            fr: 'Suivez les présences à l\'échelle de l\'école : statistiques par classe, élèves absents, retards. Rapports quotidiens, hebdomadaires et mensuels. Notifications automatiques aux parents.',
+            en: 'Track school-wide attendance: statistics by class, absent students, tardiness. Daily, weekly and monthly reports. Automatic parent notifications.'
+          },
+          icon: CheckCircle,
+          color: 'bg-yellow-500'
+        },
+        {
+          title: { 
+            fr: '💬 Communications', 
+            en: '💬 Communications' 
+          },
+          content: { 
+            fr: 'Envoyez des messages à toute la communauté scolaire : annonces générales, alertes urgentes, newsletters. Multicanal : Email, WhatsApp, notifications PWA. Historique complet.',
+            en: 'Send messages to the entire school community: general announcements, urgent alerts, newsletters. Multi-channel: Email, WhatsApp, PWA notifications. Complete history.'
           },
           icon: MessageSquare,
           color: 'bg-indigo-500'
         },
         {
           title: { 
-            fr: '⚙️ Administration Avancée', 
-            en: '⚙️ Advanced Administration' 
+            fr: '👤❌ Absences Profs', 
+            en: '👤❌ Teacher Absences' 
           },
           content: { 
-            fr: 'Administrateurs Délégués, Rapports, Paramètres École, Gestion Académique, Classes en ligne : Déléguez les tâches, analysez les données et configurez votre établissement. Organisez les sessions en ligne.',
-            en: 'Delegate Administrators, Reports, School Settings, Academic Management, Online Classes: Delegate tasks, analyze data and configure your institution. Organize online sessions.'
+            fr: 'Gérez les absences des enseignants : déclaration, justificatifs, remplacement automatique, notification aux classes concernées. Statistiques et rapports d\'assiduité.',
+            en: 'Manage teacher absences: declaration, supporting documents, automatic replacement, notification to affected classes. Statistics and attendance reports.'
+          },
+          icon: UserX,
+          color: 'bg-red-500'
+        },
+        {
+          title: { 
+            fr: '📄 Demandes Parents', 
+            en: '📄 Parent Requests' 
+          },
+          content: { 
+            fr: 'Traitez les demandes des parents : rendez-vous, certificats, autorisations, réclamations. Système de tickets avec suivi, notifications automatiques et historique complet.',
+            en: 'Process parent requests: appointments, certificates, authorizations, complaints. Ticket system with tracking, automatic notifications and complete history.'
+          },
+          icon: FileText,
+          color: 'bg-teal-500'
+        },
+        {
+          title: { 
+            fr: '📖 Contenu Pédagogique', 
+            en: '📖 Educational Content' 
+          },
+          content: { 
+            fr: 'Validez et gérez le contenu pédagogique soumis par les enseignants : cours, exercices, ressources. Approbation avant publication, commentaires, révisions.',
+            en: 'Validate and manage educational content submitted by teachers: lessons, exercises, resources. Approval before publication, comments, revisions.'
+          },
+          icon: BookOpen,
+          color: 'bg-emerald-500'
+        },
+        {
+          title: { 
+            fr: '🔔 Notifications', 
+            en: '🔔 Notifications' 
+          },
+          content: { 
+            fr: 'Centre de notifications : événements importants, alertes système, demandes en attente, nouveaux messages. Filtrage par type, marquage lu/non lu, actions rapides.',
+            en: 'Notification center: important events, system alerts, pending requests, new messages. Filter by type, mark read/unread, quick actions.'
+          },
+          icon: Bell,
+          color: 'bg-blue-600'
+        },
+        {
+          title: { 
+            fr: '🛡️ Administrateurs Délégués', 
+            en: '🛡️ Delegate Administrators' 
+          },
+          content: { 
+            fr: 'Déléguez des tâches administratives : créez des sous-comptes avec permissions spécifiques, surveilleurs, responsables de niveau, coordinateurs matières.',
+            en: 'Delegate administrative tasks: create sub-accounts with specific permissions, supervisors, level coordinators, subject coordinators.'
+          },
+          icon: Shield,
+          color: 'bg-amber-500'
+        },
+        {
+          title: { 
+            fr: '📊 Rapports', 
+            en: '📊 Reports' 
+          },
+          content: { 
+            fr: 'Consultez les rapports analytiques : statistiques présences, performances académiques, finance, communications. Export PDF et Excel. Tableaux de bord interactifs.',
+            en: 'Consult analytical reports: attendance statistics, academic performance, finance, communications. PDF and Excel export. Interactive dashboards.'
+          },
+          icon: BarChart3,
+          color: 'bg-violet-500'
+        },
+        {
+          title: { 
+            fr: '📋 Guide Configuration', 
+            en: '📋 Configuration Guide' 
+          },
+          content: { 
+            fr: 'Guide pas-à-pas pour configurer votre école : création des niveaux, classes, enseignants, emploi du temps. Liste de vérification et conseils de démarrage rapide.',
+            en: 'Step-by-step guide to configure your school: creating levels, classes, teachers, schedule. Checklist and quick start tips.'
           },
           icon: Settings,
+          color: 'bg-indigo-500'
+        },
+        {
+          title: { 
+            fr: '🏢 Paramètres École', 
+            en: '🏢 School Settings' 
+          },
+          content: { 
+            fr: 'Configurez votre établissement : informations générales, logo, coordonnées, années académiques, trimestres, bulletins (CBA/traditionnel), notifications automatiques.',
+            en: 'Configure your institution: general information, logo, contact details, academic years, terms, report cards (CBA/traditional), automatic notifications.'
+          },
+          icon: Building2,
           color: 'bg-slate-600'
+        },
+        {
+          title: { 
+            fr: '🎓 Gestion Académique', 
+            en: '🎓 Academic Management' 
+          },
+          content: { 
+            fr: 'Gérez l\'aspect académique : matières, coefficients, niveaux scolaires personnalisables, compétences CBA, grilles d\'évaluation, bulletins intelligents.',
+            en: 'Manage academic aspects: subjects, coefficients, customizable school levels, CBA competencies, evaluation grids, smart report cards.'
+          },
+          icon: BookOpen,
+          color: 'bg-gradient-to-r from-blue-500 to-cyan-500'
+        },
+        {
+          title: { 
+            fr: '📹 Classes en ligne', 
+            en: '📹 Online Classes' 
+          },
+          content: { 
+            fr: 'Organisez des cours en ligne avec Jitsi Meet : salles virtuelles, planification, accès sécurisé, enregistrements. Suivi des présences et statistiques d\'engagement.',
+            en: 'Organize online classes with Jitsi Meet: virtual rooms, scheduling, secure access, recordings. Attendance tracking and engagement statistics.'
+          },
+          icon: Video,
+          color: 'bg-gradient-to-r from-purple-500 to-pink-500'
         }
       ],
       'Teacher': [
