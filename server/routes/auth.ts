@@ -117,8 +117,11 @@ passport.serializeUser((user: any, done) => {
 
 passport.deserializeUser(async (id: string | number, done) => {
   try {
+    console.log('[AUTH_DESERIALIZE] Starting deserialization for ID:', id);
+    
     // Validate input
     if (!id) {
+      console.log('[AUTH_DESERIALIZE] ❌ No ID provided');
       return done(null, false);
     }
 
@@ -172,19 +175,26 @@ passport.deserializeUser(async (id: string | number, done) => {
     // Handle regular database users - with safe fallback
     try {
       const userId = typeof id === 'string' ? parseInt(id) : id;
+      console.log('[AUTH_DESERIALIZE] Parsed userId:', userId, 'type:', typeof userId);
+      
       if (isNaN(userId as number)) {
+        console.log('[AUTH_DESERIALIZE] ❌ Invalid userId (NaN)');
         return done(null, false);
       }
       
+      console.log('[AUTH_DESERIALIZE] Fetching user from database...');
       const user = await storage.getUserById(userId as number);
+      
       if (user) {
+        console.log('[AUTH_DESERIALIZE] ✅ User found:', user.id, user.email, user.role);
         return done(null, user);
       } else {
+        console.log('[AUTH_DESERIALIZE] ❌ User not found in database');
         return done(null, false);
       }
     } catch (dbError) {
       // Log error without sensitive details
-      console.error('[AUTH_ERROR] Database connection error during user deserialization:', dbError);
+      console.error('[AUTH_DESERIALIZE] ❌ Database error:', dbError);
       return done(null, false); // Fail gracefully, don't crash
     }
   } catch (error) {
