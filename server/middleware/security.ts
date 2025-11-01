@@ -265,7 +265,7 @@ export function securityLogger(req: any, res: any, next: any) {
   next();
 }
 
-// Production session configuration
+// Environment-aware session configuration
 export const productionSessionConfig: SessionOptions = {
   secret: process.env.SESSION_SECRET || 'educafric-session-secret-change-in-production',
   resave: false,
@@ -279,5 +279,13 @@ export const productionSessionConfig: SessionOptions = {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'lax' | 'strict' | 'none',
     path: '/',
+    domain: process.env.NODE_ENV === 'production' ? '.educafric.com' : undefined,
   }
 };
+
+console.log('[SESSION_CONFIG] Initialized with:', {
+  environment: process.env.NODE_ENV || 'development',
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  domain: process.env.NODE_ENV === 'production' ? '.educafric.com' : 'auto-detect'
+});

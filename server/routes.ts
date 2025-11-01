@@ -180,15 +180,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware - MUST be before passport initialization
   const PgSession = connectPgSimple(session);
   
-  
-  app.use(session({
+  const sessionConfig = {
     ...productionSessionConfig,
     store: new PgSession({
       conString: process.env.DATABASE_URL,
       tableName: 'session',
       createTableIfMissing: true,
     })
-  }));
+  };
+  
+  console.log('[SESSION] Configuring express-session with PostgreSQL store');
+  console.log('[SESSION] Cookie settings:', {
+    secure: sessionConfig.cookie?.secure,
+    sameSite: sessionConfig.cookie?.sameSite,
+    domain: sessionConfig.cookie?.domain || 'auto-detect',
+    httpOnly: sessionConfig.cookie?.httpOnly,
+    maxAge: `${(sessionConfig.cookie?.maxAge || 0) / (1000 * 60 * 60 * 24)} days`
+  });
+  
+  app.use(session(sessionConfig));
   
   // Initialize passport middleware - MUST be after session middleware
   app.use(passport.initialize());
