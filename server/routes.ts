@@ -1425,6 +1425,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new class
+  app.post("/api/classes", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { name, level, capacity, teacherId, room, subjects: classSubjects } = req.body;
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (!name || !level) {
+        return res.status(400).json({ success: false, message: 'Name and level are required' });
+      }
+      
+      console.log('[CREATE_CLASS] Creating class:', { name, level, schoolId: userSchoolId });
+      
+      // Create class in database
+      const [newClass] = await db.insert(classes).values({
+        name,
+        level,
+        maxStudents: capacity || 30,
+        schoolId: userSchoolId,
+        teacherId: teacherId || null,
+        academicYearId: 1, // TODO: Get current academic year
+        isActive: true
+      }).returning();
+      
+      console.log('[CREATE_CLASS] ✅ Class created:', newClass);
+      
+      // Si des matières sont fournies, les créer aussi
+      if (classSubjects && Array.isArray(classSubjects) && classSubjects.length > 0) {
+        const subjectsToInsert = classSubjects.map((subject: any) => ({
+          nameFr: subject.name,
+          nameEn: subject.name,
+          code: subject.name.substring(0, 4).toUpperCase(),
+          coefficient: subject.coefficient?.toString() || '1',
+          schoolId: userSchoolId,
+          classId: newClass.id,
+          subjectType: subject.category || 'general'
+        }));
+        
+        await db.insert(subjects).values(subjectsToInsert);
+        console.log('[CREATE_CLASS] ✅ Created', subjectsToInsert.length, 'subjects for class');
+      }
+      
+      res.json({ success: true, class: newClass });
+    } catch (error) {
+      console.error('[CREATE_CLASS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to create class' });
+    }
+  });
+
   // Get subjects for a specific class
   app.get("/api/director/subjects/:classId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
@@ -1797,6 +1851,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[DIRECTOR_TEACHERS_API] Error fetching teachers:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch teachers' });
+    }
+  });
+
+  // Create a new teacher
+  app.post("/api/administration/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { firstName, lastName, email, phone, subjects: teacherSubjects } = req.body;
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (!firstName || !lastName || !phone) {
+        return res.status(400).json({ success: false, message: 'First name, last name, and phone are required' });
+      }
+      
+      console.log('[CREATE_TEACHER] Creating teacher:', { firstName, lastName, email, phone, schoolId: userSchoolId });
+      
+      // Generate default password (should be changed on first login)
+      const defaultPassword = `${lastName.toLowerCase()}${new Date().getFullYear()}`;
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+      
+      // Create teacher in database
+      const [newTeacher] = await db.insert(users).values({
+        firstName,
+        lastName,
+        email: email || null, // Email is optional
+        phone,
+        password: hashedPassword,
+        role: 'Teacher',
+        schoolId: userSchoolId,
+        isVerified: false,
+        isActive: true
+      }).returning();
+      
+      console.log('[CREATE_TEACHER] ✅ Teacher created:', { id: newTeacher.id, name: `${firstName} ${lastName}` });
+      
+      res.json({ 
+        success: true, 
+        teacher: newTeacher,
+        message: `Teacher ${firstName} ${lastName} created successfully. Default password: ${defaultPassword}`
+      });
+    } catch (error) {
+      console.error('[CREATE_TEACHER] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to create teacher' });
     }
   });
 
