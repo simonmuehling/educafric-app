@@ -4,7 +4,7 @@ import { storage } from '../storage';
 import { nanoid } from 'nanoid';
 import { db } from '../db';
 import { eq, and, or } from 'drizzle-orm';
-import { users, classes, subjects, timetables, rooms, schools, teacherSubjectAssignments, classEnrollments } from '../../shared/schema';
+import { users, classes, subjects, timetables, rooms, schools, teacherSubjectAssignments, classEnrollments, schoolLevels } from '../../shared/schema';
 
 interface TeacherImportData {
   firstName: string;
@@ -531,6 +531,21 @@ export class ExcelImportService {
     
     console.log(`[IMPORT_CLASSES] Starting import of ${data.length} classes for school ${schoolId}`);
     
+    // Fetch valid school levels for validation
+    const validSchoolLevels = await db
+      .select()
+      .from(schoolLevels)
+      .where(eq(schoolLevels.schoolId, schoolId));
+    
+    // Helper function to normalize level names for comparison (trim, collapse whitespace, lowercase)
+    const normalizeLevel = (level: any): string => {
+      if (level === null || level === undefined) return '';
+      return String(level).trim().replace(/\s+/g, ' ').toLowerCase();
+    };
+    
+    const validLevelNames = new Set(validSchoolLevels.map(l => normalizeLevel(l.name)));
+    console.log(`[IMPORT_CLASSES] Found ${validLevelNames.size} valid school levels:`, Array.from(validLevelNames));
+    
     for (let index = 0; index < data.length; index++) {
       const row = data[index];
       try {
@@ -596,13 +611,30 @@ export class ExcelImportService {
           continue;
         }
         
-        if (!classData.level) {
+        // Normalize and validate level field
+        const normalizedInputLevel = normalizeLevel(classData.level);
+        
+        if (!normalizedInputLevel) {
           result.errors.push({
             row: row._row || index + 2,
             field: t.fields.level,
             message: lang === 'fr'
               ? 'Ce champ est obligatoire. Veuillez saisir le niveau (ex: Form 1, Form 2, etc.).'
               : 'This field is required. Please enter the level (e.g., Form 1, Form 2, etc.).'
+          });
+          continue;
+        }
+        
+        // Validate level against school's defined levels
+        if (validLevelNames.size > 0 && !validLevelNames.has(normalizedInputLevel)) {
+          const originalLevel = String(classData.level ?? '').trim();
+          const validLevelsDisplay = validSchoolLevels.map(l => l.name).join(', ');
+          result.errors.push({
+            row: row._row || index + 2,
+            field: t.fields.level,
+            message: lang === 'fr'
+              ? `Niveau non défini: "${originalLevel}". Votre école utilise les niveaux suivants: ${validLevelsDisplay}. Veuillez soit utiliser un de ces niveaux, soit d'abord créer "${originalLevel}" dans Paramètres > Académique avant d'importer.`
+              : `Level not defined: "${originalLevel}". Your school uses these levels: ${validLevelsDisplay}. Please either use one of these levels, or first create "${originalLevel}" in Settings > Academic before importing.`
           });
           continue;
         }
