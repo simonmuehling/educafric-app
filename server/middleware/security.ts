@@ -266,6 +266,10 @@ export function securityLogger(req: any, res: any, next: any) {
 }
 
 // Environment-aware session configuration
+// CRITICAL FIX: Replit uses HTTPS even in development, so we need secure cookies
+const isReplit = process.env.REPL_ID !== undefined;
+const useSecureCookies = process.env.NODE_ENV === 'production' || isReplit;
+
 export const productionSessionConfig: SessionOptions = {
   secret: process.env.SESSION_SECRET || 'educafric-session-secret-change-in-production',
   resave: false,
@@ -274,10 +278,10 @@ export const productionSessionConfig: SessionOptions = {
   name: 'educafric.sid',
   proxy: true,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: useSecureCookies, // FIXED: Use secure cookies on Replit (HTTPS)
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: (process.env.NODE_ENV === 'production' ? 'none' : 'lax') as 'lax' | 'strict' | 'none',
+    sameSite: 'lax' as 'lax' | 'strict' | 'none', // FIXED: lax works for Replit
     path: '/',
     domain: process.env.NODE_ENV === 'production' ? '.educafric.com' : undefined,
   }
@@ -285,7 +289,8 @@ export const productionSessionConfig: SessionOptions = {
 
 console.log('[SESSION_CONFIG] Initialized with:', {
   environment: process.env.NODE_ENV || 'development',
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  isReplit,
+  secure: useSecureCookies,
+  sameSite: 'lax',
   domain: process.env.NODE_ENV === 'production' ? '.educafric.com' : 'auto-detect'
 });
