@@ -12,7 +12,8 @@ const router = Router();
 async function verifyTeacherSchoolAccess(teacherId: number, schoolId: number): Promise<boolean> {
   try {
     const teacherSchools = await MultiRoleService.getTeacherSchools(teacherId);
-    return teacherSchools.some(school => school.id === schoolId && school.isActive);
+    // Check if teacher has any active affiliation to this school (not just the "active" school)
+    return teacherSchools.some(school => school.id === schoolId);
   } catch (error) {
     console.error('[TEACHER_ACCESS] Error verifying school access:', error);
     return false;
@@ -1735,7 +1736,8 @@ router.get('/saved-bulletins', requireAuth, async (req, res) => {
 
     // Get all schools the teacher has access to
     const teacherSchools = await MultiRoleService.getTeacherSchools(user.id);
-    const schoolIds = teacherSchools.filter(s => s.isActive).map(s => s.id);
+    // All schools returned by getTeacherSchools are accessible (status === 'active')
+    const schoolIds = teacherSchools.map(s => s.id);
 
     console.log('[TEACHER_BULLETINS] Teacher has access to schools:', schoolIds);
 
