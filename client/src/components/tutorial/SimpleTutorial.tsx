@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ArrowRight, ArrowLeft, Users, Calendar, ClipboardCheck, BarChart3, FileText, BookOpen, MessageCircle, MessageSquare, User, Building2, DollarSign, Settings, UserCheck, Clock, CheckCircle, UserX, Bell, Shield, Video } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Users, Calendar, ClipboardCheck, BarChart3, FileText, BookOpen, MessageCircle, MessageSquare, User, Building2, DollarSign, Settings, UserCheck, Clock, CheckCircle, UserX, Bell, Shield, Video, HelpCircle, CheckSquare, PenTool } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -252,63 +252,207 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
       'Teacher': [
         {
           title: { 
-            fr: '👨‍🏫 Bienvenue, Enseignant !', 
-            en: '👨‍🏫 Welcome, Teacher!' 
+            fr: '👨‍🏫 Bienvenue dans EDUCAFRIC 2025', 
+            en: '👨‍🏫 Welcome to EDUCAFRIC 2025' 
           },
           content: { 
-            fr: 'Accédez à vos modules EDUCAFRIC 2025 : Mes Classes avec analytics, Emploi du Temps, Présences automatisées, Notes temps réel, Devoirs numériques, Bulletins intelligents, Communications multicanal et Profil enseignant.',
-            en: 'Access your EDUCAFRIC 2025 modules: My Classes with analytics, Schedule, Automated Attendance, Real-time Grades, Digital Assignments, Smart Report Cards, Multi-channel Communications and Teacher Profile.'
+            fr: 'Ce tutoriel vous présente les 16 modules du tableau de bord Enseignant. Cliquez sur "Suivant" pour découvrir chaque module et ses fonctionnalités.',
+            en: 'This tutorial presents the 16 modules of the Teacher dashboard. Click "Next" to discover each module and its features.'
           },
           icon: Users,
-          color: 'bg-blue-500'
+          color: 'bg-gradient-to-r from-blue-500 to-purple-500'
         },
         {
           title: { 
-            fr: '📊 Gestion des Classes', 
-            en: '📊 Class Management' 
+            fr: '🎓 Mes Cours Privés', 
+            en: '🎓 My Private Courses' 
           },
           content: { 
-            fr: 'Mes Classes 2025 : Gérez vos élèves avec intelligence artificielle, analytics avancées, groupes adaptatifs, profils enrichis avec géolocalisation et suivi comportemental automatisé.',
-            en: 'My Classes 2025: Manage your students with artificial intelligence, advanced analytics, adaptive groups, enriched profiles with geolocation and automated behavioral tracking.'
+            fr: 'Pour enseignants indépendants ou en mode hybride : créez et gérez vos cours particuliers, planning personnalisé, facturation, suivi des élèves privés. Système de paiement intégré.',
+            en: 'For independent or hybrid teachers: create and manage your private lessons, personalized schedule, billing, private student tracking. Integrated payment system.'
           },
-          icon: Users,
-          color: 'bg-blue-500'
-        },
-        {
-          title: { 
-            fr: '✅ Suivi Présences', 
-            en: '✅ Attendance Tracking' 
-          },
-          content: { 
-            fr: 'Présences 2025 : Marquage automatique via géolocalisation, reconnaissance faciale optionnelle, suivi des retards avec notifications parents instantanées SMS/WhatsApp, rapports d\'assiduité intelligents avec prédictions IA.',
-            en: 'Attendance 2025: Automatic marking via geolocation, optional facial recognition, tardiness tracking with instant SMS/WhatsApp parent notifications, smart attendance reports with AI predictions.'
-          },
-          icon: ClipboardCheck,
+          icon: User,
           color: 'bg-orange-500'
         },
         {
           title: { 
-            fr: '📝 Notes & Devoirs', 
-            en: '📝 Grades & Assignments' 
+            fr: '👥 Mes Classes', 
+            en: '👥 My Classes' 
           },
           content: { 
-            fr: 'Notes 2025 : Saisie vocale intelligente, évaluations interactives multimédia, notifications automatiques SMS/WhatsApp parents. Devoirs : Création multimédia avancée, soumissions temps réel, correction IA assistée, feedback personnalisé automatique.',
-            en: 'Grades 2025: Intelligent voice input, interactive multimedia assessments, automatic SMS/WhatsApp parent notifications. Assignments: Advanced multimedia creation, real-time submissions, AI-assisted correction, automatic personalised feedback.'
+            fr: 'Visualisez toutes vos classes : liste des élèves, effectifs, matières enseignées. Accès rapide aux notes, présences et devoirs. Statistiques de performance par classe.',
+            en: 'View all your classes: student list, class sizes, subjects taught. Quick access to grades, attendance and assignments. Performance statistics per class.'
           },
-          icon: BarChart3,
+          icon: Users,
+          color: 'bg-blue-500'
+        },
+        {
+          title: { 
+            fr: '🕐 Emploi du temps', 
+            en: '🕐 Timetable' 
+          },
+          content: { 
+            fr: 'Consultez votre emploi du temps personnalisé : horaires de cours, salles assignées, classes. Vue hebdomadaire et quotidienne. Synchronisation avec votre calendrier personnel.',
+            en: 'View your personalized timetable: class times, assigned rooms, classes. Weekly and daily view. Sync with your personal calendar.'
+          },
+          icon: Clock,
+          color: 'bg-green-500'
+        },
+        {
+          title: { 
+            fr: '📅 Export Calendrier', 
+            en: '📅 Calendar Export' 
+          },
+          content: { 
+            fr: 'Exportez votre emploi du temps au format iCal/ICS : cours, réunions, événements. Compatible avec Google Calendar, Outlook, Apple Calendar. Mise à jour automatique.',
+            en: 'Export your schedule in iCal/ICS format: classes, meetings, events. Compatible with Google Calendar, Outlook, Apple Calendar. Automatic updates.'
+          },
+          icon: Calendar,
+          color: 'bg-cyan-500'
+        },
+        {
+          title: { 
+            fr: '✅ Présences', 
+            en: '✅ Attendance' 
+          },
+          content: { 
+            fr: 'Marquez les présences de vos élèves : saisie rapide par classe, historique complet, statistiques d\'assiduité. Notifications automatiques aux parents pour absences/retards.',
+            en: 'Mark student attendance: quick class entry, complete history, attendance statistics. Automatic parent notifications for absences/tardiness.'
+          },
+          icon: CheckSquare,
+          color: 'bg-purple-500'
+        },
+        {
+          title: { 
+            fr: '📝 Devoirs', 
+            en: '📝 Assignments' 
+          },
+          content: { 
+            fr: 'Créez et gérez les devoirs : texte, fichiers, liens, multimédia. Définissez dates limites, suivez les soumissions en temps réel. Correction en ligne avec feedback personnalisé.',
+            en: 'Create and manage assignments: text, files, links, multimedia. Set deadlines, track real-time submissions. Online grading with personalized feedback.'
+          },
+          icon: FileText,
+          color: 'bg-pink-500'
+        },
+        {
+          title: { 
+            fr: '✏️ Contenu Pédagogique', 
+            en: '✏️ Educational Content' 
+          },
+          content: { 
+            fr: 'Créez du contenu pédagogique : cours, exercices, ressources multimédia. Partagez avec vos classes, organisez par matière et niveau. Système de version et approbation.',
+            en: 'Create educational content: lessons, exercises, multimedia resources. Share with your classes, organize by subject and level. Version system and approval.'
+          },
+          icon: BookOpen,
+          color: 'bg-yellow-500'
+        },
+        {
+          title: { 
+            fr: '📚 Bibliothèque', 
+            en: '📚 Library' 
+          },
+          content: { 
+            fr: 'Accédez à la bibliothèque de ressources partagées : contenus validés par l\'école, ressources ministérielles, documents de référence. Recherche avancée par matière/niveau.',
+            en: 'Access the shared resource library: school-validated content, ministerial resources, reference documents. Advanced search by subject/level.'
+          },
+          icon: BookOpen,
+          color: 'bg-emerald-500'
+        },
+        {
+          title: { 
+            fr: '📊 Bulletins', 
+            en: '📊 Report Cards' 
+          },
+          content: { 
+            fr: 'Gérez les bulletins de vos classes : saisie des notes par trimestre, calculs automatiques (moyennes, rangs), commentaires. Support CBA et traditionnel. Export PDF professionnel.',
+            en: 'Manage class report cards: grade entry by term, automatic calculations (averages, ranks), comments. CBA and traditional support. Professional PDF export.'
+          },
+          icon: Calendar,
+          color: 'bg-indigo-500'
+        },
+        {
+          title: { 
+            fr: '💬 Communications', 
+            en: '💬 Communications' 
+          },
+          content: { 
+            fr: 'Communiquez avec parents et élèves : messages individuels ou groupes, annonces de classe, alertes urgentes. Multicanal : Email, WhatsApp, notifications. Historique complet.',
+            en: 'Communicate with parents and students: individual or group messages, class announcements, urgent alerts. Multi-channel: Email, WhatsApp, notifications. Complete history.'
+          },
+          icon: MessageSquare,
           color: 'bg-red-500'
         },
         {
           title: { 
-            fr: '💼 Fonctionnalités Premium', 
-            en: '💼 Premium Features' 
+            fr: '📹 Cours en Ligne', 
+            en: '📹 Online Classes' 
           },
           content: { 
-            fr: 'Bulletins Premium 2025 : IA générative pour commentaires personnalisés, évaluations comportementales avancées, graphiques de progression interactifs, recommandations pédagogiques automatiques, export PDF personnalisable, interface bilingue complète.',
-            en: 'Premium Report Cards 2025: Generative AI for personalised comments, advanced behavioral assessments, interactive progress charts, automatic pedagogical recommendations, customisable PDF export, complete bilingual interface.'
+            fr: 'Organisez des cours en ligne avec Jitsi Meet : créez des salles virtuelles, planifiez des sessions, invitez vos élèves. Enregistrements automatiques et suivi des présences.',
+            en: 'Organize online classes with Jitsi Meet: create virtual rooms, schedule sessions, invite students. Automatic recordings and attendance tracking.'
           },
-          icon: BookOpen,
-          color: 'bg-purple-500'
+          icon: Video,
+          color: 'bg-purple-600'
+        },
+        {
+          title: { 
+            fr: '🤒 Déclarer Absence', 
+            en: '🤒 Declare Absence' 
+          },
+          content: { 
+            fr: 'Déclarez vos absences : motif, dates, justificatif. Notification automatique à la direction et aux classes concernées. Historique des absences et statistiques.',
+            en: 'Declare your absences: reason, dates, supporting document. Automatic notification to management and affected classes. Absence history and statistics.'
+          },
+          icon: UserX,
+          color: 'bg-orange-600'
+        },
+        {
+          title: { 
+            fr: '🔔 Notifications', 
+            en: '🔔 Notifications' 
+          },
+          content: { 
+            fr: 'Centre de notifications : nouveaux devoirs soumis, messages reçus, événements importants, rappels. Filtrage par type, marquage lu/non lu, actions rapides.',
+            en: 'Notification center: new submitted assignments, received messages, important events, reminders. Filter by type, mark read/unread, quick actions.'
+          },
+          icon: Bell,
+          color: 'bg-blue-600'
+        },
+        {
+          title: { 
+            fr: '👥 Multi-Rôles', 
+            en: '👥 Multi-Roles' 
+          },
+          content: { 
+            fr: 'Basculez entre vos rôles si vous en avez plusieurs : Enseignant, Parent, Élève. Interface unique, changement de contexte rapide. Préférences sauvegardées par rôle.',
+            en: 'Switch between your roles if you have multiple: Teacher, Parent, Student. Single interface, quick context switching. Preferences saved per role.'
+          },
+          icon: Users,
+          color: 'bg-purple-600'
+        },
+        {
+          title: { 
+            fr: '❓ Aide', 
+            en: '❓ Help' 
+          },
+          content: { 
+            fr: 'Centre d\'aide et support : guides d\'utilisation, FAQ, tutoriels vidéo, contact support. Documentation complète en français et anglais. Recherche intelligente.',
+            en: 'Help and support center: user guides, FAQ, video tutorials, support contact. Complete documentation in French and English. Smart search.'
+          },
+          icon: HelpCircle,
+          color: 'bg-emerald-500'
+        },
+        {
+          title: { 
+            fr: '⚙️ Profil', 
+            en: '⚙️ Profile' 
+          },
+          content: { 
+            fr: 'Gérez votre profil enseignant : informations personnelles, photo, matières enseignées, mode de travail (école/indépendant/hybride). Sécurité et préférences de notification.',
+            en: 'Manage your teacher profile: personal information, photo, subjects taught, work mode (school/independent/hybrid). Security and notification preferences.'
+          },
+          icon: Settings,
+          color: 'bg-gray-500'
         }
       ],
       'Student': [
