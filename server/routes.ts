@@ -212,7 +212,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add connection tracking middleware for authenticated users
   app.use('/api', trackConnection);
   
-  // Removed debug middleware that was interfering with session
+  // TEMPORARY DEBUG: Log all API requests with cookie information
+  app.use('/api', (req, res, next) => {
+    if (req.path !== '/health' && req.method !== 'HEAD' && req.path !== '/csrf-token') {
+      console.log('[COOKIE_DEBUG]', {
+        path: req.path,
+        method: req.method,
+        hasCookie: !!req.headers.cookie,
+        cookies: req.headers.cookie,
+        hasSession: !!req.session,
+        sessionID: req.sessionID,
+        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+        userId: req.user?.id
+      });
+    }
+    next();
+  });
   
   // 🚫 CRITICAL: PUBLIC ENDPOINTS MUST BE FIRST (before any /api middleware)
   // Health check endpoint - MUST be public (no authentication required)

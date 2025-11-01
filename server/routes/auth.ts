@@ -493,6 +493,14 @@ router.post('/login', (req, res, next) => {
         console.log('[AUTH_SESSION] Session saved successfully');
         console.log('[AUTH_SESSION] Session ID:', req.sessionID);
         console.log('[AUTH_SESSION] Session data:', { userId: req.session.passport?.user });
+        console.log('[AUTH_SESSION] Cookie will be set:', {
+          name: 'educafric.sid',
+          value: req.sessionID.substring(0, 10) + '...',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          domain: process.env.NODE_ENV === 'production' ? '.educafric.com' : 'undefined'
+        });
         
         // Send commercial login alert and track activity if user is Commercial role
         if (user.role === 'Commercial') {
