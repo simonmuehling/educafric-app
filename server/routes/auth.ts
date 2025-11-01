@@ -1103,9 +1103,12 @@ router.post('/forgot-password', async (req, res) => {
         });
       }
       identifier = email;
+      console.log(`[PASSWORD_RESET] Searching for user with email: ${email}`);
       try {
         user = await storage.getUserByEmail(email);
+        console.log(`[PASSWORD_RESET] User found:`, user ? `ID ${user.id}, email ${user.email}` : 'NULL');
       } catch (error) {
+        console.error(`[PASSWORD_RESET] Error finding user:`, error);
         user = null;
       }
     } else {
