@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ArrowRight, ArrowLeft, Users, Calendar, ClipboardCheck, BarChart3, FileText, BookOpen, MessageCircle, MessageSquare, User, Building2, DollarSign, Settings, UserCheck, Clock, CheckCircle, UserX, Bell, Shield, Video, HelpCircle, CheckSquare, PenTool } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Users, Calendar, ClipboardCheck, BarChart3, FileText, BookOpen, MessageCircle, MessageSquare, User, Building2, DollarSign, Settings, UserCheck, Clock, CheckCircle, UserX, Bell, Shield, Video, HelpCircle, CheckSquare, PenTool, Star, Heart, CheckCircle2, CreditCard, MapPin, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -582,63 +582,219 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
       'Parent': [
         {
           title: { 
-            fr: '👨‍👩‍👧‍👦 Bienvenue, Parent !', 
-            en: '👨‍👩‍👧‍👦 Welcome, Parent!' 
+            fr: '👨‍👩‍👧‍👦 Bienvenue dans EDUCAFRIC 2025', 
+            en: '👨‍👩‍👧‍👦 Welcome to EDUCAFRIC 2025' 
           },
           content: { 
-            fr: 'EDUCAFRIC 2025 Parents : Suivi intelligent avec 11 modules évolués - 4 gratuits (profils enfants, notifications de base, communications simples, planning) et 7 premium (géolocalisation temps réel, analytics comportementales, bulletins IA, alertes prédictives).',
-            en: 'EDUCAFRIC 2025 Parents: Smart tracking with 11 evolved modules - 4 free (children profiles, basic notifications, simple communications, schedule) and 7 premium (real-time geolocation, behavioral analytics, AI reports, predictive alerts).'
+            fr: 'Ce tutoriel vous présente les 17 modules du tableau de bord Parent. Cliquez sur "Suivant" pour découvrir chaque module et ses fonctionnalités.',
+            en: 'This tutorial presents the 17 modules of the Parent dashboard. Click "Next" to discover each module and its features.'
           },
           icon: Users,
+          color: 'bg-gradient-to-r from-pink-500 to-purple-500'
+        },
+        {
+          title: { 
+            fr: '⭐ Mon Abonnement', 
+            en: '⭐ My Subscription' 
+          },
+          content: { 
+            fr: 'Gérez votre abonnement premium : consultation du plan actuel, renouvellement automatique, historique de facturation, fonctionnalités débloquées. Passez à premium pour accéder à toutes les fonctionnalités.',
+            en: 'Manage your premium subscription: current plan overview, automatic renewal, billing history, unlocked features. Upgrade to premium to access all features.'
+          },
+          icon: Star,
+          color: 'bg-gradient-to-r from-purple-500 to-pink-500'
+        },
+        {
+          title: { 
+            fr: '❤️ Connexions Familiales', 
+            en: '❤️ Family Connections' 
+          },
+          content: { 
+            fr: 'Gérez les connexions familiales : ajoutez vos enfants via code de connexion, validez les liens parents-enfants, partagez l\'accès avec conjoint/tuteurs. Système de vérification sécurisé.',
+            en: 'Manage family connections: add your children via connection code, validate parent-child links, share access with spouse/guardians. Secure verification system.'
+          },
+          icon: MessageCircle,
           color: 'bg-pink-500'
         },
         {
           title: { 
-            fr: '🔒 Sécurité & Localisation', 
-            en: '🔒 Safety & Location' 
+            fr: '👥 Mes Enfants', 
+            en: '👥 My Children' 
           },
           content: { 
-            fr: 'Géolocalisation 2025 : Suivi IA avancé avec prédiction de trajets, zones dynamiques adaptatives, alertes comportementales intelligentes, historique détaillé, reconnaissance d\'activités et notifications multicanal (SMS, WhatsApp, PWA).',
-            en: 'Geolocation 2025: Advanced AI tracking with route prediction, adaptive dynamic zones, intelligent behavioral alerts, detailed history, activity recognition, and multi-channel notifications (SMS, WhatsApp, PWA).'
+            fr: 'Vue d\'ensemble de vos enfants : profils complets, classes, écoles, performances académiques. Accès rapide aux notes, présences, devoirs. Suivi individualisé pour chaque enfant.',
+            en: 'Overview of your children: complete profiles, classes, schools, academic performance. Quick access to grades, attendance, assignments. Individualized tracking for each child.'
           },
-          icon: MessageCircle,
-          color: 'bg-red-500'
-        },
-        {
-          title: { 
-            fr: '📚 Suivi Académique', 
-            en: '📚 Academic Monitoring' 
-          },
-          content: { 
-            fr: 'Surveillez les notes, présences, devoirs et bulletins de vos enfants. Communiquez directement avec les enseignants.',
-            en: 'Monitor your children\'s grades, attendance, homework, and report cards. Communicate directly with teachers.'
-          },
-          icon: BarChart3,
+          icon: Users,
           color: 'bg-blue-500'
         },
         {
           title: { 
-            fr: '💳 Gestion Financière', 
-            en: '💳 Financial Management' 
+            fr: '💬 Communications', 
+            en: '💬 Communications' 
           },
           content: { 
-            fr: 'Paiements Premium : Gérez les frais scolaires, recevez des rappels automatiques et suivez l\'historique des paiements.',
-            en: 'Premium Payments: Manage school fees, receive automatic reminders, and track payment history.'
+            fr: 'Communiquez avec les enseignants et l\'école : messages individuels, annonces de classe, alertes importantes. Historique complet des conversations. Réponses multicanal : Email, WhatsApp, notifications.',
+            en: 'Communicate with teachers and school: individual messages, class announcements, important alerts. Complete conversation history. Multi-channel responses: Email, WhatsApp, notifications.'
           },
-          icon: DollarSign,
+          icon: MessageSquare,
+          color: 'bg-purple-500'
+        },
+        {
+          title: { 
+            fr: '📊 Résultats & Bulletins', 
+            en: '📊 Results & Report Cards' 
+          },
+          content: { 
+            fr: 'Consultez les bulletins de vos enfants : notes par trimestre, moyennes, rangs en classe, commentaires des enseignants. Téléchargement PDF. Suivi de progression graphique et analytiques.',
+            en: 'View your children\'s report cards: grades by term, averages, class ranks, teacher comments. PDF download. Graphical progress tracking and analytics.'
+          },
+          icon: BarChart3,
           color: 'bg-green-500'
         },
         {
           title: { 
-            fr: '📱 Notifications Intelligentes', 
-            en: '📱 Smart Notifications' 
+            fr: '📚 Bibliothèque', 
+            en: '📚 Library' 
           },
           content: { 
-            fr: 'Recevez des notifications SMS, WhatsApp et PWA pour rester informé en temps réel de la scolarité de vos enfants.',
-            en: 'Receive SMS, WhatsApp, and PWA notifications to stay informed in real-time about your children\'s education.'
+            fr: 'Accédez aux ressources pédagogiques de vos enfants : cours, exercices, documents de référence. Consultez le matériel utilisé en classe. Recherche par matière et niveau.',
+            en: 'Access your children\'s educational resources: lessons, exercises, reference documents. View materials used in class. Search by subject and level.'
           },
-          icon: MessageCircle,
-          color: 'bg-indigo-500'
+          icon: BookOpen,
+          color: 'bg-purple-600'
+        },
+        {
+          title: { 
+            fr: '📹 Classes en Ligne', 
+            en: '📹 Online Classes' 
+          },
+          content: { 
+            fr: 'Suivez les cours en ligne de vos enfants : emploi du temps des sessions virtuelles, enregistrements disponibles, suivi de participation. Accès aux salles Jitsi Meet.',
+            en: 'Follow your children\'s online classes: virtual session schedule, available recordings, participation tracking. Access to Jitsi Meet rooms.'
+          },
+          icon: Video,
+          color: 'bg-purple-600'
+        },
+        {
+          title: { 
+            fr: '🎓 Cours Privés Enfants', 
+            en: '🎓 Children Private Courses' 
+          },
+          content: { 
+            fr: 'Gérez les cours particuliers de vos enfants : réservation de sessions avec enseignants indépendants, planning personnalisé, paiements sécurisés, suivi des progrès. Système de notation enseignants.',
+            en: 'Manage your children\'s private lessons: book sessions with independent teachers, personalized schedule, secure payments, progress tracking. Teacher rating system.'
+          },
+          icon: User,
+          color: 'bg-indigo-600'
+        },
+        {
+          title: { 
+            fr: '✅ Présences', 
+            en: '✅ Attendance' 
+          },
+          content: { 
+            fr: 'Suivez les présences de vos enfants en temps réel : absences, retards, justificatifs. Historique complet par enfant. Notifications automatiques pour chaque absence/retard. Statistiques d\'assiduité.',
+            en: 'Track your children\'s attendance in real-time: absences, tardiness, justifications. Complete history per child. Automatic notifications for each absence/tardiness. Attendance statistics.'
+          },
+          icon: CheckCircle2,
+          color: 'bg-orange-500'
+        },
+        {
+          title: { 
+            fr: '💳 Paiements', 
+            en: '💳 Payments' 
+          },
+          content: { 
+            fr: 'Gérez les paiements scolaires : frais de scolarité, cantine, transport, activités. Paiement en ligne sécurisé (Stripe, MTN Mobile Money). Historique complet et reçus PDF. Rappels automatiques.',
+            en: 'Manage school payments: tuition fees, canteen, transport, activities. Secure online payment (Stripe, MTN Mobile Money). Complete history and PDF receipts. Automatic reminders.'
+          },
+          icon: CreditCard,
+          color: 'bg-red-500'
+        },
+        {
+          title: { 
+            fr: '📅 Emploi du Temps Enfants', 
+            en: '📅 Children Timetable' 
+          },
+          content: { 
+            fr: 'Consultez l\'emploi du temps de chaque enfant : horaires de cours, salles, enseignants, matières. Vue quotidienne et hebdomadaire. Export iCal pour synchronisation calendrier.',
+            en: 'View each child\'s timetable: class times, rooms, teachers, subjects. Daily and weekly view. iCal export for calendar synchronization.'
+          },
+          icon: Calendar,
+          color: 'bg-purple-500'
+        },
+        {
+          title: { 
+            fr: '📍 Géolocalisation', 
+            en: '📍 Geolocation' 
+          },
+          content: { 
+            fr: 'Suivez la localisation de vos enfants en temps réel : position actuelle, historique des déplacements, zones de sécurité (maison, école). Alertes automatiques sortie de zone. Respect de la vie privée.',
+            en: 'Track your children\'s location in real-time: current position, movement history, safety zones (home, school). Automatic zone exit alerts. Privacy respected.'
+          },
+          icon: MapPin,
+          color: 'bg-emerald-500'
+        },
+        {
+          title: { 
+            fr: '🔔 Notifications', 
+            en: '🔔 Notifications' 
+          },
+          content: { 
+            fr: 'Centre de notifications : absences, nouveaux bulletins, messages enseignants, paiements dus, alertes géolocalisation. Filtrage par type et par enfant. Marquage lu/non lu.',
+            en: 'Notification center: absences, new report cards, teacher messages, payments due, geolocation alerts. Filter by type and child. Mark read/unread.'
+          },
+          icon: Bell,
+          color: 'bg-blue-600'
+        },
+        {
+          title: { 
+            fr: '📄 Demandes', 
+            en: '📄 Requests' 
+          },
+          content: { 
+            fr: 'Soumettez des demandes à l\'école : rendez-vous, certificats de scolarité, autorisations de sortie, réclamations. Suivi du statut en temps réel. Notifications de réponse. Historique complet.',
+            en: 'Submit requests to the school: appointments, school certificates, exit authorizations, complaints. Real-time status tracking. Response notifications. Complete history.'
+          },
+          icon: FileText,
+          color: 'bg-orange-500'
+        },
+        {
+          title: { 
+            fr: '⚙️ Paramètres Parent', 
+            en: '⚙️ Parent Settings' 
+          },
+          content: { 
+            fr: 'Gérez votre profil parent : informations personnelles, photo, préférences de notification (SMS/Email/WhatsApp), langue (Français/English). Sécurité du compte et gestion de la vie privée.',
+            en: 'Manage your parent profile: personal information, photo, notification preferences (SMS/Email/WhatsApp), language (Français/English). Account security and privacy management.'
+          },
+          icon: User,
+          color: 'bg-gray-500'
+        },
+        {
+          title: { 
+            fr: '👥 Multi-Rôles', 
+            en: '👥 Multi-Roles' 
+          },
+          content: { 
+            fr: 'Basculez entre vos rôles : Parent, Enseignant, Élève si vous en avez plusieurs. Interface unique, changement de contexte instantané. Préférences sauvegardées par rôle.',
+            en: 'Switch between your roles: Parent, Teacher, Student if you have multiple. Single interface, instant context switching. Preferences saved per role.'
+          },
+          icon: User,
+          color: 'bg-purple-600'
+        },
+        {
+          title: { 
+            fr: '❓ Aide', 
+            en: '❓ Help' 
+          },
+          content: { 
+            fr: 'Centre d\'aide : guides d\'utilisation pour parents, FAQ, tutoriels vidéo, contact support. Documentation complète bilingue. Chat en ligne avec support technique.',
+            en: 'Help center: user guides for parents, FAQ, video tutorials, support contact. Complete bilingual documentation. Online chat with technical support.'
+          },
+          icon: HelpCircle,
+          color: 'bg-cyan-500'
         }
       ]
     };
