@@ -41,9 +41,16 @@ export class UserStorage implements IUserStorage {
 
   async getUserById(id: number): Promise<any | null> {
     try {
+      console.log(`[USER_STORAGE] Fetching user by ID: ${id}`);
       const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+      if (user) {
+        console.log(`[USER_STORAGE] ✅ Found user by ID: ${user.email} (ID: ${user.id})`);
+      } else {
+        console.log(`[USER_STORAGE] ❌ No user found with ID: ${id}`);
+      }
       return user || null;
     } catch (error) {
+      console.error(`[USER_STORAGE] Error in getUserById for ID ${id}:`, error);
       return null;
     }
   }
