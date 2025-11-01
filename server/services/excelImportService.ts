@@ -3,7 +3,8 @@ import * as bcrypt from 'bcryptjs';
 import { storage } from '../storage';
 import { nanoid } from 'nanoid';
 import { db } from '../db';
-import { rooms } from '../../shared/schema';
+import { eq, and } from 'drizzle-orm';
+import { users, classes, subjects, timetables, rooms, schools, teacherSubjectAssignments, classEnrollments } from '../../shared/schema';
 
 interface TeacherImportData {
   firstName: string;
@@ -325,7 +326,7 @@ export class ExcelImportService {
         }
         
         // Check for duplicate email
-        const existingTeacher = await storage.getUserByEmail(teacherData.email);
+        const [existingTeacher] = await db.select().from(users).where(eq(users.email, teacherData.email)).limit(1);
         if (existingTeacher) {
           result.errors.push({
             row: row._row || index + 2,
@@ -335,29 +336,27 @@ export class ExcelImportService {
           continue;
         }
         
-        // Parse subjects (stored as array in teacher profile)
-        const subjects = teacherData.subjects
+        // Parse subjects (stored as JSON string array in teacher profile)
+        const subjectsArray = teacherData.subjects
           .split(/[;,]/)
           .map(s => s.trim())
           .filter(Boolean);
         
-        // Create teacher user
+        // Create teacher user with Drizzle
         const hashedPassword = await bcrypt.hash('eduPass@2024', 10);
-        const newUser = await storage.createUser({
+        const [newUser] = await db.insert(users).values({
           email: teacherData.email,
           password: hashedPassword,
           firstName: teacherData.firstName,
           lastName: teacherData.lastName,
           phone: teacherData.phone,
-          userType: 'teacher',
+          role: 'Teacher',
           schoolId: schoolId,
           isActive: true,
           matricule: nanoid(10),
-          subjects: subjects, // Store subjects array
-          experience: teacherData.experience || '',
-          qualification: teacherData.qualification || '',
-          assignedClasses: teacherData.classes || '' // Store class assignments
-        });
+          qualifications: JSON.stringify([teacherData.qualification || '']),
+          experience: teacherData.experience ? parseInt(teacherData.experience) || 0 : 0
+        }).returning();
         
         result.created++;
         
@@ -430,11 +429,16 @@ export class ExcelImportService {
           continue;
         }
         
-        // Find class by name (query all classes and filter)
+        // Find class by name using Drizzle
         let classId = null;
         if (studentData.className) {
-          const classes = await storage.getSchoolClasses(schoolId);
-          const existingClass = classes.find((c: any) => c.name === studentData.className);
+          const [existingClass] = await db.select().from(classes).where(
+            and(
+              eq(classes.schoolId, schoolId),
+              eq(classes.name, studentData.className)
+            )
+          ).limit(1);
+          
           if (existingClass) {
             classId = existingClass.id;
           } else {
@@ -445,15 +449,15 @@ export class ExcelImportService {
           }
         }
         
-        // Create student user
+        // Create student user with Drizzle
         const hashedPassword = await bcrypt.hash('eduPass@' + (studentData.matricule || '2024'), 10);
-        await storage.createUser({
+        const [newStudent] = await db.insert(users).values({
           email: studentData.email || `student.${nanoid(6)}@educafric.temp`,
           password: hashedPassword,
           firstName: studentData.firstName,
           lastName: studentData.lastName,
           phone: studentData.phone,
-          userType: 'student',
+          role: 'Student',
           schoolId: schoolId,
           classId: classId,
           isActive: true,
@@ -465,7 +469,7 @@ export class ExcelImportService {
           parentEmail: studentData.parentEmail || '',
           parentPhone: studentData.parentPhone || '',
           isRepeater: studentData.isRepeater === 'Oui' || studentData.isRepeater === 'Yes' ? true : false
-        });
+        }).returning();
         
         result.created++;
         
@@ -512,7 +516,7 @@ export class ExcelImportService {
         };
         
         // Parse subjects from format: "Maths;4;6;general | Français;4;6;general"
-        const subjects: any[] = [];
+        const subjectsToCreate: any[] = [];
         let hasSubjectValidationError = false;
         if (classData.subjectsRaw) {
           const subjectParts = classData.subjectsRaw.split('|').map((s: string) => s.trim());
@@ -532,7 +536,7 @@ export class ExcelImportService {
                 break;
               }
               
-              subjects.push({
+              subjectsToCreate.push({
                 name,
                 coefficient: parseInt(coeff) || 1,
                 hoursPerWeek: parseInt(hours) || 1,
@@ -571,9 +575,14 @@ export class ExcelImportService {
           continue;
         }
         
-        // Check for duplicate class name (query all classes and filter)
-        const classes = await storage.getSchoolClasses(schoolId);
-        const existingClass = classes.find((c: any) => c.name === classData.name);
+        // Check for duplicate class name using Drizzle
+        const [existingClass] = await db.select().from(classes).where(
+          and(
+            eq(classes.schoolId, schoolId),
+            eq(classes.name, classData.name)
+          )
+        ).limit(1);
+        
         if (existingClass) {
           result.errors.push({
             row: row._row || index + 2,
@@ -585,31 +594,49 @@ export class ExcelImportService {
           continue;
         }
         
-        // Find teacher by email if provided
+        // Find teacher by email if provided using Drizzle
         let teacherId = null;
         if (classData.teacherEmail) {
-          const teacher = await storage.getUserByEmail(classData.teacherEmail);
-          if (teacher && teacher.userType === 'teacher') {
+          const [teacher] = await db.select().from(users).where(
+            and(
+              eq(users.email, classData.teacherEmail),
+              eq(users.role, 'Teacher')
+            )
+          ).limit(1);
+          
+          if (teacher) {
             teacherId = teacher.id;
           }
         }
         
         // Determine academic year ID from school context
-        // Note: Academic year can be set later through admin interface
-        let academicYearId = null;
+        // For now use 1 as default or null
+        let academicYearId = 1; // Default academic year
         
-        // Create class with subjects
-        await storage.createClass({
+        // Create class with Drizzle
+        const [newClass] = await db.insert(classes).values({
           schoolId,
           name: classData.name,
           level: classData.level,
-          capacity: classData.maxStudents,
+          maxStudents: classData.maxStudents,
           teacherId,
-          room: classData.room || null,
-          subjects: subjects.length > 0 ? subjects : undefined,
           academicYearId,
           isActive: true
-        });
+        }).returning();
+        
+        // Create subjects for the class if provided
+        if (subjectsToCreate.length > 0) {
+          for (const subjectData of subjectsToCreate) {
+            await db.insert(subjects).values({
+              nameFr: subjectData.name,
+              nameEn: subjectData.name,
+              coefficient: subjectData.coefficient.toString(),
+              schoolId,
+              classId: newClass.id,
+              subjectType: subjectData.category || 'general'
+            });
+          }
+        }
         
         result.created++;
         
@@ -673,9 +700,14 @@ export class ExcelImportService {
           continue;
         }
         
-        // Find class (query all classes and filter)
-        const classes = await storage.getSchoolClasses(schoolId);
-        const foundClass = classes.find((c: any) => c.name === timetableData.className);
+        // Find class using Drizzle
+        const [foundClass] = await db.select().from(classes).where(
+          and(
+            eq(classes.schoolId, schoolId),
+            eq(classes.name, timetableData.className)
+          )
+        ).limit(1);
+        
         if (!foundClass) {
           result.errors.push({
             row: row._row || index + 2,
@@ -685,9 +717,15 @@ export class ExcelImportService {
           continue;
         }
         
-        // Find teacher
-        const teacher = await storage.getUserByEmail(timetableData.teacherEmail);
-        if (!teacher || teacher.userType !== 'teacher') {
+        // Find teacher using Drizzle
+        const [teacher] = await db.select().from(users).where(
+          and(
+            eq(users.email, timetableData.teacherEmail),
+            eq(users.role, 'Teacher')
+          )
+        ).limit(1);
+        
+        if (!teacher) {
           result.errors.push({
             row: row._row || index + 2,
             field: t.fields.teacherEmail,
@@ -696,19 +734,39 @@ export class ExcelImportService {
           continue;
         }
         
-        // Create timetable entry
-        await storage.createTimetableEntry({
+        // Find or create subject
+        const [foundSubject] = await db.select().from(subjects).where(
+          and(
+            eq(subjects.schoolId, schoolId),
+            eq(subjects.classId, foundClass.id),
+            eq(subjects.nameFr, timetableData.subjectName)
+          )
+        ).limit(1);
+        
+        let subjectId = foundSubject?.id;
+        if (!foundSubject) {
+          // Create subject if it doesn't exist
+          const [newSubject] = await db.insert(subjects).values({
+            nameFr: timetableData.subjectName,
+            nameEn: timetableData.subjectName,
+            schoolId,
+            classId: foundClass.id
+          }).returning();
+          subjectId = newSubject.id;
+        }
+        
+        // Create timetable entry with Drizzle
+        await db.insert(timetables).values({
           schoolId,
           classId: foundClass.id,
           teacherId: teacher.id,
-          subjectName: timetableData.subjectName,
+          subjectId: subjectId,
           dayOfWeek: timetableData.dayOfWeek,
           startTime: timetableData.startTime,
           endTime: timetableData.endTime,
           room: timetableData.room,
           academicYear: timetableData.academicYear || new Date().getFullYear() + '-' + (new Date().getFullYear() + 1),
-          term: timetableData.term || 'Term 1',
-          isActive: true
+          term: timetableData.term || 'Term 1'
         });
         
         result.created++;
