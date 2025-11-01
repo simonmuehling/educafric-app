@@ -54,6 +54,14 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Messages d'erreur clairs** : Guide l'utilisateur avec la liste des niveaux valides et instructions pour créer de nouveaux niveaux
 - ⚠️ **RÈGLE CRITIQUE** : Écoles DOIVENT d'abord définir leurs niveaux dans Paramètres > Académique avant d'importer des classes
 
+**AFFICHAGE IMMÉDIAT APRÈS IMPORT EXCEL**:
+- ✅ **Problème résolu** : Les données importées apparaissent maintenant IMMÉDIATEMENT sans nécessiter de rafraîchissement manuel
+- ✅ **Solution implémentée** : Double invalidation + refetch explicite dans ExcelImportButton
+- ✅ **Mécanisme** : `invalidateQueries()` avec `refetchType: 'active'` suivi de `refetchQueries()` avec `type: 'active'`
+- ✅ **Modules concernés** : Classes, Enseignants, Élèves, Emploi du temps, Salles - tous bénéficient du rafraîchissement automatique
+- ✅ **Architecture** : Tous les modules utilisent ExcelImportButton avec prop `invalidateQueries` correctement configurée
+- ⚠️ **RÈGLE CRITIQUE** : Tout nouveau module utilisant ExcelImportButton DOIT passer les queryKeys appropriées dans la prop `invalidateQueries`
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
