@@ -19,6 +19,13 @@ export const schools = pgTable("schools", {
   termEndDate: timestamp("term_end_date"),
   settings: jsonb("settings"),
   
+  // Additional school information
+  website: text("website"),
+  description: text("description"),
+  establishedYear: integer("established_year"),
+  principalName: text("principal_name"),
+  studentCapacity: integer("student_capacity"),
+  
   // Champs officiels du gouvernement camerounais pour documents
   regionaleMinisterielle: text("regionale_ministerielle"), // Ex: "Délégation Régionale du Centre"
   delegationDepartementale: text("delegation_departementale"), // Ex: "Délégation Départementale du Mfoundi"

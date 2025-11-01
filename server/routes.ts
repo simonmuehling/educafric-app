@@ -7313,9 +7313,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (req.session as any).schoolLogo = settings.logoUrl;
       }
       
-      // Save to database
+      // Save to database using Drizzle
       if (Object.keys(schoolUpdates).length > 0) {
-        await storage.updateSchool(user.schoolId, schoolUpdates);
+        await db.update(schools)
+          .set(schoolUpdates)
+          .where(eq(schools.id, user.schoolId));
+        
         console.log('[SCHOOL_SETTINGS] ✅ School settings saved to database successfully');
         
         res.json({
