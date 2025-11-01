@@ -256,23 +256,34 @@ export class ExcelImportService {
       
       // Convert array format to object format using first row as keys
       const headers = jsonData[0] as string[];
-      const data = jsonData.slice(1)
+      const mappedData = jsonData.slice(1)
         .map((row: any[], index: number) => {
           const obj: any = { _row: index + 2 }; // Track original row number
           headers.forEach((header, i) => {
             obj[header] = row[i] || '';
           });
           return obj;
-        })
-        .filter((row: any) => {
-          // Filter out completely empty rows (all fields are empty strings)
-          const hasAnyData = Object.keys(row).some(key => {
-            if (key === '_row') return false; // Ignore the _row tracking field
-            const value = row[key];
-            return value !== '' && value !== null && value !== undefined;
-          });
-          return hasAnyData;
         });
+      
+      console.log(`[EXCEL_PARSE] Mapped ${mappedData.length} rows before filtering`);
+      
+      const data = mappedData.filter((row: any) => {
+        // Filter out completely empty rows (all fields are empty strings)
+        const hasAnyData = Object.keys(row).some(key => {
+          if (key === '_row') return false; // Ignore the _row tracking field
+          const value = row[key];
+          return value !== '' && value !== null && value !== undefined;
+        });
+        if (!hasAnyData) {
+          console.log(`[EXCEL_PARSE] Filtering out empty row ${row._row}`);
+        }
+        return hasAnyData;
+      });
+      
+      console.log(`[EXCEL_PARSE] Returning ${data.length} rows after filtering (removed ${mappedData.length - data.length} empty rows)`);
+      if (data.length > 0) {
+        console.log(`[EXCEL_PARSE] First row sample:`, Object.keys(data[0]).slice(0, 5));
+      }
       
       return data;
     } catch (error) {
@@ -518,6 +529,8 @@ export class ExcelImportService {
       warnings: []
     };
     
+    console.log(`[IMPORT_CLASSES] Starting import of ${data.length} classes for school ${schoolId}`);
+    
     for (let index = 0; index < data.length; index++) {
       const row = data[index];
       try {
@@ -671,8 +684,10 @@ export class ExcelImportService {
         }
         
         result.created++;
+        console.log(`[IMPORT_CLASSES] ✅ Successfully created class: ${classData.name} (row ${row._row})`);
         
       } catch (error) {
+        console.log(`[IMPORT_CLASSES] ❌ Error creating class at row ${row._row || index + 2}: ${error.message}`);
         result.errors.push({
           row: row._row || index + 2,
           field: 'general',
@@ -682,6 +697,7 @@ export class ExcelImportService {
       }
     }
     
+    console.log(`[IMPORT_CLASSES] Import complete. Created: ${result.created}, Errors: ${result.errors.length}`);
     result.success = result.errors.length === 0;
     return result;
   }
