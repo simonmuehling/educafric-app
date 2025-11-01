@@ -3,7 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import { storage } from '../storage';
 import { nanoid } from 'nanoid';
 import { db } from '../db';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 import { users, classes, subjects, timetables, rooms, schools, teacherSubjectAssignments, classEnrollments } from '../../shared/schema';
 
 interface TeacherImportData {
@@ -336,11 +336,16 @@ export class ExcelImportService {
           continue;
         }
         
-        // Parse subjects (stored as JSON string array in teacher profile)
+        // Parse subjects (will be used to create teacher-subject associations)
         const subjectsArray = teacherData.subjects
           .split(/[;,]/)
           .map(s => s.trim())
           .filter(Boolean);
+        
+        // Parse qualifications as array
+        const qualificationsArray = teacherData.qualification
+          ? teacherData.qualification.split(/[;,]/).map(q => q.trim()).filter(Boolean)
+          : [];
         
         // Create teacher user with Drizzle
         const hashedPassword = await bcrypt.hash('eduPass@2024', 10);
@@ -349,13 +354,14 @@ export class ExcelImportService {
           password: hashedPassword,
           firstName: teacherData.firstName,
           lastName: teacherData.lastName,
-          phone: teacherData.phone,
+          phone: teacherData.phone || null,
           role: 'Teacher',
           schoolId: schoolId,
           isActive: true,
-          matricule: nanoid(10),
-          qualifications: JSON.stringify([teacherData.qualification || '']),
-          experience: teacherData.experience ? parseInt(teacherData.experience) || 0 : 0
+          educafricNumber: `EDU-CM-TE-${nanoid(6)}`,
+          qualifications: qualificationsArray.length > 0 ? JSON.stringify(qualificationsArray) : null,
+          experience: teacherData.experience ? parseInt(teacherData.experience) || 0 : 0,
+          position: teacherData.classes || null
         }).returning();
         
         result.created++;
@@ -449,25 +455,28 @@ export class ExcelImportService {
           }
         }
         
+        // Generate unique EDUCAFRIC number (which will serve as matricule)
+        const educafricNumber = studentData.matricule ? `EDU-CM-${studentData.matricule}` : `EDU-CM-ST-${nanoid(6)}`;
+        
         // Create student user with Drizzle
         const hashedPassword = await bcrypt.hash('eduPass@' + (studentData.matricule || '2024'), 10);
         const [newStudent] = await db.insert(users).values({
-          email: studentData.email || `student.${nanoid(6)}@educafric.temp`,
+          email: studentData.email || null, // Email is now optional
           password: hashedPassword,
           firstName: studentData.firstName,
           lastName: studentData.lastName,
-          phone: studentData.phone,
+          phone: studentData.phone || `+237${Date.now()}${nanoid(4)}`, // Generate unique phone if not provided
           role: 'Student',
           schoolId: schoolId,
           classId: classId,
           isActive: true,
-          gender: studentData.gender,
-          dateOfBirth: studentData.dateOfBirth,
-          placeOfBirth: studentData.placeOfBirth || '',
-          matricule: studentData.matricule || nanoid(10),
-          guardian: studentData.guardian || '',
-          parentEmail: studentData.parentEmail || '',
-          parentPhone: studentData.parentPhone || '',
+          gender: studentData.gender || null,
+          dateOfBirth: studentData.dateOfBirth || null,
+          placeOfBirth: studentData.placeOfBirth || null,
+          educafricNumber: educafricNumber,
+          guardian: studentData.guardian || null,
+          parentEmail: studentData.parentEmail || null,
+          parentPhone: studentData.parentPhone || null,
           isRepeater: studentData.isRepeater === 'Oui' || studentData.isRepeater === 'Yes' ? true : false
         }).returning();
         
@@ -609,9 +618,21 @@ export class ExcelImportService {
           }
         }
         
-        // Determine academic year ID from school context
-        // For now use 1 as default or null
-        let academicYearId = 1; // Default academic year
+        // Get or create default academic year for the school
+        // First try to find an existing active academic year
+        let academicYearId = 1; // Default fallback
+        
+        try {
+          // Try to get the school's current academic year
+          const [school] = await db.select().from(schools).where(eq(schools.id, schoolId)).limit(1);
+          if (school && school.academicYear) {
+            // Academic year exists in school settings, use academicYearId = 1 as default
+            academicYearId = 1;
+          }
+        } catch (err) {
+          // If academic year lookup fails, use default
+          academicYearId = 1;
+        }
         
         // Create class with Drizzle
         const [newClass] = await db.insert(classes).values({
@@ -624,7 +645,7 @@ export class ExcelImportService {
           isActive: true
         }).returning();
         
-        // Create subjects for the class if provided
+        // Create subjects for the class if provided with complete metadata
         if (subjectsToCreate.length > 0) {
           for (const subjectData of subjectsToCreate) {
             await db.insert(subjects).values({
@@ -633,7 +654,8 @@ export class ExcelImportService {
               coefficient: subjectData.coefficient.toString(),
               schoolId,
               classId: newClass.id,
-              subjectType: subjectData.category || 'general'
+              subjectType: subjectData.category || 'general',
+              code: `${subjectData.name.substring(0, 3).toUpperCase()}-${newClass.level}`
             });
           }
         }
@@ -734,25 +756,48 @@ export class ExcelImportService {
           continue;
         }
         
-        // Find or create subject
+        // Find or create subject - try both French and English names
         const [foundSubject] = await db.select().from(subjects).where(
           and(
             eq(subjects.schoolId, schoolId),
             eq(subjects.classId, foundClass.id),
-            eq(subjects.nameFr, timetableData.subjectName)
+            or(
+              eq(subjects.nameFr, timetableData.subjectName),
+              eq(subjects.nameEn, timetableData.subjectName)
+            )
           )
         ).limit(1);
         
         let subjectId = foundSubject?.id;
         if (!foundSubject) {
-          // Create subject if it doesn't exist
+          // Create subject if it doesn't exist with minimal required fields
           const [newSubject] = await db.insert(subjects).values({
             nameFr: timetableData.subjectName,
             nameEn: timetableData.subjectName,
             schoolId,
-            classId: foundClass.id
+            classId: foundClass.id,
+            coefficient: '1', // Default coefficient
+            subjectType: 'general', // Default type
+            code: `${timetableData.subjectName.substring(0, 3).toUpperCase()}-${foundClass.level}`
           }).returning();
           subjectId = newSubject.id;
+        }
+        
+        // Check for duplicate timetable slot (same class, day, time)
+        const [existingSlot] = await db.select().from(timetables).where(
+          and(
+            eq(timetables.classId, foundClass.id),
+            eq(timetables.dayOfWeek, timetableData.dayOfWeek),
+            eq(timetables.startTime, timetableData.startTime)
+          )
+        ).limit(1);
+        
+        if (existingSlot) {
+          result.warnings.push({
+            row: row._row || index + 2,
+            message: `${t.fields.className} "${timetableData.className}" already has a timetable entry for day ${timetableData.dayOfWeek} at ${timetableData.startTime}`
+          });
+          continue; // Skip duplicate slot
         }
         
         // Create timetable entry with Drizzle
@@ -764,7 +809,7 @@ export class ExcelImportService {
           dayOfWeek: timetableData.dayOfWeek,
           startTime: timetableData.startTime,
           endTime: timetableData.endTime,
-          room: timetableData.room,
+          room: timetableData.room || null,
           academicYear: timetableData.academicYear || new Date().getFullYear() + '-' + (new Date().getFullYear() + 1),
           term: timetableData.term || 'Term 1'
         });
