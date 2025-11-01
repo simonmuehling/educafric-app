@@ -1758,12 +1758,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ];
       } else {
         console.log('[DIRECTOR_TEACHERS_API] Real user detected - using database data');
+        console.log('[DIRECTOR_TEACHERS_API] User object:', { id: user.id, email: user.email, school_id: user.school_id, schoolId: user.schoolId });
         // Get real teachers from database
         const { db } = await import('./db');
         const { users } = await import('@shared/schema');
         const { eq, and } = await import('drizzle-orm');
         
-        const userSchoolId = user.school_id || 1;
+        const userSchoolId = user.schoolId || user.school_id || 1;
+        console.log('[DIRECTOR_TEACHERS_API] Using school ID:', userSchoolId);
         
         // Get all teachers for this school
         const schoolTeachers = await db.select()
