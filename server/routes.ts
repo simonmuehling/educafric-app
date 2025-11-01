@@ -34,7 +34,8 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions } from "../shared/schema.js";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements } from "../shared/schema.js";
+import bcrypt from 'bcryptjs';
 import { 
   predefinedAppreciations, 
   competencyEvaluationSystems, 
@@ -862,82 +863,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       
+      // Fetch real user data from database
+      const [dbUser] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+      
+      // Fetch user achievements from database
+      const achievements = await db.select().from(userAchievements).where(eq(userAchievements.userId, user.id));
+      
+      // Get school info if user has a school
+      let schoolInfo = null;
+      if (user.schoolId) {
+        [schoolInfo] = await db.select().from(schools).where(eq(schools.id, user.schoolId)).limit(1);
+      }
+      
+      // Get stats
+      const totalTeachers = user.schoolId ? await db.select().from(users).where(and(eq(users.schoolId, user.schoolId), eq(users.role, 'Teacher'))).then(r => r.length) : 0;
+      const totalStudents = user.schoolId ? await db.select().from(users).where(and(eq(users.schoolId, user.schoolId), eq(users.role, 'Student'))).then(r => r.length) : 0;
+      const totalClasses = user.schoolId ? await db.select().from(classes).where(eq(classes.schoolId, user.schoolId)).then(r => r.length) : 0;
+      
       const settings = {
         school: {
-          name: 'École Saint-Joseph',
-          address: 'Douala, Cameroun',
-          phone: '+237657004011',
-          email: 'direction@saintjoseph.edu',
+          name: schoolInfo?.name || 'École',
+          address: schoolInfo?.address || '',
+          phone: schoolInfo?.phone || '',
+          email: schoolInfo?.email || '',
           academicYear: '2024-2025',
           currentTerm: 'Premier Trimestre'
         },
         director: {
-          name: 'M. Directeur Principal',
-          email: 'directeur@saintjoseph.edu',
-          phone: '+237657001111',
-          experience: 15
+          name: `${dbUser?.firstName} ${dbUser?.lastName}`,
+          email: dbUser?.email,
+          phone: dbUser?.phone,
+          experience: dbUser?.experience || 0
         },
         preferences: {
-          language: 'fr',
+          language: dbUser?.preferredLanguage || 'fr',
           notifications: true,
           reportFrequency: 'weekly',
           theme: 'modern'
         },
         profile: {
-          id: user.id,
-          firstName: user.firstName || 'Directeur',
-          lastName: user.lastName || 'Principal',
-          email: user.email,
-          phone: user.phone || '+237657001111',
-          dateOfBirth: '1975-06-15',
-          address: 'Douala, Cameroun',
-          schoolName: 'École Saint-Joseph',
-          position: 'Directeur Principal',
-          qualifications: ['Master en Sciences de l\'Éducation', 'Licence en Pédagogie', 'Certificat de Gestion Scolaire'],
-          experience: 15,
-          bio: 'Directeur passionné avec 15 ans d\'expérience dans la gestion d\'établissements scolaires d\'excellence.',
-          languages: ['Français', 'Anglais'],
-          totalTeachers: 45,
-          totalStudents: 850,
-          totalClasses: 32,
-          yearsInPosition: 8,
-          achievements: [
-            {
-              id: 1,
-              title: 'Excellence Académique 2024',
-              description: 'L\'école a atteint un taux de réussite de 98% au Baccalauréat',
-              date: '2024-09-15',
-              type: 'Académique'
-            },
-            {
-              id: 2,
-              title: 'Modernisation Numérique',
-              description: 'Implémentation réussie de la plateforme Educafric pour toute l\'école',
-              date: '2024-06-20',
-              type: 'Innovation'
-            },
-            {
-              id: 3,
-              title: 'Expansion Infrastructure',
-              description: 'Construction de 5 nouvelles salles de classe et un laboratoire scientifique',
-              date: '2024-03-10',
-              type: 'Infrastructure'
-            },
-            {
-              id: 4,
-              title: 'Reconnaissance Ministérielle',
-              description: 'Prix du Ministère de l\'Éducation pour l\'excellence pédagogique',
-              date: '2023-12-05',
-              type: 'Distinction'
-            }
-          ]
+          id: dbUser?.id,
+          firstName: dbUser?.firstName,
+          lastName: dbUser?.lastName,
+          email: dbUser?.email,
+          phone: dbUser?.phone,
+          dateOfBirth: dbUser?.dateOfBirth,
+          address: dbUser?.address,
+          schoolName: schoolInfo?.name || 'École',
+          position: dbUser?.position,
+          qualifications: dbUser?.qualifications ? JSON.parse(dbUser.qualifications as string) : [],
+          experience: dbUser?.experience || 0,
+          bio: dbUser?.bio,
+          languages: dbUser?.languages ? JSON.parse(dbUser.languages as string) : ['Français'],
+          profileImage: dbUser?.profileImage,
+          profileImageUrl: dbUser?.profileImageUrl || dbUser?.profilePictureUrl,
+          totalTeachers,
+          totalStudents,
+          totalClasses,
+          yearsInPosition: dbUser?.yearsInPosition || 0,
+          achievements: achievements.map(a => ({
+            id: a.id,
+            title: a.title,
+            description: a.description,
+            date: a.date,
+            type: a.type
+          }))
         }
       };
+      
+      console.log('[DIRECTOR_SETTINGS] ✅ Loaded real data for user:', user.id, 'Achievements:', achievements.length);
       res.json({ success: true, settings });
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('[DIRECTOR_SETTINGS] Error:', error);
-      }
+      console.error('[DIRECTOR_SETTINGS] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch settings' });
     }
   });
@@ -992,6 +989,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[DIRECTOR_SETTINGS] Error updating:', error);
       res.status(500).json({ success: false, message: 'Failed to update settings' });
+    }
+  });
+
+  // Change Password - Works for ALL roles
+  app.put("/api/auth/change-password", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { currentPassword, newPassword } = req.body;
+      
+      console.log('[PASSWORD_CHANGE] Request from user:', user.id);
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Current and new passwords are required' 
+        });
+      }
+      
+      if (newPassword.length < 8) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'New password must be at least 8 characters long' 
+        });
+      }
+      
+      // Get user from database
+      const [dbUser] = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+      
+      if (!dbUser || !dbUser.password) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'User not found or password not set' 
+        });
+      }
+      
+      // Verify current password
+      const isValid = await bcrypt.compare(currentPassword, dbUser.password);
+      if (!isValid) {
+        console.log('[PASSWORD_CHANGE] ❌ Invalid current password for user:', user.id);
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Current password is incorrect' 
+        });
+      }
+      
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update password in database
+      await db.update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, user.id));
+      
+      console.log('[PASSWORD_CHANGE] ✅ Password changed successfully for user:', user.id);
+      
+      res.json({ 
+        success: true, 
+        message: 'Password changed successfully' 
+      });
+    } catch (error) {
+      console.error('[PASSWORD_CHANGE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to change password' });
+    }
+  });
+
+  // Add Achievement
+  app.post("/api/director/achievements", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { title, description, date, type } = req.body;
+      
+      if (!title || !description || !date || !type) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'All fields are required' 
+        });
+      }
+      
+      const [newAchievement] = await db.insert(userAchievements).values({
+        userId: user.id,
+        title,
+        description,
+        date,
+        type
+      }).returning();
+      
+      console.log('[ACHIEVEMENTS] ✅ Added achievement:', newAchievement.id, 'for user:', user.id);
+      
+      res.status(201).json({ 
+        success: true, 
+        achievement: newAchievement,
+        message: 'Achievement added successfully' 
+      });
+    } catch (error) {
+      console.error('[ACHIEVEMENTS] Error adding:', error);
+      res.status(500).json({ success: false, message: 'Failed to add achievement' });
+    }
+  });
+
+  // Delete Achievement
+  app.delete("/api/director/achievements/:id", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const achievementId = parseInt(req.params.id);
+      
+      if (isNaN(achievementId)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid achievement ID' 
+        });
+      }
+      
+      // Verify ownership before deleting
+      const [achievement] = await db.select()
+        .from(userAchievements)
+        .where(and(
+          eq(userAchievements.id, achievementId),
+          eq(userAchievements.userId, user.id)
+        ))
+        .limit(1);
+      
+      if (!achievement) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Achievement not found or access denied' 
+        });
+      }
+      
+      await db.delete(userAchievements).where(eq(userAchievements.id, achievementId));
+      
+      console.log('[ACHIEVEMENTS] ✅ Deleted achievement:', achievementId, 'for user:', user.id);
+      
+      res.json({ 
+        success: true, 
+        message: 'Achievement deleted successfully' 
+      });
+    } catch (error) {
+      console.error('[ACHIEVEMENTS] Error deleting:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete achievement' });
     }
   });
 

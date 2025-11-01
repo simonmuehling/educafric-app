@@ -83,6 +83,27 @@ export const users = pgTable("users", {
   // TE=Teacher, ST=Student, PA=Parent - auto-generated
   educafricNumber: text("educafric_number").unique(),
   
+  // Profile fields for Director/Teacher/Staff
+  bio: text("bio"),
+  position: text("position"),
+  experience: integer("experience"),
+  yearsInPosition: integer("years_in_position"),
+  qualifications: text("qualifications"), // JSON string array
+  languages: text("languages"), // JSON string array
+  profileImage: text("profile_image"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// User achievements table
+export const userAchievements = pgTable("user_achievements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  date: text("date").notNull(), // Format: YYYY-MM-DD
+  type: text("type").notNull(), // 'Award', 'Certification', 'Infrastructure', 'Distinction', etc.
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
