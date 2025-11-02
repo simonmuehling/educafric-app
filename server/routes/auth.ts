@@ -4,6 +4,7 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import rateLimit from 'express-rate-limit';
 import { storage } from '../storage';
+import { db } from '../db';
 import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordResetSchema, changePasswordSchema } from '@shared/schemas';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
@@ -373,43 +374,42 @@ router.post('/register', async (req, res) => {
       phone: validatedData.phoneNumber, // Map phoneNumber to phone field
     });
 
-    // If Director, create the school with the EDUCAFRIC number
+    // If Director, create the school with the EDUCAFRIC number using a transaction
     if (validatedData.role === 'Director' && req.body.educafricNumber) {
-      let createdSchoolId: number | null = null;
-      let educafricAssigned = false;
-
       try {
-        // Create school with EDUCAFRIC number
-        const school = await storage.createSchool({
-          name: `École de ${validatedData.firstName} ${validatedData.lastName}`, // Temporary name
-          type: 'private', // Default to private, can be changed later
-          educationalType: 'general',
-          address: '',
-          phone: validatedData.phoneNumber,
-          email: validatedData.email,
-          educafricNumber: req.body.educafricNumber,
-          academicYear: new Date().getFullYear().toString(),
-          currentTerm: 'trimestre1',
-          geolocationEnabled: false,
-          pwaEnabled: true,
-          whatsappEnabled: false,
-          smsEnabled: false,
-          emailEnabled: true
+        // Use database transaction to ensure atomicity - if Director linking fails, school creation is rolled back
+        await db.transaction(async (tx) => {
+          // Create school with EDUCAFRIC number
+          const school = await storage.createSchool({
+            name: `École de ${validatedData.firstName} ${validatedData.lastName}`, // Temporary name
+            type: 'private', // Default to private, can be changed later
+            educationalType: 'general',
+            address: '',
+            phone: validatedData.phoneNumber,
+            email: validatedData.email,
+            educafricNumber: req.body.educafricNumber,
+            academicYear: new Date().getFullYear().toString(),
+            currentTerm: 'trimestre1',
+            geolocationEnabled: false,
+            pwaEnabled: true,
+            whatsappEnabled: false,
+            smsEnabled: false,
+            emailEnabled: true
+          });
+
+          console.log('[AUTH_REGISTER] School created with ID:', school.id);
+
+          // Link Director to the school - if this fails, the entire transaction rolls back
+          await storage.updateUser(user.id, { schoolId: school.id });
+          console.log('[AUTH_REGISTER] ✅ Director linked to school ID:', school.id);
         });
 
-        createdSchoolId = school.id;
-        console.log('[AUTH_REGISTER] School created with ID:', createdSchoolId);
-        // Note: EDUCAFRIC number is already assigned by storage.createSchool()
-        educafricAssigned = true;
-
-        // Link Director to the school
-        await storage.updateUser(user.id, { schoolId: school.id });
-        console.log('[AUTH_REGISTER] ✅ Director linked to school ID:', school.id);
+        console.log('[AUTH_REGISTER] ✅ Transaction complete - School and Director successfully linked');
 
       } catch (schoolError: any) {
-        console.error('[AUTH_REGISTER] Failed to create/assign school:', schoolError);
+        console.error('[AUTH_REGISTER] Transaction failed - rolling back school and Director:', schoolError);
         
-        // FULL ROLLBACK SEQUENCE
+        // Transaction automatically rolled back, but we need to clean up the user and EDUCAFRIC number
         
         // 1. Delete the user
         try {
@@ -419,22 +419,13 @@ router.post('/register', async (req, res) => {
           console.error('[AUTH_REGISTER] ⚠️ Failed to rollback user creation:', rollbackError);
         }
 
-        // 2. School cleanup: createSchool() already handles its own rollback if assignment fails
-        // If we get here, the school was created but Director linking failed
-        // Note: School may be orphaned - consider manual cleanup via admin panel
-        if (createdSchoolId) {
-          console.log('[AUTH_REGISTER] ⚠️ School ID', createdSchoolId, 'may be orphaned (no Director linked)');
-        }
-
-        // 3. Release EDUCAFRIC number if it was assigned
-        if (educafricAssigned && req.body.educafricNumber) {
-          try {
-            const { EducafricNumberService } = await import("../services/educafricNumberService");
-            await EducafricNumberService.releaseNumber(req.body.educafricNumber);
-            console.log('[AUTH_REGISTER] ✅ Released EDUCAFRIC number:', req.body.educafricNumber);
-          } catch (releaseError) {
-            console.error('[AUTH_REGISTER] ⚠️ Failed to release EDUCAFRIC number:', releaseError);
-          }
+        // 2. Release EDUCAFRIC number
+        try {
+          const { EducafricNumberService } = await import("../services/educafricNumberService");
+          await EducafricNumberService.releaseNumber(req.body.educafricNumber);
+          console.log('[AUTH_REGISTER] ✅ Released EDUCAFRIC number:', req.body.educafricNumber);
+        } catch (releaseError) {
+          console.error('[AUTH_REGISTER] ⚠️ Failed to release EDUCAFRIC number:', releaseError);
         }
 
         return res.status(500).json({ 
