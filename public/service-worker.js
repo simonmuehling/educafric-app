@@ -1,8 +1,24 @@
 // Educafric Service Worker - Enhanced Offline Support for Sandbox Demo Mode
 // Enables complete offline functionality with aggressive caching
+// Auto-version management for proper PWA updates
 
-const CACHE_VERSION = 'educafric-v1.3.0';
-const CACHE_NAME = `educafric-cache-${CACHE_VERSION}`;
+let CACHE_VERSION = 'educafric-v1.3.0-fallback';
+let CACHE_NAME = `educafric-cache-${CACHE_VERSION}`;
+
+// Load version dynamically from version.json
+async function loadVersion() {
+  try {
+    const response = await fetch('/version.json?nocache=' + Date.now());
+    const versionInfo = await response.json();
+    CACHE_VERSION = versionInfo.cacheVersion || CACHE_VERSION;
+    CACHE_NAME = `educafric-cache-${CACHE_VERSION}`;
+    console.log('[SW] Version loaded:', CACHE_VERSION);
+    return versionInfo;
+  } catch (error) {
+    console.log('[SW] Failed to load version, using fallback:', CACHE_VERSION);
+    return { cacheVersion: CACHE_VERSION };
+  }
+}
 
 // Assets to cache immediately for offline demo mode
 const PRECACHE_ASSETS = [
@@ -101,14 +117,17 @@ self.addEventListener('install', (event) => {
   console.log('[SW] Installing service worker...');
   
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Caching essential assets');
-      return cache.addAll(PRECACHE_ASSETS.filter(url => url !== '/'));
+    loadVersion().then(() => {
+      return caches.open(CACHE_NAME).then((cache) => {
+        console.log('[SW] Caching essential assets with version:', CACHE_VERSION);
+        return cache.addAll(PRECACHE_ASSETS.filter(url => url !== '/'));
+      });
     }).catch(error => {
       console.error('[SW] Failed to cache assets:', error);
     })
   );
   
+  // Force immediate activation of new service worker
   self.skipWaiting();
 });
 
@@ -117,19 +136,35 @@ self.addEventListener('activate', (event) => {
   console.log('[SW] Activating service worker...');
   
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
+    loadVersion().then(() => {
+      return caches.keys().then((cacheNames) => {
+        const deletions = cacheNames
+          .filter((name) => name !== CACHE_NAME && name.startsWith('educafric-cache-'))
           .map((name) => {
             console.log('[SW] Deleting old cache:', name);
             return caches.delete(name);
-          })
-      );
+          });
+        
+        console.log('[SW] Active cache version:', CACHE_VERSION);
+        console.log('[SW] Deleted', deletions.length, 'old caches');
+        
+        return Promise.all(deletions);
+      });
     })
   );
   
+  // Take control of all pages immediately
   self.clients.claim();
+  
+  // Notify all clients that a new version is active
+  self.clients.matchAll().then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage({
+        type: 'SW_ACTIVATED',
+        version: CACHE_VERSION
+      });
+    });
+  });
 });
 
 // Fetch event - handle requests with appropriate caching strategy
