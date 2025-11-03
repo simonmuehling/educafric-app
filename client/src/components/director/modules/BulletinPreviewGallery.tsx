@@ -109,10 +109,27 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
     },
   });
 
-  const bulletins = bulletinsData?.data || [];
+  const rawBulletins = bulletinsData?.data || [];
+  
+  // Normalize API statuses to match UI expectations
+  // API returns: 'draft', 'finalized', 'archived'
+  // UI expects: 'pending', 'completed', 'archived'
+  const normalizeStatus = (apiStatus: string): string => {
+    const statusMap: Record<string, string> = {
+      'draft': 'pending',
+      'finalized': 'completed',
+      'archived': 'archived'
+    };
+    return statusMap[apiStatus] || 'pending';
+  };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const bulletins = rawBulletins.map((b: any) => ({
+    ...b,
+    normalizedStatus: normalizeStatus(b.status || 'draft')
+  }));
+
+  const getStatusBadge = (normalizedStatus: string) => {
+    switch (normalizedStatus) {
       case 'completed':
         return (
           <Badge className="bg-green-500 text-white" data-testid="badge-completed">
@@ -141,7 +158,7 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
 
   const filteredBulletins = bulletins.filter((b: any) => {
     if (activeTab === 'all') return true;
-    return b.status === activeTab;
+    return b.normalizedStatus === activeTab;
   });
 
   const handleViewBulletin = (bulletinId: number) => {
@@ -207,15 +224,15 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
             </TabsTrigger>
             <TabsTrigger value="completed" data-testid="tab-completed">
               <CheckCircle className="w-4 h-4 mr-2" />
-              {t.completed} ({bulletins.filter((b: any) => b.status === 'completed').length})
+              {t.completed} ({bulletins.filter((b: any) => b.normalizedStatus === 'completed').length})
             </TabsTrigger>
             <TabsTrigger value="pending" data-testid="tab-pending">
               <Clock className="w-4 h-4 mr-2" />
-              {t.pending} ({bulletins.filter((b: any) => b.status === 'pending').length})
+              {t.pending} ({bulletins.filter((b: any) => b.normalizedStatus === 'pending').length})
             </TabsTrigger>
             <TabsTrigger value="archived" data-testid="tab-archived">
               <AlertCircle className="w-4 h-4 mr-2" />
-              {t.archived} ({bulletins.filter((b: any) => b.status === 'archived').length})
+              {t.archived} ({bulletins.filter((b: any) => b.normalizedStatus === 'archived').length})
             </TabsTrigger>
           </TabsList>
 
@@ -261,7 +278,7 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
                           {subjects.length} {t.subjects}
                         </p>
                       </div>
-                      {getStatusBadge(bulletin.status || 'completed')}
+                      {getStatusBadge(bulletin.normalizedStatus)}
                     </div>
 
                     <CardContent className="p-4">

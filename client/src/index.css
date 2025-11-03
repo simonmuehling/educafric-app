@@ -1,6 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700;800;900;1000&family=Roboto:wght@300;400;500;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..600&display=swap");
 @import "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap";
+@import url('https://fonts.googleapis.com/css2?family=Amiko:wght@400;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -1602,8 +1603,6 @@ select:focus-visible {
    EDUCAFRIC MODULE THEME
    Design moderne inspiré du dashboard professionnel
    ========================================== */
-
-@import url('https://fonts.googleapis.com/css2?family=Amiko:wght@400;600;700&display=swap');
 
 /* Module Container avec le nouveau design */
 .module-content {
