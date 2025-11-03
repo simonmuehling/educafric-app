@@ -3186,17 +3186,22 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   </Button>
 
                   <Button
+                    onClick={handleSignBulletin}
                     variant="outline"
-                    className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/50"
-                    data-testid="button-archive-class"
+                    className={`flex flex-col items-center gap-2 h-auto py-4 border-2 ${
+                      isSigned 
+                        ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/50' 
+                        : 'border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950/50'
+                    }`}
+                    data-testid="button-sign-bulletin-teacher"
                   >
-                    <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    <PenTool className={`h-5 w-5 ${isSigned ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`} />
                     <div className="text-center">
                       <div className="font-semibold text-sm">
-                        {language === 'fr' ? 'Archiver par Classe' : 'Archive by Class'}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {language === 'fr' ? 'Organisation par classe' : 'Class organization'}
+                        {isSigned 
+                          ? (language === 'fr' ? 'Signé ✓' : 'Signed ✓')
+                          : (language === 'fr' ? 'Signer le Bulletin' : 'Sign Bulletin')
+                        }
                       </div>
                     </div>
                   </Button>
@@ -3206,10 +3211,10 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                     className="flex flex-col items-center gap-2 h-auto py-4 bg-green-600 hover:bg-green-700 border-2 border-green-500"
                     data-testid="button-submit-school"
                   >
-                    <Upload className="h-5 w-5 text-white" />
+                    <Send className="h-5 w-5 text-white" />
                     <div className="text-center text-white">
                       <div className="font-semibold text-sm">
-                        {language === 'fr' ? 'Soumettre à l\'École' : 'Submit to School'}
+                        {language === 'fr' ? 'Envoyer à l\'école' : 'Send to School'}
                       </div>
                       <div className="text-xs opacity-90">
                         {language === 'fr' ? 'Validation finale par l\'école' : 'Final validation by school'}
