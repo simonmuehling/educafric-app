@@ -5,7 +5,7 @@ import {
   Calendar, FileText, Bell,
   MapPin, Users, User, GraduationCap,
   CheckCircle2, Star, CreditCard, HelpCircle,
-  Heart, BarChart3, Video
+  Heart, BarChart3, Video, UtensilsCrossed, Bus
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 
@@ -33,7 +33,9 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       attendance: 'Suivi de Présence',
       geolocation: 'Géolocalisation Enfants',
       requests: 'Demandes Parents',
-      help: 'Aide'
+      help: 'Aide',
+      canteen: 'Cantine Enfants',
+      bus: 'Transport Scolaire'
     },
     en: {
       title: 'Parent Dashboard',
@@ -50,7 +52,9 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       attendance: 'Attendance',
       geolocation: 'Children Geolocation',
       requests: 'Parent Requests',
-      help: 'Help'
+      help: 'Help',
+      canteen: 'Children Canteen',
+      bus: 'School Bus'
     }
   };
 
@@ -128,6 +132,18 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.geolocation,
       icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-emerald-500'
+    },
+    {
+      id: 'canteen',
+      label: t.canteen,
+      icon: <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-gradient-to-r from-orange-500 to-red-500'
+    },
+    {
+      id: 'bus',
+      label: t.bus,
+      icon: <Bus className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-gradient-to-r from-yellow-500 to-orange-500'
     },
     {
       id: 'notifications',
