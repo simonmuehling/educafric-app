@@ -38,27 +38,43 @@ export default function CanteenPage() {
   // Fetch menus for the school
   const { data: menus = [], isLoading: menusLoading } = useQuery({
     queryKey: ["/api/canteen/menus", schoolId],
+    queryFn: async () => {
+      const response = await fetch(`/api/canteen/menus/${schoolId}`);
+      if (!response.ok) throw new Error("Failed to fetch menus");
+      return response.json();
+    },
     enabled: !!schoolId,
   });
 
   // Fetch student reservations
   const { data: reservations = [], isLoading: reservationsLoading } = useQuery({
     queryKey: ["/api/canteen/reservations/student", studentId],
+    queryFn: async () => {
+      const response = await fetch(`/api/canteen/reservations/student/${studentId}`);
+      if (!response.ok) throw new Error("Failed to fetch reservations");
+      return response.json();
+    },
     enabled: !!studentId,
   });
 
   // Fetch student balance
   const { data: balance } = useQuery({
     queryKey: ["/api/canteen/balance", studentId],
+    queryFn: async () => {
+      const response = await fetch(`/api/canteen/balance/${studentId}`);
+      if (!response.ok) throw new Error("Failed to fetch balance");
+      return response.json();
+    },
     enabled: !!studentId,
   });
 
   // Create reservation mutation
   const createReservationMutation = useMutation({
-    mutationFn: async (menuId: number) => {
+    mutationFn: async (menu: any) => {
       return apiRequest("POST", "/api/canteen/reservations", {
-        menuId,
+        menuId: menu.id,
         studentId,
+        reservedDate: menu.menuDate,
       });
     },
     onSuccess: () => {
@@ -131,7 +147,7 @@ export default function CanteenPage() {
 
   const confirmReservation = () => {
     if (selectedMenu) {
-      createReservationMutation.mutate(selectedMenu.id);
+      createReservationMutation.mutate(selectedMenu);
     }
   };
 

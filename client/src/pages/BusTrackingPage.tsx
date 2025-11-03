@@ -34,24 +34,44 @@ export default function BusTrackingPage() {
   // Fetch bus routes
   const { data: routes = [], isLoading: routesLoading } = useQuery({
     queryKey: ["/api/bus/routes", schoolId],
+    queryFn: async () => {
+      const response = await fetch(`/api/bus/routes/${schoolId}`);
+      if (!response.ok) throw new Error("Failed to fetch routes");
+      return response.json();
+    },
     enabled: !!schoolId,
   });
 
   // Fetch active routes only
   const { data: activeRoutes = [] } = useQuery({
     queryKey: ["/api/bus/routes", schoolId, "active"],
+    queryFn: async () => {
+      const response = await fetch(`/api/bus/routes/${schoolId}/active`);
+      if (!response.ok) throw new Error("Failed to fetch active routes");
+      return response.json();
+    },
     enabled: !!schoolId,
   });
 
   // Fetch stations for selected route
   const { data: stations = [] } = useQuery({
     queryKey: ["/api/bus/stations", selectedRoute?.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/bus/stations/${selectedRoute.id}`);
+      if (!response.ok) throw new Error("Failed to fetch stations");
+      return response.json();
+    },
     enabled: !!selectedRoute?.id,
   });
 
   // Fetch student enrollment
   const { data: enrollment } = useQuery({
     queryKey: ["/api/bus/enrollments/student", studentId],
+    queryFn: async () => {
+      const response = await fetch(`/api/bus/enrollments/student/${studentId}`);
+      if (!response.ok) throw new Error("Failed to fetch enrollment");
+      return response.json();
+    },
     enabled: !!studentId,
   });
 
@@ -65,14 +85,14 @@ export default function BusTrackingPage() {
   // Calculate route line from stations
   const routeLine = Array.isArray(stations)
     ? stations
-        .sort((a: any, b: any) => a.stationOrder - b.stationOrder)
-        .map((station: any) => [station.latitude, station.longitude] as [number, number])
+        .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
+        .map((station: any) => [parseFloat(station.latitude), parseFloat(station.longitude)] as [number, number])
     : [];
 
   // Default center (Yaoundé, Cameroon)
   const defaultCenter: [number, number] = [3.848, 11.5021];
   const mapCenter = Array.isArray(stations) && stations.length > 0
-    ? [stations[0].latitude, stations[0].longitude] as [number, number]
+    ? [parseFloat(stations[0].latitude), parseFloat(stations[0].longitude)] as [number, number]
     : defaultCenter;
 
   return (
@@ -161,7 +181,7 @@ export default function BusTrackingPage() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {Array.isArray(stations) && stations
-                      .sort((a: any, b: any) => a.stationOrder - b.stationOrder)
+                      .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
                       .map((station: any) => (
                         <div
                           key={station.id}
@@ -179,7 +199,7 @@ export default function BusTrackingPage() {
                             )}
                           </div>
                           <Badge variant="outline" className="text-xs">
-                            {station.stationOrder}
+                            {station.orderIndex}
                           </Badge>
                         </div>
                       ))}
@@ -205,13 +225,13 @@ export default function BusTrackingPage() {
                       {Array.isArray(stations) && stations.map((station: any) => (
                         <Marker
                           key={station.id}
-                          position={[station.latitude, station.longitude]}
+                          position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
                         >
                           <Popup>
                             <div>
                               <p className="font-semibold">{station.stationName}</p>
                               <p className="text-xs">
-                                {t("stationOrder")}: {station.stationOrder}
+                                {t("stationOrder")}: {station.orderIndex}
                               </p>
                               {station.arrivalTime && (
                                 <p className="text-xs">

@@ -114,6 +114,8 @@ const BulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
 const BulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
 const PWANotificationTest = lazy(() => import("@/pages/PWANotificationTest"));
 const TeacherActivationPurchase = lazy(() => import("@/pages/TeacherActivationPurchase"));
+const CanteenPage = lazy(() => import("@/pages/CanteenPage"));
+const BusTrackingPage = lazy(() => import("@/pages/BusTrackingPage"));
 
 // System components - Optimisés pour 3500+ utilisateurs
 import InactivityMonitor from "@/components/auth/InactivityMonitor";
@@ -420,6 +422,18 @@ function Router() {
       <Route path="/school-geolocation">
         <ProtectedRoute>
           <LazySchoolGeolocation />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/canteen">
+        <ProtectedRoute>
+          <CanteenPage />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/bus">
+        <ProtectedRoute>
+          <BusTrackingPage />
         </ProtectedRoute>
       </Route>
       
