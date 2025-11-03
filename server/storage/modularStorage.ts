@@ -14,6 +14,8 @@ import { SanctionStorage } from "./sanctionsStorage";
 import { LibraryStorage } from "./libraryStorage";
 import { ArchiveStorage } from "./archiveStorage";
 import { EducafricNumberStorage } from "./educafricNumberStorage";
+import { CanteenStorage } from "./canteenStorage";
+import { BusStorage } from "./busStorage";
 import type { NotificationPreferences, InsertNotificationPreferences } from "../../shared/schema";
 import type { ArchiveFilter, ArchiveResponse, NewArchivedDocument, NewArchiveAccessLog } from "../../shared/schemas/archiveSchema";
 
@@ -32,6 +34,8 @@ export class ModularStorage {
   private libraryStorage: LibraryStorage;
   private archiveStorage: ArchiveStorage;
   private educafricNumberStorage: EducafricNumberStorage;
+  private canteenStorage: CanteenStorage;
+  private busStorage: BusStorage;
 
   constructor() {
     this.userStorage = new UserStorage();
@@ -47,6 +51,8 @@ export class ModularStorage {
     this.libraryStorage = new LibraryStorage();
     this.archiveStorage = new ArchiveStorage();
     this.educafricNumberStorage = new EducafricNumberStorage();
+    this.canteenStorage = new CanteenStorage();
+    this.busStorage = new BusStorage();
   }
 
   // === USER METHODS ===
@@ -1248,6 +1254,40 @@ export class ModularStorage {
   async updateEducafricNumber(id: number, updates: { status?: string; notes?: string }) { return this.educafricNumberStorage.updateNumber(id, updates); }
   async deleteEducafricNumber(id: number) { return this.educafricNumberStorage.deleteNumber(id); }
   async assignEducafricNumber(educafricNumber: string, entityId: number) { return this.educafricNumberStorage.assignNumber(educafricNumber, entityId); }
+  
+  // === CANTEEN METHODS ===
+  async createCanteenMenu(menu: any) { return this.canteenStorage.createMenu(menu); }
+  async getCanteenMenuById(id: number) { return this.canteenStorage.getMenuById(id); }
+  async getCanteenMenusBySchool(schoolId: number, startDate?: string, endDate?: string) { return this.canteenStorage.getMenusBySchool(schoolId, startDate, endDate); }
+  async updateCanteenMenu(id: number, updates: any) { return this.canteenStorage.updateMenu(id, updates); }
+  async deleteCanteenMenu(id: number) { return this.canteenStorage.deleteMenu(id); }
+  async createCanteenReservation(reservation: any) { return this.canteenStorage.createReservation(reservation); }
+  async getCanteenReservationsByStudent(studentId: number) { return this.canteenStorage.getReservationsByStudent(studentId); }
+  async getCanteenReservationsByMenu(menuId: number) { return this.canteenStorage.getReservationsByMenu(menuId); }
+  async updateCanteenReservation(id: number, updates: any) { return this.canteenStorage.updateReservation(id, updates); }
+  async deleteCanteenReservation(id: number) { return this.canteenStorage.deleteReservation(id); }
+  async getCanteenBalance(studentId: number) { return this.canteenStorage.getBalance(studentId); }
+  async updateCanteenBalance(studentId: number, newBalance: string) { return this.canteenStorage.updateBalance(studentId, newBalance); }
+  async addToCanteenBalance(studentId: number, amount: string) { return this.canteenStorage.addToBalance(studentId, amount); }
+  async deductFromCanteenBalance(studentId: number, amount: string) { return this.canteenStorage.deductFromBalance(studentId, amount); }
+  
+  // === BUS METHODS ===
+  async createBusRoute(route: any) { return this.busStorage.createRoute(route); }
+  async getBusRouteById(id: number) { return this.busStorage.getRouteById(id); }
+  async getBusRoutesBySchool(schoolId: number) { return this.busStorage.getRoutesBySchool(schoolId); }
+  async getActiveBusRoutesBySchool(schoolId: number) { return this.busStorage.getActiveRoutesBySchool(schoolId); }
+  async updateBusRoute(id: number, updates: any) { return this.busStorage.updateRoute(id, updates); }
+  async deleteBusRoute(id: number) { return this.busStorage.deleteRoute(id); }
+  async createBusStation(station: any) { return this.busStorage.createStation(station); }
+  async getBusStationById(id: number) { return this.busStorage.getStationById(id); }
+  async getBusStationsByRoute(routeId: number) { return this.busStorage.getStationsByRoute(routeId); }
+  async updateBusStation(id: number, updates: any) { return this.busStorage.updateStation(id, updates); }
+  async deleteBusStation(id: number) { return this.busStorage.deleteStation(id); }
+  async enrollBusStudent(enrollment: any) { return this.busStorage.enrollStudent(enrollment); }
+  async getBusStudentsByRoute(routeId: number) { return this.busStorage.getStudentsByRoute(routeId); }
+  async getBusStudentEnrollment(studentId: number) { return this.busStorage.getStudentEnrollment(studentId); }
+  async updateBusEnrollment(id: number, updates: any) { return this.busStorage.updateEnrollment(id, updates); }
+  async unenrollBusStudent(studentId: number, routeId: number) { return this.busStorage.unenrollStudent(studentId, routeId); }
   
   // === SANDBOX SEEDING METHODS - FOR TESTING BULLETIN WORKFLOW ===
   private seedData: any = null;

@@ -25,6 +25,8 @@ export * from "./schemas/waValidation"; // NEW: WhatsApp validation schemas
 export * from "./schemas/teacherIndependentSchema"; // NEW: Teacher independent mode (fusion Freelancer → Teacher)
 export * from "./schemas/systemManagementSchema"; // NEW: Teacher replacements, Audit logs, WhatsApp chatbot
 export * from "./schemas/competencySchema"; // NEW: CBA (Competency-Based Approach) system for technical schools
+export * from "./schemas/canteenSchema"; // NEW: Canteen/Cafeteria management with menus and reservations
+export * from "./schemas/busSchema"; // NEW: School bus tracking and route management
 
 // Import existing schema modules
 export * from "./tutorialSchema";
@@ -69,8 +71,18 @@ import {
   competencies,
   subjectCompetencyAssignments
 } from "./schemas/competencySchema";
+import {
+  canteenMenus,
+  canteenReservations,
+  canteenBalances
+} from "./schemas/canteenSchema";
+import {
+  busRoutes,
+  busStations,
+  busStudents
+} from "./schemas/busSchema";
 
-export { users, schools, schoolLevels, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, savedBulletins, teacherBulletins, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates, archivedDocuments, archiveAccessLogs, annualReportComprehensive, educafricNumbers, educafricNumberCounters, competencies, subjectCompetencyAssignments };
+export { users, schools, schoolLevels, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, savedBulletins, teacherBulletins, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates, archivedDocuments, archiveAccessLogs, annualReportComprehensive, educafricNumbers, educafricNumberCounters, competencies, subjectCompetencyAssignments, canteenMenus, canteenReservations, canteenBalances, busRoutes, busStations, busStudents };
 
 // Additional simplified tables for compatibility
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric, date, unique, foreignKey } from "drizzle-orm/pg-core";
