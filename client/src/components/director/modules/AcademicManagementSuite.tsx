@@ -9,7 +9,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import BulletinCreationInterface from "@/components/academic/BulletinCreationInterface";
 import TeacherSubmittedBulletins from "./TeacherSubmittedBulletins";
-import BulletinPreviewGallery from "./BulletinPreviewGallery";
 import { 
   FileSpreadsheet, 
   Download, 
@@ -1737,12 +1736,6 @@ export default function AcademicManagementSuite() {
 
           <CardContent>
             <TabsContent value="bulletins" className="mt-0 space-y-4">
-              {/* Aperçus des bulletins créés */}
-              <BulletinPreviewGallery 
-                selectedClass={selectedClass}
-                selectedTerm={selectedTerm}
-              />
-              
               {/* Bulletins soumis par les enseignants */}
               <TeacherSubmittedBulletins />
               

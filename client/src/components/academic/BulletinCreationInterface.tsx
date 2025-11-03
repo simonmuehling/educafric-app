@@ -579,7 +579,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     finalAppreciation: '',
     holidayRecommendations: ''
   });
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true); // Always show preview for real-time updates
   const [showAnnualReport, setShowAnnualReport] = useState(false);
   // Removed PDF generation - using high-quality print instead
   const [isSigned, setIsSigned] = useState(false);
