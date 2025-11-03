@@ -3167,7 +3167,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                 </p>
                 
                 {/* Teacher Action Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
                     onClick={handleSaveBulletin}
                     variant="outline"
@@ -3181,27 +3181,6 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
                         {language === 'fr' ? 'Travail temporaire' : 'Temporary work'}
-                      </div>
-                    </div>
-                  </Button>
-
-                  <Button
-                    onClick={handleSignBulletin}
-                    variant="outline"
-                    className={`flex flex-col items-center gap-2 h-auto py-4 border-2 ${
-                      isSigned 
-                        ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/50' 
-                        : 'border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950/50'
-                    }`}
-                    data-testid="button-sign-bulletin-teacher"
-                  >
-                    <PenTool className={`h-5 w-5 ${isSigned ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`} />
-                    <div className="text-center">
-                      <div className="font-semibold text-sm">
-                        {isSigned 
-                          ? (language === 'fr' ? 'Signé ✓' : 'Signed ✓')
-                          : (language === 'fr' ? 'Signer le Bulletin' : 'Sign Bulletin')
-                        }
                       </div>
                     </div>
                   </Button>
