@@ -195,7 +195,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   const { user } = useAuth();
   
   // Determine effective user role (from prop or from user context)
-  const effectiveRole = userRole || user?.role || 'teacher';
+  const effectiveRole = (userRole || user?.role || 'teacher').toLowerCase();
 
   // Fetch school data to determine educational type
   const { data: schoolData } = useQuery({
