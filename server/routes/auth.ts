@@ -494,7 +494,7 @@ router.post('/login', (req, res, next) => {
         
         console.log('[AUTH_SESSION] Session saved successfully');
         console.log('[AUTH_SESSION] Session ID:', req.sessionID);
-        console.log('[AUTH_SESSION] Session data:', { userId: req.session.passport?.user });
+        console.log('[AUTH_SESSION] Session data:', { userId: (req.session as any).passport?.user });
         console.log('[AUTH_SESSION] Cookie will be set:', {
           name: 'educafric.sid',
           value: req.sessionID.substring(0, 10) + '...',
@@ -1308,9 +1308,10 @@ router.post('/forgot-password', async (req, res) => {
 
   } catch (error) {
     console.error('[PASSWORD_RESET] Forgot password error:', error);
+    const requestLanguage = req.body.language || 'fr';
     res.status(500).json({
       success: false,
-      message: language === 'fr'
+      message: requestLanguage === 'fr'
         ? 'Erreur lors de la demande de réinitialisation'
         : 'Error during password reset request',
       messageFr: 'Erreur lors de la demande de réinitialisation',

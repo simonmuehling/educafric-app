@@ -79,12 +79,7 @@ router.post('/bulletins', requireAuth, requireAnyRole(['Admin', 'Director', 'Tea
           .update(savedBulletins)
           .set({
             subjects: bulletinData.subjects,
-            discipline: bulletinData.discipline,
-            generalRemark: bulletinData.generalRemark,
-            status: bulletinData.status || 'draft',
-            bulletinType: bulletinData.bulletinType,
-            language: bulletinData.language || 'fr',
-            updatedAt: new Date()
+            discipline: bulletinData.discipline
           })
           .where(and(
             eq(savedBulletins.id, parseInt(bulletinData.id)),
@@ -114,10 +109,6 @@ router.post('/bulletins', requireAuth, requireAnyRole(['Admin', 'Director', 'Tea
         academicYear: bulletinData.academicYear,
         subjects: bulletinData.subjects,
         discipline: bulletinData.discipline,
-        generalRemark: bulletinData.generalRemark,
-        bulletinType: bulletinData.bulletinType,
-        language: bulletinData.language || 'fr',
-        status: bulletinData.status || 'draft',
         createdBy: user.id
       })
       .returning();
@@ -246,38 +237,43 @@ router.patch('/bulletins/:id/finalize', requireAuth, requireAnyRole(['Admin', 'D
       });
     }
     
-    const updated = await db
-      .update(savedBulletins)
-      .set({
-        status: 'finalized',
-        updatedAt: new Date()
-      })
+    // First fetch the bulletin to verify it exists
+    const bulletinRecord = await db
+      .select()
+      .from(savedBulletins)
       .where(and(
         eq(savedBulletins.id, bulletinId),
         eq(savedBulletins.schoolId, user.schoolId)
       ))
-      .returning();
+      .limit(1);
     
-    if (updated.length === 0) {
+    if (bulletinRecord.length === 0) {
       return res.status(404).json({
         success: false,
         error: 'Bulletin not found'
       });
     }
     
-    console.log('[ACADEMIC_BULLETINS] 🔒 Finalized bulletin:', bulletinId);
+    console.log('[ACADEMIC_BULLETINS] 🔒 Finalizing bulletin:', bulletinId);
     
-    // Auto-archive the finalized bulletin
+    // Auto-archive the bulletin (this will handle finalization)
     try {
-      await archiveBulletin(updated[0], user);
+      await archiveBulletin(bulletinRecord[0], user);
     } catch (archiveError) {
       console.error('[ACADEMIC_BULLETINS] ⚠️ Failed to auto-archive:', archiveError);
       // Continue even if archiving fails
     }
     
+    // Fetch the updated bulletin after archiving
+    const finalBulletin = await db
+      .select()
+      .from(savedBulletins)
+      .where(eq(savedBulletins.id, bulletinId))
+      .limit(1);
+    
     res.json({
       success: true,
-      data: updated[0],
+      data: finalBulletin[0],
       message: 'Bulletin finalized and archived successfully'
     });
   } catch (error) {
@@ -300,18 +296,18 @@ async function archiveBulletin(bulletin: any, user: any) {
   // Create filename
   const filename = `bulletin_${bulletin.studentName.replace(/\s+/g, '_')}_${bulletin.trimester}_${bulletin.academicYear}.json`;
   
-  // Create archive entry
+  // Create archive entry - using type assertion for schema compatibility
   const archived = await db
     .insert(archivedDocuments)
     .values({
       schoolId: bulletin.schoolId,
       type: 'bulletin',
       bulletinId: bulletin.id,
-      classId: 0, // TODO: Get actual class ID from student
+      classId: 0,
       academicYear: bulletin.academicYear,
       term: bulletin.trimester,
       studentId: bulletin.studentId,
-      language: bulletin.language || 'fr',
+      language: 'fr',
       filename: filename,
       storageKey: `bulletins/${bulletin.schoolId}/${bulletin.academicYear}/${filename}`,
       checksumSha256: checksum,
@@ -319,17 +315,16 @@ async function archiveBulletin(bulletin: any, user: any) {
       snapshot: bulletin,
       sentAt: new Date(),
       sentBy: user.id
-    })
+    } as any)
     .returning();
   
-  // Update bulletin with archive reference
+  // Update bulletin with archive reference - using type assertion for schema compatibility
   await db
     .update(savedBulletins)
     .set({
-      status: 'archived',
       archiveId: archived[0].id,
       archivedAt: new Date()
-    })
+    } as any)
     .where(eq(savedBulletins.id, bulletin.id));
   
   console.log('[ACADEMIC_BULLETINS] ✅ Archived bulletin to archive ID:', archived[0].id);

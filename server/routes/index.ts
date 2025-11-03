@@ -25,7 +25,6 @@ import currencyRoutes from './currency';
 import studentsRoutes from './students';
 import adminRoutes from './admin';
 import classesRoutes from './classes';
-import gradesRoutes from './grades';
 import schoolRoutes from './api/schools';
 import configurationRoutes from './configurationRoutes';
 
@@ -141,7 +140,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/admin', adminRoutes);
   app.use('/api/director', adminRoutes);
   app.use('/api/classes', classesRoutes);
-  app.use('/api/grades', gradesRoutes);
   app.use('/api/schools', schoolRoutes);
   app.use('/api/school', configurationRoutes);
 

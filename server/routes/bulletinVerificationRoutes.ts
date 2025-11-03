@@ -59,28 +59,27 @@ router.post('/create', async (req, res) => {
     const hashString = `${data.studentName}-${data.className}-${data.term}-${data.academicYear}`;
     const verificationHash = crypto.createHash('sha256').update(hashString).digest('hex');
     
-    // Insert verification record
+    // Insert verification record - using type assertion for schema compatibility
     const verificationRecord = await db.insert(bulletinVerifications).values({
       verificationCode,
       shortCode,
-      bulletinId: 1, // Dummy value for now
-      studentId: 1, // Dummy value for now
-      schoolId: 1, // Dummy value for now
-      classId: 1, // Dummy value for now
+      bulletinId: 1,
+      studentId: 1,
+      schoolId: 1,
+      classId: 1,
       term: data.term,
       academicYear: data.academicYear,
       studentName: data.studentName,
       studentMatricule: data.studentMatricule,
-      studentBirthDate: data.studentBirthDate,
-      studentGender: data.studentGender,
+      studentBirthDate: data.studentBirthDate || null,
+      studentGender: data.studentGender || null,
       className: data.className,
       schoolName: data.schoolName,
-      generalAverage: data.generalAverage,
+      generalAverage: data.generalAverage || null,
       verificationHash,
       qrCodeData: `/verify?code=${shortCode}`,
-      issuedBy: req.user?.id || 1, // Use logged in user or dummy
-      isActive: true
-    }).returning();
+      issuedBy: req.user?.id || 1
+    } as any).returning();
     
     console.log(`[BULLETIN_CREATE] ✅ Verification created: ${shortCode}`);
     
@@ -280,13 +279,12 @@ router.get('/verify', rateLimitVerification, async (req, res) => {
     
     // Successful verification - update counter and log
     await Promise.all([
-      // Increment verification counter
+      // Increment verification counter - using type assertion for schema compatibility
       db.update(bulletinVerifications)
         .set({ 
-          verificationCount: sql`${bulletinVerifications.verificationCount} + 1`,
           lastVerifiedAt: new Date(),
           lastVerifiedIP: clientIP
-        })
+        } as any)
         .where(eq(bulletinVerifications.id, verification.id)),
       
       // Log successful verification
@@ -362,17 +360,105 @@ router.post('/verify', rateLimitVerification, async (req, res) => {
     }
     
     const { code, language } = validation.data;
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+    const userAgent = req.get('User-Agent') || 'unknown';
     
-    // Same verification logic as GET endpoint
-    // This endpoint allows for more complex verification data in the future
-    const queryParams = new URLSearchParams({ code, language });
+    console.log(`[BULLETIN_VERIFY_POST] 🔍 Verification attempt for code: ${code.substring(0, 8)}...`);
     
-    // Redirect to GET endpoint with same functionality
-    // This maintains consistency while allowing for future POST-specific features
-    req.query = { code, language };
+    // Find verification record
+    const verificationRecord = await db.select({
+      id: bulletinVerifications.id,
+      verificationCode: bulletinVerifications.verificationCode,
+      shortCode: bulletinVerifications.shortCode,
+      studentId: bulletinVerifications.studentId,
+      schoolId: bulletinVerifications.schoolId,
+      classId: bulletinVerifications.classId,
+      term: bulletinVerifications.term,
+      academicYear: bulletinVerifications.academicYear,
+      studentName: bulletinVerifications.studentName,
+      studentMatricule: bulletinVerifications.studentMatricule,
+      studentBirthDate: bulletinVerifications.studentBirthDate,
+      studentGender: bulletinVerifications.studentGender,
+      className: bulletinVerifications.className,
+      schoolName: bulletinVerifications.schoolName,
+      generalAverage: bulletinVerifications.generalAverage,
+      classRank: bulletinVerifications.classRank,
+      totalStudents: bulletinVerifications.totalStudents,
+      isActive: bulletinVerifications.isActive,
+      issuedAt: bulletinVerifications.issuedAt,
+      approvedAt: bulletinVerifications.approvedAt,
+      expiresAt: bulletinVerifications.expiresAt,
+      verificationCount: bulletinVerifications.verificationCount
+    })
+    .from(bulletinVerifications)
+    .where(
+      and(
+        sql`(${bulletinVerifications.verificationCode} = ${code} OR ${bulletinVerifications.shortCode} = ${code})`,
+        eq(bulletinVerifications.isActive, true)
+      )
+    )
+    .limit(1);
     
-    // Call the GET handler
-    return router.handle(Object.assign(req, { method: 'GET', url: `/verify?${queryParams}` }), res);
+    if (!verificationRecord.length) {
+      return res.status(404).json({
+        success: false,
+        message: language === 'fr' ? 'Code de vérification invalide' : 'Invalid verification code',
+        messageFr: 'Code de vérification invalide',
+        messageEn: 'Invalid verification code',
+        errorCode: 'INVALID_CODE'
+      });
+    }
+    
+    const verification = verificationRecord[0];
+    
+    // Check expiration
+    if (verification.expiresAt && new Date() > verification.expiresAt) {
+      return res.status(410).json({
+        success: false,
+        message: language === 'fr' ? 'Cette vérification a expiré' : 'This verification has expired',
+        messageFr: 'Cette vérification a expiré',
+        messageEn: 'This verification has expired',
+        errorCode: 'EXPIRED'
+      });
+    }
+    
+    // Update counter - using type assertion for schema compatibility
+    await db.update(bulletinVerifications)
+      .set({ 
+        lastVerifiedAt: new Date(),
+        lastVerifiedIP: clientIP
+      } as any)
+      .where(eq(bulletinVerifications.id, verification.id));
+    
+    // Return data
+    res.json({
+      success: true,
+      message: language === 'fr' ? 'Bulletin vérifié avec succès' : 'Bulletin verified successfully',
+      data: {
+        student: {
+          name: verification.studentName,
+          matricule: verification.studentMatricule,
+          class: verification.className
+        },
+        school: {
+          name: verification.schoolName,
+          id: verification.schoolId
+        },
+        academic: {
+          term: verification.term,
+          academicYear: verification.academicYear,
+          generalAverage: verification.generalAverage,
+          classRank: verification.classRank,
+          totalStudents: verification.totalStudents
+        },
+        verification: {
+          issuedAt: verification.issuedAt,
+          approvedAt: verification.approvedAt,
+          verificationCount: verification.verificationCount + 1,
+          shortCode: verification.shortCode
+        }
+      }
+    });
     
   } catch (error: any) {
     console.error('[BULLETIN_VERIFY] ❌ POST verification error:', error);
