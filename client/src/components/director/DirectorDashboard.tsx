@@ -319,13 +319,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       color: 'bg-gradient-to-r from-blue-500 to-cyan-500'
     },
     {
-      id: 'canteen',
+      id: 'canteen-management',
       label: t.canteen,
       icon: <UtensilsCrossed className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-orange-500 to-red-500'
     },
     {
-      id: 'bus',
+      id: 'bus-management',
       label: t.bus,
       icon: <Bus className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-yellow-500 to-orange-500'

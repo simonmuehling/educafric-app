@@ -44,8 +44,10 @@ class FastModuleLoader {
       'content-approval': () => import('@/components/director/modules/EducationalContentApproval'),
       'academic-management': () => import('@/components/director/modules/AcademicManagementSuite'),
       'online-classes': () => import('@/components/director/modules/OnlineClassesManager'),
-      'canteen': () => import('@/pages/CanteenPage'),
-      'bus': () => import('@/pages/BusTrackingPage'),
+      'canteen': () => import('@/pages/CanteenPage'), // Student/Parent view
+      'bus': () => import('@/pages/BusTrackingPage'), // Student/Parent view
+      'canteen-management': () => import('@/components/director/modules/CanteenManagement'), // Director management
+      'bus-management': () => import('@/components/director/modules/BusManagement'), // Director management
       
       
       // =============================================
