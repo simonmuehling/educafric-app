@@ -3327,7 +3327,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                     data-testid="button-send-parents"
                     disabled={!isSigned}
                   >
-                    <Send className="h-5 w-5 text-white" />
+                    <Users className="h-5 w-5 text-white" />
                     <div className="text-center text-white">
                       <div className="font-semibold text-sm">
                         {language === 'fr' ? 'Envoyer aux Élèves/Parents' : 'Send to Students/Parents'}
