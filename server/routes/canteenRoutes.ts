@@ -2,6 +2,10 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { requireAuth, requireAnyRole } from "../middleware/auth";
 import { insertCanteenMenuSchema, insertCanteenReservationSchema } from "@shared/schema";
+import { canteenNotificationService } from "../services/canteenNotificationService";
+import { db } from "../db";
+import { users, schools } from "../../shared/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -116,6 +120,42 @@ router.post("/reservations", requireAuth, async (req, res) => {
     const validated = insertCanteenReservationSchema.parse(req.body);
     const reservation = await storage.createCanteenReservation(validated);
 
+    // Send notification to parents
+    try {
+      const student = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        schoolId: users.schoolId
+      })
+      .from(users)
+      .where(eq(users.id, validated.studentId))
+      .limit(1);
+
+      if (student && student[0]) {
+        const school = await db.select({ name: schools.name })
+          .from(schools)
+          .where(eq(schools.id, student[0].schoolId || 0))
+          .limit(1);
+
+        const menu = await storage.getCanteenMenuById(validated.menuId);
+
+        await canteenNotificationService.sendReservationNotification({
+          studentId: student[0].id,
+          studentName: `${student[0].firstName} ${student[0].lastName}`,
+          menuDate: menu?.date || validated.reservedDate,
+          mealType: menu?.mealNameFr || 'Menu',
+          price: menu?.price || '0',
+          schoolName: school?.[0]?.name || 'École'
+        });
+        
+        console.log('[CANTEEN] 📧 Notification sent to parents');
+      }
+    } catch (notifError) {
+      console.error('[CANTEEN] Failed to send notification:', notifError);
+      // Don't block the reservation creation
+    }
+
     res.status(201).json(reservation);
   } catch (error: any) {
     console.error("[CANTEEN] Error creating reservation:", error);
@@ -175,6 +215,40 @@ router.post("/balance/:studentId/add", requireAuth, requireAnyRole(['Director', 
     }
 
     const balance = await storage.addToCanteenBalance(studentId, amount);
+
+    // Send notification to parents
+    try {
+      const student = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        schoolId: users.schoolId
+      })
+      .from(users)
+      .where(eq(users.id, studentId))
+      .limit(1);
+
+      if (student && student[0]) {
+        const school = await db.select({ name: schools.name })
+          .from(schools)
+          .where(eq(schools.id, student[0].schoolId || 0))
+          .limit(1);
+
+        await canteenNotificationService.sendBalanceNotification({
+          studentId: student[0].id,
+          studentName: `${student[0].firstName} ${student[0].lastName}`,
+          amount: amount,
+          currentBalance: balance.balance,
+          actionType: 'add',
+          schoolName: school?.[0]?.name || 'École'
+        });
+
+        console.log('[CANTEEN] 📧 Balance notification sent to parents');
+      }
+    } catch (notifError) {
+      console.error('[CANTEEN] Failed to send balance notification:', notifError);
+    }
+
     res.json(balance);
   } catch (error: any) {
     console.error("[CANTEEN] Error adding to balance:", error);

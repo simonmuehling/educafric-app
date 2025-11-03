@@ -2,6 +2,10 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { requireAuth, requireAnyRole } from "../middleware/auth";
 import { insertBusRouteSchema, insertBusStationSchema, insertBusStudentSchema } from "@shared/schema";
+import { busNotificationService } from "../services/busNotificationService";
+import { db } from "../db";
+import { users, schools } from "../../shared/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -198,6 +202,46 @@ router.post("/enrollments", requireAuth, requireAnyRole(['Director', 'Teacher'])
     const validated = insertBusStudentSchema.parse(req.body);
     const enrollment = await storage.enrollBusStudent(validated);
 
+    // Send notification to parents
+    try {
+      const student = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        schoolId: users.schoolId
+      })
+      .from(users)
+      .where(eq(users.id, validated.studentId))
+      .limit(1);
+
+      if (student && student[0]) {
+        const school = await db.select({ name: schools.name })
+          .from(schools)
+          .where(eq(schools.id, student[0].schoolId || 0))
+          .limit(1);
+
+        const route = await storage.getBusRouteById(validated.routeId);
+        const station = validated.stationId 
+          ? await storage.getBusStationById(validated.stationId)
+          : null;
+
+        await busNotificationService.sendEnrollmentNotification({
+          studentId: student[0].id,
+          studentName: `${student[0].firstName} ${student[0].lastName}`,
+          routeName: route?.busNameFr || route?.busName || 'Bus Route',
+          stationName: station?.stationNameFr,
+          pickupTime: station?.stationTime,
+          schoolName: school?.[0]?.name || 'École',
+          actionType: 'enrollment'
+        });
+
+        console.log('[BUS] 📧 Enrollment notification sent to parents');
+      }
+    } catch (notifError) {
+      console.error('[BUS] Failed to send notification:', notifError);
+      // Don't block the enrollment
+    }
+
     res.status(201).json(enrollment);
   } catch (error: any) {
     console.error("[BUS] Error enrolling student:", error);
@@ -224,7 +268,42 @@ router.delete("/enrollments/:studentId/:routeId", requireAuth, requireAnyRole(['
     const studentId = parseInt(req.params.studentId);
     const routeId = parseInt(req.params.routeId);
     
+    // Get student and route info before unenrolling
+    const student = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      schoolId: users.schoolId
+    })
+    .from(users)
+    .where(eq(users.id, studentId))
+    .limit(1);
+
+    const route = await storage.getBusRouteById(routeId);
+
     await storage.unenrollBusStudent(studentId, routeId);
+
+    // Send notification to parents
+    try {
+      if (student && student[0] && route) {
+        const school = await db.select({ name: schools.name })
+          .from(schools)
+          .where(eq(schools.id, student[0].schoolId || 0))
+          .limit(1);
+
+        await busNotificationService.sendEnrollmentNotification({
+          studentId: student[0].id,
+          studentName: `${student[0].firstName} ${student[0].lastName}`,
+          routeName: route.busNameFr || route.busName || 'Bus Route',
+          schoolName: school?.[0]?.name || 'École',
+          actionType: 'unenrollment'
+        });
+
+        console.log('[BUS] 📧 Unenrollment notification sent to parents');
+      }
+    } catch (notifError) {
+      console.error('[BUS] Failed to send notification:', notifError);
+    }
 
     res.json({ message: "Student unenrolled successfully" });
   } catch (error: any) {
