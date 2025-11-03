@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
+import ReportCardPreview from '@/components/academic/ReportCardPreview';
 
 interface BulletinPreviewGalleryProps {
   selectedClass?: string;
@@ -261,105 +262,133 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
                   const average = bulletin.average || calculateAverage(bulletin.subjects || []);
                   const subjects = Array.isArray(bulletin.subjects) ? bulletin.subjects : [];
                   
+                  // Prepare bulletin data for ReportCardPreview
+                  const bulletinData = {
+                    student: {
+                      name: bulletin.studentName,
+                      id: bulletin.studentId?.toString() || '',
+                      classLabel: bulletin.classLabel,
+                      classSize: 30,
+                      birthDate: '',
+                      birthPlace: '',
+                      gender: '',
+                      headTeacher: '',
+                      guardian: '',
+                      isRepeater: false,
+                      numberOfSubjects: subjects.length,
+                      numberOfPassed: subjects.filter((s: any) => (s.grade || 0) >= 10).length
+                    },
+                    subjects: subjects.map((s: any, idx: number) => ({
+                      ...s,
+                      id: s.id || idx.toString(),
+                      name: s.name || '',
+                      teacher: s.teacher || '',
+                      coefficient: s.coefficient || 1,
+                      grade: s.grade || 0,
+                      remark: s.remark || '',
+                      note1: s.note1 || s.grade || 0,
+                      moyenneFinale: s.moyenneFinale || s.grade || 0,
+                      totalPondere: (s.grade || 0) * (s.coefficient || 1),
+                      cote: s.cote || ''
+                    })),
+                    discipline: bulletin.discipline || {
+                      absJ: 0,
+                      absNJ: 0,
+                      late: 0,
+                      sanctions: 0,
+                      punishmentHours: 0,
+                      conductWarning: 0,
+                      conductBlame: 0,
+                      suspension: 0,
+                      dismissal: 0
+                    },
+                    generalRemark: bulletin.generalRemark || '',
+                    trimester: bulletin.trimester || 'Premier',
+                    academicYear: bulletin.academicYear || '2024-2025',
+                    bulletinType: (bulletin.bulletinType || 'general-fr') as any,
+                    average: parseFloat(average.toString()),
+                    rank: 0,
+                    totalStudents: 30
+                  };
+                  
                   return (
                   <Card
                     key={bulletin.id}
-                    className="hover:shadow-lg transition-shadow border-2 border-gray-200 dark:border-gray-700"
+                    className="hover:shadow-xl transition-all border-2 border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer group"
                     data-testid={`bulletin-card-${bulletin.id}`}
+                    onClick={() => handleViewBulletin(bulletin.id)}
                   >
-                    {/* Preview Thumbnail */}
-                    <div className="relative h-48 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 flex items-center justify-center border-b border-gray-200 dark:border-gray-700">
-                      <div className="text-center">
-                        <GraduationCap className="w-16 h-16 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                        <p className="text-4xl font-bold text-blue-700 dark:text-blue-300">
-                          {average}<span className="text-2xl">/20</span>
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {subjects.length} {t.subjects}
-                        </p>
+                    {/* Visual Preview Thumbnail with Status Badge */}
+                    <div className="relative bg-white dark:bg-gray-900">
+                      {/* Scaled down ReportCardPreview */}
+                      <div className="overflow-hidden" style={{ height: '400px' }}>
+                        <div style={{ 
+                          transform: 'scale(0.25)', 
+                          transformOrigin: 'top left',
+                          width: '400%',
+                          pointerEvents: 'none'
+                        }}>
+                          <ReportCardPreview {...bulletinData} bulletinType={bulletinData.bulletinType} />
+                        </div>
                       </div>
-                      {getStatusBadge(bulletin.normalizedStatus)}
-                    </div>
-
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        {/* Student Info */}
-                        <div>
-                          <div className="flex items-start gap-2">
-                            <User className="w-4 h-4 text-gray-500 dark:text-gray-400 mt-0.5" />
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-lg truncate" data-testid={`student-name-${bulletin.id}`}>
-                                {bulletin.studentName || 'Student Name'}
-                              </h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`class-name-${bulletin.id}`}>
-                                {bulletin.classLabel || 'Class'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Term and Year */}
-                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                          <Calendar className="w-4 h-4" />
-                          <span>
-                            {bulletin.trimester || 'T1'} • {bulletin.academicYear || '2024-2025'}
-                          </span>
-                        </div>
-
-                        {/* Statistics */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-center">
-                            <Award className="w-4 h-4 text-blue-600 dark:text-blue-400 mx-auto mb-1" />
-                            <p className="text-xs text-gray-600 dark:text-gray-400">{t.average}</p>
-                            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                              {average}
-                            </p>
-                          </div>
-                          <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded text-center">
-                            <FileText className="w-4 h-4 text-green-600 dark:text-green-400 mx-auto mb-1" />
-                            <p className="text-xs text-gray-600 dark:text-gray-400">{t.subjects}</p>
-                            <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                              {subjects.length}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Created Date */}
-                        {bulletin.createdAt && (
-                          <p className="text-xs text-gray-500 dark:text-gray-500">
-                            {t.createdOn}: {format(new Date(bulletin.createdAt), 'PP', { locale: language === 'fr' ? fr : enUS })}
-                          </p>
-                        )}
-
-                        {/* Actions */}
-                        <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                      
+                      {/* Overlay with gradient for better readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      
+                      {/* Status Badge */}
+                      <div className="absolute top-2 right-2">
+                        {getStatusBadge(bulletin.normalizedStatus)}
+                      </div>
+                      
+                      {/* Hover Actions Overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
-                            variant="outline"
-                            onClick={() => handleViewBulletin(bulletin.id)}
-                            className="flex-1"
+                            variant="default"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewBulletin(bulletin.id);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700"
                             data-testid={`button-view-${bulletin.id}`}
                           >
-                            <Eye className="w-3 h-3 mr-1" />
+                            <Eye className="w-4 h-4 mr-1" />
                             {t.view}
                           </Button>
                           <Button
                             size="sm"
-                            variant="outline"
-                            onClick={() => handleDownloadBulletin(bulletin.id, bulletin.studentName)}
+                            variant="default"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadBulletin(bulletin.id, bulletin.studentName);
+                            }}
+                            className="bg-green-600 hover:bg-green-700"
                             data-testid={`button-download-${bulletin.id}`}
                           >
-                            <Download className="w-3 h-3 mr-1" />
+                            <Download className="w-4 h-4 mr-1" />
                             PDF
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handlePrintBulletin(bulletin.id)}
-                            data-testid={`button-print-${bulletin.id}`}
-                          >
-                            <Printer className="w-3 h-3" />
-                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Info Footer */}
+                    <CardContent className="p-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-sm truncate" data-testid={`student-name-${bulletin.id}`}>
+                            {bulletin.studentName}
+                          </h4>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                            {bulletin.classLabel} • {bulletin.trimester}
+                          </p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                            {average}
+                          </p>
+                          <p className="text-xs text-gray-500">/ 20</p>
                         </div>
                       </div>
                     </CardContent>
