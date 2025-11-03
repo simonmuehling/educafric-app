@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   BookOpen, Calendar, FileText, MessageSquare, User, Clock, 
-  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart, Video, GraduationCap
+  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart, Video, GraduationCap, UtensilsCrossed, Bus
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: All modules loaded dynamically for ultra-fast loading
@@ -111,7 +111,9 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       notifications: 'Notifications',
       settings: 'Paramètres',
       help: 'Aide',
-      parentConnection: 'Trouver mes parents'
+      parentConnection: 'Trouver mes parents',
+      canteen: 'Cantine',
+      bus: 'Transport Scolaire'
     },
     en: {
       title: 'Student Dashboard',
@@ -129,7 +131,9 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       notifications: 'Notifications',
       settings: 'Settings',
       help: 'Help',
-      parentConnection: 'Find my parents'
+      parentConnection: 'Find my parents',
+      canteen: 'Canteen',
+      bus: 'School Bus'
     }
   };
 
@@ -177,6 +181,18 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.progress,
       icon: <Target className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-yellow-500'
+    },
+    {
+      id: 'canteen',
+      label: t.canteen,
+      icon: <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-gradient-to-r from-orange-500 to-red-500'
+    },
+    {
+      id: 'bus',
+      label: t.bus,
+      icon: <Bus className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-gradient-to-r from-yellow-500 to-orange-500'
     },
     {
       id: 'messages',
