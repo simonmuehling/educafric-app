@@ -3343,8 +3343,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         </CardContent>
       </Card>
 
-      {/* Preview with Print Functionality */}
-      {showPreview && (
+      {/* Preview with Print Functionality - Hidden for Teachers */}
+      {showPreview && effectiveRole !== 'teacher' && (
         <Card>
           <CardHeader>
             <CardTitle>{TRIMESTER_TITLES[language](trimester)}</CardTitle>
@@ -3474,15 +3474,18 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
               💾 {language === 'fr' ? 'Sauver' : 'Save'}
             </Button>
             
-            <Button 
-              variant="default" 
-              size="sm" 
-              onClick={() => setShowPreview(true)}
-              className="min-h-[44px] px-4 bg-blue-600 hover:bg-blue-700"
-              data-testid="mobile-preview-bulletin"
-            >
-              👁️ {language === 'fr' ? 'Aperçu' : 'Preview'}
-            </Button>
+            {/* Preview button - Hidden for Teachers */}
+            {effectiveRole !== 'teacher' && (
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={() => setShowPreview(true)}
+                className="min-h-[44px] px-4 bg-blue-600 hover:bg-blue-700"
+                data-testid="mobile-preview-bulletin"
+              >
+                👁️ {language === 'fr' ? 'Aperçu' : 'Preview'}
+              </Button>
+            )}
           </div>
         </div>
       </div>
