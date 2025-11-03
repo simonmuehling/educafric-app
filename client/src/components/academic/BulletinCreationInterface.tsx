@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer, Users, Info, Send, PenTool } from 'lucide-react';
+import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer, Users, Info, Send, PenTool, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -3240,6 +3240,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                     variant="outline"
                     className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50"
                     data-testid="button-save-bulletin"
+                    disabled={!student.name || !student.classLabel}
                   >
                     <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     <div className="text-center">
@@ -3247,7 +3248,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                         {language === 'fr' ? 'Sauvegarder' : 'Save'}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {language === 'fr' ? 'Enregistrer les modifications' : 'Save changes'}
+                        {language === 'fr' ? 'Enregistrer dans Archives' : 'Save to Archives'}
                       </div>
                     </div>
                   </Button>
@@ -3261,7 +3262,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                         : 'border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950/50'
                     }`}
                     data-testid="button-sign-bulletin"
-                    disabled={isSigned}
+                    disabled={isSigned || !student.name || !student.classLabel}
                   >
                     <PenTool className={`h-5 w-5 ${isSigned ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`} />
                     <div className="text-center">
@@ -3294,6 +3295,26 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                     </div>
                   </Button>
                 </div>
+                
+                {/* Reminder to select student */}
+                {(!student.name || !student.classLabel) && (
+                  <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
+                    <div className="flex gap-3">
+                      <AlertCircle className="h-5 w-5 text-yellow-700 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-1">
+                          {language === 'fr' ? 'Élève non sélectionné' : 'No student selected'}
+                        </h4>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          {language === 'fr' 
+                            ? 'Veuillez remplir les informations de l\'élève (Nom, Classe) avant de sauvegarder ou signer le bulletin.'
+                            : 'Please fill in student information (Name, Class) before saving or signing the bulletin.'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
