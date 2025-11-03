@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,9 +26,12 @@ import {
   Eye,
   Search,
   School,
-  UserCheck
+  UserCheck,
+  FileSignature
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
+
+const ComprehensiveBulletinGenerator = lazy(() => import('./ComprehensiveBulletinGenerator'));
 
 /**************************** CONFIG ****************************/
 const SUBJECTS_CONFIG = [
@@ -1714,10 +1717,14 @@ export default function AcademicManagementSuite() {
         <Card>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader className="pb-3">
-            <TabsList ref={tabsListRef} className="grid w-full grid-cols-4">
+            <TabsList ref={tabsListRef} className="grid w-full grid-cols-5">
               <TabsTrigger value="bulletins" className="flex items-center gap-2" data-testid="tab-bulletins">
-                <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Marksheet'}</span>
+                <FileSignature className="h-4 w-4" />
+                <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Report Cards'}</span>
+              </TabsTrigger>
+              <TabsTrigger value="validation" className="flex items-center gap-2" data-testid="tab-validation">
+                <CheckCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">{language === 'fr' ? 'Validation Notes' : 'Grade Validation'}</span>
               </TabsTrigger>
               <TabsTrigger value="mastersheet" className="flex items-center gap-2" data-testid="tab-mastersheet">
                 <FileSpreadsheet className="h-4 w-4" />
@@ -1736,16 +1743,21 @@ export default function AcademicManagementSuite() {
 
           <CardContent>
             <TabsContent value="bulletins" className="mt-0 space-y-4">
-              {/* Bulletins soumis par les enseignants */}
+              <Suspense fallback={
+                <div className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                  <p className="text-indigo-600">
+                    {language === 'fr' ? 'Chargement du générateur de bulletins...' : 'Loading bulletin generator...'}
+                  </p>
+                </div>
+              }>
+                <ComprehensiveBulletinGenerator />
+              </Suspense>
+            </TabsContent>
+
+            <TabsContent value="validation" className="mt-0 space-y-4">
               <TeacherSubmittedBulletins />
-              
-              {/* Interface de création de bulletins */}
               <TeacherSubmissionsManager selectedClass={selectedClass} selectedTerm={selectedTerm} />
-              <BulletinCreationInterface 
-                defaultClass={selectedClass}
-                defaultTerm={selectedTerm}
-                defaultYear="2025/2026"
-              />
             </TabsContent>
 
             <TabsContent value="mastersheet" className="mt-0">
