@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer, Users, Info } from 'lucide-react';
+import { Plus, Minus, FileText, Download, Eye, Upload, Camera, School, Printer, Users, Info, Send, PenTool } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -185,13 +185,17 @@ interface BulletinCreationInterfaceProps {
   defaultClass?: string;
   defaultTerm?: string;
   defaultYear?: string;
+  userRole?: 'teacher' | 'director'; // Specify user role to show appropriate actions
 }
 
 export default function BulletinCreationInterface(props: BulletinCreationInterfaceProps = {}) {
-  const { defaultClass, defaultTerm, defaultYear } = props;
+  const { defaultClass, defaultTerm, defaultYear, userRole } = props;
   const { language } = useLanguage();
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Determine effective user role (from prop or from user context)
+  const effectiveRole = userRole || user?.role || 'teacher';
 
   // Fetch school data to determine educational type
   const { data: schoolData } = useQuery({
@@ -3107,110 +3111,188 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             </Card>
           )}
 
-          {/* Actions Enseignant Section */}
+          {/* Actions Section - Different for Teacher vs Director */}
           <div className="print:hidden no-print mt-8 mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              {language === 'fr' ? 'Actions Enseignant' : 'Teacher Actions'}
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              {language === 'fr' 
-                ? 'Les enseignants soumettent les notes uniquement à l\'école. L\'école gère la signature et l\'envoi aux parents.'
-                : 'Teachers submit grades only to the school. The school manages signing and sending to parents.'
-              }
-            </p>
-            
-            {/* Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Button
-                onClick={handleSaveBulletin}
-                variant="outline"
-                className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50"
-                data-testid="button-save-draft"
-              >
-                <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <div className="text-center">
-                  <div className="font-semibold text-sm">
-                    {language === 'fr' ? 'Sauvegarder Brouillon' : 'Save Draft'}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {language === 'fr' ? 'Travail temporaire' : 'Temporary work'}
-                  </div>
-                </div>
-              </Button>
+            {effectiveRole === 'teacher' ? (
+              <>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  {language === 'fr' ? 'Actions Enseignant' : 'Teacher Actions'}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  {language === 'fr' 
+                    ? 'Les enseignants soumettent les notes uniquement à l\'école. L\'école gère la signature et l\'envoi aux parents.'
+                    : 'Teachers submit grades only to the school. The school manages signing and sending to parents.'
+                  }
+                </p>
+                
+                {/* Teacher Action Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Button
+                    onClick={handleSaveBulletin}
+                    variant="outline"
+                    className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                    data-testid="button-save-draft"
+                  >
+                    <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <div className="text-center">
+                      <div className="font-semibold text-sm">
+                        {language === 'fr' ? 'Sauvegarder Brouillon' : 'Save Draft'}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {language === 'fr' ? 'Travail temporaire' : 'Temporary work'}
+                      </div>
+                    </div>
+                  </Button>
 
-              <Button
-                variant="outline"
-                className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/50"
-                data-testid="button-archive-class"
-              >
-                <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <div className="text-center">
-                  <div className="font-semibold text-sm">
-                    {language === 'fr' ? 'Archiver par Classe' : 'Archive by Class'}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {language === 'fr' ? 'Organisation par classe' : 'Class organization'}
-                  </div>
-                </div>
-              </Button>
+                  <Button
+                    variant="outline"
+                    className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/50"
+                    data-testid="button-archive-class"
+                  >
+                    <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    <div className="text-center">
+                      <div className="font-semibold text-sm">
+                        {language === 'fr' ? 'Archiver par Classe' : 'Archive by Class'}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {language === 'fr' ? 'Organisation par classe' : 'Class organization'}
+                      </div>
+                    </div>
+                  </Button>
 
-              <Button
-                onClick={sendToStudentsParents}
-                className="flex flex-col items-center gap-2 h-auto py-4 bg-green-600 hover:bg-green-700 border-2 border-green-500"
-                data-testid="button-submit-school"
-              >
-                <Upload className="h-5 w-5 text-white" />
-                <div className="text-center text-white">
-                  <div className="font-semibold text-sm">
-                    {language === 'fr' ? 'Soumettre à l\'École' : 'Submit to School'}
-                  </div>
-                  <div className="text-xs opacity-90">
-                    {language === 'fr' ? 'Validation finale par l\'école' : 'Final validation by school'}
-                  </div>
+                  <Button
+                    onClick={sendToStudentsParents}
+                    className="flex flex-col items-center gap-2 h-auto py-4 bg-green-600 hover:bg-green-700 border-2 border-green-500"
+                    data-testid="button-submit-school"
+                  >
+                    <Upload className="h-5 w-5 text-white" />
+                    <div className="text-center text-white">
+                      <div className="font-semibold text-sm">
+                        {language === 'fr' ? 'Soumettre à l\'École' : 'Submit to School'}
+                      </div>
+                      <div className="text-xs opacity-90">
+                        {language === 'fr' ? 'Validation finale par l\'école' : 'Final validation by school'}
+                      </div>
+                    </div>
+                  </Button>
                 </div>
-              </Button>
-            </div>
 
-            {/* Teacher Role Reminder */}
-            <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
-              <div className="flex gap-3">
-                <Info className="h-5 w-5 text-yellow-700 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-2">
-                    {language === 'fr' ? 'Rappel du rôle enseignant :' : 'Teacher role reminder:'}
-                  </h4>
-                  <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                    <li className="flex items-start gap-2">
-                      <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
-                      <span>
-                        {language === 'fr' 
-                          ? 'Les enseignants soumettent les notes uniquement à l\'école'
-                          : 'Teachers submit grades only to the school'
-                        }
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
-                      <span>
-                        {language === 'fr'
-                          ? 'L\'école valide, signe et envoie aux parents'
-                          : 'The school validates, signs and sends to parents'
-                        }
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
-                      <span>
-                        {language === 'fr'
-                          ? 'Aucune communication directe enseignant ↔ parents via cette interface'
-                          : 'No direct teacher ↔ parent communication via this interface'
-                        }
-                      </span>
-                    </li>
-                  </ul>
+                {/* Teacher Role Reminder */}
+                <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
+                  <div className="flex gap-3">
+                    <Info className="h-5 w-5 text-yellow-700 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-2">
+                        {language === 'fr' ? 'Rappel du rôle enseignant :' : 'Teacher role reminder:'}
+                      </h4>
+                      <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                        <li className="flex items-start gap-2">
+                          <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
+                          <span>
+                            {language === 'fr' 
+                              ? 'Les enseignants soumettent les notes uniquement à l\'école'
+                              : 'Teachers submit grades only to the school'
+                            }
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
+                          <span>
+                            {language === 'fr'
+                              ? 'L\'école valide, signe et envoie aux parents'
+                              : 'The school validates, signs and sends to parents'
+                            }
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-yellow-600 dark:text-yellow-500 mt-0.5">•</span>
+                          <span>
+                            {language === 'fr'
+                              ? 'Aucune communication directe enseignant ↔ parents via cette interface'
+                              : 'No direct teacher ↔ parent communication via this interface'
+                            }
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  {language === 'fr' ? 'Actions École' : 'School Actions'}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  {language === 'fr' 
+                    ? 'L\'école valide, signe et envoie les bulletins aux élèves et parents.'
+                    : 'The school validates, signs and sends report cards to students and parents.'
+                  }
+                </p>
+                
+                {/* Director Action Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Button
+                    onClick={handleSaveBulletin}
+                    variant="outline"
+                    className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                    data-testid="button-save-bulletin"
+                  >
+                    <Download className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <div className="text-center">
+                      <div className="font-semibold text-sm">
+                        {language === 'fr' ? 'Sauvegarder' : 'Save'}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {language === 'fr' ? 'Enregistrer les modifications' : 'Save changes'}
+                      </div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    onClick={handleSignBulletin}
+                    variant="outline"
+                    className={`flex flex-col items-center gap-2 h-auto py-4 border-2 ${
+                      isSigned 
+                        ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/50' 
+                        : 'border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950/50'
+                    }`}
+                    data-testid="button-sign-bulletin"
+                    disabled={isSigned}
+                  >
+                    <PenTool className={`h-5 w-5 ${isSigned ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`} />
+                    <div className="text-center">
+                      <div className="font-semibold text-sm">
+                        {isSigned 
+                          ? (language === 'fr' ? 'Signé ✓' : 'Signed ✓')
+                          : (language === 'fr' ? 'Signer le Bulletin' : 'Sign Bulletin')
+                        }
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {language === 'fr' ? 'Signature numérique' : 'Digital signature'}
+                      </div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    onClick={sendToStudentsParents}
+                    className="flex flex-col items-center gap-2 h-auto py-4 bg-green-600 hover:bg-green-700 border-2 border-green-500"
+                    data-testid="button-send-parents"
+                    disabled={!isSigned}
+                  >
+                    <Send className="h-5 w-5 text-white" />
+                    <div className="text-center text-white">
+                      <div className="font-semibold text-sm">
+                        {language === 'fr' ? 'Envoyer aux Élèves/Parents' : 'Send to Students/Parents'}
+                      </div>
+                      <div className="text-xs opacity-90">
+                        {language === 'fr' ? 'Notification et publication' : 'Notify and publish'}
+                      </div>
+                    </div>
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

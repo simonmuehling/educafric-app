@@ -1745,6 +1745,7 @@ export default function AcademicManagementSuite() {
                 defaultClass={selectedClass}
                 defaultTerm={selectedTerm}
                 defaultYear="2025/2026"
+                userRole="director"
               />
             </TabsContent>
 
