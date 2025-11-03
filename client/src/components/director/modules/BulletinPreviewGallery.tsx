@@ -95,13 +95,13 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
 
   // Fetch bulletins from API
   const { data: bulletinsData, isLoading } = useQuery({
-    queryKey: ['/api/director/bulletins', selectedClass, selectedTerm],
+    queryKey: ['/api/academic-bulletins/bulletins', selectedClass, selectedTerm],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedClass) params.append('classId', selectedClass);
       if (selectedTerm) params.append('term', selectedTerm);
       
-      const response = await fetch(`/api/director/bulletins?${params}`, {
+      const response = await fetch(`/api/academic-bulletins/bulletins?${params}`, {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch bulletins');
@@ -109,7 +109,7 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
     },
   });
 
-  const bulletins = bulletinsData?.bulletins || [];
+  const bulletins = bulletinsData?.data || [];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -150,7 +150,7 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
 
   const handleDownloadBulletin = async (bulletinId: number, studentName: string) => {
     try {
-      const response = await fetch(`/api/director/bulletins/${bulletinId}/download`, {
+      const response = await fetch(`/api/academic-bulletins/bulletins/${bulletinId}/download`, {
         credentials: 'include'
       });
       if (response.ok) {
@@ -232,7 +232,19 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredBulletins.map((bulletin: any) => (
+                {filteredBulletins.map((bulletin: any) => {
+                  // Calculate average from subjects if not provided
+                  const calculateAverage = (subjects: any[]) => {
+                    if (!Array.isArray(subjects) || subjects.length === 0) return 0;
+                    const totalWeighted = subjects.reduce((sum, s) => sum + (s.grade || 0) * (s.coefficient || 1), 0);
+                    const totalCoeff = subjects.reduce((sum, s) => sum + (s.coefficient || 1), 0);
+                    return totalCoeff > 0 ? (totalWeighted / totalCoeff).toFixed(2) : 0;
+                  };
+                  
+                  const average = bulletin.average || calculateAverage(bulletin.subjects || []);
+                  const subjects = Array.isArray(bulletin.subjects) ? bulletin.subjects : [];
+                  
+                  return (
                   <Card
                     key={bulletin.id}
                     className="hover:shadow-lg transition-shadow border-2 border-gray-200 dark:border-gray-700"
@@ -243,13 +255,13 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
                       <div className="text-center">
                         <GraduationCap className="w-16 h-16 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
                         <p className="text-4xl font-bold text-blue-700 dark:text-blue-300">
-                          {bulletin.average || '0.0'}<span className="text-2xl">/20</span>
+                          {average}<span className="text-2xl">/20</span>
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {bulletin.rank && `#${bulletin.rank}`}
+                          {subjects.length} {t.subjects}
                         </p>
                       </div>
-                      {getStatusBadge(bulletin.status)}
+                      {getStatusBadge(bulletin.status || 'completed')}
                     </div>
 
                     <CardContent className="p-4">
@@ -263,7 +275,7 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
                                 {bulletin.studentName || 'Student Name'}
                               </h4>
                               <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`class-name-${bulletin.id}`}>
-                                {bulletin.className || bulletin.classLabel || 'Class'}
+                                {bulletin.classLabel || 'Class'}
                               </p>
                             </div>
                           </div>
@@ -273,7 +285,7 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
                         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                           <Calendar className="w-4 h-4" />
                           <span>
-                            {bulletin.term} • {bulletin.academicYear || '2024-2025'}
+                            {bulletin.trimester || 'T1'} • {bulletin.academicYear || '2024-2025'}
                           </span>
                         </div>
 
@@ -283,14 +295,14 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
                             <Award className="w-4 h-4 text-blue-600 dark:text-blue-400 mx-auto mb-1" />
                             <p className="text-xs text-gray-600 dark:text-gray-400">{t.average}</p>
                             <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                              {bulletin.average || '0.0'}
+                              {average}
                             </p>
                           </div>
                           <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded text-center">
-                            <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400 mx-auto mb-1" />
-                            <p className="text-xs text-gray-600 dark:text-gray-400">{t.rank}</p>
+                            <FileText className="w-4 h-4 text-green-600 dark:text-green-400 mx-auto mb-1" />
+                            <p className="text-xs text-gray-600 dark:text-gray-400">{t.subjects}</p>
                             <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                              #{bulletin.rank || '0'}
+                              {subjects.length}
                             </p>
                           </div>
                         </div>
@@ -335,7 +347,8 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
           </TabsContent>
