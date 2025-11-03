@@ -27,7 +27,6 @@ interface StudentImportData {
   placeOfBirth?: string;
   matricule: string;
   className: string;
-  level: string;
   guardian?: string; // Nom du parent/tuteur (parentName in Excel, guardian in DB)
   parentEmail?: string;
   parentPhone?: string;
@@ -110,7 +109,6 @@ const translations = {
       dateOfBirth: 'DateNaissance',
       placeOfBirth: 'LieuNaissance',
       className: 'Classe',
-      level: 'Niveau',
       parentName: 'NomParent',
       parentEmail: 'EmailParent',
       parentPhone: 'TéléphoneParent',
@@ -426,7 +424,6 @@ export class ExcelImportService {
           placeOfBirth: row[t.fields.placeOfBirth] || row['LieuNaissance'] || row['PlaceOfBirth'] || '',
           matricule: row[t.fields.matricule] || row['Matricule'] || row['ID'] || '',
           className: row[t.fields.className] || row['Classe'] || row['Class'] || '',
-          level: row[t.fields.level] || row['Niveau'] || row['Level'] || '',
           guardian: row[t.fields.parentName] || row['NomParent'] || row['ParentName'] || '',
           parentEmail: row[t.fields.parentEmail] || row['EmailParent'] || row['ParentEmail'] || '',
           parentPhone: row[t.fields.parentPhone] || row['TéléphoneParent'] || row['ParentPhone'] || '',
@@ -634,21 +631,6 @@ export class ExcelImportService {
     
     console.log(`[IMPORT_CLASSES] Starting import of ${data.length} classes for school ${schoolId}`);
     
-    // Fetch valid school levels for validation
-    const validSchoolLevels = await db
-      .select()
-      .from(schoolLevels)
-      .where(eq(schoolLevels.schoolId, schoolId));
-    
-    // Helper function to normalize level names for comparison (trim, collapse whitespace, lowercase)
-    const normalizeLevel = (level: any): string => {
-      if (level === null || level === undefined) return '';
-      return String(level).trim().replace(/\s+/g, ' ').toLowerCase();
-    };
-    
-    const validLevelNames = new Set(validSchoolLevels.map(l => normalizeLevel(l.name)));
-    console.log(`[IMPORT_CLASSES] Found ${validLevelNames.size} valid school levels:`, Array.from(validLevelNames));
-    
     for (let index = 0; index < data.length; index++) {
       const row = data[index];
       try {
@@ -658,7 +640,6 @@ export class ExcelImportService {
         
         const classData = {
           name: row[t.fields.name] || row['Nom'] || row['Name'] || '',
-          level: row[t.fields.level] || row['Niveau'] || row['Level'] || '',
           maxStudents: parseInt(row[t.fields.maxStudents] || row['MaxÉlèves'] || row['MaxStudents'] || '30'),
           teacherEmail: row[t.fields.teacherEmail] || row['EmailEnseignant'] || row['TeacherEmail'] || '',
           room: row[t.fields.room] || row['Salle'] || row['Room'] || '',
@@ -712,39 +693,6 @@ export class ExcelImportService {
               : 'This field is required. Please enter the class name (e.g., Form 1A).'
           });
           continue;
-        }
-        
-        // Normalize and validate level field
-        const normalizedInputLevel = normalizeLevel(classData.level);
-        
-        if (!normalizedInputLevel) {
-          result.errors.push({
-            row: row._row || index + 2,
-            field: t.fields.level,
-            message: lang === 'fr'
-              ? 'Ce champ est obligatoire. Veuillez saisir le niveau (ex: Form 1, Form 2, etc.).'
-              : 'This field is required. Please enter the level (e.g., Form 1, Form 2, etc.).'
-          });
-          continue;
-        }
-        
-        // Validate level against school's defined levels (only if school has defined custom levels)
-        if (validLevelNames.size > 0 && !validLevelNames.has(normalizedInputLevel)) {
-          const originalLevel = String(classData.level ?? '').trim();
-          const validLevelsDisplay = validSchoolLevels.map(l => l.name).join(', ');
-          result.errors.push({
-            row: row._row || index + 2,
-            field: t.fields.level,
-            message: lang === 'fr'
-              ? `Niveau non défini: "${originalLevel}". Votre école utilise les niveaux suivants: ${validLevelsDisplay}. Veuillez soit utiliser un de ces niveaux, soit d'abord créer "${originalLevel}" dans Paramètres > Académique avant d'importer.`
-              : `Level not defined: "${originalLevel}". Your school uses these levels: ${validLevelsDisplay}. Please either use one of these levels, or first create "${originalLevel}" in Settings > Academic before importing.`
-          });
-          continue;
-        }
-        
-        // If no custom levels are defined, log a suggestion but allow the import (backwards compatibility)
-        if (validLevelNames.size === 0 && normalizedInputLevel) {
-          console.log(`[IMPORT_CLASSES] ℹ️ No custom levels defined for school ${schoolId}. Consider defining levels in Settings > Academic. Current level: "${classData.level}"`);
         }
         
         // Check for duplicate class name using Drizzle
@@ -801,7 +749,6 @@ export class ExcelImportService {
         const [newClass] = await db.insert(classes).values({
           schoolId,
           name: classData.name,
-          level: classData.level,
           maxStudents: classData.maxStudents,
           teacherId,
           academicYearId,
@@ -818,7 +765,7 @@ export class ExcelImportService {
               schoolId,
               classId: newClass.id,
               subjectType: subjectData.category || 'general',
-              code: `${subjectData.name.substring(0, 3).toUpperCase()}-${newClass.level}`
+              code: `${subjectData.name.substring(0, 3).toUpperCase()}-${newClass.name}`
             } as any);
           }
         }
@@ -1244,7 +1191,6 @@ export class ExcelImportService {
           t.fields.placeOfBirth,
           t.fields.matricule, 
           t.fields.className, 
-          t.fields.level, 
           t.fields.parentName,
           t.fields.parentEmail, 
           t.fields.parentPhone,
@@ -1261,7 +1207,6 @@ export class ExcelImportService {
       case 'classes':
         headers = [
           t.fields.name, 
-          t.fields.level, 
           t.fields.maxStudents, 
           t.fields.teacherEmail, 
           t.fields.room,
@@ -1425,11 +1370,10 @@ export class ExcelImportService {
           ['7. LieuNaissance: Lieu de naissance (ex: Yaoundé, Cameroun)'],
           ['8. Matricule: Matricule de l\'élève (ex: STU-2025-001) - sera converti en numéro EDUCAFRIC'],
           ['9. Classe: Nom de la classe (ex: 6ème A, CM2 B) - doit exister dans le système'],
-          ['10. Niveau: Niveau scolaire (ex: Collège, Primary School, Lycée)'],
-          ['11. NomParent: Nom complet du parent/tuteur'],
-          ['12. EmailParent: Email du parent pour les communications'],
-          ['13. TéléphoneParent: Téléphone du parent (format: +237XXXXXXXXX)'],
-          ['14. Redoublant: Oui ou Non - indique si l\'élève redouble'],
+          ['10. NomParent: Nom complet du parent/tuteur'],
+          ['11. EmailParent: Email du parent pour les communications'],
+          ['12. TéléphoneParent: Téléphone du parent (format: +237XXXXXXXXX)'],
+          ['13. Redoublant: Oui ou Non - indique si l\'élève redouble'],
           [''],
           ['⚠️ IMPORTANT'],
           ['• La classe doit exister dans le système avant l\'import'],
@@ -1474,11 +1418,10 @@ export class ExcelImportService {
           ['7. PlaceOfBirth: Place of birth (e.g., Yaounde, Cameroon)'],
           ['8. ID: Student ID (e.g., STU-2025-001) - will be converted to EDUCAFRIC number'],
           ['9. Class: Class name (e.g., Form 1A, Grade 6B) - must exist in the system'],
-          ['10. Level: School level (e.g., Middle School, Primary School, High School)'],
-          ['11. ParentName: Full name of parent/guardian'],
-          ['12. ParentEmail: Parent\'s email for communications'],
-          ['13. ParentPhone: Parent\'s phone (format: +237XXXXXXXXX)'],
-          ['14. IsRepeating: Yes or No - indicates if the student is repeating'],
+          ['10. ParentName: Full name of parent/guardian'],
+          ['11. ParentEmail: Parent\'s email for communications'],
+          ['12. ParentPhone: Parent\'s phone (format: +237XXXXXXXXX)'],
+          ['13. IsRepeating: Yes or No - indicates if the student is repeating'],
           [''],
           ['⚠️ IMPORTANT'],
           ['• The class must exist in the system before import'],
@@ -1634,13 +1577,12 @@ export class ExcelImportService {
         [''],
         ['📝 FORMAT DES COLONNES'],
         ['1. Nom: Nom de la classe (ex: 6ème A, Terminale D, CM2)'],
-        ['2. Niveau: Niveau scolaire (ex: 6ème, Form 1, Primary 5)'],
-        ['3. MaxÉlèves: Nombre maximum d\'élèves (ex: 40)'],
-        ['4. EmailEnseignant: Email du professeur principal (optionnel)'],
-        ['5. Salle: Nom de la salle de classe (optionnel)'],
-        ['6. Matières: Liste des matières avec leurs détails (voir format ci-dessous)'],
+        ['2. MaxÉlèves: Nombre maximum d\'élèves (ex: 40)'],
+        ['3. EmailEnseignant: Email du professeur principal (optionnel)'],
+        ['4. Salle: Nom de la salle de classe (optionnel)'],
+        ['5. Matières: Liste des matières avec leurs détails (voir format ci-dessous)'],
         [''],
-        ['🎯 FORMAT DES MATIÈRES (Colonne 6)'],
+        ['🎯 FORMAT DES MATIÈRES (Colonne 5)'],
         ['Format: nom;coefficient;heures;catégorie | nom;coefficient;heures;catégorie | ...'],
         [''],
         ['Exemple: Mathématiques;4;6;general | Français;4;6;literary | Physique;5;6;scientific'],
@@ -1687,13 +1629,12 @@ export class ExcelImportService {
         [''],
         ['📝 COLUMN FORMAT'],
         ['1. Name: Class name (e.g., Form 1A, Grade 6, CM2)'],
-        ['2. Level: School level (e.g., Form 1, Grade 6, Primary 5)'],
-        ['3. MaxStudents: Maximum number of students (e.g., 40)'],
-        ['4. TeacherEmail: Main teacher\'s email (optional)'],
-        ['5. Room: Classroom name (optional)'],
-        ['6. Subjects: List of subjects with their details (see format below)'],
+        ['2. MaxStudents: Maximum number of students (e.g., 40)'],
+        ['3. TeacherEmail: Main teacher\'s email (optional)'],
+        ['4. Room: Classroom name (optional)'],
+        ['5. Subjects: List of subjects with their details (see format below)'],
         [''],
-        ['🎯 SUBJECTS FORMAT (Column 6)'],
+        ['🎯 SUBJECTS FORMAT (Column 5)'],
         ['Format: name;coefficient;hours;category | name;coefficient;hours;category | ...'],
         [''],
         ['Example: Mathematics;4;6;general | French;4;6;literary | Physics;5;6;scientific'],
