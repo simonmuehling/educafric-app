@@ -123,6 +123,7 @@ import EducafricFooter from "@/components/EducafricFooter";
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
 import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
 import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicator";
+import { PWAUpdateNotification } from "@/components/pwa/PWAUpdateNotification";
 import { OfflineBanner } from "@/components/offline/OfflineBanner";
 import { OfflineModeIndicator } from "@/components/offline/OfflineModeIndicator";
 // WebInspector disabled to prevent fetch override interference with PWA analytics
@@ -607,6 +608,7 @@ function App() {
                         <ConnectionStatusIndicator />
                         <Router />
                       </AppLayout>
+                      <PWAUpdateNotification position="bottom" />
                       <Toaster />
                     </TooltipProvider>
                       </ConsolidatedNotificationProvider>
