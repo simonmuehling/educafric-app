@@ -123,6 +123,8 @@ import onlineClassActivationsRouter from "./routes/api/online-class-activations"
 import onlineClassPaymentsRouter from "./routes/api/online-class-payments";
 import onlineClassSchedulerRouter from "./routes/api/online-class-scheduler";
 import teacherIndependentPaymentsRouter from "./routes/api/teacher-independent-payments";
+import canteenRoutes from "./routes/canteenRoutes";
+import busRoutes from "./routes/busRoutes";
 import schoolLevelsRoutes from "./routes/schoolLevelsRoutes";
 import calendarRoutes from "./routes/calendar";
 import syncRoutes from "./routes/sync";
@@ -7281,6 +7283,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/stripe', stripeRoutes);
   app.use('/api/manual-payments', manualPaymentRoutes);
   app.use('/api/mtn-payments', mtnPaymentRoutes);
+  
+  // School canteen management (menus, reservations, balances)
+  app.use('/api/canteen', canteenRoutes);
+  
+  // School bus tracking (routes, stations, student enrollment)
+  app.use('/api/bus', busRoutes);
   
   // Add missing API endpoints for payments and commercial leads
   app.get('/api/payments', (req, res) => {
