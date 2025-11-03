@@ -11,7 +11,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp, Building, GraduationCap, Star } from 'lucide-react';
-import { CAMEROON_CURRICULUM_TEMPLATES, getSubjectTemplateByLevel } from '@/data/subjectTemplates';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
@@ -22,7 +21,6 @@ const ClassManagement: React.FC = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState('all');
   const [newClass, setNewClass] = useState({
     name: '',
     capacity: '',
@@ -128,24 +126,20 @@ const ClassManagement: React.FC = () => {
       },
       form: {
         className: 'Nom de la classe',
-        level: 'Niveau',
         capacity: "Nombres d'élèves",
         teacher: 'Enseignant principal',
         room: 'Salle',
         selectTeacher: 'Sélectionner un enseignant (optionnel)',
-        selectLevel: 'Sélectionner un niveau',
         subjects: 'Matières et Coefficients',
         addSubject: 'Ajouter Matière',
         subjectName: 'Nom de la matière',
         coefficient: 'Coefficient',
         category: 'Catégorie',
         hoursPerWeek: 'Heures/semaine',
-        required: 'Obligatoire',
-        loadTemplate: 'Charger Template Niveau'
+        required: 'Obligatoire'
       },
       table: {
         name: 'Nom Classe',
-        level: 'Niveau',
         students: 'Élèves',
         capacity: "Nombres d'élèves",
         teacher: 'Prof Principal',
@@ -156,22 +150,6 @@ const ClassManagement: React.FC = () => {
         active: 'Active',
         full: 'Complète',
         closed: 'Fermée'
-      },
-      levels: {
-        all: 'Tous niveaux',
-        sil: 'SIL',
-        cp: 'CP',
-        ce1: 'CE1',
-        ce2: 'CE2',
-        cm1: 'CM1',
-        cm2: 'CM2',
-        sixth: '6ème',
-        fifth: '5ème',
-        fourth: '4ème',
-        third: '3ème',
-        second: '2nde',
-        first: '1ère',
-        terminal: 'Terminale'
       }
     },
     en: {
@@ -195,24 +173,20 @@ const ClassManagement: React.FC = () => {
       },
       form: {
         className: 'Class name',
-        level: 'Level',
         capacity: 'Number of students',
         teacher: 'Main teacher',
         room: 'Room',
         selectTeacher: 'Select a teacher (optional)',
-        selectLevel: 'Select a level',
         subjects: 'Subjects and Coefficients',
         addSubject: 'Add Subject',
         subjectName: 'Subject name',
         coefficient: 'Coefficient',
         category: 'Category',
         hoursPerWeek: 'Hours/week',
-        required: 'Required',
-        loadTemplate: 'Load Level Template'
+        required: 'Required'
       },
       table: {
         name: 'Class Name',
-        level: 'Level',
         students: 'Students',
         capacity: 'Number of students',
         teacher: 'Main Teacher',
@@ -223,22 +197,6 @@ const ClassManagement: React.FC = () => {
         active: 'Active',
         full: 'Full',
         closed: 'Closed'
-      },
-      levels: {
-        all: 'All levels',
-        sil: 'SIL',
-        cp: 'CP',
-        ce1: 'CE1',
-        ce2: 'CE2',
-        cm1: 'CM1',
-        cm2: 'CM2',
-        sixth: '6th Grade',
-        fifth: '5th Grade',
-        fourth: '4th Grade',
-        third: '3rd Grade',
-        second: '2nd Grade',
-        first: '1st Grade',
-        terminal: 'Final Year'
       }
     }
   };
@@ -299,12 +257,10 @@ const ClassManagement: React.FC = () => {
 
   const isTechnicalSchool = schoolData?.educationalType === 'technical';
 
-  // Filter classes based on search and level selection
+  // Filter classes based on search
   const filteredClasses = (Array.isArray(classesData) ? classesData : []).filter((classItem: any) => {
-    const matchesSearch = classItem.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         classItem.level?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLevel = selectedLevel === 'all' || classItem.level === selectedLevel;
-    return matchesSearch && matchesLevel;
+    const matchesSearch = classItem.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   // Fetch teachers data for dropdown
@@ -613,7 +569,7 @@ const ClassManagement: React.FC = () => {
   };
 
   const handleCreateClass = () => {
-    if (!newClass.name || !newClass.level || !newClass.capacity) {
+    if (!newClass.name || !newClass.capacity) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires.' : 'Please fill in all required fields.',
@@ -644,7 +600,7 @@ const ClassManagement: React.FC = () => {
   };
 
   const handleSaveEditClass = () => {
-    if (!selectedClass?.name || !selectedClass?.level || !selectedClass?.capacity) {
+    if (!selectedClass?.name || !selectedClass?.capacity) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires.' : 'Please fill in all required fields.',
@@ -658,11 +614,10 @@ const ClassManagement: React.FC = () => {
     // Transform data to match backend API contract
     const classDataForAPI = {
       name: selectedClass.name,
-      subject: selectedClass.level, // Backend expects 'subject' field
       room: selectedClass.room,
       maxStudents: parseInt(selectedClass.capacity), // Backend expects 'maxStudents' as number
       schedule: '', // Optional field
-      description: `Classe ${String(selectedClass?.name) || "N/A"} - Niveau ${String(selectedClass?.level) || "N/A"}` // Auto-generated description
+      description: `Classe ${String(selectedClass?.name) || "N/A"}` // Auto-generated description
     };
     
     editClassMutation.mutate({
@@ -1275,10 +1230,9 @@ const ClassManagement: React.FC = () => {
                     console.log('[CLASS_MANAGEMENT] 📊 Exporting class data...');
                     // Generate CSV content for classes
                     const csvContent = [
-                      ['Nom Classe,Niveau,Élèves,Capacité,Enseignant,Salle,Statut'],
+                      ['Nom Classe,Élèves,Capacité,Enseignant,Salle,Statut'],
                       ...(Array.isArray(finalClasses) ? finalClasses : []).map((classItem: any) => [
                         classItem.name,
-                        classItem.level,
                         classItem.currentStudents,
                         classItem.capacity,
                         classItem.teacher,
@@ -1364,30 +1318,6 @@ const ClassManagement: React.FC = () => {
               />
             </div>
           </div>
-          <select
-            value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e?.target?.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">{String(t?.levels?.all) || "N/A"}</option>
-            <option value="SIL">{String(t?.levels?.sil) || "N/A"}</option>
-            <option value="CP">{String(t?.levels?.cp) || "N/A"}</option>
-            <option value="CE1">{String(t?.levels?.ce1) || "N/A"}</option>
-            <option value="CE2">{String(t?.levels?.ce2) || "N/A"}</option>
-            <option value="CM1">{String(t?.levels?.cm1) || "N/A"}</option>
-            <option value="CM2">{String(t?.levels?.cm2) || "N/A"}</option>
-            <option value="6ème">{String(t?.levels?.sixth) || "N/A"}</option>
-            <option value="5ème">{String(t?.levels?.fifth) || "N/A"}</option>
-            <option value="4ème">{String(t?.levels?.fourth) || "N/A"}</option>
-            <option value="3ème">{String(t?.levels?.third) || "N/A"}</option>
-            <option value="2nde">{String(t?.levels?.second) || "N/A"}</option>
-            <option value="1ère">{String(t?.levels?.first) || "N/A"}</option>
-            <option value="Terminale">{String(t?.levels?.terminal) || "N/A"}</option>
-          </select>
-          <Button variant="outline">
-            <Filter className="w-4 h-4 mr-2" />
-            {String(t?.actions?.filter) || "N/A"}
-          </Button>
         </div>
       </Card>
 
@@ -1398,7 +1328,6 @@ const ClassManagement: React.FC = () => {
             <thead className="border-b bg-gray-50">
               <tr>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.name) || "N/A"}</th>
-                <th className="text-left p-4 font-semibold">{String(t?.table?.level) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.students) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.capacity) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.teacher) || "N/A"}</th>
@@ -1415,7 +1344,6 @@ const ClassManagement: React.FC = () => {
                       <div className="text-sm text-gray-500">{String(classItem?.room) || "N/A"}</div>
                     </div>
                   </td>
-                  <td className="p-4">{String(classItem?.level) || "N/A"}</td>
                   <td className="p-4">
                     <span className={`font-semibold ${getCapacityColor(classItem.currentStudents, classItem.capacity)}`}>
                       {String(classItem?.currentStudents) || "N/A"}
@@ -1685,10 +1613,6 @@ const ClassManagement: React.FC = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">{language === 'fr' ? 'Nom' : 'Name'}:</span>
                         <span className="font-medium">{selectedClass.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">{language === 'fr' ? 'Niveau' : 'Level'}:</span>
-                        <span className="font-medium">{selectedClass.level}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">{language === 'fr' ? 'Salle' : 'Room'}:</span>

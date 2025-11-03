@@ -175,7 +175,6 @@ const translations = {
       dateOfBirth: 'DateOfBirth',
       placeOfBirth: 'PlaceOfBirth',
       className: 'Class',
-      level: 'Level',
       parentName: 'ParentName',
       parentEmail: 'ParentEmail',
       parentPhone: 'ParentPhone',
@@ -891,7 +890,7 @@ export class ExcelImportService {
             classId: foundClass.id,
             coefficient: '1',
             subjectType: 'general',
-            code: `${timetableData.subjectName.substring(0, 3).toUpperCase()}-${foundClass.level}`
+            code: `${timetableData.subjectName.substring(0, 3).toUpperCase()}-${foundClass.name}`
           } as any).returning();
           subjectId = newSubject.id;
         }
