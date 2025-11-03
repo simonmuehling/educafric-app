@@ -4,6 +4,9 @@ import * as bcrypt from 'bcryptjs';
 import multer from 'multer';
 import { excelImportService } from '../services/excelImportService';
 import { welcomeEmailService } from '../services/welcomeEmailService';
+import { db } from '../db';
+import { archivedDocuments } from '../../shared/schema';
+import { eq, and, desc } from 'drizzle-orm';
 
 const router = Router();
 
@@ -1659,6 +1662,189 @@ router.get('/student-transcript', requireAuth, requireAdmin, async (req, res) =>
     res.status(500).json({
       success: false,
       message: 'Failed to fetch student transcript'
+    });
+  }
+});
+
+// ==================== ARCHIVES ROUTES ====================
+
+// POST /api/director/archives/save - Save a bulletin to archives
+router.post('/archives/save', requireAuth, async (req: any, res: any) => {
+  try {
+    const user = req.user;
+    const archiveData = req.body;
+    
+    console.log('[ARCHIVES] 💾 Saving bulletin to archives:', archiveData.filename);
+    
+    const newArchive = await db
+      .insert(archivedDocuments)
+      .values(archiveData)
+      .returning();
+    
+    console.log('[ARCHIVES] ✅ Bulletin saved to archives:', newArchive[0].id);
+    
+    res.json({
+      success: true,
+      data: newArchive[0],
+      message: 'Bulletin saved to archives successfully'
+    });
+  } catch (error) {
+    console.error('[ARCHIVES] ❌ Error saving to archives:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save bulletin to archives'
+    });
+  }
+});
+
+// GET /api/director/archives - Fetch archived documents (bulletins, mastersheets)
+router.get('/archives', requireAuth, async (req: any, res: any) => {
+  try {
+    const user = req.user;
+    const schoolId = user.schoolId || user.school_id;
+    
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: 'School ID required'
+      });
+    }
+    
+    const { academicYear, classId, term, type, studentId, search } = req.query;
+    
+    console.log(`[ARCHIVES] 📦 Fetching archives for school ${schoolId}`);
+    
+    // Build query conditions
+    let conditions: any[] = [eq(archivedDocuments.schoolId, schoolId)];
+    
+    if (academicYear) {
+      conditions.push(eq(archivedDocuments.academicYear, academicYear));
+    }
+    if (classId) {
+      conditions.push(eq(archivedDocuments.classId, parseInt(classId)));
+    }
+    if (term) {
+      conditions.push(eq(archivedDocuments.term, term));
+    }
+    if (type) {
+      conditions.push(eq(archivedDocuments.type, type));
+    }
+    if (studentId) {
+      conditions.push(eq(archivedDocuments.studentId, parseInt(studentId)));
+    }
+    
+    const archives = await db
+      .select()
+      .from(archivedDocuments)
+      .where(and(...conditions))
+      .orderBy(desc(archivedDocuments.sentAt));
+    
+    console.log(`[ARCHIVES] ✅ Found ${archives.length} archived documents`);
+    
+    res.json({
+      success: true,
+      documents: archives,
+      data: {
+        documents: archives
+      },
+      total: archives.length
+    });
+  } catch (error) {
+    console.error('[ARCHIVES] ❌ Error fetching archives:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch archives'
+    });
+  }
+});
+
+// GET /api/director/archives/stats - Fetch archive statistics
+router.get('/archives/stats', requireAuth, async (req: any, res: any) => {
+  try {
+    const user = req.user;
+    const schoolId = user.schoolId || user.school_id;
+    
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: 'School ID required'
+      });
+    }
+    
+    const { academicYear } = req.query;
+    
+    let conditions: any[] = [eq(archivedDocuments.schoolId, schoolId)];
+    if (academicYear) {
+      conditions.push(eq(archivedDocuments.academicYear, academicYear));
+    }
+    
+    const archives = await db
+      .select()
+      .from(archivedDocuments)
+      .where(and(...conditions));
+    
+    const stats = {
+      totalArchives: archives.length,
+      bulletins: archives.filter((a: any) => a.type === 'bulletin').length,
+      mastersheets: archives.filter((a: any) => a.type === 'mastersheet').length,
+      totalSizeBytes: archives.reduce((sum: number, a: any) => sum + (Number(a.sizeBytes) || 0), 0)
+    };
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('[ARCHIVES] ❌ Error fetching stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch archive statistics'
+    });
+  }
+});
+
+// GET /api/director/archives/:id/download - Download an archived document
+router.get('/archives/:id/download', requireAuth, async (req: any, res: any) => {
+  try {
+    const user = req.user;
+    const schoolId = user.schoolId || user.school_id;
+    const archiveId = parseInt(req.params.id);
+    
+    if (!schoolId || !archiveId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid request'
+      });
+    }
+    
+    const archive = await db
+      .select()
+      .from(archivedDocuments)
+      .where(and(
+        eq(archivedDocuments.id, archiveId),
+        eq(archivedDocuments.schoolId, schoolId)
+      ))
+      .limit(1);
+    
+    if (!archive.length) {
+      return res.status(404).json({
+        success: false,
+        message: 'Archive not found'
+      });
+    }
+    
+    // For now, return archive metadata
+    // In production, this would fetch from object storage and stream the file
+    res.json({
+      success: true,
+      message: 'Archive download endpoint - to be implemented with object storage',
+      archive: archive[0]
+    });
+  } catch (error) {
+    console.error('[ARCHIVES] ❌ Error downloading archive:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download archive'
     });
   }
 });

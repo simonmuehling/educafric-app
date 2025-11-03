@@ -735,37 +735,58 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
 
   const handleSaveBulletin = async () => {
     try {
-      const bulletinData = {
-        studentId: student.id,
-        studentName: student.name,
-        classLabel: student.classLabel,
-        trimester,
+      if (!student.name || !student.classLabel) {
+        alert(language === 'fr' 
+          ? 'Veuillez remplir les informations de l\'élève avant de sauvegarder' 
+          : 'Please fill in student information before saving');
+        return;
+      }
+
+      // Create archive document
+      const archiveData = {
+        schoolId: user?.schoolId || 1,
+        type: 'bulletin',
+        classId: 1, // TODO: get from student data
         academicYear: year,
-        subjects,
-        discipline,
-        generalRemark,
-        status: 'draft'
+        term: trimester,
+        studentId: student.id || 0,
+        language: language,
+        filename: `Bulletin_${student.name}_${trimester}_${year}.pdf`,
+        storageKey: `bulletins/${year}/${trimester}/${student.id}_${Date.now()}.pdf`,
+        checksumSha256: 'pending',
+        sizeBytes: 0,
+        snapshot: {
+          studentInfo: student,
+          subjects,
+          discipline,
+          generalRemark,
+          signatureData
+        },
+        meta: {
+          bulletinType: isTechnicalSchool ? 'technical' : 'general',
+          isSigned: isSigned,
+          status: 'draft'
+        },
+        sentAt: new Date(),
+        sentBy: user?.id || 1
       };
 
-      const response = await fetch('/api/academic-bulletins/bulletins', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bulletinData),
-        credentials: 'include'
-      });
+      const response = await apiRequest('POST', '/api/director/archives/save', archiveData);
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Bulletin saved:', result);
-        alert('Bulletin sauvegardé avec succès !');
-      } else {
+      if (!response.ok) {
         throw new Error('Failed to save bulletin');
       }
+
+      const result = await response.json();
+      console.log('[BULLETIN_SAVE] ✅ Bulletin saved:', result);
+      alert(language === 'fr' 
+        ? 'Bulletin sauvegardé dans les archives avec succès !' 
+        : 'Bulletin saved to archives successfully!');
     } catch (error) {
-      console.error('Error saving bulletin:', error);
-      alert('Erreur lors de la sauvegarde du bulletin');
+      console.error('[BULLETIN_SAVE] ❌ Error saving bulletin:', error);
+      alert(language === 'fr' 
+        ? 'Erreur lors de la sauvegarde du bulletin' 
+        : 'Error saving bulletin');
     }
   };
 

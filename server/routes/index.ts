@@ -67,6 +67,8 @@ import whatsappTestRoutes from "./test-whatsapp";
 // Import bulletin samples routes
 import bulletinSamplesRoutes from "./bulletinSamplesRoutes";
 import comprehensiveBulletinRoutes from "./comprehensiveBulletinRoutes";
+import bulletinVerificationRoutes from "./bulletinVerificationRoutes";
+import academicBulletinRoutes from "./academicBulletinRoutes";
 // Import Vonage routes
 try {
   var vonageMessagesRoutes = require("./vonage-messages").default;
@@ -157,6 +159,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Comprehensive bulletin routes  
   app.use('/api/comprehensive-bulletins', comprehensiveBulletinRoutes);
+  
+  // Bulletin verification and academic bulletin routes
+  app.use('/api/bulletins', bulletinVerificationRoutes);
+  app.use('/api/academic-bulletins', academicBulletinRoutes);
   
   // Debug Vonage routes registration
   if (vonageMessagesRoutes) {
