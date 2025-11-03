@@ -846,6 +846,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     }
   };
 
+  // Alias for signing function (used by director interface)
+  const handleSignBulletin = signBulletin;
+
   const sendToStudentsParents = async () => {
     if (!isSigned) {
       alert('Le bulletin doit d\'abord être signé avant l\'envoi');
