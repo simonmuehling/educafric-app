@@ -105,6 +105,8 @@ export interface AuthenticatedUser {
   whatsappNumber?: string;
   twoFactorEnabled: boolean;
   workMode?: 'school' | 'independent' | 'hybrid';
+  // Sandbox mode - prevents writing to production data
+  isSandboxUser?: boolean;
   // Subscription fields
   subscriptionPlan?: string;
   subscriptionStatus?: string;

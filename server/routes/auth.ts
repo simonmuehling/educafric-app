@@ -154,6 +154,7 @@ passport.deserializeUser(async (id: string | number, done) => {
           ...profile,
           subscription: 'premium',
           sandboxMode: true,
+          isSandboxUser: true, // ✅ SÉCURITÉ: Flag pour bloquer les opérations de production
           premiumFeatures: true,
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
@@ -773,36 +774,36 @@ router.post('/sandbox-login', sandboxLoginLimiter, async (req, res) => {
     const sandboxUsers = {
       'sandbox.parent@educafric.demo': { 
         id: 9001, name: 'Marie Kamga', role: 'Parent', email: 'sandbox.parent@educafric.demo', 
-        schoolId: 999, children: [9004], phone: '+237650123456', sandboxMode: true 
+        schoolId: 999, children: [9004], phone: '+237650123456', sandboxMode: true, isSandboxUser: true
       },
       'sandbox.student@educafric.demo': { 
         id: 9004, name: 'Junior Kamga', role: 'Student', email: 'sandbox.student@educafric.demo', 
-        schoolId: 999, parentId: 9001, classId: 301, phone: '+237653123456', sandboxMode: true 
+        schoolId: 999, parentId: 9001, classId: 301, phone: '+237653123456', sandboxMode: true, isSandboxUser: true
       },
       'sandbox.teacher@educafric.demo': { 
         id: 9002, name: 'Paul Mvondo', role: 'Teacher', email: 'sandbox.teacher@educafric.demo', 
-        schoolId: 999, subjects: ['Mathématiques', 'Physique'], phone: '+237651123456', sandboxMode: true,
+        schoolId: 999, subjects: ['Mathématiques', 'Physique'], phone: '+237651123456', sandboxMode: true, isSandboxUser: true,
         workMode: 'hybrid'
       },
       'sandbox.freelancer@educafric.demo': { 
         id: 9003, name: 'Sophie Biya', role: 'Freelancer', email: 'sandbox.freelancer@educafric.demo', 
-        schoolId: 999, subjects: ['Français'], phone: '+237652123456', sandboxMode: true 
+        schoolId: 999, subjects: ['Français'], phone: '+237652123456', sandboxMode: true, isSandboxUser: true
       },
       'sandbox.admin@educafric.demo': { 
         id: 9005, name: 'Dr. Nguetsop Carine', role: 'Admin', email: 'sandbox.admin@educafric.demo', 
-        schoolId: 999, phone: '+237654123456', sandboxMode: true 
+        schoolId: 999, phone: '+237654123456', sandboxMode: true, isSandboxUser: true
       },
       'sandbox.director@educafric.demo': { 
         id: 9006, name: 'Dr. Christiane Fouda', role: 'Director', email: 'sandbox.director@educafric.demo', 
-        schoolId: 999, phone: '+237655123456', sandboxMode: true 
+        schoolId: 999, phone: '+237655123456', sandboxMode: true, isSandboxUser: true
       },
       'sandbox.commercial@educafric.demo': { 
         id: 9007, name: 'Paul Kamga', role: 'Commercial', email: 'sandbox.commercial@educafric.demo', 
-        schoolId: 999, phone: '+237656123456', sandboxMode: true 
+        schoolId: 999, phone: '+237656123456', sandboxMode: true, isSandboxUser: true
       },
       'sandbox.siteadmin@educafric.demo': { 
         id: 9008, name: 'Admin Système', role: 'SiteAdmin', email: 'sandbox.siteadmin@educafric.demo', 
-        schoolId: 999, phone: '+237657123456', sandboxMode: true 
+        schoolId: 999, phone: '+237657123456', sandboxMode: true, isSandboxUser: true
       }
     };
     

@@ -1674,11 +1674,36 @@ router.post('/archives/save', requireAuth, async (req: any, res: any) => {
     const user = req.user;
     const archiveData = req.body;
     
-    console.log('[ARCHIVES] 💾 Saving bulletin to archives:', archiveData.filename);
+    // ✅ SÉCURITÉ: Vérifier l'authentification et l'école
+    if (!user || !user.schoolId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required with valid school'
+      });
+    }
+    
+    // ✅ SÉCURITÉ: BLOQUER les comptes sandbox de sauvegarder dans les archives réelles
+    if (user.isSandboxUser === true) {
+      console.log('[ARCHIVES] 🚫 SANDBOX USER BLOCKED from saving to real archives:', user.email);
+      return res.status(403).json({
+        success: false,
+        message: 'Sandbox accounts cannot save to production archives',
+        messageFr: 'Les comptes sandbox ne peuvent pas sauvegarder dans les archives de production'
+      });
+    }
+    
+    // ✅ ISOLATION MULTI-TENANT: Forcer le schoolId de l'utilisateur authentifié
+    const safeArchiveData = {
+      ...archiveData,
+      schoolId: user.schoolId, // FORCE le vrai schoolId, ignore celui du client
+      sentBy: user.id // FORCE le vrai userId, ignore celui du client
+    };
+    
+    console.log('[ARCHIVES] 💾 Saving bulletin to archives for school:', user.schoolId, 'File:', archiveData.filename);
     
     const newArchive = await db
       .insert(archivedDocuments)
-      .values(archiveData)
+      .values(safeArchiveData)
       .returning();
     
     console.log('[ARCHIVES] ✅ Bulletin saved to archives:', newArchive[0].id);

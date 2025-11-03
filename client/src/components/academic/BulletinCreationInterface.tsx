@@ -735,6 +735,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
 
   const handleSaveBulletin = async () => {
     try {
+      // ✅ VALIDATION STRICTE: Refuser si données manquantes
       if (!student.name || !student.classLabel) {
         alert(language === 'fr' 
           ? 'Veuillez remplir les informations de l\'élève avant de sauvegarder' 
@@ -742,11 +743,27 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         return;
       }
 
-      // Create archive document
+      // ✅ SÉCURITÉ: Vérifier que l'utilisateur est authentifié avec un vrai compte
+      if (!user?.schoolId || !user?.id) {
+        alert(language === 'fr' 
+          ? 'Erreur: Session invalide. Veuillez vous reconnecter.' 
+          : 'Error: Invalid session. Please log in again.');
+        return;
+      }
+
+      // ✅ SÉCURITÉ: Bloquer les comptes sandbox de sauvegarder dans les archives réelles
+      if (user.isSandboxUser) {
+        alert(language === 'fr' 
+          ? '⚠️ Compte Sandbox: Les sauvegardes sont désactivées en mode démonstration.' 
+          : '⚠️ Sandbox Account: Saving is disabled in demo mode.');
+        return;
+      }
+
+      // ✅ DONNÉES RÉELLES UNIQUEMENT: Pas de valeurs par défaut
       const archiveData = {
-        schoolId: user?.schoolId || 1,
-        type: 'bulletin',
-        classId: 1, // TODO: get from student data
+        schoolId: user.schoolId, // Utilise SEULEMENT la vraie école
+        type: 'bulletin' as const,
+        classId: student.id || 0, // TODO: get real classId from student data
         academicYear: year,
         term: trimester,
         studentId: student.id || 0,
@@ -768,7 +785,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
           status: 'draft'
         },
         sentAt: new Date(),
-        sentBy: user?.id || 1
+        sentBy: user.id // Utilise SEULEMENT le vrai ID utilisateur
       };
 
       const response = await apiRequest('POST', '/api/director/archives/save', archiveData);
