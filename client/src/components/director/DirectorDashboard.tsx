@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
-  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare, FileSpreadsheet, Video
+  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare, FileSpreadsheet, Video, UtensilsCrossed, Bus
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -177,7 +177,9 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       schoolSettings: 'Paramètres École',
       onlineClasses: 'Classes en ligne',
       onlineClassScheduler: 'Planification Sessions en Ligne',
-      calendarExport: 'Export Calendrier'
+      calendarExport: 'Export Calendrier',
+      canteen: 'Cantine',
+      bus: 'Transport Scolaire'
     },
     en: {
       title: 'Director Dashboard',
@@ -204,7 +206,9 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       schoolSettings: 'School Settings',
       onlineClasses: 'Online Classes',
       onlineClassScheduler: 'Online Class Scheduler',
-      calendarExport: 'Calendar Export'
+      calendarExport: 'Calendar Export',
+      canteen: 'Canteen',
+      bus: 'School Bus'
     }
   };
 
@@ -313,6 +317,18 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: language === 'fr' ? 'Gestion Académique' : 'Academic Management',
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-blue-500 to-cyan-500'
+    },
+    {
+      id: 'canteen',
+      label: t.canteen,
+      icon: <UtensilsCrossed className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-orange-500 to-red-500'
+    },
+    {
+      id: 'bus',
+      label: t.bus,
+      icon: <Bus className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-yellow-500 to-orange-500'
     },
     {
       id: 'online-classes',
