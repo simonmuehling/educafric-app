@@ -25,7 +25,6 @@ const ClassManagement: React.FC = () => {
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [newClass, setNewClass] = useState({
     name: '',
-    level: '',
     capacity: '',
     teacherId: '',
     teacherName: '',
@@ -67,55 +66,6 @@ const ClassManagement: React.FC = () => {
   
   // Ref for triggering dialogs from quick actions
   const createClassTriggerRef = useRef<HTMLButtonElement>(null);
-
-  // Charger template de matières selon le niveau
-  const loadSubjectTemplate = () => {
-    if (!newClass.level) {
-      toast({
-        title: "Niveau requis",
-        description: "Veuillez d'abord sélectionner un niveau",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    let levelKey = newClass.level.toLowerCase();
-    if (levelKey === '6ème') levelKey = '6eme';
-    if (levelKey === '3ème') levelKey = '3eme';
-    if (levelKey.includes('terminale')) {
-      levelKey = 'terminale-c'; // Par défaut, peut être étendu
-    }
-
-    const template = getSubjectTemplateByLevel(levelKey);
-    if (template) {
-      setNewClass(prev => ({
-        ...prev,
-        subjects: template.subjects.map(subject => ({
-          name: subject.name,
-          coefficient: subject.coefficient,
-          // Map template categories to 5-type system
-          category: (subject.category === 'professional' ? 'technical' : 
-                    subject.category === 'sciences' ? 'scientific' :
-                    subject.category === 'languages' ? 'literary' :
-                    (subject.category === 'arts' || subject.category === 'sports') ? 'other' : 
-                    'general') as 'general' | 'scientific' | 'literary' | 'technical' | 'other',
-          hoursPerWeek: subject.hoursPerWeek,
-          isRequired: subject.isRequired
-        }))
-      }));
-      
-      toast({
-        title: "✅ Template chargé",
-        description: `${template.subjects.length} matières ajoutées pour ${template.levelName}`,
-      });
-    } else {
-      toast({
-        title: "Template non trouvé",
-        description: "Pas de template disponible pour ce niveau",
-        variant: "destructive"
-      });
-    }
-  };
 
   // Ajouter une matière
   const addSubject = () => {
@@ -179,7 +129,7 @@ const ClassManagement: React.FC = () => {
       form: {
         className: 'Nom de la classe',
         level: 'Niveau',
-        capacity: 'Capacité',
+        capacity: "Nombres d'élèves",
         teacher: 'Enseignant principal',
         room: 'Salle',
         selectTeacher: 'Sélectionner un enseignant (optionnel)',
@@ -197,7 +147,7 @@ const ClassManagement: React.FC = () => {
         name: 'Nom Classe',
         level: 'Niveau',
         students: 'Élèves',
-        capacity: 'Capacité',
+        capacity: "Nombres d'élèves",
         teacher: 'Prof Principal',
         status: 'Statut',
         actions: 'Actions'
@@ -246,7 +196,7 @@ const ClassManagement: React.FC = () => {
       form: {
         className: 'Class name',
         level: 'Level',
-        capacity: 'Capacity',
+        capacity: 'Number of students',
         teacher: 'Main teacher',
         room: 'Room',
         selectTeacher: 'Select a teacher (optional)',
@@ -264,7 +214,7 @@ const ClassManagement: React.FC = () => {
         name: 'Class Name',
         level: 'Level',
         students: 'Students',
-        capacity: 'Capacity',
+        capacity: 'Number of students',
         teacher: 'Main Teacher',
         status: 'Status',
         actions: 'Actions'
@@ -434,7 +384,7 @@ const ClassManagement: React.FC = () => {
         title: language === 'fr' ? 'Classe créée' : 'Class created',
         description: language === 'fr' ? 'La classe a été créée avec succès.' : 'Class has been created successfully.'
       });
-      setNewClass({ name: '', level: '', capacity: '', teacherId: '', teacherName: '', room: '', subjects: [] });
+      setNewClass({ name: '', capacity: '', teacherId: '', teacherName: '', room: '', subjects: [] });
     }
   });
 
@@ -685,7 +635,6 @@ const ClassManagement: React.FC = () => {
     setSelectedClass({
       id: classItem.id,
       name: classItem.name,
-      level: classItem.level,
       capacity: classItem?.capacity?.toString(),
       teacherId: classItem.teacherId || '',
       teacherName: classItem.teacher,
@@ -779,32 +728,6 @@ const ClassManagement: React.FC = () => {
                       className="bg-white border-gray-300"
                     />
                   </div>
-                  <div>
-                    <Label>{String(t?.form?.level) || "N/A"}</Label>
-                    <Select value={String(newClass?.level) || "N/A"} onValueChange={(value) => setNewClass({...newClass, level: value})}>
-                      <SelectTrigger className="bg-white border-gray-300">
-                        <SelectValue placeholder={String(t?.form?.selectLevel) || "N/A"} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {/* Maternelle/Primaire */}
-                        <SelectItem value="SIL">SIL (Section d'Initiation au Langage)</SelectItem>
-                        <SelectItem value="CP">CP (Cours Préparatoire)</SelectItem>
-                        <SelectItem value="CE1">CE1 (Cours Élémentaire 1)</SelectItem>
-                        <SelectItem value="CE2">CE2 (Cours Élémentaire 2)</SelectItem>
-                        <SelectItem value="CM1">CM1 (Cours Moyen 1)</SelectItem>
-                        <SelectItem value="CM2">CM2 (Cours Moyen 2)</SelectItem>
-                        {/* Secondaire 1er cycle */}
-                        <SelectItem value="6ème">6ème</SelectItem>
-                        <SelectItem value="5ème">5ème</SelectItem>
-                        <SelectItem value="4ème">4ème</SelectItem>
-                        <SelectItem value="3ème">3ème</SelectItem>
-                        {/* Secondaire 2nd cycle */}
-                        <SelectItem value="2nde">2nde (Seconde)</SelectItem>
-                        <SelectItem value="1ère">1ère (Première)</SelectItem>
-                        <SelectItem value="Terminale">Terminale</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   
                   {/* Section Matières et Coefficients */}
                   <div className="border-t pt-4">
@@ -813,17 +736,6 @@ const ClassManagement: React.FC = () => {
                         <GraduationCap className="w-5 h-5 mr-2 text-blue-600" />
                         {String(t?.form?.subjects) || "Matières et Coefficients"}
                       </Label>
-                      <Button
-                        type="button"
-                        onClick={loadSubjectTemplate}
-                        variant="outline"
-                        size="sm"
-                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                        disabled={!newClass.level}
-                      >
-                        <Star className="w-4 h-4 mr-1" />
-                        {String(t?.form?.loadTemplate) || "Charger Template"}
-                      </Button>
                     </div>
                     
                     {/* Liste des matières existantes */}
@@ -1124,29 +1036,6 @@ const ClassManagement: React.FC = () => {
                       placeholder="6ème A"
                       className="bg-white border-gray-300"
                     />
-                  </div>
-                  <div>
-                    <Label>{String(t?.form?.level) || "N/A"}</Label>
-                    <Select value={selectedClass?.level || ''} onValueChange={(value) => setSelectedClass({...selectedClass, level: value})}>
-                      <SelectTrigger className="bg-white border-gray-300">
-                        <SelectValue placeholder={String(t?.form?.selectLevel) || "N/A"} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        <SelectItem value="SIL">{String(t?.levels?.sil) || "N/A"}</SelectItem>
-                        <SelectItem value="CP">{String(t?.levels?.cp) || "N/A"}</SelectItem>
-                        <SelectItem value="CE1">{String(t?.levels?.ce1) || "N/A"}</SelectItem>
-                        <SelectItem value="CE2">{String(t?.levels?.ce2) || "N/A"}</SelectItem>
-                        <SelectItem value="CM1">{String(t?.levels?.cm1) || "N/A"}</SelectItem>
-                        <SelectItem value="CM2">{String(t?.levels?.cm2) || "N/A"}</SelectItem>
-                        <SelectItem value="6ème">{String(t?.levels?.sixth) || "N/A"}</SelectItem>
-                        <SelectItem value="5ème">{String(t?.levels?.fifth) || "N/A"}</SelectItem>
-                        <SelectItem value="4ème">{String(t?.levels?.fourth) || "N/A"}</SelectItem>
-                        <SelectItem value="3ème">{String(t?.levels?.third) || "N/A"}</SelectItem>
-                        <SelectItem value="2nde">{String(t?.levels?.second) || "N/A"}</SelectItem>
-                        <SelectItem value="1ère">{String(t?.levels?.first) || "N/A"}</SelectItem>
-                        <SelectItem value="Terminale">{String(t?.levels?.terminal) || "N/A"}</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                   <div>
                     <Label>{String(t?.form?.capacity) || "N/A"}</Label>

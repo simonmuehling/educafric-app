@@ -61,7 +61,7 @@ export const schoolLevels = pgTable("school_levels", {
 export const classes = pgTable("classes", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  level: text("level").notNull(),
+  level: text("level"), // Made nullable - schools can use custom naming schemes
   section: text("section"),
   maxStudents: integer("max_students"), // Alignement avec la vraie structure DB
   schoolId: integer("school_id").notNull(),
