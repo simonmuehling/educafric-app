@@ -40,31 +40,33 @@ const requireAuth = (req: any, res: any, next: any) => {
 
 // Authentication middleware for template downloads (allows commercial access)
 const requireTemplateAuth = (req: any, res: any, next: any) => {
-  console.log('[TEMPLATE_AUTH] Request details:', {
+  // SECURITY: Only log safe, non-sensitive information
+  console.log('[TEMPLATE_AUTH] Request:', {
     path: req.path,
     method: req.method,
     hasUser: !!req.user,
-    userId: req.user?.id,
-    userRole: req.user?.role,
     hasSession: !!req.session,
-    sessionID: req.sessionID,
     isAuthenticated: req.isAuthenticated?.(),
-    cookies: req.cookies,
-    headers: {
-      cookie: req.headers.cookie,
-      authorization: req.headers.authorization
-    }
+    isSecure: req.secure || req.headers['x-forwarded-proto'] === 'https'
   });
 
   if (!req.user) {
-    console.log('[TEMPLATE_AUTH] ❌ REJECTED - No user object in session');
-    return res.status(401).json({ message: 'Authentication required. Please log in to download templates.' });
+    console.log('[TEMPLATE_AUTH] ❌ REJECTED - No authenticated user (session may have expired or cookie not sent)');
+    return res.status(401).json({ 
+      message: 'Votre session a expiré. Veuillez vous reconnecter pour télécharger les modèles Excel.',
+      messageEn: 'Your session has expired. Please log in again to download Excel templates.',
+      action: 'REFRESH_AND_LOGIN',
+      troubleshooting: {
+        fr: 'Solutions: 1) Actualisez la page (F5) et reconnectez-vous. 2) Videz le cache de votre navigateur. 3) Essayez depuis un autre navigateur.',
+        en: 'Solutions: 1) Refresh the page (F5) and log in again. 2) Clear your browser cache. 3) Try from another browser.'
+      }
+    });
   }
   if (!['Director', 'Admin', 'SiteAdmin', 'Commercial'].includes(req.user.role)) {
-    console.log('[TEMPLATE_AUTH] ❌ REJECTED - Invalid role:', req.user.role);
+    console.log('[TEMPLATE_AUTH] ❌ REJECTED - Invalid role (not Director/Admin/SiteAdmin/Commercial)');
     return res.status(403).json({ message: 'Accès autorisé: Administrateurs et Commercial uniquement' });
   }
-  console.log('[TEMPLATE_AUTH] ✅ AUTHORIZED - User:', req.user.id, 'Role:', req.user.role);
+  console.log('[TEMPLATE_AUTH] ✅ AUTHORIZED - User ID:', req.user.id, 'Role:', req.user.role);
   next();
 };
 

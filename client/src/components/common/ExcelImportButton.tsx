@@ -59,7 +59,21 @@ export function ExcelImportButton({
       });
 
       if (!response.ok) {
-        const errorMsg = currentLang === 'fr' ? 'Échec du téléchargement du modèle' : 'Failed to download template';
+        let errorMsg = currentLang === 'fr' ? 'Échec du téléchargement du modèle' : 'Failed to download template';
+        
+        try {
+          const errorData = await response.json();
+          if (errorData.message || errorData.messageEn) {
+            errorMsg = currentLang === 'fr' ? errorData.message : (errorData.messageEn || errorData.message);
+          }
+          if (errorData.troubleshooting) {
+            const troubleshootingMsg = currentLang === 'fr' ? errorData.troubleshooting.fr : errorData.troubleshooting.en;
+            errorMsg += '\n\n' + troubleshootingMsg;
+          }
+        } catch (e) {
+          // Si on ne peut pas parser le JSON, on garde le message par défaut
+        }
+        
         throw new Error(errorMsg);
       }
 
