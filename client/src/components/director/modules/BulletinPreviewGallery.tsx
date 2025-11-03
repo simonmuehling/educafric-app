@@ -278,37 +278,23 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
                       numberOfSubjects: subjects.length,
                       numberOfPassed: subjects.filter((s: any) => (s.grade || 0) >= 10).length
                     },
-                    subjects: subjects.map((s: any, idx: number) => ({
-                      ...s,
-                      id: s.id || idx.toString(),
-                      name: s.name || '',
+                    // Map subjects to 'lines' prop that ReportCardPreview expects
+                    lines: subjects.map((s: any) => ({
+                      subject: s.name || s.subject || '',  // Subject name
                       teacher: s.teacher || '',
-                      coefficient: s.coefficient || 1,
-                      grade: s.grade || 0,
-                      remark: s.remark || '',
-                      note1: s.note1 || s.grade || 0,
-                      moyenneFinale: s.moyenneFinale || s.grade || 0,
-                      totalPondere: (s.grade || 0) * (s.coefficient || 1),
-                      cote: s.cote || ''
+                      m20: s.grade || s.m20 || s.moyenneFinale || 0,  // Note sur 20
+                      coef: s.coefficient || s.coef || 1,
+                      avXcoef: (s.grade || s.m20 || 0) * (s.coefficient || s.coef || 1),
+                      remarksAndSignature: s.remark || s.remarksAndSignature || '',
+                      grade: s.cote || s.grade || '',
+                      competenciesEvaluated: s.competenciesEvaluated || '',
+                      subjectType: s.subjectType || 'general'
                     })),
-                    discipline: bulletin.discipline || {
-                      absJ: 0,
-                      absNJ: 0,
-                      late: 0,
-                      sanctions: 0,
-                      punishmentHours: 0,
-                      conductWarning: 0,
-                      conductBlame: 0,
-                      suspension: 0,
-                      dismissal: 0
-                    },
-                    generalRemark: bulletin.generalRemark || '',
+                    year: bulletin.academicYear || '2024-2025',  // Use 'year' prop
                     trimester: bulletin.trimester || 'Premier',
-                    academicYear: bulletin.academicYear || '2024-2025',
+                    language: language as 'fr' | 'en',  // Pass current language
                     bulletinType: (bulletin.bulletinType || 'general-fr') as any,
-                    average: parseFloat(average.toString()),
-                    rank: 0,
-                    totalStudents: 30
+                    registrationNumber: bulletin.registrationNumber || ''
                   };
                   
                   return (
@@ -328,7 +314,15 @@ const BulletinPreviewGallery: React.FC<BulletinPreviewGalleryProps> = ({
                           width: '400%',
                           pointerEvents: 'none'
                         }}>
-                          <ReportCardPreview {...bulletinData} bulletinType={bulletinData.bulletinType} />
+                          <ReportCardPreview 
+                            student={bulletinData.student}
+                            lines={bulletinData.lines}
+                            year={bulletinData.year}
+                            trimester={bulletinData.trimester}
+                            language={bulletinData.language}
+                            bulletinType={bulletinData.bulletinType}
+                            registrationNumber={bulletinData.registrationNumber}
+                          />
                         </div>
                       </div>
                       
