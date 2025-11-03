@@ -40,12 +40,31 @@ const requireAuth = (req: any, res: any, next: any) => {
 
 // Authentication middleware for template downloads (allows commercial access)
 const requireTemplateAuth = (req: any, res: any, next: any) => {
+  console.log('[TEMPLATE_AUTH] Request details:', {
+    path: req.path,
+    method: req.method,
+    hasUser: !!req.user,
+    userId: req.user?.id,
+    userRole: req.user?.role,
+    hasSession: !!req.session,
+    sessionID: req.sessionID,
+    isAuthenticated: req.isAuthenticated?.(),
+    cookies: req.cookies,
+    headers: {
+      cookie: req.headers.cookie,
+      authorization: req.headers.authorization
+    }
+  });
+
   if (!req.user) {
+    console.log('[TEMPLATE_AUTH] ❌ REJECTED - No user object in session');
     return res.status(401).json({ message: 'Authentication required. Please log in to download templates.' });
   }
   if (!['Director', 'Admin', 'SiteAdmin', 'Commercial'].includes(req.user.role)) {
+    console.log('[TEMPLATE_AUTH] ❌ REJECTED - Invalid role:', req.user.role);
     return res.status(403).json({ message: 'Accès autorisé: Administrateurs et Commercial uniquement' });
   }
+  console.log('[TEMPLATE_AUTH] ✅ AUTHORIZED - User:', req.user.id, 'Role:', req.user.role);
   next();
 };
 
