@@ -38,6 +38,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { useEffect } from "react";
+
 export default function CanteenManagement() {
   const { t, language } = useLanguage();
   const { user } = useAuth();
@@ -46,6 +48,9 @@ export default function CanteenManagement() {
   const [isMenuDialogOpen, setIsMenuDialogOpen] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState<any>(null);
   const [menuDate, setMenuDate] = useState("");
+  const [mealName, setMealName] = useState("");
+  const [description, setDescription] = useState("");
+  // Keep both language values to preserve bilingual data
   const [mealNameFr, setMealNameFr] = useState("");
   const [mealNameEn, setMealNameEn] = useState("");
   const [descriptionFr, setDescriptionFr] = useState("");
@@ -55,6 +60,32 @@ export default function CanteenManagement() {
   const [newItem, setNewItem] = useState("");
 
   const schoolId = user?.schoolId;
+
+  // Sync visible fields with language-specific fields when language or data changes
+  useEffect(() => {
+    setMealName(language === 'fr' ? mealNameFr : mealNameEn);
+    setDescription(language === 'fr' ? descriptionFr : descriptionEn);
+  }, [language, mealNameFr, mealNameEn, descriptionFr, descriptionEn]);
+
+  // Handler to update name - updates both visible field and appropriate language field
+  const handleMealNameChange = (value: string) => {
+    setMealName(value);
+    if (language === 'fr') {
+      setMealNameFr(value);
+    } else {
+      setMealNameEn(value);
+    }
+  };
+
+  // Handler to update description - updates both visible field and appropriate language field
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value);
+    if (language === 'fr') {
+      setDescriptionFr(value);
+    } else {
+      setDescriptionEn(value);
+    }
+  };
 
   // Fetch menus
   const { data: menus = [], isLoading: menusLoading } = useQuery({
@@ -153,6 +184,8 @@ export default function CanteenManagement() {
   const resetForm = () => {
     setSelectedMenu(null);
     setMenuDate("");
+    setMealName("");
+    setDescription("");
     setMealNameFr("");
     setMealNameEn("");
     setDescriptionFr("");
@@ -170,17 +203,19 @@ export default function CanteenManagement() {
   const openEditDialog = (menu: any) => {
     setSelectedMenu(menu);
     setMenuDate(menu.date?.split('T')[0] || "");
+    // Load both language values to preserve bilingual data
     setMealNameFr(menu.mealNameFr || "");
     setMealNameEn(menu.mealNameEn || "");
     setDescriptionFr(menu.descriptionFr || "");
     setDescriptionEn(menu.descriptionEn || "");
+    // useEffect will sync visible fields based on current language
     setPrice(menu.price || "");
     setItems(Array.isArray(menu.items) ? menu.items : []);
     setIsMenuDialogOpen(true);
   };
 
   const handleSubmit = () => {
-    if (!menuDate || !mealNameFr || !mealNameEn || !price || !schoolId) {
+    if (!menuDate || !mealName || !price || !schoolId) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill all required fields',
@@ -189,13 +224,14 @@ export default function CanteenManagement() {
       return;
     }
 
+    // Preserve both language values - use existing values or current input if creating new
     const menuData = {
       schoolId,
       date: menuDate,
-      mealNameFr,
-      mealNameEn,
-      descriptionFr,
-      descriptionEn,
+      mealNameFr: mealNameFr || mealName,
+      mealNameEn: mealNameEn || mealName,
+      descriptionFr: descriptionFr || description,
+      descriptionEn: descriptionEn || description,
       price: parseFloat(price),
       items,
       isAvailable: true,
@@ -450,50 +486,26 @@ export default function CanteenManagement() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="mealNameFr">{language === 'fr' ? 'Nom (Français)' : 'Name (French)'} *</Label>
-                <Input
-                  id="mealNameFr"
-                  value={mealNameFr}
-                  onChange={(e) => setMealNameFr(e.target.value)}
-                  placeholder="Déjeuner"
-                  data-testid="input-meal-name-fr"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="mealNameEn">{language === 'fr' ? 'Nom (Anglais)' : 'Name (English)'} *</Label>
-                <Input
-                  id="mealNameEn"
-                  value={mealNameEn}
-                  onChange={(e) => setMealNameEn(e.target.value)}
-                  placeholder="Lunch"
-                  data-testid="input-meal-name-en"
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="mealName">{language === 'fr' ? 'Nom du repas' : 'Meal Name'} *</Label>
+              <Input
+                id="mealName"
+                value={mealName}
+                onChange={(e) => handleMealNameChange(e.target.value)}
+                placeholder={language === 'fr' ? 'Déjeuner' : 'Lunch'}
+                data-testid="input-meal-name"
+              />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="descriptionFr">{language === 'fr' ? 'Description (Français)' : 'Description (French)'}</Label>
-                <Textarea
-                  id="descriptionFr"
-                  value={descriptionFr}
-                  onChange={(e) => setDescriptionFr(e.target.value)}
-                  placeholder="Description du menu..."
-                  data-testid="input-description-fr"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="descriptionEn">{language === 'fr' ? 'Description (Anglais)' : 'Description (English)'}</Label>
-                <Textarea
-                  id="descriptionEn"
-                  value={descriptionEn}
-                  onChange={(e) => setDescriptionEn(e.target.value)}
-                  placeholder="Menu description..."
-                  data-testid="input-description-en"
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">{language === 'fr' ? 'Description' : 'Description'}</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => handleDescriptionChange(e.target.value)}
+                placeholder={language === 'fr' ? 'Description du menu...' : 'Menu description...'}
+                data-testid="input-description"
+              />
             </div>
 
             <div className="grid gap-2">

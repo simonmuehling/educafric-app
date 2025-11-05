@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -55,6 +55,9 @@ export default function BusManagement() {
   const [selectedStation, setSelectedStation] = useState<any>(null);
   
   // Route form state
+  const [busName, setBusName] = useState("");
+  const [description, setDescription] = useState("");
+  // Keep both language values to preserve bilingual data
   const [busNameFr, setBusNameFr] = useState("");
   const [busNameEn, setBusNameEn] = useState("");
   const [descriptionFr, setDescriptionFr] = useState("");
@@ -67,6 +70,8 @@ export default function BusManagement() {
   const [isActive, setIsActive] = useState(true);
   
   // Station form state
+  const [stationName, setStationName] = useState("");
+  // Keep both language values to preserve bilingual data
   const [stationNameFr, setStationNameFr] = useState("");
   const [stationNameEn, setStationNameEn] = useState("");
   const [latitude, setLatitude] = useState("");
@@ -76,6 +81,46 @@ export default function BusManagement() {
   const [routeIdForStation, setRouteIdForStation] = useState<number | null>(null);
 
   const schoolId = user?.schoolId;
+
+  // Sync visible fields with language-specific fields when language or data changes
+  useEffect(() => {
+    setBusName(language === 'fr' ? busNameFr : busNameEn);
+    setDescription(language === 'fr' ? descriptionFr : descriptionEn);
+  }, [language, busNameFr, busNameEn, descriptionFr, descriptionEn]);
+
+  useEffect(() => {
+    setStationName(language === 'fr' ? stationNameFr : stationNameEn);
+  }, [language, stationNameFr, stationNameEn]);
+
+  // Handler to update bus name - updates both visible field and appropriate language field
+  const handleBusNameChange = (value: string) => {
+    setBusName(value);
+    if (language === 'fr') {
+      setBusNameFr(value);
+    } else {
+      setBusNameEn(value);
+    }
+  };
+
+  // Handler to update description - updates both visible field and appropriate language field
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value);
+    if (language === 'fr') {
+      setDescriptionFr(value);
+    } else {
+      setDescriptionEn(value);
+    }
+  };
+
+  // Handler to update station name - updates both visible field and appropriate language field
+  const handleStationNameChange = (value: string) => {
+    setStationName(value);
+    if (language === 'fr') {
+      setStationNameFr(value);
+    } else {
+      setStationNameEn(value);
+    }
+  };
 
   // Fetch routes
   const { data: routes = [], isLoading: routesLoading } = useQuery({
@@ -208,6 +253,8 @@ export default function BusManagement() {
 
   const resetRouteForm = () => {
     setSelectedRoute(null);
+    setBusName("");
+    setDescription("");
     setBusNameFr("");
     setBusNameEn("");
     setDescriptionFr("");
@@ -222,6 +269,7 @@ export default function BusManagement() {
 
   const resetStationForm = () => {
     setSelectedStation(null);
+    setStationName("");
     setStationNameFr("");
     setStationNameEn("");
     setLatitude("");
@@ -238,10 +286,12 @@ export default function BusManagement() {
 
   const openEditRouteDialog = (route: any) => {
     setSelectedRoute(route);
+    // Load both language values to preserve bilingual data
     setBusNameFr(route.busNameFr || "");
     setBusNameEn(route.busNameEn || "");
     setDescriptionFr(route.descriptionFr || "");
     setDescriptionEn(route.descriptionEn || "");
+    // useEffect will sync visible fields based on current language
     setDriverName(route.driverName || "");
     setDriverPhone(route.driverPhone || "");
     setVehiclePlate(route.vehiclePlate || "");
@@ -260,7 +310,7 @@ export default function BusManagement() {
   };
 
   const handleSubmitRoute = () => {
-    if (!busNameFr || !busNameEn || !driverName || !vehiclePlate || !schoolId) {
+    if (!busName || !driverName || !vehiclePlate || !schoolId) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill all required fields',
@@ -269,12 +319,13 @@ export default function BusManagement() {
       return;
     }
 
+    // Preserve both language values - use existing values or current input if creating new
     const routeData = {
       schoolId,
-      busNameFr,
-      busNameEn,
-      descriptionFr,
-      descriptionEn,
+      busNameFr: busNameFr || busName,
+      busNameEn: busNameEn || busName,
+      descriptionFr: descriptionFr || description,
+      descriptionEn: descriptionEn || description,
       driverName,
       driverPhone,
       vehiclePlate,
@@ -291,7 +342,7 @@ export default function BusManagement() {
   };
 
   const handleSubmitStation = () => {
-    if (!stationNameFr || !stationNameEn || !latitude || !longitude || !routeIdForStation) {
+    if (!stationName || !latitude || !longitude || !routeIdForStation) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill all required fields',
@@ -300,10 +351,11 @@ export default function BusManagement() {
       return;
     }
 
+    // Preserve both language values - use existing values or current input if creating new
     const stationData = {
       routeId: routeIdForStation,
-      stationNameFr,
-      stationNameEn,
+      stationNameFr: stationNameFr || stationName,
+      stationNameEn: stationNameEn || stationName,
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
       stationTime,
@@ -571,50 +623,26 @@ export default function BusManagement() {
           </DialogHeader>
           
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="busNameFr">{language === 'fr' ? 'Nom (Français)' : 'Name (French)'} *</Label>
-                <Input
-                  id="busNameFr"
-                  value={busNameFr}
-                  onChange={(e) => setBusNameFr(e.target.value)}
-                  placeholder="Route Nord"
-                  data-testid="input-bus-name-fr"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="busNameEn">{language === 'fr' ? 'Nom (Anglais)' : 'Name (English)'} *</Label>
-                <Input
-                  id="busNameEn"
-                  value={busNameEn}
-                  onChange={(e) => setBusNameEn(e.target.value)}
-                  placeholder="North Route"
-                  data-testid="input-bus-name-en"
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="busName">{language === 'fr' ? 'Nom de la route' : 'Route Name'} *</Label>
+              <Input
+                id="busName"
+                value={busName}
+                onChange={(e) => handleBusNameChange(e.target.value)}
+                placeholder={language === 'fr' ? 'Route Nord' : 'North Route'}
+                data-testid="input-bus-name"
+              />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="descriptionFr">{language === 'fr' ? 'Description (Français)' : 'Description (French)'}</Label>
-                <Textarea
-                  id="descriptionFr"
-                  value={descriptionFr}
-                  onChange={(e) => setDescriptionFr(e.target.value)}
-                  placeholder="Description de la route..."
-                  data-testid="input-description-fr"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="descriptionEn">{language === 'fr' ? 'Description (Anglais)' : 'Description (English)'}</Label>
-                <Textarea
-                  id="descriptionEn"
-                  value={descriptionEn}
-                  onChange={(e) => setDescriptionEn(e.target.value)}
-                  placeholder="Route description..."
-                  data-testid="input-description-en"
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">{language === 'fr' ? 'Description' : 'Description'}</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => handleDescriptionChange(e.target.value)}
+                placeholder={language === 'fr' ? 'Description de la route...' : 'Route description...'}
+                data-testid="input-description"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -742,27 +770,15 @@ export default function BusManagement() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="stationNameFr">{language === 'fr' ? 'Nom (Français)' : 'Name (French)'} *</Label>
-                <Input
-                  id="stationNameFr"
-                  value={stationNameFr}
-                  onChange={(e) => setStationNameFr(e.target.value)}
-                  placeholder="Carrefour Central"
-                  data-testid="input-station-name-fr"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="stationNameEn">{language === 'fr' ? 'Nom (Anglais)' : 'Name (English)'} *</Label>
-                <Input
-                  id="stationNameEn"
-                  value={stationNameEn}
-                  onChange={(e) => setStationNameEn(e.target.value)}
-                  placeholder="Central Junction"
-                  data-testid="input-station-name-en"
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="stationName">{language === 'fr' ? 'Nom de la station' : 'Station Name'} *</Label>
+              <Input
+                id="stationName"
+                value={stationName}
+                onChange={(e) => handleStationNameChange(e.target.value)}
+                placeholder={language === 'fr' ? 'Carrefour Central' : 'Central Junction'}
+                data-testid="input-station-name"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
