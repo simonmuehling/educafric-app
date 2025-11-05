@@ -291,7 +291,9 @@ export default function BusManagement() {
     setBusNameEn(route.busNameEn || "");
     setDescriptionFr(route.descriptionFr || "");
     setDescriptionEn(route.descriptionEn || "");
-    // useEffect will sync visible fields based on current language
+    // Set visible fields based on current language
+    setBusName(language === 'fr' ? (route.busNameFr || route.busNameEn || "") : (route.busNameEn || route.busNameFr || ""));
+    setDescription(language === 'fr' ? (route.descriptionFr || route.descriptionEn || "") : (route.descriptionEn || route.descriptionFr || ""));
     setDriverName(route.driverName || "");
     setDriverPhone(route.driverPhone || "");
     setVehiclePlate(route.vehiclePlate || "");

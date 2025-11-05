@@ -208,7 +208,9 @@ export default function CanteenManagement() {
     setMealNameEn(menu.mealNameEn || "");
     setDescriptionFr(menu.descriptionFr || "");
     setDescriptionEn(menu.descriptionEn || "");
-    // useEffect will sync visible fields based on current language
+    // Set visible fields based on current language
+    setMealName(language === 'fr' ? (menu.mealNameFr || menu.mealNameEn || "") : (menu.mealNameEn || menu.mealNameFr || ""));
+    setDescription(language === 'fr' ? (menu.descriptionFr || menu.descriptionEn || "") : (menu.descriptionEn || menu.descriptionFr || ""));
     setPrice(menu.price || "");
     setItems(Array.isArray(menu.items) ? menu.items : []);
     setIsMenuDialogOpen(true);
