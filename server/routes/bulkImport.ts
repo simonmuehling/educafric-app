@@ -231,8 +231,8 @@ async function validateData(data: any[], userType: 'teachers' | 'students', scho
   };
 }
 
-// Download template endpoint - Accessible by Commercial and Admins
-router.get('/template/:userType', requireTemplateAuth, async (req, res) => {
+// Download template endpoint - PUBLIC (no auth required - templates contain no sensitive data)
+router.get('/template/:userType', async (req, res) => {
   try {
     const { userType } = req.params;
     const lang = (req.query.lang as 'fr' | 'en') || 'fr';
