@@ -99,9 +99,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }));
 
+  // DEBUG: Log session middleware execution
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api') && req.path !== '/api/health' && req.method !== 'HEAD') {
+      console.log('[SESSION_DEBUG]', {
+        path: req.path,
+        hasSession: !!req.session,
+        sessionID: req.sessionID,
+        sessionPassport: (req.session as any)?.passport,
+        sessionData: Object.keys(req.session || {})
+      });
+    }
+    next();
+  });
+  
   // Initialize passport
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // DEBUG: Log passport middleware execution  
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api') && req.path !== '/api/health' && req.method !== 'HEAD') {
+      console.log('[PASSPORT_DEBUG]', {
+        path: req.path,
+        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+        hasUser: !!req.user,
+        userId: req.user?.id
+      });
+    }
+    next();
+  });
 
   // Security middleware
   app.use(dataProtectionMiddleware);

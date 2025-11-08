@@ -100,25 +100,30 @@ passport.use(new LocalStrategy(
 
 passport.serializeUser((user: any, done) => {
   try {
+    console.log('[AUTH_SERIALIZE] 🔵 serializeUser called for user:', { id: user?.id, email: user?.email, role: user?.role });
+    
     // Validate user object exists and has required properties
     if (!user || typeof user !== 'object' || !user.id) {
+      console.error('[AUTH_SERIALIZE] ❌ Invalid user object:', user);
       return done(new Error('Invalid user object for serialization'));
     }
     
     if (user.sandboxMode) {
+      console.log('[AUTH_SERIALIZE] ✅ Serializing sandbox user:', `sandbox:${user.id}`);
       done(null, `sandbox:${user.id}`);
     } else {
+      console.log('[AUTH_SERIALIZE] ✅ Serializing regular user:', user.id);
       done(null, user.id);
     }
   } catch (error) {
-    console.error('[AUTH_ERROR] User serialization failed');
+    console.error('[AUTH_ERROR] User serialization failed:', error);
     done(error);
   }
 });
 
 passport.deserializeUser(async (id: string | number, done) => {
   try {
-    console.log('[AUTH_DESERIALIZE] Starting deserialization for ID:', id);
+    console.log('[AUTH_DESERIALIZE] 🟢 deserializeUser called for ID:', id, 'type:', typeof id);
     
     // Validate input
     if (!id) {
