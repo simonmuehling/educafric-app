@@ -68,6 +68,7 @@ import bulletinSamplesRoutes from "./bulletinSamplesRoutes";
 import comprehensiveBulletinRoutes from "./comprehensiveBulletinRoutes";
 import bulletinVerificationRoutes from "./bulletinVerificationRoutes";
 import academicBulletinRoutes from "./academicBulletinRoutes";
+import bulkImportRoutes from "./bulkImport";
 // Import Vonage routes
 try {
   var vonageMessagesRoutes = require("./vonage-messages").default;
@@ -142,6 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/classes', classesRoutes);
   app.use('/api/schools', schoolRoutes);
   app.use('/api/school', configurationRoutes);
+  app.use('/api/bulk-import', bulkImportRoutes);
 
   // Geolocation routes - using modular approach
   app.use('/api/geolocation', geolocationRoutes);
