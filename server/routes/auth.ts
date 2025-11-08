@@ -100,8 +100,6 @@ passport.use(new LocalStrategy(
 
 passport.serializeUser((user: any, done) => {
   try {
-    console.log('[AUTH_SERIALIZE] 🔵 serializeUser called for user:', { id: user?.id, email: user?.email, role: user?.role });
-    
     // Validate user object exists and has required properties
     if (!user || typeof user !== 'object' || !user.id) {
       console.error('[AUTH_SERIALIZE] ❌ Invalid user object:', user);
@@ -109,10 +107,8 @@ passport.serializeUser((user: any, done) => {
     }
     
     if (user.sandboxMode) {
-      console.log('[AUTH_SERIALIZE] ✅ Serializing sandbox user:', `sandbox:${user.id}`);
       done(null, `sandbox:${user.id}`);
     } else {
-      console.log('[AUTH_SERIALIZE] ✅ Serializing regular user:', user.id);
       done(null, user.id);
     }
   } catch (error) {
@@ -123,11 +119,8 @@ passport.serializeUser((user: any, done) => {
 
 passport.deserializeUser(async (id: string | number, done) => {
   try {
-    console.log('[AUTH_DESERIALIZE] 🟢 deserializeUser called for ID:', id, 'type:', typeof id);
-    
     // Validate input
     if (!id) {
-      console.log('[AUTH_DESERIALIZE] ❌ No ID provided');
       return done(null, false);
     }
 
@@ -182,21 +175,16 @@ passport.deserializeUser(async (id: string | number, done) => {
     // Handle regular database users - with safe fallback
     try {
       const userId = typeof id === 'string' ? parseInt(id) : id;
-      console.log('[AUTH_DESERIALIZE] Parsed userId:', userId, 'type:', typeof userId);
       
       if (isNaN(userId as number)) {
-        console.log('[AUTH_DESERIALIZE] ❌ Invalid userId (NaN)');
         return done(null, false);
       }
       
-      console.log('[AUTH_DESERIALIZE] Fetching user from database...');
       const user = await storage.getUserById(userId as number);
       
       if (user) {
-        console.log('[AUTH_DESERIALIZE] ✅ User found:', user.id, user.email, user.role);
         return done(null, user);
       } else {
-        console.log('[AUTH_DESERIALIZE] ❌ User not found in database');
         return done(null, false);
       }
     } catch (dbError) {
