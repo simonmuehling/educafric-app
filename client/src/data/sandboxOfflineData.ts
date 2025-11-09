@@ -362,7 +362,10 @@ export const SANDBOX_SESSIONS = {
   }
 };
 
-// Credentials for offline login validation
+// NOTE: These credentials are ONLY for offline demo mode when no server is available
+// They do NOT grant access to production data or real user accounts
+// Server-side sandbox authentication uses environment variables and is disabled in production
+// For offline demo purposes only - works completely client-side without server
 export const SANDBOX_CREDENTIALS = {
   'sandbox.director@educafric.demo': 'sandbox123',
   'sandbox.teacher@educafric.demo': 'sandbox123',

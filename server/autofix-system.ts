@@ -16,16 +16,17 @@ export class AutoFixSystem {
     return AutoFixSystem.instance;
   }
 
-  async detectAndFixError(error: any, context?: any): Promise<boolean> {
+  async detectAndFixError(error: Error | unknown, context?: Record<string, unknown>): Promise<boolean> {
     if (this.isFixing) return false;
+    
+    // Extract error message safely
+    const errorMessage = error instanceof Error ? error.message : String(error);
     
     // In production, disable aggressive auto-fixes to prevent data corruption
     if (process.env.NODE_ENV === 'production') {
-      console.log(`[AUTOFIX] Production mode - logging error instead of auto-fixing: ${error.message || error.toString()}`);
+      console.log(`[AUTOFIX] Production mode - logging error instead of auto-fixing: ${errorMessage}`);
       return false;
     }
-    
-    const errorMessage = error.message || error.toString();
     const errorKey = this.generateErrorKey(errorMessage, context);
     
     if (this.fixHistory.has(errorKey)) {
@@ -52,7 +53,7 @@ export class AutoFixSystem {
     return false;
   }
 
-  private async applyFix(errorMessage: string, context?: any): Promise<boolean> {
+  private async applyFix(errorMessage: string, context?: Record<string, unknown>): Promise<boolean> {
     // Fix missing database columns
     if (errorMessage.includes('column') && errorMessage.includes('does not exist')) {
       return await this.fixMissingColumn(errorMessage);
@@ -205,7 +206,7 @@ export class AutoFixSystem {
     }
   }
 
-  private generateErrorKey(errorMessage: string, context?: any): string {
+  private generateErrorKey(errorMessage: string, context?: Record<string, unknown>): string {
     return `${errorMessage.substring(0, 100)}_${context?.endpoint || 'unknown'}`;
   }
 

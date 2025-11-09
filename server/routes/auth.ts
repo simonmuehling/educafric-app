@@ -758,8 +758,24 @@ router.post('/sandbox-login', sandboxLoginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     
+    // Production safety: Disable sandbox in production unless explicitly enabled
+    const isProduction = process.env.NODE_ENV === 'production';
+    const sandboxEnabled = process.env.SANDBOX_ENABLED === 'true';
+    
+    if (isProduction && !sandboxEnabled) {
+      console.warn('[SANDBOX_SECURITY] Sandbox login attempted in production - BLOCKED');
+      return res.status(403).json({ 
+        message: 'Sandbox accounts are disabled in production environment',
+        messageFr: 'Les comptes sandbox sont désactivés en production',
+        messageEn: 'Sandbox accounts are disabled in production environment'
+      });
+    }
+    
+    // Use environment variable for sandbox password (default for dev only)
+    const SANDBOX_PASSWORD = process.env.SANDBOX_PASSWORD || 'sandbox123';
+    
     // Validate sandbox credentials
-    if (password !== 'sandbox123') {
+    if (password !== SANDBOX_PASSWORD) {
       return res.status(401).json({ message: 'Invalid sandbox credentials' });
     }
     

@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 
 const router = Router();
 
 // Middleware to require authentication
-function requireAuth(req: any, res: any, next: any) {
+function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: 'Authentication required' });
   }
@@ -101,7 +101,21 @@ router.get('/attendance', requireAuth, async (req, res) => {
 router.post('/login', (req, res) => {
   const { email, password, role } = req.body;
   
-  if (password !== 'sandbox123') {
+  // Production safety: Disable sandbox in production unless explicitly enabled
+  const isProduction = process.env.NODE_ENV === 'production';
+  const sandboxEnabled = process.env.SANDBOX_ENABLED === 'true';
+  
+  if (isProduction && !sandboxEnabled) {
+    console.warn('[SANDBOX_SECURITY] Sandbox login attempted in production - BLOCKED');
+    return res.status(403).json({ 
+      message: 'Sandbox accounts are disabled in production environment'
+    });
+  }
+  
+  // Use environment variable for sandbox password (default for dev only)
+  const SANDBOX_PASSWORD = process.env.SANDBOX_PASSWORD || 'sandbox123';
+  
+  if (password !== SANDBOX_PASSWORD) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 

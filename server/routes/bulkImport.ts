@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import * as XLSX from 'xlsx';
 import { parse } from 'csv-parse/sync';
@@ -31,7 +31,7 @@ const upload = multer({
 });
 
 // Authentication middleware for bulk operations
-const requireAuth = (req: any, res: any, next: any) => {
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
     return res.status(403).json({ message: 'Accès administrateur école requis' });
   }
@@ -39,7 +39,7 @@ const requireAuth = (req: any, res: any, next: any) => {
 };
 
 // Authentication middleware for template downloads (allows commercial access)
-const requireTemplateAuth = (req: any, res: any, next: any) => {
+const requireTemplateAuth = (req: Request, res: Response, next: NextFunction) => {
   // SECURITY: Only log safe, non-sensitive information
   console.log('[TEMPLATE_AUTH] Request:', {
     path: req.path,
@@ -498,8 +498,9 @@ router.post('/import', requireAuth, async (req, res) => {
     for (const item of data) {
       try {
         if (userType === 'teachers') {
-          // Create teacher
-          const hashedPassword = await bcrypt.hash('educafric2024', 12);
+          // Generate secure random password for each user
+          const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+          const hashedPassword = await bcrypt.hash(randomPassword, 12);
           
           const teacherData = {
             id: Date.now() + Math.random(),
@@ -525,8 +526,9 @@ router.post('/import', requireAuth, async (req, res) => {
           results.successCount++;
 
         } else {
-          // Create student
-          const hashedPassword = await bcrypt.hash('educafric2024', 12);
+          // Generate secure random password for each user
+          const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+          const hashedPassword = await bcrypt.hash(randomPassword, 12);
           
           const studentData = {
             id: Date.now() + Math.random(),
