@@ -231,7 +231,20 @@ export class ExcelImportService {
     const t = translations[lang];
     try {
       const workbook = XLSX.read(buffer, { type: 'buffer' });
-      const sheetName = workbook.SheetNames[0];
+      
+      // Select the correct data sheet - skip Instructions sheet
+      // Look for: "Template", "Modèle", "Données", "Data" (in order of preference)
+      let sheetName: string = workbook.SheetNames.find(name => 
+        name === 'Modèle' || name === 'Template' || name === 'Données' || name === 'Data'
+      ) || '';
+      
+      // If no matching sheet found, use the first non-Instructions sheet
+      if (!sheetName) {
+        sheetName = workbook.SheetNames.find((name: string) => 
+          name !== 'Instructions'
+        ) || workbook.SheetNames[0];
+      }
+      
       const worksheet = workbook.Sheets[sheetName];
       
       // Convert to JSON with header row as keys
@@ -1176,7 +1189,17 @@ export class ExcelImportService {
           t.fields.classes, 
           t.fields.qualification
         ];
-        sampleData = [];
+        sampleData = lang === 'fr' ? [
+          ['Paul', 'Mbarga', 'paul.mbarga@educafric.cm', '+237677123456', '8', 'Mathématiques;Physique', '6ème A, 5ème B', 'Master en Mathématiques - Université de Yaoundé I;Licence en Physique'],
+          ['Marie', 'Fotso', 'marie.fotso@educafric.cm', '+237655789012', '12', 'Français;Littérature', 'Terminale A, Première A', 'Doctorat en Lettres Modernes - Université de Douala'],
+          ['Jean', 'Talla', 'jean.talla@educafric.cm', '+237699345678', '5', 'Histoire;Géographie', '3ème, 4ème', 'Licence en Histoire-Géo - ENS Yaoundé'],
+          ['Élise', 'Nkomo', 'elise.nkomo@educafric.cm', '+237678901234', '15', 'Anglais', 'CM1, CM2, 6ème', 'Master TEFL - University of Buea;Licence Anglais']
+        ] : [
+          ['Paul', 'Mbarga', 'paul.mbarga@educafric.cm', '+237677123456', '8', 'Mathematics;Physics', 'Form 1A, Form 2B', 'Master in Mathematics - University of Yaounde I;Bachelor in Physics'],
+          ['Marie', 'Fotso', 'marie.fotso@educafric.cm', '+237655789012', '12', 'French;Literature', 'Upper 6, Lower 6', 'PhD in Modern Literature - University of Douala'],
+          ['Jean', 'Talla', 'jean.talla@educafric.cm', '+237699345678', '5', 'History;Geography', 'Form 3, Form 4', 'Bachelor in History-Geography - ENS Yaounde'],
+          ['Elise', 'Nkomo', 'elise.nkomo@educafric.cm', '+237678901234', '15', 'English', 'Class 4, Class 5, Form 1', 'Master TEFL - University of Buea;Bachelor English']
+        ];
         break;
         
       case 'students':
@@ -1195,7 +1218,17 @@ export class ExcelImportService {
           t.fields.parentPhone,
           t.fields.isRepeating
         ];
-        sampleData = [];
+        sampleData = lang === 'fr' ? [
+          ['Amina', 'Bello', 'amina.bello@educafric.cm', '+237690123456', 'Féminin', '2012-05-15', 'Yaoundé, Cameroun', 'STU-2025-001', '6ème A', 'Ibrahim Bello', 'ibrahim.bello@gmail.com', '+237677234567', 'Non'],
+          ['Kevin', 'Ndi', '', '', 'Masculin', '2011-08-22', 'Douala, Cameroun', 'STU-2025-002', '5ème B', 'Grace Ndi', 'grace.ndi@yahoo.fr', '+237655345678', 'Oui'],
+          ['Sophie', 'Kamga', 'sophie.kamga@educafric.cm', '+237699456789', 'Féminin', '2013-03-10', 'Bamenda, Cameroun', 'STU-2025-003', 'CM2', 'Joseph Kamga', 'joseph.kamga@outlook.com', '+237678456789', 'Non'],
+          ['Lucas', 'Njoya', '', '', 'Masculin', '2012-11-05', 'Bafoussam, Cameroun', 'STU-2025-004', '6ème A', '', '', '', 'Non']
+        ] : [
+          ['Amina', 'Bello', 'amina.bello@educafric.cm', '+237690123456', 'Female', '2012-05-15', 'Yaounde, Cameroon', 'STU-2025-001', 'Form 1A', 'Ibrahim Bello', 'ibrahim.bello@gmail.com', '+237677234567', 'No'],
+          ['Kevin', 'Ndi', '', '', 'Male', '2011-08-22', 'Douala, Cameroon', 'STU-2025-002', 'Form 2B', 'Grace Ndi', 'grace.ndi@yahoo.fr', '+237655345678', 'Yes'],
+          ['Sophie', 'Kamga', 'sophie.kamga@educafric.cm', '+237699456789', 'Female', '2013-03-10', 'Bamenda, Cameroon', 'STU-2025-003', 'Class 6', 'Joseph Kamga', 'joseph.kamga@outlook.com', '+237678456789', 'No'],
+          ['Lucas', 'Njoya', '', '', 'Male', '2012-11-05', 'Bafoussam, Cameroon', 'STU-2025-004', 'Form 1A', '', '', '', 'No']
+        ];
         break;
         
       case 'parents':
@@ -1211,17 +1244,59 @@ export class ExcelImportService {
           t.fields.room,
           lang === 'fr' ? 'Matières (nom;coeff;heures;catégorie | séparées par |)' : 'Subjects (name;coeff;hours;category | separated by |)'
         ];
-        sampleData = [];
+        sampleData = lang === 'fr' ? [
+          ['6ème A', '40', 'paul.mbarga@educafric.cm', 'Salle A1', 'Mathématiques;4;6;general | Français;4;6;literary | Anglais;3;4;general | Histoire;2;3;literary | SVT;3;4;scientific'],
+          ['Terminale D', '35', 'marie.fotso@educafric.cm', 'Labo Sciences', 'Mathématiques;5;7;scientific | Physique;5;6;scientific | Chimie;4;5;scientific | Philosophie;3;4;literary'],
+          ['CM2', '30', 'elise.nkomo@educafric.cm', 'Salle B2', 'Lecture;4;6;general | Calcul;4;6;general | Éveil;3;4;other | Dessin;2;2;other'],
+          ['1ère Technique', '25', 'jean.talla@educafric.cm', 'Atelier', 'Électricité;5;8;technical | Mécanique;5;8;technical | Maths Appliquées;4;6;technical | Dessin Technique;4;5;technical']
+        ] : [
+          ['Form 1A', '40', 'paul.mbarga@educafric.cm', 'Room A1', 'Mathematics;4;6;general | French;4;6;literary | English;3;4;general | History;2;3;literary | Biology;3;4;scientific'],
+          ['Upper 6 Science', '35', 'marie.fotso@educafric.cm', 'Science Lab', 'Mathematics;5;7;scientific | Physics;5;6;scientific | Chemistry;4;5;scientific | Philosophy;3;4;literary'],
+          ['Class 6', '30', 'elise.nkomo@educafric.cm', 'Room B2', 'Reading;4;6;general | Arithmetic;4;6;general | Discovery;3;4;other | Arts;2;2;other'],
+          ['Technical Form 5', '25', 'jean.talla@educafric.cm', 'Workshop', 'Electricity;5;8;technical | Mechanics;5;8;technical | Applied Math;4;6;technical | Technical Drawing;4;5;technical']
+        ];
         break;
         
       case 'timetables':
         headers = [t.fields.className, t.fields.teacherEmail, t.fields.subject, t.fields.day, t.fields.startTime, t.fields.endTime, t.fields.room, t.fields.academicYear, t.fields.term];
-        sampleData = [];
+        sampleData = lang === 'fr' ? [
+          ['6ème A', 'paul.mbarga@educafric.cm', 'Mathématiques', '1', '08:00', '09:00', 'Salle A1', '2024-2025', 'Trimestre 1'],
+          ['6ème A', 'marie.fotso@educafric.cm', 'Français', '1', '09:00', '10:00', 'Salle A1', '2024-2025', 'Trimestre 1'],
+          ['6ème A', 'elise.nkomo@educafric.cm', 'Anglais', '1', '10:30', '11:30', 'Salle A1', '2024-2025', 'Trimestre 1'],
+          ['5ème B', 'paul.mbarga@educafric.cm', 'Physique', '2', '14:00', '15:00', 'Labo Sciences', '2024-2025', 'Trimestre 1'],
+          ['5ème B', 'jean.talla@educafric.cm', 'Histoire', '2', '15:00', '16:00', 'Salle B3', '2024-2025', 'Trimestre 1'],
+          ['CM2', 'elise.nkomo@educafric.cm', 'Lecture', '3', '08:00', '09:00', 'Salle B2', '2024-2025', 'Trimestre 1'],
+          ['Terminale D', 'marie.fotso@educafric.cm', 'Philosophie', '4', '10:30', '12:00', 'Salle C1', '2024-2025', 'Trimestre 1'],
+          ['Terminale D', 'paul.mbarga@educafric.cm', 'Mathématiques', '5', '08:00', '09:30', 'Salle C1', '2024-2025', 'Trimestre 1']
+        ] : [
+          ['Form 1A', 'paul.mbarga@educafric.cm', 'Mathematics', '1', '08:00', '09:00', 'Room A1', '2024-2025', 'Term 1'],
+          ['Form 1A', 'marie.fotso@educafric.cm', 'French', '1', '09:00', '10:00', 'Room A1', '2024-2025', 'Term 1'],
+          ['Form 1A', 'elise.nkomo@educafric.cm', 'English', '1', '10:30', '11:30', 'Room A1', '2024-2025', 'Term 1'],
+          ['Form 2B', 'paul.mbarga@educafric.cm', 'Physics', '2', '14:00', '15:00', 'Science Lab', '2024-2025', 'Term 1'],
+          ['Form 2B', 'jean.talla@educafric.cm', 'History', '2', '15:00', '16:00', 'Room B3', '2024-2025', 'Term 1'],
+          ['Class 6', 'elise.nkomo@educafric.cm', 'Reading', '3', '08:00', '09:00', 'Room B2', '2024-2025', 'Term 1'],
+          ['Upper 6 Science', 'marie.fotso@educafric.cm', 'Philosophy', '4', '10:30', '12:00', 'Room C1', '2024-2025', 'Term 1'],
+          ['Upper 6 Science', 'paul.mbarga@educafric.cm', 'Mathematics', '5', '08:00', '09:30', 'Room C1', '2024-2025', 'Term 1']
+        ];
         break;
         
       case 'rooms':
         headers = [t.fields.name, t.fields.type, t.fields.capacity, t.fields.building, t.fields.floor, t.fields.equipment];
-        sampleData = [];
+        sampleData = lang === 'fr' ? [
+          ['Salle A1', 'classroom', '40', 'Bâtiment Principal', 'Rez-de-chaussée', 'Tableau blanc;Projecteur;30 bureaux'],
+          ['Labo Sciences', 'laboratory', '30', 'Bâtiment Scientifique', '1er étage', 'Paillasses;Microscopes;Réactifs;Hottes'],
+          ['Salle Informatique', 'computer_lab', '35', 'Bâtiment Principal', '2ème étage', '35 ordinateurs;Imprimante;Scanner;Vidéoprojecteur'],
+          ['Bibliothèque', 'library', '50', 'Bâtiment Administratif', 'Rez-de-chaussée', '500 livres;Tables de lecture;Ordinateurs consultation'],
+          ['Gymnase', 'sports_hall', '100', 'Bâtiment Sportif', 'Rez-de-chaussée', 'Terrain basket;Filets volley;Vestiaires'],
+          ['Atelier Technique', 'workshop', '25', 'Bâtiment Technique', 'Rez-de-chaussée', 'Établis;Outils mécaniques;Équipement électrique']
+        ] : [
+          ['Room A1', 'classroom', '40', 'Main Building', 'Ground Floor', 'Whiteboard;Projector;30 desks'],
+          ['Science Lab', 'laboratory', '30', 'Science Building', '1st Floor', 'Lab benches;Microscopes;Reagents;Fume hoods'],
+          ['Computer Room', 'computer_lab', '35', 'Main Building', '2nd Floor', '35 computers;Printer;Scanner;Video projector'],
+          ['Library', 'library', '50', 'Admin Building', 'Ground Floor', '500 books;Reading tables;Reference computers'],
+          ['Sports Hall', 'sports_hall', '100', 'Sports Building', 'Ground Floor', 'Basketball court;Volleyball nets;Changing rooms'],
+          ['Technical Workshop', 'workshop', '25', 'Technical Building', 'Ground Floor', 'Workbenches;Mechanical tools;Electrical equipment']
+        ];
         break;
         
       case 'settings':
@@ -1241,7 +1316,11 @@ export class ExcelImportService {
           t.fields.boitePostale,
           t.fields.arrondissement
         ];
-        sampleData = [];
+        sampleData = lang === 'fr' ? [
+          ['Collège Bilingue Excellence Yaoundé', 'Secondaire', 'Quartier Bastos, Avenue Kennedy, Yaoundé', '+237222201234', 'contact@excellence-yaounde.cm', 'www.excellence-yaounde.cm', 'Établissement d\'excellence offrant un enseignement bilingue de qualité du CM1 à la Terminale', '2010', 'Dr. Emmanuel Fouda', '600', 'Délégation Régionale du Centre', 'Délégation Départementale du Mfoundi', 'BP 12345', 'Yaoundé 3ème']
+        ] : [
+          ['Bilingual College of Excellence Yaounde', 'Secondary', 'Bastos Quarter, Kennedy Avenue, Yaounde', '+237222201234', 'contact@excellence-yaounde.cm', 'www.excellence-yaounde.cm', 'Excellence institution offering quality bilingual education from Class 4 to Upper Sixth', '2010', 'Dr. Emmanuel Fouda', '600', 'Centre Regional Delegation', 'Mfoundi Divisional Delegation', 'P.O. Box 12345', 'Yaounde 3rd']
+        ];
         break;
         
       default:
@@ -1256,10 +1335,10 @@ export class ExcelImportService {
     // Set column widths
     ws['!cols'] = headers.map(() => ({ width: 20 }));
     
-    XLSX.utils.book_append_sheet(wb, ws, lang === 'fr' ? 'Données' : 'Data');
+    XLSX.utils.book_append_sheet(wb, ws, lang === 'fr' ? 'Modèle' : 'Template');
     
     // Add instructions sheet for all import templates
-    if (['teachers', 'students', 'classes', 'timetables'].includes(type)) {
+    if (['teachers', 'students', 'classes', 'timetables', 'rooms', 'settings'].includes(type)) {
       let instructionsHeaders: string[];
       let instructionsData: string[][];
       
@@ -1667,6 +1746,256 @@ export class ExcelImportService {
         ['❓ NEED HELP?'],
         ['Contact EDUCAFRIC support: support@educafric.cm']
       ];
+      } else if (type === 'rooms') {
+        instructionsHeaders = [lang === 'fr' ? 'INSTRUCTIONS - IMPORT EN MASSE DES SALLES' : 'INSTRUCTIONS - BULK ROOM IMPORT'];
+        instructionsData = lang === 'fr' ? [
+          instructionsHeaders,
+          [''],
+          ['📋 OBJECTIF'],
+          ['Cet outil d\'import Excel facilite l\'enregistrement de toutes vos salles de classe, laboratoires et espaces,'],
+          ['SANS avoir besoin de créer chaque salle individuellement dans l\'interface.'],
+          [''],
+          ['✅ AVANTAGES'],
+          ['• Gain de temps: créez toutes vos salles en quelques minutes'],
+          ['• Organisation complète: bibliothèques, laboratoires, ateliers, salles de classe'],
+          ['• Gestion d\'équipements: suivi de tout le matériel par salle'],
+          ['• Planning facilité: associez facilement les salles aux emplois du temps'],
+          [''],
+          ['📝 FORMAT DES COLONNES'],
+          ['1. Nom: Nom de la salle (ex: Salle A1, Labo Sciences, Bibliothèque)'],
+          ['2. Type: Type de salle (voir liste ci-dessous)'],
+          ['3. Capacité: Nombre maximum de personnes (ex: 40, 30, 50)'],
+          ['4. Bâtiment: Nom du bâtiment (ex: Bâtiment Principal, Bâtiment Scientifique)'],
+          ['5. Étage: Niveau de l\'étage (ex: Rez-de-chaussée, 1er étage, 2ème étage)'],
+          ['6. Équipement: Liste des équipements séparés par des points-virgules (ex: Tableau blanc;Projecteur)'],
+          [''],
+          ['🏫 TYPES DE SALLES DISPONIBLES (6 types)'],
+          ['• classroom     → Salle de classe standard'],
+          ['• laboratory    → Laboratoire (Sciences, Chimie, Physique, SVT)'],
+          ['• computer_lab  → Salle informatique avec ordinateurs'],
+          ['• library       → Bibliothèque, centre de documentation'],
+          ['• sports_hall   → Gymnase, salle de sport, terrain couvert'],
+          ['• workshop      → Atelier technique (Électricité, Mécanique, Menuiserie)'],
+          [''],
+          ['💡 EXEMPLES PRATIQUES'],
+          ['Salle de classe: Salle A1 | classroom | 40 | Bâtiment Principal | 1er étage | Tableau blanc;Projecteur;30 bureaux'],
+          ['Laboratoire: Labo Chimie | laboratory | 30 | Bâtiment Sciences | 2ème étage | Paillasses;Microscopes;Réactifs;Hottes'],
+          ['Informatique: Salle Info 1 | computer_lab | 35 | Bâtiment Principal | Rez-de-chaussée | 35 ordinateurs;Imprimante;Scanner'],
+          ['Bibliothèque: Bibliothèque Centrale | library | 60 | Bâtiment Administratif | Rez-de-chaussée | 800 livres;Tables lecture;5 ordinateurs'],
+          [''],
+          ['⚠️ IMPORTANT - FORMAT ÉQUIPEMENT'],
+          ['Listez tous les équipements séparés par des points-virgules (;)'],
+          ['Exemples: Tableau blanc;Projecteur;Tables;Chaises'],
+          ['         Ordinateurs;Imprimante;Scanner;Tableau interactif'],
+          ['         Paillasses;Microscopes;Éprouvettes;Blouses'],
+          [''],
+          ['🚀 COMMENT UTILISER CE FICHIER'],
+          ['1. Remplissez les données dans l\'onglet "Modèle" (utilisez les exemples comme guide)'],
+          ['2. Vérifiez que les types de salles sont corrects (classroom, laboratory, etc.)'],
+          ['3. Sauvegardez le fichier Excel'],
+          ['4. Dans l\'interface EDUCAFRIC, allez dans "Gestion des Salles"'],
+          ['5. Cliquez sur "Import Excel en Masse"'],
+          ['6. Sélectionnez ce fichier et importez'],
+          ['7. Toutes vos salles seront créées avec leurs équipements!'],
+          [''],
+          ['✨ Les salles seront automatiquement disponibles pour les emplois du temps'],
+          [''],
+          ['❓ BESOIN D\'AIDE?'],
+          ['Contactez le support EDUCAFRIC: support@educafric.cm']
+        ] : [
+          instructionsHeaders,
+          [''],
+          ['📋 PURPOSE'],
+          ['This Excel import tool allows you to register all your classrooms, laboratories and spaces,'],
+          ['WITHOUT needing to create each room individually in the interface.'],
+          [''],
+          ['✅ BENEFITS'],
+          ['• Time-saving: create all your rooms in minutes'],
+          ['• Complete organization: libraries, laboratories, workshops, classrooms'],
+          ['• Equipment management: track all materials by room'],
+          ['• Easy scheduling: easily assign rooms to timetables'],
+          [''],
+          ['📝 COLUMN FORMAT'],
+          ['1. Name: Room name (e.g., Room A1, Science Lab, Library)'],
+          ['2. Type: Room type (see list below)'],
+          ['3. Capacity: Maximum number of people (e.g., 40, 30, 50)'],
+          ['4. Building: Building name (e.g., Main Building, Science Building)'],
+          ['5. Floor: Floor level (e.g., Ground Floor, 1st Floor, 2nd Floor)'],
+          ['6. Equipment: List of equipment separated by semicolons (e.g., Whiteboard;Projector)'],
+          [''],
+          ['🏫 AVAILABLE ROOM TYPES (6 types)'],
+          ['• classroom     → Standard classroom'],
+          ['• laboratory    → Laboratory (Science, Chemistry, Physics, Biology)'],
+          ['• computer_lab  → Computer room with computers'],
+          ['• library       → Library, documentation center'],
+          ['• sports_hall   → Gymnasium, sports hall, indoor court'],
+          ['• workshop      → Technical workshop (Electricity, Mechanics, Carpentry)'],
+          [''],
+          ['💡 PRACTICAL EXAMPLES'],
+          ['Classroom: Room A1 | classroom | 40 | Main Building | 1st Floor | Whiteboard;Projector;30 desks'],
+          ['Laboratory: Chemistry Lab | laboratory | 30 | Science Building | 2nd Floor | Lab benches;Microscopes;Reagents;Fume hoods'],
+          ['Computer Lab: Computer Room 1 | computer_lab | 35 | Main Building | Ground Floor | 35 computers;Printer;Scanner'],
+          ['Library: Central Library | library | 60 | Admin Building | Ground Floor | 800 books;Reading tables;5 computers'],
+          [''],
+          ['⚠️ IMPORTANT - EQUIPMENT FORMAT'],
+          ['List all equipment separated by semicolons (;)'],
+          ['Examples: Whiteboard;Projector;Tables;Chairs'],
+          ['         Computers;Printer;Scanner;Interactive board'],
+          ['         Lab benches;Microscopes;Test tubes;Lab coats'],
+          [''],
+          ['🚀 HOW TO USE THIS FILE'],
+          ['1. Fill in the data in the "Template" tab (use examples as a guide)'],
+          ['2. Verify that room types are correct (classroom, laboratory, etc.)'],
+          ['3. Save the Excel file'],
+          ['4. In the EDUCAFRIC interface, go to "Room Management"'],
+          ['5. Click on "Bulk Excel Import"'],
+          ['6. Select this file and import'],
+          ['7. All your rooms will be created with their equipment!'],
+          [''],
+          ['✨ Rooms will be automatically available for timetables'],
+          [''],
+          ['❓ NEED HELP?'],
+          ['Contact EDUCAFRIC support: support@educafric.cm']
+        ];
+      } else if (type === 'settings') {
+        instructionsHeaders = [lang === 'fr' ? 'INSTRUCTIONS - CONFIGURATION DE L\'ÉCOLE' : 'INSTRUCTIONS - SCHOOL CONFIGURATION'];
+        instructionsData = lang === 'fr' ? [
+          instructionsHeaders,
+          [''],
+          ['📋 OBJECTIF'],
+          ['Cet outil permet de configurer toutes les informations administratives de votre école en une seule fois,'],
+          ['incluant les coordonnées, l\'historique et les détails officiels pour le Ministère.'],
+          [''],
+          ['✅ AVANTAGES'],
+          ['• Configuration complète: toutes les informations administratives en un seul fichier'],
+          ['• Conforme MINEDUB: champs requis pour les rapports officiels camerounais'],
+          ['• Gain de temps: évite la saisie manuelle de nombreux champs'],
+          [''],
+          ['📝 FORMAT DES COLONNES'],
+          ['CHAMPS OBLIGATOIRES:'],
+          ['1. NomÉcole: Nom complet de l\'établissement (ex: Collège Bilingue Excellence Yaoundé)'],
+          ['2. TypeÉtablissement: Type (Primaire, Secondaire, Maternelle, Technique)'],
+          ['3. Adresse: Adresse complète avec quartier et ville (ex: Quartier Bastos, Avenue Kennedy, Yaoundé)'],
+          ['4. Téléphone: Téléphone principal (format: +237XXXXXXXXX)'],
+          ['5. Email: Adresse email officielle de l\'école'],
+          ['6. Description: Présentation de l\'établissement (mission, valeurs, spécialités)'],
+          ['7. AnnéeCréation: Année de création (ex: 2010, 1995)'],
+          ['8. NomDirecteur: Nom complet du directeur/proviseur'],
+          ['9. CapacitéÉlèves: Nombre maximum d\'élèves acceptés (ex: 500, 800)'],
+          [''],
+          ['CHAMPS OPTIONNELS:'],
+          ['10. SiteWeb: Site internet de l\'école (ex: www.excellence-yaounde.cm)'],
+          ['11. DélégationRégionale: Délégation régionale MINEDUB (ex: Délégation Régionale du Centre)'],
+          ['12. DélégationDépartementale: Délégation départementale (ex: Délégation Départementale du Mfoundi)'],
+          ['13. BoîtePostale: Boîte postale (ex: BP 12345)'],
+          ['14. Arrondissement: Arrondissement de localisation (ex: Yaoundé 3ème, Douala 5ème)'],
+          [''],
+          ['🎯 TYPES D\'ÉTABLISSEMENT DISPONIBLES'],
+          ['• Primaire      → École primaire (CP à CM2)'],
+          ['• Secondaire    → Collège et Lycée (6ème à Terminale)'],
+          ['• Maternelle    → École maternelle (Petite, Moyenne, Grande Section)'],
+          ['• Technique     → Lycée technique ou professionnel'],
+          ['• Mixte         → Établissement combinant plusieurs niveaux'],
+          [''],
+          ['💡 EXEMPLES PRATIQUES'],
+          ['Secondaire francophone: Collège Bilingue Excellence Yaoundé | Secondaire | Quartier Bastos, Yaoundé | +237222201234 | contact@excellence.cm'],
+          ['Primaire anglophone: Glory International School | Primaire | Molyko, Buea | +237233445566 | info@gloryschool.cm'],
+          [''],
+          ['⚠️ IMPORTANT - CONFORMITÉ MINEDUB'],
+          ['Les champs DélégationRégionale, DélégationDépartementale et Arrondissement sont'],
+          ['requis pour les rapports officiels au Ministère de l\'Éducation de Base (MINEDUB)'],
+          ['et au Ministère des Enseignements Secondaires (MINESEC).'],
+          [''],
+          ['📍 EXEMPLES DE DÉLÉGATIONS PAR RÉGION'],
+          ['Centre: Délégation Régionale du Centre → Mfoundi, Mefou, Nyong-et-Kellé'],
+          ['Littoral: Délégation Régionale du Littoral → Wouri, Nkam, Sanaga-Maritime'],
+          ['Ouest: Délégation Régionale de l\'Ouest → Bamboutos, Menoua, Mifi'],
+          ['Nord-Ouest: North West Regional Delegation → Mezam, Boyo, Bui'],
+          ['Sud-Ouest: South West Regional Delegation → Fako, Manyu, Meme'],
+          [''],
+          ['🚀 COMMENT UTILISER CE FICHIER'],
+          ['1. Remplissez UNE SEULE LIGNE de données dans l\'onglet "Modèle"'],
+          ['2. Assurez-vous que tous les champs obligatoires sont remplis'],
+          ['3. Vérifiez la conformité des informations avec vos documents officiels'],
+          ['4. Sauvegardez le fichier Excel'],
+          ['5. Dans l\'interface EDUCAFRIC, allez dans "Paramètres de l\'École"'],
+          ['6. Cliquez sur "Import Configuration"'],
+          ['7. Sélectionnez ce fichier et importez'],
+          ['8. Vos paramètres seront enregistrés!'],
+          [''],
+          ['✨ Ces informations apparaîtront sur tous les documents officiels (bulletins, attestations)'],
+          [''],
+          ['❓ BESOIN D\'AIDE?'],
+          ['Contactez le support EDUCAFRIC: support@educafric.cm']
+        ] : [
+          instructionsHeaders,
+          [''],
+          ['📋 PURPOSE'],
+          ['This tool allows you to configure all administrative information of your school at once,'],
+          ['including contact details, history and official details for the Ministry.'],
+          [''],
+          ['✅ BENEFITS'],
+          ['• Complete configuration: all administrative information in one file'],
+          ['• MINEDUB compliant: required fields for official Cameroonian reports'],
+          ['• Time-saving: avoids manual entry of many fields'],
+          [''],
+          ['📝 COLUMN FORMAT'],
+          ['REQUIRED FIELDS:'],
+          ['1. SchoolName: Full name of institution (e.g., Bilingual College of Excellence Yaounde)'],
+          ['2. InstitutionType: Type (Primary, Secondary, Nursery, Technical)'],
+          ['3. Address: Complete address with quarter and city (e.g., Bastos Quarter, Kennedy Avenue, Yaounde)'],
+          ['4. Phone: Main phone number (format: +237XXXXXXXXX)'],
+          ['5. Email: Official school email address'],
+          ['6. Description: School presentation (mission, values, specialties)'],
+          ['7. EstablishedYear: Year of establishment (e.g., 2010, 1995)'],
+          ['8. PrincipalName: Full name of principal/headmaster'],
+          ['9. StudentCapacity: Maximum number of students accepted (e.g., 500, 800)'],
+          [''],
+          ['OPTIONAL FIELDS:'],
+          ['10. Website: School website (e.g., www.excellence-yaounde.cm)'],
+          ['11. RegionalDelegation: MINEDUB regional delegation (e.g., Centre Regional Delegation)'],
+          ['12. DivisionalDelegation: Divisional delegation (e.g., Mfoundi Divisional Delegation)'],
+          ['13. POBox: Post office box (e.g., P.O. Box 12345)'],
+          ['14. District: Location district (e.g., Yaounde 3rd, Douala 5th)'],
+          [''],
+          ['🎯 AVAILABLE INSTITUTION TYPES'],
+          ['• Primary      → Primary school (Class 1 to Class 6)'],
+          ['• Secondary    → College and High School (Form 1 to Upper 6)'],
+          ['• Nursery      → Nursery school (Toddler, Nursery 1, Nursery 2)'],
+          ['• Technical    → Technical or vocational high school'],
+          ['• Mixed        → Institution combining multiple levels'],
+          [''],
+          ['💡 PRACTICAL EXAMPLES'],
+          ['Francophone secondary: Bilingual College of Excellence Yaounde | Secondary | Bastos Quarter, Yaounde | +237222201234 | contact@excellence.cm'],
+          ['Anglophone primary: Glory International School | Primary | Molyko, Buea | +237233445566 | info@gloryschool.cm'],
+          [''],
+          ['⚠️ IMPORTANT - MINEDUB COMPLIANCE'],
+          ['The RegionalDelegation, DivisionalDelegation and District fields are'],
+          ['required for official reports to the Ministry of Basic Education (MINEDUB)'],
+          ['and the Ministry of Secondary Education (MINESEC).'],
+          [''],
+          ['📍 DELEGATION EXAMPLES BY REGION'],
+          ['Centre: Centre Regional Delegation → Mfoundi, Mefou, Nyong-et-Kellé'],
+          ['Littoral: Littoral Regional Delegation → Wouri, Nkam, Sanaga-Maritime'],
+          ['West: West Regional Delegation → Bamboutos, Menoua, Mifi'],
+          ['North West: North West Regional Delegation → Mezam, Boyo, Bui'],
+          ['South West: South West Regional Delegation → Fako, Manyu, Meme'],
+          [''],
+          ['🚀 HOW TO USE THIS FILE'],
+          ['1. Fill in ONLY ONE LINE of data in the "Template" tab'],
+          ['2. Ensure all required fields are completed'],
+          ['3. Verify information matches your official documents'],
+          ['4. Save the Excel file'],
+          ['5. In the EDUCAFRIC interface, go to "School Settings"'],
+          ['6. Click on "Import Configuration"'],
+          ['7. Select this file and import'],
+          ['8. Your settings will be saved!'],
+          [''],
+          ['✨ This information will appear on all official documents (report cards, certificates)'],
+          [''],
+          ['❓ NEED HELP?'],
+          ['Contact EDUCAFRIC support: support@educafric.cm']
+        ];
       }
       
       const wsInstructions = XLSX.utils.aoa_to_sheet(instructionsData);
