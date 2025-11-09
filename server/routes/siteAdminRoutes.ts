@@ -111,38 +111,69 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
   // Enhanced Schools Management with comprehensive functionality
   app.get("/api/siteadmin/schools", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
-      console.log('[SITE_ADMIN_API] Fetching real schools from database');
+      console.log('[SITE_ADMIN_API] Fetching real schools from database with director info');
 
-      const { search = '', type = 'all', status = 'all', page = 1, limit = 20 } = req.query;
+      const { search = '', type = 'all', page = 1, limit = 20 } = req.query;
 
       // Fetch real schools from database with user statistics
       const schoolsWithStats = await storage.getSchoolsWithStats();
 
-      // Transform to match expected format
-      const schoolsWithCounts = schoolsWithStats.map(school => ({
-        id: school.id,
-        name: school.name,
-        address: school.address || '',
-        phone: school.phone,
-        email: school.email,
-        schoolType: school.type || 'private',
-        studentCount: school.studentCount || 0,
-        teacherCount: school.teacherCount || 0,
-        subscriptionStatus: 'active',
-        monthlyRevenue: 0,
-        createdAt: school.createdAt,
-        contactEmail: school.email,
-        location: school.address || '',
-        educafricNumber: school.educafricNumber
+      // Get director information for each school
+      const schoolsWithDirector = await Promise.all(schoolsWithStats.map(async (school) => {
+        try {
+          // Find director for this school
+          const director = await storage.getSchoolDirector(school.id);
+          
+          return {
+            id: school.id,
+            name: school.name,
+            address: school.address || '',
+            phone: school.phone,
+            email: school.email,
+            type: school.type || 'private',
+            studentCount: school.studentCount || 0,
+            teacherCount: school.teacherCount || 0,
+            createdAt: school.createdAt,
+            educafricNumber: school.educafricNumber,
+            director: director ? `${director.firstName || ''} ${director.lastName || ''}`.trim() : 'N/A',
+            directorEmail: director?.email || null,
+            directorPhone: director?.phone || null
+          };
+        } catch (error) {
+          console.error(`Error fetching director for school ${school.id}:`, error);
+          return {
+            id: school.id,
+            name: school.name,
+            address: school.address || '',
+            phone: school.phone,
+            email: school.email,
+            type: school.type || 'private',
+            studentCount: school.studentCount || 0,
+            teacherCount: school.teacherCount || 0,
+            createdAt: school.createdAt,
+            educafricNumber: school.educafricNumber,
+            director: 'N/A',
+            directorEmail: null,
+            directorPhone: null
+          };
+        }
       }));
 
       // Apply search filter if provided
-      let filteredSchools = schoolsWithCounts;
+      let filteredSchools = schoolsWithDirector;
       if (search) {
-        filteredSchools = schoolsWithCounts.filter(school => 
-          school.name.toLowerCase().includes(search.toString().toLowerCase()) ||
-          school.address?.toLowerCase().includes(search.toString().toLowerCase())
+        const searchLower = search.toString().toLowerCase();
+        filteredSchools = schoolsWithDirector.filter(school => 
+          school.name.toLowerCase().includes(searchLower) ||
+          school.address?.toLowerCase().includes(searchLower) ||
+          school.director?.toLowerCase().includes(searchLower) ||
+          school.educafricNumber?.toLowerCase().includes(searchLower)
         );
+      }
+
+      // Apply type filter if provided
+      if (type && type !== 'all') {
+        filteredSchools = filteredSchools.filter(school => school.type === type);
       }
 
       console.log(`[SITE_ADMIN_API] ✅ Retrieved ${filteredSchools.length} real schools from database`);

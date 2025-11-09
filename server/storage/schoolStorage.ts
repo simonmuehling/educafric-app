@@ -334,4 +334,41 @@ export class SchoolStorage implements ISchoolStorage {
       return [];
     }
   }
+
+  async getSchoolDirector(schoolId: number): Promise<any | null> {
+    try {
+      const { and, or } = await import("drizzle-orm");
+      
+      // Find the first Director for this school (try Director role first, then any user as fallback)
+      const [director] = await db
+        .select()
+        .from(users)
+        .where(
+          and(
+            eq(users.schoolId, schoolId),
+            or(
+              eq(users.role, 'Director'),
+              eq(users.role, 'SiteDirector'),
+              eq(users.role, 'SiteAdmin')
+            )
+          )
+        )
+        .limit(1);
+      
+      // If no director found, get any user from the school as fallback
+      if (!director) {
+        const [anyUser] = await db
+          .select()
+          .from(users)
+          .where(eq(users.schoolId, schoolId))
+          .limit(1);
+        return anyUser || null;
+      }
+      
+      return director;
+    } catch (error) {
+      console.error(`Error getting school director for school ${schoolId}:`, error);
+      return null;
+    }
+  }
 }

@@ -8,21 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Building2, Search, Filter, Plus, Edit, 
-  Users, DollarSign, MapPin, Phone, Mail,
-  CheckCircle, AlertTriangle, Clock, Eye,
-  BarChart3, TrendingUp, Calendar
+  Users, MapPin, Phone, Mail, Eye, Calendar
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-// Form validation schema
 const createSchoolFormSchema = z.object({
   name: z.string().min(1, 'School name is required'),
   type: z.enum(['private', 'public'], { required_error: 'School type is required' }),
@@ -39,12 +35,10 @@ const FunctionalSiteAdminSchools: React.FC = () => {
   const queryClient = useQueryClient();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [planFilter, setPlanFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [selectedSchool, setSelectedSchool] = useState<any>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
-  // Form setup with react-hook-form + zod
   const form = useForm<z.infer<typeof createSchoolFormSchema>>({
     resolver: zodResolver(createSchoolFormSchema),
     defaultValues: {
@@ -57,11 +51,15 @@ const FunctionalSiteAdminSchools: React.FC = () => {
     }
   });
 
-  // Fetch schools
   const { data: schools, isLoading } = useQuery({
-    queryKey: ['/api/siteadmin/schools', { search: searchTerm, plan: planFilter, status: statusFilter }],
+    queryKey: ['/api/siteadmin/schools', searchTerm, typeFilter],
     queryFn: async () => {
-      const response = await fetch(`/api/siteadmin/schools?search=${searchTerm}&plan=${planFilter}&status=${statusFilter}`, {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (typeFilter !== 'all') params.append('type', typeFilter);
+      params.append('limit', '1000'); // Fetch all schools
+      
+      const response = await fetch(`/api/siteadmin/schools?${params.toString()}`, {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch schools');
@@ -70,7 +68,6 @@ const FunctionalSiteAdminSchools: React.FC = () => {
     enabled: !!user
   });
 
-  // Create school mutation
   const createSchoolMutation = useMutation({
     mutationFn: async (schoolData: z.infer<typeof createSchoolFormSchema>) => {
       return await apiRequest('/api/siteadmin/schools', {
@@ -105,86 +102,122 @@ const FunctionalSiteAdminSchools: React.FC = () => {
       title: 'Gestion des Écoles',
       subtitle: 'Administration des établissements scolaires',
       loading: 'Chargement des écoles...',
-      search: 'Rechercher des écoles...',
+      search: 'Rechercher par nom, adresse, directeur ou numéro EDUCAFRIC...',
       filters: {
-        plan: 'Filtrer par plan',
-        status: 'Filtrer par statut',
-        all: 'Tous'
-      },
-      plans: {
-        basic: 'Basic',
-        premium: 'Premium',
-        enterprise: 'Enterprise',
-        trial: 'Essai'
-      },
-      status: {
-        active: 'Actif',
-        inactive: 'Inactif',
-        suspended: 'Suspendu',
-        pending: 'En attente'
-      },
-      actions: {
-        view: 'Voir',
-        edit: 'Modifier',
-        activate: 'Activer',
-        suspend: 'Suspendre',
-        upgrade: 'Mettre à niveau',
-        contact: 'Contacter'
+        type: 'Filtrer par type',
+        all: 'Tous',
+        private: 'Privé',
+        public: 'Public'
       },
       stats: {
         totalSchools: 'Total Écoles',
-        activeSchools: 'Écoles Actives',
         totalStudents: 'Total Élèves',
-        totalRevenue: 'Revenus Totaux'
+        totalTeachers: 'Total Enseignants'
+      },
+      actions: {
+        view: 'Voir Détails',
+        edit: 'Modifier',
+        newSchool: 'Nouvelle École'
+      },
+      schoolCard: {
+        students: 'Élèves',
+        teachers: 'Enseignants',
+        director: 'Directeur',
+        educafricNumber: 'N° EDUCAFRIC',
+        created: 'Créé le'
       },
       details: {
-        overview: 'Aperçu',
-        subscription: 'Abonnement',
-        activity: 'Activité',
-        billing: 'Facturation'
+        title: 'Détails de l\'École',
+        generalInfo: 'Informations Générales',
+        statistics: 'Statistiques',
+        close: 'Fermer',
+        name: 'Nom',
+        director: 'Directeur',
+        address: 'Adresse',
+        phone: 'Téléphone',
+        email: 'Email',
+        type: 'Type',
+        educafricNumber: 'Numéro EDUCAFRIC',
+        students: 'Élèves',
+        teachers: 'Enseignants',
+        createdAt: 'Date de création'
+      },
+      createDialog: {
+        title: 'Créer une Nouvelle École',
+        description: 'Entrez les informations de la nouvelle école. Les champs marqués (*) sont obligatoires.',
+        nameLabel: 'Nom de l\'école *',
+        namePlaceholder: 'Ex: École Primaire Excellence',
+        typeLabel: 'Type *',
+        typePlaceholder: 'Sélectionner le type',
+        addressLabel: 'Adresse',
+        addressPlaceholder: 'Ex: 123 Avenue de l\'Indépendance, Yaoundé',
+        phoneLabel: 'Téléphone',
+        emailLabel: 'Email',
+        educafricLabel: 'Numéro EDUCAFRIC (optionnel)',
+        cancel: 'Annuler',
+        create: 'Créer',
+        creating: 'Création...'
       }
     },
     en: {
       title: 'School Management',
       subtitle: 'Educational institution administration',
       loading: 'Loading schools...',
-      search: 'Search schools...',
+      search: 'Search by name, address, director or EDUCAFRIC number...',
       filters: {
-        plan: 'Filter by plan',
-        status: 'Filter by status',
-        all: 'All'
-      },
-      plans: {
-        basic: 'Basic',
-        premium: 'Premium',
-        enterprise: 'Enterprise',
-        trial: 'Trial'
-      },
-      status: {
-        active: 'Active',
-        inactive: 'Inactive',
-        suspended: 'Suspended',
-        pending: 'Pending'
-      },
-      actions: {
-        view: 'View',
-        edit: 'Edit',
-        activate: 'Activate',
-        suspend: 'Suspend',
-        upgrade: 'Upgrade',
-        contact: 'Contact'
+        type: 'Filter by type',
+        all: 'All',
+        private: 'Private',
+        public: 'Public'
       },
       stats: {
         totalSchools: 'Total Schools',
-        activeSchools: 'Active Schools',
         totalStudents: 'Total Students',
-        totalRevenue: 'Total Revenue'
+        totalTeachers: 'Total Teachers'
+      },
+      actions: {
+        view: 'View Details',
+        edit: 'Edit',
+        newSchool: 'New School'
+      },
+      schoolCard: {
+        students: 'Students',
+        teachers: 'Teachers',
+        director: 'Director',
+        educafricNumber: 'EDUCAFRIC No.',
+        created: 'Created on'
       },
       details: {
-        overview: 'Overview',
-        subscription: 'Subscription',
-        activity: 'Activity',
-        billing: 'Billing'
+        title: 'School Details',
+        generalInfo: 'General Information',
+        statistics: 'Statistics',
+        close: 'Close',
+        name: 'Name',
+        director: 'Director',
+        address: 'Address',
+        phone: 'Phone',
+        email: 'Email',
+        type: 'Type',
+        educafricNumber: 'EDUCAFRIC Number',
+        students: 'Students',
+        teachers: 'Teachers',
+        createdAt: 'Created Date'
+      },
+      createDialog: {
+        title: 'Create New School',
+        description: 'Enter the new school information. Fields marked with (*) are required.',
+        nameLabel: 'School Name *',
+        namePlaceholder: 'Ex: Excellence Primary School',
+        typeLabel: 'Type *',
+        typePlaceholder: 'Select type',
+        addressLabel: 'Address',
+        addressPlaceholder: 'Ex: 123 Independence Avenue, Yaoundé',
+        phoneLabel: 'Phone',
+        emailLabel: 'Email',
+        educafricLabel: 'EDUCAFRIC Number (optional)',
+        cancel: 'Cancel',
+        create: 'Create',
+        creating: 'Creating...'
       }
     }
   };
@@ -202,62 +235,37 @@ const FunctionalSiteAdminSchools: React.FC = () => {
     );
   }
 
-  // Get schools data from API
   const schoolsList = schools?.schools ?? [];
   
-  // Calculate stats from real data
   const stats = {
     totalSchools: schoolsList.length,
-    activeSchools: schoolsList.filter((s: any) => s.subscriptionStatus === 'active').length,
     totalStudents: schoolsList.reduce((sum: number, s: any) => sum + (s.studentCount || 0), 0),
-    totalRevenue: 0 // Not available in current data
+    totalTeachers: schoolsList.reduce((sum: number, s: any) => sum + (s.teacherCount || 0), 0)
   };
 
-  const filteredSchools = (Array.isArray(schoolsList) ? schoolsList : []).filter((school: any) => {
-    if (!school) return false;
-    const matchesSearch = (school.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (school.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (school.email || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPlan = planFilter === 'all' || school.subscriptionStatus === planFilter;
-    const matchesStatus = statusFilter === 'all' || school.subscriptionStatus === statusFilter;
-    
-    return matchesSearch && matchesPlan && matchesStatus;
-  });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'suspended': return 'bg-red-100 text-red-800';
-      case 'trial': return 'bg-blue-100 text-blue-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'private': return 'bg-blue-100 text-blue-800';
+      case 'public': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getPlanColor = (plan: string) => {
-    switch (plan) {
-      case 'enterprise': return 'bg-purple-100 text-purple-800';
-      case 'premium': return 'bg-blue-100 text-blue-800';
-      case 'basic': return 'bg-green-100 text-green-800';
-      case 'trial': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPerformanceColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 80) return 'text-blue-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button 
@@ -266,12 +274,11 @@ const FunctionalSiteAdminSchools: React.FC = () => {
           data-testid="button-create-school"
         >
           <Plus className="w-4 h-4 mr-2" />
-          {language === 'fr' ? 'Nouvelle École' : 'New School'}
+          {t.actions.newSchool}
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -279,25 +286,9 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                 <Building2 className="w-6 h-6 text-blue-600" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-gray-600">{t?.stats?.totalSchools}</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-sm text-gray-600">{t.stats.totalSchools}</p>
+                <p className="text-2xl font-bold text-blue-600" data-testid="stat-total-schools">
                   {stats.totalSchools}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-gray-600">{t?.stats?.activeSchools}</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.activeSchools}
                 </p>
               </div>
             </div>
@@ -311,8 +302,8 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                 <Users className="w-6 h-6 text-orange-600" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-gray-600">{t?.stats?.totalStudents}</p>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="text-sm text-gray-600">{t.stats.totalStudents}</p>
+                <p className="text-2xl font-bold text-orange-600" data-testid="stat-total-students">
                   {stats.totalStudents.toLocaleString()}
                 </p>
               </div>
@@ -323,13 +314,13 @@ const FunctionalSiteAdminSchools: React.FC = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-purple-600" />
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Users className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-gray-600">{t?.stats?.totalRevenue}</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {stats.totalRevenue > 0 ? `${(stats.totalRevenue / 1000000).toFixed(1)}M CFA` : 'N/A'}
+                <p className="text-sm text-gray-600">{t.stats.totalTeachers}</p>
+                <p className="text-2xl font-bold text-green-600" data-testid="stat-total-teachers">
+                  {stats.totalTeachers.toLocaleString()}
                 </p>
               </div>
             </div>
@@ -337,7 +328,6 @@ const FunctionalSiteAdminSchools: React.FC = () => {
         </Card>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-4 items-center">
@@ -350,6 +340,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  data-testid="input-search-schools"
                 />
               </div>
             </div>
@@ -357,149 +348,103 @@ const FunctionalSiteAdminSchools: React.FC = () => {
             <div className="flex items-center space-x-2">
               <Filter className="w-4 h-4 text-gray-500" />
               <select
-                value={planFilter}
-                onChange={(e) => setPlanFilter(e.target.value)}
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
                 className="border rounded-md px-3 py-2"
+                data-testid="select-type-filter"
               >
-                <option value="all">{t?.filters?.all}</option>
-                <option value="enterprise">Enterprise</option>
-                <option value="premium">Premium</option>
-                <option value="basic">Basic</option>
-                <option value="trial">Essai</option>
-              </select>
-              
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border rounded-md px-3 py-2"
-              >
-                <option value="all">{t?.filters?.all}</option>
-                <option value="active">Actif</option>
-                <option value="pending">En attente</option>
-                <option value="trial">Essai</option>
-                <option value="suspended">Suspendu</option>
+                <option value="all">{t.filters.all}</option>
+                <option value="private">{t.filters.private}</option>
+                <option value="public">{t.filters.public}</option>
               </select>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Schools Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {(Array.isArray(filteredSchools) ? filteredSchools : []).map((school) => (
-          <Card key={school.id} className="hover:shadow-md transition-shadow">
+        {schoolsList.map((school) => (
+          <Card key={school.id} className="hover:shadow-md transition-shadow" data-testid={`card-school-${school.id}`}>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {school.name || ''}
+                  <h3 className="text-lg font-semibold text-gray-900" data-testid={`text-school-name-${school.id}`}>
+                    {school.name}
                   </h3>
-                  <p className="text-sm text-gray-600">{school.director}</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    <span className="font-medium">{t.schoolCard.director}:</span> {school.director}
+                  </p>
                   <div className="flex items-center mt-2 text-sm text-gray-500">
                     <MapPin className="w-4 h-4 mr-1" />
-                    {school.location}
+                    {school.address || 'N/A'}
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <Badge className={getStatusColor(school.status)}>
-                    {t?.status?.[school.status as keyof typeof t.status]}
-                  </Badge>
-                  <Badge className={getPlanColor(school.plan)}>
-                    {t?.plans?.[school.plan as keyof typeof t.plans]}
-                  </Badge>
-                </div>
+                <Badge className={getTypeColor(school.type)} data-testid={`badge-type-${school.id}`}>
+                  {language === 'fr' 
+                    ? (school.type === 'private' ? 'Privé' : 'Public')
+                    : (school.type === 'private' ? 'Private' : 'Public')
+                  }
+                </Badge>
               </div>
             </CardHeader>
             
             <CardContent>
               <div className="space-y-4">
-                {/* Key Metrics */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-blue-600">
-                      {school.studentCount}
+                    <div className="text-lg font-semibold text-blue-600" data-testid={`text-students-${school.id}`}>
+                      {school.studentCount || 0}
                     </div>
-                    <div className="text-xs text-gray-600">Élèves</div>
+                    <div className="text-xs text-gray-600">{t.schoolCard.students}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-green-600">
-                      {school.teacherCount}
+                    <div className="text-lg font-semibold text-green-600" data-testid={`text-teachers-${school.id}`}>
+                      {school.teacherCount || 0}
                     </div>
-                    <div className="text-xs text-gray-600">Enseignants</div>
-                  </div>
-                  <div className="text-center">
-                    <div className={`text-lg font-semibold ${getPerformanceColor(school.performanceScore)}`}>
-                      {school.performanceScore}%
-                    </div>
-                    <div className="text-xs text-gray-600">Performance</div>
+                    <div className="text-xs text-gray-600">{t.schoolCard.teachers}</div>
                   </div>
                 </div>
 
-                {/* Revenue and Activity */}
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center">
-                    <DollarSign className="w-4 h-4 text-purple-600 mr-1" />
-                    <span>{school.monthlyRevenue.toLocaleString()} CFA/mois</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Clock className="w-4 h-4 text-gray-500 mr-1" />
-                    <span className="text-gray-600">
-                      {new Date(school.lastActivity).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Contact Info */}
                 <div className="space-y-1 text-sm">
                   <div className="flex items-center">
                     <Phone className="w-4 h-4 text-gray-500 mr-2" />
-                    <span>{school.phone}</span>
+                    <span>{school.phone || 'N/A'}</span>
                   </div>
                   <div className="flex items-center">
                     <Mail className="w-4 h-4 text-gray-500 mr-2" />
-                    <span className="text-blue-600">{school.email || ''}</span>
+                    <span className="text-blue-600">{school.email || 'N/A'}</span>
+                  </div>
+                  {school.educafricNumber && (
+                    <div className="flex items-center">
+                      <Building2 className="w-4 h-4 text-gray-500 mr-2" />
+                      <span className="font-medium">{school.educafricNumber}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 text-gray-500 mr-2" />
+                    <span className="text-gray-600">{formatDate(school.createdAt)}</span>
                   </div>
                 </div>
 
-                {/* Features */}
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">Fonctionnalités:</div>
-                  <div className="flex flex-wrap gap-1">
-                    {school.features.slice(0, 2).map((feature, index) => (
-                      <span
-                        key={index}
-                        className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
-                      >
-                        {feature}
-                      </span>
-                    ))}
-                    {school.features.length > 2 && (
-                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                        +{school.features.length - 2} autres
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Actions */}
                 <div className="flex justify-between pt-2 border-t">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setSelectedSchool(school)}
+                    data-testid={`button-view-${school.id}`}
                   >
                     <Eye className="w-4 h-4 mr-1" />
-                    Voir Détails
+                    {t.actions.view}
                   </Button>
                   
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <BarChart3 className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    data-testid={`button-edit-${school.id}`}
+                  >
+                    <Edit className="w-4 h-4 mr-1" />
+                    {t.actions.edit}
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -507,58 +452,99 @@ const FunctionalSiteAdminSchools: React.FC = () => {
         ))}
       </div>
 
-      {/* School Detail Modal would go here */}
       {selectedSchool && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">{selectedSchool.name || ''}</h2>
-              <Button
-                variant="outline"
-                onClick={() => setSelectedSchool(null)}
-              >
-                Fermer
-              </Button>
-            </div>
+        <Dialog open={!!selectedSchool} onOpenChange={() => setSelectedSchool(null)}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>{t.details.title}</DialogTitle>
+            </DialogHeader>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-6">
               <div>
-                <h3 className="font-semibold mb-2">Informations Générales</h3>
-                <div className="space-y-2 text-sm">
-                  <div><strong>Directeur:</strong> {selectedSchool.director}</div>
-                  <div><strong>Adresse:</strong> {selectedSchool.address}</div>
-                  <div><strong>Téléphone:</strong> {selectedSchool.phone}</div>
-                  <div><strong>Email:</strong> {selectedSchool.email || ''}</div>
-                  {selectedSchool.website && (
-                    <div><strong>Site web:</strong> {selectedSchool.website}</div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center">
+                  <Building2 className="w-5 h-5 mr-2 text-blue-600" />
+                  {t.details.generalInfo}
+                </h3>
+                <div className="grid grid-cols-1 gap-3 text-sm">
+                  <div className="flex">
+                    <span className="font-medium w-40">{t.details.name}:</span>
+                    <span>{selectedSchool.name}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="font-medium w-40">{t.details.type}:</span>
+                    <Badge className={getTypeColor(selectedSchool.type)}>
+                      {language === 'fr' 
+                        ? (selectedSchool.type === 'private' ? 'Privé' : 'Public')
+                        : (selectedSchool.type === 'private' ? 'Private' : 'Public')
+                      }
+                    </Badge>
+                  </div>
+                  <div className="flex">
+                    <span className="font-medium w-40">{t.details.director}:</span>
+                    <span>{selectedSchool.director}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="font-medium w-40">{t.details.address}:</span>
+                    <span>{selectedSchool.address || 'N/A'}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="font-medium w-40">{t.details.phone}:</span>
+                    <span>{selectedSchool.phone || 'N/A'}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="font-medium w-40">{t.details.email}:</span>
+                    <span className="text-blue-600">{selectedSchool.email || 'N/A'}</span>
+                  </div>
+                  {selectedSchool.educafricNumber && (
+                    <div className="flex">
+                      <span className="font-medium w-40">{t.details.educafricNumber}:</span>
+                      <span className="font-mono">{selectedSchool.educafricNumber}</span>
+                    </div>
                   )}
                 </div>
               </div>
               
               <div>
-                <h3 className="font-semibold mb-2">Statistiques</h3>
-                <div className="space-y-2 text-sm">
-                  <div><strong>Élèves:</strong> {selectedSchool.studentCount}</div>
-                  <div><strong>Enseignants:</strong> {selectedSchool.teacherCount}</div>
-                  <div><strong>Plan:</strong> {selectedSchool.plan}</div>
-                  <div><strong>Revenus mensuels:</strong> {selectedSchool.monthlyRevenue.toLocaleString()} CFA</div>
-                  <div><strong>Score performance:</strong> {selectedSchool.performanceScore}%</div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center">
+                  <Users className="w-5 h-5 mr-2 text-green-600" />
+                  {t.details.statistics}
+                </h3>
+                <div className="grid grid-cols-1 gap-3 text-sm">
+                  <div className="flex">
+                    <span className="font-medium w-40">{t.details.students}:</span>
+                    <span className="text-blue-600 font-semibold">{selectedSchool.studentCount || 0}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="font-medium w-40">{t.details.teachers}:</span>
+                    <span className="text-green-600 font-semibold">{selectedSchool.teacherCount || 0}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="font-medium w-40">{t.details.createdAt}:</span>
+                    <span>{formatDate(selectedSchool.createdAt)}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+
+            <div className="flex justify-end mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setSelectedSchool(null)}
+                data-testid="button-close-details"
+              >
+                {t.details.close}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
-      {/* Create School Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{language === 'fr' ? 'Créer une Nouvelle École' : 'Create New School'}</DialogTitle>
+            <DialogTitle>{t.createDialog.title}</DialogTitle>
             <DialogDescription>
-              {language === 'fr' 
-                ? 'Entrez les informations de la nouvelle école. Les champs marqués (*) sont obligatoires.' 
-                : 'Enter the new school information. Fields marked with (*) are required.'}
+              {t.createDialog.description}
             </DialogDescription>
           </DialogHeader>
           
@@ -569,11 +555,11 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{language === 'fr' ? 'Nom de l\'école *' : 'School Name *'}</FormLabel>
+                    <FormLabel>{t.createDialog.nameLabel}</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
-                        placeholder={language === 'fr' ? 'Ex: École Primaire Excellence' : 'Ex: Excellence Primary School'}
+                        placeholder={t.createDialog.namePlaceholder}
                         data-testid="input-school-name"
                       />
                     </FormControl>
@@ -587,16 +573,16 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{language === 'fr' ? 'Type *' : 'Type *'}</FormLabel>
+                    <FormLabel>{t.createDialog.typeLabel}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-school-type">
-                          <SelectValue placeholder={language === 'fr' ? 'Sélectionner le type' : 'Select type'} />
+                          <SelectValue placeholder={t.createDialog.typePlaceholder} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="private">{language === 'fr' ? 'Privé' : 'Private'}</SelectItem>
-                        <SelectItem value="public">{language === 'fr' ? 'Public' : 'Public'}</SelectItem>
+                        <SelectItem value="private">{t.filters.private}</SelectItem>
+                        <SelectItem value="public">{t.filters.public}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -609,11 +595,11 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{language === 'fr' ? 'Adresse' : 'Address'}</FormLabel>
+                    <FormLabel>{t.createDialog.addressLabel}</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
-                        placeholder={language === 'fr' ? 'Ex: 123 Avenue de l\'Indépendance, Yaoundé' : 'Ex: 123 Independence Avenue, Yaoundé'}
+                        placeholder={t.createDialog.addressPlaceholder}
                         data-testid="input-school-address"
                       />
                     </FormControl>
@@ -627,7 +613,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{language === 'fr' ? 'Téléphone' : 'Phone'}</FormLabel>
+                    <FormLabel>{t.createDialog.phoneLabel}</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
@@ -645,7 +631,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{language === 'fr' ? 'Email' : 'Email'}</FormLabel>
+                    <FormLabel>{t.createDialog.emailLabel}</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
@@ -664,7 +650,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                 name="educafricNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{language === 'fr' ? 'Numéro EDUCAFRIC (optionnel)' : 'EDUCAFRIC Number (optional)'}</FormLabel>
+                    <FormLabel>{t.createDialog.educafricLabel}</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
@@ -688,7 +674,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                   disabled={createSchoolMutation.isPending}
                   data-testid="button-cancel-create"
                 >
-                  {language === 'fr' ? 'Annuler' : 'Cancel'}
+                  {t.createDialog.cancel}
                 </Button>
                 <Button
                   type="submit"
@@ -697,8 +683,8 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                   data-testid="button-submit-create"
                 >
                   {createSchoolMutation.isPending 
-                    ? (language === 'fr' ? 'Création...' : 'Creating...') 
-                    : (language === 'fr' ? 'Créer' : 'Create')}
+                    ? t.createDialog.creating
+                    : t.createDialog.create}
                 </Button>
               </div>
             </form>
