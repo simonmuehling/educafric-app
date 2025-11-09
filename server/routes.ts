@@ -8194,7 +8194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 37, title: "Offline Functionality - EN", description: "Complete solution for limited connectivity in Africa - Offline viewing and editing with automatic synchronization", type: "commercial", url: "/documents/offline-functionality.html" },
         
         // === GUIDES D'UTILISATION (Bilingue) ===
-        { id: 38, title: "Guide Import Excel - Classes et Données Scolaires", description: "Guide complet pour l'import en masse via Excel - Classes, Enseignants, Élèves, Emplois du temps, Salles (Bilingue FR/EN)", type: "help", url: "/documents/guide-import-excel-classes.html" },
+        { id: 38, title: "Guide Import Excel - Classes et Données Scolaires", description: "Guide complet pour l'import en masse via Excel - Classes, Enseignants, Élèves, Emplois du temps, Salles (Bilingue FR/EN)", type: "commercial", url: "/documents/guide-import-excel-classes.html" },
         
         // === DEMANDES D'OFFRES OFFICIELLES (Bilingue PDF) ===
         { id: 29, title: "Demande d'Offres EDUCAFRIC - FR", description: "Document officiel de demande d'offre pour établissements", type: "commercial", url: "/documents/demande-offres-educafric-fr.pdf" },
