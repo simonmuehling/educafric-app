@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Import Excel - Classes et Données Scolaires | EDUCAFRIC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.8;
+            color: #1a1a1a;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .lang-toggle {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .lang-toggle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin: 25px 0 15px 0;
+        }
+        
+        .section h4 {
+            color: #555;
+            font-size: 1.1em;
+            margin: 20px 0 10px 0;
+        }
+        
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .warning-box {
+            background: #fff4e6;
+            border-left: 4px solid #ff9800;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.95em;
+        }
+        
+        .example-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .example-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .example-table td {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .example-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+        }
+        
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+        
+        .footer {
+            background: #f5f5f5;
+            padding: 30px 40px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin: 4px;
+        }
+        
+        .badge-general { background: #e3f2fd; color: #1976d2; }
+        .badge-scientific { background: #f3e5f5; color: #7b1fa2; }
+        .badge-literary { background: #fff3e0; color: #e65100; }
+        .badge-technical { background: #e8f5e9; color: #2e7d32; }
+        .badge-other { background: #fce4ec; color: #c2185b; }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; }
+            .btn { display: none; }
+        }
+        
+        .lang-fr { display: block; }
+        .lang-en { display: none; }
+        
+        body.english .lang-fr { display: none; }
+        body.english .lang-en { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Guide d'Import Excel</h1>
+            <p class="lang-fr">Import en masse des données scolaires</p>
+            <p class="lang-en">Bulk Import of School Data</p>
+            <div class="lang-toggle" onclick="toggleLanguage()">
+                <span class="lang-fr">🌐 Switch to English</span>
+                <span class="lang-en">🌐 Passer au Français</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- FRENCH VERSION -->
+            <div class="lang-fr">
+                <div class="section">
+                    <h2>📋 Vue d'ensemble</h2>
+                    <p>Ce guide vous explique comment utiliser les modèles Excel pour importer rapidement et efficacement vos données scolaires dans EDUCAFRIC. L'import Excel vous permet d'ajouter des centaines d'enregistrements en quelques minutes au lieu de créer chaque élément manuellement.</p>
+                    
+                    <div class="info-box">
+                        <strong><span class="emoji">💡</span>Types de données importables :</strong>
+                        <ul>
+                            <li><strong>Classes</strong> - Créez plusieurs classes avec matières et enseignants</li>
+                            <li><strong>Enseignants</strong> - Ajoutez le personnel enseignant en masse</li>
+                            <li><strong>Élèves</strong> - Inscrivez des centaines d'élèves simultanément</li>
+                            <li><strong>Emplois du temps</strong> - Configurez les horaires hebdomadaires</li>
+                            <li><strong>Salles</strong> - Gérez vos espaces et équipements</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🎯 Import de Classes</h2>
+                    
+                    <h3>Structure des Colonnes</h3>
+                    <table class="example-table">
+                        <tr>
+                            <th>Colonne</th>
+                            <th>Description</th>
+                            <th>Exemple</th>
+                            <th>Obligatoire</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Nom</strong></td>
+                            <td>Nom de la classe</td>
+                            <td>6ème A, Form 1A, CM2</td>
+                            <td>✅ Oui</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MaxÉlèves</strong></td>
+                            <td>Capacité maximale</td>
+                            <td>100, 50, 75</td>
+                            <td>✅ Oui</td>
+                        </tr>
+                        <tr>
+                            <td><strong>EmailEnseignant</strong></td>
+                            <td>Email du titulaire</td>
+                            <td>prof@ecole.cm</td>
+                            <td>✅ Oui</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Salle</strong></td>
+                            <td>Salle principale</td>
+                            <td>Bloc A, Salle 101</td>
+                            <td>❌ Non</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Matières</strong></td>
+                            <td>Liste des matières</td>
+                            <td>Voir format ci-dessous</td>
+                            <td>✅ Oui</td>
+                        </tr>
+                    </table>
+
+                    <h3>Format des Matières (TRÈS IMPORTANT)</h3>
+                    <p>Chaque matière suit ce format précis :</p>
+                    
+                    <div class="code-block">
+NOM_MATIERE;coefficient;note_max;categorie</div>
+
+                    <h4>Exemple complet :</h4>
+                    <div class="code-block">
+MATHEMATIQUES;4;20;GENERAL</div>
+
+                    <p>Signification :</p>
+                    <ul>
+                        <li><strong>MATHEMATIQUES</strong> - Nom de la matière</li>
+                        <li><strong>4</strong> - Coefficient (importance de la matière)</li>
+                        <li><strong>20</strong> - Note maximale possible</li>
+                        <li><strong>GENERAL</strong> - Catégorie de la matière</li>
+                    </ul>
+
+                    <h4>Catégories disponibles :</h4>
+                    <div style="margin: 20px 0;">
+                        <span class="category-badge badge-general">📚 GENERAL</span> - Matières de base (Math, Langues, etc.)
+                        <br>
+                        <span class="category-badge badge-scientific">🔬 SCIENTIFIC</span> - Sciences (Physique, Chimie, Biologie)
+                        <br>
+                        <span class="category-badge badge-literary">📖 LITERARY</span> - Littérature, Langues
+                        <br>
+                        <span class="category-badge badge-technical">🔧 TECHNICAL</span> - Matières techniques/professionnelles
+                        <br>
+                        <span class="category-badge badge-other">🎨 OTHER</span> - Sports, Arts, Autres
+                    </div>
+
+                    <h4>Plusieurs matières (séparer avec | espace-barre-espace) :</h4>
+                    <div class="code-block">
+MATHEMATIQUES;4;20;GENERAL | PHYSIQUE;3;20;SCIENTIFIC | FRANCAIS;5;20;LITERARY</div>
+
+                    <h3>Exemple Complet de Ligne</h3>
+                    <table class="example-table">
+                        <tr>
+                            <th>Nom</th>
+                            <th>MaxÉlèves</th>
+                            <th>EmailEnseignant</th>
+                            <th>Salle</th>
+                            <th>Matières</th>
+                        </tr>
+                        <tr>
+                            <td>6ème A</td>
+                            <td>100</td>
+                            <td>mbarga@ecole.cm</td>
+                            <td>Bloc A</td>
+                            <td>MATHEMATIQUES;4;20;GENERAL | FRANCAIS;5;20;LITERARY | SVT;3;20;SCIENTIFIC</td>
+                        </tr>
+                        <tr>
+                            <td>Terminale D</td>
+                            <td>50</td>
+                            <td>fotso@ecole.cm</td>
+                            <td>Bloc Sciences</td>
+                            <td>PHYSIQUE;5;20;SCIENTIFIC | CHIMIE;4;20;SCIENTIFIC | MATHS;6;20;GENERAL</td>
+                        </tr>
+                    </table>
+
+                    <div class="warning-box">
+                        <strong><span class="emoji">⚠️</span>Erreurs courantes à éviter :</strong>
+                        <ul>
+                            <li>❌ Utiliser des virgules au lieu de points-virgules (;)</li>
+                            <li>❌ Mettre des espaces autour des séparateurs</li>
+                            <li>❌ Utiliser des catégories invalides</li>
+                            <li>✅ Utiliser <code> | </code> (espace-barre-espace) entre les matières</li>
+                            <li>✅ Respecter exactement les noms de catégories (GENERAL, SCIENTIFIC, etc.)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>👨‍🏫 Import d'Enseignants</h2>
+                    
+                    <table class="example-table">
+                        <tr>
+                            <th>Colonne</th>
+                            <th>Description</th>
+                            <th>Exemple</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Prénom</strong></td>
+                            <td>Prénom de l'enseignant</td>
+                            <td>Paul, Marie, Jean</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nom</strong></td>
+                            <td>Nom de famille</td>
+                            <td>Mbarga, Fotso, Talla</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email</strong></td>
+                            <td>Adresse email unique</td>
+                            <td>paul.mbarga@ecole.cm</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Téléphone</strong></td>
+                            <td>Numéro de téléphone</td>
+                            <td>+237677123456</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Matières</strong></td>
+                            <td>Matières enseignées (séparées par |)</td>
+                            <td>Mathématiques | Physique</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Qualifications</strong></td>
+                            <td>Diplômes et qualifications</td>
+                            <td>Licence Mathématiques, ENS Yaoundé</td>
+                        </tr>
+                        <tr>
+                            <td><strong>AnnéesExpérience</strong></td>
+                            <td>Années d'enseignement</td>
+                            <td>8, 12, 5</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="section">
+                    <h2>👨‍🎓 Import d'Élèves</h2>
+                    
+                    <table class="example-table">
+                        <tr>
+                            <th>Colonne</th>
+                            <th>Description</th>
+                            <th>Exemple</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Prénom</strong></td>
+                            <td>Prénom de l'élève</td>
+                            <td>Amina, Kevin, Sophie</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nom</strong></td>
+                            <td>Nom de famille</td>
+                            <td>Bello, Ndi, Kamga</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email</strong></td>
+                            <td>Email (optionnel)</td>
+                            <td>amina.bello@gmail.com</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Téléphone</strong></td>
+                            <td>Numéro de téléphone</td>
+                            <td>+237677234567</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DateNaissance</strong></td>
+                            <td>Date de naissance (AAAA-MM-JJ)</td>
+                            <td>2010-05-15</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Genre</strong></td>
+                            <td>Masculin ou Féminin</td>
+                            <td>Féminin, Masculin</td>
+                        </tr>
+                        <tr>
+                            <td><strong>NomClasse</strong></td>
+                            <td>Nom exact de la classe</td>
+                            <td>6ème A, Form 1A</td>
+                        </tr>
+                        <tr>
+                            <td><strong>EmailParent</strong></td>
+                            <td>Email du parent (optionnel)</td>
+                            <td>parent@gmail.com</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TéléphoneParent</strong></td>
+                            <td>Téléphone du parent</td>
+                            <td>+237677345678</td>
+                        </tr>
+                    </table>
+
+                    <div class="info-box">
+                        <strong><span class="emoji">💡</span>Conseil :</strong> La classe doit exister avant d'importer les élèves. Importez d'abord vos classes, puis vos élèves.
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📅 Import d'Emplois du Temps</h2>
+                    
+                    <table class="example-table">
+                        <tr>
+                            <th>Colonne</th>
+                            <th>Description</th>
+                            <th>Exemple</th>
+                        </tr>
+                        <tr>
+                            <td><strong>NomClasse</strong></td>
+                            <td>Nom de la classe</td>
+                            <td>6ème A</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Jour</strong></td>
+                            <td>Numéro du jour (1-6)</td>
+                            <td>1 (Lundi), 2 (Mardi)...</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HeureDebut</strong></td>
+                            <td>Heure de début (HH:MM)</td>
+                            <td>08:00, 09:00</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HeureFin</strong></td>
+                            <td>Heure de fin (HH:MM)</td>
+                            <td>09:00, 10:00</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Matière</strong></td>
+                            <td>Nom de la matière</td>
+                            <td>Mathématiques, Français</td>
+                        </tr>
+                        <tr>
+                            <td><strong>EmailEnseignant</strong></td>
+                            <td>Email de l'enseignant</td>
+                            <td>prof@ecole.cm</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Salle</strong></td>
+                            <td>Salle de cours</td>
+                            <td>Salle A1, Lab Sciences</td>
+                        </tr>
+                    </table>
+
+                    <div class="warning-box">
+                        <strong><span class="emoji">⚠️</span>Jours de la semaine :</strong>
+                        <ul>
+                            <li>1 = Lundi</li>
+                            <li>2 = Mardi</li>
+                            <li>3 = Mercredi</li>
+                            <li>4 = Jeudi</li>
+                            <li>5 = Vendredi</li>
+                            <li>6 = Samedi</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🏫 Import de Salles</h2>
+                    
+                    <table class="example-table">
+                        <tr>
+                            <th>Colonne</th>
+                            <th>Description</th>
+                            <th>Exemple</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Nom</strong></td>
+                            <td>Nom de la salle</td>
+                            <td>Salle A1, Lab Sciences</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Type</strong></td>
+                            <td>Type de salle</td>
+                            <td>classroom, laboratory, library</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Capacité</strong></td>
+                            <td>Nombre de places</td>
+                            <td>50, 100, 30</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Équipements</strong></td>
+                            <td>Équipements disponibles</td>
+                            <td>Projecteur | Ordinateurs | Tableau interactif</td>
+                        </tr>
+                    </table>
+
+                    <h4>Types de salles disponibles :</h4>
+                    <ul>
+                        <li><strong>classroom</strong> - Salle de classe standard</li>
+                        <li><strong>laboratory</strong> - Laboratoire de sciences</li>
+                        <li><strong>computer_lab</strong> - Salle informatique</li>
+                        <li><strong>library</strong> - Bibliothèque</li>
+                        <li><strong>sports_hall</strong> - Salle de sport</li>
+                        <li><strong>workshop</strong> - Atelier technique</li>
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <h2>🚀 Procédure d'Import</h2>
+                    
+                    <ol>
+                        <li><strong>Télécharger le modèle</strong>
+                            <ul>
+                                <li>Accédez au module concerné (Classes, Enseignants, etc.)</li>
+                                <li>Cliquez sur "Importer depuis Excel"</li>
+                                <li>Cliquez sur "Télécharger le modèle"</li>
+                            </ul>
+                        </li>
+                        
+                        <li><strong>Remplir le modèle</strong>
+                            <ul>
+                                <li>Ouvrez le fichier avec Excel, LibreOffice, ou Google Sheets</li>
+                                <li>Lisez attentivement les instructions (feuille "Instructions")</li>
+                                <li>Remplissez la feuille "Modèle" avec vos données</li>
+                                <li>Suivez les exemples fournis dans le modèle</li>
+                            </ul>
+                        </li>
+                        
+                        <li><strong>Valider vos données</strong>
+                            <ul>
+                                <li>Vérifiez que tous les champs obligatoires sont remplis</li>
+                                <li>Vérifiez les formats (dates, téléphones, emails)</li>
+                                <li>Assurez-vous que les références existent (enseignants, classes)</li>
+                            </ul>
+                        </li>
+                        
+                        <li><strong>Importer le fichier</strong>
+                            <ul>
+                                <li>Cliquez sur "Importer depuis Excel"</li>
+                                <li>Sélectionnez votre fichier rempli</li>
+                                <li>Attendez la validation automatique</li>
+                                <li>Corrigez les erreurs si nécessaire</li>
+                                <li>Confirmez l'import</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div class="success-box">
+                        <strong><span class="emoji">✅</span>Après l'import :</strong>
+                        <ul>
+                            <li>Les données apparaissent immédiatement dans le module</li>
+                            <li>Vous recevez un rapport d'import avec les statistiques</li>
+                            <li>Les erreurs éventuelles sont clairement indiquées</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>💡 Conseils et Bonnes Pratiques</h2>
+                    
+                    <div class="info-box">
+                        <h4>Préparation :</h4>
+                        <ul>
+                            <li>Préparez vos données dans un tableur avant de commencer</li>
+                            <li>Utilisez toujours le modèle le plus récent</li>
+                            <li>Testez avec quelques lignes avant d'importer en masse</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-box">
+                        <h4>Ordre d'import recommandé :</h4>
+                        <ol>
+                            <li>Enseignants (ils doivent exister avant les classes)</li>
+                            <li>Salles (optionnel, mais utile pour les emplois du temps)</li>
+                            <li>Classes (avec matières et enseignants assignés)</li>
+                            <li>Élèves (les classes doivent déjà exister)</li>
+                            <li>Emplois du temps (classes, enseignants et salles doivent exister)</li>
+                        </ol>
+                    </div>
+
+                    <div class="success-box">
+                        <h4>Formats à respecter :</h4>
+                        <ul>
+                            <li><strong>Dates :</strong> AAAA-MM-JJ (2010-05-15)</li>
+                            <li><strong>Téléphones :</strong> Format international (+237677123456)</li>
+                            <li><strong>Emails :</strong> Doivent être valides et uniques</li>
+                            <li><strong>Listes :</strong> Séparer avec <code> | </code> (espace-barre-espace)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>❓ Résolution de Problèmes</h2>
+                    
+                    <h4>Erreur : "Email enseignant non trouvé"</h4>
+                    <p><strong>Solution :</strong> L'enseignant doit d'abord être créé dans le système. Importez d'abord les enseignants, puis les classes.</p>
+
+                    <h4>Erreur : "Classe non trouvée"</h4>
+                    <p><strong>Solution :</strong> Vérifiez que le nom de la classe est exactement le même que dans le système (respectez les majuscules/minuscules).</p>
+
+                    <h4>Erreur : "Format de matière invalide"</h4>
+                    <p><strong>Solution :</strong> Vérifiez que vous utilisez le format exact : <code>NOM;coef;max;CATEGORIE</code> avec des points-virgules.</p>
+
+                    <h4>Erreur : "Catégorie de matière invalide"</h4>
+                    <p><strong>Solution :</strong> Utilisez uniquement ces catégories : GENERAL, SCIENTIFIC, LITERARY, TECHNICAL, OTHER (en majuscules).</p>
+
+                    <h4>Erreur : "Date invalide"</h4>
+                    <p><strong>Solution :</strong> Utilisez le format AAAA-MM-JJ (exemple : 2010-05-15).</p>
+                </div>
+            </div>
+
+            <!-- ENGLISH VERSION -->
+            <div class="lang-en">
+                <div class="section">
+                    <h2>📋 Overview</h2>
+                    <p>This guide explains how to use Excel templates to quickly and efficiently import your school data into EDUCAFRIC. Excel import allows you to add hundreds of records in minutes instead of creating each item manually.</p>
+                    
+                    <div class="info-box">
+                        <strong><span class="emoji">💡</span>Importable Data Types:</strong>
+                        <ul>
+                            <li><strong>Classes</strong> - Create multiple classes with subjects and teachers</li>
+                            <li><strong>Teachers</strong> - Add teaching staff in bulk</li>
+                            <li><strong>Students</strong> - Enroll hundreds of students simultaneously</li>
+                            <li><strong>Timetables</strong> - Configure weekly schedules</li>
+                            <li><strong>Rooms</strong> - Manage your spaces and equipment</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🎯 Class Import</h2>
+                    
+                    <h3>Column Structure</h3>
+                    <table class="example-table">
+                        <tr>
+                            <th>Column</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                            <th>Required</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Name</strong></td>
+                            <td>Class name</td>
+                            <td>6ème A, Form 1A, CM2</td>
+                            <td>✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MaxStudents</strong></td>
+                            <td>Maximum capacity</td>
+                            <td>100, 50, 75</td>
+                            <td>✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TeacherEmail</strong></td>
+                            <td>Class teacher's email</td>
+                            <td>teacher@school.cm</td>
+                            <td>✅ Yes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Room</strong></td>
+                            <td>Main classroom</td>
+                            <td>Block A, Room 101</td>
+                            <td>❌ No</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Subjects</strong></td>
+                            <td>List of subjects</td>
+                            <td>See format below</td>
+                            <td>✅ Yes</td>
+                        </tr>
+                    </table>
+
+                    <h3>Subject Format (VERY IMPORTANT)</h3>
+                    <p>Each subject follows this precise format:</p>
+                    
+                    <div class="code-block">
+SUBJECT_NAME;coefficient;max_grade;category</div>
+
+                    <h4>Complete example:</h4>
+                    <div class="code-block">
+MATHEMATICS;4;20;GENERAL</div>
+
+                    <p>Meaning:</p>
+                    <ul>
+                        <li><strong>MATHEMATICS</strong> - Subject name</li>
+                        <li><strong>4</strong> - Coefficient (subject weight)</li>
+                        <li><strong>20</strong> - Maximum possible grade</li>
+                        <li><strong>GENERAL</strong> - Subject category</li>
+                    </ul>
+
+                    <h4>Available categories:</h4>
+                    <div style="margin: 20px 0;">
+                        <span class="category-badge badge-general">📚 GENERAL</span> - Core subjects (Math, Languages, etc.)
+                        <br>
+                        <span class="category-badge badge-scientific">🔬 SCIENTIFIC</span> - Sciences (Physics, Chemistry, Biology)
+                        <br>
+                        <span class="category-badge badge-literary">📖 LITERARY</span> - Literature, Languages
+                        <br>
+                        <span class="category-badge badge-technical">🔧 TECHNICAL</span> - Technical/vocational subjects
+                        <br>
+                        <span class="category-badge badge-other">🎨 OTHER</span> - Sports, Arts, Others
+                    </div>
+
+                    <h4>Multiple subjects (separate with | space-pipe-space):</h4>
+                    <div class="code-block">
+MATHEMATICS;4;20;GENERAL | PHYSICS;3;20;SCIENTIFIC | FRENCH;5;20;LITERARY</div>
+
+                    <h3>Complete Row Example</h3>
+                    <table class="example-table">
+                        <tr>
+                            <th>Name</th>
+                            <th>MaxStudents</th>
+                            <th>TeacherEmail</th>
+                            <th>Room</th>
+                            <th>Subjects</th>
+                        </tr>
+                        <tr>
+                            <td>Form 1A</td>
+                            <td>100</td>
+                            <td>mbarga@school.cm</td>
+                            <td>Block A</td>
+                            <td>MATHEMATICS;4;20;GENERAL | ENGLISH;5;20;LITERARY | BIOLOGY;3;20;SCIENTIFIC</td>
+                        </tr>
+                        <tr>
+                            <td>Upper 6 Science</td>
+                            <td>50</td>
+                            <td>fotso@school.cm</td>
+                            <td>Science Block</td>
+                            <td>PHYSICS;5;20;SCIENTIFIC | CHEMISTRY;4;20;SCIENTIFIC | MATHS;6;20;GENERAL</td>
+                        </tr>
+                    </table>
+
+                    <div class="warning-box">
+                        <strong><span class="emoji">⚠️</span>Common mistakes to avoid:</strong>
+                        <ul>
+                            <li>❌ Using commas instead of semicolons (;)</li>
+                            <li>❌ Adding spaces around separators</li>
+                            <li>❌ Using invalid categories</li>
+                            <li>✅ Use <code> | </code> (space-pipe-space) between subjects</li>
+                            <li>✅ Respect exact category names (GENERAL, SCIENTIFIC, etc.)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>👨‍🏫 Teacher Import</h2>
+                    
+                    <table class="example-table">
+                        <tr>
+                            <th>Column</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                        <tr>
+                            <td><strong>FirstName</strong></td>
+                            <td>Teacher's first name</td>
+                            <td>Paul, Marie, Jean</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LastName</strong></td>
+                            <td>Last name</td>
+                            <td>Mbarga, Fotso, Talla</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email</strong></td>
+                            <td>Unique email address</td>
+                            <td>paul.mbarga@school.cm</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Phone</strong></td>
+                            <td>Phone number</td>
+                            <td>+237677123456</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Subjects</strong></td>
+                            <td>Subjects taught (separated by |)</td>
+                            <td>Mathematics | Physics</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Qualifications</strong></td>
+                            <td>Degrees and qualifications</td>
+                            <td>BSc Mathematics, ENS Yaoundé</td>
+                        </tr>
+                        <tr>
+                            <td><strong>YearsExperience</strong></td>
+                            <td>Years of teaching</td>
+                            <td>8, 12, 5</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="section">
+                    <h2>👨‍🎓 Student Import</h2>
+                    
+                    <table class="example-table">
+                        <tr>
+                            <th>Column</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                        <tr>
+                            <td><strong>FirstName</strong></td>
+                            <td>Student's first name</td>
+                            <td>Amina, Kevin, Sophie</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LastName</strong></td>
+                            <td>Last name</td>
+                            <td>Bello, Ndi, Kamga</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email</strong></td>
+                            <td>Email (optional)</td>
+                            <td>amina.bello@gmail.com</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Phone</strong></td>
+                            <td>Phone number</td>
+                            <td>+237677234567</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DateOfBirth</strong></td>
+                            <td>Birth date (YYYY-MM-DD)</td>
+                            <td>2010-05-15</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gender</strong></td>
+                            <td>Male or Female</td>
+                            <td>Female, Male</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ClassName</strong></td>
+                            <td>Exact class name</td>
+                            <td>Form 1A, 6ème A</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ParentEmail</strong></td>
+                            <td>Parent's email (optional)</td>
+                            <td>parent@gmail.com</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ParentPhone</strong></td>
+                            <td>Parent's phone</td>
+                            <td>+237677345678</td>
+                        </tr>
+                    </table>
+
+                    <div class="info-box">
+                        <strong><span class="emoji">💡</span>Tip:</strong> The class must exist before importing students. Import your classes first, then your students.
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🚀 Import Procedure</h2>
+                    
+                    <ol>
+                        <li><strong>Download the template</strong>
+                            <ul>
+                                <li>Access the relevant module (Classes, Teachers, etc.)</li>
+                                <li>Click "Import from Excel"</li>
+                                <li>Click "Download Template"</li>
+                            </ul>
+                        </li>
+                        
+                        <li><strong>Fill in the template</strong>
+                            <ul>
+                                <li>Open the file with Excel, LibreOffice, or Google Sheets</li>
+                                <li>Read the instructions carefully ("Instructions" sheet)</li>
+                                <li>Fill in the "Template" sheet with your data</li>
+                                <li>Follow the examples provided in the template</li>
+                            </ul>
+                        </li>
+                        
+                        <li><strong>Validate your data</strong>
+                            <ul>
+                                <li>Check that all required fields are filled</li>
+                                <li>Verify formats (dates, phones, emails)</li>
+                                <li>Ensure references exist (teachers, classes)</li>
+                            </ul>
+                        </li>
+                        
+                        <li><strong>Import the file</strong>
+                            <ul>
+                                <li>Click "Import from Excel"</li>
+                                <li>Select your filled file</li>
+                                <li>Wait for automatic validation</li>
+                                <li>Correct errors if necessary</li>
+                                <li>Confirm import</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div class="success-box">
+                        <strong><span class="emoji">✅</span>After import:</strong>
+                        <ul>
+                            <li>Data appears immediately in the module</li>
+                            <li>You receive an import report with statistics</li>
+                            <li>Any errors are clearly indicated</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>EDUCAFRIC</strong> - Plateforme éducative pour l'Afrique</p>
+            <p>Educational platform for Africa</p>
+            <p class="lang-fr">Pour plus d'aide, contactez le support : <a href="mailto:support@educafric.com">support@educafric.com</a></p>
+            <p class="lang-en">For more help, contact support: <a href="mailto:support@educafric.com">support@educafric.com</a></p>
+        </div>
+    </div>
+
+    <script>
+        function toggleLanguage() {
+            document.body.classList.toggle('english');
+        }
+    </script>
+</body>
+</html>
