@@ -126,6 +126,7 @@ import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicato
 import { PWAUpdateNotification } from "@/components/pwa/PWAUpdateNotification";
 import { OfflineBanner } from "@/components/offline/OfflineBanner";
 import { OfflineModeIndicator } from "@/components/offline/OfflineModeIndicator";
+import { WhatsAppChatLauncher } from "@/components/support/WhatsAppChatLauncher";
 // WebInspector disabled to prevent fetch override interference with PWA analytics
 // import WebInspector from "@/components/developer/WebInspector";
 import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
@@ -202,6 +203,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
         <EducafricFooter />
+        <WhatsAppChatLauncher />
       </div>
     );
   }
@@ -227,6 +229,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           onClose={() => setTutorialVisible(false)}
         />
       )}
+      
+      {/* WhatsApp Support Chat Launcher */}
+      <WhatsAppChatLauncher />
     </div>
   );
 }
