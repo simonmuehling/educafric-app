@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Création Bulletins de Notes - Système Hybride | EDUCAFRIC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.8;
+            color: #1a1a1a;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header .subtitle {
+            font-size: 1.1em;
+            opacity: 0.95;
+            margin-top: 10px;
+        }
+        
+        .lang-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 25px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-weight: 600;
+            color: #667eea;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .lang-switcher:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .content {
+            padding: 50px;
+        }
+        
+        .lang-content {
+            display: none;
+        }
+        
+        .lang-content.active {
+            display: block;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin: 30px 0 15px 0;
+        }
+        
+        h4 {
+            color: #333;
+            font-size: 1.2em;
+            margin: 20px 0 10px 0;
+        }
+        
+        .info-box {
+            background: #f0f4ff;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .warning-box {
+            background: #fff4e6;
+            border-left: 5px solid #ff9800;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .success-box {
+            background: #e8f5e9;
+            border-left: 5px solid #4caf50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .workflow-step {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+            padding-left: 70px;
+        }
+        
+        .workflow-step::before {
+            content: attr(data-step);
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .data-source {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .data-source-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .manual {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+        
+        .manual .data-source-icon {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .automatic {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .automatic .data-source-icon {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .hybrid {
+            background: #f3e5f5;
+            border-color: #9c27b0;
+        }
+        
+        .hybrid .data-source-icon {
+            background: #9c27b0;
+            color: white;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin: 0 5px;
+        }
+        
+        .badge-manual {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .badge-auto {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .badge-hybrid {
+            background: #9c27b0;
+            color: white;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 10px 0;
+        }
+        
+        code {
+            background: #f5f5f5;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #d32f2f;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+            
+            .lang-switcher {
+                display: none;
+            }
+            
+            .header {
+                background: #667eea;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.6em;
+            }
+            
+            .workflow-step {
+                padding-left: 20px;
+                padding-top: 60px;
+            }
+            
+            .workflow-step::before {
+                left: 50%;
+                transform: translateX(-50%);
+                top: 15px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="lang-switcher" onclick="toggleLanguage()">
+        <span id="lang-btn">🇬🇧 English</span>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📋 Guide de Création des Bulletins de Notes</h1>
+            <p class="subtitle">Système Hybride Manuel-Automatique • EDUCAFRIC Platform</p>
+        </div>
+        
+        <div class="content">
+            <!-- FRENCH CONTENT -->
+            <div class="lang-content active" id="fr-content">
+                <div class="info-box">
+                    <h3>🎯 Vue d'ensemble du système</h3>
+                    <p><strong>EDUCAFRIC</strong> utilise un <strong>système hybride intelligent</strong> qui combine la saisie manuelle des enseignants avec la collecte automatique de données pour générer des bulletins de notes complets, professionnels et conformes aux standards camerounais.</p>
+                </div>
+
+                <h2>📊 Types de bulletins disponibles</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📚</div>
+                        <h4>Bulletin Standard</h4>
+                        <p>Format classique pour écoles générales avec moyennes, classements et appréciations</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎓</div>
+                        <h4>Bulletin CBA</h4>
+                        <p>Approche par Compétences avec notes lettrées (A-F) et niveaux de performance</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔧</div>
+                        <h4>Bulletin Technique</h4>
+                        <p>5 sections spécialisées : Générale, Littéraire, Scientifique, Technique, Autre</p>
+                    </div>
+                </div>
+
+                <h2>📋 Informations nécessaires pour créer un bulletin</h2>
+                
+                <h3>🟠 1. Données saisies MANUELLEMENT par les enseignants</h3>
+                <div class="data-source manual">
+                    <div class="data-source-icon">✍️</div>
+                    <div>
+                        <h4>Notes et évaluations</h4>
+                        <ul>
+                            <li><strong>Notes des séquences</strong> : Évaluation 1, Évaluation 2, Évaluation 3</li>
+                            <li><strong>Note maximale</strong> : Barème pour chaque évaluation (ex: /20, /10)</li>
+                            <li><strong>Coefficient</strong> : Poids de la matière</li>
+                            <li><strong>Commentaires</strong> : Appréciations du professeur sur le travail de l'élève</li>
+                        </ul>
+                        <p><em>📍 Où ? Module "Notes" → L'enseignant entre les notes via l'interface dédiée</em></p>
+                    </div>
+                </div>
+
+                <div class="data-source manual">
+                    <div class="data-source-icon">💬</div>
+                    <div>
+                        <h4>Appréciations et observations</h4>
+                        <ul>
+                            <li><strong>Remarques du professeur principal</strong> : Appréciation générale du travail</li>
+                            <li><strong>Décisions du conseil de classe</strong> : Mentions, félicitations, avertissements</li>
+                            <li><strong>Recommandations d'orientation</strong> : Conseils pour l'avenir scolaire</li>
+                        </ul>
+                        <p><em>📍 Où ? Module "Bulletins" → Saisie lors de la génération du bulletin</em></p>
+                    </div>
+                </div>
+
+                <h3>🔵 2. Données collectées AUTOMATIQUEMENT par le système</h3>
+                <div class="data-source automatic">
+                    <div class="data-source-icon">👨‍🎓</div>
+                    <div>
+                        <h4>Informations de l'élève</h4>
+                        <ul>
+                            <li><strong>Identité</strong> : Nom, prénom, matricule, photo</li>
+                            <li><strong>Classe</strong> : Niveau, section, année académique</li>
+                            <li><strong>Date de naissance</strong> : Calculée automatiquement</li>
+                        </ul>
+                        <p><em>📍 Source : Base de données élèves (inscriptions)</em></p>
+                    </div>
+                </div>
+
+                <div class="data-source automatic">
+                    <div class="data-source-icon">📊</div>
+                    <div>
+                        <h4>Statistiques et calculs automatiques</h4>
+                        <ul>
+                            <li><strong>Moyenne générale</strong> : Calculée avec coefficients</li>
+                            <li><strong>Classement</strong> : Rang dans la classe (automatique)</li>
+                            <li><strong>Moyennes de classe</strong> : Min, Max, Moyenne de la classe</li>
+                            <li><strong>Totaux par section</strong> : Pour bulletins techniques (5 sections)</li>
+                            <li><strong>Taux de réussite</strong> : Pourcentage de réussite</li>
+                        </ul>
+                        <p><em>📍 Source : Algorithme de calcul automatique</em></p>
+                    </div>
+                </div>
+
+                <div class="data-source automatic">
+                    <div class="data-source-icon">📅</div>
+                    <div>
+                        <h4>Assiduité et présence</h4>
+                        <ul>
+                            <li><strong>Absences justifiées</strong> : Compteur automatique</li>
+                            <li><strong>Absences non justifiées</strong> : Tracking automatique</li>
+                            <li><strong>Retards</strong> : Nombre de retards enregistrés</li>
+                            <li><strong>Exclusions temporaires</strong> : Si applicables</li>
+                        </ul>
+                        <p><em>📍 Source : Module "Présence" (enregistrement quotidien)</em></p>
+                    </div>
+                </div>
+
+                <div class="data-source automatic">
+                    <div class="data-source-icon">🏫</div>
+                    <div>
+                        <h4>Informations de l'établissement</h4>
+                        <ul>
+                            <li><strong>Nom et logo de l'école</strong></li>
+                            <li><strong>Adresse et contacts</strong></li>
+                            <li><strong>Régionale, Délégation, BP</strong> (Cameroun)</li>
+                            <li><strong>Année académique et trimestre</strong></li>
+                        </ul>
+                        <p><em>📍 Source : Paramètres de l'école</em></p>
+                    </div>
+                </div>
+
+                <h3>🟣 3. Données HYBRIDES (Manuel + Automatique)</h3>
+                <div class="data-source hybrid">
+                    <div class="data-source-icon">⚙️</div>
+                    <div>
+                        <h4>Discipline et conduite</h4>
+                        <ul>
+                            <li><strong>Note de conduite</strong> : Saisie manuelle par le professeur principal (/20)</li>
+                            <li><strong>Sanctions disciplinaires</strong> : Automatique depuis le module "Discipline"</li>
+                            <li><strong>Avertissements</strong> : Tracking automatique + saisie manuelle possible</li>
+                        </ul>
+                        <p><em>📍 Source : Module "Discipline" + saisie directe dans bulletin</em></p>
+                    </div>
+                </div>
+
+                <h2>🔄 Flux de travail complet - Création d'un bulletin</h2>
+
+                <div class="workflow-step" data-step="1">
+                    <h4>Configuration initiale (Director)</h4>
+                    <p><strong>Actions requises :</strong></p>
+                    <ul>
+                        <li>Définir les classes, niveaux et sections</li>
+                        <li>Créer les matières avec coefficients et notes max</li>
+                        <li>Assigner les enseignants aux matières</li>
+                        <li>Configurer l'année académique et les trimestres</li>
+                        <li>Activer le type de bulletin (Standard, CBA, ou Technique)</li>
+                    </ul>
+                    <span class="badge badge-manual">Configuration manuelle</span>
+                </div>
+
+                <div class="workflow-step" data-step="2">
+                    <h4>Inscription des élèves (Director/Admin)</h4>
+                    <p><strong>Actions requises :</strong></p>
+                    <ul>
+                        <li>Enregistrer les élèves (nom, matricule, photo, date de naissance)</li>
+                        <li>Assigner chaque élève à sa classe</li>
+                    </ul>
+                    <span class="badge badge-manual">Saisie manuelle ou import Excel</span>
+                </div>
+
+                <div class="workflow-step" data-step="3">
+                    <h4>Saisie des notes (Enseignants)</h4>
+                    <p><strong>Actions requises :</strong></p>
+                    <ul>
+                        <li>Chaque enseignant entre les notes de ses élèves pour sa matière</li>
+                        <li>Notes des 3 séquences (Évaluation 1, 2, 3)</li>
+                        <li>Ajout de commentaires optionnels par matière</li>
+                    </ul>
+                    <p><strong>Calculs automatiques :</strong></p>
+                    <ul>
+                        <li>Moyenne de la matière = (Éval1 + Éval2 + Éval3) / 3</li>
+                        <li>Classement par matière</li>
+                    </ul>
+                    <span class="badge badge-manual">Saisie enseignant</span>
+                    <span class="badge badge-auto">Calculs automatiques</span>
+                </div>
+
+                <div class="workflow-step" data-step="4">
+                    <h4>Suivi des présences (Enseignants/Admin)</h4>
+                    <p><strong>Actions requises :</strong></p>
+                    <ul>
+                        <li>Enregistrement quotidien des absences et retards</li>
+                        <li>Justification des absences (si applicable)</li>
+                    </ul>
+                    <p><strong>Collecte automatique :</strong></p>
+                    <ul>
+                        <li>Le système compte automatiquement le total d'absences justifiées/non justifiées</li>
+                        <li>Calcul du nombre de retards</li>
+                    </ul>
+                    <span class="badge badge-auto">Tracking automatique</span>
+                </div>
+
+                <div class="workflow-step" data-step="5">
+                    <h4>Génération du bulletin (Director/Principal Teacher)</h4>
+                    <p><strong>Actions requises :</strong></p>
+                    <ul>
+                        <li>Sélectionner la classe, le trimestre et l'élève</li>
+                        <li>Ajouter l'appréciation générale du professeur principal</li>
+                        <li>Saisir la note de conduite (/20)</li>
+                        <li>Ajouter les décisions du conseil de classe (mentions, félicitations)</li>
+                        <li>Apposer les signatures numériques (Director, Principal Teacher)</li>
+                    </ul>
+                    <p><strong>Génération automatique :</strong></p>
+                    <ul>
+                        <li>Collecte de toutes les notes des enseignants</li>
+                        <li>Calcul de la moyenne générale avec coefficients</li>
+                        <li>Calcul du classement de l'élève dans la classe</li>
+                        <li>Intégration des absences et retards</li>
+                        <li>Statistiques de classe (min, max, moyenne)</li>
+                        <li>Génération du PDF avec logo, QR code et signatures</li>
+                    </ul>
+                    <span class="badge badge-hybrid">Hybride - Manuel + Automatique</span>
+                </div>
+
+                <div class="workflow-step" data-step="6">
+                    <h4>Export et distribution (Automatique)</h4>
+                    <p><strong>Fonctionnalités automatiques :</strong></p>
+                    <ul>
+                        <li>Export PDF professionnel avec logo et QR code de vérification</li>
+                        <li>Envoi automatique aux parents par email/WhatsApp (optionnel)</li>
+                        <li>Archivage sécurisé dans le système</li>
+                        <li>Accès parents via portail dédié</li>
+                    </ul>
+                    <span class="badge badge-auto">100% Automatique</span>
+                </div>
+
+                <h2>📑 Détail des informations par section du bulletin</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Section du bulletin</th>
+                            <th>Informations incluses</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>En-tête</strong></td>
+                            <td>Logo école, nom, adresse, contacts, année académique</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Identité élève</strong></td>
+                            <td>Photo, nom, prénom, matricule, date de naissance, classe</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Notes par matière</strong></td>
+                            <td>Nom matière, Éval 1, Éval 2, Éval 3, Moyenne, Coef, Rang</td>
+                            <td><span class="badge badge-manual">Manuel</span> <span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sections (Technique)</strong></td>
+                            <td>Générale, Littéraire, Scientifique, Technique, Autre + sous-totaux</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Moyennes</strong></td>
+                            <td>Moyenne générale, moyenne classe, min, max</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Classement</strong></td>
+                            <td>Rang de l'élève / Total élèves classe</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Assiduité</strong></td>
+                            <td>Absences justifiées/non justifiées, retards, exclusions</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Conduite</strong></td>
+                            <td>Note de conduite, sanctions disciplinaires</td>
+                            <td><span class="badge badge-hybrid">Hybride</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Appréciations</strong></td>
+                            <td>Remarques professeur principal, décisions conseil de classe</td>
+                            <td><span class="badge badge-manual">Manuel</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Signatures</strong></td>
+                            <td>Signature numérique Director + Principal Teacher</td>
+                            <td><span class="badge badge-manual">Manuel</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sécurité</strong></td>
+                            <td>QR Code de vérification, numéro unique</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>🎯 Avantages du système hybride</h2>
+
+                <div class="success-box">
+                    <h4>✅ Pourquoi EDUCAFRIC utilise un système hybride ?</h4>
+                    <ol>
+                        <li><strong>Précision des notes</strong> : Les enseignants entrent les notes directement (source fiable)</li>
+                        <li><strong>Gain de temps</strong> : Calculs automatiques (moyennes, classements, totaux)</li>
+                        <li><strong>Réduction d'erreurs</strong> : Pas de calculs manuels, tout est vérifié par le système</li>
+                        <li><strong>Conformité MINEDUB</strong> : Format officiel camerounais respecté</li>
+                        <li><strong>Traçabilité</strong> : Toutes les modifications sont enregistrées</li>
+                        <li><strong>Sécurité</strong> : QR codes de vérification anti-fraude</li>
+                        <li><strong>Flexibilité</strong> : Support de 3 types de bulletins (Standard, CBA, Technique)</li>
+                    </ol>
+                </div>
+
+                <h2>⚠️ Prérequis pour générer un bulletin</h2>
+
+                <div class="warning-box">
+                    <h4>🔴 Données obligatoires avant de générer un bulletin :</h4>
+                    <ul>
+                        <li>✅ L'école doit avoir défini ses <strong>classes</strong> et <strong>niveaux scolaires</strong></li>
+                        <li>✅ Les <strong>matières</strong> doivent être créées avec coefficients et notes max</li>
+                        <li>✅ Les <strong>enseignants</strong> doivent être assignés à leurs matières</li>
+                        <li>✅ L'<strong>élève</strong> doit être inscrit et assigné à une classe</li>
+                        <li>✅ Les <strong>notes</strong> doivent être saisies par les enseignants (au moins 1 évaluation)</li>
+                        <li>✅ Les <strong>signatures numériques</strong> du Director et Principal Teacher doivent être créées</li>
+                    </ul>
+                    <p><strong>⚠️ Sans ces données, le système ne pourra pas générer de bulletin complet.</strong></p>
+                </div>
+
+                <h2>🔧 Cas spéciaux et options avancées</h2>
+
+                <h3>🎓 Bulletins CBA (Compétences)</h3>
+                <p>Pour les écoles qui utilisent l'Approche par Compétences (CBA) :</p>
+                <ul>
+                    <li><strong>Activer le mode CBA</strong> : Paramètres école → Activer "useCBAFormat"</li>
+                    <li><strong>Définir les compétences</strong> : Créer la bibliothèque de compétences par matière</li>
+                    <li><strong>Notes lettrées</strong> : Le système convertit automatiquement les notes en lettres (A-F)</li>
+                    <li><strong>Bandes de performance</strong> : CVWA, CWA, CA, CAA, CNA calculées automatiquement</li>
+                </ul>
+
+                <h3>🔧 Bulletins techniques (5 sections)</h3>
+                <p>Pour les écoles techniques et professionnelles :</p>
+                <ul>
+                    <li><strong>Catégorisation automatique</strong> : Les matières sont classées en 5 sections</li>
+                    <li><strong>Sections conditionnelles</strong> : Une section apparaît uniquement si elle contient des matières</li>
+                    <li><strong>Sous-totaux par section</strong> : Calculs automatiques pour chaque section</li>
+                    <li><strong>Icônes visuelles</strong> : 📚 Générale, 📖 Littéraire, 🔬 Scientifique, 🔧 Technique, 🎨 Autre</li>
+                </ul>
+
+                <h2>❓ Questions fréquentes (FAQ)</h2>
+
+                <h4>Q : Qui peut générer un bulletin ?</h4>
+                <p><strong>R :</strong> Le Director et le Principal Teacher (professeur principal de la classe)</p>
+
+                <h4>Q : Que se passe-t-il si un enseignant n'a pas encore saisi toutes les notes ?</h4>
+                <p><strong>R :</strong> Le bulletin sera généré avec les notes disponibles. Les notes manquantes apparaîtront comme vides. Il est recommandé d'attendre que tous les enseignants aient terminé.</p>
+
+                <h4>Q : Peut-on modifier un bulletin après sa génération ?</h4>
+                <p><strong>R :</strong> Oui, mais uniquement en état "Draft" ou "Submitted". Une fois "Approved" ou "Published", le bulletin devient immuable pour garantir l'intégrité.</p>
+
+                <h4>Q : Comment les parents peuvent-ils accéder aux bulletins ?</h4>
+                <p><strong>R :</strong> Via le portail Parent EDUCAFRIC ou par email/WhatsApp avec lien de téléchargement sécurisé.</p>
+
+                <h4>Q : Le QR code du bulletin, à quoi sert-il ?</h4>
+                <p><strong>R :</strong> Il permet de vérifier l'authenticité du bulletin. En scannant le QR code, on peut confirmer que le document n'a pas été modifié.</p>
+
+                <h2>📞 Support et assistance</h2>
+                <div class="info-box">
+                    <p>Pour toute question ou assistance technique concernant la création de bulletins :</p>
+                    <ul>
+                        <li>📧 Email : <strong>support@educafric.com</strong></li>
+                        <li>📱 WhatsApp : <strong>+237 6XX XXX XXX</strong></li>
+                        <li>🌐 Documentation : <strong>docs.educafric.com</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ENGLISH CONTENT -->
+            <div class="lang-content" id="en-content">
+                <div class="info-box">
+                    <h3>🎯 System Overview</h3>
+                    <p><strong>EDUCAFRIC</strong> uses an <strong>intelligent hybrid system</strong> that combines manual teacher input with automatic data collection to generate comprehensive, professional report cards compliant with Cameroonian standards.</p>
+                </div>
+
+                <h2>📊 Available Report Card Types</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📚</div>
+                        <h4>Standard Report Card</h4>
+                        <p>Classic format for general schools with averages, rankings, and appreciations</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎓</div>
+                        <h4>CBA Report Card</h4>
+                        <p>Competency-Based Approach with letter grades (A-F) and performance levels</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔧</div>
+                        <h4>Technical Report Card</h4>
+                        <p>5 specialized sections: General, Literary, Scientific, Technical, Other</p>
+                    </div>
+                </div>
+
+                <h2>📋 Information Required to Create a Report Card</h2>
+                
+                <h3>🟠 1. Data MANUALLY Entered by Teachers</h3>
+                <div class="data-source manual">
+                    <div class="data-source-icon">✍️</div>
+                    <div>
+                        <h4>Grades and Assessments</h4>
+                        <ul>
+                            <li><strong>Sequence Grades</strong>: Assessment 1, Assessment 2, Assessment 3</li>
+                            <li><strong>Maximum Grade</strong>: Grading scale for each assessment (e.g., /20, /10)</li>
+                            <li><strong>Coefficient</strong>: Subject weight</li>
+                            <li><strong>Comments</strong>: Teacher's remarks on student work</li>
+                        </ul>
+                        <p><em>📍 Where? "Grades" Module → Teacher enters grades via dedicated interface</em></p>
+                    </div>
+                </div>
+
+                <div class="data-source manual">
+                    <div class="data-source-icon">💬</div>
+                    <div>
+                        <h4>Appreciations and Observations</h4>
+                        <ul>
+                            <li><strong>Principal Teacher Remarks</strong>: General work appreciation</li>
+                            <li><strong>Class Council Decisions</strong>: Honors, commendations, warnings</li>
+                            <li><strong>Orientation Recommendations</strong>: Guidance for academic future</li>
+                        </ul>
+                        <p><em>📍 Where? "Report Cards" Module → Entered during report card generation</em></p>
+                    </div>
+                </div>
+
+                <h3>🔵 2. Data AUTOMATICALLY Collected by the System</h3>
+                <div class="data-source automatic">
+                    <div class="data-source-icon">👨‍🎓</div>
+                    <div>
+                        <h4>Student Information</h4>
+                        <ul>
+                            <li><strong>Identity</strong>: Last name, first name, registration number, photo</li>
+                            <li><strong>Class</strong>: Level, section, academic year</li>
+                            <li><strong>Date of Birth</strong>: Automatically calculated</li>
+                        </ul>
+                        <p><em>📍 Source: Student database (registrations)</em></p>
+                    </div>
+                </div>
+
+                <div class="data-source automatic">
+                    <div class="data-source-icon">📊</div>
+                    <div>
+                        <h4>Statistics and Automatic Calculations</h4>
+                        <ul>
+                            <li><strong>Overall Average</strong>: Calculated with coefficients</li>
+                            <li><strong>Ranking</strong>: Class rank (automatic)</li>
+                            <li><strong>Class Averages</strong>: Min, Max, Class average</li>
+                            <li><strong>Section Totals</strong>: For technical report cards (5 sections)</li>
+                            <li><strong>Success Rate</strong>: Pass percentage</li>
+                        </ul>
+                        <p><em>📍 Source: Automatic calculation algorithm</em></p>
+                    </div>
+                </div>
+
+                <div class="data-source automatic">
+                    <div class="data-source-icon">📅</div>
+                    <div>
+                        <h4>Attendance and Presence</h4>
+                        <ul>
+                            <li><strong>Justified Absences</strong>: Automatic counter</li>
+                            <li><strong>Unjustified Absences</strong>: Automatic tracking</li>
+                            <li><strong>Lateness</strong>: Number of recorded tardies</li>
+                            <li><strong>Temporary Exclusions</strong>: If applicable</li>
+                        </ul>
+                        <p><em>📍 Source: "Attendance" Module (daily recording)</em></p>
+                    </div>
+                </div>
+
+                <div class="data-source automatic">
+                    <div class="data-source-icon">🏫</div>
+                    <div>
+                        <h4>School Information</h4>
+                        <ul>
+                            <li><strong>School Name and Logo</strong></li>
+                            <li><strong>Address and Contacts</strong></li>
+                            <li><strong>Regional, Delegation, P.O. Box</strong> (Cameroon)</li>
+                            <li><strong>Academic Year and Term</strong></li>
+                        </ul>
+                        <p><em>📍 Source: School settings</em></p>
+                    </div>
+                </div>
+
+                <h3>🟣 3. HYBRID Data (Manual + Automatic)</h3>
+                <div class="data-source hybrid">
+                    <div class="data-source-icon">⚙️</div>
+                    <div>
+                        <h4>Discipline and Conduct</h4>
+                        <ul>
+                            <li><strong>Conduct Grade</strong>: Manual entry by principal teacher (/20)</li>
+                            <li><strong>Disciplinary Sanctions</strong>: Automatic from "Discipline" module</li>
+                            <li><strong>Warnings</strong>: Automatic tracking + manual entry possible</li>
+                        </ul>
+                        <p><em>📍 Source: "Discipline" Module + direct entry in report card</em></p>
+                    </div>
+                </div>
+
+                <h2>🔄 Complete Workflow - Creating a Report Card</h2>
+
+                <div class="workflow-step" data-step="1">
+                    <h4>Initial Configuration (Director)</h4>
+                    <p><strong>Required Actions:</strong></p>
+                    <ul>
+                        <li>Define classes, levels, and sections</li>
+                        <li>Create subjects with coefficients and max grades</li>
+                        <li>Assign teachers to subjects</li>
+                        <li>Configure academic year and terms</li>
+                        <li>Activate report card type (Standard, CBA, or Technical)</li>
+                    </ul>
+                    <span class="badge badge-manual">Manual configuration</span>
+                </div>
+
+                <div class="workflow-step" data-step="2">
+                    <h4>Student Registration (Director/Admin)</h4>
+                    <p><strong>Required Actions:</strong></p>
+                    <ul>
+                        <li>Register students (name, registration number, photo, date of birth)</li>
+                        <li>Assign each student to their class</li>
+                    </ul>
+                    <span class="badge badge-manual">Manual entry or Excel import</span>
+                </div>
+
+                <div class="workflow-step" data-step="3">
+                    <h4>Grade Entry (Teachers)</h4>
+                    <p><strong>Required Actions:</strong></p>
+                    <ul>
+                        <li>Each teacher enters grades for their students in their subject</li>
+                        <li>Grades for 3 sequences (Assessment 1, 2, 3)</li>
+                        <li>Optional comments per subject</li>
+                    </ul>
+                    <p><strong>Automatic Calculations:</strong></p>
+                    <ul>
+                        <li>Subject Average = (Eval1 + Eval2 + Eval3) / 3</li>
+                        <li>Subject ranking</li>
+                    </ul>
+                    <span class="badge badge-manual">Teacher entry</span>
+                    <span class="badge badge-auto">Automatic calculations</span>
+                </div>
+
+                <div class="workflow-step" data-step="4">
+                    <h4>Attendance Tracking (Teachers/Admin)</h4>
+                    <p><strong>Required Actions:</strong></p>
+                    <ul>
+                        <li>Daily recording of absences and tardies</li>
+                        <li>Justification of absences (if applicable)</li>
+                    </ul>
+                    <p><strong>Automatic Collection:</strong></p>
+                    <ul>
+                        <li>System automatically counts total justified/unjustified absences</li>
+                        <li>Calculation of number of tardies</li>
+                    </ul>
+                    <span class="badge badge-auto">Automatic tracking</span>
+                </div>
+
+                <div class="workflow-step" data-step="5">
+                    <h4>Report Card Generation (Director/Principal Teacher)</h4>
+                    <p><strong>Required Actions:</strong></p>
+                    <ul>
+                        <li>Select class, term, and student</li>
+                        <li>Add principal teacher's general appreciation</li>
+                        <li>Enter conduct grade (/20)</li>
+                        <li>Add class council decisions (honors, commendations)</li>
+                        <li>Apply digital signatures (Director, Principal Teacher)</li>
+                    </ul>
+                    <p><strong>Automatic Generation:</strong></p>
+                    <ul>
+                        <li>Collection of all teacher grades</li>
+                        <li>Calculation of overall average with coefficients</li>
+                        <li>Calculation of student class ranking</li>
+                        <li>Integration of absences and tardies</li>
+                        <li>Class statistics (min, max, average)</li>
+                        <li>PDF generation with logo, QR code, and signatures</li>
+                    </ul>
+                    <span class="badge badge-hybrid">Hybrid - Manual + Automatic</span>
+                </div>
+
+                <div class="workflow-step" data-step="6">
+                    <h4>Export and Distribution (Automatic)</h4>
+                    <p><strong>Automatic Features:</strong></p>
+                    <ul>
+                        <li>Professional PDF export with logo and verification QR code</li>
+                        <li>Automatic sending to parents via email/WhatsApp (optional)</li>
+                        <li>Secure archiving in the system</li>
+                        <li>Parent access via dedicated portal</li>
+                    </ul>
+                    <span class="badge badge-auto">100% Automatic</span>
+                </div>
+
+                <h2>📑 Information Detail by Report Card Section</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report Card Section</th>
+                            <th>Information Included</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Header</strong></td>
+                            <td>School logo, name, address, contacts, academic year</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Student Identity</strong></td>
+                            <td>Photo, last name, first name, registration #, DOB, class</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Grades by Subject</strong></td>
+                            <td>Subject name, Eval 1, Eval 2, Eval 3, Average, Coef, Rank</td>
+                            <td><span class="badge badge-manual">Manual</span> <span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sections (Technical)</strong></td>
+                            <td>General, Literary, Scientific, Technical, Other + subtotals</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Averages</strong></td>
+                            <td>Overall average, class average, min, max</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ranking</strong></td>
+                            <td>Student rank / Total class students</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Attendance</strong></td>
+                            <td>Justified/unjustified absences, tardies, exclusions</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Conduct</strong></td>
+                            <td>Conduct grade, disciplinary sanctions</td>
+                            <td><span class="badge badge-hybrid">Hybrid</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Appreciations</strong></td>
+                            <td>Principal teacher remarks, class council decisions</td>
+                            <td><span class="badge badge-manual">Manual</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Signatures</strong></td>
+                            <td>Digital signature Director + Principal Teacher</td>
+                            <td><span class="badge badge-manual">Manual</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Security</strong></td>
+                            <td>Verification QR Code, unique number</td>
+                            <td><span class="badge badge-auto">Auto</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>🎯 Advantages of the Hybrid System</h2>
+
+                <div class="success-box">
+                    <h4>✅ Why EDUCAFRIC Uses a Hybrid System?</h4>
+                    <ol>
+                        <li><strong>Grade Accuracy</strong>: Teachers enter grades directly (reliable source)</li>
+                        <li><strong>Time Saving</strong>: Automatic calculations (averages, rankings, totals)</li>
+                        <li><strong>Error Reduction</strong>: No manual calculations, everything verified by the system</li>
+                        <li><strong>MINEDUB Compliance</strong>: Official Cameroonian format respected</li>
+                        <li><strong>Traceability</strong>: All modifications are recorded</li>
+                        <li><strong>Security</strong>: Anti-fraud verification QR codes</li>
+                        <li><strong>Flexibility</strong>: Support for 3 report card types (Standard, CBA, Technical)</li>
+                    </ol>
+                </div>
+
+                <h2>⚠️ Prerequisites for Generating a Report Card</h2>
+
+                <div class="warning-box">
+                    <h4>🔴 Mandatory data before generating a report card:</h4>
+                    <ul>
+                        <li>✅ School must have defined <strong>classes</strong> and <strong>school levels</strong></li>
+                        <li>✅ <strong>Subjects</strong> must be created with coefficients and max grades</li>
+                        <li>✅ <strong>Teachers</strong> must be assigned to their subjects</li>
+                        <li>✅ <strong>Student</strong> must be registered and assigned to a class</li>
+                        <li>✅ <strong>Grades</strong> must be entered by teachers (at least 1 assessment)</li>
+                        <li>✅ <strong>Digital signatures</strong> of Director and Principal Teacher must be created</li>
+                    </ul>
+                    <p><strong>⚠️ Without this data, the system cannot generate a complete report card.</strong></p>
+                </div>
+
+                <h2>🔧 Special Cases and Advanced Options</h2>
+
+                <h3>🎓 CBA Report Cards (Competencies)</h3>
+                <p>For schools using the Competency-Based Approach (CBA):</p>
+                <ul>
+                    <li><strong>Activate CBA Mode</strong>: School Settings → Enable "useCBAFormat"</li>
+                    <li><strong>Define Competencies</strong>: Create competency library per subject</li>
+                    <li><strong>Letter Grades</strong>: System automatically converts grades to letters (A-F)</li>
+                    <li><strong>Performance Bands</strong>: CVWA, CWA, CA, CAA, CNA calculated automatically</li>
+                </ul>
+
+                <h3>🔧 Technical Report Cards (5 Sections)</h3>
+                <p>For technical and professional schools:</p>
+                <ul>
+                    <li><strong>Automatic Categorization</strong>: Subjects are classified into 5 sections</li>
+                    <li><strong>Conditional Sections</strong>: A section appears only if it contains subjects</li>
+                    <li><strong>Subtotals per Section</strong>: Automatic calculations for each section</li>
+                    <li><strong>Visual Icons</strong>: 📚 General, 📖 Literary, 🔬 Scientific, 🔧 Technical, 🎨 Other</li>
+                </ul>
+
+                <h2>❓ Frequently Asked Questions (FAQ)</h2>
+
+                <h4>Q: Who can generate a report card?</h4>
+                <p><strong>A:</strong> The Director and the Principal Teacher (class homeroom teacher)</p>
+
+                <h4>Q: What happens if a teacher hasn't entered all grades yet?</h4>
+                <p><strong>A:</strong> The report card will be generated with available grades. Missing grades will appear empty. It's recommended to wait until all teachers have finished.</p>
+
+                <h4>Q: Can a report card be modified after generation?</h4>
+                <p><strong>A:</strong> Yes, but only in "Draft" or "Submitted" status. Once "Approved" or "Published", the report card becomes immutable to ensure integrity.</p>
+
+                <h4>Q: How can parents access report cards?</h4>
+                <p><strong>A:</strong> Via the EDUCAFRIC Parent portal or by email/WhatsApp with secure download link.</p>
+
+                <h4>Q: What is the QR code on the report card for?</h4>
+                <p><strong>A:</strong> It allows verification of the report card's authenticity. By scanning the QR code, you can confirm the document hasn't been altered.</p>
+
+                <h2>📞 Support and Assistance</h2>
+                <div class="info-box">
+                    <p>For any questions or technical assistance regarding report card creation:</p>
+                    <ul>
+                        <li>📧 Email: <strong>support@educafric.com</strong></li>
+                        <li>📱 WhatsApp: <strong>+237 6XX XXX XXX</strong></li>
+                        <li>🌐 Documentation: <strong>docs.educafric.com</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentLang = 'fr';
+        
+        function toggleLanguage() {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            
+            document.getElementById('fr-content').classList.toggle('active');
+            document.getElementById('en-content').classList.toggle('active');
+            
+            const langBtn = document.getElementById('lang-btn');
+            langBtn.textContent = currentLang === 'fr' ? '🇬🇧 English' : '🇫🇷 Français';
+        }
+    </script>
+</body>
+</html>
