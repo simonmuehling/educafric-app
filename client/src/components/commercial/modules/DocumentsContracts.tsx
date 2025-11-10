@@ -518,6 +518,32 @@ const DocumentsContracts = () => {
       description: 'English version of multi-stakeholder partnership contract updated 2025 pricing'
     },
     {
+      id: 38,
+      name: 'Guide Import Excel - Classes et Données Scolaires (FR/EN)',
+      type: 'guide',
+      category: 'technical',
+      school: 'Documentation Technique',
+      date: '2025-01-24',
+      status: 'finalized',
+      size: '45.2 KB',
+      format: 'HTML',
+      url: '/documents/guide-import-excel-classes.html',
+      description: 'Guide complet bilingue pour l\'import en masse via Excel - Classes, Enseignants, Élèves, Emplois du temps, Salles - Modèles pré-formatés avec instructions détaillées, exemples camerounais réalistes, validation automatique - Complete bilingual guide for bulk Excel import - Classes, Teachers, Students, Timetables, Rooms - Pre-formatted templates with detailed instructions, realistic Cameroon examples, automatic validation'
+    },
+    {
+      id: 39,
+      name: 'Guide Création Bulletins de Notes - Système Hybride (FR/EN)',
+      type: 'guide',
+      category: 'technical',
+      school: 'Documentation Technique',
+      date: '2025-01-24',
+      status: 'finalized',
+      size: '52.8 KB',
+      format: 'HTML',
+      url: '/documents/guide-creation-bulletins-notes.html',
+      description: 'Guide complet du système hybride de bulletins EDUCAFRIC : données manuelles (notes enseignants, appréciations) + automatiques (calculs, classements, présences) - Workflow complet de configuration à distribution - 3 types : Standard, CBA, Technique - Complete guide to EDUCAFRIC hybrid report card system: manual data (teacher grades, comments) + automatic data (calculations, rankings, attendance) - Complete workflow from configuration to distribution - 3 types: Standard, CBA, Technical'
+    },
+    {
       id: 107,
       name: 'Proposition Tarifaire Personnalisée (FR)',
       type: 'guide',

@@ -169,6 +169,32 @@ const SchoolConfigurationGuide: React.FC = () => {
             content: language === 'fr'
               ? 'Activez le suivi GPS pour la sécurité des élèves avec zones de sécurité personnalisables, alertes en temps réel, et historique des déplacements.'
               : 'Enable GPS tracking for student safety with customisable safety zones, real-time alerts, and movement history.'
+          },
+          {
+            id: 'excel-import',
+            title: language === 'fr' ? 'Import Excel - Données Scolaires' : 'Excel Import - School Data',
+            description: language === 'fr' ? 'Guide complet pour importer vos données en masse via Excel' : 'Complete guide for bulk data import via Excel',
+            category: 'features',
+            readTime: 15,
+            content: language === 'fr'
+              ? 'Importez facilement vos données scolaires (classes, enseignants, élèves, emplois du temps, salles) via des fichiers Excel avec des modèles bilingues pré-formatés. Le guide détaille le format requis, les colonnes obligatoires, et les exemples pratiques.'
+              : 'Easily import your school data (classes, teachers, students, timetables, rooms) via Excel files with pre-formatted bilingual templates. The guide details the required format, mandatory columns, and practical examples.',
+            downloadLinks: [
+              { title: language === 'fr' ? '📥 Guide complet Import Excel (FR/EN)' : '📥 Complete Excel Import Guide (FR/EN)', url: '/documents/guide-import-excel-classes.html' }
+            ]
+          },
+          {
+            id: 'bulletin-creation',
+            title: language === 'fr' ? 'Création des Bulletins de Notes' : 'Report Card Creation',
+            description: language === 'fr' ? 'Guide du système hybride : données manuelles et automatiques' : 'Hybrid system guide: manual and automatic data',
+            category: 'features',
+            readTime: 20,
+            content: language === 'fr'
+              ? 'Découvrez comment EDUCAFRIC génère les bulletins de notes en combinant la saisie manuelle des enseignants (notes, appréciations) avec la collecte automatique de données (calculs, classements, présences). Le guide détaille le workflow complet de la configuration à la distribution.'
+              : 'Discover how EDUCAFRIC generates report cards by combining manual teacher input (grades, comments) with automatic data collection (calculations, rankings, attendance). The guide details the complete workflow from configuration to distribution.',
+            downloadLinks: [
+              { title: language === 'fr' ? '📋 Guide Création Bulletins (FR/EN)' : '📋 Report Card Creation Guide (FR/EN)', url: '/documents/guide-creation-bulletins-notes.html' }
+            ]
           }
         ]
       },
