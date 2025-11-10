@@ -7,6 +7,29 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, Search, Download, Eye, Share, Plus, Filter, Calendar, Building2, Trash2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+
+interface ApiDocument {
+  id: number;
+  title: string;
+  description: string;
+  type: string;
+  url: string;
+}
+
+interface UiDocument {
+  id: number;
+  name: string;
+  type: string;
+  category: string;
+  school: string;
+  date: string;
+  status: string;
+  size: string;
+  format: string;
+  url: string;
+  description: string;
+}
 
 const DocumentsContracts = () => {
   const { language } = useLanguage();
@@ -109,12 +132,44 @@ const DocumentsContracts = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Documents commerciaux réels EDUCAFRIC - Combinaison MD + PDF
+  // Mapper to normalize API documents to UI format
+  // Handles both API payload {title, description, type, url} and fallback {name, category, type, ...}
+  const mapApiDocumentToUi = (apiDoc: any): UiDocument => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Check if already in UI format (from fallback)
+    if (apiDoc.name && apiDoc.category) {
+      return apiDoc as UiDocument;
+    }
+    
+    // Map from API format to UI format
+    return {
+      id: apiDoc.id,
+      name: apiDoc.title || apiDoc.name || 'Untitled Document',
+      type: apiDoc.type || 'guide',
+      category: apiDoc.category || apiDoc.type || 'technical',
+      school: apiDoc.school || 'Documentation EDUCAFRIC',
+      date: apiDoc.date || today,
+      status: apiDoc.status || 'finalized',
+      size: apiDoc.size || '0 KB',
+      format: apiDoc.format || (apiDoc.url?.endsWith('.pdf') ? 'PDF' : 'HTML'),
+      url: apiDoc.url,
+      description: apiDoc.description || ''
+    };
+  };
+
+  // Fetch documents from API
+  const { data: apiDocuments, isLoading: isLoadingApi, error: apiError } = useQuery<ApiDocument[]>({
+    queryKey: ['/api/commercial/documents'],
+    retry: 1,
+  });
+
+  // Documents commerciaux réels EDUCAFRIC - Fallback static list
   // 🚨 CRITICAL: ALL documents MUST be placed in /public/documents/ directory
   // 🚨 CRITICAL: ALL URLs must start with /documents/ (not /public/documents/)
   // 🚨 CRITICAL: ALL filenames must use lowercase kebab-case naming
-  // 🚨 CRITICAL: Follow exact pattern of "Kit de Prospection Educafric Complet" (working reference)
-  const documents = [
+  // 🚨 CRITICAL: This is now a FALLBACK - API is the primary source
+  const fallbackDocuments: UiDocument[] = [
     // Documents Markdown (MD) - Guides détaillés
     {
       id: 1,
@@ -516,32 +571,6 @@ const DocumentsContracts = () => {
       format: 'PDF',
       url: '/documents/partnership-contract-schools-freelancers-parents-2025-en.html',
       description: 'English version of multi-stakeholder partnership contract updated 2025 pricing'
-    },
-    {
-      id: 38,
-      name: 'Guide Import Excel - Classes et Données Scolaires (FR/EN)',
-      type: 'guide',
-      category: 'technical',
-      school: 'Documentation Technique',
-      date: '2025-01-24',
-      status: 'finalized',
-      size: '45.2 KB',
-      format: 'HTML',
-      url: '/documents/guide-import-excel-classes.html',
-      description: 'Guide complet bilingue pour l\'import en masse via Excel - Classes, Enseignants, Élèves, Emplois du temps, Salles - Modèles pré-formatés avec instructions détaillées, exemples camerounais réalistes, validation automatique - Complete bilingual guide for bulk Excel import - Classes, Teachers, Students, Timetables, Rooms - Pre-formatted templates with detailed instructions, realistic Cameroon examples, automatic validation'
-    },
-    {
-      id: 39,
-      name: 'Guide Création Bulletins de Notes - Système Hybride (FR/EN)',
-      type: 'guide',
-      category: 'technical',
-      school: 'Documentation Technique',
-      date: '2025-01-24',
-      status: 'finalized',
-      size: '52.8 KB',
-      format: 'HTML',
-      url: '/documents/guide-creation-bulletins-notes.html',
-      description: 'Guide complet du système hybride de bulletins EDUCAFRIC : données manuelles (notes enseignants, appréciations) + automatiques (calculs, classements, présences) - Workflow complet de configuration à distribution - 3 types : Standard, CBA, Technique - Complete guide to EDUCAFRIC hybrid report card system: manual data (teacher grades, comments) + automatic data (calculations, rankings, attendance) - Complete workflow from configuration to distribution - 3 types: Standard, CBA, Technical'
     },
     {
       id: 107,
@@ -1297,6 +1326,31 @@ const DocumentsContracts = () => {
       description: 'Specialized contract for schools paying Educafric with negotiable amount and duration'
     },
   ];
+
+  // Combine API documents with fallback
+  const documents: UiDocument[] = React.useMemo(() => {
+    if (apiError) {
+      console.warn('[DOCUMENTS] API error, using fallback:', apiError);
+      return fallbackDocuments;
+    }
+    
+    if (isLoadingApi) {
+      return fallbackDocuments;
+    }
+
+    if (apiDocuments && apiDocuments.length > 0) {
+      const mappedApiDocs = apiDocuments.map(mapApiDocumentToUi);
+      console.log('[DOCUMENTS] Loaded from API:', mappedApiDocs.length);
+      
+      // Deduplicate by ID - API documents take precedence
+      const apiIds = new Set(mappedApiDocs.map(d => d.id));
+      const fallbackOnly = fallbackDocuments.filter(d => !apiIds.has(d.id));
+      
+      return [...mappedApiDocs, ...fallbackOnly];
+    }
+
+    return fallbackDocuments;
+  }, [apiDocuments, isLoadingApi, apiError]);
 
   const isWithinDateRange = (downloadDate: string, filter: string): boolean => {
     if (!downloadDate || filter === 'all') return true;
