@@ -8195,6 +8195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // === GUIDES D'UTILISATION (Bilingue) ===
         { id: 38, title: "Guide Import Excel - Classes et Données Scolaires", description: "Guide complet pour l'import en masse via Excel - Classes, Enseignants, Élèves, Emplois du temps, Salles (Bilingue FR/EN)", type: "commercial", url: "/documents/guide-import-excel-classes.html" },
+        { id: 39, title: "Guide Création Bulletins de Notes - Système Hybride", description: "Guide complet pour créer des bulletins : Informations requises, données manuelles vs automatiques, flux de travail complet (Bilingue FR/EN)", type: "commercial", url: "/documents/guide-creation-bulletins-notes.html" },
         
         // === DEMANDES D'OFFRES OFFICIELLES (Bilingue PDF) ===
         { id: 29, title: "Demande d'Offres EDUCAFRIC - FR", description: "Document officiel de demande d'offre pour établissements", type: "commercial", url: "/documents/demande-offres-educafric-fr.pdf" },
