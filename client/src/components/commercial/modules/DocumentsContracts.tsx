@@ -170,6 +170,16 @@ const DocumentsContracts = () => {
   });
   
   const apiDocuments = apiResponse?.documents;
+  
+  React.useEffect(() => {
+    if (apiResponse) {
+      console.log('[DOCUMENTS_DEBUG] API Response:', apiResponse);
+      console.log('[DOCUMENTS_DEBUG] Documents count:', apiDocuments?.length);
+      console.log('[DOCUMENTS_DEBUG] Document IDs 38 & 39:', 
+        apiDocuments?.filter(d => d.id === 38 || d.id === 39)
+      );
+    }
+  }, [apiResponse, apiDocuments]);
 
   // Documents commerciaux réels EDUCAFRIC - Fallback static list
   // 🚨 CRITICAL: ALL documents MUST be placed in /public/documents/ directory
