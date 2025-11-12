@@ -14,7 +14,12 @@ interface ApiDocument {
   title: string;
   description: string;
   type: string;
-  url: string;
+  url: string | null;
+}
+
+interface ApiResponse {
+  success: boolean;
+  documents: ApiDocument[];
 }
 
 interface UiDocument {
@@ -159,10 +164,12 @@ const DocumentsContracts = () => {
   };
 
   // Fetch documents from API
-  const { data: apiDocuments, isLoading: isLoadingApi, error: apiError } = useQuery<ApiDocument[]>({
+  const { data: apiResponse, isLoading: isLoadingApi, error: apiError } = useQuery<ApiResponse>({
     queryKey: ['/api/commercial/documents'],
     retry: 1,
   });
+  
+  const apiDocuments = apiResponse?.documents;
 
   // Documents commerciaux réels EDUCAFRIC - Fallback static list
   // 🚨 CRITICAL: ALL documents MUST be placed in /public/documents/ directory
@@ -1339,8 +1346,10 @@ const DocumentsContracts = () => {
     }
 
     if (apiDocuments && apiDocuments.length > 0) {
-      const mappedApiDocs = apiDocuments.map(mapApiDocumentToUi);
-      console.log('[DOCUMENTS] Loaded from API:', mappedApiDocs.length);
+      // Filter out documents with null URLs
+      const validApiDocs = apiDocuments.filter(doc => doc.url !== null);
+      const mappedApiDocs = validApiDocs.map(mapApiDocumentToUi);
+      console.log('[DOCUMENTS] Loaded from API:', mappedApiDocs.length, 'valid docs out of', apiDocuments.length, 'total');
       
       // Deduplicate by ID - API documents take precedence
       const apiIds = new Set(mappedApiDocs.map(d => d.id));
