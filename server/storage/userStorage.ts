@@ -41,13 +41,7 @@ export class UserStorage implements IUserStorage {
 
   async getUserById(id: number): Promise<any | null> {
     try {
-      console.log(`[USER_STORAGE] Fetching user by ID: ${id}`);
       const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
-      if (user) {
-        console.log(`[USER_STORAGE] ✅ Found user by ID: ${user.email} (ID: ${user.id})`);
-      } else {
-        console.log(`[USER_STORAGE] ❌ No user found with ID: ${id}`);
-      }
       return user || null;
     } catch (error) {
       console.error(`[USER_STORAGE] Error in getUserById for ID ${id}:`, error);
@@ -57,20 +51,14 @@ export class UserStorage implements IUserStorage {
 
   async getUserByEmail(email: string): Promise<any | null> {
     try {
-      // Normalize email: trim spaces and convert to lowercase
       const normalizedEmail = email?.trim().toLowerCase();
       
       if (!normalizedEmail) {
         return null;
       }
       
-      // Use simple where clause with direct email match
       const result = await db.execute(sql`SELECT * FROM users WHERE LOWER(TRIM(email)) = ${normalizedEmail} LIMIT 1`);
       const user = result.rows[0] || null;
-      
-      if (user) {
-        console.log(`[USER_STORAGE] ✅ Found user: ${user.email} (ID: ${user.id})`);
-      }
       
       return user;
     } catch (error) {

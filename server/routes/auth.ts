@@ -12,6 +12,44 @@ import { hostingerMailService } from '../services/hostingerMailService.js';
 
 const router = Router();
 
+// Session cache to prevent repeated DB queries
+interface CachedUser {
+  user: any;
+  timestamp: number;
+}
+
+const userSessionCache = new Map<string | number, CachedUser>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCachedUser(id: string | number): any | null {
+  const cached = userSessionCache.get(id);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.user;
+  }
+  if (cached) {
+    userSessionCache.delete(id);
+  }
+  return null;
+}
+
+function setCachedUser(id: string | number, user: any): void {
+  userSessionCache.set(id, { user, timestamp: Date.now() });
+}
+
+function clearCachedUser(id: string | number): void {
+  userSessionCache.delete(id);
+}
+
+// Clean up expired cache entries every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, cached] of userSessionCache.entries()) {
+    if (now - cached.timestamp >= CACHE_TTL) {
+      userSessionCache.delete(id);
+    }
+  }
+}, 10 * 60 * 1000);
+
 // Rate limiting for sandbox login to prevent email spam
 const sandboxLoginLimiter = rateLimit({
   windowMs: parseInt(process.env.SANDBOX_RATE_LIMIT_WINDOW_MS || '300000'), // 5 minutes default
@@ -131,8 +169,13 @@ passport.deserializeUser(async (id: string | number, done) => {
       
       // Validate the parsed ID is a valid number
       if (isNaN(sandboxId) || sandboxId <= 0) {
-        console.warn('[AUTH_WARNING] Invalid sandbox ID format:', sandboxIdStr);
         return done(null, false);
+      }
+      
+      // Check cache first for sandbox users
+      const cachedSandboxUser = getCachedUser(id);
+      if (cachedSandboxUser) {
+        return done(null, cachedSandboxUser);
       }
       
       // Return sandbox user data (reconstruct from sandboxProfiles)
@@ -152,7 +195,7 @@ passport.deserializeUser(async (id: string | number, done) => {
           ...profile,
           subscription: 'premium',
           sandboxMode: true,
-          isSandboxUser: true, // ✅ SÉCURITÉ: Flag pour bloquer les opérations de production
+          isSandboxUser: true,
           premiumFeatures: true,
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
@@ -166,13 +209,14 @@ passport.deserializeUser(async (id: string | number, done) => {
             motto: 'Excellence et Innovation Pédagogique'
           }
         };
+        setCachedUser(id, sandboxUser);
         return done(null, sandboxUser);
       } else {
         return done(null, false);
       }
     }
     
-    // Handle regular database users - with safe fallback
+    // Handle regular database users - check cache first
     try {
       const userId = typeof id === 'string' ? parseInt(id) : id;
       
@@ -180,22 +224,28 @@ passport.deserializeUser(async (id: string | number, done) => {
         return done(null, false);
       }
       
+      // Check cache first
+      const cachedUser = getCachedUser(userId as number);
+      if (cachedUser) {
+        return done(null, cachedUser);
+      }
+      
+      // Cache miss - fetch from database
       const user = await storage.getUserById(userId as number);
       
       if (user) {
+        setCachedUser(userId as number, user);
         return done(null, user);
       } else {
         return done(null, false);
       }
     } catch (dbError) {
-      // Log error without sensitive details
-      console.error('[AUTH_DESERIALIZE] ❌ Database error:', dbError);
-      return done(null, false); // Fail gracefully, don't crash
+      console.error('[AUTH_DESERIALIZE] Database error:', dbError);
+      return done(null, false);
     }
   } catch (error) {
-    // Log error without sensitive details
     console.error('[AUTH_ERROR] User deserialization failed');
-    return done(null, false); // Fail gracefully, don't propagate error
+    return done(null, false);
   }
 });
 
@@ -1034,10 +1084,15 @@ router.get('/session-status', (req, res) => {
 
 router.post('/logout', (req, res) => {
   try {
+    const userId = (req.user as any)?.id;
     req.logout((err) => {
       if (err) {
         console.error('[AUTH_ERROR] Logout failed');
         return res.status(500).json({ message: 'Logout failed' });
+      }
+      // Clear user from session cache
+      if (userId) {
+        clearCachedUser(userId);
       }
       res.json({ message: 'Logged out successfully' });
     });
@@ -1417,6 +1472,9 @@ router.post('/reset-password', async (req, res) => {
       smsResetExpiry: null
     });
 
+    // Clear user from session cache to force fresh fetch
+    clearCachedUser(user.id);
+
     console.log(`[PASSWORD_RESET] Password successfully reset for user ${user.email}`);
 
     res.json({
@@ -1539,5 +1597,8 @@ router.post('/delete-account', async (req, res) => {
     });
   }
 });
+
+// Export cache utilities for use in other modules
+export { clearCachedUser };
 
 export default router;
