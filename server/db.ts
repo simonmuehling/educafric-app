@@ -9,6 +9,6 @@ if (!process.env.DATABASE_URL) {
 }
 
 // Use neon HTTP client - works without WebSocket and supports transactions via HTTP
-const sql = neon(process.env.DATABASE_URL);
+export const sql = neon(process.env.DATABASE_URL);
 
 export const db = drizzle(sql, { schema });

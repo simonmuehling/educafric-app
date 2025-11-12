@@ -1,4 +1,4 @@
-import { neon } from '@neondatabase/serverless';
+import { sql } from '../db';
 
 export async function testDatabaseConnection(): Promise<{
   success: boolean;
@@ -9,9 +9,7 @@ export async function testDatabaseConnection(): Promise<{
   const startTime = Date.now();
   
   try {
-    const sql = neon(process.env.DATABASE_URL!);
-    
-    // Simple test query
+    // Simple test query using singleton connection
     const result = await sql`SELECT 1 as test, NOW() as current_time`;
     
     const connectionTime = Date.now() - startTime;
@@ -47,9 +45,7 @@ export async function testUserQuery(): Promise<{
   userCount?: number;
 }> {
   try {
-    const sql = neon(process.env.DATABASE_URL!);
-    
-    // Test if users table exists and count users
+    // Test if users table exists and count users using singleton connection
     const result = await sql`
       SELECT COUNT(*) as count 
       FROM users 

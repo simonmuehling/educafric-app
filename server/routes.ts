@@ -34,13 +34,13 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins } from "../shared/schema.js";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins } from "../shared/schema";
 import bcrypt from 'bcryptjs';
 import { 
   predefinedAppreciations, 
   competencyEvaluationSystems, 
   competencyTemplates 
-} from "../shared/schemas/predefinedAppreciationsSchema.js";
+} from "../shared/schemas/predefinedAppreciationsSchema";
 import { eq, and, or, asc, desc, sql, inArray } from "drizzle-orm";
 import { 
   ArchiveFilter, 
@@ -48,7 +48,7 @@ import {
   NewArchiveAccessLog,
   insertArchivedDocumentSchema,
   archiveFilterSchema 
-} from "../shared/schemas/archiveSchema.js";
+} from "../shared/schemas/archiveSchema";
 
 // Import validation schemas to prevent security issues
 import { 
@@ -967,7 +967,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: dbUser?.email,
           phone: dbUser?.phone,
           dateOfBirth: dbUser?.dateOfBirth,
-          address: dbUser?.address,
           schoolName: schoolInfo?.name || 'École',
           position: dbUser?.position,
           qualifications: dbUser?.qualifications ? JSON.parse(dbUser.qualifications as string) : [],
@@ -975,7 +974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           bio: dbUser?.bio,
           languages: dbUser?.languages ? JSON.parse(dbUser.languages as string) : ['Français'],
           profileImage: dbUser?.profileImage,
-          profileImageUrl: dbUser?.profileImageUrl || dbUser?.profilePictureUrl,
+          profileImageUrl: dbUser?.profilePictureUrl,
           totalTeachers,
           totalStudents,
           totalClasses,
@@ -1098,7 +1097,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update password in database
       await db.update(users)
-        .set({ password: hashedPassword })
+        .set({ 
+          password: hashedPassword,
+          updatedAt: new Date()
+        })
         .where(eq(users.id, user.id));
       
       console.log('[PASSWORD_CHANGE] ✅ Password changed successfully for user:', user.id);
@@ -1245,12 +1247,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save to database
       const [newRoom] = await db.insert(rooms).values({
         name,
+        schoolId,
         type: type || 'classroom',
         capacity: capacity || 30,
-        building,
-        floor,
-        equipment,
-        schoolId,
+        building: building || null,
+        floor: floor || null,
+        equipment: equipment || null,
         isOccupied: false
       }).returning();
       
@@ -1479,11 +1481,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create class in database
       const [newClass] = await db.insert(classes).values({
         name,
-        level,
-        maxStudents: capacity || 30,
         schoolId: userSchoolId,
-        teacherId: teacherId || null,
         academicYearId: 1, // TODO: Get current academic year
+        level: level || null,
+        maxStudents: capacity || 30,
+        teacherId: teacherId || null,
         isActive: true
       }).returning();
       
@@ -1714,19 +1716,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create student in database
       const [newStudent] = await db.insert(users).values({
+        role: 'Student',
         firstName: fName,
         lastName: lName,
-        email: email || null, // Email is optional
         phone,
         password: hashedPassword,
-        role: 'Student',
         schoolId: userSchoolId,
+        email: email || null, // Email is optional
         gender: gender || null,
         dateOfBirth: dateOfBirth || null,
-        placeOfBirth: placeOfBirth || null,
-        matricule: matricule || null,
-        isVerified: false,
-        isActive: true
+        placeOfBirth: placeOfBirth || null
       }).returning();
       
       console.log('[CREATE_STUDENT] ✅ Student created:', { id: newStudent.id, name: `${fName} ${lName}` });
@@ -1977,15 +1976,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create teacher in database
       const [newTeacher] = await db.insert(users).values({
+        role: 'Teacher',
         firstName,
         lastName,
-        email: email || null, // Email is optional
         phone,
         password: hashedPassword,
-        role: 'Teacher',
         schoolId: userSchoolId,
-        isVerified: false,
-        isActive: true
+        email: email || null // Email is optional
       }).returning();
       
       console.log('[CREATE_TEACHER] ✅ Teacher created:', { id: newTeacher.id, name: `${firstName} ${lastName}` });
@@ -7434,7 +7431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/director/teacher-bulletins', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
     try {
       const user = req.user as { schoolId: number; id: number; role: string };
-      const schoolId = user.schoolId || user.school_id || 1;
+      const schoolId = user.schoolId || 1;
       
       console.log('[DIRECTOR_BULLETINS] Fetching teacher-submitted bulletins for school:', schoolId);
       
@@ -7486,7 +7483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(teacherBulletins)
         .where(and(
           eq(teacherBulletins.id, bulletinId),
-          eq(teacherBulletins.schoolId, user.schoolId || user.school_id || 1)
+          eq(teacherBulletins.schoolId, user.schoolId || 1)
         ));
       
       if (!bulletin) {

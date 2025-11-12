@@ -82,6 +82,7 @@ import {
   busStudents
 } from "./schemas/busSchema";
 
+// Note: rooms, timetables, timetableNotifications, and other tables defined below are already exported directly
 export { users, schools, schoolLevels, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, savedBulletins, teacherBulletins, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates, archivedDocuments, archiveAccessLogs, annualReportComprehensive, educafricNumbers, educafricNumberCounters, competencies, subjectCompetencyAssignments, canteenMenus, canteenReservations, canteenBalances, busRoutes, busStations, busStudents };
 
 // Additional simplified tables for compatibility

@@ -147,7 +147,8 @@ class OfflineStorageManager {
       const transaction = this.db!.transaction(['offlineQueue'], 'readonly');
       const store = transaction.objectStore('offlineQueue');
       
-      try {
+      // Check if index exists before trying to use it
+      if (store.indexNames.contains('synced')) {
         const index = store.index('synced');
         const request = index.getAll(IDBKeyRange.only(false));
 
@@ -174,11 +175,8 @@ class OfflineStorageManager {
             reject(fallbackRequest.error);
           };
         };
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.warn('[OFFLINE] Index not available, falling back to full scan:', error);
-        }
-        // Fallback for when index doesn't exist
+      } else {
+        // Index doesn't exist yet (during migration), use fallback
         const fallbackRequest = store.getAll();
         fallbackRequest.onsuccess = () => {
           const allItems = fallbackRequest.result || [];
@@ -186,7 +184,7 @@ class OfflineStorageManager {
           resolve(pendingItems);
         };
         fallbackRequest.onerror = () => {
-          console.error('[OFFLINE] Failed to get pending actions (fallback also failed):', fallbackRequest.error);
+          console.error('[OFFLINE] Failed to get pending actions:', fallbackRequest.error);
           reject(fallbackRequest.error);
         };
       }
