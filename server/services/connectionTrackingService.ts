@@ -29,7 +29,9 @@ export class ConnectionTrackingService {
         accessMethod: connectionData.accessMethod || 'web'
       }).returning();
 
-      console.log(`[CONNECTION_TRACKER] 📊 Connexion enregistrée: ${connectionData.userEmail} depuis ${connectionData.ipAddress}`);
+      if (process.env.DEBUG_AUTH === 'true') {
+        console.log(`[CONNECTION_TRACKER] 📊 Connexion enregistrée: ${connectionData.userEmail} depuis ${connectionData.ipAddress}`);
+      }
       return connection;
     } catch (error) {
       console.error(`[CONNECTION_TRACKER] ❌ Erreur logging connexion:`, error);
@@ -62,7 +64,9 @@ export class ConnectionTrackingService {
         sessionId: visitData.sessionId
       }).returning();
 
-      console.log(`[PAGE_TRACKER] 📄 Page visitée: ${visitData.pagePath} par ${visitData.userEmail}`);
+      if (process.env.DEBUG_AUTH === 'true') {
+        console.log(`[PAGE_TRACKER] 📄 Page visitée: ${visitData.pagePath} par ${visitData.userEmail}`);
+      }
       return visit;
     } catch (error) {
       console.error(`[PAGE_TRACKER] ❌ Erreur logging page:`, error);

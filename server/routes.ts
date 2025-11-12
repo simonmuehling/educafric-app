@@ -203,36 +203,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.use(session(sessionConfig));
   
-  // DEBUG: Log session middleware execution
-  app.use((req, res, next) => {
-    if (req.path.startsWith('/api') && req.path !== '/api/health' && req.method !== 'HEAD') {
-      console.log('[SESSION_DEBUG]', {
-        path: req.path,
-        hasSession: !!req.session,
-        sessionID: req.sessionID,
-        sessionPassport: (req.session as any)?.passport,
-        sessionData: Object.keys(req.session || {})
-      });
-    }
-    next();
-  });
+  // DEBUG: Log session middleware execution (only in debug mode)
+  if (process.env.DEBUG_AUTH === 'true') {
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api') && req.path !== '/api/health' && req.method !== 'HEAD') {
+        console.log('[SESSION_DEBUG]', {
+          path: req.path,
+          hasSession: !!req.session,
+          sessionID: req.sessionID,
+          sessionPassport: (req.session as any)?.passport,
+          sessionData: Object.keys(req.session || {})
+        });
+      }
+      next();
+    });
+  }
   
   // Initialize passport middleware - MUST be after session middleware
   app.use(passport.initialize());
   app.use(passport.session());
   
-  // DEBUG: Log passport middleware execution  
-  app.use((req, res, next) => {
-    if (req.path.startsWith('/api') && req.path !== '/api/health' && req.method !== 'HEAD') {
-      console.log('[PASSPORT_DEBUG]', {
-        path: req.path,
-        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
-        hasUser: !!req.user,
-        userId: req.user?.id
-      });
-    }
-    next();
-  });
+  // DEBUG: Log passport middleware execution (only in debug mode)
+  if (process.env.DEBUG_AUTH === 'true') {
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api') && req.path !== '/api/health' && req.method !== 'HEAD') {
+        console.log('[PASSPORT_DEBUG]', {
+          path: req.path,
+          isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+          hasUser: !!req.user,
+          userId: req.user?.id
+        });
+      }
+      next();
+    });
+  }
   
   // CSRF protection with WhatsApp/webhook exemptions - MUST be after session/passport, before routes
   app.use(csrfWithAllowlist);
@@ -242,28 +246,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add connection tracking middleware for authenticated users
   app.use('/api', trackConnection);
   
-  // TEMPORARY DEBUG: Log all API requests with cookie information
-  app.use('/api', (req, res, next) => {
-    if (req.path !== '/health' && req.method !== 'HEAD' && req.path !== '/csrf-token') {
-      console.log('[COOKIE_DEBUG]', {
-        path: req.path,
-        method: req.method,
-        hasCookie: !!req.headers.cookie,
-        cookies: req.headers.cookie,
-        hasSession: !!req.session,
-        sessionID: req.sessionID,
-        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
-        userId: req.user?.id
-      });
-    }
-    next();
-  });
+  // DEBUG: Log all API requests with cookie information (only in debug mode)
+  if (process.env.DEBUG_AUTH === 'true') {
+    app.use('/api', (req, res, next) => {
+      if (req.path !== '/health' && req.method !== 'HEAD' && req.path !== '/csrf-token') {
+        console.log('[COOKIE_DEBUG]', {
+          path: req.path,
+          method: req.method,
+          hasCookie: !!req.headers.cookie,
+          cookies: req.headers.cookie,
+          hasSession: !!req.session,
+          sessionID: req.sessionID,
+          isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false,
+          userId: req.user?.id
+        });
+      }
+      next();
+    });
+  }
   
   // 🚫 CRITICAL: PUBLIC ENDPOINTS MUST BE FIRST (before any /api middleware)
   // Health check endpoint - MUST be public (no authentication required)
   app.get('/api/health', (req, res) => {
-    // TEMPORARY: Log every request to identify polling source
-    console.log(`[SERVER] 🔍 Health check from ${req.ip}, User-Agent: ${req.get('User-Agent')?.slice(0,50)}..., Referer: ${req.get('Referer')}`);
     res.json({ 
       status: 'healthy', 
       timestamp: new Date().toISOString(),
