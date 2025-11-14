@@ -2006,6 +2006,146 @@ export class ExcelImportService {
     // Generate buffer
     return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
   }
+  
+  /**
+   * Auto-fix common errors in class import Excel files
+   * Fixes: lowercase 'l' separators → pipe '|', validates categories
+   */
+  normalizeClassSubjects(buffer: Buffer, filename: string, lang: 'fr' | 'en' = 'fr'): Buffer {
+    console.log('[EXCEL_AUTOFIX] Starting auto-fix for classes import file');
+    
+    const validCategories = ['general', 'scientific', 'literary', 'technical', 'other'];
+    
+    // Parse the workbook
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    
+    // Find the data sheet (skip Instructions sheet)
+    let sheetName: string = workbook.SheetNames.find(name => 
+      name === 'Modèle' || name === 'Template' || name === 'Données' || name === 'Data'
+    ) || '';
+    
+    if (!sheetName) {
+      sheetName = workbook.SheetNames.find((name: string) => 
+        name !== 'Instructions'
+      ) || workbook.SheetNames[0];
+    }
+    
+    const worksheet = workbook.Sheets[sheetName];
+    
+    // Convert to JSON to work with data
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { 
+      header: 1,
+      defval: '',
+      blankrows: false 
+    });
+    
+    if (jsonData.length < 2) {
+      console.log('[EXCEL_AUTOFIX] File has no data rows to fix');
+      return buffer; // Return original if no data
+    }
+    
+    // Headers in first row
+    const headers = jsonData[0] as string[];
+    
+    // Find the subjects column - support both French and English
+    const subjectsColumnPatterns = [
+      'Matières (nom;coeff;heures;catégorie | séparées par |)',
+      'Subjects (name;coeff;hours;category | separated by |)',
+      'Matières',
+      'Subjects'
+    ];
+    
+    let subjectsColIndex = -1;
+    for (const pattern of subjectsColumnPatterns) {
+      subjectsColIndex = headers.findIndex(h => h && h.includes(pattern.split('(')[0].trim()));
+      if (subjectsColIndex !== -1) break;
+    }
+    
+    if (subjectsColIndex === -1) {
+      console.log('[EXCEL_AUTOFIX] Could not find subjects column');
+      return buffer; // Return original if subjects column not found
+    }
+    
+    console.log(`[EXCEL_AUTOFIX] Found subjects column at index ${subjectsColIndex}: "${headers[subjectsColIndex]}"`);
+    
+    let fixCount = 0;
+    
+    // Process each data row (skip header row 0)
+    for (let rowIndex = 1; rowIndex < jsonData.length; rowIndex++) {
+      const row = jsonData[rowIndex] as any[];
+      const subjectsValue = row[subjectsColIndex];
+      
+      if (!subjectsValue || typeof subjectsValue !== 'string') continue;
+      
+      // Fix 1: Replace lowercase 'l' with pipe '|' (with surrounding spaces)
+      let fixedValue = subjectsValue
+        .replace(/ l /g, ' | ')  // " l " → " | "
+        .replace(/\|l /g, '| ')  // "|l " → "| "
+        .replace(/ l\|/g, ' |'); // " l|" → " |"
+      
+      // Fix 2: Validate and normalize categories
+      const subjectParts = fixedValue.split('|').map(s => s.trim());
+      const normalizedParts: string[] = [];
+      
+      for (const part of subjectParts) {
+        if (!part) continue;
+        
+        const segments = part.split(';').map(s => s.trim());
+        
+        // Expected format: name;coeff;hours;category
+        if (segments.length >= 4) {
+          const [name, coeff, hours, category] = segments;
+          const normalizedCategory = category.toLowerCase().trim();
+          
+          // Validate category
+          if (validCategories.includes(normalizedCategory)) {
+            normalizedParts.push(`${name};${coeff};${hours};${normalizedCategory}`);
+          } else {
+            // Try to extract valid category if it's embedded in text
+            const foundCategory = validCategories.find(cat => normalizedCategory.includes(cat));
+            if (foundCategory) {
+              normalizedParts.push(`${name};${coeff};${hours};${foundCategory}`);
+              console.log(`[EXCEL_AUTOFIX] Row ${rowIndex + 1}: Extracted category '${foundCategory}' from '${category}'`);
+            } else {
+              // Default to 'general' if no valid category found
+              normalizedParts.push(`${name};${coeff};${hours};general`);
+              console.log(`[EXCEL_AUTOFIX] Row ${rowIndex + 1}: Invalid category '${category}', defaulting to 'general'`);
+            }
+          }
+        } else {
+          // Keep incomplete entries as-is
+          normalizedParts.push(part);
+        }
+      }
+      
+      const finalValue = normalizedParts.join(' | ');
+      
+      if (finalValue !== subjectsValue) {
+        row[subjectsColIndex] = finalValue;
+        fixCount++;
+        console.log(`[EXCEL_AUTOFIX] Row ${rowIndex + 1}: Fixed subjects`);
+        console.log(`  Before: ${subjectsValue.substring(0, 100)}...`);
+        console.log(`  After:  ${finalValue.substring(0, 100)}...`);
+      }
+    }
+    
+    console.log(`[EXCEL_AUTOFIX] Fixed ${fixCount} rows`);
+    
+    // Convert back to worksheet
+    const newWorksheet = XLSX.utils.aoa_to_sheet(jsonData);
+    
+    // Preserve column widths
+    newWorksheet['!cols'] = worksheet['!cols'] || headers.map(() => ({ width: 20 }));
+    
+    // Replace the worksheet in the workbook
+    workbook.Sheets[sheetName] = newWorksheet;
+    
+    // Generate corrected buffer
+    const correctedBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    
+    console.log('[EXCEL_AUTOFIX] Auto-fix complete');
+    return correctedBuffer;
+  }
 }
 
 export const excelImportService = new ExcelImportService();
