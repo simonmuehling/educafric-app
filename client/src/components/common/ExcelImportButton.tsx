@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Upload, Download, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Upload, Download, AlertCircle, CheckCircle2, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -36,6 +36,7 @@ export function ExcelImportButton({
     warnings?: any[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const autoFixInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { language } = useLanguage();
 
@@ -98,6 +99,57 @@ export function ExcelImportButton({
         variant: 'destructive'
       });
     }
+  };
+
+  const handleAutoFix = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      toast({
+        title: currentLang === 'fr' ? '🔧 Correction en cours...' : '🔧 Fixing file...',
+        description: currentLang === 'fr' ? 'Correction automatique des erreurs' : 'Auto-fixing errors'
+      });
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`/api/bulk-import/${importType}/fix?lang=${currentLang}`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(currentLang === 'fr' ? 'Échec de la correction automatique' : 'Auto-fix failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name.replace(/\.xlsx?$/i, '_FIXED.xlsx');
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: currentLang === 'fr' ? '✅ Fichier corrigé' : '✅ File fixed',
+        description: currentLang === 'fr' 
+          ? 'Téléchargé avec les erreurs corrigées. Vous pouvez maintenant l\'importer.' 
+          : 'Downloaded with errors fixed. You can now import it.'
+      });
+    } catch (error) {
+      toast({
+        title: currentLang === 'fr' ? 'Erreur' : 'Error',
+        description: error instanceof Error ? error.message : (currentLang === 'fr' ? 'Erreur de correction' : 'Fix error'),
+        variant: 'destructive'
+      });
+    }
+
+    // Reset file input
+    event.target.value = '';
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,6 +277,18 @@ export function ExcelImportButton({
           {currentLang === 'fr' ? 'Télécharger Modèle' : 'Download Template'}
         </Button>
 
+        {importType === 'classes' && (
+          <Button
+            variant="outline"
+            onClick={() => autoFixInputRef.current?.click()}
+            data-testid={`button-autofix-${importType}`}
+            className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300"
+          >
+            <Wand2 className="h-4 w-4" />
+            {currentLang === 'fr' ? '🔧 Corriger Fichier' : '🔧 Fix File'}
+          </Button>
+        )}
+
         <Button
           variant="default"
           onClick={() => fileInputRef.current?.click()}
@@ -243,6 +307,15 @@ export function ExcelImportButton({
           onChange={handleFileSelect}
           className="hidden"
           data-testid={`input-file-${importType}`}
+        />
+
+        <input
+          ref={autoFixInputRef}
+          type="file"
+          accept=".xlsx,.xls"
+          onChange={handleAutoFix}
+          className="hidden"
+          data-testid={`input-autofix-${importType}`}
         />
       </div>
 
