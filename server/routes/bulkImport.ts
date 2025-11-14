@@ -577,4 +577,47 @@ router.post('/import', requireAuth, async (req, res) => {
   }
 });
 
+// Auto-fix classes Excel file endpoint
+router.post('/classes/fix', requireAuth, upload.single('file'), async (req, res) => {
+  try {
+    const lang = (req.query.lang as 'fr' | 'en') || 'fr';
+    
+    if (!req.file) {
+      return res.status(400).json({ 
+        message: lang === 'fr' ? 'Aucun fichier fourni' : 'No file provided' 
+      });
+    }
+    
+    console.log('[EXCEL_AUTOFIX_API] Received file for auto-fix:', req.file.originalname);
+    
+    // Apply auto-fix using excelImportService
+    const correctedBuffer = excelImportService.normalizeClassSubjects(
+      req.file.buffer, 
+      req.file.originalname, 
+      lang
+    );
+    
+    // Generate corrected filename
+    const originalName = req.file.originalname.replace(/\.xlsx?$/i, '');
+    const correctedFilename = `${originalName}_FIXED_${Date.now()}.xlsx`;
+    
+    // Send corrected file back to user
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${correctedFilename}"`);
+    
+    console.log('[EXCEL_AUTOFIX_API] Sending corrected file:', correctedFilename);
+    
+    res.send(correctedBuffer);
+    
+  } catch (error) {
+    const lang = (req.query.lang as 'fr' | 'en') || 'fr';
+    console.error('[EXCEL_AUTOFIX_API] Error auto-fixing file:', error);
+    res.status(500).json({ 
+      message: error instanceof Error 
+        ? error.message 
+        : (lang === 'fr' ? 'Erreur lors de la correction automatique du fichier' : 'Error auto-fixing file')
+    });
+  }
+});
+
 export default router;
