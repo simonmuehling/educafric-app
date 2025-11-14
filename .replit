@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["openjdk17", "android-tools", "jdk17", "wget", "unzip", "openjdk", "jdk21", "chromium", "zip"]
+packages = ["openjdk17", "android-tools", "jdk17", "wget", "unzip", "openjdk", "jdk21", "chromium", "zip", "python311Packages.openpyxl"]
 
 [deployment]
 deploymentTarget = "autoscale"
