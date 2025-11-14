@@ -109,44 +109,55 @@ export class StudentStorage implements IStudentStorage {
         attendance: Math.floor(Math.random() * 20) + 80 // Mock attendance between 80-100%
       }));
     } catch (error) {
-      console.error('Error getting students by school:', error);
-      // Return mock students as fallback
-      return [
-        {
-          id: 1,
-          firstName: 'Marie',
-          lastName: 'Kouam',
-          name: 'Marie Kouam',
-          email: 'marie.kouam@student.cm',
-          className: '6ème A',
-          level: '6ème',
-          age: 16,
-          parentName: 'Paul Kouam',
-          parentEmail: 'paul.kouam@parent.cm',
-          parentPhone: '+237650000001',
-          status: 'active',
-          average: 16.5,
-          attendance: 95,
-          schoolId
-        },
-        {
-          id: 2,
-          firstName: 'Jean',
-          lastName: 'Mbida',
-          name: 'Jean Mbida',
-          email: 'jean.mbida@student.cm',
-          className: '5ème B',
-          level: '5ème',
-          age: 17,
-          parentName: 'Sophie Mbida',
-          parentEmail: 'sophie.mbida@parent.cm',
-          parentPhone: '+237650000002',
-          status: 'active',
-          average: 14.8,
-          attendance: 88,
-          schoolId
-        }
-      ];
+      console.error('[STUDENT_STORAGE] ❌ Error getting students by school:', schoolId, error);
+      
+      // Only return mock students for demo/sandbox schools (IDs 1-6, 15)
+      // Real production schools (10+) should see empty state, not hardcoded data
+      const isSandboxSchool = schoolId <= 6 || schoolId === 15;
+      
+      if (isSandboxSchool) {
+        console.log('[STUDENT_STORAGE] 📋 Returning demo students for sandbox school:', schoolId);
+        return [
+          {
+            id: 1,
+            firstName: 'Marie',
+            lastName: 'Kouam',
+            name: 'Marie Kouam',
+            email: 'marie.kouam@student.cm',
+            className: '6ème A',
+            level: '6ème',
+            age: 16,
+            parentName: 'Paul Kouam',
+            parentEmail: 'paul.kouam@parent.cm',
+            parentPhone: '+237650000001',
+            status: 'active',
+            average: 16.5,
+            attendance: 95,
+            schoolId
+          },
+          {
+            id: 2,
+            firstName: 'Jean',
+            lastName: 'Mbida',
+            name: 'Jean Mbida',
+            email: 'jean.mbida@student.cm',
+            className: '5ème B',
+            level: '5ème',
+            age: 17,
+            parentName: 'Sophie Mbida',
+            parentEmail: 'sophie.mbida@parent.cm',
+            parentPhone: '+237650000002',
+            status: 'active',
+            average: 14.8,
+            attendance: 88,
+            schoolId
+          }
+        ];
+      }
+      
+      // For real production schools, return empty array and log the error
+      console.error('[STUDENT_STORAGE] ⚠️ Production school', schoolId, 'has database error - returning empty array');
+      return [];
     }
   }
 

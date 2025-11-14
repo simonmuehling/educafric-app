@@ -70,6 +70,15 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Routes d'import Excel** : `/api/bulk-import/` pour templates, validation et import de Classes, Teachers, Students, Timetables, Rooms
 - ⚠️ **RÈGLE CRITIQUE** : TOUJOURS utiliser `user.schoolId` (avec majuscule I) pour isolation multi-tenant, JAMAIS `user.school_id`
 
+**SÉPARATION DONNÉES SANDBOX/PRODUCTION**:
+- ✅ **Problème résolu** : Données hardcodées (Marie Kouam, Jean Mbida) apparaissaient dans toutes les écoles y compris production
+- ✅ **Solution implémentée** : Détection intelligente sandbox dans `server/storage/studentStorage.ts`
+- ✅ **Écoles sandbox (IDs 1-6, 15)** : Gardent les données démo pour testing/onboarding
+- ✅ **Écoles production (IDs 10+)** : Reçoivent tableau vide au lieu de données hardcodées
+- ✅ **Logging amélioré** : `[STUDENT_STORAGE]` logs distinguent sandbox vs production, erreurs DB visibles
+- ✅ **Identification** : Sandbox = school_id ≤ 6 ou school_id = 15, Production = school_id ≥ 10 avec numéro EDUCAFRIC
+- ⚠️ **RÈGLE CRITIQUE** : Ne JAMAIS retourner de données hardcodées pour les écoles production - toujours vérifier school_id
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
@@ -100,30 +109,23 @@ Preferred communication style: Simple, everyday language.
 - **Schema**: Comprehensive, covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation, structured by academic year/term.
 
 ### Key Features and Design Choices
-- **Offline-First Architecture**: Comprehensive offline support including Service Worker for caching, IndexedDB for local storage, and Background Sync for data synchronization. Includes smart 2G/3G detection and an offline banner.
+- **Offline-First Architecture**: Comprehensive offline support including Service Worker for caching, IndexedDB for local storage, and Background Sync for data synchronization.
 - **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
 - **Educational Management**: Grade management (African-style report cards), real-time attendance, homework assignment, flexible timetable management.
-- **Communication System**: Multi-channel notifications via WhatsApp Click-to-Chat (wa.me links) and Hostinger SMTP Email, with bilingual, contextual templates and automatic parent notifications.
-- **Payment & Subscription**: Stripe integration for international payments, local African payment methods (e.g., MTN Mobile Money).
+- **Communication System**: Multi-channel notifications via WhatsApp Click-to-Chat and Hostinger SMTP Email, with bilingual, contextual templates and automatic parent notifications.
+- **Payment & Subscription**: Stripe integration for international payments, local African payment methods.
 - **Geolocation Services**: GPS tracking, geofencing, safe zone management, real-time monitoring, emergency alerts.
 - **Document Management**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access.
 - **Bidirectional Connection System**: Facilitates parent-child, student-parent, and freelancer-student connections with verification.
 - **Bilingual Support**: Dynamic French/English language switching, full localization.
-- **Sandbox Environment**: Dedicated, fully unlocked environment with realistic African demo data, including an **Offline Demo Mode** with pre-bundled data and offline authentication.
+- **Sandbox Environment**: Dedicated, fully unlocked environment with realistic African demo data, including an **Offline Demo Mode**.
 - **Academic Calendar**: iCal/ICS export for events with Jitsi links.
 - **Bulk Excel Imports**: Comprehensive service for mass importing data with bilingual templates and validation.
 - **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` for end-to-end report card workflow with advanced features, digital signatures, and PDF export.
-- **CBA (Competency-Based Approach) Bulletins**: Full support for Cameroon Ministry of Secondary Education CBA format for technical schools, including Competency Library, Letter Grading System (A-F), Performance Bands (CVWA, CWA, CA, CAA, CNA), subject min-max ranges, teacher remarks, and enhanced discipline tracking. Enabled via `useCBAFormat` flag per school.
-- **5-Section Technical Bulletins**: Technical school bulletins support 5 distinct subject sections that appear conditionally based on content: General (📚 green), Literary (📖 purple), Scientific (🔬 blue), Technical (🔧 orange), Other (🎨 pink). Each section displays only if it contains subjects and includes its own subtotal calculation.
+- **CBA (Competency-Based Approach) Bulletins**: Full support for Cameroon Ministry of Secondary Education CBA format for technical schools, including Competency Library, Letter Grading System (A-F), Performance Bands, subject min-max ranges, teacher remarks, and enhanced discipline tracking.
+- **5-Section Technical Bulletins**: Technical school bulletins support 5 distinct subject sections (General, Literary, Scientific, Technical, Other) that appear conditionally based on content, each with its own subtotal.
 - **Online Classes with Jitsi Meet**: Paid module for schools and independent teachers, featuring time-window access, JWT-secured video conferencing, course creation, attendance tracking, and integrated payments.
-- **Teacher Hybrid Work Mode**: Extends teacher roles to support `school`, `independent` (private tutor), and `hybrid` modes, with a subscription model and integrated payment processing.
-
-### CBA Implementation Details
-- **Database Schema**: `competencies` table stores reusable bilingual competency descriptions linked to subjects and form levels. `schools.useCBAFormat` flag enables CBA per school.
-- **Backend Services**: `CompetencyService` (CRUD for competencies with multi-tenant isolation), `CBAGradingService` (letter grade calculations, performance bands), `CBBulletinExtensionService` (integrates CBA into bulletin generation).
-- **API Endpoints**: CRUD operations for competencies under `/api/director/competencies`.
-- **Security Features**: IDOR prevention, input validation (Zod), multi-tenant isolation, soft delete for competencies.
-- **CBA Bulletin Workflow**: Director enables CBA, manages competencies, teachers enter grades, and the system automatically includes CBA elements (competencies, letter grades, performance bands) in generated bulletins and PDF exports.
+- **Teacher Hybrid Work Mode**: Extends teacher roles to support `school`, `independent`, and `hybrid` modes, with a subscription model and integrated payment processing.
 
 ## External Dependencies
 
@@ -133,6 +135,7 @@ Preferred communication style: Simple, everyday language.
 - **Firebase**: Authentication (Google OAuth).
 - **WhatsApp**: Click-to-Chat integration via wa.me links.
 - **Hostinger**: SMTP services for email communication.
+- **Jitsi Meet**: Video conferencing for online classes.
 
 ### Development Tools
 - **Vite**: Fast development server and build tool.
