@@ -2146,6 +2146,452 @@ export class ExcelImportService {
     console.log('[EXCEL_AUTOFIX] Auto-fix complete');
     return correctedBuffer;
   }
+
+  /**
+   * Shared normalization helpers
+   */
+  private normalizeDelimiters(value: string): string {
+    // Accept commas, semicolons, or pipes - standardize to semicolon
+    return value.replace(/[,|]/g, ';').replace(/\s*;\s*/g, ';').trim();
+  }
+
+  private normalizePhone(phone: string): string {
+    if (!phone) return '';
+    // Remove spaces, dashes, parentheses
+    let normalized = phone.replace(/[\s\-()]/g, '');
+    // Add +237 if missing country code for Cameroon
+    if (normalized.length === 9 && !normalized.startsWith('+')) {
+      normalized = '+237' + normalized;
+    }
+    return normalized;
+  }
+
+  private normalizeDate(dateValue: any): string {
+    if (!dateValue) return '';
+    
+    // Handle Excel serial dates
+    if (typeof dateValue === 'number') {
+      const excelEpoch = new Date(1900, 0, 1);
+      const days = dateValue - 2; // Excel bug: 1900 is wrongly treated as leap year
+      const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000);
+      return date.toISOString().split('T')[0];
+    }
+    
+    const str = String(dateValue).trim();
+    
+    // Try DD/MM/YYYY or DD-MM-YYYY
+    const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (dmyMatch) {
+      const [, day, month, year] = dmyMatch;
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    
+    // Already in YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      return str;
+    }
+    
+    return str; // Return as-is if unparseable
+  }
+
+  private normalizeBoolean(value: any): string {
+    // Preserve blank/empty values
+    if (value === null || value === undefined || value === '') return '';
+    
+    const str = String(value).toLowerCase().trim();
+    
+    // If already normalized, return as-is
+    if (str === 'oui' || str === 'non') return str.charAt(0).toUpperCase() + str.slice(1);
+    
+    // Map yes values to "Oui"
+    const yesValues = ['yes', 'y', 'o', '1', 'true', 'vrai'];
+    if (yesValues.includes(str)) return 'Oui';
+    
+    // Map no values to "Non"
+    const noValues = ['no', 'n', '0', 'false', 'faux'];
+    if (noValues.includes(str)) return 'Non';
+    
+    // Keep unknown values as-is to avoid data loss
+    return String(value);
+  }
+
+  private normalizeGender(value: any): string {
+    if (!value) return 'M';
+    const str = String(value).toLowerCase().trim();
+    const femaleValues = ['f', 'female', 'féminin', 'feminin', 'femme', 'fille', '0'];
+    return femaleValues.includes(str) ? 'F' : 'M';
+  }
+
+  /**
+   * Auto-fix Teachers import
+   * Fixes: delimiter drift, phone numbers, experience parsing, subject/class deduplication
+   */
+  normalizeTeacherImport(buffer: Buffer, filename: string, lang: 'fr' | 'en' = 'fr'): Buffer {
+    console.log('[EXCEL_AUTOFIX] Starting auto-fix for teachers import');
+    
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames.find(n => n !== 'Instructions') || workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', blankrows: false });
+    
+    if (jsonData.length < 2) return buffer;
+    
+    const headers = jsonData[0] as string[];
+    let fixCount = 0;
+    
+    // Find column indices
+    const subjectsCol = headers.findIndex(h => h && (h.includes('Matières') || h.includes('Subjects')));
+    const classesCol = headers.findIndex(h => h && (h.includes('Classes') || h.includes('Classe')));
+    const phoneCol = headers.findIndex(h => h && (h.includes('Téléphone') || h.includes('Phone')));
+    const experienceCol = headers.findIndex(h => h && (h.includes('Expérience') || h.includes('Experience')));
+    
+    for (let i = 1; i < jsonData.length; i++) {
+      const row = jsonData[i] as any[];
+      
+      // Fix subjects delimiters and dedupe
+      if (subjectsCol !== -1 && row[subjectsCol]) {
+        const original = String(row[subjectsCol]);
+        const normalized = this.normalizeDelimiters(original);
+        const unique = [...new Set(normalized.split(';').map(s => s.trim()).filter(Boolean))].join(';');
+        if (unique !== original) {
+          row[subjectsCol] = unique;
+          fixCount++;
+        }
+      }
+      
+      // Fix classes delimiters and dedupe
+      if (classesCol !== -1 && row[classesCol]) {
+        const original = String(row[classesCol]);
+        const normalized = this.normalizeDelimiters(original);
+        const unique = [...new Set(normalized.split(';').map(s => s.trim()).filter(Boolean))].join(';');
+        if (unique !== original) {
+          row[classesCol] = unique;
+          fixCount++;
+        }
+      }
+      
+      // Fix phone number
+      if (phoneCol !== -1 && row[phoneCol]) {
+        const original = String(row[phoneCol]);
+        const normalized = this.normalizePhone(original);
+        if (normalized !== original) {
+          row[phoneCol] = normalized;
+          fixCount++;
+        }
+      }
+      
+      // Fix experience (extract number - supports multi-digit)
+      if (experienceCol !== -1 && row[experienceCol]) {
+        const original = String(row[experienceCol]);
+        // Extract all consecutive digits (handles "10 ans", "5 years", etc.)
+        const match = original.match(/(\d+)/);
+        if (match) {
+          const numericValue = parseInt(match[1], 10);
+          // Only update if it was non-numeric originally
+          if (original !== String(numericValue)) {
+            row[experienceCol] = numericValue;
+            fixCount++;
+          }
+        }
+      }
+    }
+    
+    console.log(`[EXCEL_AUTOFIX] Teachers: Fixed ${fixCount} cells`);
+    
+    const newWorksheet = XLSX.utils.aoa_to_sheet(jsonData);
+    newWorksheet['!cols'] = worksheet['!cols'] || headers.map(() => ({ width: 20 }));
+    workbook.Sheets[sheetName] = newWorksheet;
+    
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  }
+
+  /**
+   * Auto-fix Students import
+   * Fixes: gender variations, date formats, matricule padding, isRepeater boolean
+   */
+  normalizeStudentImport(buffer: Buffer, filename: string, lang: 'fr' | 'en' = 'fr'): Buffer {
+    console.log('[EXCEL_AUTOFIX] Starting auto-fix for students import');
+    
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames.find(n => n !== 'Instructions') || workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', blankrows: false });
+    
+    if (jsonData.length < 2) return buffer;
+    
+    const headers = jsonData[0] as string[];
+    let fixCount = 0;
+    
+    // Find column indices
+    const genderCol = headers.findIndex(h => h && (h.includes('Genre') || h.includes('Gender') || h.includes('Sexe')));
+    const dobCol = headers.findIndex(h => h && (h.includes('DateNaissance') || h.includes('Date') || h.includes('Birth')));
+    const matriculeCol = headers.findIndex(h => h && (h.includes('Matricule') || h.includes('Student ID')));
+    const isRepeaterCol = headers.findIndex(h => h && (h.includes('Redoublant') || h.includes('Repeater')));
+    const phoneCol = headers.findIndex(h => h && h.includes('Téléphone') && !h.includes('Parent'));
+    const parentPhoneCol = headers.findIndex(h => h && (h.includes('TéléphoneParent') || h.includes('ParentPhone')));
+    
+    for (let i = 1; i < jsonData.length; i++) {
+      const row = jsonData[i] as any[];
+      
+      // Fix gender
+      if (genderCol !== -1 && row[genderCol]) {
+        const original = row[genderCol];
+        const normalized = this.normalizeGender(original);
+        if (normalized !== original) {
+          row[genderCol] = normalized;
+          fixCount++;
+        }
+      }
+      
+      // Fix date of birth
+      if (dobCol !== -1 && row[dobCol]) {
+        const original = row[dobCol];
+        const normalized = this.normalizeDate(original);
+        if (normalized !== String(original)) {
+          row[dobCol] = normalized;
+          fixCount++;
+        }
+      }
+      
+      // Fix matricule padding (ensure 6 digits)
+      if (matriculeCol !== -1 && row[matriculeCol]) {
+        const original = String(row[matriculeCol]);
+        if (/^\d+$/.test(original) && original.length < 6) {
+          row[matriculeCol] = original.padStart(6, '0');
+          fixCount++;
+        }
+      }
+      
+      // Fix isRepeater boolean (only normalize if value exists and needs fixing)
+      if (isRepeaterCol !== -1 && row[isRepeaterCol] !== undefined && row[isRepeaterCol] !== '') {
+        const original = row[isRepeaterCol];
+        const normalized = this.normalizeBoolean(original);
+        // Only update if actually changed (not already "Oui" or "Non")
+        const origStr = String(original).toLowerCase();
+        if (origStr !== 'oui' && origStr !== 'non' && normalized !== original) {
+          row[isRepeaterCol] = normalized;
+          fixCount++;
+        }
+      }
+      
+      // Fix phone numbers
+      if (phoneCol !== -1 && row[phoneCol]) {
+        const original = String(row[phoneCol]);
+        const normalized = this.normalizePhone(original);
+        if (normalized !== original) {
+          row[phoneCol] = normalized;
+          fixCount++;
+        }
+      }
+      
+      if (parentPhoneCol !== -1 && row[parentPhoneCol]) {
+        const original = String(row[parentPhoneCol]);
+        const normalized = this.normalizePhone(original);
+        if (normalized !== original) {
+          row[parentPhoneCol] = normalized;
+          fixCount++;
+        }
+      }
+    }
+    
+    console.log(`[EXCEL_AUTOFIX] Students: Fixed ${fixCount} cells`);
+    
+    const newWorksheet = XLSX.utils.aoa_to_sheet(jsonData);
+    newWorksheet['!cols'] = worksheet['!cols'] || headers.map(() => ({ width: 20 }));
+    workbook.Sheets[sheetName] = newWorksheet;
+    
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  }
+
+  /**
+   * Auto-fix Timetable import
+   * Fixes: day aliases, time formats, time ranges, deduplication
+   */
+  normalizeTimetableImport(buffer: Buffer, filename: string, lang: 'fr' | 'en' = 'fr'): Buffer {
+    console.log('[EXCEL_AUTOFIX] Starting auto-fix for timetable import');
+    
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames.find(n => n !== 'Instructions') || workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', blankrows: false });
+    
+    if (jsonData.length < 2) return buffer;
+    
+    const headers = jsonData[0] as string[];
+    let fixCount = 0;
+    
+    // Day name mappings
+    const dayMappings: Record<string, string> = {
+      'mon': 'Monday', 'lun': 'Monday', 'lundi': 'Monday',
+      'tue': 'Tuesday', 'mar': 'Tuesday', 'mardi': 'Tuesday',
+      'wed': 'Wednesday', 'mer': 'Wednesday', 'mercredi': 'Wednesday',
+      'thu': 'Thursday', 'jeu': 'Thursday', 'jeudi': 'Thursday',
+      'fri': 'Friday', 'ven': 'Friday', 'vendredi': 'Friday',
+      'sat': 'Saturday', 'sam': 'Saturday', 'samedi': 'Saturday',
+      'sun': 'Sunday', 'dim': 'Sunday', 'dimanche': 'Sunday'
+    };
+    
+    const dayCol = headers.findIndex(h => h && (h.includes('Jour') || h.includes('Day')));
+    const startCol = headers.findIndex(h => h && (h.includes('Début') || h.includes('Start') || h.includes('Heure')));
+    const endCol = headers.findIndex(h => h && (h.includes('Fin') || h.includes('End')));
+    
+    for (let i = 1; i < jsonData.length; i++) {
+      const row = jsonData[i] as any[];
+      
+      // Fix day aliases
+      if (dayCol !== -1 && row[dayCol]) {
+        const original = String(row[dayCol]).toLowerCase().trim();
+        const mapped = dayMappings[original];
+        if (mapped && mapped !== row[dayCol]) {
+          row[dayCol] = mapped;
+          fixCount++;
+        }
+      }
+      
+      // Fix time formats (convert to HH:MM)
+      const normalizeTime = (timeValue: any): string => {
+        if (!timeValue) return '';
+        let str = String(timeValue).trim();
+        
+        // Handle "08h30" format
+        str = str.replace(/h/gi, ':');
+        
+        // Handle "0830" format
+        if (/^\d{4}$/.test(str)) {
+          str = str.substring(0, 2) + ':' + str.substring(2);
+        }
+        
+        // Handle "8.30" format
+        str = str.replace(/\./, ':');
+        
+        // Ensure HH:MM format
+        const match = str.match(/(\d{1,2}):?(\d{2})/);
+        if (match) {
+          return `${match[1].padStart(2, '0')}:${match[2]}`;
+        }
+        
+        return str;
+      };
+      
+      if (startCol !== -1 && row[startCol]) {
+        const original = row[startCol];
+        const normalized = normalizeTime(original);
+        if (normalized !== String(original)) {
+          row[startCol] = normalized;
+          fixCount++;
+        }
+      }
+      
+      if (endCol !== -1 && row[endCol]) {
+        const original = row[endCol];
+        const normalized = normalizeTime(original);
+        if (normalized !== String(original)) {
+          row[endCol] = normalized;
+          fixCount++;
+        }
+      }
+    }
+    
+    console.log(`[EXCEL_AUTOFIX] Timetable: Fixed ${fixCount} cells`);
+    
+    const newWorksheet = XLSX.utils.aoa_to_sheet(jsonData);
+    newWorksheet['!cols'] = worksheet['!cols'] || headers.map(() => ({ width: 20 }));
+    workbook.Sheets[sheetName] = newWorksheet;
+    
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  }
+
+  /**
+   * Auto-fix Rooms import
+   * Fixes: capacity parsing, room type synonyms, name casing, equipment lists
+   */
+  normalizeRoomImport(buffer: Buffer, filename: string, lang: 'fr' | 'en' = 'fr'): Buffer {
+    console.log('[EXCEL_AUTOFIX] Starting auto-fix for rooms import');
+    
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames.find(n => n !== 'Instructions') || workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', blankrows: false });
+    
+    if (jsonData.length < 2) return buffer;
+    
+    const headers = jsonData[0] as string[];
+    let fixCount = 0;
+    
+    // Room type mappings
+    const typeMappings: Record<string, string> = {
+      'lab': 'laboratory', 'labo': 'laboratory', 'laboratoire': 'laboratory',
+      'class': 'classroom', 'classe': 'classroom', 'salle de classe': 'classroom',
+      'conf': 'conference', 'conférence': 'conference',
+      'gym': 'gymnasium', 'gymnase': 'gymnasium',
+      'lib': 'library', 'bibliothèque': 'library',
+      'office': 'office', 'bureau': 'office'
+    };
+    
+    const capacityCol = headers.findIndex(h => h && (h.includes('Capacité') || h.includes('Capacity')));
+    const typeCol = headers.findIndex(h => h && (h.includes('Type')));
+    const nameCol = headers.findIndex(h => h && (h.includes('Nom') || h.includes('Name')));
+    const equipmentCol = headers.findIndex(h => h && (h.includes('Équipement') || h.includes('Equipment')));
+    
+    for (let i = 1; i < jsonData.length; i++) {
+      const row = jsonData[i] as any[];
+      
+      // Fix capacity (extract number - supports multi-digit)
+      if (capacityCol !== -1 && row[capacityCol]) {
+        const original = String(row[capacityCol]);
+        // Extract all consecutive digits (handles "30 élèves", "50 students", etc.)
+        const match = original.match(/(\d+)/);
+        if (match) {
+          const numericValue = parseInt(match[1], 10);
+          // Only update if it was non-numeric originally
+          if (original !== String(numericValue)) {
+            row[capacityCol] = numericValue;
+            fixCount++;
+          }
+        }
+      }
+      
+      // Fix room type synonyms
+      if (typeCol !== -1 && row[typeCol]) {
+        const original = String(row[typeCol]).toLowerCase().trim();
+        const mapped = typeMappings[original];
+        if (mapped && mapped !== row[typeCol]) {
+          row[typeCol] = mapped;
+          fixCount++;
+        }
+      }
+      
+      // Fix name casing (Title Case)
+      if (nameCol !== -1 && row[nameCol]) {
+        const original = String(row[nameCol]);
+        const titleCase = original.split(' ').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
+        if (titleCase !== original) {
+          row[nameCol] = titleCase;
+          fixCount++;
+        }
+      }
+      
+      // Fix equipment list delimiters
+      if (equipmentCol !== -1 && row[equipmentCol]) {
+        const original = String(row[equipmentCol]);
+        const normalized = this.normalizeDelimiters(original);
+        if (normalized !== original) {
+          row[equipmentCol] = normalized;
+          fixCount++;
+        }
+      }
+    }
+    
+    console.log(`[EXCEL_AUTOFIX] Rooms: Fixed ${fixCount} cells`);
+    
+    const newWorksheet = XLSX.utils.aoa_to_sheet(jsonData);
+    newWorksheet['!cols'] = worksheet['!cols'] || headers.map(() => ({ width: 20 }));
+    workbook.Sheets[sheetName] = newWorksheet;
+    
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  }
 }
 
 export const excelImportService = new ExcelImportService();

@@ -264,6 +264,34 @@ export function ExcelImportButton({
     }
   };
 
+  const getAutoFixTooltip = (): string => {
+    const tooltips = {
+      classes: {
+        fr: 'Corrige automatiquement les erreurs de séparateurs (l → |) et valide les catégories de matières',
+        en: 'Automatically fixes separator errors (l → |) and validates subject categories'
+      },
+      teachers: {
+        fr: 'Normalise les délimiteurs, numéros de téléphone, expérience et déduplique les matières/classes',
+        en: 'Normalizes delimiters, phone numbers, experience values and deduplicates subjects/classes'
+      },
+      students: {
+        fr: 'Corrige le genre (M/F), dates de naissance, matricules, téléphones et statut redoublant',
+        en: 'Fixes gender (M/F), dates of birth, student IDs, phone numbers and repeater status'
+      },
+      timetables: {
+        fr: 'Normalise les jours (Lun→Monday), formats d\'heure (08h30→08:30) et déduplique',
+        en: 'Normalizes days (Mon→Monday), time formats (08h30→08:30) and deduplicates'
+      },
+      rooms: {
+        fr: 'Corrige la capacité, types de salles, casse des noms et listes d\'équipements',
+        en: 'Fixes capacity, room types, name casing and equipment lists'
+      }
+    };
+    
+    const tooltip = tooltips[importType as keyof typeof tooltips];
+    return tooltip ? tooltip[currentLang] : (currentLang === 'fr' ? 'Corrige les erreurs courantes' : 'Fixes common errors');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
@@ -277,20 +305,16 @@ export function ExcelImportButton({
           {currentLang === 'fr' ? 'Télécharger Modèle' : 'Download Template'}
         </Button>
 
-        {importType === 'classes' && (
-          <Button
-            variant="outline"
-            onClick={() => autoFixInputRef.current?.click()}
-            data-testid={`button-autofix-${importType}`}
-            className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300"
-            title={currentLang === 'fr' 
-              ? 'Corrige automatiquement les erreurs de séparateurs (l → |) et valide les catégories de matières' 
-              : 'Automatically fixes separator errors (l → |) and validates subject categories'}
-          >
-            <Wand2 className="h-4 w-4" />
-            {currentLang === 'fr' ? '🔧 Corriger Fichier' : '🔧 Fix File'}
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          onClick={() => autoFixInputRef.current?.click()}
+          data-testid={`button-autofix-${importType}`}
+          className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300"
+          title={getAutoFixTooltip()}
+        >
+          <Wand2 className="h-4 w-4" />
+          {currentLang === 'fr' ? '🔧 Corriger Fichier' : '🔧 Fix File'}
+        </Button>
 
         <Button
           variant="default"

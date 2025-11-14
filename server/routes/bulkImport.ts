@@ -601,18 +601,51 @@ router.post('/:importType/fix', requireAuth, upload.single('file'), async (req, 
     let correctedBuffer: Buffer;
     
     // Apply type-specific auto-fixes
-    if (importType === 'classes') {
-      // Classes: Fix subject separator errors (l → |) and validate categories
-      correctedBuffer = excelImportService.normalizeClassSubjects(
-        req.file.buffer, 
-        req.file.originalname, 
-        lang
-      );
-    } else {
-      // Other types: Return file as-is for now (can add specific fixes later)
-      // This still provides value by validating the file structure
-      correctedBuffer = req.file.buffer;
-      console.log(`[EXCEL_AUTOFIX_API] No specific fixes for ${importType}, returning original file`);
+    switch (importType) {
+      case 'classes':
+        correctedBuffer = excelImportService.normalizeClassSubjects(
+          req.file.buffer, 
+          req.file.originalname, 
+          lang
+        );
+        break;
+      
+      case 'teachers':
+        correctedBuffer = excelImportService.normalizeTeacherImport(
+          req.file.buffer, 
+          req.file.originalname, 
+          lang
+        );
+        break;
+      
+      case 'students':
+        correctedBuffer = excelImportService.normalizeStudentImport(
+          req.file.buffer, 
+          req.file.originalname, 
+          lang
+        );
+        break;
+      
+      case 'timetables':
+        correctedBuffer = excelImportService.normalizeTimetableImport(
+          req.file.buffer, 
+          req.file.originalname, 
+          lang
+        );
+        break;
+      
+      case 'rooms':
+        correctedBuffer = excelImportService.normalizeRoomImport(
+          req.file.buffer, 
+          req.file.originalname, 
+          lang
+        );
+        break;
+      
+      default:
+        // Other types: Return file as-is
+        correctedBuffer = req.file.buffer;
+        console.log(`[EXCEL_AUTOFIX_API] No specific fixes for ${importType}, returning original file`);
     }
     
     // Generate corrected filename
