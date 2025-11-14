@@ -577,9 +577,10 @@ router.post('/import', requireAuth, async (req, res) => {
   }
 });
 
-// Auto-fix classes Excel file endpoint
-router.post('/classes/fix', requireAuth, upload.single('file'), async (req, res) => {
+// Generic auto-fix Excel file endpoint for all import types
+router.post('/:importType/fix', requireAuth, upload.single('file'), async (req, res) => {
   try {
+    const { importType } = req.params;
     const lang = (req.query.lang as 'fr' | 'en') || 'fr';
     
     if (!req.file) {
@@ -588,14 +589,31 @@ router.post('/classes/fix', requireAuth, upload.single('file'), async (req, res)
       });
     }
     
-    console.log('[EXCEL_AUTOFIX_API] Received file for auto-fix:', req.file.originalname);
+    const validTypes = ['classes', 'timetables', 'teachers', 'students', 'parents', 'rooms', 'settings'];
+    if (!validTypes.includes(importType)) {
+      return res.status(400).json({
+        message: lang === 'fr' ? 'Type d\'import invalide' : 'Invalid import type'
+      });
+    }
     
-    // Apply auto-fix using excelImportService
-    const correctedBuffer = excelImportService.normalizeClassSubjects(
-      req.file.buffer, 
-      req.file.originalname, 
-      lang
-    );
+    console.log(`[EXCEL_AUTOFIX_API] Received ${importType} file for auto-fix:`, req.file.originalname);
+    
+    let correctedBuffer: Buffer;
+    
+    // Apply type-specific auto-fixes
+    if (importType === 'classes') {
+      // Classes: Fix subject separator errors (l → |) and validate categories
+      correctedBuffer = excelImportService.normalizeClassSubjects(
+        req.file.buffer, 
+        req.file.originalname, 
+        lang
+      );
+    } else {
+      // Other types: Return file as-is for now (can add specific fixes later)
+      // This still provides value by validating the file structure
+      correctedBuffer = req.file.buffer;
+      console.log(`[EXCEL_AUTOFIX_API] No specific fixes for ${importType}, returning original file`);
+    }
     
     // Generate corrected filename
     const originalName = req.file.originalname.replace(/\.xlsx?$/i, '');

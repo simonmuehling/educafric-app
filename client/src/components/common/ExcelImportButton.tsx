@@ -283,6 +283,9 @@ export function ExcelImportButton({
             onClick={() => autoFixInputRef.current?.click()}
             data-testid={`button-autofix-${importType}`}
             className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300"
+            title={currentLang === 'fr' 
+              ? 'Corrige automatiquement les erreurs de séparateurs (l → |) et valide les catégories de matières' 
+              : 'Automatically fixes separator errors (l → |) and validates subject categories'}
           >
             <Wand2 className="h-4 w-4" />
             {currentLang === 'fr' ? '🔧 Corriger Fichier' : '🔧 Fix File'}
