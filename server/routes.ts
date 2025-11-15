@@ -1714,16 +1714,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ success: false, message: 'Access denied - class belongs to another school' });
       }
       
-      // Check if class has students
-      const studentsInClass = await db.select({ count: count(users.id) })
-        .from(users)
-        .where(and(
-          eq(users.role, 'Student'), 
-          eq(users.classId, classId),
-          eq(users.schoolId, userSchoolId)
-        ));
+      // Check if class has students (via class_enrollment table)
+      const studentsInClass = await db.execute(
+        sql`SELECT COUNT(*) as count FROM class_enrollment WHERE class_id = ${classId}`
+      );
       
-      const studentCount = Number(studentsInClass[0]?.count) || 0;
+      const studentCount = Number(studentsInClass.rows[0]?.count) || 0;
       if (studentCount > 0) {
         return res.status(400).json({ 
           success: false, 
