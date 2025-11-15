@@ -1595,6 +1595,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update a class
+  app.put("/api/classes/:classId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const classId = parseInt(req.params.classId);
+      const { name, level, capacity, teacherId, room } = req.body;
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(classId)) {
+        return res.status(400).json({ success: false, message: 'Invalid class ID' });
+      }
+      
+      console.log('[UPDATE_CLASS] Updating class:', classId, { name, level, capacity });
+      
+      // Verify class belongs to user's school
+      const [existingClass] = await db.select().from(classes).where(eq(classes.id, classId)).limit(1);
+      if (!existingClass) {
+        return res.status(404).json({ success: false, message: 'Class not found' });
+      }
+      
+      if (existingClass.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Access denied - class belongs to another school' });
+      }
+      
+      // Update class in database
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (level !== undefined) updateData.level = level;
+      if (capacity !== undefined) updateData.maxStudents = capacity;
+      if (teacherId !== undefined) updateData.teacherId = teacherId;
+      
+      const [updatedClass] = await db.update(classes)
+        .set(updateData)
+        .where(eq(classes.id, classId))
+        .returning();
+      
+      console.log('[UPDATE_CLASS] ✅ Class updated successfully:', updatedClass.name);
+      res.json({ success: true, class: updatedClass, message: 'Class updated successfully' });
+    } catch (error) {
+      console.error('[UPDATE_CLASS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update class' });
+    }
+  });
+
+  // Delete a class
+  app.delete("/api/classes/:classId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const classId = parseInt(req.params.classId);
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(classId)) {
+        return res.status(400).json({ success: false, message: 'Invalid class ID' });
+      }
+      
+      console.log('[DELETE_CLASS] Deleting class:', classId);
+      
+      // Verify class belongs to user's school
+      const [existingClass] = await db.select().from(classes).where(eq(classes.id, classId)).limit(1);
+      if (!existingClass) {
+        return res.status(404).json({ success: false, message: 'Class not found' });
+      }
+      
+      if (existingClass.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Access denied - class belongs to another school' });
+      }
+      
+      // Check if class has students
+      const studentsInClass = await db.select({ count: count() })
+        .from(users)
+        .where(and(eq(users.role, 'Student'), eq(users.classId, classId)));
+      
+      const studentCount = studentsInClass[0]?.count || 0;
+      if (studentCount > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Cannot delete class with ${studentCount} student(s). Please reassign students first.` 
+        });
+      }
+      
+      // Delete associated subjects first
+      await db.delete(subjects).where(eq(subjects.classId, classId));
+      
+      // Delete class from database
+      await db.delete(classes).where(eq(classes.id, classId));
+      
+      console.log('[DELETE_CLASS] ✅ Class deleted successfully');
+      res.json({ success: true, message: 'Class deleted successfully' });
+    } catch (error) {
+      console.error('[DELETE_CLASS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete class' });
+    }
+  });
+
   // Get subjects for a specific class
   app.get("/api/director/subjects/:classId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
