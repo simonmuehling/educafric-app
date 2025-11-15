@@ -261,8 +261,68 @@ router.post('/students', requireAuth, requireAdmin, async (req, res) => {
         errorType: 'MISSING_NAME'
       });
     }
+    
+    // ✅ MULTIROLE CHECK: Check if user already exists by email or phone
+    let existingUser = null;
+    if (email) {
+      existingUser = await storage.getUserByEmail(email);
+    }
+    if (!existingUser && phone) {
+      existingUser = await storage.getUserByPhone(phone);
+    }
+    
+    // If user exists, add Student role instead of creating duplicate
+    if (existingUser) {
+      console.log('[MULTI_ROLE] User already exists:', existingUser.id, existingUser.role);
+      
+      // Check if they already have Student role
+      const hasStudentRole = existingUser.role === 'Student' || 
+                            (existingUser.secondaryRoles && existingUser.secondaryRoles.includes('Student'));
+      
+      if (hasStudentRole) {
+        return res.status(409).json({
+          success: false,
+          message: 'Cet utilisateur est déjà enregistré comme élève',
+          errorType: 'ALREADY_STUDENT'
+        });
+      }
+      
+      // Add Student to secondary roles
+      const currentSecondaryRoles = existingUser.secondaryRoles || [];
+      if (!currentSecondaryRoles.includes('Student')) {
+        currentSecondaryRoles.push('Student');
+        await storage.updateUserSecondaryRoles(existingUser.id, currentSecondaryRoles);
+      }
+      
+      // Create role affiliation
+      await storage.createRoleAffiliation({
+        userId: existingUser.id,
+        role: 'Student',
+        schoolId: user.schoolId,
+        description: `Élève à l'école`,
+        status: 'active',
+        metadata: { addedBy: user.id, addedAt: new Date().toISOString(), classId, level }
+      });
+      
+      console.log('[MULTI_ROLE] ✅ Added Student role to existing user:', existingUser.id);
+      
+      return res.status(200).json({
+        success: true,
+        message: `Le rôle d'élève a été ajouté au compte existant de ${existingUser.firstName} ${existingUser.lastName}`,
+        student: {
+          id: existingUser.id,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
+          email: existingUser.email,
+          phone: existingUser.phone,
+          role: existingUser.role,
+          secondaryRoles: currentSecondaryRoles,
+          isMultiRole: true
+        }
+      });
+    }
 
-    // Students don't need passwords initially - they can be set later when they first access the system
+    // User doesn't exist, create new student
     // Generate a temporary email if none provided (required by database)
     const tempEmail = email || `${finalFirstName?.toLowerCase() || 'student'}.${finalLastName?.toLowerCase() || 'temp'}@temp.educafric.com`;
     
@@ -284,7 +344,7 @@ router.post('/students', requireAuth, requireAdmin, async (req, res) => {
       createdBy: user.id
     };
 
-    console.log('[DIRECTOR_CREATE_STUDENT] Creating student with data:', studentData);
+    console.log('[DIRECTOR_CREATE_STUDENT] Creating new student with data:', studentData);
 
     const student = await storage.createUser(studentData);
     
@@ -426,7 +486,67 @@ router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
       });
     }
     
-    // Create a simple teacher without password complications for now
+    // ✅ MULTIROLE CHECK: Check if user already exists by email or phone
+    let existingUser = null;
+    if (email) {
+      existingUser = await storage.getUserByEmail(email);
+    }
+    if (!existingUser && phone) {
+      existingUser = await storage.getUserByPhone(phone);
+    }
+    
+    // If user exists, add Teacher role instead of creating duplicate
+    if (existingUser) {
+      console.log('[MULTI_ROLE] User already exists:', existingUser.id, existingUser.role);
+      
+      // Check if they already have Teacher role
+      const hasTeacherRole = existingUser.role === 'Teacher' || 
+                            (existingUser.secondaryRoles && existingUser.secondaryRoles.includes('Teacher'));
+      
+      if (hasTeacherRole) {
+        return res.status(409).json({
+          success: false,
+          message: 'Cet utilisateur est déjà enregistré comme enseignant',
+          errorType: 'ALREADY_TEACHER'
+        });
+      }
+      
+      // Add Teacher to secondary roles
+      const currentSecondaryRoles = existingUser.secondaryRoles || [];
+      if (!currentSecondaryRoles.includes('Teacher')) {
+        currentSecondaryRoles.push('Teacher');
+        await storage.updateUserSecondaryRoles(existingUser.id, currentSecondaryRoles);
+      }
+      
+      // Create role affiliation
+      await storage.createRoleAffiliation({
+        userId: existingUser.id,
+        role: 'Teacher',
+        schoolId: user.schoolId || 1,
+        description: `Enseignant à l'école`,
+        status: 'active',
+        metadata: { addedBy: user.id, addedAt: new Date().toISOString() }
+      });
+      
+      console.log('[MULTI_ROLE] ✅ Added Teacher role to existing user:', existingUser.id);
+      
+      return res.status(200).json({
+        success: true,
+        message: `Le rôle d'enseignant a été ajouté au compte existant de ${existingUser.firstName} ${existingUser.lastName}`,
+        teacher: {
+          id: existingUser.id,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
+          email: existingUser.email,
+          phone: existingUser.phone,
+          role: existingUser.role,
+          secondaryRoles: currentSecondaryRoles,
+          isMultiRole: true
+        }
+      });
+    }
+    
+    // User doesn't exist, create new teacher
     const teacherData = {
       firstName: finalFirstName,
       lastName: finalLastName,
@@ -440,7 +560,7 @@ router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
       subjects: teachingSubjects || []
     };
 
-    console.log('[DIRECTOR_CREATE_TEACHER] Creating teacher with data:', teacherData);
+    console.log('[DIRECTOR_CREATE_TEACHER] Creating new teacher with data:', teacherData);
     
     const teacher = await storage.createUser(teacherData);
     
