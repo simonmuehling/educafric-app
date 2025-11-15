@@ -369,6 +369,15 @@ router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
     
     console.log('[DIRECTOR_CREATE_TEACHER] Request data:', req.body);
     
+    // Validate: At least email OR phone must be provided
+    if (!email && !phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Au moins un email ou un numéro de téléphone est requis',
+        errorType: 'MISSING_CONTACT'
+      });
+    }
+    
     // Handle name field - split name into firstName and lastName if provided as single name
     let finalFirstName = firstName;
     let finalLastName = lastName;
@@ -379,12 +388,20 @@ router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
       finalLastName = nameParts.slice(1).join(' ') || nameParts[0];
     }
     
+    if (!finalFirstName || !finalLastName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le nom complet est requis',
+        errorType: 'MISSING_NAME'
+      });
+    }
+    
     // Create a simple teacher without password complications for now
     const teacherData = {
       firstName: finalFirstName,
       lastName: finalLastName,
-      email,
-      phone,
+      email: email || null, // Email is now optional
+      phone: phone || null,
       password: await bcrypt.hash('TempPassword123!', 10), // Simple temp password
       role: 'Teacher',
       schoolId: user.schoolId || 1,
@@ -399,21 +416,23 @@ router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
     
     console.log('[DIRECTOR_CREATE_TEACHER] Teacher created successfully:', teacher.id);
     
-    // Send welcome email (fire-and-forget - don't block response)
-    (async () => {
-      try {
-        const school = await storage.getSchoolById(user.schoolId);
-        await welcomeEmailService.sendUserWelcomeEmail({
-          name: teacher.firstName + ' ' + teacher.lastName,
-          email: teacher.email,
-          role: teacher.role,
-          schoolName: school?.name || 'EDUCAFRIC'
-        });
-        console.log('[DIRECTOR_CREATE_TEACHER] ✅ Welcome email sent to:', teacher.email);
-      } catch (emailError) {
-        console.error('[DIRECTOR_CREATE_TEACHER] ⚠️ Failed to send welcome email:', emailError);
-      }
-    })();
+    // Send welcome email (fire-and-forget - don't block response) - only if email provided
+    if (teacher.email) {
+      (async () => {
+        try {
+          const school = await storage.getSchoolById(user.schoolId);
+          await welcomeEmailService.sendUserWelcomeEmail({
+            name: teacher.firstName + ' ' + teacher.lastName,
+            email: teacher.email,
+            role: teacher.role,
+            schoolName: school?.name || 'EDUCAFRIC'
+          });
+          console.log('[DIRECTOR_CREATE_TEACHER] ✅ Welcome email sent to:', teacher.email);
+        } catch (emailError) {
+          console.error('[DIRECTOR_CREATE_TEACHER] ⚠️ Failed to send welcome email:', emailError);
+        }
+      })();
+    }
     
     res.status(201).json({
       success: true,
@@ -433,9 +452,29 @@ router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('[DIRECTOR_CREATE_TEACHER] Error:', error);
+    
+    // Check for specific database constraint errors
+    const errorMessage = error.message || '';
+    
+    if (errorMessage.includes('users_email_unique')) {
+      return res.status(409).json({
+        success: false,
+        message: 'Cet email est déjà utilisé par un autre utilisateur',
+        errorType: 'DUPLICATE_EMAIL'
+      });
+    }
+    
+    if (errorMessage.includes('users_phone_unique')) {
+      return res.status(409).json({
+        success: false,
+        message: 'Ce numéro de téléphone est déjà utilisé par un autre utilisateur',
+        errorType: 'DUPLICATE_PHONE'
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to create teacher',
+      message: 'Échec de la création de l\'enseignant',
       error: error.message
     });
   }
