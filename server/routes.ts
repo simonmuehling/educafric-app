@@ -1039,6 +1039,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[DIRECTOR_SETTINGS] No valid fields to update');
       }
       
+      // If schoolName is being updated and user has a schoolId, update the school table
+      if (profileUpdates.schoolName && user.schoolId) {
+        await db.update(schools)
+          .set({ name: profileUpdates.schoolName })
+          .where(eq(schools.id, user.schoolId));
+        
+        console.log('[DIRECTOR_SETTINGS] ✅ School name updated to:', profileUpdates.schoolName, 'for school:', user.schoolId);
+      }
+      
       res.json({ 
         success: true, 
         message: 'Settings updated successfully',

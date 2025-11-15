@@ -24,6 +24,8 @@ Preferred communication style: Simple, everyday language.
 
 - **SYSTÈME MULTIROLE IMPLÉMENTÉ**: Impossible d'ajouter un utilisateur existant comme Teacher est résolu. Système multirole complet avec table `role_affiliations` et champs `secondaryRoles`, `activeRole`, `roleHistory`. Détection automatique des utilisateurs existants par email OU téléphone avant création. Ajout de rôle secondaire et affiliation si utilisateur existe. Toujours vérifier utilisateurs existants par email/phone AVANT création dans ANY API de création utilisateur.
 
+- **SAUVEGARDE NOM D'ÉCOLE - PROFIL DIRECTOR**: Le nom d'école édité dans le profil Director se sauvegarde maintenant correctement. L'endpoint PUT `/api/director/settings` met à jour le champ `name` dans la table `schools` quand `schoolName` est modifié. Toute modification de données école (nom, adresse, etc.) dans le profil Director DOIT mettre à jour la table `schools`, pas seulement la table `users`.
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes.
 - NEVER make partial updates to only some dashboards.
 - ALWAYS preserve button functionality when making changes - buttons must remain functional.
