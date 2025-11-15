@@ -582,10 +582,10 @@ const ClassManagement: React.FC = () => {
   };
 
   const handleCreateClass = () => {
-    if (!newClass.name || !newClass.capacity) {
+    if (!newClass.name) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires.' : 'Please fill in all required fields.',
+        description: language === 'fr' ? 'Le nom de la classe est requis.' : 'Class name is required.',
         variant: 'destructive'
       });
       return;
@@ -596,11 +596,11 @@ const ClassManagement: React.FC = () => {
     // Transform data to match backend API contract and database schema
     const classDataForAPI = {
       name: newClass.name,
-      maxStudents: parseInt(newClass.capacity), // DB expects 'maxStudents' not 'capacity'
-      level: newClass.subjects.length > 0 ? newClass.subjects[0].name : '', // Optional
-      section: '', // Optional
-      room: newClass.room || '',
-      teacherId: newClass.teacherId || null,
+      maxStudents: newClass.capacity ? parseInt(newClass.capacity) : null, // Optional field
+      level: newClass.subjects.length > 0 ? newClass.subjects[0].name : null, // Optional
+      section: null, // Optional
+      room: newClass.room || null,
+      teacherId: newClass.teacherId ? parseInt(newClass.teacherId) : null, // Optional field
       academicYearId: 1, // Required field - use current academic year ID (TODO: fetch dynamically)
       subjects: newClass.subjects, // Include subjects for later processing
       isActive: true
@@ -630,10 +630,10 @@ const ClassManagement: React.FC = () => {
   };
 
   const handleSaveEditClass = () => {
-    if (!selectedClass?.name || !selectedClass?.capacity) {
+    if (!selectedClass?.name) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires.' : 'Please fill in all required fields.',
+        description: language === 'fr' ? 'Le nom de la classe est requis.' : 'Class name is required.',
         variant: 'destructive'
       });
       return;
@@ -644,10 +644,10 @@ const ClassManagement: React.FC = () => {
     // Transform data to match backend API contract
     const classDataForAPI = {
       name: selectedClass.name,
-      room: selectedClass.room,
-      maxStudents: parseInt(selectedClass.capacity), // Backend expects 'maxStudents' as number
+      room: selectedClass.room || null,
+      maxStudents: selectedClass.capacity ? parseInt(selectedClass.capacity) : null, // Optional field
       schedule: '', // Optional field
-      description: `Classe ${String(selectedClass?.name) || "N/A"}` // Auto-generated description
+      description: `Classe ${selectedClass.name}` // Auto-generated description
     };
     
     editClassMutation.mutate({
@@ -863,10 +863,10 @@ const ClassManagement: React.FC = () => {
                   </div>
                   
                   <div>
-                    <Label>{String(t?.form?.capacity) || "N/A"}</Label>
+                    <Label>{String(t?.form?.capacity) || "Capacité"}</Label>
                     <Input
                       type="number"
-                      value={String(newClass?.capacity) || "N/A"}
+                      value={newClass?.capacity || ""}
                       onChange={(e) => setNewClass({...newClass, capacity: e?.target?.value})}
                       placeholder="30"
                       className="bg-white border-gray-300"
