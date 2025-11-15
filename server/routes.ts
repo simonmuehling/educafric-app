@@ -1926,6 +1926,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update a student
+  app.put("/api/director/students/:studentId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const studentId = parseInt(req.params.studentId);
+      const { firstName, lastName, email, phone, classId, gender, dateOfBirth, placeOfBirth } = req.body;
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(studentId)) {
+        return res.status(400).json({ success: false, message: 'Invalid student ID' });
+      }
+      
+      console.log('[UPDATE_STUDENT] Updating student:', studentId, { firstName, lastName });
+      
+      // Verify student belongs to user's school
+      const [existingStudent] = await db.select().from(users)
+        .where(and(eq(users.id, studentId), eq(users.role, 'Student')))
+        .limit(1);
+      
+      if (!existingStudent) {
+        return res.status(404).json({ success: false, message: 'Student not found' });
+      }
+      
+      if (existingStudent.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Access denied - student belongs to another school' });
+      }
+      
+      // Update student in database
+      const updateData: any = {};
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
+      if (email !== undefined) updateData.email = email;
+      if (phone !== undefined) updateData.phone = phone;
+      if (classId !== undefined) updateData.classId = classId;
+      if (gender !== undefined) updateData.gender = gender;
+      if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth;
+      if (placeOfBirth !== undefined) updateData.placeOfBirth = placeOfBirth;
+      
+      const [updatedStudent] = await db.update(users)
+        .set(updateData)
+        .where(eq(users.id, studentId))
+        .returning();
+      
+      console.log('[UPDATE_STUDENT] ✅ Student updated successfully:', `${updatedStudent.firstName} ${updatedStudent.lastName}`);
+      res.json({ success: true, student: updatedStudent, message: 'Student updated successfully' });
+    } catch (error) {
+      console.error('[UPDATE_STUDENT] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update student' });
+    }
+  });
+
+  // Delete a student
+  app.delete("/api/director/students/:studentId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const studentId = parseInt(req.params.studentId);
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(studentId)) {
+        return res.status(400).json({ success: false, message: 'Invalid student ID' });
+      }
+      
+      console.log('[DELETE_STUDENT] Deleting student:', studentId);
+      
+      // Verify student belongs to user's school
+      const [existingStudent] = await db.select().from(users)
+        .where(and(eq(users.id, studentId), eq(users.role, 'Student')))
+        .limit(1);
+      
+      if (!existingStudent) {
+        return res.status(404).json({ success: false, message: 'Student not found' });
+      }
+      
+      if (existingStudent.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Access denied - student belongs to another school' });
+      }
+      
+      // Delete student from database
+      await db.delete(users).where(eq(users.id, studentId));
+      
+      console.log('[DELETE_STUDENT] ✅ Student deleted successfully');
+      res.json({ success: true, message: 'Student deleted successfully' });
+    } catch (error) {
+      console.error('[DELETE_STUDENT] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete student' });
+    }
+  });
+
   // Get student transcript data (all terms/years for specific student)
   app.get("/api/director/student-transcript", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
