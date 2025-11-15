@@ -1715,7 +1715,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if class has students
-      const studentsInClass = await db.select({ count: count() })
+      const studentsInClass = await db.select({ count: count(users.id) })
         .from(users)
         .where(and(
           eq(users.role, 'Student'), 
@@ -1723,7 +1723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(users.schoolId, userSchoolId)
         ));
       
-      const studentCount = studentsInClass[0]?.count || 0;
+      const studentCount = Number(studentsInClass[0]?.count) || 0;
       if (studentCount > 0) {
         return res.status(400).json({ 
           success: false, 
@@ -2423,14 +2423,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if teacher is assigned to any classes
-      const assignedClasses = await db.select({ count: count() })
+      const assignedClasses = await db.select({ count: count(classes.id) })
         .from(classes)
         .where(and(
           eq(classes.teacherId, teacherId),
           eq(classes.schoolId, userSchoolId)
         ));
       
-      const classCount = assignedClasses[0]?.count || 0;
+      const classCount = Number(assignedClasses[0]?.count) || 0;
       if (classCount > 0) {
         return res.status(400).json({ 
           success: false, 
