@@ -41,7 +41,7 @@ import {
   competencyEvaluationSystems, 
   competencyTemplates 
 } from "../shared/schemas/predefinedAppreciationsSchema";
-import { eq, and, or, asc, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, or, asc, desc, sql, inArray, count } from "drizzle-orm";
 import { 
   ArchiveFilter, 
   NewArchivedDocument, 
@@ -1056,6 +1056,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[DIRECTOR_SETTINGS] Error updating:', error);
       res.status(500).json({ success: false, message: 'Failed to update settings' });
+    }
+  });
+
+  // Get Director's School Information
+  app.get("/api/director/school", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      if (!user.schoolId) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'No school associated with this account' 
+        });
+      }
+      
+      // Fetch school information from database
+      const [schoolInfo] = await db.select().from(schools).where(eq(schools.id, user.schoolId)).limit(1);
+      
+      if (!schoolInfo) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'School not found' 
+        });
+      }
+      
+      console.log('[DIRECTOR_SCHOOL] ✅ Loaded school info for school ID:', user.schoolId);
+      res.json({ 
+        success: true, 
+        school: {
+          id: schoolInfo.id,
+          name: schoolInfo.name,
+          address: schoolInfo.address,
+          phone: schoolInfo.phone,
+          email: schoolInfo.email,
+          educafricNumber: schoolInfo.educafricNumber,
+          type: schoolInfo.type,
+          isActive: schoolInfo.isActive
+        }
+      });
+    } catch (error) {
+      console.error('[DIRECTOR_SCHOOL] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch school information' });
     }
   });
 
