@@ -369,6 +369,7 @@ const ClassManagement: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/classes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
       toast({
         title: language === 'fr' ? 'Classe supprimée' : 'Class deleted',
         description: language === 'fr' ? 'La classe a été supprimée avec succès.' : 'Class has been deleted successfully.'
@@ -390,6 +391,7 @@ const ClassManagement: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/classes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
       toast({
         title: language === 'fr' ? 'Classe modifiée' : 'Class updated',
         description: language === 'fr' ? 'La classe a été modifiée avec succès.' : 'Class has been updated successfully.'
