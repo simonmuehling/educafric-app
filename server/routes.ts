@@ -1273,9 +1273,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update a room - WITH VALIDATION
+  app.put("/api/director/rooms/:roomId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const paramValidation = roomIdParamSchema.safeParse(req.params);
+      if (!paramValidation.success) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid room ID',
+          errors: paramValidation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`)
+        });
+      }
+      
+      const { roomId } = paramValidation.data;
+      const { name, type, capacity, building, floor, equipment } = req.body;
+      
+      console.log('[ROOMS_API] PUT /api/director/rooms/' + roomId, { name, type, capacity });
+      
+      // Verify room belongs to user's school
+      const [existingRoom] = await db.select().from(rooms).where(eq(rooms.id, roomId)).limit(1);
+      if (!existingRoom) {
+        return res.status(404).json({ success: false, message: 'Room not found' });
+      }
+      
+      if (existingRoom.schoolId !== user.schoolId) {
+        return res.status(403).json({ success: false, message: 'Access denied - room belongs to another school' });
+      }
+      
+      // Update room in database
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (type !== undefined) updateData.type = type;
+      if (capacity !== undefined) updateData.capacity = capacity;
+      if (building !== undefined) updateData.building = building;
+      if (floor !== undefined) updateData.floor = floor;
+      if (equipment !== undefined) updateData.equipment = equipment;
+      
+      const [updatedRoom] = await db.update(rooms)
+        .set(updateData)
+        .where(eq(rooms.id, roomId))
+        .returning();
+      
+      console.log('[ROOMS_API] ✅ Room updated successfully:', updatedRoom.name);
+      res.json({ success: true, room: updatedRoom, message: 'Room updated successfully' });
+    } catch (error) {
+      console.error('[ROOMS_API] Error updating room:', error);
+      res.status(500).json({ success: false, message: 'Failed to update room' });
+    }
+  });
+
   // Delete a room - WITH PARAMETER VALIDATION
   app.delete("/api/director/rooms/:roomId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
+      const user = req.user as any;
       // SECURITY FIX: Validate roomId parameter
       const paramValidation = roomIdParamSchema.safeParse(req.params);
       if (!paramValidation.success) {
@@ -1289,7 +1340,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { roomId } = paramValidation.data;
       console.log('[ROOMS_API] DELETE /api/director/rooms/' + roomId);
       
-      // In production, delete from database and check if room is not occupied
+      // Verify room belongs to user's school
+      const [existingRoom] = await db.select().from(rooms).where(eq(rooms.id, roomId)).limit(1);
+      if (!existingRoom) {
+        return res.status(404).json({ success: false, message: 'Room not found' });
+      }
+      
+      if (existingRoom.schoolId !== user.schoolId) {
+        return res.status(403).json({ success: false, message: 'Access denied - room belongs to another school' });
+      }
+      
+      // Check if room is occupied
+      if (existingRoom.isOccupied) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Cannot delete occupied room. Please free the room first.' 
+        });
+      }
+      
+      // Delete from database
+      await db.delete(rooms).where(eq(rooms.id, roomId));
+      
+      console.log('[ROOMS_API] ✅ Room deleted successfully');
       res.json({ success: true, message: 'Room deleted successfully' });
     } catch (error) {
       console.error('[ROOMS_API] Error deleting room:', error);
