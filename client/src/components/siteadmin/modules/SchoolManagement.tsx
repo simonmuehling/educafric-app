@@ -243,6 +243,7 @@ const SchoolManagement = () => {
   const t = text[language];
 
   // Fetch schools with filtering and pagination
+  const queryParams = `?search=${encodeURIComponent(searchTerm)}&type=${typeFilter}&status=${statusFilter}&page=${currentPage}&limit=20`;
   const { data: schoolsData, isLoading, error } = useQuery({
     queryKey: ['/api/siteadmin/schools', { 
       search: searchTerm, 
@@ -250,25 +251,25 @@ const SchoolManagement = () => {
       status: statusFilter, 
       page: currentPage 
     }],
-    queryFn: () => apiRequest('GET', `/api/siteadmin/schools?search=${encodeURIComponent(searchTerm)}&type=${typeFilter}&status=${statusFilter}&page=${currentPage}&limit=20`)
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/siteadmin/schools${queryParams}`);
+      return response.json();
+    }
   });
 
   // School statistics
   const { data: schoolStats } = useQuery({
-    queryKey: ['/api/siteadmin/school-stats'],
-    queryFn: () => apiRequest('GET', '/api/siteadmin/school-stats')
+    queryKey: ['/api/siteadmin/school-stats']
   });
 
   // Fetch subscription plans
   const { data: subscriptionPlans } = useQuery({
-    queryKey: ['/api/siteadmin/subscription-plans'],
-    queryFn: () => apiRequest('GET', '/api/siteadmin/subscription-plans')
+    queryKey: ['/api/siteadmin/subscription-plans']
   });
 
   // Fetch available EDUCAFRIC numbers for school registration
   const { data: availableNumbersData } = useQuery({
     queryKey: ['/api/siteadmin/educafric/available'],
-    queryFn: () => apiRequest('GET', '/api/siteadmin/educafric/available'),
     enabled: showCreateDialog
   });
 
