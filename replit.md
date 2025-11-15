@@ -79,6 +79,17 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Identification** : Sandbox = school_id ≤ 6 ou school_id = 15, Production = school_id ≥ 10 avec numéro EDUCAFRIC
 - ⚠️ **RÈGLE CRITIQUE** : Ne JAMAIS retourner de données hardcodées pour les écoles production - toujours vérifier school_id
 
+**SYSTÈME MULTIROLE IMPLÉMENTÉ**:
+- ✅ **Problème résolu** : Impossible d'ajouter un utilisateur existant (ex: Director) comme Teacher - violation contrainte unique email/phone
+- ✅ **Solution implémentée** : Système multirole complet avec table `role_affiliations` et champs `secondaryRoles`, `activeRole`, `roleHistory`
+- ✅ **Table role_affiliations** : Stocke les affiliations de rôles multiples (userId, role, schoolId, description, status, metadata)
+- ✅ **Détection automatique** : APIs Teacher/Student détectent utilisateurs existants par email OU téléphone avant création
+- ✅ **Ajout de rôle** : Si utilisateur existe, ajoute rôle secondaire + crée affiliation au lieu de créer doublon
+- ✅ **Messages clairs** : "Le rôle d'enseignant a été ajouté au compte existant de [Nom]" au lieu d'erreur contrainte
+- ✅ **Storage methods** : createRoleAffiliation, getUserRoleAffiliations, updateUserSecondaryRoles, updateUserActiveRole
+- ✅ **Use cases supportés** : Director + Teacher, Parent + Teacher, Teacher multi-écoles, etc.
+- ⚠️ **RÈGLE CRITIQUE** : Toujours vérifier utilisateurs existants par email/phone AVANT création dans ANY API de création utilisateur
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
