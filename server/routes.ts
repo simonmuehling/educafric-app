@@ -2516,6 +2516,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST - Create new subject
+  app.post("/api/director/subjects", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      const { nameFr, nameEn, code, coefficient, classId, subjectType } = req.body;
+      
+      if (!nameFr || !coefficient) {
+        return res.status(400).json({ success: false, message: 'Name and coefficient are required' });
+      }
+      
+      console.log('[CREATE_SUBJECT] Creating subject:', { nameFr, nameEn, schoolId: userSchoolId });
+      
+      const [newSubject] = await db.insert(subjects).values({
+        nameFr,
+        nameEn: nameEn || nameFr,
+        code: code || nameFr.substring(0, 4).toUpperCase(),
+        coefficient: coefficient.toString(),
+        schoolId: userSchoolId,
+        classId: classId || null,
+        subjectType: subjectType || 'general'
+      }).returning();
+      
+      console.log('[CREATE_SUBJECT] ✅ Subject created:', newSubject);
+      res.json({ success: true, subject: newSubject });
+    } catch (error) {
+      console.error('[CREATE_SUBJECT] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to create subject' });
+    }
+  });
+
+  // PUT - Update subject
+  app.put("/api/director/subjects/:id", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      const subjectId = parseInt(req.params.id);
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(subjectId)) {
+        return res.status(400).json({ success: false, message: 'Invalid subject ID' });
+      }
+      
+      const { nameFr, nameEn, code, coefficient, subjectType } = req.body;
+      
+      console.log('[UPDATE_SUBJECT] Updating subject:', subjectId);
+      
+      const updateData: any = {};
+      if (nameFr) updateData.nameFr = nameFr;
+      if (nameEn) updateData.nameEn = nameEn;
+      if (code) updateData.code = code;
+      if (coefficient) updateData.coefficient = coefficient.toString();
+      if (subjectType) updateData.subjectType = subjectType;
+      
+      const [updatedSubject] = await db
+        .update(subjects)
+        .set(updateData)
+        .where(and(
+          eq(subjects.id, subjectId),
+          eq(subjects.schoolId, userSchoolId)
+        ))
+        .returning();
+      
+      if (!updatedSubject) {
+        return res.status(404).json({ success: false, message: 'Subject not found' });
+      }
+      
+      console.log('[UPDATE_SUBJECT] ✅ Subject updated successfully');
+      res.json({ success: true, subject: updatedSubject });
+    } catch (error) {
+      console.error('[UPDATE_SUBJECT] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update subject' });
+    }
+  });
+
+  // DELETE - Delete subject
+  app.delete("/api/director/subjects/:id", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      const subjectId = parseInt(req.params.id);
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(subjectId)) {
+        return res.status(400).json({ success: false, message: 'Invalid subject ID' });
+      }
+      
+      console.log('[DELETE_SUBJECT] Deleting subject:', subjectId);
+      
+      // Check if subject has grades
+      const gradesCount = await db
+        .select({ count: count(grades.id) })
+        .from(grades)
+        .where(and(
+          eq(grades.subjectId, subjectId),
+          eq(grades.schoolId, userSchoolId)
+        ));
+      
+      const hasGrades = Number(gradesCount[0]?.count || 0) > 0;
+      
+      if (hasGrades) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Cannot delete subject with existing grades. Please delete grades first.' 
+        });
+      }
+      
+      // Delete subject
+      const [deletedSubject] = await db
+        .delete(subjects)
+        .where(and(
+          eq(subjects.id, subjectId),
+          eq(subjects.schoolId, userSchoolId)
+        ))
+        .returning();
+      
+      if (!deletedSubject) {
+        return res.status(404).json({ success: false, message: 'Subject not found' });
+      }
+      
+      console.log('[DELETE_SUBJECT] ✅ Subject deleted successfully');
+      res.json({ success: true, message: 'Subject deleted successfully' });
+    } catch (error) {
+      console.error('[DELETE_SUBJECT] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete subject' });
+    }
+  });
+
   // Get grades for director (by class and term)
   app.get("/api/director/grades", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
@@ -2609,6 +2748,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[DIRECTOR_GRADES_API] Error fetching grades:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch grades' });
+    }
+  });
+
+  // POST - Create new grade
+  app.post("/api/director/grades", requireAuth, requireAnyRole(['Director', 'Admin', 'Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      const { studentId, subjectId, classId, grade, term, academicYear, examType, comments } = req.body;
+      
+      if (!studentId || !subjectId || !classId || grade === undefined || !term) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Student ID, subject ID, class ID, grade, and term are required' 
+        });
+      }
+      
+      console.log('[CREATE_GRADE] Creating grade:', { studentId, subjectId, grade, term });
+      
+      const [newGrade] = await db.insert(grades).values({
+        studentId: parseInt(studentId),
+        subjectId: parseInt(subjectId),
+        classId: parseInt(classId),
+        grade: grade.toString(),
+        term: term,
+        academicYear: academicYear || new Date().getFullYear() + '-' + (new Date().getFullYear() + 1),
+        schoolId: userSchoolId,
+        examType: examType || 'exam',
+        comments: comments || null
+      }).returning();
+      
+      console.log('[CREATE_GRADE] ✅ Grade created:', newGrade);
+      res.json({ success: true, grade: newGrade });
+    } catch (error) {
+      console.error('[CREATE_GRADE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to create grade' });
+    }
+  });
+
+  // PUT - Update grade
+  app.put("/api/director/grades/:id", requireAuth, requireAnyRole(['Director', 'Admin', 'Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      const gradeId = parseInt(req.params.id);
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(gradeId)) {
+        return res.status(400).json({ success: false, message: 'Invalid grade ID' });
+      }
+      
+      const { grade, examType, comments } = req.body;
+      
+      console.log('[UPDATE_GRADE] Updating grade:', gradeId);
+      
+      const updateData: any = {};
+      if (grade !== undefined) updateData.grade = grade.toString();
+      if (examType) updateData.examType = examType;
+      if (comments !== undefined) updateData.comments = comments;
+      
+      const [updatedGrade] = await db
+        .update(grades)
+        .set(updateData)
+        .where(and(
+          eq(grades.id, gradeId),
+          eq(grades.schoolId, userSchoolId)
+        ))
+        .returning();
+      
+      if (!updatedGrade) {
+        return res.status(404).json({ success: false, message: 'Grade not found' });
+      }
+      
+      console.log('[UPDATE_GRADE] ✅ Grade updated successfully');
+      res.json({ success: true, grade: updatedGrade });
+    } catch (error) {
+      console.error('[UPDATE_GRADE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update grade' });
+    }
+  });
+
+  // DELETE - Delete grade
+  app.delete("/api/director/grades/:id", requireAuth, requireAnyRole(['Director', 'Admin', 'Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      const gradeId = parseInt(req.params.id);
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(gradeId)) {
+        return res.status(400).json({ success: false, message: 'Invalid grade ID' });
+      }
+      
+      console.log('[DELETE_GRADE] Deleting grade:', gradeId);
+      
+      // Delete grade
+      const [deletedGrade] = await db
+        .delete(grades)
+        .where(and(
+          eq(grades.id, gradeId),
+          eq(grades.schoolId, userSchoolId)
+        ))
+        .returning();
+      
+      if (!deletedGrade) {
+        return res.status(404).json({ success: false, message: 'Grade not found' });
+      }
+      
+      console.log('[DELETE_GRADE] ✅ Grade deleted successfully');
+      res.json({ success: true, message: 'Grade deleted successfully' });
+    } catch (error) {
+      console.error('[DELETE_GRADE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete grade' });
     }
   });
 
@@ -4723,6 +4986,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: 'Failed to fetch archived homework' 
+      });
+    }
+  });
+
+  // Teacher: Hard delete homework assignment (permanent deletion)
+  app.delete("/api/teacher/homework/:id", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      const homeworkId = parseInt(req.params.id);
+      
+      if (!homeworkId || isNaN(homeworkId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid homework ID'
+        });
+      }
+      
+      console.log('[HOMEWORK_API] 🗑️ Permanently deleting homework:', homeworkId);
+      
+      // Check if homework has submissions
+      const submissionCount = await db
+        .select({ count: count(homeworkSubmissions.id) })
+        .from(homeworkSubmissions)
+        .where(eq(homeworkSubmissions.homeworkId, homeworkId));
+      
+      const hasSubmissions = Number(submissionCount[0]?.count || 0) > 0;
+      
+      if (hasSubmissions) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot delete homework with existing submissions. Archive it instead.'
+        });
+      }
+      
+      // Delete homework (only if teacher owns it and it belongs to their school)
+      const [deletedHomework] = await db
+        .delete(homework)
+        .where(and(
+          eq(homework.id, homeworkId),
+          eq(homework.teacherId, teacherId),
+          eq(homework.schoolId, schoolId)
+        ))
+        .returning();
+        
+      if (!deletedHomework) {
+        return res.status(404).json({
+          success: false,
+          message: 'Homework not found or access denied'
+        });
+      }
+      
+      console.log('[HOMEWORK_API] ✅ Homework permanently deleted:', homeworkId);
+      
+      res.json({
+        success: true,
+        message: 'Devoir supprimé définitivement'
+      });
+      
+    } catch (error) {
+      console.error('[HOMEWORK_API] ❌ Error deleting homework:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete homework' 
       });
     }
   });
