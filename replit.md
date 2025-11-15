@@ -4,103 +4,37 @@ Educafric is a comprehensive, bilingual (French/English), mobile-first education
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-**EXEMPTION PREMIUM PERMANENTE**:
-- ✅ Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium
-- ✅ Patterns d'exemption : @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@
-- ✅ Exemptions appliquées dans middleware subscriptionMiddleware.ts et service subscriptionService.ts
-- ✅ Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement
-- ✅ Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking
+- **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
 
-**PROTECTION ANTI-CONFLIT MODULES**:
-- ✅ Système de mapping des modules réorganisé avec séparation stricte par dashboard
-- ✅ Validation automatique des mappings pour détecter les conflits et doublons
-- ✅ Protection spéciale pour le module 'students' : DOIT pointer vers FunctionalDirectorStudentManagement
-- ✅ Structure organisée : Director → Commercial → Parent → Student → Teacher → Freelancer → Shared
-- ✅ Commentaires de protection et alertes intégrés dans fastModuleLoader.ts
-- ⚠️ RÈGLE CRITIQUE : NE JAMAIS mélanger les mappings de modules entre dashboards différents
+- **PROTECTION ANTI-CONFLIT MODULES**: Système de mapping des modules réorganisé avec séparation stricte par dashboard. Validation automatique des mappings pour détecter les conflits et doublons. Le module 'students' DOIT pointer vers FunctionalDirectorStudentManagement. Structure organisée : Director → Commercial → Parent → Student → Teacher → Freelancer → Shared. NE JAMAIS mélanger les mappings de modules entre dashboards différents.
 
-**RÉSOLUTION CONFLITS ROUTES PARAMÈTRES**:
-- ✅ **Problème résolu** : Conflits entre routes settings définies dans routes.ts principal ET routers externes
-- ✅ **Solution implémentée** : Réorganisation ordre d'enregistrement - routes settings définies AVANT routers externes
-- ✅ **Routes Settings fonctionnelles** : `/api/director/settings`, `/api/teacher/settings`, `/api/student/settings`, `/api/parent/settings`, `/api/freelancer/settings`, `/api/school/settings`
-- ✅ **Architecture optimisée** : Ordre prioritaire - Settings → API Modules → System Routes → Services
-- ⚠️ **RÈGLE CRITIQUE** : Toujours maintenir l'ordre d'enregistrement des routes pour éviter conflits futurs
+- **RÉSOLUTION CONFLITS ROUTES PARAMÈTRES**: Problème de conflits entre routes settings résolu par réorganisation de l'ordre d'enregistrement. Routes settings définies AVANT routers externes. Ordre prioritaire : Settings → API Modules → System Routes → Services. Toujours maintenir l'ordre d'enregistrement des routes.
 
-**NUMÉROS EDUCAFRIC AVEC AUTO-GÉNÉRATION**:
-- ✅ **Système simplifié pour Site Admins** : Site Admins peuvent créer écoles SANS pré-créer numéros EDUCAFRIC
-- ✅ **Auto- génération intelligente** : Si aucun numéro fourni, le système génère automatiquement un numéro EDU-CM-SC-###
-- ✅ **Format standardisé** : EDU-CM-SC-### (SC = School, séquence incrémentielle)
-- ✅ **Trois workflows d'inscription disponibles** :
-  1. **Site Admin Direct (SIMPLIFIÉ)** : Site Admin crée école directement, numéro auto-généré
-  2. **Site Admin avec Numéro** : Site Admin crée école avec numéro pré-créé (optionnel)
-  3. **Director Self-Registration** : Director s'inscrit avec numéro EDUCAFRIC pré-assigné (obligatoire)
-- ⚠️ **RÈGLE CRITIQUE** : Directors DOIVENT utiliser numéro pré-assigné, Site Admins peuvent auto-générer
+- **NUMÉROS EDUCAFRIC AVEC AUTO-GÉNÉRATION**: Site Admins peuvent créer écoles SANS pré-créer numéros EDUCAFRIC, le système génère automatiquement un numéro EDU-CM-SC-### si non fourni. Format standardisé : EDU-CM-SC-### (SC = School, séquence incrémentielle). Directors DOIVENT utiliser numéro pré-assigné, Site Admins peuvent auto-générer.
 
-**EMAIL OPTIONNEL - TÉLÉPHONE PRIORITAIRE**:
-- ✅ **Email est maintenant OPTIONNEL** : Le numéro de téléphone est devenu l'identifiant principal unique
-- ✅ **Schéma database modifié** : Colonne `email` dans table `users` est maintenant nullable
-- ✅ **Validation Zod mise à jour** : `createUserSchema` accepte email optionnel, phone requis (min 10 caractères)
-- ✅ **Authentification hybride** : Login accepte SOIT email SOIT téléphone + mot de passe
-- ✅ **Passport strategy adaptée** : `LocalStrategy` modifiée pour vérifier phone OU email
-- ⚠️ **RÈGLE CRITIQUE** : Numéro de téléphone DOIT être unique et valide (min 10 caractères)
+- **EMAIL OPTIONNEL - TÉLÉPHONE PRIORITAIRE**: Email est maintenant OPTIONNEL, le numéro de téléphone est l'identifiant principal unique. La colonne `email` dans `users` est nullable. Validation Zod et Passport strategy adaptées pour accepter email optionnel et téléphone requis (min 10 caractères). Le numéro de téléphone DOIT être unique et valide (min 10 caractères).
 
-**NIVEAUX SCOLAIRES PERSONNALISABLES**:
-- ✅ **Système flexible** : Écoles définissent leurs propres niveaux académiques (Form 1, 6ème, etc.) au lieu d'une liste fixe
-- ✅ **Table `school_levels`** : Stocke les niveaux par école avec name, nameFr, nameEn, order, isActive
-- ✅ **API CRUD complète** : Routes `/api/director/school-levels` pour GET, POST, PUT, DELETE avec isolation multi-tenant
-- ✅ **Interface UI** : Composant SchoolLevelsManager intégré dans Paramètres > Académique pour gérer les niveaux
-- ✅ **Validation Excel Import** : Import de classes valide les niveaux contre les niveaux définis par l'école
-- ✅ **Normalisation robuste** : Gère strings, nombres, espaces blancs, casse mixte avant comparaison
-- ✅ **Messages d'erreur clairs** : Guide l'utilisateur avec la liste des niveaux valides et instructions pour créer de nouveaux niveaux
-- ⚠️ **RÈGLE CRITIQUE** : Écoles DOIVENT d'abord définir leurs niveaux dans Paramètres > Académique avant d'importer des classes
+- **NIVEAUX SCOLAIRES PERSONNALISABLES**: Écoles définissent leurs propres niveaux académiques via la table `school_levels` et l'API CRUD dédiée `/api/director/school-levels`. Une interface UI est disponible. L'import de classes valide les niveaux contre les niveaux définis par l'école avec normalisation robuste et messages d'erreur clairs. Écoles DOIVENT d'abord définir leurs niveaux dans Paramètres > Académique avant d'importer des classes.
 
-**AFFICHAGE IMMÉDIAT APRÈS IMPORT EXCEL**:
-- ✅ **Problème résolu** : Les données importées apparaissent maintenant IMMÉDIATEMENT sans nécessiter de rafraîchissement manuel
-- ✅ **Solution implémentée** : Double invalidation + refetch explicite dans ExcelImportButton
-- ✅ **Mécanisme** : `invalidateQueries()` avec `refetchType: 'active'` suivi de `refetchQueries()` avec `type: 'active'`
-- ✅ **Modules concernés** : Classes, Enseignants, Élèves, Emploi du temps, Salles - tous bénéficient du rafraîchissement automatique
-- ✅ **Architecture** : Tous les modules utilisent ExcelImportButton avec prop `invalidateQueries` correctement configurée
-- ⚠️ **RÈGLE CRITIQUE** : Tout nouveau module utilisant ExcelImportButton DOIT passer les queryKeys appropriées dans la prop `invalidateQueries`
+- **AFFICHAGE IMMÉDIAT APRÈS IMPORT EXCEL**: Données importées apparaissent IMMÉDIATEMENT sans rafraîchissement manuel grâce à double invalidation + refetch explicite dans ExcelImportButton. Tous les modules concernés (Classes, Enseignants, Élèves, Emploi du temps, Salles) bénéficient du rafraîchissement automatique. Tout nouveau module utilisant ExcelImportButton DOIT passer les queryKeys appropriées dans la prop `invalidateQueries`.
 
-**ISOLATION MULTI-TENANT STRICTE (SCHOOL_ID)**:
-- ✅ **Bug critique résolu** : Toutes les APIs Director utilisaient `user.school_id` (toujours undefined) au lieu de `user.schoolId` (valeur correcte)
-- ✅ **Pattern de correction systématique** : Remplacer `user.school_id || 1` par `user.schoolId || user.school_id || 1` dans TOUTES les APIs
-- ✅ **8 APIs corrigées** : Classes (1), Subjects (2), Students (1), Teachers (2), Grades (2) - toutes filtraient sur school_id = 1 par défaut
-- ✅ **Impact résolu** : Les écoles voient maintenant LEURS propres données au lieu des données de l'école 1
-- ✅ **Routes d'import Excel** : `/api/bulk-import/` pour templates, validation et import de Classes, Teachers, Students, Timetables, Rooms
-- ⚠️ **RÈGLE CRITIQUE** : TOUJOURS utiliser `user.schoolId` (avec majuscule I) pour isolation multi-tenant, JAMAIS `user.school_id`
+- **ISOLATION MULTI-TENANT STRICTE (SCHOOL_ID)**: Correction systématique de l'utilisation de `user.schoolId` (valeur correcte) au lieu de `user.school_id` (toujours undefined) dans TOUTES les APIs Director. Les écoles voient maintenant LEURS propres données. TOUJOURS utiliser `user.schoolId` (avec majuscule I) pour isolation multi-tenant, JAMAIS `user.school_id`.
 
-**SÉPARATION DONNÉES SANDBOX/PRODUCTION**:
-- ✅ **Problème résolu** : Données hardcodées (Marie Kouam, Jean Mbida) apparaissaient dans toutes les écoles y compris production
-- ✅ **Solution implémentée** : Détection intelligente sandbox dans `server/storage/studentStorage.ts`
-- ✅ **Écoles sandbox (IDs 1-6, 15)** : Gardent les données démo pour testing/onboarding
-- ✅ **Écoles production (IDs 10+)** : Reçoivent tableau vide au lieu de données hardcodées
-- ✅ **Logging amélioré** : `[STUDENT_STORAGE]` logs distinguent sandbox vs production, erreurs DB visibles
-- ✅ **Identification** : Sandbox = school_id ≤ 6 ou school_id = 15, Production = school_id ≥ 10 avec numéro EDUCAFRIC
-- ⚠️ **RÈGLE CRITIQUE** : Ne JAMAIS retourner de données hardcodées pour les écoles production - toujours vérifier school_id
+- **SÉPARATION DONNÉES SANDBOX/PRODUCTION**: Détection intelligente sandbox dans `server/storage/studentStorage.ts`. Écoles sandbox (IDs 1-6, 15) gardent les données démo. Écoles production (IDs 10+) reçoivent tableau vide au lieu de données hardcodées. Ne JAMAIS retourner de données hardcodées pour les écoles production - toujours vérifier school_id.
 
-**SYSTÈME MULTIROLE IMPLÉMENTÉ**:
-- ✅ **Problème résolu** : Impossible d'ajouter un utilisateur existant (ex: Director) comme Teacher - violation contrainte unique email/phone
-- ✅ **Solution implémentée** : Système multirole complet avec table `role_affiliations` et champs `secondaryRoles`, `activeRole`, `roleHistory`
-- ✅ **Table role_affiliations** : Stocke les affiliations de rôles multiples (userId, role, schoolId, description, status, metadata)
-- ✅ **Détection automatique** : APIs Teacher/Student détectent utilisateurs existants par email OU téléphone avant création
-- ✅ **Ajout de rôle** : Si utilisateur existe, ajoute rôle secondaire + crée affiliation au lieu de créer doublon
-- ✅ **Messages clairs** : "Le rôle d'enseignant a été ajouté au compte existant de [Nom]" au lieu d'erreur contrainte
-- ✅ **Storage methods** : createRoleAffiliation, getUserRoleAffiliations, updateUserSecondaryRoles, updateUserActiveRole
-- ✅ **Use cases supportés** : Director + Teacher, Parent + Teacher, Teacher multi-écoles, etc.
-- ⚠️ **RÈGLE CRITIQUE** : Toujours vérifier utilisateurs existants par email/phone AVANT création dans ANY API de création utilisateur
+- **SYSTÈME MULTIROLE IMPLÉMENTÉ**: Impossible d'ajouter un utilisateur existant comme Teacher est résolu. Système multirole complet avec table `role_affiliations` et champs `secondaryRoles`, `activeRole`, `roleHistory`. Détection automatique des utilisateurs existants par email OU téléphone avant création. Ajout de rôle secondaire et affiliation si utilisateur existe. Toujours vérifier utilisateurs existants par email/phone AVANT création dans ANY API de création utilisateur.
 
-- ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
-- NEVER make partial updates to only some dashboards
-- ALWAYS preserve button functionality when making changes - buttons must remain functional
-- **DOCUMENTS MUST APPEAR INSTANTLY:** User is frustrated that document creation takes hours - streamline to work immediately
-- **DOCUMENT DIRECTORY STANDARD:** ALL documents MUST be placed in `/public/documents/` directory with lowercase kebab-case naming (never create documents in other locations)
+- ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes.
+- NEVER make partial updates to only some dashboards.
+- ALWAYS preserve button functionality when making changes - buttons must remain functional.
+- **DOCUMENTS MUST APPEAR INSTANTLY:** User is frustrated that document creation takes hours - streamline to work immediately.
+- **DOCUMENT DIRECTORY STANDARD:** ALL documents MUST be placed in `/public/documents/` directory with lowercase kebab-case naming.
 - **DOCUMENT CREATION METHOD:** Use consolidated EDUCAFRIC system:
-  1. Create specialized PDF generator method in `server/services/pdfGenerator.ts`
-  2. Add document to commercial docs list in `server/routes.ts` (both view and download routes)
-  3. Create HTML version in `/public/documents/` for web viewing
-  4. Update alphabetical index in `00-index-documents-alphabetique.html`
-  5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access
+  1. Create specialized PDF generator method in `server/services/pdfGenerator.ts`.
+  2. Add document to commercial docs list in `server/routes.ts` (both view and download routes).
+  3. Create HTML version in `/public/documents/` for web viewing.
+  4. Update alphabetical index in `00-index-documents-alphabetique.html`.
+  5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 
 ## System Architecture
 
