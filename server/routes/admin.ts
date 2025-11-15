@@ -252,6 +252,15 @@ router.post('/students', requireAuth, requireAdmin, async (req, res) => {
       finalFirstName = nameParts[0];
       finalLastName = nameParts.slice(1).join(' ') || nameParts[0];
     }
+    
+    // Validate: Name is required
+    if (!finalFirstName || !finalLastName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le nom complet de l\'élève est requis',
+        errorType: 'MISSING_NAME'
+      });
+    }
 
     // Students don't need passwords initially - they can be set later when they first access the system
     // Generate a temporary email if none provided (required by database)
@@ -300,9 +309,30 @@ router.post('/students', requireAuth, requireAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('[DIRECTOR_CREATE_STUDENT] Error:', error);
+    
+    // Check for specific database constraint errors
+    const errorMessage = error.message || '';
+    
+    if (errorMessage.includes('users_email_unique')) {
+      return res.status(409).json({
+        success: false,
+        message: 'Cet email est déjà utilisé par un autre utilisateur',
+        errorType: 'DUPLICATE_EMAIL'
+      });
+    }
+    
+    if (errorMessage.includes('users_phone_unique')) {
+      return res.status(409).json({
+        success: false,
+        message: 'Ce numéro de téléphone est déjà utilisé par un autre utilisateur',
+        errorType: 'DUPLICATE_PHONE'
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to create student'
+      message: 'Échec de la création de l\'élève',
+      error: error.message
     });
   }
 });

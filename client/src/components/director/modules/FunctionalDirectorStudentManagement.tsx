@@ -161,8 +161,15 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         body: JSON.stringify(studentData),
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to create student');
-      return response.json();
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        // Return specific error for better handling
+        throw { status: response.status, data };
+      }
+      
+      return data;
     },
     onSuccess: (newStudent) => {
       // ✅ IMMEDIATE VISUAL FEEDBACK - User sees what they created
@@ -192,12 +199,38 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 100);
     },
-    onError: () => {
-      toast({
-        title: 'Erreur',
-        description: 'Impossible d\'ajouter l\'élève.',
-        variant: 'destructive'
-      });
+    onError: (error: any) => {
+      console.error('[FRONTEND] Student creation error:', error);
+      
+      // Handle specific error types
+      const errorType = error?.data?.errorType;
+      const errorMessage = error?.data?.message;
+      
+      if (errorType === 'DUPLICATE_EMAIL') {
+        toast({
+          title: '❌ Email déjà utilisé',
+          description: 'Cet email est déjà associé à un autre utilisateur. Veuillez utiliser un email différent ou laisser le champ vide pour générer un email temporaire.',
+          variant: 'destructive'
+        });
+      } else if (errorType === 'DUPLICATE_PHONE') {
+        toast({
+          title: '❌ Téléphone déjà utilisé',
+          description: 'Ce numéro de téléphone est déjà associé à un autre utilisateur. Veuillez utiliser un numéro différent.',
+          variant: 'destructive'
+        });
+      } else if (errorType === 'MISSING_NAME') {
+        toast({
+          title: '❌ Nom manquant',
+          description: 'Le nom complet de l\'élève est requis.',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: '❌ Erreur',
+          description: errorMessage || 'Impossible d\'ajouter l\'élève. Veuillez vérifier les informations et réessayer.',
+          variant: 'destructive'
+        });
+      }
     }
   });
 
@@ -266,6 +299,16 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   });
 
   const handleCreateStudent = () => {
+    // Validate: At least name is required
+    if (!studentForm.name || !studentForm.name.trim()) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Le nom de l\'élève est requis' : 'Student name is required',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     createStudentMutation.mutate({
       ...studentForm,
       age: parseInt(studentForm.age) || 16
