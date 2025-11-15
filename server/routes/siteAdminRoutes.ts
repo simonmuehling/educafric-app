@@ -127,12 +127,16 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
           return {
             id: school.id,
             name: school.name,
+            location: school.address || '',  // Frontend expects 'location'
             address: school.address || '',
             phone: school.phone,
             email: school.email,
+            contactEmail: school.email,  // Frontend expects 'contactEmail'
             type: school.type || 'private',
             studentCount: school.studentCount || 0,
             teacherCount: school.teacherCount || 0,
+            subscriptionStatus: 'active',  // Frontend expects this field
+            monthlyRevenue: 0,  // Frontend expects this field
             createdAt: school.createdAt,
             educafricNumber: school.educafricNumber,
             director: director ? `${director.firstName || ''} ${director.lastName || ''}`.trim() : 'N/A',
@@ -144,12 +148,16 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
           return {
             id: school.id,
             name: school.name,
+            location: school.address || '',  // Frontend expects 'location'
             address: school.address || '',
             phone: school.phone,
             email: school.email,
+            contactEmail: school.email,  // Frontend expects 'contactEmail'
             type: school.type || 'private',
             studentCount: school.studentCount || 0,
             teacherCount: school.teacherCount || 0,
+            subscriptionStatus: 'active',  // Frontend expects this field
+            monthlyRevenue: 0,  // Frontend expects this field
             createdAt: school.createdAt,
             educafricNumber: school.educafricNumber,
             director: 'N/A',
