@@ -1714,9 +1714,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ success: false, message: 'Access denied - class belongs to another school' });
       }
       
-      // Check if class has students (via class_enrollment table)
+      // Check if class has students (via enrollments table)
       const studentsInClass = await db.execute(
-        sql`SELECT COUNT(*) as count FROM class_enrollment WHERE class_id = ${classId}`
+        sql`SELECT COUNT(*) as count FROM enrollments WHERE class_id = ${classId}`
       );
       
       const studentCount = Number(studentsInClass.rows[0]?.count) || 0;
