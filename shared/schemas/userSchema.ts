@@ -121,3 +121,17 @@ export const fcmTokens = pgTable("fcm_tokens", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
+
+// Role Affiliations table for multirole support
+// Allows users to have multiple roles (e.g., Director + Teacher, Parent + Teacher)
+export const roleAffiliations = pgTable("role_affiliations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(), // User with multiple roles
+  role: text("role").notNull(), // Secondary role: Teacher, Parent, Student, etc.
+  schoolId: integer("school_id"), // School context for the role (if applicable)
+  description: text("description"), // Descriptive text for the role
+  status: text("status").default("active"), // active, inactive, pending
+  metadata: jsonb("metadata"), // Additional role-specific data
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});

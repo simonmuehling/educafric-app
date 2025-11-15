@@ -37,7 +37,7 @@ export * from "./delegationSchema";
 export * from "./bulletinValidationSchema";
 
 // Re-export for backward compatibility
-import { users } from "./schemas/userSchema";
+import { users, roleAffiliations } from "./schemas/userSchema";
 import { schools, schoolLevels, classes, subjects } from "./schemas/schoolSchema";
 import { grades, attendance, homework, homeworkSubmissions } from "./schemas/academicSchema";
 import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, savedBulletins, teacherBulletins } from "./schemas/bulletinSchema";
@@ -83,7 +83,7 @@ import {
 } from "./schemas/busSchema";
 
 // Note: rooms, timetables, timetableNotifications, and other tables defined below are already exported directly
-export { users, schools, schoolLevels, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, savedBulletins, teacherBulletins, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates, archivedDocuments, archiveAccessLogs, annualReportComprehensive, educafricNumbers, educafricNumberCounters, competencies, subjectCompetencyAssignments, canteenMenus, canteenReservations, canteenBalances, busRoutes, busStations, busStudents };
+export { users, roleAffiliations, schools, schoolLevels, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, savedBulletins, teacherBulletins, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions, competencyEvaluationSystems, predefinedAppreciations, competencyTemplates, archivedDocuments, archiveAccessLogs, annualReportComprehensive, educafricNumbers, educafricNumberCounters, competencies, subjectCompetencyAssignments, canteenMenus, canteenReservations, canteenBalances, busRoutes, busStations, busStudents };
 
 // Additional simplified tables for compatibility
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric, date, unique, foreignKey } from "drizzle-orm/pg-core";

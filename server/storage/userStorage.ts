@@ -420,4 +420,96 @@ export class UserStorage implements IUserStorage {
       return [];
     }
   }
+
+  // === MULTIROLE METHODS ===
+  async createRoleAffiliation(affiliation: any): Promise<any> {
+    try {
+      const { roleAffiliations } = await import("../../shared/schema");
+      const [newAffiliation] = await db.insert(roleAffiliations).values(affiliation).returning();
+      console.log('[MULTI_ROLE] Created role affiliation:', newAffiliation);
+      return newAffiliation;
+    } catch (error) {
+      console.error('[MULTI_ROLE] Error creating role affiliation:', error);
+      throw new Error(`Failed to create role affiliation: ${error}`);
+    }
+  }
+
+  async getUserRoleAffiliations(userId: number): Promise<any[]> {
+    try {
+      const { roleAffiliations } = await import("../../shared/schema");
+      const affiliations = await db.select().from(roleAffiliations).where(eq(roleAffiliations.userId, userId));
+      return affiliations;
+    } catch (error) {
+      console.error('[MULTI_ROLE] Error fetching role affiliations:', error);
+      return [];
+    }
+  }
+
+  async updateUserSecondaryRoles(userId: number, secondaryRoles: string[]): Promise<any> {
+    try {
+      const [updated] = await db.update(users)
+        .set({ secondaryRoles } as any)
+        .where(eq(users.id, userId))
+        .returning();
+      console.log('[MULTI_ROLE] Updated secondary roles:', updated);
+      return updated;
+    } catch (error) {
+      console.error('[MULTI_ROLE] Error updating secondary roles:', error);
+      throw new Error(`Failed to update secondary roles: ${error}`);
+    }
+  }
+
+  async updateUserActiveRole(userId: number, activeRole: string): Promise<any> {
+    try {
+      const [updated] = await db.update(users)
+        .set({ activeRole } as any)
+        .where(eq(users.id, userId))
+        .returning();
+      console.log('[MULTI_ROLE] Updated active role:', updated);
+      return updated;
+    } catch (error) {
+      console.error('[MULTI_ROLE] Error updating active role:', error);
+      throw new Error(`Failed to update active role: ${error}`);
+    }
+  }
+
+  async updateUserRoleHistory(userId: number, roleHistory: any): Promise<any> {
+    try {
+      const [updated] = await db.update(users)
+        .set({ roleHistory } as any)
+        .where(eq(users.id, userId))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('[MULTI_ROLE] Error updating role history:', error);
+      throw new Error(`Failed to update role history: ${error}`);
+    }
+  }
+
+  async updateRoleAffiliationMetadata(affiliationId: number, metadata: any): Promise<any> {
+    try {
+      const { roleAffiliations } = await import("../../shared/schema");
+      const [updated] = await db.update(roleAffiliations)
+        .set({ metadata })
+        .where(eq(roleAffiliations.id, affiliationId))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('[MULTI_ROLE] Error updating affiliation metadata:', error);
+      throw new Error(`Failed to update affiliation metadata: ${error}`);
+    }
+  }
+
+  async updateUserSchoolId(userId: number, schoolId: number): Promise<any> {
+    try {
+      const [updated] = await db.update(users)
+        .set({ schoolId } as any)
+        .where(eq(users.id, userId))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('[MULTI_ROLE] Error updating school ID:', error);
+      throw new Error(`Failed to update school ID: ${error}`);
+    }
+  }
 }
