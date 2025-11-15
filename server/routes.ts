@@ -2281,6 +2281,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update a teacher
+  app.put("/api/administration/teachers/:teacherId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = parseInt(req.params.teacherId);
+      const { firstName, lastName, email, phone, subjects } = req.body;
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(teacherId)) {
+        return res.status(400).json({ success: false, message: 'Invalid teacher ID' });
+      }
+      
+      console.log('[UPDATE_TEACHER] Updating teacher:', teacherId, { firstName, lastName });
+      
+      // Verify teacher belongs to user's school
+      const [existingTeacher] = await db.select().from(users)
+        .where(and(eq(users.id, teacherId), eq(users.role, 'Teacher')))
+        .limit(1);
+      
+      if (!existingTeacher) {
+        return res.status(404).json({ success: false, message: 'Teacher not found' });
+      }
+      
+      if (existingTeacher.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Access denied - teacher belongs to another school' });
+      }
+      
+      // Update teacher in database
+      const updateData: any = {};
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
+      if (email !== undefined) updateData.email = email;
+      if (phone !== undefined) updateData.phone = phone;
+      
+      const [updatedTeacher] = await db.update(users)
+        .set(updateData)
+        .where(eq(users.id, teacherId))
+        .returning();
+      
+      console.log('[UPDATE_TEACHER] ✅ Teacher updated successfully:', `${updatedTeacher.firstName} ${updatedTeacher.lastName}`);
+      res.json({ success: true, teacher: updatedTeacher, message: 'Teacher updated successfully' });
+    } catch (error) {
+      console.error('[UPDATE_TEACHER] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update teacher' });
+    }
+  });
+
+  // Delete a teacher
+  app.delete("/api/administration/teachers/:teacherId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = parseInt(req.params.teacherId);
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(teacherId)) {
+        return res.status(400).json({ success: false, message: 'Invalid teacher ID' });
+      }
+      
+      console.log('[DELETE_TEACHER] Deleting teacher:', teacherId);
+      
+      // Verify teacher belongs to user's school
+      const [existingTeacher] = await db.select().from(users)
+        .where(and(eq(users.id, teacherId), eq(users.role, 'Teacher')))
+        .limit(1);
+      
+      if (!existingTeacher) {
+        return res.status(404).json({ success: false, message: 'Teacher not found' });
+      }
+      
+      if (existingTeacher.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Access denied - teacher belongs to another school' });
+      }
+      
+      // Check if teacher is assigned to any classes
+      const assignedClasses = await db.select({ count: count() })
+        .from(classes)
+        .where(eq(classes.teacherId, teacherId));
+      
+      const classCount = assignedClasses[0]?.count || 0;
+      if (classCount > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Cannot delete teacher assigned to ${classCount} class(es). Please reassign classes first.` 
+        });
+      }
+      
+      // Delete teacher from database
+      await db.delete(users).where(eq(users.id, teacherId));
+      
+      console.log('[DELETE_TEACHER] ✅ Teacher deleted successfully');
+      res.json({ success: true, message: 'Teacher deleted successfully' });
+    } catch (error) {
+      console.error('[DELETE_TEACHER] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete teacher' });
+    }
+  });
+
   // Get subjects for director
   app.get("/api/director/subjects", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
