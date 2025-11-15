@@ -173,8 +173,15 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
         body: JSON.stringify(teacherData),
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to create teacher');
-      return response.json();
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        // Return specific error for better handling
+        throw { status: response.status, data };
+      }
+      
+      return data;
     },
     onSuccess: (newTeacher) => {
       // ✅ IMMEDIATE VISUAL FEEDBACK - User sees the new teacher
@@ -195,12 +202,44 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 100);
     },
-    onError: () => {
-      toast({
-        title: 'Erreur',
-        description: 'Impossible d\'ajouter l\'enseignant.',
-        variant: 'destructive'
-      });
+    onError: (error: any) => {
+      console.error('[FRONTEND] Teacher creation error:', error);
+      
+      // Handle specific error types
+      const errorType = error?.data?.errorType;
+      const errorMessage = error?.data?.message;
+      
+      if (errorType === 'DUPLICATE_EMAIL') {
+        toast({
+          title: '❌ Email déjà utilisé',
+          description: 'Cet email est déjà associé à un autre utilisateur. Veuillez utiliser un email différent ou créer l\'enseignant avec uniquement le numéro de téléphone.',
+          variant: 'destructive'
+        });
+      } else if (errorType === 'DUPLICATE_PHONE') {
+        toast({
+          title: '❌ Téléphone déjà utilisé',
+          description: 'Ce numéro de téléphone est déjà associé à un autre utilisateur. Veuillez utiliser un numéro différent.',
+          variant: 'destructive'
+        });
+      } else if (errorType === 'MISSING_CONTACT') {
+        toast({
+          title: '❌ Informations de contact manquantes',
+          description: 'Au moins un email ou un numéro de téléphone est requis.',
+          variant: 'destructive'
+        });
+      } else if (errorType === 'MISSING_NAME') {
+        toast({
+          title: '❌ Nom manquant',
+          description: 'Le nom complet est requis.',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: '❌ Erreur',
+          description: errorMessage || 'Impossible d\'ajouter l\'enseignant. Veuillez vérifier les informations et réessayer.',
+          variant: 'destructive'
+        });
+      }
     }
   });
 
@@ -266,10 +305,30 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   });
 
   const handleCreateTeacher = () => {
+    // Validate: At least name is required
+    if (!teacherForm.name || !teacherForm.name.trim()) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Le nom est requis' : 'Name is required',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Validate: At least email OR phone must be provided
+    if (!teacherForm.email && !teacherForm.phone) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Au moins un email ou un numéro de téléphone est requis' : 'At least email or phone number is required',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     const teacherData = {
       name: teacherForm.name, // Send as single name field for backend to split
-      email: teacherForm.email,
-      phone: teacherForm.phone,
+      email: teacherForm.email || null,
+      phone: teacherForm.phone || null,
       gender: teacherForm.gender,
       matricule: teacherForm.matricule,
       teachingSubjects: teacherForm.teachingSubjects.split(',').map(s => s.trim()).filter(s => s),
