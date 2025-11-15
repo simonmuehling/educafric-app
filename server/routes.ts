@@ -1312,7 +1312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const [updatedRoom] = await db.update(rooms)
         .set(updateData)
-        .where(eq(rooms.id, roomId))
+        .where(and(eq(rooms.id, roomId), eq(rooms.schoolId, user.schoolId)))
         .returning();
       
       console.log('[ROOMS_API] ✅ Room updated successfully:', updatedRoom.name);
@@ -1359,7 +1359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Delete from database
-      await db.delete(rooms).where(eq(rooms.id, roomId));
+      await db.delete(rooms).where(and(eq(rooms.id, roomId), eq(rooms.schoolId, user.schoolId)));
       
       console.log('[ROOMS_API] ✅ Room deleted successfully');
       res.json({ success: true, message: 'Room deleted successfully' });
@@ -1633,7 +1633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const [updatedClass] = await db.update(classes)
         .set(updateData)
-        .where(eq(classes.id, classId))
+        .where(and(eq(classes.id, classId), eq(classes.schoolId, userSchoolId)))
         .returning();
       
       console.log('[UPDATE_CLASS] ✅ Class updated successfully:', updatedClass.name);
@@ -1675,7 +1675,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if class has students
       const studentsInClass = await db.select({ count: count() })
         .from(users)
-        .where(and(eq(users.role, 'Student'), eq(users.classId, classId)));
+        .where(and(
+          eq(users.role, 'Student'), 
+          eq(users.classId, classId),
+          eq(users.schoolId, userSchoolId)
+        ));
       
       const studentCount = studentsInClass[0]?.count || 0;
       if (studentCount > 0) {
@@ -1686,10 +1690,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Delete associated subjects first
-      await db.delete(subjects).where(eq(subjects.classId, classId));
+      await db.delete(subjects).where(and(eq(subjects.classId, classId), eq(subjects.schoolId, userSchoolId)));
       
       // Delete class from database
-      await db.delete(classes).where(eq(classes.id, classId));
+      await db.delete(classes).where(and(eq(classes.id, classId), eq(classes.schoolId, userSchoolId)));
       
       console.log('[DELETE_CLASS] ✅ Class deleted successfully');
       res.json({ success: true, message: 'Class deleted successfully' });
@@ -1971,7 +1975,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const [updatedStudent] = await db.update(users)
         .set(updateData)
-        .where(eq(users.id, studentId))
+        .where(and(
+          eq(users.id, studentId),
+          eq(users.role, 'Student'),
+          eq(users.schoolId, userSchoolId)
+        ))
         .returning();
       
       console.log('[UPDATE_STUDENT] ✅ Student updated successfully:', `${updatedStudent.firstName} ${updatedStudent.lastName}`);
@@ -2014,7 +2022,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Delete student from database
-      await db.delete(users).where(eq(users.id, studentId));
+      await db.delete(users).where(and(
+        eq(users.id, studentId),
+        eq(users.role, 'Student'),
+        eq(users.schoolId, userSchoolId)
+      ));
       
       console.log('[DELETE_STUDENT] ✅ Student deleted successfully');
       res.json({ success: true, message: 'Student deleted successfully' });
@@ -2322,7 +2334,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const [updatedTeacher] = await db.update(users)
         .set(updateData)
-        .where(eq(users.id, teacherId))
+        .where(and(
+          eq(users.id, teacherId),
+          eq(users.role, 'Teacher'),
+          eq(users.schoolId, userSchoolId)
+        ))
         .returning();
       
       console.log('[UPDATE_TEACHER] ✅ Teacher updated successfully:', `${updatedTeacher.firstName} ${updatedTeacher.lastName}`);
@@ -2367,7 +2383,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if teacher is assigned to any classes
       const assignedClasses = await db.select({ count: count() })
         .from(classes)
-        .where(eq(classes.teacherId, teacherId));
+        .where(and(
+          eq(classes.teacherId, teacherId),
+          eq(classes.schoolId, userSchoolId)
+        ));
       
       const classCount = assignedClasses[0]?.count || 0;
       if (classCount > 0) {
@@ -2378,7 +2397,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Delete teacher from database
-      await db.delete(users).where(eq(users.id, teacherId));
+      await db.delete(users).where(and(
+        eq(users.id, teacherId),
+        eq(users.role, 'Teacher'),
+        eq(users.schoolId, userSchoolId)
+      ));
       
       console.log('[DELETE_TEACHER] ✅ Teacher deleted successfully');
       res.json({ success: true, message: 'Teacher deleted successfully' });
