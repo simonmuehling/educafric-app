@@ -327,7 +327,11 @@ const ClassManagement: React.FC = () => {
         body: JSON.stringify(classData),
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to create class');
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('[CLASS_MANAGEMENT] ❌ Failed to create class:', error);
+        throw new Error(error.message || 'Failed to create class');
+      }
       const result = await response.json();
       console.log('[CLASS_MANAGEMENT] ✅ Class created successfully:', result);
       return result;
@@ -341,6 +345,15 @@ const ClassManagement: React.FC = () => {
         description: language === 'fr' ? 'La classe a été créée avec succès.' : 'Class has been created successfully.'
       });
       setNewClass({ name: '', capacity: '', teacherId: '', teacherName: '', room: '', subjects: [] });
+      setShowCreateModal(false); // Close the modal after successful creation
+    },
+    onError: (error: any) => {
+      console.error('[CLASS_MANAGEMENT] ❌ Create mutation error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Impossible de créer la classe' : 'Failed to create class'),
+        variant: 'destructive'
+      });
     }
   });
 
@@ -577,7 +590,24 @@ const ClassManagement: React.FC = () => {
       });
       return;
     }
-    createClassMutation.mutate(newClass);
+    
+    console.log('[CLASS_MANAGEMENT] 🚀 Preparing class creation with data:', newClass);
+    
+    // Transform data to match backend API contract and database schema
+    const classDataForAPI = {
+      name: newClass.name,
+      maxStudents: parseInt(newClass.capacity), // DB expects 'maxStudents' not 'capacity'
+      level: newClass.subjects.length > 0 ? newClass.subjects[0].name : '', // Optional
+      section: '', // Optional
+      room: newClass.room || '',
+      teacherId: newClass.teacherId || null,
+      academicYearId: 1, // Required field - use current academic year ID (TODO: fetch dynamically)
+      subjects: newClass.subjects, // Include subjects for later processing
+      isActive: true
+    };
+    
+    console.log('[CLASS_MANAGEMENT] 📤 Sending to API:', classDataForAPI);
+    createClassMutation.mutate(classDataForAPI);
   };
 
   const handleDeleteClass = (classId: number) => {

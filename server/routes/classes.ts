@@ -127,8 +127,8 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
-// Update class
-router.put('/:id', requireAuth, async (req, res) => {
+// Update class (PUT and PATCH methods)
+const updateClassHandler = async (req: any, res: any) => {
   try {
     const classId = parseInt(req.params.id);
     const user = req.user as any;
@@ -161,7 +161,10 @@ router.put('/:id', requireAuth, async (req, res) => {
       message: 'Failed to update class'
     });
   }
-});
+};
+
+router.put('/:id', requireAuth, updateClassHandler);
+router.patch('/:id', requireAuth, updateClassHandler);
 
 // Delete class
 router.delete('/:id', requireAuth, async (req, res) => {

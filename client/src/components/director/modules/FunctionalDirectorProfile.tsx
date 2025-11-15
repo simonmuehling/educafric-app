@@ -36,13 +36,6 @@ interface DirectorProfile {
   totalStudents: number;
   totalClasses: number;
   yearsInPosition: number;
-  achievements: Array<{
-    id: number;
-    title: string;
-    description: string;
-    date: string;
-    type: string;
-  }>;
 }
 
 const FunctionalDirectorProfile: React.FC = () => {
@@ -320,7 +313,7 @@ const FunctionalDirectorProfile: React.FC = () => {
         </div>
 
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="personal" className="flex flex-col items-center gap-1 py-3" title={t.personalInfo}>
               <User className="w-5 h-5" />
               <span className="text-xs hidden sm:block">{t.personalInfo}</span>
@@ -332,10 +325,6 @@ const FunctionalDirectorProfile: React.FC = () => {
             <TabsTrigger value="security" className="flex flex-col items-center gap-1 py-3" title={t.security}>
               <Shield className="w-5 h-5" />
               <span className="text-xs hidden sm:block">{t.security}</span>
-            </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex flex-col items-center gap-1 py-3" title={t.achievements}>
-              <Award className="w-5 h-5" />
-              <span className="text-xs hidden sm:block">{t.achievements}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -401,7 +390,8 @@ const FunctionalDirectorProfile: React.FC = () => {
                     <label className="text-sm font-medium">{t.schoolName}</label>
                     <Input
                       value={formData.schoolName || ''}
-                      disabled={true}
+                      onChange={(e) => setFormData(prev => ({ ...prev, schoolName: e.target.value }))}
+                      disabled={!isEditing}
                       data-testid="input-schoolName"
                     />
                   </div>
@@ -553,43 +543,6 @@ const FunctionalDirectorProfile: React.FC = () => {
                     <Shield className="w-4 h-4 mr-2" />
                     {t.changePassword}
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Achievements Tab */}
-          <TabsContent value="achievements" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Award className="w-5 h-5 mr-2" />
-                  {t.recentAchievements}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  {(profile?.achievements || []).map((achievement: any, index: number) => (
-                    <div key={achievement.id || index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-                      <div className="bg-yellow-100 rounded-full p-2">
-                        <Star className="w-5 h-5 text-yellow-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{achievement.title || ''}</h4>
-                        <p className="text-gray-600 text-sm">{achievement.description || ''}</p>
-                        <p className="text-gray-500 text-xs mt-1">{achievement.date}</p>
-                      </div>
-                      <Badge variant="outline">{achievement.type}</Badge>
-                    </div>
-                  ))}
-                  {(!profile?.achievements || profile.achievements.length === 0) && (
-                    <div className="text-center py-8">
-                      <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600">
-                        {language === 'fr' ? 'Aucune réalisation pour le moment' : 'No achievements yet'}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
