@@ -2,8 +2,8 @@
 // Extracted from huge storage.ts to prevent crashes
 
 import { db } from "../db";
-import { users, grades, attendance, classes, homework, homeworkSubmissions } from "../../shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { users, grades, attendance, classes, homework, homeworkSubmissions, classEnrollments } from "../../shared/schema";
+import { eq, desc, and } from "drizzle-orm";
 import type { IStudentStorage } from "./interfaces";
 
 export class StudentStorage implements IStudentStorage {
@@ -85,6 +85,9 @@ export class StudentStorage implements IStudentStorage {
   // Missing methods needed by student routes
   async getStudentsBySchool(schoolId: number): Promise<any[]> {
     try {
+      console.log('[STUDENT_STORAGE] Getting students for school:', schoolId);
+      
+      // Get all students (users with role Student) for this school
       const students = await db.select({
         id: users.id,
         firstName: users.firstName,
@@ -92,90 +95,71 @@ export class StudentStorage implements IStudentStorage {
         email: users.email,
         phone: users.phone,
         schoolId: users.schoolId,
+        role: users.role,
         createdAt: users.createdAt
-      }).from(users).where(eq(users.schoolId, schoolId));
+      })
+      .from(users)
+      .where(
+        and(
+          eq(users.schoolId, schoolId),
+          eq(users.role, 'Student')
+        )
+      );
       
-      // Add mock data for better display
+      console.log(`[STUDENT_STORAGE] ✅ Found ${students.length} students for school ${schoolId}`);
+      
+      // Format student data with full name
       return students.map(student => ({
         ...student,
-        name: `${student.firstName} ${student.lastName}`,
-        className: 'Classe à déterminer',
-        level: 'Niveau à déterminer',
-        age: Math.floor(Math.random() * 5) + 16, // Mock age between 16-20
-        parentName: 'Parent à contacter',
-        parentEmail: 'parent@example.com',
-        parentPhone: '+237650000000',
-        average: Math.floor(Math.random() * 10) + 10, // Mock average between 10-20
-        attendance: Math.floor(Math.random() * 20) + 80 // Mock attendance between 80-100%
+        name: `${student.firstName} ${student.lastName}`
       }));
     } catch (error) {
       console.error('[STUDENT_STORAGE] ❌ Error getting students by school:', schoolId, error);
-      
-      // Only return mock students for demo/sandbox schools (IDs 1-6, 15)
-      // Real production schools (10+) should see empty state, not hardcoded data
-      const isSandboxSchool = schoolId <= 6 || schoolId === 15;
-      
-      if (isSandboxSchool) {
-        console.log('[STUDENT_STORAGE] 📋 Returning demo students for sandbox school:', schoolId);
-        return [
-          {
-            id: 1,
-            firstName: 'Marie',
-            lastName: 'Kouam',
-            name: 'Marie Kouam',
-            email: 'marie.kouam@student.cm',
-            className: '6ème A',
-            level: '6ème',
-            age: 16,
-            parentName: 'Paul Kouam',
-            parentEmail: 'paul.kouam@parent.cm',
-            parentPhone: '+237650000001',
-            status: 'active',
-            average: 16.5,
-            attendance: 95,
-            schoolId
-          },
-          {
-            id: 2,
-            firstName: 'Jean',
-            lastName: 'Mbida',
-            name: 'Jean Mbida',
-            email: 'jean.mbida@student.cm',
-            className: '5ème B',
-            level: '5ème',
-            age: 17,
-            parentName: 'Sophie Mbida',
-            parentEmail: 'sophie.mbida@parent.cm',
-            parentPhone: '+237650000002',
-            status: 'active',
-            average: 14.8,
-            attendance: 88,
-            schoolId
-          }
-        ];
-      }
-      
-      // For real production schools, return empty array and log the error
-      console.error('[STUDENT_STORAGE] ⚠️ Production school', schoolId, 'has database error - returning empty array');
-      return [];
+      throw error;
     }
   }
 
   async getStudentsByClass(classId: number): Promise<any[]> {
     try {
-      const students = await db.select().from(users).where(eq(users.schoolId, classId)); // Note: this should actually use a proper class relation
-      return students.map(student => ({
-        ...student,
-        name: `${student.firstName} ${student.lastName}`,
-        className: 'Classe actuelle',
-        level: 'Niveau actuel',
-        age: Math.floor(Math.random() * 5) + 16,
-        average: Math.floor(Math.random() * 10) + 10,
-        attendance: Math.floor(Math.random() * 20) + 80
+      console.log('[STUDENT_STORAGE] Getting students for class:', classId);
+      
+      // Use class_enrollments table to find all students enrolled in this class
+      const enrollments = await db.select({
+        studentId: classEnrollments.studentId,
+        enrollmentDate: classEnrollments.enrollmentDate,
+        status: classEnrollments.status,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        role: users.role
+      })
+      .from(classEnrollments)
+      .innerJoin(users, eq(classEnrollments.studentId, users.id))
+      .where(
+        and(
+          eq(classEnrollments.classId, classId),
+          eq(classEnrollments.status, 'active')
+        )
+      );
+      
+      console.log(`[STUDENT_STORAGE] ✅ Found ${enrollments.length} students in class ${classId}`);
+      
+      // Format student data
+      return enrollments.map(enrollment => ({
+        id: enrollment.studentId,
+        firstName: enrollment.firstName,
+        lastName: enrollment.lastName,
+        name: `${enrollment.firstName} ${enrollment.lastName}`,
+        email: enrollment.email,
+        phone: enrollment.phone,
+        role: enrollment.role,
+        enrollmentDate: enrollment.enrollmentDate,
+        status: enrollment.status
       }));
     } catch (error) {
-      console.error('Error getting students by class:', error);
-      return [];
+      console.error('[STUDENT_STORAGE] Error getting students by class:', error);
+      throw error;
     }
   }
 }

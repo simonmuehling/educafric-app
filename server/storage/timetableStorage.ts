@@ -1,30 +1,30 @@
-// import { db } from "../db";
-// import { eq, and } from "drizzle-orm";
+import { db } from "../db";
+import { eq, and } from "drizzle-orm";
+import { parentStudentRelations, timetables, users, classes, classEnrollments } from "../../shared/schema";
 
-// Import timetable schema - need to check actual implementation
 export class TimetableStorage {
   
   // Verify parent-child relationship before accessing timetable
   async verifyParentChildRelation(parentId: number, studentId: number): Promise<boolean> {
     try {
-      // Mock verification for now - replace with actual database query
-      // This should check the parentStudentRelations table
       console.log(`[TIMETABLE_SECURITY] Verifying parent ${parentId} access to student ${studentId}`);
       
-      // Correct parent-child relationships for sandbox/demo accounts
-      const parentChildRelations = {
-        7: [1, 2],        // parent.demo@test.educafric.com children
-        9001: [9004]      // sandbox.parent@educafric.demo child (Marie Kamga -> Junior Kamga)
-      };
+      // Query the database for parent-student relationship
+      const relation = await db.select()
+        .from(parentStudentRelations)
+        .where(
+          and(
+            eq(parentStudentRelations.parentId, parentId),
+            eq(parentStudentRelations.studentId, studentId)
+          )
+        )
+        .limit(1);
       
-      const allowedChildren = parentChildRelations[parentId as keyof typeof parentChildRelations];
-      if (allowedChildren && allowedChildren.includes(studentId)) {
+      if (relation && relation.length > 0) {
         console.log(`[TIMETABLE_SECURITY] ✅ Access granted for parent ${parentId} to their child ${studentId}`);
         return true;
       }
       
-      // TODO: Implement actual database verification
-      // SELECT * FROM parent_student_relations WHERE parent_id = ? AND student_id = ?
       console.log(`[TIMETABLE_SECURITY] ❌ Access denied for parent ${parentId} to student ${studentId}`);
       return false;
     } catch (error) {
@@ -54,100 +54,69 @@ export class TimetableStorage {
   // Get timetable for a specific student
   async getStudentTimetable(studentId: number) {
     try {
-      // For now, return mock data that matches the expected structure
-      // TODO: Replace with actual database query when timetableSlots table is properly set up
-      const mockTimetable = [
-        {
-          id: 1,
-          dayOfWeek: 1, // Monday
-          startTime: "08:00",
-          endTime: "09:00",
-          subjectName: "Mathématiques",
-          teacherName: "Prof. Mvondo",
-          room: "Salle 101",
-          studentId: studentId,
-          classId: 1
-        },
-        {
-          id: 2,
-          dayOfWeek: 1, // Monday
-          startTime: "09:15",
-          endTime: "10:15",
-          subjectName: "Français",
-          teacherName: "Prof. Kouame",
-          room: "Salle 102",
-          studentId: studentId,
-          classId: 1
-        },
-        {
-          id: 3,
-          dayOfWeek: 1, // Monday
-          startTime: "10:30",
-          endTime: "11:30",
-          subjectName: "Anglais",
-          teacherName: "Prof. Smith",
-          room: "Salle 103",
-          studentId: studentId,
-          classId: 1
-        },
-        {
-          id: 4,
-          dayOfWeek: 2, // Tuesday
-          startTime: "08:00",
-          endTime: "09:00",
-          subjectName: "Sciences",
-          teacherName: "Prof. Biya",
-          room: "Laboratoire",
-          studentId: studentId,
-          classId: 1
-        },
-        {
-          id: 5,
-          dayOfWeek: 2, // Tuesday
-          startTime: "09:15",
-          endTime: "10:15",
-          subjectName: "Histoire",
-          teacherName: "Prof. Fouda",
-          room: "Salle 201",
-          studentId: studentId,
-          classId: 1
-        },
-        {
-          id: 6,
-          dayOfWeek: 3, // Wednesday
-          startTime: "08:00",
-          endTime: "09:00",
-          subjectName: "Géographie",
-          teacherName: "Prof. Tchoung",
-          room: "Salle 105",
-          studentId: studentId,
-          classId: 1
-        },
-        {
-          id: 7,
-          dayOfWeek: 4, // Thursday
-          startTime: "08:00",
-          endTime: "09:00",
-          subjectName: "Education Physique",
-          teacherName: "Prof. Kamga",
-          room: "Gymnase",
-          studentId: studentId,
-          classId: 1
-        },
-        {
-          id: 8,
-          dayOfWeek: 5, // Friday
-          startTime: "08:00",
-          endTime: "09:00",
-          subjectName: "Arts Plastiques",
-          teacherName: "Prof. Nana",
-          room: "Atelier",
-          studentId: studentId,
-          classId: 1
-        }
-      ];
-
-      return mockTimetable;
+      console.log('[TIMETABLE_STORAGE] Getting timetable for student:', studentId);
+      
+      // First, find the student's current class enrollment
+      const enrollment = await db.select()
+        .from(classEnrollments)
+        .where(
+          and(
+            eq(classEnrollments.studentId, studentId),
+            eq(classEnrollments.status, 'active')
+          )
+        )
+        .limit(1);
+      
+      if (!enrollment || enrollment.length === 0) {
+        console.log('[TIMETABLE_STORAGE] Student has no active class enrollment:', studentId);
+        return [];
+      }
+      
+      const studentClassId = enrollment[0].classId;
+      if (!studentClassId) {
+        console.log('[TIMETABLE_STORAGE] Student enrollment missing classId:', studentId);
+        return [];
+      }
+      
+      // Get timetable entries for the student's class
+      const timetableEntries = await db.select({
+        id: timetables.id,
+        dayOfWeek: timetables.dayOfWeek,
+        startTime: timetables.startTime,
+        endTime: timetables.endTime,
+        subjectName: timetables.subjectName,
+        room: timetables.room,
+        classId: timetables.classId,
+        teacherId: timetables.teacherId,
+        teacherFirstName: users.firstName,
+        teacherLastName: users.lastName
+      })
+      .from(timetables)
+      .leftJoin(users, eq(timetables.teacherId, users.id))
+      .where(
+        and(
+          eq(timetables.classId, studentClassId),
+          eq(timetables.isActive, true)
+        )
+      );
+      
+      // Format the response
+      const formattedTimetable = timetableEntries.map(entry => ({
+        id: entry.id,
+        dayOfWeek: entry.dayOfWeek,
+        startTime: entry.startTime,
+        endTime: entry.endTime,
+        subjectName: entry.subjectName,
+        teacherName: entry.teacherFirstName && entry.teacherLastName 
+          ? `${entry.teacherFirstName} ${entry.teacherLastName}` 
+          : 'TBA',
+        room: entry.room || 'TBA',
+        studentId: studentId,
+        classId: entry.classId
+      }));
+      
+      console.log(`[TIMETABLE_STORAGE] ✅ Found ${formattedTimetable.length} timetable entries for student ${studentId}`);
+      return formattedTimetable;
     } catch (error) {
       console.error('[TIMETABLE_STORAGE] Error getting student timetable:', error);
       return [];
@@ -157,9 +126,46 @@ export class TimetableStorage {
   // Get timetable for a specific class
   async getClassTimetable(classId: number) {
     try {
-      // Mock implementation - replace with actual database query
-      const mockTimetable: any[] = [];
-      return mockTimetable;
+      console.log('[TIMETABLE_STORAGE] Getting timetable for class:', classId);
+      
+      // Get timetable entries for the class
+      const timetableEntries = await db.select({
+        id: timetables.id,
+        dayOfWeek: timetables.dayOfWeek,
+        startTime: timetables.startTime,
+        endTime: timetables.endTime,
+        subjectName: timetables.subjectName,
+        room: timetables.room,
+        classId: timetables.classId,
+        teacherId: timetables.teacherId,
+        teacherFirstName: users.firstName,
+        teacherLastName: users.lastName
+      })
+      .from(timetables)
+      .leftJoin(users, eq(timetables.teacherId, users.id))
+      .where(
+        and(
+          eq(timetables.classId, classId),
+          eq(timetables.isActive, true)
+        )
+      );
+      
+      // Format the response
+      const formattedTimetable = timetableEntries.map(entry => ({
+        id: entry.id,
+        dayOfWeek: entry.dayOfWeek,
+        startTime: entry.startTime,
+        endTime: entry.endTime,
+        subjectName: entry.subjectName,
+        teacherName: entry.teacherFirstName && entry.teacherLastName 
+          ? `${entry.teacherFirstName} ${entry.teacherLastName}` 
+          : 'TBA',
+        room: entry.room || 'TBA',
+        classId: entry.classId
+      }));
+      
+      console.log(`[TIMETABLE_STORAGE] ✅ Found ${formattedTimetable.length} timetable entries for class ${classId}`);
+      return formattedTimetable;
     } catch (error) {
       console.error('[TIMETABLE_STORAGE] Error getting class timetable:', error);
       return [];
@@ -211,9 +217,14 @@ export class TimetableStorage {
   // Create or update timetable slot
   async createTimetableSlot(slotData: any) {
     try {
-      // Mock implementation - replace with actual database insertion
       console.log('[TIMETABLE_STORAGE] Creating timetable slot:', slotData);
-      return { id: Date.now(), ...slotData };
+      
+      const [newSlot] = await db.insert(timetables)
+        .values(slotData)
+        .returning();
+      
+      console.log('[TIMETABLE_STORAGE] ✅ Timetable slot created successfully:', newSlot.id);
+      return newSlot;
     } catch (error) {
       console.error('[TIMETABLE_STORAGE] Error creating timetable slot:', error);
       throw error;
@@ -223,9 +234,15 @@ export class TimetableStorage {
   // Update timetable slot
   async updateTimetableSlot(slotId: number, updates: any) {
     try {
-      // Mock implementation - replace with actual database update
       console.log('[TIMETABLE_STORAGE] Updating timetable slot:', slotId, updates);
-      return { id: slotId, ...updates };
+      
+      const [updatedSlot] = await db.update(timetables)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(timetables.id, slotId))
+        .returning();
+      
+      console.log('[TIMETABLE_STORAGE] ✅ Timetable slot updated successfully');
+      return updatedSlot;
     } catch (error) {
       console.error('[TIMETABLE_STORAGE] Error updating timetable slot:', error);
       throw error;
@@ -235,8 +252,12 @@ export class TimetableStorage {
   // Delete timetable slot
   async deleteTimetableSlot(slotId: number) {
     try {
-      // Mock implementation - replace with actual database deletion
       console.log('[TIMETABLE_STORAGE] Deleting timetable slot:', slotId);
+      
+      await db.delete(timetables)
+        .where(eq(timetables.id, slotId));
+      
+      console.log('[TIMETABLE_STORAGE] ✅ Timetable slot deleted successfully');
       return true;
     } catch (error) {
       console.error('[TIMETABLE_STORAGE] Error deleting timetable slot:', error);
