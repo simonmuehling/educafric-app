@@ -34,6 +34,8 @@ Preferred communication style: Simple, everyday language.
 
 - **SÉLECTION ET SUPPRESSION EN MASSE**: Fonctionnalité de sélection groupée et suppression en masse ajoutée pour les étudiants et enseignants. Inclut : checkboxes individuelles avec état Set, checkbox "Tout sélectionner", bouton de suppression groupée conditionnel, et dialogs de confirmation bilingues (français/anglais). Tous les dialogs d'alerte suivent le standard fond blanc pour lisibilité optimale.
 
+- **MASTERSHEET DATABASE-ONLY**: Le module Fiche Scolaire (Mastersheet) dans Gestion Académique utilise maintenant UNIQUEMENT des données database via l'endpoint `/api/director/bulletins/list`. Cet endpoint interroge la table `bulletinComprehensive` avec isolation multi-tenant stricte (filtre par `schoolId`, `classId`, et `term`). L'affichage inclut : informations réelles de l'école depuis `/api/director/settings`, liste des bulletins créés avec noms d'élèves/moyennes/rangs/codes de vérification, et entête d'impression bilingue format ministère (RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON) avec logo de l'école et délégations officielles. ZÉRO mock data, tout vient de la database.
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes.
 - NEVER make partial updates to only some dashboards.
 - ALWAYS preserve button functionality when making changes - buttons must remain functional.
