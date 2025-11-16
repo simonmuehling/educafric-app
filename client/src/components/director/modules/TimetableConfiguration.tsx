@@ -63,6 +63,11 @@ const TimetableConfiguration: React.FC = () => {
       }
       const data = await response.json();
       console.log('[TIMETABLE_CONFIG] ✅ Classes fetched:', data?.classes?.length || 0, 'classes');
+      console.log('[TIMETABLE_CONFIG] 📊 Classes with subjects details:', data?.classes?.map((c: any) => ({
+        name: c.name,
+        subjectsCount: c.subjects?.length || 0,
+        subjects: c.subjects?.map((s: any) => s.name)
+      })));
       return data;
     },
     retry: 2,
@@ -165,12 +170,15 @@ const TimetableConfiguration: React.FC = () => {
     }
     
     const selectedClass = availableClasses.find((c: any) => c.name === formData.className);
+    console.log('[TIMETABLE] 🔍 Selected class data for', formData.className, ':', selectedClass);
+    
     if (selectedClass?.subjects) {
+      console.log('[TIMETABLE] 📚 Subjects found:', selectedClass.subjects);
       return selectedClass.subjects.map((subject: any) => subject.name);
     }
     
-    // Fallback subjects if no subjects found in class
-    return ['Mathématiques', 'Français', 'Sciences', 'Histoire', 'Anglais'];
+    console.log('[TIMETABLE] ⚠️ No subjects found for class:', formData.className);
+    return [];
   };
 
   // Function to get teachers for selected class
@@ -853,10 +861,17 @@ const TimetableConfiguration: React.FC = () => {
                         '⬆️ Select a class first to see subjects'}
                     </div>
                   ) : getAvailableSubjects().length === 0 ? (
-                    <div className="w-full p-3 border rounded text-center text-sm text-yellow-600 bg-yellow-50">
-                      {language === 'fr' ? 
-                        '⚠️ Aucune matière configurée pour cette classe' : 
-                        '⚠️ No subjects configured for this class'}
+                    <div className="w-full p-4 border-2 border-dashed border-orange-300 rounded bg-orange-50 text-center">
+                      <p className="text-sm font-medium text-orange-800 mb-2">
+                        {language === 'fr' ? 
+                          '⚠️ Aucune matière trouvée pour cette classe' : 
+                          '⚠️ No subjects found for this class'}
+                      </p>
+                      <p className="text-xs text-orange-700">
+                        {language === 'fr' ? 
+                          'Allez dans "Gestion des Classes" pour ajouter des matières à cette classe, puis revenez ici.' : 
+                          'Go to "Class Management" to add subjects to this class, then come back here.'}
+                      </p>
                     </div>
                   ) : (
                     <Select value={formData.subject} onValueChange={(value) => setFormData(prev => ({ ...prev, subject: value }))}>
