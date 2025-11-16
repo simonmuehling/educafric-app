@@ -1,146 +1,169 @@
-// ===== BULLETIN STORAGE =====
-// Handles bulletin-related database operations
-
+import { db } from "../db";
+import { bulletins, users, classes } from "../../shared/schema";
+import { eq, and } from "drizzle-orm";
 import { IBulletinStorage } from './interfaces';
 
 export class BulletinStorage implements IBulletinStorage {
   
   async getBulletin(id: number): Promise<any | null> {
-    // Mock implementation for bulletin retrieval
-    // In real implementation, this would query the database
-    console.log(`[BULLETIN_STORAGE] Getting bulletin with ID: ${id}`);
-    
-    // Mock bulletin data - replace with actual database query
-    return {
-      id: id,
-      studentId: 1,
-      classId: 1,
-      className: 'CM2 A',
-      period: '1er Trimestre',
-      academicYear: '2024-2025',
-      generalAverage: 14.5,
-      classRank: 5,
-      totalStudentsInClass: 25,
-      status: 'published',
-      grades: [
-        { subjectId: 1, subjectName: 'Mathématiques', grade: 15, coefficient: 3 },
-        { subjectId: 2, subjectName: 'Français', grade: 14, coefficient: 3 },
-        { subjectId: 3, subjectName: 'Sciences', grade: 16, coefficient: 2 }
-      ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    try {
+      console.log(`[BULLETIN_STORAGE] Getting bulletin with ID: ${id}`);
+      
+      const [bulletin] = await db.select()
+        .from(bulletins)
+        .where(eq(bulletins.id, id))
+        .limit(1);
+      
+      if (!bulletin) {
+        console.log(`[BULLETIN_STORAGE] Bulletin ${id} not found`);
+        return null;
+      }
+      
+      console.log(`[BULLETIN_STORAGE] ✅ Bulletin ${id} retrieved successfully`);
+      return bulletin;
+    } catch (error) {
+      console.error('[BULLETIN_STORAGE] Error getting bulletin:', error);
+      throw error;
+    }
   }
 
   async createBulletin(bulletin: any): Promise<any> {
-    console.log(`[BULLETIN_STORAGE] Creating new bulletin for student:`, bulletin.studentId);
-    
-    // Mock implementation - replace with actual database insert
-    const newBulletin = {
-      id: Date.now(), // Mock ID generation
-      ...bulletin,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    return newBulletin;
+    try {
+      console.log(`[BULLETIN_STORAGE] Creating new bulletin for student:`, bulletin.studentId);
+      
+      const [newBulletin] = await db.insert(bulletins)
+        .values(bulletin)
+        .returning();
+      
+      console.log(`[BULLETIN_STORAGE] ✅ Bulletin created successfully:`, newBulletin.id);
+      return newBulletin;
+    } catch (error) {
+      console.error('[BULLETIN_STORAGE] Error creating bulletin:', error);
+      throw error;
+    }
   }
 
   async updateBulletin(id: number, updates: any): Promise<any> {
-    console.log(`[BULLETIN_STORAGE] Updating bulletin ${id} with:`, updates);
-    
-    // Mock implementation - replace with actual database update
-    const existingBulletin = await this.getBulletin(id);
-    if (!existingBulletin) {
-      throw new Error(`Bulletin with ID ${id} not found`);
+    try {
+      console.log(`[BULLETIN_STORAGE] Updating bulletin ${id}`);
+      
+      const [updatedBulletin] = await db.update(bulletins)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(bulletins.id, id))
+        .returning();
+      
+      if (!updatedBulletin) {
+        throw new Error(`Bulletin with ID ${id} not found`);
+      }
+      
+      console.log(`[BULLETIN_STORAGE] ✅ Bulletin ${id} updated successfully`);
+      return updatedBulletin;
+    } catch (error) {
+      console.error('[BULLETIN_STORAGE] Error updating bulletin:', error);
+      throw error;
     }
-    
-    const updatedBulletin = {
-      ...existingBulletin,
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-    
-    return updatedBulletin;
   }
 
   async getBulletinsByStudent(studentId: number): Promise<any[]> {
-    console.log(`[BULLETIN_STORAGE] Getting bulletins for student:`, studentId);
-    
-    // Mock implementation - replace with actual database query
-    return [
-      {
-        id: 1,
-        studentId: studentId,
-        period: '1er Trimestre',
-        academicYear: '2024-2025',
-        generalAverage: 14.5,
-        status: 'published'
-      },
-      {
-        id: 2,
-        studentId: studentId,
-        period: '2ème Trimestre',
-        academicYear: '2024-2025',
-        generalAverage: 15.2,
-        status: 'draft'
-      }
-    ];
+    try {
+      console.log(`[BULLETIN_STORAGE] Getting bulletins for student:`, studentId);
+      
+      const studentBulletins = await db.select()
+        .from(bulletins)
+        .where(eq(bulletins.studentId, studentId));
+      
+      console.log(`[BULLETIN_STORAGE] ✅ Found ${studentBulletins.length} bulletins for student ${studentId}`);
+      return studentBulletins;
+    } catch (error) {
+      console.error('[BULLETIN_STORAGE] Error getting bulletins by student:', error);
+      throw error;
+    }
   }
 
   async getBulletinsByClass(classId: number): Promise<any[]> {
-    console.log(`[BULLETIN_STORAGE] Getting bulletins for class:`, classId);
-    
-    // Mock implementation - replace with actual database query
-    return [
-      {
-        id: 1,
-        classId: classId,
-        studentId: 1,
-        studentName: 'Marie Nguema',
-        period: '1er Trimestre',
-        generalAverage: 14.5,
-        status: 'published'
-      },
-      {
-        id: 2,
-        classId: classId,
-        studentId: 2,
-        studentName: 'Paul Mbala',
-        period: '1er Trimestre',
-        generalAverage: 16.2,
-        status: 'approved'
-      }
-    ];
+    try {
+      console.log(`[BULLETIN_STORAGE] Getting bulletins for class:`, classId);
+      
+      const classBulletins = await db.select({
+        id: bulletins.id,
+        studentId: bulletins.studentId,
+        classId: bulletins.classId,
+        term: bulletins.term,
+        academicYear: bulletins.academicYear,
+        generalAverage: bulletins.generalAverage,
+        status: bulletins.status,
+        studentFirstName: users.firstName,
+        studentLastName: users.lastName
+      })
+      .from(bulletins)
+      .leftJoin(users, eq(bulletins.studentId, users.id))
+      .where(eq(bulletins.classId, classId));
+      
+      // Format response with student name
+      const formatted = classBulletins.map(b => ({
+        id: b.id,
+        classId: b.classId,
+        studentId: b.studentId,
+        studentName: b.studentFirstName && b.studentLastName 
+          ? `${b.studentFirstName} ${b.studentLastName}` 
+          : 'Unknown',
+        term: b.term,
+        academicYear: b.academicYear,
+        generalAverage: b.generalAverage,
+        status: b.status
+      }));
+      
+      console.log(`[BULLETIN_STORAGE] ✅ Found ${formatted.length} bulletins for class ${classId}`);
+      return formatted;
+    } catch (error) {
+      console.error('[BULLETIN_STORAGE] Error getting bulletins by class:', error);
+      throw error;
+    }
   }
 
   async getBulletinsBySchool(schoolId: number): Promise<any[]> {
-    console.log(`[BULLETIN_STORAGE] Getting bulletins for school:`, schoolId);
-    
-    // Mock implementation - replace with actual database query
-    return [
-      {
-        id: 1,
-        schoolId: schoolId,
-        classId: 1,
-        className: 'CM2 A',
-        studentId: 1,
-        studentName: 'Marie Nguema',
-        period: '1er Trimestre',
-        generalAverage: 14.5,
-        status: 'published'
-      },
-      {
-        id: 2,
-        schoolId: schoolId,
-        classId: 1,
-        className: 'CM2 A',
-        studentId: 2,
-        studentName: 'Paul Mbala',
-        period: '1er Trimestre',
-        generalAverage: 16.2,
-        status: 'approved'
-      }
-    ];
+    try {
+      console.log(`[BULLETIN_STORAGE] Getting bulletins for school:`, schoolId);
+      
+      const schoolBulletins = await db.select({
+        bulletinId: bulletins.id,
+        studentId: bulletins.studentId,
+        classId: bulletins.classId,
+        term: bulletins.term,
+        academicYear: bulletins.academicYear,
+        generalAverage: bulletins.generalAverage,
+        status: bulletins.status,
+        studentFirstName: users.firstName,
+        studentLastName: users.lastName,
+        className: classes.name,
+        schoolId: bulletins.schoolId
+      })
+      .from(bulletins)
+      .leftJoin(users, eq(bulletins.studentId, users.id))
+      .leftJoin(classes, eq(bulletins.classId, classes.id))
+      .where(eq(bulletins.schoolId, schoolId));
+      
+      // Format response
+      const formatted = schoolBulletins.map(b => ({
+        id: b.bulletinId,
+        schoolId: b.schoolId,
+        classId: b.classId,
+        className: b.className || 'Unknown',
+        studentId: b.studentId,
+        studentName: b.studentFirstName && b.studentLastName 
+          ? `${b.studentFirstName} ${b.studentLastName}` 
+          : 'Unknown',
+        term: b.term,
+        academicYear: b.academicYear,
+        generalAverage: b.generalAverage,
+        status: b.status
+      }));
+      
+      console.log(`[BULLETIN_STORAGE] ✅ Found ${formatted.length} bulletins for school ${schoolId}`);
+      return formatted;
+    } catch (error) {
+      console.error('[BULLETIN_STORAGE] Error getting bulletins by school:', error);
+      throw error;
+    }
   }
 }
