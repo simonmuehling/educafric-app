@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,6 +59,11 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   const [uploadingPhoto, setUploadingPhoto] = useState<number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState<{id: number, name: string} | null>(null);
+  
+  // Bulk selection states
+  const [selectedTeachers, setSelectedTeachers] = useState<Set<number>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  
   const [teacherForm, setTeacherForm] = useState({
     name: '',
     email: '',
@@ -312,6 +318,47 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     }
   });
 
+  // Bulk delete mutation
+  const bulkDeleteTeachersMutation = useMutation({
+    mutationFn: async (teacherIds: number[]) => {
+      const responses = await Promise.all(
+        teacherIds.map(id => 
+          fetch(`/api/director/teachers/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          }).then(res => {
+            if (!res.ok) throw new Error(`Failed to delete teacher ${id}`);
+            return res.json();
+          })
+        )
+      );
+      return responses;
+    },
+    onSuccess: (_, teacherIds) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/teachers'] });
+      
+      setSelectedTeachers(new Set());
+      setBulkDeleteDialogOpen(false);
+      
+      toast({
+        title: language === 'fr' ? '✅ Suppression réussie' : '✅ Deletion Successful',
+        description: language === 'fr' 
+          ? `${teacherIds.length} enseignant(s) supprimé(s) avec succès` 
+          : `${teacherIds.length} teacher(s) deleted successfully`
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? '❌ Erreur' : '❌ Error',
+        description: language === 'fr' 
+          ? 'Impossible de supprimer les enseignants sélectionnés' 
+          : 'Failed to delete selected teachers',
+        variant: 'destructive'
+      });
+    }
+  });
+
   const handleCreateTeacher = () => {
     // Validate: At least name is required
     if (!teacherForm.name || !teacherForm.name.trim()) {
@@ -392,6 +439,35 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       deleteTeacherMutation.mutate(teacherToDelete.id);
       setTeacherToDelete(null);
     }
+  };
+
+  // Bulk selection handlers
+  const toggleSelectTeacher = (teacherId: number) => {
+    const newSelected = new Set(selectedTeachers);
+    if (newSelected.has(teacherId)) {
+      newSelected.delete(teacherId);
+    } else {
+      newSelected.add(teacherId);
+    }
+    setSelectedTeachers(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedTeachers.size === filteredTeachers.length && filteredTeachers.length > 0) {
+      setSelectedTeachers(new Set());
+    } else {
+      setSelectedTeachers(new Set(filteredTeachers.map(t => t.id)));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedTeachers.size > 0) {
+      setBulkDeleteDialogOpen(true);
+    }
+  };
+
+  const confirmBulkDelete = () => {
+    bulkDeleteTeachersMutation.mutate(Array.from(selectedTeachers));
   };
 
   // Upload photo mutation
@@ -617,6 +693,16 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
           <p className="text-gray-500">{text.description}</p>
         </div>
         <div className="flex gap-3">
+          {selectedTeachers.size > 0 && (
+            <Button 
+              onClick={handleBulkDelete}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="button-bulk-delete-teachers"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {language === 'fr' ? `Supprimer (${selectedTeachers.size})` : `Delete (${selectedTeachers.size})`}
+            </Button>
+          )}
           <Button 
             onClick={() => setIsImportModalOpen(true)}
             className="bg-green-600 hover:bg-green-700"
@@ -729,6 +815,17 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       <Card>
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                checked={selectedTeachers.size === filteredTeachers.length && filteredTeachers.length > 0}
+                onCheckedChange={toggleSelectAll}
+                id="select-all-teachers"
+                data-testid="checkbox-select-all-teachers"
+              />
+              <Label htmlFor="select-all-teachers" className="text-sm cursor-pointer">
+                {language === 'fr' ? 'Tout sélectionner' : 'Select All'}
+              </Label>
+            </div>
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -1289,6 +1386,12 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
               {(Array.isArray(filteredTeachers) ? filteredTeachers : []).map((teacher) => (
                 <div key={teacher.id} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-start gap-4">
+                    <Checkbox
+                      checked={selectedTeachers.has(teacher.id)}
+                      onCheckedChange={() => toggleSelectTeacher(teacher.id)}
+                      data-testid={`checkbox-teacher-${teacher.id}`}
+                      className="mt-1"
+                    />
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <GraduationCap className="w-5 h-5 text-blue-600" />
                     </div>
@@ -1562,6 +1665,19 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
           ? `Êtes-vous sûr de vouloir supprimer l'enseignant "${teacherToDelete?.name}" ? Cette action est irréversible et supprimera toutes les données associées.`
           : `Are you sure you want to delete the teacher "${teacherToDelete?.name}"? This action cannot be undone and will remove all associated data.`}
         confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
+        cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+      />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+        onConfirm={confirmBulkDelete}
+        title={language === 'fr' ? 'Suppression groupée' : 'Bulk Delete'}
+        description={language === 'fr' 
+          ? `Êtes-vous sûr de vouloir supprimer ${selectedTeachers.size} enseignant(s) sélectionné(s) ? Cette action est irréversible et supprimera toutes les données associées.`
+          : `Are you sure you want to delete ${selectedTeachers.size} selected teacher(s)? This action cannot be undone and will remove all associated data.`}
+        confirmText={language === 'fr' ? 'Supprimer tout' : 'Delete All'}
         cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
       />
     </div>
