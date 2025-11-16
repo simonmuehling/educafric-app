@@ -16,6 +16,7 @@ import { ArchiveStorage } from "./archiveStorage";
 import { EducafricNumberStorage } from "./educafricNumberStorage";
 import { CanteenStorage } from "./canteenStorage";
 import { BusStorage } from "./busStorage";
+import { ClassStorage } from "./classStorage";
 import type { NotificationPreferences, InsertNotificationPreferences } from "../../shared/schema";
 import type { ArchiveFilter, ArchiveResponse, NewArchivedDocument, NewArchiveAccessLog } from "../../shared/schemas/archiveSchema";
 
@@ -36,6 +37,7 @@ export class ModularStorage {
   private educafricNumberStorage: EducafricNumberStorage;
   private canteenStorage: CanteenStorage;
   private busStorage: BusStorage;
+  private classStorage: ClassStorage;
 
   constructor() {
     this.userStorage = new UserStorage();
@@ -53,6 +55,7 @@ export class ModularStorage {
     this.educafricNumberStorage = new EducafricNumberStorage();
     this.canteenStorage = new CanteenStorage();
     this.busStorage = new BusStorage();
+    this.classStorage = new ClassStorage();
   }
 
   // === USER METHODS ===
@@ -924,38 +927,30 @@ export class ModularStorage {
       }
     ];
   }
-  async getClassesBySchool(schoolId: number) { return this.getSchoolClasses(schoolId); }
-  async getClass(classId: number) { return null; }
+  
   async createClass(classData: any) { 
-    // Mock implementation for class creation
-    return { 
-      id: Math.floor(Math.random() * 1000) + 100,
-      ...classData,
-      success: true,
-      createdAt: new Date()
-    }; 
+    return this.classStorage.createClass(classData);
   }
   
   async updateClass(classId: number, updates: any) {
-    // Mock implementation for class updates
-    return {
-      id: classId,
-      ...updates,
-      success: true,
-      updatedAt: new Date()
-    };
+    return this.classStorage.updateClass(classId, updates);
   }
   
   async deleteClass(classId: number) {
-    // Mock implementation for class deletion
-    return {
-      id: classId,
-      success: true,
-      deletedAt: new Date()
-    };
+    return this.classStorage.deleteClass(classId);
   }
-  // Duplicate methods removed - using implementations from fallback methods section
-  async getSubjectsByClass(classId: number) { return []; }
+  
+  async getClass(classId: number) {
+    return this.classStorage.getClass(classId);
+  }
+  
+  async getClassesBySchool(schoolId: number) {
+    return this.classStorage.getClassesBySchool(schoolId);
+  }
+  
+  async getSubjectsByClass(classId: number) { 
+    return this.classStorage.getSubjectsByClass(classId);
+  }
   async getGradeStatsByClass(classId: number) { return {}; }
   
   // === MÉTHODES MANQUANTES POUR LES ROUTES ADMIN ===
