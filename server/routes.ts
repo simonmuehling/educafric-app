@@ -1504,39 +1504,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let classes;
       
       if (isSandboxUser) {
-        console.log('[DIRECTOR_CLASSES_API] Sandbox user detected - using mock data');
+        console.log('[DIRECTOR_CLASSES_API] Sandbox user detected - using mock data with subjects');
         // Return mock classes data for sandbox/demo users
-        // ✅ CLASSES SANDBOX COMPLÈTES : PRIMAIRE → SECONDAIRE → LYCÉE
+        // ✅ CLASSES SANDBOX COMPLÈTES : PRIMAIRE → SECONDAIRE → LYCÉE avec MATIÈRES
+        const primarySubjects = [
+          { name: 'Français', id: 1 },
+          { name: 'Mathématiques', id: 2 },
+          { name: 'Sciences', id: 3 },
+          { name: 'Anglais', id: 4 }
+        ];
+        
+        const secondarySubjects = [
+          { name: 'Mathématiques', id: 2 },
+          { name: 'Français', id: 1 },
+          { name: 'Anglais', id: 4 },
+          { name: 'Sciences Physiques', id: 5 },
+          { name: 'SVT', id: 6 },
+          { name: 'Histoire-Géographie', id: 7 },
+          { name: 'EPS', id: 8 }
+        ];
+        
         classes = [
           // === PRIMAIRE ===
-          { id: 1, name: 'CP1 A', level: 'CP1', capacity: 25, studentCount: 22, schoolId: user.schoolId || 1, isActive: true },
-          { id: 2, name: 'CP2 B', level: 'CP2', capacity: 25, studentCount: 24, schoolId: user.schoolId || 1, isActive: true },
-          { id: 3, name: 'CE1 A', level: 'CE1', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true },
-          { id: 4, name: 'CE2 B', level: 'CE2', capacity: 28, studentCount: 25, schoolId: user.schoolId || 1, isActive: true },
-          { id: 5, name: 'CM1 A', level: 'CM1', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true },
-          { id: 6, name: 'CM2 B', level: 'CM2', capacity: 30, studentCount: 29, schoolId: user.schoolId || 1, isActive: true },
+          { id: 1, name: 'CP1 A', level: 'CP1', capacity: 25, studentCount: 22, schoolId: user.schoolId || 1, isActive: true, subjects: primarySubjects },
+          { id: 2, name: 'CP2 B', level: 'CP2', capacity: 25, studentCount: 24, schoolId: user.schoolId || 1, isActive: true, subjects: primarySubjects },
+          { id: 3, name: 'CE1 A', level: 'CE1', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true, subjects: primarySubjects },
+          { id: 4, name: 'CE2 B', level: 'CE2', capacity: 28, studentCount: 25, schoolId: user.schoolId || 1, isActive: true, subjects: primarySubjects },
+          { id: 5, name: 'CM1 A', level: 'CM1', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true, subjects: primarySubjects },
+          { id: 6, name: 'CM2 B', level: 'CM2', capacity: 30, studentCount: 29, schoolId: user.schoolId || 1, isActive: true, subjects: primarySubjects },
           
           // === COLLÈGE ===
-          { id: 7, name: '6ème A', level: '6ème', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true },
-          { id: 8, name: '6ème B', level: '6ème', capacity: 30, studentCount: 25, schoolId: user.schoolId || 1, isActive: true },
-          { id: 9, name: '5ème A', level: '5ème', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true },
-          { id: 10, name: '5ème B', level: '5ème', capacity: 28, studentCount: 27, schoolId: user.schoolId || 1, isActive: true },
-          { id: 11, name: '4ème A', level: '4ème', capacity: 32, studentCount: 30, schoolId: user.schoolId || 1, isActive: true },
-          { id: 12, name: '3ème A', level: '3ème', capacity: 25, studentCount: 24, schoolId: user.schoolId || 1, isActive: true },
+          { id: 7, name: '6ème A', level: '6ème', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
+          { id: 8, name: '6ème B', level: '6ème', capacity: 30, studentCount: 25, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
+          { id: 9, name: '5ème A', level: '5ème', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
+          { id: 10, name: '5ème B', level: '5ème', capacity: 28, studentCount: 27, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
+          { id: 11, name: '4ème A', level: '4ème', capacity: 32, studentCount: 30, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
+          { id: 12, name: '3ème A', level: '3ème', capacity: 25, studentCount: 24, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
           
           // === LYCÉE ===
-          { id: 13, name: '2nde A', level: '2nde', capacity: 35, studentCount: 32, schoolId: user.schoolId || 1, isActive: true },
-          { id: 14, name: '2nde C', level: '2nde', capacity: 35, studentCount: 31, schoolId: user.schoolId || 1, isActive: true },
-          { id: 15, name: '1ère S', level: '1ère', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true },
-          { id: 16, name: '1ère L', level: '1ère', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true },
-          { id: 17, name: 'Tle C', level: 'Tle', capacity: 30, studentCount: 27, schoolId: user.schoolId || 1, isActive: true },
-          { id: 18, name: 'Tle D', level: 'Tle', capacity: 28, studentCount: 25, schoolId: user.schoolId || 1, isActive: true }
+          { id: 13, name: '2nde A', level: '2nde', capacity: 35, studentCount: 32, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
+          { id: 14, name: '2nde C', level: '2nde', capacity: 35, studentCount: 31, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
+          { id: 15, name: '1ère S', level: '1ère', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
+          { id: 16, name: '1ère L', level: '1ère', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
+          { id: 17, name: 'Tle C', level: 'Tle', capacity: 30, studentCount: 27, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects },
+          { id: 18, name: 'Tle D', level: 'Tle', capacity: 28, studentCount: 25, schoolId: user.schoolId || 1, isActive: true, subjects: secondarySubjects }
         ];
       } else {
         console.log('[DIRECTOR_CLASSES_API] Real user detected - using database data');
         // Get real classes from database
         const { db } = await import('./db');
-        const { users, classes: classesTable } = await import('@shared/schema');
+        const { users, classes: classesTable, subjects: subjectsTable } = await import('@shared/schema');
         const { eq, and, count } = await import('drizzle-orm');
         
         const userSchoolId = user.schoolId || user.school_id || 1;
@@ -1546,7 +1563,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(classesTable)
           .where(eq(classesTable.schoolId, userSchoolId));
         
-        // Count students in each class
+        // Get all subjects for this school (from subjects table where classId matches)
+        const schoolSubjects = await db.select()
+          .from(subjectsTable)
+          .where(eq(subjectsTable.schoolId, userSchoolId));
+        
+        // Count students in each class and include subjects
         const classesWithStudentCount = await Promise.all(
           schoolClasses.map(async (cls) => {
             const studentCount = await db.select({ count: count() })
@@ -1558,6 +1580,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const avgStudentsPerClass = Math.floor(totalStudents / schoolClasses.length);
             const studentCountForClass = avgStudentsPerClass + (cls.id % 3); // Add some variation
             
+            // Get subjects for this specific class
+            const classSubjectsData = schoolSubjects
+              .filter(subject => subject.classId === cls.id)
+              .map(subject => ({
+                id: subject.id,
+                name: subject.nameFr || subject.nameEn
+              }));
+            
             return {
               id: cls.id,
               name: cls.name,
@@ -1567,7 +1597,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               studentCount: Math.min(studentCountForClass, 35),
               schoolId: cls.schoolId,
               teacherId: cls.teacherId,
-              isActive: true
+              isActive: true,
+              subjects: classSubjectsData
             };
           })
         );
