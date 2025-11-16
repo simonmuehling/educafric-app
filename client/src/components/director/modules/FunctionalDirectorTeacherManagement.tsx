@@ -460,27 +460,36 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     input.click();
   };
 
-  const filteredTeachers = Array.isArray(teachers) ? teachers.filter(teacher => {
-    if (!teacher) return false;
-    const name = teacher.name || '';
-    const email = teacher.email || '';
-    const teachingSubjects = Array.isArray(teacher.teachingSubjects) ? teacher.teachingSubjects : 
-                           Array.isArray(teacher.subjects) ? teacher.subjects : [];
-    
-    const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = selectedSubject === 'all' || teachingSubjects.includes(selectedSubject);
-    
-    // Appliquer les filtres avancés
-    const matchesGender = filters.gender === 'all' || teacher.gender === filters.gender;
-    const matchesFilterSubject = filters.subject === 'all' || teachingSubjects.includes(filters.subject);
-    const matchesExperience = filters.experience === 'all' || 
-      (filters.experience === 'junior' && (teacher.experience || 0) <= 3) ||
-      (filters.experience === 'senior' && (teacher.experience || 0) > 3 && (teacher.experience || 0) <= 10) ||
-      (filters.experience === 'expert' && (teacher.experience || 0) > 10);
-    
-    return matchesSearch && matchesSubject && matchesGender && matchesFilterSubject && matchesExperience;
-  }) : [];
+  const filteredTeachers = Array.isArray(teachers) ? teachers
+    .filter(teacher => {
+      if (!teacher) return false;
+      const name = teacher.name || '';
+      const email = teacher.email || '';
+      const teachingSubjects = Array.isArray(teacher.teachingSubjects) ? teacher.teachingSubjects : 
+                             Array.isArray(teacher.subjects) ? teacher.subjects : [];
+      
+      const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSubject = selectedSubject === 'all' || teachingSubjects.includes(selectedSubject);
+      
+      // Appliquer les filtres avancés
+      const matchesGender = filters.gender === 'all' || teacher.gender === filters.gender;
+      const matchesFilterSubject = filters.subject === 'all' || teachingSubjects.includes(filters.subject);
+      const matchesExperience = filters.experience === 'all' || 
+        (filters.experience === 'junior' && (teacher.experience || 0) <= 3) ||
+        (filters.experience === 'senior' && (teacher.experience || 0) > 3 && (teacher.experience || 0) <= 10) ||
+        (filters.experience === 'expert' && (teacher.experience || 0) > 10);
+      
+      return matchesSearch && matchesSubject && matchesGender && matchesFilterSubject && matchesExperience;
+    })
+    .sort((a, b) => {
+      // Sort alphabetically by name
+      const nameA = (a.name || '').toLowerCase();
+      const nameB = (b.name || '').toLowerCase();
+      if (nameA < nameB) return -1;
+      if (nameA > nameB) return 1;
+      return 0;
+    }) : [];
   
   // Extract unique subjects from all teachers for dynamic filter
   const allSubjects = Array.from(new Set(

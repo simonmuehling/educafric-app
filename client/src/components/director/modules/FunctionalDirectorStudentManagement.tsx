@@ -240,7 +240,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Update student mutation
   const updateStudentMutation = useMutation({
     mutationFn: async (studentData: any) => {
-      const response = await fetch(`/api/director/student/${studentData.id}`, {
+      const response = await fetch(`/api/director/students/${studentData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(studentData),
@@ -431,25 +431,39 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     input.click();
   };
 
-  const filteredStudents = Array.isArray(students) ? (Array.isArray(students) ? students : []).filter(student => {
-    if (!student) return false;
-    const firstName = student.firstName || '';
-    const lastName = student.lastName || '';
-    const email = student.email || '';
-    const className = student.className || '';
-    
-    const matchesSearch = firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClass = selectedClass === 'all' || className === selectedClass;
-    
-    // Appliquer les filtres avancés
-    const matchesStatus = filters.status === 'all' || student.status === filters.status;
-    const matchesGender = filters.gender === 'all' || student.gender === filters.gender;
-    const matchesFilterClass = filters.class === 'all' || className === filters.class;
-    
-    return matchesSearch && matchesClass && matchesStatus && matchesGender && matchesFilterClass;
-  }) : [];
+  const filteredStudents = Array.isArray(students) ? (Array.isArray(students) ? students : [])
+    .filter(student => {
+      if (!student) return false;
+      const firstName = student.firstName || '';
+      const lastName = student.lastName || '';
+      const email = student.email || '';
+      const className = student.className || '';
+      
+      const matchesSearch = firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesClass = selectedClass === 'all' || className === selectedClass;
+      
+      // Appliquer les filtres avancés
+      const matchesStatus = filters.status === 'all' || student.status === filters.status;
+      const matchesGender = filters.gender === 'all' || student.gender === filters.gender;
+      const matchesFilterClass = filters.class === 'all' || className === filters.class;
+      
+      return matchesSearch && matchesClass && matchesStatus && matchesGender && matchesFilterClass;
+    })
+    .sort((a, b) => {
+      // Sort alphabetically by last name, then first name
+      const lastNameA = (a.lastName || '').toLowerCase();
+      const lastNameB = (b.lastName || '').toLowerCase();
+      if (lastNameA < lastNameB) return -1;
+      if (lastNameA > lastNameB) return 1;
+      
+      const firstNameA = (a.firstName || '').toLowerCase();
+      const firstNameB = (b.firstName || '').toLowerCase();
+      if (firstNameA < firstNameB) return -1;
+      if (firstNameA > firstNameB) return 1;
+      return 0;
+    }) : [];
 
   const stats = {
     totalStudents: Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0,

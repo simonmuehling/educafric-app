@@ -260,11 +260,20 @@ const ClassManagement: React.FC = () => {
 
   const isTechnicalSchool = schoolData?.educationalType === 'technical';
 
-  // Filter classes based on search
-  const filteredClasses = (Array.isArray(classesData) ? classesData : []).filter((classItem: any) => {
-    const matchesSearch = classItem.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
-  });
+  // Filter classes based on search and sort alphabetically
+  const filteredClasses = (Array.isArray(classesData) ? classesData : [])
+    .filter((classItem: any) => {
+      const matchesSearch = classItem.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    })
+    .sort((a: any, b: any) => {
+      // Sort alphabetically by class name
+      const nameA = (a.name || '').toLowerCase();
+      const nameB = (b.name || '').toLowerCase();
+      if (nameA < nameB) return -1;
+      if (nameA > nameB) return 1;
+      return 0;
+    });
 
   // Fetch teachers data for dropdown
   const { data: teachersResponse = {}, isLoading: isLoadingTeachers, error: teachersError } = useQuery({
@@ -308,7 +317,14 @@ const ClassManagement: React.FC = () => {
     retryDelay: 1000
   });
 
-  const roomsData = roomsResponse?.rooms || [];
+  const roomsData = (roomsResponse?.rooms || []).sort((a: any, b: any) => {
+    // Sort alphabetically by room name
+    const nameA = (a.name || '').toLowerCase();
+    const nameB = (b.name || '').toLowerCase();
+    if (nameA < nameB) return -1;
+    if (nameA > nameB) return 1;
+    return 0;
+  });
 
   // Add default values for display
   const finalClasses = (Array.isArray(filteredClasses) ? filteredClasses : []).map((classItem: any) => ({
