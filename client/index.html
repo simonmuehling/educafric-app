@@ -199,7 +199,7 @@
           try {
             // Check for invalid URLs (undefined port, etc.)
             if (typeof url === 'string' && (url.includes('undefined') || url.includes(':undefined'))) {
-              console.warn('[WEBSOCKET] Blocked invalid WebSocket URL:', url);
+              console.log('[WEBSOCKET] Blocked invalid WebSocket URL:', url);
               // Return a comprehensive mock WebSocket that doesn't connect
               return {
                 readyState: 3, // CLOSED
@@ -223,12 +223,15 @@
             
             // Add error handling for connection failures
             ws.addEventListener('error', function(event) {
-              console.warn('[WEBSOCKET] Connection error handled gracefully:', event);
+              // Silently handle connection errors (development only)
+              if (!url.includes('/ws')) {
+                console.log('[WEBSOCKET] Connection error handled gracefully');
+              }
             });
             
             return ws;
           } catch (error) {
-            console.warn('[WEBSOCKET] WebSocket creation error handled:', error.message);
+            console.log('[WEBSOCKET] WebSocket creation error handled');
             // Return a comprehensive mock WebSocket on error
             return {
               readyState: 3, // CLOSED
