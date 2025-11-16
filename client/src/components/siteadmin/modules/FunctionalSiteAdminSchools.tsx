@@ -282,13 +282,13 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Offline Mode Toggle */}
+                  {/* Offline Premium Toggle */}
                   <div className="pt-2 border-t border-gray-100">
                     <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                       <div className="flex items-center gap-2">
                         <WifiOff className="h-4 w-4 text-orange-600" />
                         <div>
-                          <div className="text-xs font-medium text-gray-700">Mode Hors Ligne</div>
+                          <div className="text-xs font-medium text-gray-700">Offline Premium</div>
                           <div className="text-xs text-gray-500">
                             {school.offlineEnabled ? 'Activé (données 1 an)' : 'Désactivé (cache 1 semaine)'}
                           </div>
