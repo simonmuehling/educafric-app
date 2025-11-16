@@ -271,6 +271,7 @@ class OfflineSyncService {
     }
 
     console.log(`[OFFLINE_SYNC] Processing ${queue.length} queued items...`);
+    let syncedCount = 0;
 
     for (const item of queue) {
       try {
@@ -283,10 +284,11 @@ class OfflineSyncService {
 
         if (response.ok) {
           await window.offlineDB.markSyncItemComplete(item.id);
+          syncedCount++;
           console.log(`[OFFLINE_SYNC] ✅ Synced: ${item.endpoint}`);
         } else {
           await window.offlineDB.markSyncItemFailed(item.id);
-          console.error(`[OFFLINE_SYNC] Failed to sync: ${item.endpoint}`, response.status);
+          console.error(`[OFFLINE_SYNC] ❌ Failed: ${item.endpoint}`, response.status);
         }
       } catch (error) {
         await window.offlineDB.markSyncItemFailed(item.id);
@@ -294,19 +296,50 @@ class OfflineSyncService {
       }
     }
 
-    console.log('[OFFLINE_SYNC] Queue processing complete');
+    console.log(`[OFFLINE_SYNC] ✅ Queue complete: ${syncedCount}/${queue.length} succeeded`);
+    
+    // Emit sync queue complete event
+    window.dispatchEvent(new CustomEvent('sync-queue-complete', {
+      detail: { total: queue.length, synced: syncedCount }
+    }));
   }
 
   handleOnline() {
     console.log('[OFFLINE_SYNC] Device is online');
     
-    // Process pending sync queue
-    this.processSyncQueue();
+    // Register background sync if supported
+    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+      navigator.serviceWorker.ready.then(registration => {
+        return registration.sync.register('educafric-sync-queue');
+      }).then(() => {
+        console.log('[OFFLINE_SYNC] Background sync registered');
+      }).catch(err => {
+        console.error('[OFFLINE_SYNC] Background sync registration failed:', err);
+        // Fallback to manual sync
+        this.processSyncQueueFallback();
+      });
+    } else {
+      // Browser doesn't support Background Sync, use fallback
+      console.log('[OFFLINE_SYNC] Background Sync not supported, using fallback');
+      this.processSyncQueueFallback();
+    }
     
     // Emit online event
     window.dispatchEvent(new CustomEvent('connection-status-change', {
       detail: { online: true }
     }));
+  }
+
+  async processSyncQueueFallback() {
+    // Message Service Worker to process queue manually
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'PROCESS_SYNC_QUEUE'
+      });
+    } else {
+      // Direct processing if SW not available
+      await this.processSyncQueue();
+    }
   }
 
   handleOffline() {
