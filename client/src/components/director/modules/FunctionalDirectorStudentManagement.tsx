@@ -180,10 +180,15 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return data;
     },
     onSuccess: (newStudent) => {
-      // ✅ IMMEDIATE VISUAL FEEDBACK - User sees what they created
-      queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student queries (with and without parameters)
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key.startsWith('/api/director/students');
+        }
+      });
       
-      // Force immediate refresh to show the new student
+      // Force immediate refresh to show the new student in main list
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
       
       setIsAddStudentOpen(false);
@@ -255,8 +260,13 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      // ✅ IMMEDIATE VISUAL FEEDBACK - User sees updated student
-      queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student queries
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key.startsWith('/api/director/students');
+        }
+      });
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
       
       setIsEditStudentOpen(false);
@@ -288,8 +298,13 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      // ✅ IMMEDIATE VISUAL FEEDBACK - Student disappears from list
-      queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student queries
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key.startsWith('/api/director/students');
+        }
+      });
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
       
       toast({
@@ -323,7 +338,13 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return responses;
     },
     onSuccess: (_, studentIds) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student queries
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key.startsWith('/api/director/students');
+        }
+      });
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
       
       setSelectedStudents(new Set());
@@ -457,7 +478,13 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         title: language === 'fr' ? '📷 Photo uploadée !' : '📷 Photo Uploaded!',
         description: language === 'fr' ? 'Photo de profil mise à jour avec succès' : 'Profile photo updated successfully'
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+      // Invalidate ALL student queries
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && key.startsWith('/api/director/students');
+        }
+      });
     },
     onError: (error) => {
       setUploadingPhoto(null);
@@ -739,8 +766,16 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             schoolId={user?.schoolId}
             invalidateQueries={['/api/director/students', '/api/students']}
             onImportSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
-              queryClient.invalidateQueries({ queryKey: ['/api/students'] });
+              // Invalidate ALL student queries (with and without parameters)
+              queryClient.invalidateQueries({ 
+                predicate: (query) => {
+                  const key = query.queryKey[0];
+                  return typeof key === 'string' && (
+                    key.startsWith('/api/director/students') || 
+                    key.startsWith('/api/students')
+                  );
+                }
+              });
               toast({
                 title: language === 'fr' ? '✅ Import réussi' : '✅ Import successful',
                 description: language === 'fr' ? 'Les élèves ont été créés avec succès' : 'Students created successfully'
