@@ -85,6 +85,11 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       }
       const data = await response.json();
       console.log('[TEACHER_MANAGEMENT] ✅ Classes fetched:', data?.classes?.length || 0, 'classes');
+      console.log('[TEACHER_MANAGEMENT] 📊 Classes with subjects details:', data?.classes?.map((c: any) => ({
+        name: c.name,
+        subjectsCount: c.subjects?.length || 0,
+        subjects: c.subjects?.map((s: any) => s.name)
+      })));
       return data;
     },
     retry: 2,
@@ -102,18 +107,18 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     const subjects = new Set<string>();
     teacherForm.selectedClasses.forEach(className => {
       const classData = availableClasses.find((c: any) => c.name === className);
+      console.log('[TEACHER_MANAGEMENT] 🔍 Class data for', className, ':', classData);
       if (classData?.subjects) {
+        console.log('[TEACHER_MANAGEMENT] 📚 Subjects found:', classData.subjects);
         classData.subjects.forEach((subject: any) => {
           subjects.add(subject.name);
         });
+      } else {
+        console.log('[TEACHER_MANAGEMENT] ⚠️ No subjects found for class:', className);
       }
     });
     
-    // Fallback subjects if no subjects found in classes
-    if (subjects.size === 0) {
-      return ['Mathématiques', 'Français', 'Sciences', 'Histoire', 'Anglais'];
-    }
-    
+    console.log('[TEACHER_MANAGEMENT] 📋 Final subjects list:', Array.from(subjects));
     return Array.from(subjects);
   };
 
@@ -885,6 +890,19 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                       '⬆️ Sélectionnez d\'abord les classes pour voir les matières disponibles' : 
                       '⬆️ Select classes first to see available subjects'}
                   </div>
+                ) : getAvailableSubjects().length === 0 ? (
+                  <div className="w-full p-4 border-2 border-dashed border-orange-300 rounded bg-orange-50 text-center">
+                    <p className="text-sm font-medium text-orange-800 mb-2">
+                      {language === 'fr' ? 
+                        '⚠️ Aucune matière trouvée pour les classes sélectionnées' : 
+                        '⚠️ No subjects found for selected classes'}
+                    </p>
+                    <p className="text-xs text-orange-700">
+                      {language === 'fr' ? 
+                        'Allez dans "Gestion des Classes" pour ajouter des matières aux classes sélectionnées, puis revenez ici.' : 
+                        'Go to "Class Management" to add subjects to the selected classes, then come back here.'}
+                    </p>
+                  </div>
                 ) : (
                   <div className="border rounded-lg p-3 bg-gray-50 max-h-32 overflow-y-auto">
                     <div className="space-y-2">
@@ -1070,6 +1088,19 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                     {language === 'fr' ? 
                       '⬆️ Sélectionnez d\'abord les classes pour voir les matières disponibles' : 
                       '⬆️ Select classes first to see available subjects'}
+                  </div>
+                ) : getAvailableSubjects().length === 0 ? (
+                  <div className="w-full p-4 border-2 border-dashed border-orange-300 rounded bg-orange-50 text-center">
+                    <p className="text-sm font-medium text-orange-800 mb-2">
+                      {language === 'fr' ? 
+                        '⚠️ Aucune matière trouvée pour les classes sélectionnées' : 
+                        '⚠️ No subjects found for selected classes'}
+                    </p>
+                    <p className="text-xs text-orange-700">
+                      {language === 'fr' ? 
+                        'Allez dans "Gestion des Classes" pour ajouter des matières aux classes sélectionnées, puis revenez ici.' : 
+                        'Go to "Class Management" to add subjects to the selected classes, then come back here.'}
+                    </p>
                   </div>
                 ) : (
                   <div className="border rounded-lg p-3 bg-gray-50 max-h-32 overflow-y-auto">
