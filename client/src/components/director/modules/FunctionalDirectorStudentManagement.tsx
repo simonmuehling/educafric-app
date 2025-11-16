@@ -180,16 +180,21 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return data;
     },
     onSuccess: (newStudent) => {
-      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student queries (with and without parameters)
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student AND class queries
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           const key = query.queryKey[0];
-          return typeof key === 'string' && key.startsWith('/api/director/students');
+          return typeof key === 'string' && (
+            key.startsWith('/api/director/students') ||
+            key.startsWith('/api/director/classes') ||
+            key.startsWith('/api/classes')
+          );
         }
       });
       
-      // Force immediate refresh to show the new student in main list
+      // Force immediate refresh to show the new student and updated class counts
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
       
       setIsAddStudentOpen(false);
       setStudentForm({ 
@@ -260,14 +265,19 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student queries
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student AND class queries
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           const key = query.queryKey[0];
-          return typeof key === 'string' && key.startsWith('/api/director/students');
+          return typeof key === 'string' && (
+            key.startsWith('/api/director/students') ||
+            key.startsWith('/api/director/classes') ||
+            key.startsWith('/api/classes')
+          );
         }
       });
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
       
       setIsEditStudentOpen(false);
       const editedStudentName = selectedStudent ? `${selectedStudent.firstName} ${selectedStudent.lastName}` : 'L\'élève';
@@ -275,7 +285,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       
       toast({
         title: '✅ Modification réussie',
-        description: `${editedStudentName} a été modifié avec succès. Les changements sont visibles immédiatement.`
+        description: `${editedStudentName} a été modifié avec succès. Les changements sont visibles immédiatement dans toutes les vues.`
       });
     },
     onError: () => {
@@ -298,18 +308,23 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student queries
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student AND class queries
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           const key = query.queryKey[0];
-          return typeof key === 'string' && key.startsWith('/api/director/students');
+          return typeof key === 'string' && (
+            key.startsWith('/api/director/students') ||
+            key.startsWith('/api/director/classes') ||
+            key.startsWith('/api/classes')
+          );
         }
       });
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
       
       toast({
         title: '✅ Élève supprimé',
-        description: 'L\'élève a été supprimé définitivement de votre école et disparaît de la liste.'
+        description: 'L\'élève a été supprimé définitivement de votre école. Les totaux sont mis à jour.'
       });
     },
     onError: () => {
@@ -338,14 +353,19 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return responses;
     },
     onSuccess: (_, studentIds) => {
-      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student queries
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student AND class queries
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           const key = query.queryKey[0];
-          return typeof key === 'string' && key.startsWith('/api/director/students');
+          return typeof key === 'string' && (
+            key.startsWith('/api/director/students') ||
+            key.startsWith('/api/director/classes') ||
+            key.startsWith('/api/classes')
+          );
         }
       });
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
       
       setSelectedStudents(new Set());
       setBulkDeleteDialogOpen(false);
@@ -766,19 +786,21 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             schoolId={user?.schoolId}
             invalidateQueries={['/api/director/students', '/api/students']}
             onImportSuccess={() => {
-              // Invalidate ALL student queries (with and without parameters)
+              // Invalidate ALL student AND class queries (Excel import affects both)
               queryClient.invalidateQueries({ 
                 predicate: (query) => {
                   const key = query.queryKey[0];
                   return typeof key === 'string' && (
                     key.startsWith('/api/director/students') || 
-                    key.startsWith('/api/students')
+                    key.startsWith('/api/students') ||
+                    key.startsWith('/api/director/classes') ||
+                    key.startsWith('/api/classes')
                   );
                 }
               });
               toast({
                 title: language === 'fr' ? '✅ Import réussi' : '✅ Import successful',
-                description: language === 'fr' ? 'Les élèves ont été créés avec succès' : 'Students created successfully'
+                description: language === 'fr' ? 'Les élèves ont été créés avec succès. Les totaux de classes sont mis à jour.' : 'Students created successfully. Class counts updated.'
               });
             }}
           />
