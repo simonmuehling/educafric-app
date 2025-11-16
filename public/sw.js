@@ -290,12 +290,23 @@ async function cacheFirst(request) {
     }
     return networkResponse;
   } catch (error) {
-    // Serve stale cache if available (better than nothing)
-    if (cachedResponse) {
-      console.log('[SW] Serving stale cache (offline):', request.url);
-      return cachedResponse;
+    // Network failed and cache expired - return offline fallback
+    const url = new URL(request.url);
+    if (url.pathname.endsWith('.html') || url.pathname === '/') {
+      const offlinePage = await cache.match('/offline.html');
+      if (offlinePage) {
+        console.log('[SW] Serving offline.html fallback');
+        return offlinePage;
+      }
     }
-    throw error;
+    
+    // Return synthetic offline response for assets
+    console.log('[SW] ❌ Cache expired and network unavailable:', request.url);
+    return new Response('Offline - Content Expired', {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'text/plain' }
+    });
   }
 }
 
@@ -304,31 +315,55 @@ async function staleWhileRevalidate(request) {
   const cache = await caches.open(CACHE_NAME);
   const cachedResponse = await cache.match(request);
   
-  // Start network fetch in background
-  const networkFetch = fetch(request)
-    .then(async (networkResponse) => {
-      if (networkResponse.ok) {
-        const responseWithDate = addCacheDate(networkResponse.clone());
-        await cache.put(request, responseWithDate);
-      }
-      return networkResponse;
-    })
-    .catch(() => cachedResponse);
-  
   // Check if cache is valid
   if (cachedResponse) {
     const isValid = await isCacheValid(cachedResponse);
     
     if (isValid) {
+      // Serve valid cache and revalidate in background
+      const networkFetch = fetch(request)
+        .then(async (networkResponse) => {
+          if (networkResponse.ok) {
+            const responseWithDate = addCacheDate(networkResponse.clone());
+            await cache.put(request, responseWithDate);
+          }
+        })
+        .catch(() => {});
+      
       return cachedResponse;
     } else {
-      // Cache expired, wait for network
+      // Cache expired, delete it
       await cache.delete(request);
       console.log('[SW] Deleted expired cache:', request.url);
     }
   }
   
-  return networkFetch;
+  // Try network (no valid cache)
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const responseWithDate = addCacheDate(networkResponse.clone());
+      await cache.put(request, responseWithDate);
+    }
+    return networkResponse;
+  } catch (error) {
+    // Network failed and cache expired - return offline fallback
+    const url = new URL(request.url);
+    if (url.pathname.endsWith('.html') || url.pathname === '/') {
+      const offlinePage = await cache.match('/offline.html');
+      if (offlinePage) {
+        console.log('[SW] Serving offline.html fallback');
+        return offlinePage;
+      }
+    }
+    
+    console.log('[SW] ❌ Cache expired and network unavailable:', request.url);
+    return new Response('Offline - Content Expired', {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  }
 }
 
 // ============================================================================
