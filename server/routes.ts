@@ -1839,8 +1839,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       const { classId, studentId } = req.query;
       
-      // ✅ ÉTUDIANTS SANDBOX POUR TOUTES LES CLASSES : PRIMAIRE → LYCÉE
-      const allStudents = [
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') ||
+                           user.email?.includes('sandbox@') || 
+                           user.email?.includes('demo@') || 
+                           user.email?.includes('.sandbox@') ||
+                           user.email?.includes('.demo@') ||
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.');
+      
+      let students;
+      
+      if (isSandboxUser) {
+        console.log('[DIRECTOR_STUDENTS_API] Sandbox user detected - using mock data');
+        // ✅ ÉTUDIANTS SANDBOX POUR TOUTES LES CLASSES : PRIMAIRE → LYCÉE
+        const allStudents = [
         // === ÉLÈVES CP1 A (Class ID: 1) ===
         { id: 1, name: 'Marie Fosso', firstName: 'Marie', lastName: 'Fosso', classId: 1, className: 'CP1 A', email: 'marie.fosso@test.educafric.com', isActive: true },
         { id: 2, name: 'Jean Tchouta', firstName: 'Jean', lastName: 'Tchouta', classId: 1, className: 'CP1 A', email: 'jean.tchouta@test.educafric.com', isActive: true },
@@ -1916,19 +1930,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 38, name: 'William Fokou', firstName: 'William', lastName: 'Fokou', classId: 18, className: 'Tle D', email: 'william.fokou@test.educafric.com', isActive: true }
       ];
       
-      // Handle specific student request
-      if (studentId) {
-        const student = allStudents.find(s => s.id === parseInt(studentId as string, 10));
-        if (!student) {
-          return res.status(404).json({ success: false, message: 'Student not found' });
+        // Handle specific student request (sandbox)
+        if (studentId) {
+          const student = allStudents.find(s => s.id === parseInt(studentId as string, 10));
+          if (!student) {
+            return res.status(404).json({ success: false, message: 'Student not found' });
+          }
+          console.log(`[DIRECTOR_STUDENTS_API] Returning specific student: ${student.name} (ID: ${student.id})`);
+          return res.json({ success: true, student });
         }
-        console.log(`[DIRECTOR_STUDENTS_API] Returning specific student: ${student.name} (ID: ${student.id})`);
-        return res.json({ success: true, student });
-      }
 
-      // Filter by class if provided, otherwise return all students
-      const students = classId ? allStudents.filter(s => s.classId === parseInt(classId as string, 10)) : allStudents;
+        // Filter by class if provided, otherwise return all students (sandbox)
+        students = classId ? allStudents.filter(s => s.classId === parseInt(classId as string, 10)) : allStudents;
+      } else {
+        console.log('[DIRECTOR_STUDENTS_API] Real user detected - using database data');
+        // Get real students from database
+        const { db } = await import('./db');
+        const { users } = await import('@shared/schema');
+        const { eq, and } = await import('drizzle-orm');
+        
+        const userSchoolId = user.schoolId || user.school_id || 1;
+        
+        // Query students from database
+        const dbStudents = await db.select()
+          .from(users)
+          .where(and(
+            eq(users.role, 'Student'),
+            eq(users.schoolId, userSchoolId)
+          ));
+        
+        // Handle specific student request (real DB)
+        if (studentId) {
+          const student = dbStudents.find(s => s.id === parseInt(studentId as string, 10));
+          if (!student) {
+            return res.status(404).json({ success: false, message: 'Student not found' });
+          }
+          console.log(`[DIRECTOR_STUDENTS_API] Returning specific student from DB: ${student.firstName} ${student.lastName} (ID: ${student.id})`);
+          return res.json({ success: true, student });
+        }
+        
+        // Filter by class if provided (real DB)
+        students = classId ? dbStudents.filter(s => s.classId === parseInt(classId as string, 10)) : dbStudents;
+      }
       
+      console.log('[DIRECTOR_STUDENTS_API] Returning', students.length, 'students');
       res.json({ success: true, students });
     } catch (error) {
       console.error('[DIRECTOR_STUDENTS_API] Error fetching students:', error);
