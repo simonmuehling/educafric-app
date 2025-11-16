@@ -30,6 +30,10 @@ Preferred communication style: Simple, everyday language.
 
 - **MOCK STUDENTS ONLY FOR SANDBOX**: L'endpoint `/api/director/students` a été corrigé pour retourner UNIQUEMENT les mock students pour les utilisateurs sandbox (email contenant @test.educafric.com, @educafric.demo, sandbox@, demo@, .sandbox@, .demo@, .test@). Les écoles réelles reçoivent UNIQUEMENT les étudiants de la base de données via une requête Drizzle. JAMAIS de mock data pour les écoles réelles.
 
+- **EMPLOIS DU TEMPS DATABASE-ONLY**: L'endpoint `/api/student/timetable` a été converti de mock data vers architecture database-only. Il récupère maintenant la classe de l'étudiant depuis la table `students`, puis filtre les emplois du temps depuis la table `timetables` par `classId`, `schoolId`, et `isActive=true`. L'endpoint `/api/teacher/timetable` filtre correctement par `teacherId`. Tous les endpoints d'emplois du temps utilisent UNIQUEMENT des requêtes database, conformément au principe ARCHITECTURE DATABASE-ONLY.
+
+- **SÉLECTION ET SUPPRESSION EN MASSE**: Fonctionnalité de sélection groupée et suppression en masse ajoutée pour les étudiants et enseignants. Inclut : checkboxes individuelles avec état Set, checkbox "Tout sélectionner", bouton de suppression groupée conditionnel, et dialogs de confirmation bilingues (français/anglais). Tous les dialogs d'alerte suivent le standard fond blanc pour lisibilité optimale.
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes.
 - NEVER make partial updates to only some dashboards.
 - ALWAYS preserve button functionality when making changes - buttons must remain functional.
