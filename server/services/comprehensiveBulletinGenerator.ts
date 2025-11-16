@@ -421,7 +421,7 @@ export class ComprehensiveBulletinGenerator {
     }
     
     // For technical schools: categorize by subject type (from database subjectType field)
-    const professionalKeywords = ['sewing', 'couture', 'pattern', 'patron', 'technical drawing', 'dessin technique', 'technology', 'technologie', 'trade', 'commerce', 'fashion', 'mode', 'textile', 'equipment', 'équipement', 'training', 'formation', 'fabric', 'tissu'];
+    const professionalKeywords = ['sewing', 'couture', 'pattern', 'patron', 'professional drawing', 'dessin professionnel', 'technology', 'technologie', 'trade', 'commerce', 'fashion', 'mode', 'textile', 'equipment', 'équipement', 'training', 'formation', 'fabric', 'tissu'];
     
     const categorizedSubjects = subjects.map(subject => {
       if (subject.category) return subject; // Already categorized from database

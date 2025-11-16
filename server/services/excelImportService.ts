@@ -1248,12 +1248,12 @@ export class ExcelImportService {
           ['6ème A', '40', 'paul.mbarga@educafric.cm', 'Salle A1', 'Mathématiques;4;6;general | Français;4;6;literary | Anglais;3;4;general | Histoire;2;3;literary | SVT;3;4;scientific'],
           ['Terminale D', '35', 'marie.fotso@educafric.cm', 'Labo Sciences', 'Mathématiques;5;7;scientific | Physique;5;6;scientific | Chimie;4;5;scientific | Philosophie;3;4;literary'],
           ['CM2', '30', 'elise.nkomo@educafric.cm', 'Salle B2', 'Lecture;4;6;general | Calcul;4;6;general | Éveil;3;4;other | Dessin;2;2;other'],
-          ['1ère Technique', '25', 'jean.talla@educafric.cm', 'Atelier', 'Électricité;5;8;technical | Mécanique;5;8;technical | Maths Appliquées;4;6;technical | Dessin Technique;4;5;technical']
+          ['1ère Technique', '25', 'jean.talla@educafric.cm', 'Atelier', 'Électricité;5;8;professional | Mécanique;5;8;professional | Maths Appliquées;4;6;professional | Dessin Professionnel;4;5;professional']
         ] : [
           ['Form 1A', '40', 'paul.mbarga@educafric.cm', 'Room A1', 'Mathematics;4;6;general | French;4;6;literary | English;3;4;general | History;2;3;literary | Biology;3;4;scientific'],
           ['Upper 6 Science', '35', 'marie.fotso@educafric.cm', 'Science Lab', 'Mathematics;5;7;scientific | Physics;5;6;scientific | Chemistry;4;5;scientific | Philosophy;3;4;literary'],
           ['Class 6', '30', 'elise.nkomo@educafric.cm', 'Room B2', 'Reading;4;6;general | Arithmetic;4;6;general | Discovery;3;4;other | Arts;2;2;other'],
-          ['Technical Form 5', '25', 'jean.talla@educafric.cm', 'Workshop', 'Electricity;5;8;technical | Mechanics;5;8;technical | Applied Math;4;6;technical | Technical Drawing;4;5;technical']
+          ['Technical Form 5', '25', 'jean.talla@educafric.cm', 'Workshop', 'Electricity;5;8;professional | Mechanics;5;8;professional | Applied Math;4;6;professional | Professional Drawing;4;5;professional']
         ];
         break;
         
@@ -1670,14 +1670,14 @@ export class ExcelImportService {
         ['📚 CATÉGORIES DE MATIÈRES (5 types disponibles)'],
         ['• general     → Matières générales (Maths, Géographie, EPS, etc.)'],
         ['• scientific  → Matières scientifiques (Physique, Chimie, Biologie, SVT)'],
-        ['• literary    → Matières littéraires (Français, Philosophie, Littérature, Histoire)'],
-        ['• technical   → Matières techniques (Électricité, Mécanique, Dessin Technique)'],
+        ['• literary      → Matières littéraires (Français, Philosophie, Littérature, Histoire)'],
+        ['• professional → Matières professionnelles (Électricité, Mécanique, Dessin Professionnel)'],
         ['• other       → Autres matières (Éveil, Arts, Musique, activités spéciales)'],
         [''],
         ['💡 EXEMPLES PRATIQUES'],
         ['Classe générale: Mathématiques;4;6;general | Français;4;6;literary'],
         ['Classe scientifique: Maths;5;7;scientific | Physique;5;6;scientific | Chimie;4;5;scientific'],
-        ['Classe technique: Électricité;5;8;technical | Mécanique;5;8;technical'],
+        ['Classe technique: Électricité;5;8;professional | Mécanique;5;8;professional'],
         ['Classe maternelle: Éveil;3;5;other | Lecture;4;6;other | Arts;2;3;other'],
         [''],
         ['🚀 COMMENT UTILISER CE FICHIER'],
@@ -1722,14 +1722,14 @@ export class ExcelImportService {
         ['📚 SUBJECT CATEGORIES (5 types available)'],
         ['• general     → General subjects (Math, Geography, PE, etc.)'],
         ['• scientific  → Scientific subjects (Physics, Chemistry, Biology, Life Sciences)'],
-        ['• literary    → Literary subjects (French, Philosophy, Literature, History)'],
-        ['• technical   → Technical subjects (Electricity, Mechanics, Technical Drawing)'],
+        ['• literary      → Literary subjects (French, Philosophy, Literature, History)'],
+        ['• professional → Professional subjects (Electricity, Mechanics, Professional Drawing)'],
         ['• other       → Other subjects (Discovery, Arts, Music, special activities)'],
         [''],
         ['💡 PRACTICAL EXAMPLES'],
         ['General class: Mathematics;4;6;general | French;4;6;literary'],
         ['Science class: Math;5;7;scientific | Physics;5;6;scientific | Chemistry;4;5;scientific'],
-        ['Technical class: Electricity;5;8;technical | Mechanics;5;8;technical'],
+        ['Technical class: Electricity;5;8;professional | Mechanics;5;8;professional'],
         ['Kindergarten: Discovery;3;5;other | Reading;4;6;other | Arts;2;3;other'],
         [''],
         ['🚀 HOW TO USE THIS FILE'],
