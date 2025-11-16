@@ -443,67 +443,39 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
     enabled: !!selectedClass && !!selectedTerm,
   });
 
-  // Fetch school information (using settings API that works)
+  // Fetch school information from database (DATABASE-ONLY)
   const { data: schoolData, isLoading: schoolLoading } = useQuery({
     queryKey: ['/api/director/settings'],
     queryFn: async () => {
-      try {
-        const response = await fetch('/api/director/settings', {
-          credentials: 'include'
-        });
-        if (!response.ok) throw new Error('Failed to fetch school settings');
-        const data = await response.json();
-        console.log('School settings data:', data);
-        return data;
-      } catch (error) {
-        console.error('Error fetching school settings:', error);
-        // Return mock data with proper structure for sandbox mode
-        return {
-          success: true,
-          settings: {
-            school: {
-              name: 'LYCÉE DE MENDONG',
-              address: 'Yaoundé, Cameroun',
-              email: 'info@lyceemendong.cm',
-              phone: '+237 222 xxx xxx',
-              regionaleMinisterielle: 'CENTRE',
-              delegationDepartementale: 'MFOUNDI'
-            }
-          }
-        };
-      }
+      const response = await fetch('/api/director/settings', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch school settings');
+      const data = await response.json();
+      console.log('[MASTERSHEET] ✅ School settings data:', data);
+      return data;
     }
   });
 
-  // Fetch created bulletins
+  // Fetch created bulletins from database
   const { data: bulletinsData, isLoading: bulletinsLoading } = useQuery({
-    queryKey: ['/api/bulletin/list', selectedClass, selectedTerm],
+    queryKey: ['/api/director/bulletins/list', selectedClass, selectedTerm],
     queryFn: async () => {
       try {
-        // For now, we'll simulate fetching bulletins since we don't have a specific list endpoint
-        // In a real implementation, you'd create a dedicated endpoint
-        const response = await fetch('/api/director/students', {
+        const params = new URLSearchParams();
+        if (selectedClass) params.append('classId', selectedClass);
+        if (selectedTerm) params.append('term', selectedTerm);
+        
+        const response = await fetch(`/api/director/bulletins/list?${params}`, {
           credentials: 'include'
         });
-        if (!response.ok) throw new Error('Failed to fetch data');
+        if (!response.ok) throw new Error('Failed to fetch bulletins');
         const data = await response.json();
         
-        // Simulate bulletins data - in reality this would come from a bulletins table
-        const mockBulletins = data.students?.slice(0, 3).map((student: any, index: number) => ({
-          id: `BULL-${selectedClass}-${index + 1}`,
-          studentName: student.name,
-          studentId: student.matricule || student.id,
-          class: selectedClass,
-          term: selectedTerm,
-          status: index === 0 ? 'completed' : index === 1 ? 'pending' : 'draft',
-          average: (15 + Math.random() * 4).toFixed(1),
-          createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-          verificationCode: `EDU${Math.random().toString(36).substr(2, 6).toUpperCase()}`
-        })) || [];
-        
-        return { bulletins: mockBulletins };
+        console.log('[MASTERSHEET] ✅ Fetched bulletins from database:', data.bulletins?.length || 0);
+        return data;
       } catch (error) {
-        console.error('Error fetching bulletins:', error);
+        console.error('[MASTERSHEET] Error fetching bulletins:', error);
         return { bulletins: [] };
       }
     },
@@ -575,25 +547,25 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
               <Label className="text-sm font-medium text-blue-700">
                 {language === 'fr' ? 'Nom de l\'École' : 'School Name'}
               </Label>
-              <p className="text-sm font-semibold">{school?.name || 'LYCÉE DE MENDONG / HIGH SCHOOL OF MENDONG'}</p>
+              <p className="text-sm font-semibold">{school?.name || 'N/A'}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-blue-700">
                 {language === 'fr' ? 'Adresse' : 'Address'}
               </Label>
-              <p className="text-sm">{school?.address || 'Yaoundé, Cameroun'}</p>
+              <p className="text-sm">{school?.address || 'N/A'}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-blue-700">
                 {language === 'fr' ? 'Email' : 'Email'}
               </Label>
-              <p className="text-sm">{school?.email || 'info@lyceemendong.cm'}</p>
+              <p className="text-sm">{school?.email || 'N/A'}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-blue-700">
                 {language === 'fr' ? 'Téléphone' : 'Phone'}
               </Label>
-              <p className="text-sm">{school?.phone || '+237 222 xxx xxx'}</p>
+              <p className="text-sm">{school?.phone || 'N/A'}</p>
             </div>
           </div>
           

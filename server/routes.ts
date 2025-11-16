@@ -1101,6 +1101,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get Bulletins List for Director (by class and term) - DATABASE-ONLY
+  app.get("/api/director/bulletins/list", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const classId = req.query.classId ? parseInt(req.query.classId as string) : null;
+      const term = req.query.term as string;
+      
+      if (!user.schoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
+      
+      console.log('[BULLETINS_LIST] Fetching bulletins for school:', user.schoolId, 'class:', classId, 'term:', term);
+      
+      // Build query conditions
+      const conditions = [
+        eq(bulletinComprehensive.schoolId, user.schoolId)
+      ];
+      
+      if (classId) {
+        conditions.push(eq(bulletinComprehensive.classId, classId));
+      }
+      
+      if (term) {
+        conditions.push(eq(bulletinComprehensive.term, term));
+      }
+      
+      // Fetch bulletins from database
+      const bulletinsFromDb = await db
+        .select({
+          id: bulletinComprehensive.id,
+          studentId: bulletinComprehensive.studentId,
+          studentFirstName: bulletinComprehensive.studentFirstName,
+          studentLastName: bulletinComprehensive.studentLastName,
+          studentMatricule: bulletinComprehensive.studentMatricule,
+          classId: bulletinComprehensive.classId,
+          className: bulletinComprehensive.className,
+          term: bulletinComprehensive.term,
+          academicYear: bulletinComprehensive.academicYear,
+          generalAverage: bulletinComprehensive.generalAverage,
+          studentRank: bulletinComprehensive.studentRank,
+          overallGrade: bulletinComprehensive.overallGrade,
+          createdAt: bulletinComprehensive.createdAt,
+          updatedAt: bulletinComprehensive.updatedAt
+        })
+        .from(bulletinComprehensive)
+        .where(and(...conditions))
+        .orderBy(bulletinComprehensive.className, bulletinComprehensive.studentRank);
+      
+      // Format bulletins for frontend
+      const bulletins = bulletinsFromDb.map(bulletin => ({
+        id: `BULL-${bulletin.id}`,
+        studentName: `${bulletin.studentFirstName || ''} ${bulletin.studentLastName || ''}`.trim(),
+        studentId: bulletin.studentMatricule || `STU-${bulletin.studentId}`,
+        matricule: bulletin.studentMatricule || `STU-${bulletin.studentId}`,
+        class: bulletin.className || `Class ${bulletin.classId}`,
+        term: bulletin.term,
+        status: 'completed', // All bulletins in DB are completed
+        average: bulletin.generalAverage ? parseFloat(bulletin.generalAverage.toString()).toFixed(1) : '0.0',
+        rank: bulletin.studentRank,
+        grade: bulletin.overallGrade,
+        createdAt: bulletin.createdAt?.toISOString(),
+        verificationCode: `EDU${bulletin.id.toString().padStart(6, '0')}`
+      }));
+      
+      console.log('[BULLETINS_LIST] ✅ Found', bulletins.length, 'bulletins');
+      
+      res.json({ 
+        success: true, 
+        bulletins 
+      });
+    } catch (error) {
+      console.error('[BULLETINS_LIST] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch bulletins' });
+    }
+  });
+
   // Change Password - Works for ALL roles
   app.put("/api/auth/change-password", requireAuth, async (req, res) => {
     try {
