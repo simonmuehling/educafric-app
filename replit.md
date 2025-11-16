@@ -26,6 +26,10 @@ Preferred communication style: Simple, everyday language.
 
 - **SAUVEGARDE NOM D'ÉCOLE - PROFIL DIRECTOR**: Le nom d'école édité dans le profil Director se sauvegarde maintenant correctement. L'endpoint PUT `/api/director/settings` met à jour le champ `name` dans la table `schools` quand `schoolName` est modifié. Toute modification de données école (nom, adresse, etc.) dans le profil Director DOIT mettre à jour la table `schools`, pas seulement la table `users`.
 
+- **FOND BLANC POUR TOUS LES DIALOGS D'ALERTE**: TOUS les dialogs d'alerte/confirmation (DeleteConfirmationDialog et autres AlertDialogContent) DOIVENT avoir un fond blanc permanent avec la classe `bg-white`. Ceci garantit une lisibilité optimale peu importe le thème actif. Le composant `DeleteConfirmationDialog` a été mis à jour avec `<AlertDialogContent className="bg-white">`. Tout nouveau dialog d'alerte DOIT suivre ce standard.
+
+- **MOCK STUDENTS ONLY FOR SANDBOX**: L'endpoint `/api/director/students` a été corrigé pour retourner UNIQUEMENT les mock students pour les utilisateurs sandbox (email contenant @test.educafric.com, @educafric.demo, sandbox@, demo@, .sandbox@, .demo@, .test@). Les écoles réelles reçoivent UNIQUEMENT les étudiants de la base de données via une requête Drizzle. JAMAIS de mock data pour les écoles réelles.
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes.
 - NEVER make partial updates to only some dashboards.
 - ALWAYS preserve button functionality when making changes - buttons must remain functional.
