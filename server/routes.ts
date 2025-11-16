@@ -3671,18 +3671,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== STUDENT TIMETABLE API - AVEC SYNCHRONISATION ÉCOLE =====
+  // ===== STUDENT TIMETABLE API - DATABASE-ONLY =====
   
   app.get("/api/student/timetable", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
       const week = req.query.week ? parseInt(req.query.week as string) : 0;
       
-      // 🔄 SYNCHRONISATION AUTOMATIQUE AVEC L'ÉCOLE
-      console.log('[STUDENT_TIMETABLE] 🔄 Synchronizing with school schedule...');
-      console.log('[STUDENT_TIMETABLE] 📡 Fetching latest timetable from school database...');
+      console.log('[STUDENT_TIMETABLE] 📡 Fetching timetable from database...');
       
-      // Récupérer l'ID de l'école de l'étudiant avec validation
+      // Récupérer l'ID de l'école et la classe de l'étudiant avec validation
       const studentSchoolId = user.schoolId;
       if (!studentSchoolId) {
         return res.status(403).json({ 
@@ -3690,159 +3688,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: 'School access required' 
         });
       }
-      const studentClass = user.class || '3ème A';
       
-      console.log(`[STUDENT_TIMETABLE] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
+      // Get student's class from the students table
+      const studentRecord = await db
+        .select({
+          classId: students.classId,
+          className: classes.name
+        })
+        .from(students)
+        .leftJoin(classes, eq(students.classId, classes.id))
+        .where(eq(students.userId, user.id))
+        .limit(1);
       
-      // Emploi du temps synchronisé avec l'école (données réalistes)
-      const timetableSlots = [
-        {
-          id: 1,
-          dayOfWeek: "monday",
-          startTime: "08:00",
-          endTime: "09:00", 
-          subject: "Mathématiques",
-          subjectId: 1,
-          teacher: "Prof. Mvondo",
-          teacherId: 15,
-          room: "Salle 101",
-          classroom: "Salle 101",
-          status: "upcoming",
-          color: "#3B82F6",
-          duration: 60
-        },
-        {
-          id: 2,
-          dayOfWeek: "monday",
-          startTime: "09:15",
-          endTime: "10:15",
-          subject: "Français",
-          subjectId: 2, 
-          teacher: "Mme Kouame",
-          teacherId: 16,
-          room: "Salle 102",
-          classroom: "Salle 102",
-          status: "upcoming",
-          color: "#EF4444",
-          duration: 60
-        },
-        {
-          id: 3,
-          dayOfWeek: "monday", 
-          startTime: "10:30",
-          endTime: "11:30",
-          subject: "Anglais",
-          subjectId: 3,
-          teacher: "Mr. Smith",
-          teacherId: 17,
-          room: "Salle 103", 
-          classroom: "Salle 103",
-          status: "upcoming",
-          color: "#10B981",
-          duration: 60
-        },
-        {
-          id: 4,
-          dayOfWeek: "tuesday",
-          startTime: "08:00", 
-          endTime: "09:00",
-          subject: "Sciences Physiques",
-          subjectId: 4,
-          teacher: "Dr. Biya",
-          teacherId: 18,
-          room: "Laboratoire",
-          classroom: "Laboratoire",
-          status: "upcoming",
-          color: "#8B5CF6",
-          duration: 60
-        },
-        {
-          id: 5,
-          dayOfWeek: "tuesday",
-          startTime: "09:15",
-          endTime: "10:15", 
-          subject: "Histoire-Géographie",
-          subjectId: 5,
-          teacher: "Prof. Fouda",
-          teacherId: 19,
-          room: "Salle 201",
-          classroom: "Salle 201", 
-          status: "upcoming",
-          color: "#F59E0B",
-          duration: 60
-        },
-        {
-          id: 6,
-          dayOfWeek: "wednesday",
-          startTime: "08:00",
-          endTime: "09:00",
-          subject: "Éducation Civique",
-          subjectId: 6,
-          teacher: "Mme Mballa", 
-          teacherId: 20,
-          room: "Salle 103",
-          classroom: "Salle 103",
-          status: "upcoming",
-          color: "#06B6D4",
-          duration: 60
-        },
-        {
-          id: 7,
-          dayOfWeek: "thursday",
-          startTime: "08:00",
-          endTime: "09:00",
-          subject: "Mathématiques",
-          subjectId: 1,
-          teacher: "Prof. Mvondo",
-          teacherId: 15,
-          room: "Salle 101", 
-          classroom: "Salle 101",
-          status: "upcoming",
-          color: "#3B82F6",
-          duration: 60
-        },
-        {
-          id: 8,
-          dayOfWeek: "friday",
-          startTime: "08:00",
-          endTime: "09:00",
-          subject: "Éducation Physique",
-          subjectId: 7,
-          teacher: "Coach Nkomo",
-          teacherId: 21,
-          room: "Gymnase",
-          classroom: "Gymnase",
-          status: "upcoming", 
-          color: "#EC4899",
-          duration: 60
-        }
-      ];
-      
-      // 📅 GESTION DES SEMAINES 
-      let currentDate = new Date();
-      if (week !== 0) {
-        currentDate.setDate(currentDate.getDate() + (week * 7));
-        console.log(`[STUDENT_TIMETABLE] 📅 Loading timetable for week offset: ${week}`);
+      if (!studentRecord.length || !studentRecord[0].classId) {
+        console.log('[STUDENT_TIMETABLE] ⚠️ No class assigned to student');
+        return res.json([]);
       }
       
-      // 🎯 MARQUER LES COURS ACTUELS/PASSÉS
+      const studentClassId = studentRecord[0].classId;
+      const studentClassName = studentRecord[0].className || 'Unknown';
+      
+      console.log(`[STUDENT_TIMETABLE] 🏫 School: ${studentSchoolId}, Class: ${studentClassName} (ID: ${studentClassId})`);
+      
+      // Fetch timetable slots from database for student's class
+      const timetableSlotsDb = await db
+        .select({
+          id: timetables.id,
+          dayOfWeek: timetables.dayOfWeek,
+          startTime: timetables.startTime,
+          endTime: timetables.endTime,
+          subjectName: timetables.subjectName,
+          subjectId: timetables.subjectId,
+          teacherId: timetables.teacherId,
+          room: timetables.room,
+          academicYear: timetables.academicYear,
+          term: timetables.term,
+          teacherFirstName: users.firstName,
+          teacherLastName: users.lastName
+        })
+        .from(timetables)
+        .leftJoin(users, eq(timetables.teacherId, users.id))
+        .where(and(
+          eq(timetables.classId, studentClassId),
+          eq(timetables.schoolId, studentSchoolId),
+          eq(timetables.isActive, true)
+        ))
+        .orderBy(timetables.dayOfWeek, timetables.startTime);
+      
+      console.log(`[STUDENT_TIMETABLE] ✅ Fetched ${timetableSlotsDb.length} timetable slots from database`);
+      
+      // Map day numbers to day names
+      const dayNames = ['', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      
+      // Color mapping for subjects (consistent across dashboards)
+      const subjectColors: Record<string, string> = {
+        'Mathématiques': '#3B82F6',
+        'Français': '#EF4444',
+        'Anglais': '#10B981',
+        'Sciences': '#8B5CF6',
+        'Histoire': '#F59E0B',
+        'Géographie': '#06B6D4',
+        'Éducation Physique': '#EC4899',
+        'default': '#6B7280'
+      };
+      
+      // 🎯 Process and mark slots based on current time
       const now = new Date();
       const currentTimeStr = now.toTimeString().slice(0, 5); // "HH:MM"
-      const currentDayStr = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][now.getDay()];
+      const currentDayNum = now.getDay(); // 0=Sunday, 1=Monday, etc.
       
-      const processedSlots = timetableSlots.map(slot => {
-        if (slot.dayOfWeek === currentDayStr) {
+      const processedSlots = timetableSlotsDb.map(slot => {
+        const dayOfWeek = dayNames[slot.dayOfWeek] || 'monday';
+        const teacherName = slot.teacherFirstName && slot.teacherLastName 
+          ? `${slot.teacherFirstName} ${slot.teacherLastName}`
+          : 'Unknown Teacher';
+        
+        let status = 'upcoming';
+        
+        // Mark current/completed slots if it's today
+        if (slot.dayOfWeek === currentDayNum) {
           if (currentTimeStr >= slot.startTime && currentTimeStr <= slot.endTime) {
-            slot.status = 'current';
+            status = 'current';
           } else if (currentTimeStr > slot.endTime) {
-            slot.status = 'completed';
+            status = 'completed';
           }
         }
-        return slot;
+        
+        return {
+          id: slot.id,
+          dayOfWeek,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          subject: slot.subjectName || 'Unknown Subject',
+          subjectId: slot.subjectId,
+          teacher: teacherName,
+          teacherId: slot.teacherId,
+          room: slot.room || 'N/A',
+          classroom: slot.room || 'N/A',
+          status,
+          color: subjectColors[slot.subjectName || ''] || subjectColors.default,
+          duration: 60 // Default duration in minutes
+        };
       });
       
-      console.log(`[STUDENT_TIMETABLE] ✅ Synchronized ${processedSlots.length} timetable slots from school database`);
-      console.log(`[STUDENT_TIMETABLE] 📊 Current time: ${currentTimeStr}, Today: ${currentDayStr}`);
+      console.log(`[STUDENT_TIMETABLE] ✅ Processed ${processedSlots.length} timetable slots`);
+      console.log(`[STUDENT_TIMETABLE] 📊 Current time: ${currentTimeStr}, Today: ${dayNames[currentDayNum]}`);
       
       res.json(processedSlots);
     } catch (error) {
