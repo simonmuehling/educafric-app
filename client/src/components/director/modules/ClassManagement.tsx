@@ -710,9 +710,9 @@ const ClassManagement: React.FC = () => {
                     {String(t?.actions?.addClass) || "N/A"}
                   </Button>
                 </DialogTrigger>
-              <DialogContent className="bg-white max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="bg-white max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
                 <DialogHeader className="bg-white sticky top-0 z-10 border-b border-gray-200 pb-4">
-                  <DialogTitle>{String(t?.actions?.addClass) || "N/A"}</DialogTitle>
+                  <DialogTitle className="text-lg sm:text-xl">{String(t?.actions?.addClass) || "N/A"}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 bg-white p-1">
                   <div>
@@ -1019,9 +1019,9 @@ const ClassManagement: React.FC = () => {
 
             {/* Edit Class Dialog */}
             <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-              <DialogContent className="bg-white max-w-md">
+              <DialogContent className="bg-white max-w-[95vw] sm:max-w-md p-4 sm:p-6">
                 <DialogHeader className="bg-white">
-                  <DialogTitle>{String(t?.actions?.edit) || "N/A"} {selectedClass?.name}</DialogTitle>
+                  <DialogTitle className="text-lg sm:text-xl">{String(t?.actions?.edit) || "N/A"} {selectedClass?.name}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 bg-white">
                   <div>
@@ -1434,9 +1434,9 @@ const ClassManagement: React.FC = () => {
 
         {/* Modal de gestion des salles */}
         <Dialog open={isRoomManagementOpen} onOpenChange={setIsRoomManagementOpen}>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-[95vw] sm:max-w-4xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Building className="w-5 h-5" />
                 {language === 'fr' ? 'Gestion des Salles' : 'Room Management'}
               </DialogTitle>
@@ -1633,9 +1633,9 @@ const ClassManagement: React.FC = () => {
 
         {/* Modal de vue de classe détaillée */}
         <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Eye className="w-5 h-5" />
                 {language === 'fr' ? 'Détails de la Classe' : 'Class Details'}: {selectedClass?.name}
               </DialogTitle>

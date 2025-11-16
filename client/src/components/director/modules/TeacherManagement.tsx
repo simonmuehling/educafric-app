@@ -461,11 +461,11 @@ const TeacherManagement: React.FC = () => {
 
         {/* Add Teacher Modal */}
         {showAddModal && typeof showAddModal === "object" && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white rounded-lg max-w-[95vw] sm:max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold">
                     {language === 'fr' ? 'Ajouter un Enseignant' : 'Add Teacher'}
                   </h2>
                   <Button 
@@ -616,11 +616,11 @@ const TeacherManagement: React.FC = () => {
 
         {/* Edit Teacher Modal */}
         {showEditModal && typeof showEditModal === "object" && selectedTeacher && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white rounded-lg max-w-[95vw] sm:max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold">
                     {language === 'fr' ? 'Modifier l\'Enseignant' : 'Edit Teacher'}
                   </h2>
                   <Button 
@@ -755,11 +755,11 @@ const TeacherManagement: React.FC = () => {
 
         {/* View Teacher Modal */}
         {showViewModal && typeof showViewModal === "object" && selectedTeacher && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white rounded-lg max-w-[95vw] sm:max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold">
                     {language === 'fr' ? 'Détails de l\'Enseignant' : 'Teacher Details'}
                   </h2>
                   <Button 
