@@ -14,6 +14,7 @@ import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, Book
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
+import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 
 const ClassManagement: React.FC = () => {
   const { language } = useLanguage();
@@ -50,6 +51,8 @@ const ClassManagement: React.FC = () => {
     equipment: ''
   });
   const [isImportingRooms, setIsImportingRooms] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<{id: number, name: string} | null>(null);
   
   // État pour la gestion des matières
   const [showSubjectSection, setShowSubjectSection] = useState(false);
@@ -612,9 +615,15 @@ const ClassManagement: React.FC = () => {
     createClassMutation.mutate(classDataForAPI);
   };
 
-  const handleDeleteClass = (classId: number) => {
-    if (window.confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cette classe ?' : 'Are you sure you want to delete this class?')) {
-      deleteClassMutation.mutate(classId);
+  const handleDeleteClass = (classId: number, className: string) => {
+    setClassToDelete({ id: classId, name: className });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteClass = () => {
+    if (classToDelete) {
+      deleteClassMutation.mutate(classToDelete.id);
+      setClassToDelete(null);
     }
   };
 
@@ -1409,7 +1418,7 @@ const ClassManagement: React.FC = () => {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={() => handleDeleteClass(classItem.id)}
+                        onClick={() => handleDeleteClass(classItem.id, classItem.name)}
                         data-testid={`button-delete-class-${String(classItem?.id) || "N/A"}`}
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
@@ -1790,6 +1799,19 @@ const ClassManagement: React.FC = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <DeleteConfirmationDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={confirmDeleteClass}
+          title={language === 'fr' ? 'Supprimer la classe' : 'Delete Class'}
+          description={language === 'fr' 
+            ? `Êtes-vous sûr de vouloir supprimer la classe "${classToDelete?.name}" ? Cette action est irréversible et supprimera tous les élèves inscrits.`
+            : `Are you sure you want to delete the class "${classToDelete?.name}"? This action cannot be undone and will remove all enrolled students.`}
+          confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
+          cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+        />
       </div>
     </div>
   );
