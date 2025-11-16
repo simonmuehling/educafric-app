@@ -139,6 +139,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
             monthlyRevenue: 0,  // Frontend expects this field
             createdAt: school.createdAt,
             educafricNumber: school.educafricNumber,
+            offlineEnabled: school.offlineEnabled || false, // Offline Premium Mode
             director: director ? `${director.firstName || ''} ${director.lastName || ''}`.trim() : 'N/A',
             directorEmail: director?.email || null,
             directorPhone: director?.phone || null
@@ -160,6 +161,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
             monthlyRevenue: 0,  // Frontend expects this field
             createdAt: school.createdAt,
             educafricNumber: school.educafricNumber,
+            offlineEnabled: school.offlineEnabled || false, // Offline Premium Mode
             director: 'N/A',
             directorEmail: null,
             directorPhone: null
@@ -377,6 +379,35 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error deleting school:', error);
       res.status(500).json({ message: 'Failed to delete school' });
+    }
+  });
+
+  // Toggle Offline Premium Mode for school
+  app.patch("/api/siteadmin/schools/:schoolId/offline", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { schoolId } = req.params;
+      const { offlineEnabled } = req.body;
+      
+      console.log(`[SITE_ADMIN_API] ${offlineEnabled ? 'Enabling' : 'Disabling'} offline mode for school ${schoolId}`);
+      
+      // Update school in database
+      await storage.updateSchool(parseInt(schoolId), {
+        offlineEnabled: offlineEnabled
+      });
+
+      console.log(`[SITE_ADMIN_API] ✅ Offline mode ${offlineEnabled ? 'enabled' : 'disabled'} for school ${schoolId}`);
+      res.json({ 
+        success: true,
+        message: `Mode hors ligne ${offlineEnabled ? 'activé' : 'désactivé'} avec succès`,
+        schoolId: parseInt(schoolId),
+        offlineEnabled 
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error toggling offline mode:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to toggle offline mode' 
+      });
     }
   });
 

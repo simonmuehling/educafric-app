@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { School, Plus, Edit, Trash2, Search, MapPin, Users, DollarSign, TrendingUp } from 'lucide-react';
+import { School, Plus, Edit, Trash2, Search, MapPin, Users, DollarSign, TrendingUp, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface PlatformSchool {
   id: number;
@@ -18,12 +20,14 @@ interface PlatformSchool {
   createdAt: string;
   contactEmail?: string;
   phone?: string;
+  offlineEnabled?: boolean;
 }
 
 const FunctionalSiteAdminSchools: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: schoolsData, isLoading, error } = useQuery({
     queryKey: ['/api/siteadmin/schools'],
@@ -68,6 +72,38 @@ const FunctionalSiteAdminSchools: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-schools'] });
     }
   });
+
+  const toggleOfflineModeMutation = useMutation({
+    mutationFn: async ({ schoolId, enabled }: { schoolId: number; enabled: boolean }) => {
+      const response = await apiRequest(`/api/siteadmin/schools/${schoolId}/offline`, 'PATCH', { 
+        offlineEnabled: enabled 
+      });
+      return response;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+      toast({
+        title: 'Succès',
+        description: variables.enabled 
+          ? 'Mode hors ligne activé pour cette école' 
+          : 'Mode hors ligne désactivé pour cette école'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Impossible de modifier le mode hors ligne',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleToggleOffline = (schoolId: number, currentState: boolean) => {
+    toggleOfflineModeMutation.mutate({ 
+      schoolId, 
+      enabled: !currentState 
+    });
+  };
 
   const filteredSchools = schools?.filter((school: PlatformSchool) => {
     return school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -246,8 +282,29 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Offline Mode Toggle */}
+                  <div className="pt-2 border-t border-gray-100">
+                    <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <WifiOff className="h-4 w-4 text-orange-600" />
+                        <div>
+                          <div className="text-xs font-medium text-gray-700">Mode Hors Ligne</div>
+                          <div className="text-xs text-gray-500">
+                            {school.offlineEnabled ? 'Activé (données 1 an)' : 'Désactivé (cache 1 semaine)'}
+                          </div>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={school.offlineEnabled || false}
+                        onCheckedChange={() => handleToggleOffline(school.id, school.offlineEnabled || false)}
+                        disabled={toggleOfflineModeMutation.isPending}
+                        data-testid={`switch-offline-${school.id}`}
+                      />
+                    </div>
+                  </div>
+
                   {/* Creation Date */}
-                  <div className="text-xs text-gray-500 pt-2 border-t border-gray-100">
+                  <div className="text-xs text-gray-500 pt-2">
                     Créé le: {new Date(school.createdAt).toLocaleDateString('fr-FR')}
                   </div>
                 </div>
