@@ -42,6 +42,9 @@ export const schools = pgTable("schools", {
   // SC=School - Required for signup, managed by admin
   educafricNumber: text("educafric_number").unique(),
   
+  // Offline Premium Mode - enables full offline functionality for rural schools
+  offlineEnabled: boolean("offline_enabled").default(false),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
