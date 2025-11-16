@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { TimetableCreation } from '@/components/timetable/TimetableCreation';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import { useQueryClient } from '@tanstack/react-query';
+import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 
 interface TimetableEntry {
   id: number;
@@ -34,6 +35,8 @@ const TimetableConfiguration: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<TimetableEntry | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<{ id: number; description: string } | null>(null);
   const [formData, setFormData] = useState({
     className: '',
     day: '',
@@ -356,7 +359,16 @@ const TimetableConfiguration: React.FC = () => {
     setShowCreateForm(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number, className: string, subject: string, timeSlot: string) => {
+    const description = `${className} - ${subject} (${timeSlot})`;
+    setEntryToDelete({ id, description });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteEntry = async () => {
+    if (!entryToDelete) return;
+    
+    const id = entryToDelete.id;
     try {
       console.log('[TIMETABLE_CONFIG] 🗑️ Deleting timetable slot:', id);
       
@@ -376,6 +388,7 @@ const TimetableConfiguration: React.FC = () => {
         // Refresh timetables using React Query
         refetchTimetables();
         
+        setEntryToDelete(null);
         console.log('[TIMETABLE_CONFIG] ✅ Timetable deleted successfully');
       } else {
         console.error('[TIMETABLE_CONFIG] ❌ Delete API Error:', responseData);
@@ -1101,7 +1114,7 @@ const TimetableConfiguration: React.FC = () => {
                                       className="h-4 w-4 p-0 text-red-500"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        handleDelete(course.id);
+                                        handleDelete(course.id, course.className, course.subject, course.timeSlot);
                                       }}
                                     >
                                       <Trash2 className="w-3 h-3" />
@@ -1162,6 +1175,19 @@ const TimetableConfiguration: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <DeleteConfirmationDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={confirmDeleteEntry}
+          title={language === 'fr' ? 'Supprimer le créneau' : 'Delete Timetable Slot'}
+          description={language === 'fr' 
+            ? `Êtes-vous sûr de vouloir supprimer le créneau "${entryToDelete?.description}" ? Cette action est irréversible.`
+            : `Are you sure you want to delete the timetable slot "${entryToDelete?.description}"? This action cannot be undone.`}
+          confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
+          cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+        />
       </div>
     </div>
   );
