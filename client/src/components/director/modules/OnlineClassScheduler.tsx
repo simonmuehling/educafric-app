@@ -38,6 +38,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 
 interface OnlineCourse {
   id: number;
@@ -157,6 +158,10 @@ const OnlineClassScheduler: React.FC = () => {
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<'sessions' | 'create-session' | 'recurrences' | 'create-recurrence' | 'calendar'>('sessions');
+  const [deleteSessionDialogOpen, setDeleteSessionDialogOpen] = useState(false);
+  const [sessionToCancel, setSessionToCancel] = useState<{id: number, title: string} | null>(null);
+  const [deleteRecurrenceDialogOpen, setDeleteRecurrenceDialogOpen] = useState(false);
+  const [recurrenceToDelete, setRecurrenceToDelete] = useState<{id: number, title: string} | null>(null);
 
   const sessionForm = useForm<SessionFormValues>({
     resolver: zodResolver(sessionFormSchema),
@@ -591,9 +596,15 @@ const OnlineClassScheduler: React.FC = () => {
     });
   };
 
-  const handleCancelSession = (sessionId: number) => {
-    if (window.confirm(t.sessions.cancelConfirm)) {
-      cancelSessionMutation.mutate(sessionId);
+  const handleCancelSession = (sessionId: number, sessionTitle: string) => {
+    setSessionToCancel({ id: sessionId, title: sessionTitle });
+    setDeleteSessionDialogOpen(true);
+  };
+
+  const confirmCancelSession = () => {
+    if (sessionToCancel) {
+      cancelSessionMutation.mutate(sessionToCancel.id);
+      setSessionToCancel(null);
     }
   };
 
@@ -604,9 +615,15 @@ const OnlineClassScheduler: React.FC = () => {
     });
   };
 
-  const handleDeleteRecurrence = (id: number) => {
-    if (window.confirm(t.recurrences.deleteConfirm)) {
-      deleteRecurrenceMutation.mutate(id);
+  const handleDeleteRecurrence = (id: number, title: string) => {
+    setRecurrenceToDelete({ id, title });
+    setDeleteRecurrenceDialogOpen(true);
+  };
+
+  const confirmDeleteRecurrence = () => {
+    if (recurrenceToDelete) {
+      deleteRecurrenceMutation.mutate(recurrenceToDelete.id);
+      setRecurrenceToDelete(null);
     }
   };
 
@@ -733,7 +750,7 @@ const OnlineClassScheduler: React.FC = () => {
                               variant="destructive"
                               size="sm"
                               className="w-full mt-2"
-                              onClick={() => handleCancelSession(session.id)}
+                              onClick={() => handleCancelSession(session.id, session.title)}
                               disabled={cancelSessionMutation.isPending}
                               data-testid={`button-cancel-session-${session.id}`}
                             >
@@ -1046,7 +1063,7 @@ const OnlineClassScheduler: React.FC = () => {
                             <Button
                               variant="destructive"
                               size="sm"
-                              onClick={() => handleDeleteRecurrence(recurrence.id)}
+                              onClick={() => handleDeleteRecurrence(recurrence.id, recurrence.title)}
                               disabled={deleteRecurrenceMutation.isPending}
                               data-testid={`button-delete-recurrence-${recurrence.id}`}
                             >
@@ -1413,6 +1430,31 @@ const OnlineClassScheduler: React.FC = () => {
             </Tabs>
           </CardContent>
         </Card>
+
+        {/* Delete Confirmation Dialogs */}
+        <DeleteConfirmationDialog
+          open={deleteSessionDialogOpen}
+          onOpenChange={setDeleteSessionDialogOpen}
+          onConfirm={confirmCancelSession}
+          title={language === 'fr' ? 'Annuler la session' : 'Cancel Session'}
+          description={language === 'fr' 
+            ? `Êtes-vous sûr de vouloir annuler la session "${sessionToCancel?.title}" ? Les participants ne pourront plus y accéder.`
+            : `Are you sure you want to cancel the session "${sessionToCancel?.title}"? Participants will no longer be able to access it.`}
+          confirmText={language === 'fr' ? 'Annuler la session' : 'Cancel Session'}
+          cancelText={language === 'fr' ? 'Retour' : 'Go Back'}
+        />
+
+        <DeleteConfirmationDialog
+          open={deleteRecurrenceDialogOpen}
+          onOpenChange={setDeleteRecurrenceDialogOpen}
+          onConfirm={confirmDeleteRecurrence}
+          title={language === 'fr' ? 'Supprimer la récurrence' : 'Delete Recurrence'}
+          description={language === 'fr' 
+            ? `Êtes-vous sûr de vouloir supprimer la récurrence "${recurrenceToDelete?.title}" ? Les sessions futures ne seront plus générées automatiquement.`
+            : `Are you sure you want to delete the recurrence "${recurrenceToDelete?.title}"? Future sessions will no longer be generated automatically.`}
+          confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
+          cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+        />
       </div>
     </div>
   );

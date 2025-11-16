@@ -16,6 +16,7 @@ import {
   Trash2, RotateCcw, Settings, BookOpen,
   MessageCircle, Timer, Star, AlertTriangle, WifiOff
 } from 'lucide-react';
+import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 
 interface Assignment {
   id: number;
@@ -61,6 +62,8 @@ const FunctionalTeacherAssignments: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isCreateHomeworkOpen, setIsCreateHomeworkOpen] = useState(false);
   const [editingHomework, setEditingHomework] = useState<Assignment | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [assignmentToArchive, setAssignmentToArchive] = useState<{id: number, title: string} | null>(null);
   const [homeworkForm, setHomeworkForm] = useState({
     title: '',
     description: '',
@@ -353,9 +356,15 @@ const FunctionalTeacherAssignments: React.FC = () => {
     });
   };
 
-  const handleArchiveHomework = (homeworkId: number) => {
-    if (window.confirm('Êtes-vous sûr de vouloir archiver ce devoir ? Il sera conservé 10 jours.')) {
-      archiveHomeworkMutation.mutate(homeworkId);
+  const handleArchiveHomework = (homeworkId: number, homeworkTitle: string) => {
+    setAssignmentToArchive({ id: homeworkId, title: homeworkTitle });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmArchive = () => {
+    if (assignmentToArchive) {
+      archiveHomeworkMutation.mutate(assignmentToArchive.id);
+      setAssignmentToArchive(null);
     }
   };
 
@@ -734,7 +743,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleArchiveHomework(assignment.id)}
+                          onClick={() => handleArchiveHomework(assignment.id, assignment.title)}
                           className="text-purple-600 hover:text-purple-700"
                           data-testid={`button-archive-homework-${assignment.id}`}
                         >
@@ -987,6 +996,19 @@ const FunctionalTeacherAssignments: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Archive Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmArchive}
+        title={language === 'fr' ? 'Archiver le devoir' : 'Archive Assignment'}
+        description={language === 'fr' 
+          ? `Êtes-vous sûr de vouloir archiver le devoir "${assignmentToArchive?.title}" ? Il sera conservé pendant 10 jours puis supprimé automatiquement.`
+          : `Are you sure you want to archive the assignment "${assignmentToArchive?.title}"? It will be kept for 10 days and then automatically deleted.`}
+        confirmText={language === 'fr' ? 'Archiver' : 'Archive'}
+        cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+      />
     </div>
   );
 };

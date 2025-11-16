@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Shield, UserPlus, Users, CheckCircle, Clock, Award, Edit, Settings, User, Trash2, Mail, Phone, Loader2, AlertCircle } from 'lucide-react';
+import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 
 const AdministratorManagementFunctional: React.FC = () => {
   const { language } = useLanguage();
@@ -25,6 +26,8 @@ const AdministratorManagementFunctional: React.FC = () => {
     adminLevel: 'assistant'
   });
   const [editPermissions, setEditPermissions] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [adminToDelete, setAdminToDelete] = useState<{id: number, name: string} | null>(null);
 
   const text = {
     fr: {
@@ -252,9 +255,15 @@ const AdministratorManagementFunctional: React.FC = () => {
     });
   };
 
-  const handleRemoveAdmin = (adminId: number) => {
-    if (window.confirm(t.confirm)) {
-      removeAdminMutation.mutate(adminId);
+  const handleRemoveAdmin = (adminId: number, adminName: string) => {
+    setAdminToDelete({ id: adminId, name: adminName });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmRemoveAdmin = () => {
+    if (adminToDelete) {
+      removeAdminMutation.mutate(adminToDelete.id);
+      setAdminToDelete(null);
     }
   };
 
@@ -502,7 +511,7 @@ const AdministratorManagementFunctional: React.FC = () => {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleRemoveAdmin(admin.id)}
+                        onClick={() => handleRemoveAdmin(admin.id, admin.teacherName)}
                         disabled={removeAdminMutation.isPending}
                       >
                         {removeAdminMutation.isPending ? (
@@ -577,6 +586,19 @@ const AdministratorManagementFunctional: React.FC = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <DeleteConfirmationDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={confirmRemoveAdmin}
+          title={language === 'fr' ? 'Révoquer la délégation' : 'Revoke Delegation'}
+          description={language === 'fr' 
+            ? `Êtes-vous sûr de vouloir révoquer la délégation administrative de "${adminToDelete?.name}" ? Cet enseignant perdra tous les accès administratifs.`
+            : `Are you sure you want to revoke the administrative delegation of "${adminToDelete?.name}"? This teacher will lose all administrative access.`}
+          confirmText={language === 'fr' ? 'Révoquer' : 'Revoke'}
+          cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+        />
       </div>
     </div>
   );

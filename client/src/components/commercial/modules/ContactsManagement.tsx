@@ -16,6 +16,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useStableCallback } from '@/hooks/useStableCallback';
+import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 
 // Contact form schema
 const contactFormSchema = z.object({
@@ -39,6 +40,8 @@ const ContactsManagement = () => {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [contactToDelete, setContactToDelete] = useState<{id: number, name: string} | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -205,9 +208,15 @@ const ContactsManagement = () => {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (contactId: number) => {
-    if (window.confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer ce contact ?' : 'Are you sure you want to delete this contact?')) {
-      deleteContactMutation.mutate(contactId);
+  const handleDelete = (contactId: number, contactName: string) => {
+    setContactToDelete({ id: contactId, name: contactName });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (contactToDelete) {
+      deleteContactMutation.mutate(contactToDelete.id);
+      setContactToDelete(null);
     }
   };
 
@@ -581,7 +590,7 @@ const ContactsManagement = () => {
                       variant="outline" 
                       size="sm" 
                       className="flex items-center gap-1 text-red-600 hover:text-red-700"
-                      onClick={() => handleDelete(contact.id)}
+                      onClick={() => handleDelete(contact.id, contact.name)}
                       data-testid={`button-delete-contact-${contact.id}`}
                     >
                       <Trash2 className="w-3 h-3" />
@@ -627,6 +636,19 @@ const ContactsManagement = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title={language === 'fr' ? 'Supprimer le contact' : 'Delete Contact'}
+        description={language === 'fr' 
+          ? `Êtes-vous sûr de vouloir supprimer le contact "${contactToDelete?.name}" ? Cette action est irréversible et supprimera toutes les informations associées.`
+          : `Are you sure you want to delete the contact "${contactToDelete?.name}"? This action cannot be undone and will remove all associated information.`}
+        confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
+        cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+      />
     </div>
   );
 };

@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiRequest } from '@/lib/queryClient';
 import ContractGenerator from '../ContractGenerator';
+import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 
 interface CommercialDocument {
   id: number;
@@ -52,6 +53,8 @@ const CommercialDocumentManagement: React.FC = () => {
   const [shareEmail, setShareEmail] = useState('');
   const [shareMessage, setShareMessage] = useState('');
   const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<{id: number, title: string} | null>(null);
 
   // Check if user can create contracts (COO or specific emails)
   const canCreateContracts = user && (
@@ -257,8 +260,14 @@ const CommercialDocumentManagement: React.FC = () => {
   };
 
   const handleDelete = (document: CommercialDocument) => {
-    if (window.confirm(t.confirmDelete)) {
-      deleteMutation.mutate(document.id);
+    setDocumentToDelete({ id: document.id, title: document.title });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (documentToDelete) {
+      deleteMutation.mutate(documentToDelete.id);
+      setDocumentToDelete(null);
     }
   };
 
@@ -577,6 +586,19 @@ const CommercialDocumentManagement: React.FC = () => {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title={language === 'fr' ? 'Supprimer le document' : 'Delete Document'}
+        description={language === 'fr' 
+          ? `Êtes-vous sûr de vouloir supprimer le document "${documentToDelete?.title}" ? Cette action est irréversible.`
+          : `Are you sure you want to delete the document "${documentToDelete?.title}"? This action cannot be undone.`}
+        confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
+        cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+      />
     </div>
   );
 };
