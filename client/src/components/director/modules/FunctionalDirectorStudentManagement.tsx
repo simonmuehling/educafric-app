@@ -275,7 +275,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Delete student mutation
   const deleteStudentMutation = useMutation({
     mutationFn: async (studentId: number) => {
-      const response = await fetch(`/api/director/student/${studentId}`, {
+      const response = await fetch(`/api/director/students/${studentId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
