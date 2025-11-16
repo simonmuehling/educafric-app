@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -59,6 +60,10 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<{id: number, name: string} | null>(null);
+  
+  // Bulk selection states
+  const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [studentForm, setStudentForm] = useState({
     name: '', // Single name field for simplicity 
     email: '',
@@ -301,6 +306,47 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     }
   });
 
+  // Bulk delete mutation
+  const bulkDeleteStudentsMutation = useMutation({
+    mutationFn: async (studentIds: number[]) => {
+      const responses = await Promise.all(
+        studentIds.map(id => 
+          fetch(`/api/director/students/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          }).then(res => {
+            if (!res.ok) throw new Error(`Failed to delete student ${id}`);
+            return res.json();
+          })
+        )
+      );
+      return responses;
+    },
+    onSuccess: (_, studentIds) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
+      
+      setSelectedStudents(new Set());
+      setBulkDeleteDialogOpen(false);
+      
+      toast({
+        title: language === 'fr' ? '✅ Suppression réussie' : '✅ Deletion Successful',
+        description: language === 'fr' 
+          ? `${studentIds.length} élève(s) supprimé(s) avec succès` 
+          : `${studentIds.length} student(s) deleted successfully`
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? '❌ Erreur' : '❌ Error',
+        description: language === 'fr' 
+          ? 'Impossible de supprimer les élèves sélectionnés' 
+          : 'Failed to delete selected students',
+        variant: 'destructive'
+      });
+    }
+  });
+
   const handleCreateStudent = () => {
     // Validate: At least name is required
     if (!studentForm.name || !studentForm.name.trim()) {
@@ -363,6 +409,35 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       deleteStudentMutation.mutate(studentToDelete.id);
       setStudentToDelete(null);
     }
+  };
+
+  // Bulk selection handlers
+  const toggleSelectStudent = (studentId: number) => {
+    const newSelected = new Set(selectedStudents);
+    if (newSelected.has(studentId)) {
+      newSelected.delete(studentId);
+    } else {
+      newSelected.add(studentId);
+    }
+    setSelectedStudents(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedStudents.size === filteredStudents.length && filteredStudents.length > 0) {
+      setSelectedStudents(new Set());
+    } else {
+      setSelectedStudents(new Set(filteredStudents.map(s => s.id)));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedStudents.size > 0) {
+      setBulkDeleteDialogOpen(true);
+    }
+  };
+
+  const confirmBulkDelete = () => {
+    bulkDeleteStudentsMutation.mutate(Array.from(selectedStudents));
   };
 
   // Upload photo mutation
@@ -431,7 +506,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     input.click();
   };
 
-  const filteredStudents = Array.isArray(students) ? (Array.isArray(students) ? students : [])
+  const filteredStudents = (Array.isArray(students) ? students : [])
     .filter(student => {
       if (!student) return false;
       const firstName = student.firstName || '';
@@ -463,7 +538,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       if (firstNameA < firstNameB) return -1;
       if (firstNameA > firstNameB) return 1;
       return 0;
-    }) : [];
+    });
 
   const stats = {
     totalStudents: Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0,
@@ -557,6 +632,16 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           <p className="text-gray-500">Gérez tous les élèves de votre établissement</p>
         </div>
         <div className="flex gap-2">
+          {selectedStudents.size > 0 && (
+            <Button 
+              onClick={handleBulkDelete}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="button-bulk-delete-students"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {language === 'fr' ? `Supprimer (${selectedStudents.size})` : `Delete (${selectedStudents.size})`}
+            </Button>
+          )}
           <Button 
             onClick={() => setIsImportModalOpen(true)}
             className="bg-green-600 hover:bg-green-700"
@@ -669,6 +754,17 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       <Card>
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                checked={selectedStudents.size === filteredStudents.length && filteredStudents.length > 0}
+                onCheckedChange={toggleSelectAll}
+                id="select-all-students"
+                data-testid="checkbox-select-all-students"
+              />
+              <Label htmlFor="select-all-students" className="text-sm cursor-pointer">
+                {language === 'fr' ? 'Tout sélectionner' : 'Select All'}
+              </Label>
+            </div>
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -1329,6 +1425,12 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
               {(Array.isArray(filteredStudents) ? filteredStudents : []).map((student) => (
                 <div key={student.id} className="border rounded-lg p-3 md:p-4 hover:bg-gray-50">
                   <div className="flex items-start gap-3 md:gap-4">
+                    <Checkbox
+                      checked={selectedStudents.has(student.id)}
+                      onCheckedChange={() => toggleSelectStudent(student.id)}
+                      data-testid={`checkbox-student-${student.id}`}
+                      className="mt-1"
+                    />
                     <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
                     </div>
@@ -1592,6 +1694,19 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           ? `Êtes-vous sûr de vouloir supprimer l'élève "${studentToDelete?.name}" ? Cette action est irréversible et supprimera toutes les données associées.`
           : `Are you sure you want to delete the student "${studentToDelete?.name}"? This action cannot be undone and will remove all associated data.`}
         confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
+        cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+      />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+        onConfirm={confirmBulkDelete}
+        title={language === 'fr' ? 'Suppression groupée' : 'Bulk Delete'}
+        description={language === 'fr' 
+          ? `Êtes-vous sûr de vouloir supprimer ${selectedStudents.size} élève(s) sélectionné(s) ? Cette action est irréversible et supprimera toutes les données associées.`
+          : `Are you sure you want to delete ${selectedStudents.size} selected student(s)? This action cannot be undone and will remove all associated data.`}
+        confirmText={language === 'fr' ? 'Supprimer tout' : 'Delete All'}
         cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
       />
     </div>
