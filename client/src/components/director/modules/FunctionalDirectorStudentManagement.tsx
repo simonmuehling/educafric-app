@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
+import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 
 interface Student {
   id: number;
@@ -56,6 +57,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   });
   const [isViewStudentOpen, setIsViewStudentOpen] = useState(false);
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<{id: number, name: string} | null>(null);
   const [studentForm, setStudentForm] = useState({
     name: '', // Single name field for simplicity 
     email: '',
@@ -350,9 +353,15 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     setIsEditStudentOpen(true);
   };
 
-  const handleDeleteStudent = (studentId: number) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet élève ?')) {
-      deleteStudentMutation.mutate(studentId);
+  const handleDeleteStudent = (studentId: number, studentName: string) => {
+    setStudentToDelete({ id: studentId, name: studentName });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteStudent = () => {
+    if (studentToDelete) {
+      deleteStudentMutation.mutate(studentToDelete.id);
+      setStudentToDelete(null);
     }
   };
 
@@ -1366,7 +1375,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => handleDeleteStudent(student.id)}
+                          onClick={() => handleDeleteStudent(student.id, `${student.firstName} ${student.lastName}`)}
                           className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                           data-testid={`button-delete-student-${student.id}`}
                         >
@@ -1558,6 +1567,19 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDeleteStudent}
+        title={language === 'fr' ? 'Supprimer l\'élève' : 'Delete Student'}
+        description={language === 'fr' 
+          ? `Êtes-vous sûr de vouloir supprimer l'élève "${studentToDelete?.name}" ? Cette action est irréversible et supprimera toutes les données associées.`
+          : `Are you sure you want to delete the student "${studentToDelete?.name}"? This action cannot be undone and will remove all associated data.`}
+        confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
+        cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+      />
     </div>
   );
 };
