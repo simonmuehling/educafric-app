@@ -667,13 +667,13 @@ export class ExcelImportService {
             const [name, coeff, hours, category] = subjectStr.split(';').map((s: string) => s.trim());
             if (name) {
               // Validate subject category - Support all 5 types
-              const validCategories = ['general', 'scientific', 'literary', 'technical', 'other'];
+              const validCategories = ['general', 'scientific', 'literary', 'professional', 'other'];
               const normalizedCategory = category?.toLowerCase();
               if (category && !validCategories.includes(normalizedCategory)) {
                 result.errors.push({
                   row: row._row || index + 2,
                   field: lang === 'fr' ? 'Catégorie Matière' : 'Subject Category',
-                  message: `${lang === 'fr' ? 'Catégorie matière invalide' : 'Invalid subject category'}: "${category}". ${lang === 'fr' ? 'Valeurs valides' : 'Valid values'}: general, scientific, literary, technical, other`
+                  message: `${lang === 'fr' ? 'Catégorie matière invalide' : 'Invalid subject category'}: "${category}". ${lang === 'fr' ? 'Valeurs valides' : 'Valid values'}: general, scientific, literary, professional, other`
                 });
                 hasSubjectValidationError = true;
                 break;
@@ -683,7 +683,7 @@ export class ExcelImportService {
                 name,
                 coefficient: parseInt(coeff) || 1,
                 hoursPerWeek: parseInt(hours) || 1,
-                category: normalizedCategory || 'general', // Support all 5 types: general, scientific, literary, technical, other
+                category: normalizedCategory || 'general', // Support all 5 types: general, scientific, literary, professional, other
                 isRequired: true
               });
             }

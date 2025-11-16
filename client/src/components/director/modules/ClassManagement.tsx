@@ -31,10 +31,10 @@ const ClassManagement: React.FC = () => {
     subjects: [] as Array<{
       name: string;
       coefficient: number;
-      category: 'general' | 'scientific' | 'literary' | 'technical' | 'other';
+      category: 'general' | 'scientific' | 'literary' | 'professional' | 'other';
       hoursPerWeek: number;
       isRequired: boolean;
-      bulletinSection?: 'general' | 'scientific' | 'technical';
+      bulletinSection?: 'general' | 'scientific' | 'professional';
     }>
   });
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -59,10 +59,10 @@ const ClassManagement: React.FC = () => {
   const [newSubject, setNewSubject] = useState({
     name: '',
     coefficient: 1,
-    category: 'general' as 'general' | 'scientific' | 'literary' | 'technical' | 'other',
+    category: 'general' as 'general' | 'scientific' | 'literary' | 'professional' | 'other',
     hoursPerWeek: 2,
     isRequired: true,
-    bulletinSection: undefined as 'general' | 'scientific' | 'technical' | undefined
+    bulletinSection: undefined as 'general' | 'scientific' | 'professional' | undefined
   });
   
   // Ref for triggering dialogs from quick actions
@@ -782,8 +782,8 @@ const ClassManagement: React.FC = () => {
                             <strong>{language === 'fr' ? 'Important pour établissements techniques' : 'Important for technical schools'}:</strong>
                             <p className="mt-1">
                               {language === 'fr' 
-                                ? 'Le type de matière (Général/Technique/Autre) est essentiel pour la création correcte des bulletins. Les bulletins techniques afficheront 3 sections distinctes selon ce classement.'
-                                : 'Subject type (General/Technical/Other) is essential for correct bulletin creation. Technical bulletins will display 3 distinct sections based on this classification.'}
+                                ? 'Le type de matière (Général/Professionnel/Autre) est essentiel pour la création correcte des bulletins. Les bulletins techniques afficheront 3 sections distinctes selon ce classement.'
+                                : 'Subject type (General/Professional/Other) is essential for correct bulletin creation. Technical bulletins will display 3 distinct sections based on this classification.'}
                             </p>
                           </div>
                         </div>
@@ -821,7 +821,7 @@ const ClassManagement: React.FC = () => {
                       <div className="flex gap-2 mb-2">
                         <Select 
                           value={newSubject.category} 
-                          onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => 
+                          onValueChange={(value: 'general' | 'scientific' | 'literary' | 'professional' | 'other') => 
                             setNewSubject(prev => ({ ...prev, category: value }))
                           }
                         >
@@ -832,7 +832,7 @@ const ClassManagement: React.FC = () => {
                             <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
                             <SelectItem value="scientific">🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}</SelectItem>
                             <SelectItem value="literary">📖 {language === 'fr' ? 'Littéraire' : 'Literary'}</SelectItem>
-                            <SelectItem value="technical">🔧 {language === 'fr' ? 'Technique' : 'Technical'}</SelectItem>
+                            <SelectItem value="professional">🔧 {language === 'fr' ? 'Professionnel' : 'Professional'}</SelectItem>
                             <SelectItem value="other">🎨 {language === 'fr' ? 'Autre' : 'Other'}</SelectItem>
                           </SelectContent>
                         </Select>
@@ -844,7 +844,7 @@ const ClassManagement: React.FC = () => {
                           </Label>
                           <Select 
                             value={newSubject.bulletinSection || ''} 
-                            onValueChange={(value: 'general' | 'scientific' | 'technical') => 
+                            onValueChange={(value: 'general' | 'scientific' | 'professional') => 
                               setNewSubject(prev => ({ ...prev, bulletinSection: value }))
                             }
                           >
@@ -854,7 +854,7 @@ const ClassManagement: React.FC = () => {
                             <SelectContent>
                               <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
                               <SelectItem value="scientific">🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}</SelectItem>
-                              <SelectItem value="technical">🔧 {language === 'fr' ? 'Technique' : 'Technical'}</SelectItem>
+                              <SelectItem value="professional">🔧 {language === 'fr' ? 'Professionnel' : 'Professional'}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1751,7 +1751,7 @@ const ClassManagement: React.FC = () => {
                             {subject.category === 'general' ? (language === 'fr' ? 'Générale' : 'General') :
                              subject.category === 'scientific' ? (language === 'fr' ? 'Scientifique' : 'Scientific') :
                              subject.category === 'literary' ? (language === 'fr' ? 'Littéraire' : 'Literary') :
-                             subject.category === 'technical' ? (language === 'fr' ? 'Technique' : 'Technical') :
+                             subject.category === 'professional' ? (language === 'fr' ? 'Professionnel' : 'Professional') :
                              (language === 'fr' ? 'Autre' : 'Other')}
                           </Badge>
                         </div>

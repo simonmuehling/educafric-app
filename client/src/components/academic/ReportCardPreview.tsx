@@ -257,8 +257,8 @@ interface SubjectLine {
   minMax?: string; // [Min – Max] range
   remarksAndSignature?: string; // Remarks and Teacher's signature
   teacherComments?: string[]; // Per-subject teacher comments (Ministry)
-  subjectType?: 'general' | 'scientific' | 'literary' | 'technical' | 'other'; // Subject type for technical schools (5 sections)
-  bulletinSection?: 'general' | 'scientific' | 'technical'; // Manual bulletin section mapping for technical schools (overrides subjectType for bulletin grouping)
+  subjectType?: 'general' | 'scientific' | 'literary' | 'professional' | 'other'; // Subject type for technical schools (5 sections)
+  bulletinSection?: 'general' | 'scientific' | 'professional'; // Manual bulletin section mapping for technical schools (overrides subjectType for bulletin grouping)
   // Legacy fields for backward compatibility
   note1?: number;
   moyenneFinale?: number;
@@ -342,16 +342,16 @@ export default function ReportCardPreview({
       const section = e.bulletinSection || e.subjectType;
       return section === 'scientific';
     });
-    const technical = entries.filter(e => {
+    const professional = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
-      return section === 'technical';
+      return section === 'professional';
     });
     const other = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
       return section === 'other';
     });
     
-    return { general, literary, scientific, technical, other };
+    return { general, literary, scientific, professional, other };
   }, [entries, isTechnicalBulletin]);
   
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
@@ -702,7 +702,7 @@ export default function ReportCardPreview({
                       general: language === 'fr' ? 'Matières Générales' : 'General Subjects',
                       scientific: language === 'fr' ? 'Matières Scientifiques' : 'Scientific Subjects',
                       literary: language === 'fr' ? 'Matières Littéraires' : 'Literary Subjects',
-                      technical: language === 'fr' ? 'Matières Techniques' : 'Technical Subjects',
+                      professional: language === 'fr' ? 'Matières Professionnelles' : 'Professional Subjects',
                       other: language === 'fr' ? 'Autres Matières' : 'Other Subjects'
                     };
 
@@ -758,19 +758,19 @@ export default function ReportCardPreview({
                           </>
                         )}
 
-                        {/* Technical Subjects Section */}
-                        {groupedEntries.technical && groupedEntries.technical.length > 0 && (
+                        {/* Professional Subjects Section */}
+                        {groupedEntries.professional && groupedEntries.professional.length > 0 && (
                           <>
-                            <tr className="bg-orange-100" key="section-technical-header">
+                            <tr className="bg-orange-100" key="section-professional-header">
                               <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-orange-800">
-                                🔧 {sectionTitles.technical}
+                                🔧 {sectionTitles.professional}
                               </td>
                             </tr>
-                            {groupedEntries.technical.map((r, idx) => {
-                              const uniqueKey = `technical-${globalIndex++}`;
+                            {groupedEntries.professional.map((r, idx) => {
+                              const uniqueKey = `professional-${globalIndex++}`;
                               return renderSubjectRow(r, uniqueKey);
                             })}
-                            {renderSectionSubtotal(sectionTitles.technical, groupedEntries.technical)}
+                            {renderSectionSubtotal(sectionTitles.professional, groupedEntries.professional)}
                           </>
                         )}
 

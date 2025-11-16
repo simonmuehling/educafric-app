@@ -96,8 +96,8 @@ interface Subject {
   competencies?: string;
   competencyLevel?: 'CTBA' | 'CBA' | 'CA' | 'CMA' | 'CNA' | 'CVWA' | 'CWA' | 'CAA';
   competencyEvaluation?: string;
-  subjectType?: 'general' | 'scientific' | 'literary' | 'technical' | 'other'; // Subject type for technical schools (5 sections)
-  bulletinSection?: 'general' | 'scientific' | 'technical'; // Manual bulletin section mapping for technical schools (overrides subjectType for bulletin grouping)
+  subjectType?: 'general' | 'scientific' | 'literary' | 'professional' | 'other'; // Subject type for technical schools (5 sections)
+  bulletinSection?: 'general' | 'scientific' | 'professional'; // Manual bulletin section mapping for technical schools (overrides subjectType for bulletin grouping)
   // Additional fields for official Cameroon format
   note1: number;
   moyenneFinale: number;
@@ -2105,7 +2105,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                             <td className="px-2 py-2 border bg-amber-50/50" data-testid={`cell-bulletin-section-${index}`}>
                               <Select 
                                 value={subject.bulletinSection || ''} 
-                                onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => 
+                                onValueChange={(value: 'general' | 'scientific' | 'literary' | 'professional' | 'other') => 
                                   updateSubject(subject.id, 'bulletinSection', value)
                                 }
                               >
@@ -2434,7 +2434,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                 <Label className="text-xs text-gray-600">{language === 'fr' ? 'Type' : 'Type'}</Label>
                                 <Select 
                                   value={subject.subjectType || 'general'} 
-                                  onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => updateSubject(subject.id, 'subjectType', value)}
+                                  onValueChange={(value: 'general' | 'scientific' | 'literary' | 'professional' | 'other') => updateSubject(subject.id, 'subjectType', value)}
                                 >
                                   <SelectTrigger className="h-10">
                                     <SelectValue />
@@ -2455,7 +2455,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                   </Label>
                                   <Select 
                                     value={subject.bulletinSection || ''} 
-                                    onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => updateSubject(subject.id, 'bulletinSection', value)}
+                                    onValueChange={(value: 'general' | 'scientific' | 'literary' | 'professional' | 'other') => updateSubject(subject.id, 'bulletinSection', value)}
                                   >
                                     <SelectTrigger className="h-10">
                                       <SelectValue placeholder={language === 'fr' ? 'Section...' : 'Section...'} />

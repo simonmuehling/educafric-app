@@ -79,6 +79,6 @@ export const subjects = pgTable("subjects", {
   coefficient: decimal("coefficient"),
   schoolId: integer("school_id").notNull(),
   classId: integer("class_id"),
-  subjectType: text("subject_type").default('general'), // 'general', 'scientific', 'literary', 'technical', or 'other' for technical schools (5 sections for bulletin)
-  bulletinSection: text("bulletin_section") // For technical schools: manual mapping to 3 bulletin sections ('general', 'scientific', 'technical') - overrides subjectType for bulletin grouping
+  subjectType: text("subject_type").default('general'), // 'general', 'scientific', 'literary', 'professional', or 'other' for technical schools (5 sections for bulletin)
+  bulletinSection: text("bulletin_section") // For technical schools: manual mapping to 3 bulletin sections ('general', 'scientific', 'professional') - overrides subjectType for bulletin grouping
 });
