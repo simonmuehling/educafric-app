@@ -2020,23 +2020,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Filter by class if provided, otherwise return all students (sandbox)
-        students = classId ? allStudents.filter(s => s.classId === parseInt(classId as string, 10)) : allStudents;
+        // Sort alphabetically by name
+        const filteredStudents = classId ? allStudents.filter(s => s.classId === parseInt(classId as string, 10)) : allStudents;
+        students = filteredStudents.sort((a, b) => {
+          const nameA = (a.firstName || a.name).toUpperCase();
+          const nameB = (b.firstName || b.name).toUpperCase();
+          return nameA.localeCompare(nameB);
+        });
       } else {
         console.log('[DIRECTOR_STUDENTS_API] Real user detected - using database data');
         // Get real students from database
         const { db } = await import('./db');
         const { users } = await import('@shared/schema');
-        const { eq, and } = await import('drizzle-orm');
+        const { eq, and, asc } = await import('drizzle-orm');
         
         const userSchoolId = user.schoolId || user.school_id || 1;
         
-        // Query students from database
+        // Query students from database - SORTED ALPHABETICALLY
         const dbStudents = await db.select()
           .from(users)
           .where(and(
             eq(users.role, 'Student'),
             eq(users.schoolId, userSchoolId)
-          ));
+          ))
+          .orderBy(asc(users.firstName), asc(users.lastName));
         
         // Handle specific student request (real DB)
         if (studentId) {
