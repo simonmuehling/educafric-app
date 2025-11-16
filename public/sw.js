@@ -45,7 +45,7 @@ const CACHEABLE_API_PATTERNS = [
   '/api/school'
 ];
 
-// Cache strategies
+// Enhanced cache strategies with TTL enforcement
 const CACHE_STRATEGIES = {
   // Network first, fallback to cache (for dynamic data)
   networkFirst: async (request) => {
@@ -53,15 +53,27 @@ const CACHE_STRATEGIES = {
       const networkResponse = await fetch(request);
       if (networkResponse.ok) {
         const cache = await caches.open(CACHE_NAME);
-        cache.put(request, networkResponse.clone());
+        const responseWithDate = addCacheDate(networkResponse.clone());
+        cache.put(request, responseWithDate);
       }
       return networkResponse;
     } catch (error) {
       const cachedResponse = await caches.match(request);
-      if (cachedResponse) {
-        console.log('[SW] Serving from cache (offline):', request.url);
+      if (cachedResponse && await isCacheValid(cachedResponse)) {
+        console.log('[SW] Serving valid cache (offline):', request.url);
         return cachedResponse;
       }
+      
+      // Try IndexedDB fallback for API data
+      if (request.url.includes('/api/')) {
+        const offlineData = await getOfflineAPIData(request);
+        if (offlineData) {
+          return new Response(JSON.stringify(offlineData), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      }
+      
       throw error;
     }
   },
@@ -69,7 +81,7 @@ const CACHE_STRATEGIES = {
   // Cache first, fallback to network (for static assets)
   cacheFirst: async (request) => {
     const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
+    if (cachedResponse && await isCacheValid(cachedResponse)) {
       return cachedResponse;
     }
     
@@ -77,11 +89,16 @@ const CACHE_STRATEGIES = {
       const networkResponse = await fetch(request);
       if (networkResponse.ok) {
         const cache = await caches.open(CACHE_NAME);
-        cache.put(request, networkResponse.clone());
+        const responseWithDate = addCacheDate(networkResponse.clone());
+        cache.put(request, responseWithDate);
       }
       return networkResponse;
     } catch (error) {
-      console.error('[SW] Failed to fetch:', request.url, error);
+      // Serve stale cache if available
+      if (cachedResponse) {
+        console.log('[SW] Serving stale cache (offline):', request.url);
+        return cachedResponse;
+      }
       throw error;
     }
   },
@@ -93,12 +110,17 @@ const CACHE_STRATEGIES = {
     const networkFetch = fetch(request).then(async (networkResponse) => {
       if (networkResponse.ok) {
         const cache = await caches.open(CACHE_NAME);
-        cache.put(request, networkResponse.clone());
+        const responseWithDate = addCacheDate(networkResponse.clone());
+        cache.put(request, responseWithDate);
       }
       return networkResponse;
-    });
+    }).catch(() => cachedResponse);
     
-    return cachedResponse || networkFetch;
+    if (cachedResponse && await isCacheValid(cachedResponse)) {
+      return cachedResponse;
+    }
+    
+    return networkFetch;
   }
 };
 
