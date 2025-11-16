@@ -201,8 +201,8 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       setTeacherForm({ name: '', email: '', phone: '', gender: '', matricule: '', teachingSubjects: '', classes: '', schedule: '', selectedClasses: [] });
       
       toast({
-        title: '✅ Enseignant ajouté avec succès',
-        description: `${teacherName} a été ajouté à votre équipe pédagogique et apparaît maintenant dans la liste.`
+        title: language === 'fr' ? '✅ Enseignant ajouté avec succès' : '✅ Teacher Added Successfully',
+        description: language === 'fr' ? `${teacherName} a été ajouté à votre équipe pédagogique et apparaît maintenant dans la liste.` : `${teacherName} has been added to your teaching staff and now appears in the list.`
       });
       
       // Scroll to show the new teacher
@@ -219,32 +219,32 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       
       if (errorType === 'DUPLICATE_EMAIL') {
         toast({
-          title: '❌ Email déjà utilisé',
-          description: 'Cet email est déjà associé à un autre utilisateur. Veuillez utiliser un email différent ou créer l\'enseignant avec uniquement le numéro de téléphone.',
+          title: language === 'fr' ? '❌ Email déjà utilisé' : '❌ Email Already Used',
+          description: language === 'fr' ? 'Cet email est déjà associé à un autre utilisateur. Veuillez utiliser un email différent ou créer l\'enseignant avec uniquement le numéro de téléphone.' : 'This email is already associated with another user. Please use a different email or create the teacher with only the phone number.',
           variant: 'destructive'
         });
       } else if (errorType === 'DUPLICATE_PHONE') {
         toast({
-          title: '❌ Téléphone déjà utilisé',
-          description: 'Ce numéro de téléphone est déjà associé à un autre utilisateur. Veuillez utiliser un numéro différent.',
+          title: language === 'fr' ? '❌ Téléphone déjà utilisé' : '❌ Phone Already Used',
+          description: language === 'fr' ? 'Ce numéro de téléphone est déjà associé à un autre utilisateur. Veuillez utiliser un numéro différent.' : 'This phone number is already associated with another user. Please use a different number.',
           variant: 'destructive'
         });
       } else if (errorType === 'MISSING_CONTACT') {
         toast({
-          title: '❌ Informations de contact manquantes',
-          description: 'Au moins un email ou un numéro de téléphone est requis.',
+          title: language === 'fr' ? '❌ Informations de contact manquantes' : '❌ Missing Contact Information',
+          description: language === 'fr' ? 'Au moins un email ou un numéro de téléphone est requis.' : 'At least one email or phone number is required.',
           variant: 'destructive'
         });
       } else if (errorType === 'MISSING_NAME') {
         toast({
-          title: '❌ Nom manquant',
-          description: 'Le nom complet est requis.',
+          title: language === 'fr' ? '❌ Nom manquant' : '❌ Missing Name',
+          description: language === 'fr' ? 'Le nom complet est requis.' : 'Full name is required.',
           variant: 'destructive'
         });
       } else {
         toast({
-          title: '❌ Erreur',
-          description: errorMessage || 'Impossible d\'ajouter l\'enseignant. Veuillez vérifier les informations et réessayer.',
+          title: language === 'fr' ? '❌ Erreur' : '❌ Error',
+          description: errorMessage || (language === 'fr' ? 'Impossible d\'ajouter l\'enseignant. Veuillez vérifier les informations et réessayer.' : 'Unable to add teacher. Please check the information and try again.'),
           variant: 'destructive'
         });
       }
@@ -273,14 +273,14 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       setSelectedTeacher(null);
       
       toast({
-        title: 'Enseignant modifié',
-        description: 'L\'enseignant a été modifié avec succès.'
+        title: language === 'fr' ? 'Enseignant modifié' : 'Teacher Updated',
+        description: language === 'fr' ? 'L\'enseignant a été modifié avec succès.' : 'Teacher updated successfully.'
       });
     },
     onError: () => {
       toast({
-        title: 'Erreur',
-        description: 'Impossible de modifier l\'enseignant.',
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de modifier l\'enseignant.' : 'Unable to update teacher.',
         variant: 'destructive'
       });
     }
@@ -299,14 +299,14 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
       toast({
-        title: 'Enseignant supprimé',
-        description: 'L\'enseignant a été supprimé avec succès.'
+        title: language === 'fr' ? 'Enseignant supprimé' : 'Teacher Deleted',
+        description: language === 'fr' ? 'L\'enseignant a été supprimé avec succès.' : 'Teacher deleted successfully.'
       });
     },
     onError: () => {
       toast({
-        title: 'Erreur',
-        description: 'Impossible de supprimer l\'enseignant.',
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de supprimer l\'enseignant.' : 'Unable to delete teacher.',
         variant: 'destructive'
       });
     }

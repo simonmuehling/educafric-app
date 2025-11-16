@@ -912,10 +912,10 @@ const ClassManagement: React.FC = () => {
                       <SelectTrigger className="bg-white border-gray-300">
                         <SelectValue placeholder={
                           isLoadingTeachers 
-                            ? "Chargement des enseignants..." 
+                            ? (language === 'fr' ? "Chargement des enseignants..." : "Loading teachers...")
                             : teachersError 
-                              ? "Erreur de chargement" 
-                              : "Aucun enseignant principal (optionnel)"
+                              ? (language === 'fr' ? "Erreur de chargement" : "Loading error")
+                              : (language === 'fr' ? "Aucun enseignant principal (optionnel)" : "No main teacher (optional)")
                         } />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
@@ -926,15 +926,15 @@ const ClassManagement: React.FC = () => {
                         </SelectItem>
                         {isLoadingTeachers ? (
                           <SelectItem value="disabled-option" disabled>
-                            Chargement des enseignants...
+                            {language === 'fr' ? 'Chargement des enseignants...' : 'Loading teachers...'}
                           </SelectItem>
                         ) : teachersError ? (
                           <SelectItem value="disabled-option" disabled>
-                            Erreur: Impossible de charger les enseignants
+                            {language === 'fr' ? 'Erreur: Impossible de charger les enseignants' : 'Error: Unable to load teachers'}
                           </SelectItem>
                         ) : teachersData.length === 0 ? (
                           <SelectItem value="disabled-option" disabled>
-                            Aucun enseignant trouvé dans cette école
+                            {language === 'fr' ? 'Aucun enseignant trouvé dans cette école' : 'No teachers found in this school'}
                           </SelectItem>
                         ) : (
                           teachersData.map((teacher: any) => (
@@ -952,7 +952,7 @@ const ClassManagement: React.FC = () => {
                     </Select>
                     {teachersError && (
                       <p className="text-sm text-red-600 mt-1">
-                        Erreur: {teachersError.message}
+                        {language === 'fr' ? 'Erreur: ' : 'Error: '}{teachersError.message}
                       </p>
                     )}
                     <p className="text-xs text-gray-500 mt-1">
@@ -1061,26 +1061,26 @@ const ClassManagement: React.FC = () => {
                       <SelectTrigger className="bg-white border-gray-300">
                         <SelectValue placeholder={
                           isLoadingTeachers 
-                            ? "Chargement des enseignants..." 
+                            ? (language === 'fr' ? "Chargement des enseignants..." : "Loading teachers...")
                             : teachersError 
-                              ? "Erreur de chargement" 
+                              ? (language === 'fr' ? "Erreur de chargement" : "Loading error")
                               : teachersData.length === 0 
-                                ? "Aucun enseignant disponible"
+                                ? (language === 'fr' ? "Aucun enseignant disponible" : "No teachers available")
                                 : String(t?.form?.selectTeacher) || "Sélectionner un enseignant"
                         } />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
                         {isLoadingTeachers ? (
                           <SelectItem value="disabled-option" disabled>
-                            Chargement des enseignants...
+                            {language === 'fr' ? 'Chargement des enseignants...' : 'Loading teachers...'}
                           </SelectItem>
                         ) : teachersError ? (
                           <SelectItem value="disabled-option" disabled>
-                            Erreur: Impossible de charger les enseignants
+                            {language === 'fr' ? 'Erreur: Impossible de charger les enseignants' : 'Error: Unable to load teachers'}
                           </SelectItem>
                         ) : teachersData.length === 0 ? (
                           <SelectItem value="disabled-option" disabled>
-                            Aucun enseignant trouvé dans cette école
+                            {language === 'fr' ? 'Aucun enseignant trouvé dans cette école' : 'No teachers found in this school'}
                           </SelectItem>
                         ) : (
                           teachersData.map((teacher: any) => (
@@ -1094,7 +1094,7 @@ const ClassManagement: React.FC = () => {
                     </Select>
                     {teachersError && (
                       <p className="text-sm text-red-600 mt-1">
-                        Erreur: {teachersError.message}
+                        {language === 'fr' ? 'Erreur: ' : 'Error: '}{teachersError.message}
                       </p>
                     )}
                   </div>
