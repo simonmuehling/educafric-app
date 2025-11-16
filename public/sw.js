@@ -1,8 +1,14 @@
-// Educafric Service Worker - Enhanced Offline Support for Sandbox Demo Mode
-// Enables complete offline functionality with aggressive caching
+// Educafric Service Worker - Offline Premium Mode with Two-Tier Caching
+// Regular schools: 1 week cache | Offline-enabled schools: Full academic year cache
 
-const CACHE_VERSION = 'educafric-v1.3.0';
+const CACHE_VERSION = 'educafric-v1.4.0';
 const CACHE_NAME = `educafric-cache-${CACHE_VERSION}`;
+
+// Cache expiration times (in milliseconds)
+const CACHE_EXPIRATION = {
+  REGULAR: 7 * 24 * 60 * 60 * 1000,      // 1 week for regular schools
+  OFFLINE_ENABLED: 365 * 24 * 60 * 60 * 1000  // 1 year for offline-enabled schools
+};
 
 // Assets to cache immediately for offline demo mode
 const PRECACHE_ASSETS = [
@@ -131,6 +137,67 @@ self.addEventListener('activate', (event) => {
   
   self.clients.claim();
 });
+
+// Get offline status from IndexedDB
+async function getOfflineStatus() {
+  try {
+    const db = await openIndexedDB();
+    const metadata = await getFromIndexedDB(db, 'metadata', 'offlineEnabled');
+    return metadata?.value || false;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Open IndexedDB connection
+function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('educafric-offline-db', 1);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Get data from IndexedDB
+function getFromIndexedDB(db, storeName, key) {
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction([storeName], 'readonly');
+      const store = transaction.objectStore(storeName);
+      const request = store.get(key);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    } catch (error) {
+      resolve(null);
+    }
+  });
+}
+
+// Check if cached response is still valid based on offline mode
+async function isCacheValid(cachedResponse) {
+  if (!cachedResponse) return false;
+  
+  const cachedDate = new Date(cachedResponse.headers.get('sw-cache-date'));
+  if (!cachedDate || isNaN(cachedDate.getTime())) return true;
+  
+  const isOfflineEnabled = await getOfflineStatus();
+  const maxAge = isOfflineEnabled ? CACHE_EXPIRATION.OFFLINE_ENABLED : CACHE_EXPIRATION.REGULAR;
+  const age = Date.now() - cachedDate.getTime();
+  
+  return age < maxAge;
+}
+
+// Add cache date header to response
+function addCacheDate(response) {
+  const headers = new Headers(response.headers);
+  headers.set('sw-cache-date', new Date().toISOString());
+  
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: headers
+  });
+}
 
 // Fetch event - handle requests with appropriate caching strategy
 self.addEventListener('fetch', (event) => {
