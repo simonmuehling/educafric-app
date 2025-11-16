@@ -1,11 +1,7 @@
 ## Overview
-Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform designed for the African market. It aims to revolutionize education by integrating academic management, communication, and financial features into a digital learning ecosystem. The platform seeks to reduce costs for schools, improve educational outcomes, and support high concurrent user loads, aligning with UN Sustainable Development Goals and aspiring to achieve significant market penetration as a complete educational solution.
-
-The platform includes an **Offline Premium Mode**, a two-tier PWA-based offline system where regular schools get a 1-week cache while offline-enabled schools (controlled by Site Admin) get full academic year data storage across all 3 terms, enabling rural schools with unreliable internet to function completely offline.
+Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform designed for the African market. It aims to revolutionize education by integrating academic management, communication, and financial features into a digital learning ecosystem. The platform seeks to reduce costs for schools, improve educational outcomes, and support high concurrent user loads, aligning with UN Sustainable Development Goals and aspiring to achieve significant market penetration as a complete educational solution. A key feature is the Offline Premium Mode, a two-tier PWA-based offline system providing varying data retention for schools, enabling functionality in areas with unreliable internet.
 
 ## User Preferences
-Preferred communication style: Simple, everyday language.
-
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
 - **PROTECTION ANTI-CONFLIT MODULES**: Système de mapping des modules réorganisé avec séparation stricte par dashboard. Validation automatique des mappings pour détecter les conflits et doublons. Le module 'students' DOIT pointer vers FunctionalDirectorStudentManagement. Structure organisée : Director → Commercial → Parent → Student → Teacher → Freelancer → Shared. NE JAMAIS mélanger les mappings de modules entre dashboards différents.
 - **RÉSOLUTION CONFLITS ROUTES PARAMÈTRES**: Problème de conflits entre routes settings résolu par réorganisation de l'ordre d'enregistrement. Routes settings définies AVANT routers externes. Ordre prioritaire : Settings → API Modules → System Routes → Services. Toujours maintenir l'ordre d'enregistrement des routes.
@@ -52,13 +48,13 @@ Preferred communication style: Simple, everyday language.
 - **Schema**: Comprehensive, covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation, structured by academic year/term.
 
 ### Key Features and Design Choices
-- **Offline-First Architecture**: Comprehensive offline support including Service Worker for caching, IndexedDB for local storage, and Background Sync for data synchronization. Includes a two-tier PWA Offline Premium Mode.
+- **Offline-First Architecture**: Comprehensive offline support including Service Worker for caching, IndexedDB for local storage, and Background Sync for data synchronization. Features a two-tier PWA Offline Premium Mode with configurable cache durations (1-week for regular, 1-year for offline-enabled schools). Service Worker v2.0.0 enforces TTL, handles cache purging, Background Sync, and offline fallbacks. Cache strategies include networkFirst (API), cacheFirst (assets), and staleWhileRevalidate (HTML). IndexedDB stores local data, and Offline Sync handles background data synchronization with message-based fallbacks. Site Admins control offline enablement per school via API.
 - **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
-- **Educational Management**: Grade management (African-style report cards), real-time attendance, homework assignment, flexible timetable management. Includes consolidated bulletin generation and support for CBA bulletins.
-- **Communication System**: Multi-channel notifications via WhatsApp Click-to-Chat and Hostinger SMTP Email, with bilingual, contextual templates and automatic parent notifications.
-- **Payment & Subscription**: Stripe integration for international payments, local African payment methods.
+- **Educational Management**: Grade management (African-style report cards, CBA bulletins), real-time attendance, homework assignment, flexible timetable management.
+- **Communication System**: Multi-channel notifications via WhatsApp Click-to-Chat and Hostinger SMTP Email, with bilingual templates and automatic parent notifications.
+- **Payment & Subscription**: Stripe integration for international and local African payment methods.
 - **Geolocation Services**: GPS tracking, geofencing, safe zone management, real-time monitoring, emergency alerts.
-- **Document Management**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access.
+- **Document Management**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access, with a standardized `/public/documents/` directory.
 - **Bidirectional Connection System**: Facilitates parent-child, student-parent, and freelancer-student connections with verification.
 - **Bilingual Support**: Dynamic French/English language switching, full localization.
 - **Sandbox Environment**: Dedicated, fully unlocked environment with realistic African demo data.
