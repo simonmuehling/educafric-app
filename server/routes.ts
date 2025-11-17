@@ -1938,7 +1938,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // ✅ STEP 3: Query students with schoolId AND is_sandbox filter
-      const dbStudents = await db
+      // DOUBLE VERIFICATION: School flag + Student email pattern for data integrity
+      const dbStudentsRaw = await db
         .select({
           id: usersTable.id,
           firstName: usersTable.firstName,
@@ -1966,6 +1967,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         )
         .orderBy(asc(usersTable.firstName), asc(usersTable.lastName));
+      
+      // ✅ STEP 4: SECONDARY FILTER - Verify student email pattern matches sandbox status
+      // This provides defense-in-depth against data inconsistencies
+      const dbStudents = dbStudentsRaw.filter(student => {
+        const studentIsSandbox = isSandboxUserByEmail(student.email || '');
+        const isConsistent = studentIsSandbox === userIsSandbox;
+        
+        if (!isConsistent) {
+          console.warn(`[DIRECTOR_STUDENTS_API] ⚠️ DATA INCONSISTENCY: Student ${student.id} (${student.email}) sandbox status (${studentIsSandbox}) doesn't match user status (${userIsSandbox})`);
+        }
+        
+        return isConsistent;
+      });
       
       // Handle specific student request
       if (studentId) {
