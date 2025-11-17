@@ -42,6 +42,12 @@ export const schools = pgTable("schools", {
   // SC=School - Required for signup, managed by admin
   educafricNumber: text("educafric_number").unique(),
   
+  // CRITICAL: Sandbox isolation flag - separates demo/test schools from production
+  // TRUE = Sandbox/demo school with test data (IDs 1-6, 15)
+  // FALSE/NULL = Real production school
+  // ALL queries MUST filter by this flag to prevent data leakage
+  isSandbox: boolean("is_sandbox").default(false).notNull(),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
