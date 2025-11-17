@@ -29,11 +29,11 @@ export function configureSecurityMiddleware(app: Express) {
           : ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://8x8.vc", "https://meet.jit.si", "https://www.googletagmanager.com", "https://replit.com", "*.replit.dev", "*.replit.app", "*.educafric.com"],
         styleSrc: ["'self'", "'unsafe-inline'", "*.googleapis.com", "*.gstatic.com"],
         imgSrc: isProduction
-          ? ["'self'", "data:", "blob:", "https://q.stripe.com", "https://www.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net"]
-          : ["'self'", "data:", "blob:", "https://q.stripe.com", "*.educafric.com", "*.replit.app", "*.replit.dev", "https://www.google-analytics.com", "https://stats.g.doubleclick.net"],
+          ? ["'self'", "data:", "blob:", "https://q.stripe.com", "https://www.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net", "https://images.unsplash.com", "https://storage.googleapis.com", "https://*.googleapis.com"]
+          : ["'self'", "data:", "blob:", "https://q.stripe.com", "*.educafric.com", "*.replit.app", "*.replit.dev", "https://www.google-analytics.com", "https://stats.g.doubleclick.net", "https://images.unsplash.com", "https://storage.googleapis.com", "https://*.googleapis.com"],
         connectSrc: isProduction
-          ? ["'self'", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "https://meet.educafric.com", "wss://meet.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net", "wss://*.educafric.com"]
-          : ["'self'", "*.replit.dev", "*.replit.app", "*.educafric.com", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "wss://meet.educafric.com", "wss://localhost:*", "ws://localhost:*", "wss://*.replit.dev", "wss://*.replit.app", "wss://*.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net"],
+          ? ["'self'", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "https://meet.educafric.com", "wss://meet.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net", "wss://*.educafric.com", "https://storage.googleapis.com", "https://*.googleapis.com"]
+          : ["'self'", "*.replit.dev", "*.replit.app", "*.educafric.com", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "wss://meet.educafric.com", "wss://localhost:*", "ws://localhost:*", "wss://*.replit.dev", "wss://*.replit.app", "wss://*.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net", "https://storage.googleapis.com", "https://*.googleapis.com"],
         fontSrc: ["'self'", "data:", "*.googleapis.com", "*.gstatic.com"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'", "blob:", "https://8x8.vc", "https://meet.jit.si"],
