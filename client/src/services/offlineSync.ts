@@ -25,9 +25,10 @@ class OfflineSyncService {
       window.addEventListener('online', () => this.handleOnline());
       window.addEventListener('offline', () => this.handleOffline());
       
-      // Auto-sync on initialization if online
+      // Auto-sync on initialization if online (with delay to ensure DB is ready)
       if (navigator.onLine) {
-        this.handleOnline();
+        // Wait 2 seconds for database initialization to complete
+        setTimeout(() => this.handleOnline(), 2000);
       }
     }
   }
@@ -37,8 +38,26 @@ class OfflineSyncService {
       console.log('[SYNC] Connection restored, starting sync...');
     }
     try {
-      // Ensure database is initialized before syncing
-      await offlineStorage.init();
+      // Ensure database is fully initialized with retry logic
+      let initAttempts = 0;
+      const maxInitAttempts = 3;
+      
+      while (initAttempts < maxInitAttempts) {
+        try {
+          await offlineStorage.init();
+          // Small delay to ensure indexes are ready
+          await new Promise(resolve => setTimeout(resolve, 500));
+          break;
+        } catch (initError) {
+          initAttempts++;
+          if (initAttempts >= maxInitAttempts) {
+            throw initError;
+          }
+          console.warn(`[SYNC] Database init attempt ${initAttempts} failed, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
       await this.syncAll();
       this.startPeriodicSync();
     } catch (error) {
