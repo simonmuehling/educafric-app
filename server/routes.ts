@@ -25,6 +25,7 @@ import freelancerRouter from "./routes/freelancer";
 import teacherRouter from "./routes/teacher";
 import teacherIndependentRouter from "./routes/teacherIndependent";
 import sandboxRouter from "./routes/api/sandbox";
+import sandboxDemoRouter from "./routes/api/sandbox-demo";
 import sandboxUnifiedDataRoutes from "./routes/sandbox-unified-data";
 import schoolsRouter from "./routes/api/schools";
 import parentRouter from "./routes/api/parent";
@@ -8180,6 +8181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.use('/api/sandbox', sandboxRouter);
+  app.use('/api/sandbox-demo', requireAuth, sandboxDemoRouter); // 🎓 DEMO: Sandbox isolation pattern examples
   app.use('/api/sandbox-unified', sandboxUnifiedDataRoutes);
   app.use('/api/schools', schoolsRouter);
   
