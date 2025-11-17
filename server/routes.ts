@@ -2286,6 +2286,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========================================================================
+  // DIRECTOR PARENT MANAGEMENT
+  // ========================================================================
+  
+  // Get all parents for the school
+  app.get("/api/director/parents", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      console.log('[DIRECTOR_PARENTS_API] Fetching parents for school:', userSchoolId);
+      
+      // ✅ STEP 1: Determine if user is sandbox
+      const userIsSandbox = isSandboxUserByEmail(user.email || '');
+      console.log(`[DIRECTOR_PARENTS_API] User sandbox status: ${userIsSandbox}`);
+      
+      // ✅ STEP 2: Get school sandbox status
+      const [school] = await db.select()
+        .from(schools)
+        .where(eq(schools.id, userSchoolId))
+        .limit(1);
+      
+      if (!school) {
+        return res.status(404).json({ success: false, message: 'School not found' });
+      }
+      
+      const schoolIsSandbox = school.isSandbox || false;
+      
+      // ✅ STEP 3: DATABASE QUERY - Get parents with dual-filter isolation
+      const dbParentsRaw = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          role: users.role,
+          schoolId: users.schoolId,
+          profilePictureUrl: users.profilePictureUrl,
+          createdAt: users.createdAt,
+          // Include school info for verification
+          schoolName: schools.name,
+          schoolIsSandbox: schools.isSandbox
+        })
+        .from(users)
+        .leftJoin(schools, eq(users.schoolId, schools.id))
+        .where(
+          and(
+            eq(users.role, 'Parent'),
+            eq(users.schoolId, userSchoolId),
+            eq(schools.isSandbox, userIsSandbox) // ✅ CRITICAL: Prevents data leakage
+          )
+        )
+        .orderBy(asc(users.firstName), asc(users.lastName));
+      
+      // ✅ STEP 4: SECONDARY FILTER - Verify parent email pattern matches sandbox status
+      const dbParents = dbParentsRaw.filter(parent => {
+        const parentIsSandbox = isSandboxUserByEmail(parent.email || '');
+        const isConsistent = parentIsSandbox === userIsSandbox;
+        
+        if (!isConsistent) {
+          console.warn(`[DIRECTOR_PARENTS_API] ⚠️ DATA INCONSISTENCY: Parent ${parent.id} (${parent.email}) sandbox status (${parentIsSandbox}) doesn't match user status (${userIsSandbox})`);
+        }
+        
+        return isConsistent;
+      });
+      
+      console.log(`[DIRECTOR_PARENTS_API] ✅ Returning ${dbParents.length} isolated parents (Sandbox: ${userIsSandbox})`);
+      res.json({ success: true, parents: dbParents });
+    } catch (error) {
+      console.error('[DIRECTOR_PARENTS_API] Error fetching parents:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch parents' });
+    }
+  });
+  
+  // Bulk delete parents
+  app.post("/api/director/parents/bulk-delete", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { parentIds } = req.body;
+      
+      const userSchoolId = user.schoolId;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (!Array.isArray(parentIds) || parentIds.length === 0) {
+        return res.status(400).json({ success: false, message: 'Parent IDs array required' });
+      }
+      
+      console.log(`[BULK_DELETE_PARENTS] Deleting ${parentIds.length} parents for school:`, userSchoolId);
+      
+      // Verify all parents belong to user's school before deleting
+      const existingParents = await db.select()
+        .from(users)
+        .where(
+          and(
+            inArray(users.id, parentIds),
+            eq(users.role, 'Parent'),
+            eq(users.schoolId, userSchoolId)
+          )
+        );
+      
+      if (existingParents.length !== parentIds.length) {
+        return res.status(403).json({ 
+          success: false, 
+          message: `Access denied - some parents don't belong to your school or don't exist` 
+        });
+      }
+      
+      // Delete parents from database
+      await db.delete(users).where(
+        and(
+          inArray(users.id, parentIds),
+          eq(users.role, 'Parent'),
+          eq(users.schoolId, userSchoolId)
+        )
+      );
+      
+      console.log(`[BULK_DELETE_PARENTS] ✅ Successfully deleted ${parentIds.length} parents`);
+      res.json({ 
+        success: true, 
+        message: `${parentIds.length} parent(s) deleted successfully`,
+        deletedCount: parentIds.length
+      });
+    } catch (error) {
+      console.error('[BULK_DELETE_PARENTS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete parents' });
+    }
+  });
+
   // Get teachers for school (accessible by director and admin)
   app.get("/api/school/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
