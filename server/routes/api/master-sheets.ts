@@ -41,10 +41,17 @@ router.post('/generate', requireAuth, requireAnyRole(['director', 'teacher', 'si
     const validatedData = masterSheetGenerationSchema.parse(req.body);
     const { classId, academicYear, term, teacherId, options } = validatedData;
     
+    // Fetch school data including logo
+    const user = req.user as any;
+    const schoolData = user?.schoolId 
+      ? await SchoolDataService.getSchoolData(user.schoolId)
+      : null;
+    
     // TODO: Fetch real data from database
     // For now, use demo data with provided class information
+    const demoData = MasterSheetGenerator.generateDemoData();
     const masterSheetData: MasterSheetData = {
-      ...MasterSheetGenerator.generateDemoData(),
+      ...demoData,
       classId,
       academicYear,
       term,
@@ -53,7 +60,13 @@ router.post('/generate', requireAuth, requireAnyRole(['director', 'teacher', 'si
         firstName: "Enseignant",
         lastName: "EDUCAFRIC",
         title: "M./Mme"
-      } : undefined
+      } : undefined,
+      // Merge real school data including logo
+      schoolInfo: schoolData ? {
+        ...demoData.schoolInfo,
+        ...schoolData,
+        logoUrl: schoolData.logoUrl || demoData.schoolInfo.logoUrl
+      } : demoData.schoolInfo
     };
     
     // Ensure all required options have default values
@@ -111,8 +124,23 @@ router.post('/demo', async (req: Request, res: Response) => {
     // Validate request body
     const { language, colorScheme } = masterSheetDemoSchema.parse(req.body);
     
+    // Fetch school data including logo if user is authenticated
+    const user = req.user as any;
+    const schoolData = user?.schoolId 
+      ? await SchoolDataService.getSchoolData(user.schoolId)
+      : null;
+    
     // Generate demo data
-    const demoData = MasterSheetGenerator.generateDemoData();
+    const baseDemoData = MasterSheetGenerator.generateDemoData();
+    const demoData = {
+      ...baseDemoData,
+      // Merge real school data including logo
+      schoolInfo: schoolData ? {
+        ...baseDemoData.schoolInfo,
+        ...schoolData,
+        logoUrl: schoolData.logoUrl || baseDemoData.schoolInfo.logoUrl
+      } : baseDemoData.schoolInfo
+    };
     
     // Demo options
     const demoOptions: MasterSheetOptions = {

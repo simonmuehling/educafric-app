@@ -41,11 +41,24 @@ router.post('/generate', requireAuth, requireAnyRole(['director', 'teacher', 'st
     const validatedData = transcriptGenerationSchema.parse(req.body);
     const { studentId, includeAllYears, specificYears, options } = validatedData;
     
+    // Fetch school data including logo
+    const user = req.user as any;
+    const schoolData = user?.schoolId 
+      ? await SchoolDataService.getSchoolData(user.schoolId)
+      : null;
+    
     // TODO: Fetch real student data from database
     // For now, use demo data with provided student ID
+    const demoData = TranscriptGenerator.generateDemoData();
     const transcriptData: TranscriptData = {
-      ...TranscriptGenerator.generateDemoData(),
-      studentId
+      ...demoData,
+      studentId,
+      // Merge real school data including logo
+      schoolInfo: schoolData ? {
+        ...demoData.schoolInfo,
+        ...schoolData,
+        logoUrl: schoolData.logoUrl || demoData.schoolInfo.logoUrl
+      } : demoData.schoolInfo
     };
     
     // Filter academic history if specific years requested
@@ -111,8 +124,23 @@ router.post('/demo', async (req: Request, res: Response) => {
     // Validate request body
     const { language, colorScheme } = transcriptDemoSchema.parse(req.body);
     
+    // Fetch school data including logo if user is authenticated
+    const user = req.user as any;
+    const schoolData = user?.schoolId 
+      ? await SchoolDataService.getSchoolData(user.schoolId)
+      : null;
+    
     // Generate demo data
-    const demoData = TranscriptGenerator.generateDemoData();
+    const baseDemoData = TranscriptGenerator.generateDemoData();
+    const demoData = {
+      ...baseDemoData,
+      // Merge real school data including logo
+      schoolInfo: schoolData ? {
+        ...baseDemoData.schoolInfo,
+        ...schoolData,
+        logoUrl: schoolData.logoUrl || baseDemoData.schoolInfo.logoUrl
+      } : baseDemoData.schoolInfo
+    };
     
     // Demo options
     const demoOptions: TranscriptOptions = {
