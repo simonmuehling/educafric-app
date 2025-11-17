@@ -400,14 +400,51 @@ class OfflineStorageManager {
 
   // ========== USER DATA CACHING METHODS ==========
   
-  // Cache user profile data
+  // Cache user profile data with subscription info
   async cacheUserProfile(userId: number, profileData: any): Promise<void> {
-    return this.cacheData(`profile-${userId}`, profileData, 120); // 2 hour TTL
+    // For subscription data, use longer TTL (7 days) but track age
+    const dataWithMeta = {
+      ...profileData,
+      _cachedAt: Date.now(),
+      _cacheVersion: 2 // Version for future migrations
+    };
+    return this.cacheData(`profile-${userId}`, dataWithMeta, 10080); // 7 days TTL
   }
 
   // Get cached user profile
   async getCachedUserProfile(userId: number): Promise<any | null> {
     return this.getCachedData(`profile-${userId}`);
+  }
+
+  // Check if cached user profile is stale (>7 days old)
+  async isUserProfileStale(userId: number): Promise<{ isStale: boolean; age: number; ageInDays: number }> {
+    const profile = await this.getCachedUserProfile(userId);
+    if (!profile || !profile._cachedAt) {
+      return { isStale: true, age: 0, ageInDays: 0 };
+    }
+    
+    const age = Date.now() - profile._cachedAt;
+    const ageInDays = age / (1000 * 60 * 60 * 24);
+    const isStale = ageInDays > 7;
+    
+    return { isStale, age, ageInDays };
+  }
+
+  // Check if subscription data is fresh enough for offline use
+  async isSubscriptionDataFresh(userId: number): Promise<{ 
+    isFresh: boolean; 
+    daysOld: number; 
+    shouldWarn: boolean;
+    shouldBlock: boolean;
+  }> {
+    const staleness = await this.isUserProfileStale(userId);
+    
+    return {
+      isFresh: !staleness.isStale,
+      daysOld: Math.floor(staleness.ageInDays),
+      shouldWarn: staleness.ageInDays > 3, // Warn after 3 days
+      shouldBlock: staleness.ageInDays > 14 // Block after 14 days
+    };
   }
 
   // Cache user settings

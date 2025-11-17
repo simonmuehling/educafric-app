@@ -59,6 +59,10 @@ class OfflineSyncService {
       }
       
       await this.syncAll();
+      
+      // Refresh user profile data to ensure subscription info is current
+      await this.refreshUserProfileData();
+      
       this.startPeriodicSync();
     } catch (error) {
       // Better error logging
@@ -66,6 +70,28 @@ class OfflineSyncService {
       console.error('[SYNC] Failed to initialize sync:', errorMessage);
       if (import.meta.env.DEV && error instanceof Error && error.stack) {
         console.error('[SYNC] Stack trace:', error.stack);
+      }
+    }
+  }
+
+  // Refresh user profile data when coming back online
+  private async refreshUserProfileData(): Promise<void> {
+    try {
+      // Fetch fresh user profile from server
+      const response = await apiRequest('GET', '/api/profile');
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData && userData.id) {
+          // Update cache with fresh subscription data
+          await offlineStorage.cacheUserProfile(userData.id, userData);
+          if (import.meta.env.DEV) {
+            console.log('[SYNC] ✅ User profile refreshed with current subscription data');
+          }
+        }
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn('[SYNC] Could not refresh user profile:', error);
       }
     }
   }
