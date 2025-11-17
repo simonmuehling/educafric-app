@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Offline Premium - Educafric</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .document-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .header .subtitle {
+            font-size: 24px;
+            opacity: 0.95;
+            margin-bottom: 10px;
+        }
+        
+        .header .tagline {
+            font-size: 16px;
+            background: rgba(255,255,255,0.2);
+            padding: 12px 25px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .language-toggle {
+            background: rgba(255,255,255,0.15);
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 50px 40px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section-title {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .section-subtitle {
+            font-size: 20px;
+            color: #764ba2;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .feature-box {
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff5f8 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .feature-box h3 {
+            color: #667eea;
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+        
+        .feature-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .feature-box ul li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .feature-box ul li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        
+        .warning-levels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .warning-card {
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .warning-card.green {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+        }
+        
+        .warning-card.yellow {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+        }
+        
+        .warning-card.orange {
+            background: linear-gradient(135deg, #ffe5d0 0%, #ffd4a8 100%);
+            border: 2px solid #ff9800;
+        }
+        
+        .warning-card.red {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 2px solid #dc3545;
+        }
+        
+        .warning-card .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .warning-card h4 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .warning-card .days {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .access-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .access-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .access-table th,
+        .access-table td {
+            padding: 15px 20px;
+            text-align: left;
+        }
+        
+        .access-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .access-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .access-table tbody tr:hover {
+            background: #e9ecf5;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .badge.free {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge.premium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .pricing-section {
+            background: linear-gradient(135deg, #f1f3f5 0%, #e9ecef 100%);
+            padding: 40px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .pricing-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+        
+        .pricing-card.featured {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+        }
+        
+        .pricing-card .plan-name {
+            font-size: 24px;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .pricing-card .price {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+        }
+        
+        .pricing-card .price .currency {
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .pricing-card ul {
+            text-align: left;
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        
+        .pricing-card ul li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+        
+        .pricing-card ul li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .contact-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+            margin-top: 50px;
+        }
+        
+        .contact-section h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .contact-card {
+            background: rgba(255,255,255,0.15);
+            padding: 30px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .contact-card .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .contact-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .contact-card a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .contact-card a:hover {
+            text-decoration: underline;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 5px solid #2196f3;
+            padding: 20px 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+        
+        .info-box .icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-left: 5px solid #ffc107;
+            padding: 20px 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+        
+        .success-box {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-left: 5px solid #28a745;
+            padding: 20px 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+        
+        .steps {
+            counter-reset: step-counter;
+            list-style: none;
+            padding: 0;
+        }
+        
+        .steps li {
+            counter-increment: step-counter;
+            padding: 20px;
+            margin: 15px 0;
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
+            border-radius: 10px;
+            position: relative;
+            padding-left: 70px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .steps li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .divider {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            margin: 50px 0;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .document-wrapper {
+                box-shadow: none;
+                border-radius: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 32px;
+            }
+            
+            .header .subtitle {
+                font-size: 18px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .section-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="document-wrapper">
+        <!-- Header Section -->
+        <div class="header">
+            <h1>📴 Offline Premium</h1>
+            <div class="subtitle">Guide Complet | Complete Guide</div>
+            <div class="tagline">✨ L'éducation sans interruption | Education without interruption ✨</div>
+            <div class="language-toggle">🌍 Français | English (Bilingual Document)</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            
+            <!-- Section 1: Introduction -->
+            <div class="section">
+                <h2 class="section-title">📖 Qu'est-ce que Offline Premium ? | What is Offline Premium?</h2>
+                
+                <div class="feature-box">
+                    <h3>🇫🇷 Version Française</h3>
+                    <p style="margin-bottom: 15px;">
+                        <strong>Offline Premium</strong> est un système innovant à deux niveaux qui permet aux utilisateurs d'Educafric 
+                        d'accéder aux fonctionnalités premium même sans connexion Internet pendant une période limitée. Cette 
+                        technologie est spécialement conçue pour le contexte africain où la connectivité peut être intermittente.
+                    </p>
+                    <p>
+                        Le système garantit la sécurité tout en offrant une flexibilité maximale aux écoles et aux utilisateurs 
+                        dans les zones à faible connectivité.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🇬🇧 English Version</h3>
+                    <p style="margin-bottom: 15px;">
+                        <strong>Offline Premium</strong> is an innovative two-tier system that allows Educafric users to access 
+                        premium features even without Internet connection for a limited period. This technology is specifically 
+                        designed for the African context where connectivity can be intermittent.
+                    </p>
+                    <p>
+                        The system ensures security while offering maximum flexibility to schools and users in areas with 
+                        low connectivity.
+                    </p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section 2: How It Works -->
+            <div class="section">
+                <h2 class="section-title">⚙️ Comment ça fonctionne ? | How Does It Work?</h2>
+
+                <h3 class="section-subtitle">🇫🇷 Système d'avertissements à 3 niveaux</h3>
+                <div class="warning-levels">
+                    <div class="warning-card green">
+                        <div class="icon">✅</div>
+                        <h4>Accès complet</h4>
+                        <div class="days">0-3 jours</div>
+                        <p>Hors ligne sans restriction. Toutes les fonctionnalités premium accessibles normalement.</p>
+                    </div>
+
+                    <div class="warning-card yellow">
+                        <div class="icon">⚠️</div>
+                        <h4>Avertissement léger</h4>
+                        <div class="days">3-7 jours</div>
+                        <p>Bandeau jaune affiché. Fonctionnalités toujours accessibles. Reconnexion recommandée.</p>
+                    </div>
+
+                    <div class="warning-card orange">
+                        <div class="icon">⚠️</div>
+                        <h4>Avertissement urgent</h4>
+                        <div class="days">7-14 jours</div>
+                        <p>Bandeau rouge avec compte à rebours. Accès maintenu. Reconnexion fortement conseillée.</p>
+                    </div>
+
+                    <div class="warning-card red">
+                        <div class="icon">🚫</div>
+                        <h4>Accès bloqué</h4>
+                        <div class="days">14+ jours</div>
+                        <p>Accès premium suspendu pour sécurité. Reconnexion requise pour restaurer l'accès.</p>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">🇬🇧 3-Tier Warning System</h3>
+                <div class="info-box">
+                    <p>
+                        <span class="icon">💡</span>
+                        <strong>Smart Protection:</strong> The system tracks how long users have been offline and gradually 
+                        increases warnings to ensure subscription data remains fresh and valid while providing generous 
+                        offline access periods for areas with poor connectivity.
+                    </p>
+                </div>
+
+                <h3 class="section-subtitle">🔄 Reconnexion automatique | Automatic Reconnection</h3>
+                <div class="success-box">
+                    <h4>🇫🇷 Quand vous vous reconnectez :</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>✓ Synchronisation automatique de votre statut d'abonnement</li>
+                        <li>✓ Rafraîchissement immédiat des données premium</li>
+                        <li>✓ Tous les avertissements disparaissent</li>
+                        <li>✓ Le compteur de 14 jours redémarre</li>
+                        <li>✓ Accès premium restauré instantanément</li>
+                    </ul>
+                    
+                    <h4 style="margin-top: 20px;">🇬🇧 When you reconnect:</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>✓ Automatic synchronization of your subscription status</li>
+                        <li>✓ Immediate refresh of premium data</li>
+                        <li>✓ All warnings disappear</li>
+                        <li>✓ 14-day counter resets</li>
+                        <li>✓ Premium access instantly restored</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section 3: Who Gets What Access -->
+            <div class="section">
+                <h2 class="section-title">👥 Qui a accès à quoi ? | Who Gets What Access?</h2>
+
+                <h3 class="section-subtitle">🇫🇷 Tableau des accès par rôle</h3>
+                <table class="access-table">
+                    <thead>
+                        <tr>
+                            <th>Rôle utilisateur</th>
+                            <th>Type d'accès</th>
+                            <th>Offline Premium</th>
+                            <th>Remarques</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Enseignants</strong></td>
+                            <td><span class="badge free">GRATUIT</span></td>
+                            <td>✅ Toujours actif</td>
+                            <td>Accès illimité sans abonnement</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Élèves</strong></td>
+                            <td><span class="badge free">GRATUIT</span></td>
+                            <td>✅ Toujours actif</td>
+                            <td>Accès illimité sans abonnement</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Comptes Sandbox</strong></td>
+                            <td><span class="badge free">GRATUIT</span></td>
+                            <td>✅ Permanent</td>
+                            <td>@test.educafric.com, sandbox@, demo@</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Parents</strong></td>
+                            <td><span class="badge premium">PREMIUM</span></td>
+                            <td>✓ 14 jours hors ligne</td>
+                            <td>Abonnement requis</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Directeurs</strong></td>
+                            <td><span class="badge premium">PREMIUM</span></td>
+                            <td>✓ 14 jours hors ligne</td>
+                            <td>Abonnement requis</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Répétiteurs</strong></td>
+                            <td><span class="badge premium">PREMIUM</span></td>
+                            <td>✓ 14 jours hors ligne</td>
+                            <td>Abonnement requis</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 class="section-subtitle">🇬🇧 Access Table by Role</h3>
+                <div class="info-box">
+                    <p>
+                        <span class="icon">ℹ️</span>
+                        <strong>Free Access:</strong> Teachers and Students always have free access to all features, both online 
+                        and offline, without any subscription required. This ensures uninterrupted education delivery.
+                    </p>
+                </div>
+                <div class="warning-box">
+                    <p>
+                        <span class="icon">⚠️</span>
+                        <strong>Premium Access:</strong> Parents, Directors, and Freelancers require an active subscription to 
+                        access premium features. When offline, they can continue using these features for up to 14 days before 
+                        reconnection is required.
+                    </p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section 4: Pricing & Subscription Plans -->
+            <div class="section">
+                <h2 class="section-title">💰 Plans et Tarifs | Pricing & Plans</h2>
+
+                <div class="pricing-section">
+                    <h3 style="text-align: center; font-size: 28px; color: #333; margin-bottom: 10px;">
+                        🇫🇷 Plans d'abonnement disponibles
+                    </h3>
+                    <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                        Choisissez le plan adapté aux besoins de votre établissement
+                    </p>
+
+                    <div class="pricing-grid">
+                        <div class="pricing-card">
+                            <div class="plan-name">Parent Bronze</div>
+                            <div class="price">
+                                <span class="currency">XAF</span> 5,000
+                            </div>
+                            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Par mois</p>
+                            <ul>
+                                <li>Suivi académique complet</li>
+                                <li>Bulletins numériques</li>
+                                <li>Notifications en temps réel</li>
+                                <li>Communication école-parent</li>
+                                <li>Offline Premium (14 jours)</li>
+                            </ul>
+                        </div>
+
+                        <div class="pricing-card featured">
+                            <div class="plan-name">Parent GPS</div>
+                            <div class="price">
+                                <span class="currency">XAF</span> 3,000
+                            </div>
+                            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Par mois</p>
+                            <ul>
+                                <li>Géolocalisation en temps réel</li>
+                                <li>Zones de sécurité</li>
+                                <li>Alertes de déplacement</li>
+                                <li>Historique des trajets</li>
+                                <li>Offline Premium (14 jours)</li>
+                            </ul>
+                        </div>
+
+                        <div class="pricing-card">
+                            <div class="plan-name">École Premium</div>
+                            <div class="price">
+                                <span class="currency">Sur</span> Mesure
+                            </div>
+                            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Contactez-nous</p>
+                            <ul>
+                                <li>Toutes les fonctionnalités</li>
+                                <li>Support prioritaire 24/7</li>
+                                <li>Formation personnalisée</li>
+                                <li>Intégration sur mesure</li>
+                                <li>Offline Premium illimité</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3 style="text-align: center; font-size: 28px; color: #333; margin-top: 50px; margin-bottom: 10px;">
+                        🇬🇧 Available Subscription Plans
+                    </h3>
+                    <p style="text-align: center; color: #666;">
+                        Choose the plan that fits your institution's needs
+                    </p>
+                </div>
+
+                <div class="info-box">
+                    <p>
+                        <span class="icon">💡</span>
+                        <strong>Note:</strong> All premium plans include Offline Premium functionality, allowing continuous 
+                        access for up to 14 days without internet connection. Schools can activate unlimited offline access 
+                        for all their users through the Site Admin dashboard.
+                    </p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section 5: How to Purchase -->
+            <div class="section">
+                <h2 class="section-title">🛒 Comment acheter ? | How to Purchase?</h2>
+
+                <h3 class="section-subtitle">🇫🇷 Processus d'achat en 5 étapes</h3>
+                <ol class="steps">
+                    <li>
+                        <strong>Contactez notre équipe commerciale</strong><br>
+                        Envoyez un email à <strong>info@educafric.com</strong> ou appelez au <strong>+237 656 200 472</strong>
+                    </li>
+                    <li>
+                        <strong>Consultation gratuite</strong><br>
+                        Notre équipe évalue vos besoins et recommande le plan le plus adapté à votre établissement
+                    </li>
+                    <li>
+                        <strong>Devis personnalisé</strong><br>
+                        Recevez une proposition tarifaire détaillée avec tous les avantages inclus
+                    </li>
+                    <li>
+                        <strong>Activation du compte</strong><br>
+                        Une fois le paiement confirmé, votre compte premium est activé instantanément
+                    </li>
+                    <li>
+                        <strong>Formation et support</strong><br>
+                        Accédez à nos guides complets et bénéficiez d'un support technique dédié
+                    </li>
+                </ol>
+
+                <h3 class="section-subtitle">🇬🇧 5-Step Purchase Process</h3>
+                <div class="success-box">
+                    <p style="margin-bottom: 10px;">
+                        <strong>Quick Start:</strong> Contact us today to get started with Offline Premium!
+                    </p>
+                    <ul style="padding-left: 20px;">
+                        <li>✓ Fast activation (within 24 hours)</li>
+                        <li>✓ No setup fees</li>
+                        <li>✓ Free training included</li>
+                        <li>✓ Flexible payment options</li>
+                        <li>✓ Money-back guarantee (30 days)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section 6: For Site Admins -->
+            <div class="section">
+                <h2 class="section-title">👨‍💼 Pour les Administrateurs | For Site Admins</h2>
+
+                <div class="feature-box">
+                    <h3>🇫🇷 Gestion des abonnements Offline Premium</h3>
+                    <p style="margin-bottom: 15px;">
+                        En tant qu'administrateur du site, vous pouvez activer/désactiver Offline Premium pour n'importe 
+                        quelle école depuis le tableau de bord Site Admin :
+                    </p>
+                    <ul>
+                        <li>Accédez à <strong>Gestion des Écoles</strong></li>
+                        <li>Cliquez sur la carte d'une école</li>
+                        <li>Utilisez le toggle <strong>"Offline Premium"</strong></li>
+                        <li>L'activation est instantanée et synchronisée</li>
+                        <li>Tous les utilisateurs de l'école bénéficient de l'accès hors ligne illimité</li>
+                    </ul>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🇬🇧 Managing Offline Premium Subscriptions</h3>
+                    <p style="margin-bottom: 15px;">
+                        As a site administrator, you can activate/deactivate Offline Premium for any school from the 
+                        Site Admin dashboard:
+                    </p>
+                    <ul>
+                        <li>Go to <strong>School Management</strong></li>
+                        <li>Click on a school card</li>
+                        <li>Use the <strong>"Offline Premium"</strong> toggle</li>
+                        <li>Activation is instant and synchronized</li>
+                        <li>All school users benefit from unlimited offline access</li>
+                    </ul>
+                </div>
+
+                <div class="warning-box">
+                    <p>
+                        <span class="icon">⚠️</span>
+                        <strong>Important:</strong> Only activate Offline Premium for schools with confirmed paid subscriptions. 
+                        The system is designed to prevent abuse while providing maximum flexibility for legitimate users.
+                    </p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section 7: Technical Details -->
+            <div class="section">
+                <h2 class="section-title">🔧 Détails Techniques | Technical Details</h2>
+
+                <div class="feature-box">
+                    <h3>🇫🇷 Technologie PWA (Progressive Web App)</h3>
+                    <p style="margin-bottom: 15px;">
+                        Offline Premium utilise les dernières technologies web pour offrir une expérience fluide :
+                    </p>
+                    <ul>
+                        <li><strong>Service Worker</strong> : Mise en cache intelligente des ressources</li>
+                        <li><strong>IndexedDB</strong> : Stockage local sécurisé des données</li>
+                        <li><strong>Background Sync</strong> : Synchronisation automatique au retour en ligne</li>
+                        <li><strong>Cache Expiration</strong> : Système de vérification à 3 niveaux</li>
+                        <li><strong>Security</strong> : Protection contre les abus d'abonnement expirés</li>
+                    </ul>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🇬🇧 PWA Technology (Progressive Web App)</h3>
+                    <p style="margin-bottom: 15px;">
+                        Offline Premium uses the latest web technologies to provide a smooth experience:
+                    </p>
+                    <ul>
+                        <li><strong>Service Worker</strong>: Intelligent resource caching</li>
+                        <li><strong>IndexedDB</strong>: Secure local data storage</li>
+                        <li><strong>Background Sync</strong>: Automatic sync when back online</li>
+                        <li><strong>Cache Expiration</strong>: 3-tier verification system</li>
+                        <li><strong>Security</strong>: Protection against expired subscription abuse</li>
+                    </ul>
+                </div>
+
+                <div class="info-box">
+                    <p>
+                        <span class="icon">📱</span>
+                        <strong>Compatibility:</strong> Works on all modern browsers (Chrome, Firefox, Safari, Edge) and 
+                        mobile devices (Android, iOS). No app installation required - works directly from the browser.
+                    </p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section 8: FAQ -->
+            <div class="section">
+                <h2 class="section-title">❓ Questions Fréquentes | FAQ</h2>
+
+                <div class="feature-box">
+                    <h3>🇫🇷 Q1 : Que se passe-t-il après 14 jours hors ligne ?</h3>
+                    <p>
+                        <strong>R :</strong> L'accès aux fonctionnalités premium est temporairement suspendu pour des raisons 
+                        de sécurité. Dès que vous vous reconnectez à Internet, votre abonnement est vérifié et l'accès est 
+                        immédiatement restauré. Le compteur de 14 jours redémarre.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🇬🇧 Q1: What happens after 14 days offline?</h3>
+                    <p>
+                        <strong>A:</strong> Access to premium features is temporarily suspended for security reasons. As soon 
+                        as you reconnect to the Internet, your subscription is verified and access is immediately restored. 
+                        The 14-day counter resets.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🇫🇷 Q2 : Les enseignants et élèves ont-ils besoin d'un abonnement ?</h3>
+                    <p>
+                        <strong>R :</strong> Non ! Les enseignants et élèves ont un accès gratuit et illimité à toutes les 
+                        fonctionnalités, en ligne comme hors ligne, sans aucun abonnement requis.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🇬🇧 Q2: Do teachers and students need a subscription?</h3>
+                    <p>
+                        <strong>A:</strong> No! Teachers and students have free and unlimited access to all features, both 
+                        online and offline, without any subscription required.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🇫🇷 Q3 : Peut-on prolonger la période hors ligne au-delà de 14 jours ?</h3>
+                    <p>
+                        <strong>R :</strong> Oui ! Les écoles peuvent activer le mode "Offline Premium illimité" via le Site 
+                        Admin, ce qui supprime la limite de 14 jours pour tous les utilisateurs de l'école.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🇬🇧 Q3: Can the offline period be extended beyond 14 days?</h3>
+                    <p>
+                        <strong>A:</strong> Yes! Schools can activate "Unlimited Offline Premium" mode via Site Admin, which 
+                        removes the 14-day limit for all users at the school.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Contact Section -->
+        <div class="contact-section">
+            <h2>📞 Contactez-nous | Contact Us</h2>
+            <p style="font-size: 18px; margin-bottom: 20px; opacity: 0.95;">
+                Notre équipe est à votre disposition pour toute question ou demande de devis<br>
+                Our team is available for any questions or quote requests
+            </p>
+
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div class="icon">📧</div>
+                    <h3>Email</h3>
+                    <a href="mailto:info@educafric.com">info@educafric.com</a>
+                </div>
+
+                <div class="contact-card">
+                    <div class="icon">📱</div>
+                    <h3>Téléphone | Phone</h3>
+                    <a href="tel:+237656200472">+237 656 200 472</a>
+                </div>
+
+                <div class="contact-card">
+                    <div class="icon">💬</div>
+                    <h3>WhatsApp</h3>
+                    <a href="https://wa.me/237657004011" target="_blank">+237 657 004 011</a>
+                </div>
+
+                <div class="contact-card">
+                    <div class="icon">🌐</div>
+                    <h3>Website</h3>
+                    <a href="https://educafric.com" target="_blank">www.educafric.com</a>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px; backdrop-filter: blur(10px);">
+                <p style="font-size: 16px; margin-bottom: 10px;">
+                    <strong>🇫🇷 Horaires de support :</strong> Lundi - Vendredi, 8h00 - 18h00 (GMT+1)<br>
+                    <strong>🇬🇧 Support hours:</strong> Monday - Friday, 8am - 6pm (GMT+1)
+                </p>
+                <p style="font-size: 14px; opacity: 0.9;">
+                    Réponse garantie sous 24h | Guaranteed response within 24 hours
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin-bottom: 10px;">
+                © 2025 <strong>EDUCAFRIC</strong> - Plateforme Éducative Africaine | African Educational Platform
+            </p>
+            <p style="font-size: 12px; color: #999;">
+                Document Version 1.0 - Novembre 2025 | November 2025<br>
+                Tous droits réservés | All rights reserved
+            </p>
+        </div>
+    </div>
+</body>
+</html>
