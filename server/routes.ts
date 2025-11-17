@@ -9088,6 +9088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 36, title: "Fonctionnalité Hors-Ligne - FR", description: "Solution complète pour la connectivité limitée en Afrique - Consultation et édition hors-ligne avec synchronisation automatique", type: "commercial", url: "/documents/fonctionnalite-hors-ligne.html" },
         { id: 37, title: "Offline Functionality - EN", description: "Complete solution for limited connectivity in Africa - Offline viewing and editing with automatic synchronization", type: "commercial", url: "/documents/offline-functionality.html" },
         { id: 40, title: "Guide Offline Premium - FR/EN", description: "Guide complet système Offline Premium : fonctionnement à 3 niveaux (14 jours max), tarifs, activation (Site Admin, Commerciaux, Écoles) - Bilingue", type: "commercial", url: "/documents/guide-offline-premium-fr-en.html" },
+        { id: 41, title: "Business Plan 2025 - African Investor Edition", description: "Comprehensive investor-ready business plan focused on parent subscription revenue model for African EdTech market ($10B+ opportunity) - Bilingual FR/EN", type: "commercial", url: "/documents/educafric-business-plan-2025-investor.html" },
         
         // === GUIDES D'UTILISATION (Bilingue) ===
         { id: 38, title: "Guide Import Excel - Classes et Données Scolaires", description: "Guide complet pour l'import en masse via Excel - Classes, Enseignants, Élèves, Emplois du temps, Salles (Bilingue FR/EN)", type: "commercial", url: "/documents/guide-import-excel-classes.html" },

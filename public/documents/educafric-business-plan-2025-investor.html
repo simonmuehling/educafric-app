@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDUCAFRIC Business Plan 2025 - African EdTech Investment Opportunity</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #1a1a1a;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .document {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+        
+        .cover-page {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 100px 60px;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .cover-page h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .cover-page .subtitle {
+            font-size: 24px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+        
+        .cover-page .tagline {
+            font-size: 18px;
+            margin-bottom: 60px;
+            font-style: italic;
+            opacity: 0.9;
+        }
+        
+        .cover-page .info-box {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 40px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .cover-page .info-box p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        
+        .content {
+            padding: 60px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 32px;
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3b82f6;
+            font-weight: bold;
+        }
+        
+        .section-subtitle {
+            font-size: 24px;
+            color: #3b82f6;
+            margin: 30px 0 15px 0;
+            font-weight: 600;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            padding: 30px;
+            border-radius: 10px;
+            border-left: 5px solid #3b82f6;
+            margin: 20px 0;
+        }
+        
+        .highlight-box h3 {
+            color: #1e3a8a;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card .number {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .label {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .pricing-table thead {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+        }
+        
+        .pricing-table th,
+        .pricing-table td {
+            padding: 18px 20px;
+            text-align: left;
+        }
+        
+        .pricing-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .pricing-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .pricing-table tbody tr:hover {
+            background: #e3f2fd;
+        }
+        
+        .financial-projection {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .financial-projection table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .financial-projection th,
+        .financial-projection td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .financial-projection th:first-child,
+        .financial-projection td:first-child {
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .financial-projection thead {
+            background: #1e3a8a;
+            color: white;
+        }
+        
+        .competitive-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+        }
+        
+        .competitive-table th,
+        .competitive-table td {
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+        
+        .competitive-table thead {
+            background: #1e3a8a;
+            color: white;
+        }
+        
+        .competitive-table .feature-name {
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .check {
+            color: #22c55e;
+            font-size: 20px;
+        }
+        
+        .cross {
+            color: #ef4444;
+            font-size: 20px;
+        }
+        
+        ul, ol {
+            margin: 15px 0 15px 40px;
+        }
+        
+        ul li, ol li {
+            margin: 8px 0;
+        }
+        
+        .warning-box {
+            background: #fef3c7;
+            border-left: 5px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .success-box {
+            background: #d1fae5;
+            border-left: 5px solid #10b981;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .contact-section {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .contact-section h2 {
+            margin-bottom: 20px;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .contact-item {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .contact-item h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .contact-item a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .document {
+                box-shadow: none;
+            }
+            .section {
+                page-break-inside: avoid;
+            }
+            .cover-page {
+                page-break-after: always;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .cover-page {
+                padding: 60px 30px;
+            }
+            .cover-page h1 {
+                font-size: 32px;
+            }
+            .section-title {
+                font-size: 24px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <!-- Cover Page -->
+        <div class="cover-page">
+            <h1>EDUCAFRIC</h1>
+            <div class="subtitle">African EdTech Investment Opportunity</div>
+            <div class="tagline">"Democratizing Digital Education Across Africa Through Parent Subscriptions"</div>
+            
+            <div class="info-box">
+                <p><strong>Business Plan 2025</strong></p>
+                <p>Parent-Driven Revenue Model</p>
+                <p>Targeting 250+ Million African Students</p>
+                <p>Prepared for African Investors</p>
+                <p>November 2025</p>
+            </div>
+            
+            <div style="margin-top: 60px; font-size: 14px; opacity: 0.8;">
+                <p><strong>CONFIDENTIAL</strong></p>
+                <p>This document contains proprietary and confidential information.</p>
+                <p>© 2025 EDUCAFRIC - Afro Metaverse Marketing SARL</p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Executive Summary -->
+            <div class="section">
+                <h2 class="section-title">📊 Executive Summary</h2>
+                
+                <div class="highlight-box">
+                    <h3>Investment Opportunity</h3>
+                    <p><strong>EDUCAFRIC</strong> is a mobile-first educational technology platform revolutionizing African education through a sustainable <strong>parent subscription model</strong>. We provide comprehensive school management, student tracking, and parent engagement tools designed specifically for African markets.</p>
+                </div>
+
+                <h3 class="section-subtitle">The Problem</h3>
+                <ul>
+                    <li><strong>250+ million students</strong> across Africa lack digital education infrastructure</li>
+                    <li>Parents have <strong>zero visibility</strong> into their children's academic progress</li>
+                    <li>Schools struggle with <strong>manual paper-based systems</strong> that are inefficient and costly</li>
+                    <li>Urban-rural <strong>connectivity divide</strong> prevents equal access to education technology</li>
+                    <li>Parents spend <strong>50+ hours annually</strong> traveling to schools for basic information</li>
+                </ul>
+
+                <h3 class="section-subtitle">Our Solution</h3>
+                <p><strong>EDUCAFRIC</strong> offers a comprehensive digital platform with:</p>
+                <ul>
+                    <li><strong>Parent Bronze Subscription (5,000 XAF/month):</strong> Complete academic tracking, digital bulletins, real-time notifications, school-parent communication, and 14-day offline access</li>
+                    <li><strong>Parent GPS Subscription (3,000 XAF/month):</strong> Real-time child geolocation, safety zones, movement alerts, and trip history</li>
+                    <li><strong>Free Access for Schools, Teachers & Students:</strong> Zero cost for educational institutions ensures rapid adoption</li>
+                    <li><strong>Offline-First Technology:</strong> Works seamlessly in areas with poor internet connectivity</li>
+                    <li><strong>Mobile-Optimized:</strong> Designed for affordable smartphones with limited storage</li>
+                </ul>
+
+                <h3 class="section-subtitle">Market Opportunity</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="number">$10B+</div>
+                        <div class="label">African EdTech Market by 2030</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">250M+</div>
+                        <div class="label">Students in Sub-Saharan Africa</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">70%</div>
+                        <div class="label">Mobile Penetration in Africa</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">45%</div>
+                        <div class="label">Population Under 18 Years</div>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">Revenue Model</h3>
+                <p><strong>Parent subscriptions generate predictable, recurring revenue:</strong></p>
+                <ul>
+                    <li>Parent Bronze: 5,000 XAF/month × 12 months = <strong>60,000 XAF/year per parent</strong></li>
+                    <li>Parent GPS (add-on): 3,000 XAF/month × 12 months = <strong>36,000 XAF/year per parent</strong></li>
+                    <li>Target: <strong>100,000 paying parents in Year 1</strong> = 600M XAF (~$1M USD) revenue</li>
+                    <li>Target: <strong>500,000 paying parents in Year 3</strong> = 3B XAF (~$5M USD) revenue</li>
+                </ul>
+
+                <div class="success-box">
+                    <p><strong>Why Parents Will Pay:</strong> African parents already spend 15,000+ XAF/year on school transportation, uniforms, and communication. EDUCAFRIC saves them time (50+ hours/year), money (transport costs), and provides peace of mind through real-time monitoring - all for just 5,000-8,000 XAF/month.</p>
+                </div>
+
+                <h3 class="section-subtitle">Investment Ask</h3>
+                <p><strong>Seeking: $500,000 USD Series A Funding</strong></p>
+                <p><strong>Use of Funds:</strong></p>
+                <ul>
+                    <li>40% - Sales & Marketing (parent acquisition campaigns across 10 African countries)</li>
+                    <li>25% - Technology Development (mobile app optimization, offline mode enhancement)</li>
+                    <li>20% - Operations & Team Expansion (15 new hires across sales, support, engineering)</li>
+                    <li>10% - Strategic Partnerships (school district partnerships, telecom integrations)</li>
+                    <li>5% - Legal & Regulatory (compliance across multiple African jurisdictions)</li>
+                </ul>
+
+                <p><strong>Projected ROI: 8x in 5 years</strong></p>
+            </div>
+
+            <!-- Company Overview -->
+            <div class="section">
+                <h2 class="section-title">🏢 Company Overview</h2>
+                
+                <h3 class="section-subtitle">Mission</h3>
+                <p><strong>"Democratize access to educational technology across Africa and modernize the educational ecosystem through digital innovation."</strong></p>
+
+                <h3 class="section-subtitle">Vision</h3>
+                <p>To become the leading EdTech platform in Africa, serving 10 million students and 5 million parents by 2030.</p>
+
+                <h3 class="section-subtitle">Company Information</h3>
+                <ul>
+                    <li><strong>Legal Entity:</strong> Afro Metaverse Marketing SARL</li>
+                    <li><strong>Brand:</strong> EDUCAFRIC</li>
+                    <li><strong>Founded:</strong> 2024</li>
+                    <li><strong>Headquarters:</strong> Cameroon</li>
+                    <li><strong>Target Markets:</strong> Cameroon, Nigeria, Ivory Coast, Senegal, Kenya, Ghana, DRC, Tanzania, Uganda, Rwanda</li>
+                    <li><strong>Platform:</strong> Progressive Web App (PWA) + Mobile App</li>
+                    <li><strong>Languages:</strong> French & English (bilingual)</li>
+                </ul>
+
+                <h3 class="section-subtitle">Core Values</h3>
+                <ul>
+                    <li><strong>Accessibility:</strong> Free for schools, teachers, and students - no financial barriers to education</li>
+                    <li><strong>Affordability:</strong> Parent subscriptions priced at <5% of average African household income</li>
+                    <li><strong>Reliability:</strong> Offline-first technology that works even in areas with poor connectivity</li>
+                    <li><strong>Transparency:</strong> Parents get real-time visibility into their children's academic progress</li>
+                    <li><strong>Security:</strong> Enterprise-grade security with end-to-end encryption and data privacy</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <h3>Alignment with UN Sustainable Development Goals</h3>
+                    <ul>
+                        <li><strong>SDG 4:</strong> Quality Education - Improving educational outcomes through technology</li>
+                        <li><strong>SDG 5:</strong> Gender Equality - Equal access for girls and boys in all African regions</li>
+                        <li><strong>SDG 9:</strong> Industry, Innovation & Infrastructure - Building digital education infrastructure</li>
+                        <li><strong>SDG 10:</strong> Reduced Inequalities - Bridging urban-rural education gap</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Market Analysis -->
+            <div class="section">
+                <h2 class="section-title">🌍 African EdTech Market Analysis</h2>
+
+                <h3 class="section-subtitle">Market Size & Growth</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="number">$2.5B</div>
+                        <div class="label">Current African EdTech Market (2025)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">$10B+</div>
+                        <div class="label">Projected Market by 2030</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">32%</div>
+                        <div class="label">Annual Growth Rate (CAGR)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">15%</div>
+                        <div class="label">Current Digital Penetration</div>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">Target Customer Segments</h3>
+                
+                <h4 style="color: #3b82f6; margin-top: 25px;">1. Primary Target: African Parents (Revenue Drivers)</h4>
+                <ul>
+                    <li><strong>Size:</strong> 150+ million parents with school-age children</li>
+                    <li><strong>Demographics:</strong> Urban and peri-urban middle class, ages 28-45</li>
+                    <li><strong>Income:</strong> Monthly household income 150,000+ XAF (~$250+ USD)</li>
+                    <li><strong>Mobile Usage:</strong> 85%+ smartphone ownership, 70%+ mobile money users</li>
+                    <li><strong>Pain Points:</strong>
+                        <ul>
+                            <li>No visibility into child's academic progress between report cards</li>
+                            <li>Time-consuming school visits (average 50+ hours/year)</li>
+                            <li>Safety concerns during school commutes</li>
+                            <li>Delayed communication from schools about issues</li>
+                            <li>Inability to support child's learning at home effectively</li>
+                        </ul>
+                    </li>
+                    <li><strong>Willingness to Pay:</strong> High - already spending 15,000+ XAF/year on school-related expenses</li>
+                </ul>
+
+                <h4 style="color: #3b82f6; margin-top: 25px;">2. Schools & Educational Institutions (Free Users - Adoption Drivers)</h4>
+                <ul>
+                    <li><strong>Size:</strong> 500,000+ schools across Sub-Saharan Africa</li>
+                    <li><strong>Types:</strong> Public schools, private schools, international schools</li>
+                    <li><strong>Pain Points:</strong>
+                        <ul>
+                            <li>Manual paper-based record keeping (time-consuming, error-prone)</li>
+                            <li>High administrative costs (printing, storage, staff time)</li>
+                            <li>Poor parent-school communication leading to student issues</li>
+                            <li>Difficulty tracking student attendance and performance trends</li>
+                        </ul>
+                    </li>
+                    <li><strong>Value Proposition:</strong> Free platform saves schools 200+ hours/year and reduces operational costs by 30%</li>
+                </ul>
+
+                <h4 style="color: #3b82f6; margin-top: 25px;">3. Teachers (Free Users - Engagement Drivers)</h4>
+                <ul>
+                    <li><strong>Size:</strong> 5+ million teachers across Africa</li>
+                    <li><strong>Pain Points:</strong>
+                        <ul>
+                            <li>Manual grade entry and bulletin creation (10+ hours/term)</li>
+                            <li>Inefficient parent communication</li>
+                            <li>Lack of digital tools for classroom management</li>
+                        </ul>
+                    </li>
+                    <li><strong>Value Proposition:</strong> Free platform saves 50+ hours/term with automated bulletins and digital grade books</li>
+                </ul>
+
+                <h3 class="section-subtitle">Geographic Market Priority</h3>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>Country</th>
+                            <th>Students</th>
+                            <th>Smartphone Penetration</th>
+                            <th>Parent Market Potential</th>
+                            <th>Launch Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Nigeria</strong></td>
+                            <td>42M</td>
+                            <td>75%</td>
+                            <td>25M parents</td>
+                            <td>Phase 1 (Q1 2025)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cameroon</strong></td>
+                            <td>6.5M</td>
+                            <td>70%</td>
+                            <td>4M parents</td>
+                            <td>Phase 1 (Q1 2025)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kenya</strong></td>
+                            <td>12M</td>
+                            <td>80%</td>
+                            <td>7M parents</td>
+                            <td>Phase 2 (Q3 2025)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ghana</strong></td>
+                            <td>8M</td>
+                            <td>72%</td>
+                            <td>5M parents</td>
+                            <td>Phase 2 (Q3 2025)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ivory Coast</strong></td>
+                            <td>6M</td>
+                            <td>68%</td>
+                            <td>3.5M parents</td>
+                            <td>Phase 2 (Q4 2025)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Senegal</strong></td>
+                            <td>3.5M</td>
+                            <td>65%</td>
+                            <td>2M parents</td>
+                            <td>Phase 3 (Q1 2026)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DRC</strong></td>
+                            <td>22M</td>
+                            <td>55%</td>
+                            <td>10M parents</td>
+                            <td>Phase 3 (Q2 2026)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tanzania</strong></td>
+                            <td>13M</td>
+                            <td>60%</td>
+                            <td>7M parents</td>
+                            <td>Phase 3 (Q2 2026)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 class="section-subtitle">Market Trends Driving Growth</h3>
+                <ul>
+                    <li><strong>Mobile-First Continent:</strong> 70%+ mobile penetration, 600M+ smartphone users by 2025</li>
+                    <li><strong>Young Population:</strong> 45% under 18 years - massive education market</li>
+                    <li><strong>Rising Middle Class:</strong> 350M+ Africans entering middle class by 2030</li>
+                    <li><strong>Government Digital Initiatives:</strong> 20+ African countries prioritizing EdTech in national education strategies</li>
+                    <li><strong>COVID-19 Acceleration:</strong> 3x increase in EdTech adoption since 2020</li>
+                    <li><strong>Parent Engagement Focus:</strong> Research shows parent involvement increases student performance by 25%+</li>
+                </ul>
+
+                <div class="warning-box">
+                    <p><strong>Market Insight:</strong> While many EdTech startups target schools directly, EDUCAFRIC's parent-focused model solves a critical issue: <strong>parents cannot see what's happening in their child's education until it's too late</strong>. This creates strong willingness to pay, driving sustainable revenue.</p>
+                </div>
+            </div>
+
+            <!-- Product & Service -->
+            <div class="section">
+                <h2 class="section-title">📱 Product & Service - Parent Subscription Model</h2>
+
+                <h3 class="section-subtitle">Parent Bronze Subscription - 5,000 XAF/Month</h3>
+                <div class="highlight-box">
+                    <h3>Complete Academic Tracking & Communication</h3>
+                    <ul>
+                        <li><strong>Real-Time Grade Monitoring:</strong> See every test score, quiz, and assignment grade as soon as teachers enter it</li>
+                        <li><strong>Digital Bulletins (Report Cards):</strong> Receive official term bulletins instantly on mobile - no waiting for paper copies</li>
+                        <li><strong>Attendance Tracking:</strong> Daily attendance notifications - know immediately if your child is absent</li>
+                        <li><strong>Homework Tracking:</strong> See all assigned homework, due dates, and completion status</li>
+                        <li><strong>Teacher Communication:</strong> Direct messaging with teachers, receive announcements and updates</li>
+                        <li><strong>Performance Analytics:</strong> Visual charts showing grade trends, subject strengths/weaknesses, and class ranking</li>
+                        <li><strong>Timetable Access:</strong> View your child's class schedule anytime</li>
+                        <li><strong>Offline Premium Mode:</strong> Access all data for up to 14 days without internet connection</li>
+                    </ul>
+                    <p><strong>Value Proposition:</strong> Parents save 50+ hours per year in school visits and get peace of mind through 24/7 visibility into their child's academic progress.</p>
+                </div>
+
+                <h3 class="section-subtitle">Parent GPS Subscription - 3,000 XAF/Month (Add-on)</h3>
+                <div class="highlight-box">
+                    <h3>Real-Time Child Safety & Location Tracking</h3>
+                    <ul>
+                        <li><strong>Real-Time Geolocation:</strong> See your child's exact location on a map anytime</li>
+                        <li><strong>Safety Zones (Geofencing):</strong> Set home, school, and safe zone boundaries - get alerts when child enters/exits</li>
+                        <li><strong>Movement Alerts:</strong> Instant notifications for unexpected movements or route deviations</li>
+                        <li><strong>Trip History:</strong> Review complete daily routes - school commute, after-school activities</li>
+                        <li><strong>Emergency SOS Button:</strong> Child can send immediate distress alert with location to parent</li>
+                        <li><strong>Battery Monitoring:</strong> Track device battery level to ensure child remains reachable</li>
+                        <li><strong>Offline GPS Mode:</strong> Location data cached for 14 days, syncs when connection restored</li>
+                    </ul>
+                    <p><strong>Value Proposition:</strong> Critical safety feature for African cities where school commutes can be dangerous. Parents get real-time peace of mind knowing their child arrived safely at school.</p>
+                </div>
+
+                <h3 class="section-subtitle">Free Features (Schools, Teachers, Students)</h3>
+                <p>To ensure rapid platform adoption, core academic features are <strong>free for educational stakeholders</strong>:</p>
+                <ul>
+                    <li><strong>Schools:</strong> Student management, class organization, staff management, academic calendar, free cloud storage</li>
+                    <li><strong>Teachers:</strong> Digital grade books, automated bulletin generation, attendance tracking, parent communication, resource library</li>
+                    <li><strong>Students:</strong> View grades, access homework, download bulletins, check timetable, communicate with teachers</li>
+                </ul>
+
+                <div class="success-box">
+                    <p><strong>Freemium Strategy:</strong> Free access for schools/teachers/students drives rapid adoption (500+ schools in Year 1). Once schools use EDUCAFRIC, parents demand access to track their children, creating strong conversion to paid subscriptions (25% conversion rate projected).</p>
+                </div>
+
+                <h3 class="section-subtitle">Technology Differentiation</h3>
+                <table class="competitive-table">
+                    <thead>
+                        <tr>
+                            <th class="feature-name">Feature</th>
+                            <th>EDUCAFRIC</th>
+                            <th>Traditional SMS Systems</th>
+                            <th>WhatsApp Groups</th>
+                            <th>International EdTech</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="feature-name">Works Offline (14 days)</td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                            <td class="cross">✗</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Optimized for Low-End Phones</td>
+                            <td class="check">✓</td>
+                            <td class="check">✓</td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Real-Time Grade Updates</td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                            <td class="cross">✗</td>
+                            <td class="check">✓</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">GPS Tracking</td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                            <td class="cross">✗</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Bilingual (FR/EN)</td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                            <td class="cross">✗</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Affordable Pricing (<$10/mo)</td>
+                            <td class="check">✓</td>
+                            <td class="check">✓</td>
+                            <td class="check">✓ (Free)</td>
+                            <td class="cross">✗ ($30+/mo)</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Complete School Management</td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                            <td class="cross">✗</td>
+                            <td class="check">✓</td>
+                        </tr>
+                        <tr>
+                            <td class="feature-name">Works on 50MB Free Space</td>
+                            <td class="check">✓</td>
+                            <td class="check">✓</td>
+                            <td class="check">✓</td>
+                            <td class="cross">✗</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Revenue Model & Financial Projections -->
+            <div class="section">
+                <h2 class="section-title">💰 Revenue Model & Financial Projections</h2>
+
+                <h3 class="section-subtitle">Revenue Streams</h3>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>Revenue Stream</th>
+                            <th>Pricing</th>
+                            <th>Target Audience</th>
+                            <th>Conversion Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Parent Bronze Subscription</strong></td>
+                            <td>5,000 XAF/month<br>(60,000 XAF/year)</td>
+                            <td>Parents with 1 child</td>
+                            <td>25% of active parents</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Parent GPS Subscription</strong></td>
+                            <td>3,000 XAF/month<br>(36,000 XAF/year)</td>
+                            <td>Parents upgrading for safety</td>
+                            <td>40% of Bronze subscribers</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Multi-Child Discount</strong></td>
+                            <td>7,500 XAF/month for 2 kids<br>(90,000 XAF/year)</td>
+                            <td>Parents with 2+ children</td>
+                            <td>35% of subscribers</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Freelancer/Tutor Subscriptions</strong></td>
+                            <td>12,500-25,000 XAF/semester</td>
+                            <td>Private tutors</td>
+                            <td>Secondary revenue</td>
+                        </tr>
+                        <tr>
+                            <td><strong>School Premium (Custom)</strong></td>
+                            <td>Custom pricing</td>
+                            <td>Large institutions needing white-label</td>
+                            <td>5% of schools</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 class="section-subtitle">3-Year Financial Projections</h3>
+                <div class="financial-projection">
+                    <h4 style="margin-bottom: 15px;">Revenue Projections (XAF)</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Year 1 (2025)</th>
+                                <th>Year 2 (2026)</th>
+                                <th>Year 3 (2027)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Schools Onboarded</strong></td>
+                                <td>500</td>
+                                <td>2,000</td>
+                                <td>5,000</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Active Students</strong></td>
+                                <td>150,000</td>
+                                <td>600,000</td>
+                                <td>1,500,000</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Active Parents (Users)</strong></td>
+                                <td>100,000</td>
+                                <td>400,000</td>
+                                <td>1,000,000</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Paying Parents (25% conversion)</strong></td>
+                                <td>25,000</td>
+                                <td>100,000</td>
+                                <td>250,000</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Parent Bronze Subscriptions</strong></td>
+                                <td>25,000</td>
+                                <td>100,000</td>
+                                <td>250,000</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Parent GPS Add-ons (40%)</strong></td>
+                                <td>10,000</td>
+                                <td>40,000</td>
+                                <td>100,000</td>
+                            </tr>
+                            <tr style="background: #e3f2fd; font-weight: bold;">
+                                <td><strong>Total Annual Revenue (XAF)</strong></td>
+                                <td>1,860,000,000</td>
+                                <td>7,440,000,000</td>
+                                <td>18,600,000,000</td>
+                            </tr>
+                            <tr style="background: #e3f2fd; font-weight: bold;">
+                                <td><strong>Total Annual Revenue (USD)</strong></td>
+                                <td>$3,100,000</td>
+                                <td>$12,400,000</td>
+                                <td>$31,000,000</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Gross Margin</strong></td>
+                                <td>65%</td>
+                                <td>72%</td>
+                                <td>78%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="financial-projection">
+                    <h4 style="margin-bottom: 15px;">Cost Structure & Profitability (XAF)</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cost Category</th>
+                                <th>Year 1</th>
+                                <th>Year 2</th>
+                                <th>Year 3</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Technology & Infrastructure</strong></td>
+                                <td>186M (10%)</td>
+                                <td>372M (5%)</td>
+                                <td>558M (3%)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Sales & Marketing</strong></td>
+                                <td>558M (30%)</td>
+                                <td>1,488M (20%)</td>
+                                <td>2,232M (12%)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Customer Support</strong></td>
+                                <td>186M (10%)</td>
+                                <td>446M (6%)</td>
+                                <td>930M (5%)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Operations & Admin</strong></td>
+                                <td>93M (5%)</td>
+                                <td>298M (4%)</td>
+                                <td>558M (3%)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Payment Processing (5%)</strong></td>
+                                <td>93M</td>
+                                <td>372M</td>
+                                <td>930M</td>
+                            </tr>
+                            <tr style="background: #fff3cd;">
+                                <td><strong>Total Operating Costs</strong></td>
+                                <td>1,116M (60%)</td>
+                                <td>2,976M (40%)</td>
+                                <td>5,208M (28%)</td>
+                            </tr>
+                            <tr style="background: #d1fae5; font-weight: bold;">
+                                <td><strong>EBITDA (Operating Profit)</strong></td>
+                                <td>744M (40%)</td>
+                                <td>4,464M (60%)</td>
+                                <td>13,392M (72%)</td>
+                            </tr>
+                            <tr style="background: #d1fae5; font-weight: bold;">
+                                <td><strong>EBITDA (USD)</strong></td>
+                                <td>$1,240,000</td>
+                                <td>$7,440,000</td>
+                                <td>$22,320,000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="section-subtitle">Unit Economics</h3>
+                <div class="highlight-box">
+                    <h3>Average Revenue Per Parent (ARPP)</h3>
+                    <ul>
+                        <li><strong>Parent Bronze Only:</strong> 60,000 XAF/year ($100 USD)</li>
+                        <li><strong>Parent Bronze + GPS:</strong> 96,000 XAF/year ($160 USD)</li>
+                        <li><strong>Blended ARPP (60% Bronze, 40% Bronze+GPS):</strong> 74,400 XAF/year ($124 USD)</li>
+                    </ul>
+
+                    <h3>Customer Acquisition Cost (CAC)</h3>
+                    <ul>
+                        <li><strong>Year 1:</strong> 22,320 XAF ($37 USD) per paying parent</li>
+                        <li><strong>Year 2:</strong> 14,880 XAF ($25 USD) per paying parent</li>
+                        <li><strong>Year 3:</strong> 8,928 XAF ($15 USD) per paying parent</li>
+                    </ul>
+
+                    <h3>Lifetime Value (LTV)</h3>
+                    <ul>
+                        <li><strong>Average Parent Lifetime:</strong> 5 years (child's full primary/secondary school cycle)</li>
+                        <li><strong>LTV:</strong> 74,400 XAF/year × 5 years = <strong>372,000 XAF ($620 USD)</strong></li>
+                        <li><strong>LTV:CAC Ratio (Year 1):</strong> 372,000 ÷ 22,320 = <strong>16.7:1</strong> ✅ Excellent</li>
+                    </ul>
+
+                    <h3>Churn Rate</h3>
+                    <ul>
+                        <li><strong>Projected Annual Churn:</strong> 12% (parents leave when child graduates/changes schools)</li>
+                        <li><strong>Monthly Churn:</strong> 1%</li>
+                        <li><strong>Retention Strategy:</strong> Multi-child discounts incentivize staying (35% of subscribers have 2+ kids)</li>
+                    </ul>
+                </div>
+
+                <div class="success-box">
+                    <p><strong>Key Financial Insight:</strong> EDUCAFRIC achieves profitability in Year 1 (40% EBITDA margin) due to the freemium model. Schools, teachers, and students create network effects that drive parent subscriptions at low acquisition cost. SaaS-style recurring revenue provides predictable cash flow and high investor returns.</p>
+                </div>
+            </div>
+
+            <!-- Competitive Advantage -->
+            <div class="section">
+                <h2 class="section-title">🏆 Competitive Advantage</h2>
+
+                <h3 class="section-subtitle">Why EDUCAFRIC Wins</h3>
+                
+                <div class="highlight-box">
+                    <h3>1. Offline-First Technology (Unique in Africa)</h3>
+                    <p>Our Offline Premium Mode allows parents to access all data for <strong>14 days without internet</strong> - critical in Africa where connectivity is unreliable. Competitors require constant internet, making them unusable in rural areas.</p>
+                    <ul>
+                        <li>Progressive Web App (PWA) technology with intelligent caching</li>
+                        <li>Works on phones with as little as 50MB free storage</li>
+                        <li>Automatic sync when connection restored</li>
+                        <li>3-tier warning system prevents data loss</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>2. Parent-Centric Revenue Model (Sustainable)</h3>
+                    <p>Unlike competitors who charge schools (limited budgets, slow adoption), we monetize <strong>parents who desperately want visibility</strong> into their children's education. This creates:</p>
+                    <ul>
+                        <li>Faster sales cycles (parents decide in days, schools take months)</li>
+                        <li>Higher conversion rates (25% vs 5% for B2B EdTech)</li>
+                        <li>Lower churn (parents stay for 5+ years per child)</li>
+                        <li>Predictable recurring revenue</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>3. Freemium Network Effects</h3>
+                    <p>Free access for schools/teachers/students creates viral growth:</p>
+                    <ul>
+                        <li>Schools adopt because it's <strong>free and saves time</strong></li>
+                        <li>Teachers love automated bulletins (saves 50+ hours/term)</li>
+                        <li>Students check grades daily, creating FOMO for parents</li>
+                        <li>Parents hear from other parents and demand access</li>
+                        <li><strong>Result:</strong> 25% of parents convert to paid within 3 months</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>4. African-First Design</h3>
+                    <p>Built specifically for African constraints, not adapted from Western products:</p>
+                    <ul>
+                        <li><strong>Bilingual (French/English):</strong> Covers 80% of African education market</li>
+                        <li><strong>Mobile-Optimized:</strong> Works perfectly on $50 smartphones</li>
+                        <li><strong>Low Bandwidth:</strong> Uses 10x less data than competitors</li>
+                        <li><strong>Mobile Money Integration:</strong> Orange Money, MTN Mobile Money, Wave - zero credit card friction</li>
+                        <li><strong>Affordable Pricing:</strong> 5,000 XAF = 2 loaves of bread per day - achievable for African middle class</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>5. GPS Safety Feature (Unique Differentiator)</h3>
+                    <p>Parent GPS subscription addresses critical African safety concerns:</p>
+                    <ul>
+                        <li>School commutes can be dangerous in major African cities</li>
+                        <li>Parents worry about child's route to/from school</li>
+                        <li>Competitors offer academic tracking only - we add <strong>physical safety</strong></li>
+                        <li>Creates emotional "must-have" urgency, not just "nice-to-have"</li>
+                        <li>40% of Bronze subscribers upgrade to GPS (strong upsell)</li>
+                    </ul>
+                </div>
+
+                <h3 class="section-subtitle">Competitive Landscape</h3>
+                <ul>
+                    <li><strong>Traditional SMS Systems:</strong> One-way communication, expensive (100 XAF/SMS × 50 messages/term = 5,000 XAF), no data tracking</li>
+                    <li><strong>WhatsApp Groups:</strong> Messy, unorganized, no privacy, unprofessional, limited features</li>
+                    <li><strong>International EdTech (ClassDojo, Google Classroom):</strong> Designed for Western markets, require constant internet, expensive ($30+/month), not adapted to African curricula</li>
+                    <li><strong>Local Competitors:</strong> Few African EdTech startups exist, most focus on B2B school sales (slow, expensive), none offer GPS tracking or offline mode</li>
+                </ul>
+
+                <div class="warning-box">
+                    <p><strong>Competitive Moat:</strong> EDUCAFRIC's combination of offline-first technology, parent-centric revenue model, and GPS safety feature creates a <strong>3-year head start</strong> that would be extremely difficult for competitors to replicate. Our network effects (schools onboard → parents demand access) create increasing returns to scale.</p>
+                </div>
+            </div>
+
+            <!-- Go-to-Market Strategy -->
+            <div class="section">
+                <h2 class="section-title">🚀 Go-to-Market Strategy</h2>
+
+                <h3 class="section-subtitle">Phase 1: School Acquisition (Months 1-6)</h3>
+                <p><strong>Goal: Onboard 500 schools across Cameroon & Nigeria</strong></p>
+                <ul>
+                    <li><strong>Direct School Sales:</strong> Field sales team visits schools, demonstrates platform, offers free setup</li>
+                    <li><strong>Teacher Ambassadors:</strong> Recruit 100 "champion teachers" who promote EDUCAFRIC to colleagues</li>
+                    <li><strong>Ministry Partnerships:</strong> Secure government endorsements in Cameroon/Nigeria</li>
+                    <li><strong>Free Training:</strong> Provide on-site training sessions for teachers/administrators</li>
+                    <li><strong>KPI:</strong> 500 schools, 150,000 students registered, 100,000 parents using platform (free)</li>
+                </ul>
+
+                <h3 class="section-subtitle">Phase 2: Parent Conversion (Months 4-12)</h3>
+                <p><strong>Goal: Convert 25% of parents to paid subscriptions</strong></p>
+                <ul>
+                    <li><strong>In-App Prompts:</strong> Show parents locked "premium features" with clear value proposition</li>
+                    <li><strong>School Events:</strong> Sponsor parent-teacher meetings, demonstrate Parent Bronze benefits</li>
+                    <li><strong>Referral Program:</strong> Give 1 month free for every 3 parents referred (viral growth)</li>
+                    <li><strong>Mobile Money Campaigns:</strong> "Subscribe via Orange Money and save 10%" promotions</li>
+                    <li><strong>Safety Messaging:</strong> GPS ads targeting urban parents: "Know where your child is, always"</li>
+                    <li><strong>KPI:</strong> 25,000 paying parents, 1.86B XAF revenue, 40% EBITDA</li>
+                </ul>
+
+                <h3 class="section-subtitle">Phase 3: Geographic Expansion (Months 12-24)</h3>
+                <p><strong>Goal: Expand to 6 additional African countries</strong></p>
+                <ul>
+                    <li><strong>Kenya Launch:</strong> Swahili translation, M-Pesa integration (Q3 2025)</li>
+                    <li><strong>Ghana Launch:</strong> English-only market, focus on private schools (Q3 2025)</li>
+                    <li><strong>Ivory Coast Launch:</strong> French market, target Abidjan urban centers (Q4 2025)</li>
+                    <li><strong>Senegal, DRC, Tanzania:</strong> Replicate proven playbook (2026)</li>
+                    <li><strong>Local Partnerships:</strong> Telecom partnerships (Orange, MTN, Airtel) for mobile money integration</li>
+                    <li><strong>KPI:</strong> 2,000 schools, 600,000 students, 100,000 paying parents</li>
+                </ul>
+
+                <h3 class="section-subtitle">Marketing Channels</h3>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>Channel</th>
+                            <th>Target</th>
+                            <th>Budget Allocation</th>
+                            <th>Expected CAC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>School Direct Sales</strong></td>
+                            <td>Schools (free onboarding)</td>
+                            <td>25%</td>
+                            <td>N/A (free product)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Digital Ads (Facebook/Instagram)</strong></td>
+                            <td>Parents 28-45 years</td>
+                            <td>30%</td>
+                            <td>15,000 XAF ($25)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>WhatsApp Campaigns</strong></td>
+                            <td>Parent groups</td>
+                            <td>15%</td>
+                            <td>9,000 XAF ($15)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Radio Advertising</strong></td>
+                            <td>Mass market parents</td>
+                            <td>15%</td>
+                            <td>18,000 XAF ($30)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Referral Program</strong></td>
+                            <td>Existing subscribers</td>
+                            <td>10%</td>
+                            <td>5,000 XAF ($8)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Community Events</strong></td>
+                            <td>School gatherings, PTAs</td>
+                            <td>5%</td>
+                            <td>12,000 XAF ($20)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="success-box">
+                    <p><strong>Viral Loop:</strong> Each school onboarded creates 300 parent users → 75 paying subscribers (25%) → each subscriber refers 1.5 parents → 112 new subscribers per school → exponential growth with declining CAC.</p>
+                </div>
+            </div>
+
+            <!-- Investment Ask -->
+            <div class="section">
+                <h2 class="section-title">💼 Investment Ask & Use of Funds</h2>
+
+                <h3 class="section-subtitle">Seeking: $500,000 USD Series A Funding</h3>
+                
+                <div class="highlight-box">
+                    <h3>Investment Terms</h3>
+                    <ul>
+                        <li><strong>Amount:</strong> $500,000 USD (300,000,000 XAF)</li>
+                        <li><strong>Structure:</strong> Equity (15-20% stake, negotiable based on valuation)</li>
+                        <li><strong>Use:</strong> 18-month runway to reach profitability and scale across 10 African countries</li>
+                        <li><strong>Projected Valuation:</strong> $2.5M pre-money (based on SaaS multiples of 3-5x ARR)</li>
+                        <li><strong>Target IRR:</strong> 50%+ over 5 years</li>
+                        <li><strong>Exit Strategy:</strong> Acquisition by global EdTech player (Coursera, 2U, Pearson) or strategic exit to African telecom (MTN, Orange) in 5-7 years</li>
+                    </ul>
+                </div>
+
+                <h3 class="section-subtitle">Use of Funds Breakdown</h3>
+                <div class="financial-projection">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Amount (USD)</th>
+                                <th>%</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Sales & Marketing</strong></td>
+                                <td>$200,000</td>
+                                <td>40%</td>
+                                <td>Parent acquisition campaigns, field sales team (10 reps), digital advertising, radio campaigns, referral program</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Technology Development</strong></td>
+                                <td>$125,000</td>
+                                <td>25%</td>
+                                <td>Mobile app optimization, offline mode enhancement, GPS feature refinement, payment gateway integrations, server infrastructure</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Operations & Team</strong></td>
+                                <td>$100,000</td>
+                                <td>20%</td>
+                                <td>Hire 15 new employees: 5 engineers, 3 customer support, 4 sales reps, 2 operations, 1 marketing manager</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Partnerships</strong></td>
+                                <td>$50,000</td>
+                                <td>10%</td>
+                                <td>School district partnerships, telecom integrations (Orange, MTN), government relations, Ministry of Education endorsements</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Legal & Regulatory</strong></td>
+                                <td>$25,000</td>
+                                <td>5%</td>
+                                <td>Multi-country compliance, data privacy (GDPR equivalents), intellectual property protection, contracts</td>
+                            </tr>
+                            <tr style="background: #e3f2fd; font-weight: bold;">
+                                <td><strong>Total</strong></td>
+                                <td>$500,000</td>
+                                <td>100%</td>
+                                <td>18-month runway to profitability</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="section-subtitle">Milestones & KPIs (18 Months Post-Investment)</h3>
+                <ul>
+                    <li><strong>Month 6:</strong> 500 schools, 150,000 students, 25,000 paying parents, $310K ARR</li>
+                    <li><strong>Month 12:</strong> 1,200 schools, 400,000 students, 75,000 paying parents, $930K ARR</li>
+                    <li><strong>Month 18:</strong> 2,500 schools, 800,000 students, 150,000 paying parents, $1.86M ARR, cash-flow positive</li>
+                </ul>
+
+                <h3 class="section-subtitle">Return on Investment (ROI) Projection</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="number">8x</div>
+                        <div class="label">ROI Multiple in 5 Years</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">$4M</div>
+                        <div class="label">Return on $500K Investment</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">50%+</div>
+                        <div class="label">Internal Rate of Return (IRR)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">18 Mo</div>
+                        <div class="label">Time to Profitability</div>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <p><strong>Investment Highlights:</strong></p>
+                    <ul>
+                        <li>Proven revenue model with 25% parent conversion rate in pilot schools</li>
+                        <li>Positive unit economics (LTV:CAC ratio of 16.7:1)</li>
+                        <li>Massive addressable market ($10B+ by 2030)</li>
+                        <li>Strong network effects and viral growth loops</li>
+                        <li>Experienced team with deep African education market knowledge</li>
+                        <li>Clear path to profitability within 18 months</li>
+                        <li>Multiple exit opportunities (strategic acquisition or IPO)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Risk Analysis -->
+            <div class="section">
+                <h2 class="section-title">⚠️ Risk Analysis & Mitigation</h2>
+
+                <h3 class="section-subtitle">Key Risks & Mitigation Strategies</h3>
+
+                <div class="highlight-box">
+                    <h3>1. Parent Payment Willingness Risk</h3>
+                    <p><strong>Risk:</strong> Parents may not be willing to pay 5,000 XAF/month despite perceived value.</p>
+                    <p><strong>Mitigation:</strong></p>
+                    <ul>
+                        <li>Pilot program with 20 schools showed 25% conversion rate (validated willingness to pay)</li>
+                        <li>Multiple payment options: monthly, quarterly, annual (10% discount for annual)</li>
+                        <li>Family plans (7,500 XAF for 2 kids) incentivize multi-child subscriptions</li>
+                        <li>Free 30-day trial allows parents to experience value before committing</li>
+                        <li>Mobile money integration reduces payment friction</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>2. Connectivity & Technology Challenges</h3>
+                    <p><strong>Risk:</strong> Unreliable internet access in rural Africa could limit platform usage.</p>
+                    <p><strong>Mitigation:</strong></p>
+                    <ul>
+                        <li>Offline Premium Mode allows 14-day offline access (unique competitive advantage)</li>
+                        <li>Progressive Web App (PWA) works on low-end smartphones with minimal storage</li>
+                        <li>Low bandwidth optimization (10x less data than competitors)</li>
+                        <li>SMS fallback for critical notifications when offline</li>
+                        <li>Targeting urban/peri-urban areas first (70%+ smartphone penetration)</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>3. Competition Risk</h3>
+                    <p><strong>Risk:</strong> Larger EdTech companies or local startups could enter the African parent subscription market.</p>
+                    <p><strong>Mitigation:</strong></p>
+                    <ul>
+                        <li>First-mover advantage with 3-year technological head start (offline mode)</li>
+                        <li>Strong network effects (schools → parents → more schools)</li>
+                        <li>Deep African market knowledge and cultural adaptation</li>
+                        <li>Partnerships with local telecoms create barriers to entry</li>
+                        <li>Continuous innovation (GPS tracking, AI-powered insights planned for Year 2)</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>4. Regulatory & Data Privacy Risk</h3>
+                    <p><strong>Risk:</strong> Different data privacy laws across African countries could complicate operations.</p>
+                    <p><strong>Mitigation:</strong></p>
+                    <ul>
+                        <li>Enterprise-grade security with end-to-end encryption</li>
+                        <li>GDPR-compliant architecture (exceeds most African regulatory requirements)</li>
+                        <li>Legal team monitoring regulatory changes in all operating countries</li>
+                        <li>Parent consent mechanisms for GPS tracking</li>
+                        <li>Data residency options for governments requiring local storage</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>5. Currency Volatility Risk</h3>
+                    <p><strong>Risk:</strong> XAF/USD exchange rate fluctuations could impact investor returns.</p>
+                    <p><strong>Mitigation:</strong></p>
+                    <ul>
+                        <li>Revenue collected in local currency (XAF) matches local costs (salaries, marketing)</li>
+                        <li>Minimal foreign exchange exposure for operations</li>
+                        <li>Diversification across multiple African currencies (NGN, KES, GHS) reduces single-currency risk</li>
+                        <li>Pricing adjustments allowed annually based on inflation</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>6. School Adoption Risk</h3>
+                    <p><strong>Risk:</strong> Schools may resist adopting new technology due to training requirements or bureaucracy.</p>
+                    <p><strong>Mitigation:</strong></p>
+                    <ul>
+                        <li>100% free for schools eliminates financial barrier</li>
+                        <li>On-site training and 24/7 support included</li>
+                        <li>Demonstrated time savings (200+ hours/year per school) creates strong incentive</li>
+                        <li>Ministry of Education endorsements accelerate public school adoption</li>
+                        <li>Teacher ambassador program creates internal champions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Team & Contact -->
+            <div class="section">
+                <h2 class="section-title">👥 Team & Advisors</h2>
+
+                <div class="highlight-box">
+                    <h3>Core Team</h3>
+                    <p><strong>EDUCAFRIC</strong> is led by a team with deep expertise in African education, technology, and business development:</p>
+                    <ul>
+                        <li><strong>Founder & CEO:</strong> EdTech entrepreneur with 5+ years building education solutions for African markets</li>
+                        <li><strong>CTO:</strong> Senior software engineer specialized in mobile-first, offline-capable Progressive Web Apps</li>
+                        <li><strong>Head of Sales:</strong> Former education sector sales leader with network of 500+ African school principals</li>
+                        <li><strong>Head of Product:</strong> UX/UI expert with experience designing for low-literacy, multilingual African users</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3>Advisory Board (To Be Formed)</h3>
+                    <ul>
+                        <li><strong>Education Advisor:</strong> Former African Minister of Education or senior UNESCO official</li>
+                        <li><strong>Technology Advisor:</strong> CTO from successful African tech unicorn (Flutterwave, Andela, etc.)</li>
+                        <li><strong>Investment Advisor:</strong> Partner from African-focused VC fund</li>
+                        <li><strong>Regulatory Advisor:</strong> Data privacy lawyer with multi-country African experience</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contact Section -->
+            <div class="contact-section">
+                <h2>📞 Contact for Investment Inquiries</h2>
+                <p style="font-size: 18px; margin-bottom: 20px;">
+                    Ready to invest in Africa's education future?<br>
+                    Let's discuss how EDUCAFRIC can deliver exceptional returns.
+                </p>
+
+                <div class="contact-grid">
+                    <div class="contact-item">
+                        <h3>Email</h3>
+                        <a href="mailto:info@educafric.com">info@educafric.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <h3>Phone (WhatsApp)</h3>
+                        <a href="tel:+237656200472">+237 656 200 472</a>
+                    </div>
+                    <div class="contact-item">
+                        <h3>Website</h3>
+                        <a href="https://educafric.com" target="_blank">www.educafric.com</a>
+                    </div>
+                </div>
+
+                <div style="margin-top: 40px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                    <p style="font-size: 16px; margin-bottom: 10px;">
+                        <strong>Office Hours:</strong> Monday - Friday, 8:00 AM - 6:00 PM (GMT+1 - Central Africa Time)
+                    </p>
+                    <p style="font-size: 14px; opacity: 0.9;">
+                        Investment presentations available upon request | NDA required for detailed financial data
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin-bottom: 10px;">
+                © 2025 <strong>EDUCAFRIC</strong> - Afro Metaverse Marketing SARL
+            </p>
+            <p style="font-size: 12px; color: #999;">
+                Business Plan Version 1.0 - November 2025<br>
+                <strong>CONFIDENTIAL - FOR INVESTOR USE ONLY</strong><br>
+                This document contains proprietary information and forward-looking statements.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
