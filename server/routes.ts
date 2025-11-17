@@ -946,6 +946,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           address: schoolInfo?.address || '',
           phone: schoolInfo?.phone || '',
           email: schoolInfo?.email || '',
+          logoUrl: schoolInfo?.logoUrl || '',
           academicYear: '2024-2025',
           currentTerm: 'Premier Trimestre'
         },
@@ -11823,7 +11824,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update school logo in database if user has a school
       if (user.schoolId) {
         try {
-          await storage.updateSchool(user.schoolId, { logo: logoUrl });
+          await db.update(schools).set({ logoUrl }).where(eq(schools.id, user.schoolId));
           console.log(`[SCHOOL_LOGO_SIMPLE] ✅ Logo saved to database for school ${user.schoolId}`);
         } catch (dbError: any) {
           console.error(`[SCHOOL_LOGO_SIMPLE] ⚠️ Failed to save logo to database:`, dbError.message);
