@@ -384,21 +384,24 @@ const SchoolManagement = () => {
       });
       return response;
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+    onSuccess: async (data, variables) => {
       toast({
         title: 'Succès',
         description: variables.enabled 
           ? 'Offline Premium activé pour cette école' 
           : 'Offline Premium désactivé pour cette école'
       });
-      // Update the local state immediately
+      
+      // Update local state immediately for instant UI feedback
       if (selectedSchoolForSubscription) {
         setSelectedSchoolForSubscription({
           ...selectedSchoolForSubscription,
           offlineEnabled: variables.enabled
         });
       }
+      
+      // Invalidate and refetch to ensure data consistency
+      await queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
     },
     onError: (error: any) => {
       toast({

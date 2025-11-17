@@ -75,7 +75,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
 
   const toggleOfflineModeMutation = useMutation({
     mutationFn: async ({ schoolId, enabled }: { schoolId: number; enabled: boolean }) => {
-      const response = await apiRequest(`/api/siteadmin/schools/${schoolId}/offline`, 'PATCH', { 
+      const response = await apiRequest('PATCH', `/api/siteadmin/schools/${schoolId}/offline`, { 
         offlineEnabled: enabled 
       });
       return response;
@@ -85,14 +85,14 @@ const FunctionalSiteAdminSchools: React.FC = () => {
       toast({
         title: 'Succès',
         description: variables.enabled 
-          ? 'Mode hors ligne activé pour cette école' 
-          : 'Mode hors ligne désactivé pour cette école'
+          ? 'Offline Premium activé pour cette école' 
+          : 'Offline Premium désactivé pour cette école'
       });
     },
     onError: (error: any) => {
       toast({
         title: 'Erreur',
-        description: error.message || 'Impossible de modifier le mode hors ligne',
+        description: error.message || 'Impossible de modifier Offline Premium',
         variant: 'destructive'
       });
     }
