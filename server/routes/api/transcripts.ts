@@ -53,11 +53,19 @@ router.post('/generate', requireAuth, requireAnyRole(['director', 'teacher', 'st
     const transcriptData: TranscriptData = {
       ...demoData,
       studentId,
-      // Merge real school data including logo
+      // Merge real school data including logo with proper field mapping
       schoolInfo: schoolData ? {
-        ...demoData.schoolInfo,
-        ...schoolData,
-        logoUrl: schoolData.logoUrl || demoData.schoolInfo.logoUrl
+        id: demoData.schoolInfo.id, // CameroonOfficialHeaderData doesn't have id
+        name: schoolData.schoolName || demoData.schoolInfo.name,
+        address: schoolData.address || demoData.schoolInfo.address,
+        phone: schoolData.phone || demoData.schoolInfo.phone,
+        email: schoolData.email || demoData.schoolInfo.email,
+        logoUrl: schoolData.logoUrl || demoData.schoolInfo.logoUrl,
+        directorName: demoData.schoolInfo.directorName, // CameroonOfficialHeaderData doesn't have directorName
+        regionaleMinisterielle: schoolData.regionaleMinisterielle || demoData.schoolInfo.regionaleMinisterielle,
+        delegationDepartementale: schoolData.delegationDepartementale || demoData.schoolInfo.delegationDepartementale,
+        boitePostale: schoolData.boitePostale || demoData.schoolInfo.boitePostale,
+        educationalType: schoolData.educationalType || demoData.schoolInfo.educationalType
       } : demoData.schoolInfo
     };
     
@@ -134,11 +142,19 @@ router.post('/demo', async (req: Request, res: Response) => {
     const baseDemoData = TranscriptGenerator.generateDemoData();
     const demoData = {
       ...baseDemoData,
-      // Merge real school data including logo
+      // Merge real school data including logo with proper field mapping
       schoolInfo: schoolData ? {
-        ...baseDemoData.schoolInfo,
-        ...schoolData,
-        logoUrl: schoolData.logoUrl || baseDemoData.schoolInfo.logoUrl
+        id: baseDemoData.schoolInfo.id, // CameroonOfficialHeaderData doesn't have id
+        name: schoolData.schoolName || baseDemoData.schoolInfo.name,
+        address: schoolData.address || baseDemoData.schoolInfo.address,
+        phone: schoolData.phone || baseDemoData.schoolInfo.phone,
+        email: schoolData.email || baseDemoData.schoolInfo.email,
+        logoUrl: schoolData.logoUrl || baseDemoData.schoolInfo.logoUrl,
+        directorName: baseDemoData.schoolInfo.directorName, // CameroonOfficialHeaderData doesn't have directorName
+        regionaleMinisterielle: schoolData.regionaleMinisterielle || baseDemoData.schoolInfo.regionaleMinisterielle,
+        delegationDepartementale: schoolData.delegationDepartementale || baseDemoData.schoolInfo.delegationDepartementale,
+        boitePostale: schoolData.boitePostale || baseDemoData.schoolInfo.boitePostale,
+        educationalType: schoolData.educationalType || baseDemoData.schoolInfo.educationalType
       } : baseDemoData.schoolInfo
     };
     
