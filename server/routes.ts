@@ -8426,7 +8426,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         boitePostale: schools.boitePostale,
         arrondissement: schools.arrondissement,
         academicYear: schools.academicYear,
-        currentTerm: schools.currentTerm
+        currentTerm: schools.currentTerm,
+        offlineEnabled: schools.offlineEnabled
       }).from(schools).where(eq(schools.id, schoolId)).limit(1);
       
       if (schoolQuery.length === 0) {
@@ -8443,7 +8444,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           regionaleMinisterielle: "Délégation Régionale du Centre",
           delegationDepartementale: "Délégation Départementale du Mfoundi",
           boitePostale: "B.P. 8524 Yaoundé",
-          arrondissement: "Yaoundé 1er"
+          arrondissement: "Yaoundé 1er",
+          offlineEnabled: true
         };
         
         return res.json({
@@ -8454,7 +8456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Return real school data
       const school = schoolQuery[0];
-      console.log(`[SCHOOL_SETTINGS] ✅ Returning real school data for: ${school.name}`);
+      console.log(`[SCHOOL_SETTINGS] ✅ Returning real school data for: ${school.name} (Offline Premium: ${school.offlineEnabled ? 'ENABLED' : 'DISABLED'})`);
       
       res.json({
         success: true,
@@ -8471,7 +8473,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           boitePostale: school.boitePostale,
           arrondissement: school.arrondissement,
           academicYear: school.academicYear,
-          currentTerm: school.currentTerm
+          currentTerm: school.currentTerm,
+          offlineEnabled: school.offlineEnabled || false
         }
       });
     } catch (error) {

@@ -22,7 +22,8 @@ import {
 import { 
   Settings, School, Shield, Bell, MapPin, Clock, Users, 
   BookOpen, GraduationCap, Palette, Globe, Database,
-  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image, Flag
+  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image, Flag,
+  WifiOff, CheckCircle, XCircle
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
@@ -50,6 +51,8 @@ interface SchoolProfile {
   delegationDepartementale?: string;
   boitePostale?: string;
   arrondissement?: string;
+  // Offline Premium
+  offlineEnabled?: boolean;
 }
 
 interface SchoolConfiguration {
@@ -461,6 +464,47 @@ const UnifiedSchoolSettings: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Offline Premium Status Badge */}
+      {schoolProfile && (
+        <Card className={`border-2 ${schoolProfile.offlineEnabled ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-gray-300 bg-gray-50 dark:bg-gray-900'}`}>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${schoolProfile.offlineEnabled ? 'bg-green-500' : 'bg-gray-400'}`}>
+                  {schoolProfile.offlineEnabled ? <CheckCircle className="w-6 h-6 text-white" /> : <XCircle className="w-6 h-6 text-white" />}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <WifiOff className="w-5 h-5" />
+                    {language === 'fr' ? 'Mode Hors Ligne Premium' : 'Offline Premium Mode'}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {language === 'fr' 
+                      ? (schoolProfile.offlineEnabled 
+                          ? 'Accès hors ligne activé pour votre école (14 jours)' 
+                          : 'Accès hors ligne standard (3-7 jours)')
+                      : (schoolProfile.offlineEnabled 
+                          ? 'Offline access enabled for your school (14 days)' 
+                          : 'Standard offline access (3-7 days)')
+                    }
+                  </p>
+                </div>
+              </div>
+              <Badge 
+                variant={schoolProfile.offlineEnabled ? "default" : "secondary"}
+                className={`text-sm px-3 py-1 ${schoolProfile.offlineEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-500'}`}
+                data-testid="offline-premium-status-badge"
+              >
+                {schoolProfile.offlineEnabled 
+                  ? (language === 'fr' ? 'ACTIVÉ' : 'ENABLED') 
+                  : (language === 'fr' ? 'DÉSACTIVÉ' : 'DISABLED')
+                }
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop Navigation */}
