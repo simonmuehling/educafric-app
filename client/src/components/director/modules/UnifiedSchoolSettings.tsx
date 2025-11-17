@@ -26,8 +26,6 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
-import { ObjectUploader } from '@/components/ObjectUploader';
-import type { UploadResult } from '@uppy/core';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import { SchoolLevelsManager } from '../SchoolLevelsManager';
 
@@ -358,59 +356,53 @@ const UnifiedSchoolSettings: React.FC = () => {
     }
   });
 
-  // Logo upload handlers
-  const handleGetLogoUploadParameters = async () => {
+  // Simple logo upload handler using direct file upload
+  const handleLogoFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Le fichier est trop volumineux (max 5MB)' : 'File is too large (max 5MB)',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUploadingLogo(true);
+    
     try {
-      const response = await fetch('/api/school/logo/upload-url', {
+      const formData = new FormData();
+      formData.append('logo', file);
+      
+      const response = await fetch('/api/school/logo/simple-upload', {
         method: 'POST',
+        body: formData,
         credentials: 'include'
       });
-      const data = await response.json();
-      return {
-        method: 'PUT' as const,
-        url: data.uploadURL
-      };
-    } catch (error) {
-      console.error('Error getting upload URL:', error);
-      throw error;
-    }
-  };
-
-  const handleLogoUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    if (result.successful && result.successful.length > 0) {
-      setUploadingLogo(true);
       
-      try {
-        const uploadedFile = result.successful[0];
-        const logoURL = uploadedFile.uploadURL;
-        
-        // Update school profile with new logo URL
-        const response = await fetch('/api/school/logo', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ logoUrl: logoURL }),
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          queryClient.invalidateQueries({ queryKey: ['/api/school/profile'] });
-          toast({
-            title: language === 'fr' ? 'Succès' : 'Success',
-            description: t.logoUpdated
-          });
-        } else {
-          throw new Error('Failed to update logo');
-        }
-      } catch (error) {
-        console.error('Error updating logo:', error);
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        queryClient.invalidateQueries({ queryKey: ['/api/school/profile'] });
         toast({
-          title: language === 'fr' ? 'Erreur' : 'Error',
-          description: t.logoError,
-          variant: 'destructive'
+          title: language === 'fr' ? 'Succès' : 'Success',
+          description: t.logoUpdated
         });
-      } finally {
-        setUploadingLogo(false);
+      } else {
+        throw new Error(data.message || 'Failed to upload logo');
       }
+    } catch (error: any) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || t.logoError,
+        variant: 'destructive'
+      });
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -646,22 +638,33 @@ const UnifiedSchoolSettings: React.FC = () => {
                       </div>
                     )}
                     
-                    <ObjectUploader
-                      maxNumberOfFiles={1}
-                      maxFileSize={5 * 1024 * 1024} // 5MB
-                      onGetUploadParameters={handleGetLogoUploadParameters}
-                      onComplete={handleLogoUploadComplete}
-                      buttonClassName={`${schoolProfile?.logoUrl ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'} ${uploadingLogo ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      {uploadingLogo ? (
-                        language === 'fr' ? 'Téléchargement...' : 'Uploading...'
-                      ) : schoolProfile?.logoUrl ? (
-                        language === 'fr' ? 'Changer le Logo' : 'Change Logo'
-                      ) : (
-                        t.uploadLogo
-                      )}
-                    </ObjectUploader>
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoFileChange}
+                        disabled={uploadingLogo}
+                        className="hidden"
+                        id="logo-upload-input"
+                      />
+                      <label htmlFor="logo-upload-input">
+                        <Button
+                          type="button"
+                          disabled={uploadingLogo}
+                          className={`${schoolProfile?.logoUrl ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'} ${uploadingLogo ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          onClick={() => document.getElementById('logo-upload-input')?.click()}
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          {uploadingLogo ? (
+                            language === 'fr' ? 'Téléchargement...' : 'Uploading...'
+                          ) : schoolProfile?.logoUrl ? (
+                            language === 'fr' ? 'Changer le Logo' : 'Change Logo'
+                          ) : (
+                            t.uploadLogo
+                          )}
+                        </Button>
+                      </label>
+                    </div>
                     
                     <p className="text-xs text-gray-400 text-center">
                       {language === 'fr' ? 'Formats: PNG, JPG, JPEG • Max: 5MB' : 'Formats: PNG, JPG, JPEG • Max: 5MB'}

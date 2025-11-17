@@ -11641,21 +11641,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // School Logo Upload Routes
-  app.post('/api/school/logo/upload-url', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+  // Simple School Logo Upload Route - Direct file upload
+  const logoUpload = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const dir = path.join(process.cwd(), 'public', 'uploads', 'logos');
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+      },
+      filename: (req, file, cb) => {
+        const user = req.user as any;
+        const schoolId = user.schoolId || user.id;
+        const ext = path.extname(file.originalname);
+        const timestamp = Date.now();
+        cb(null, `school-${schoolId}-${timestamp}${ext}`);
+      }
+    }),
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB max
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files (JPEG, PNG, GIF, WebP) are allowed'));
+      }
+    }
+  });
+
+  app.post('/api/school/logo/simple-upload', requireAuth, requireAnyRole(['Director', 'Admin']), logoUpload.single('logo'), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log(`[SCHOOL_LOGO] Getting upload URL for user: ${user.id}`);
+      console.log(`[SCHOOL_LOGO_SIMPLE] Upload for user: ${user.id}, schoolId: ${user.schoolId}`);
       
-      const { ObjectStorageService } = await import('./objectStorage');
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+      }
       
-      console.log(`[SCHOOL_LOGO] ✅ Generated upload URL successfully`);
-      res.json({ success: true, uploadURL });
+      const logoUrl = `/uploads/logos/${req.file.filename}`;
+      console.log(`[SCHOOL_LOGO_SIMPLE] File saved: ${logoUrl}`);
+      
+      // Update school logo in database if user has a school
+      if (user.schoolId) {
+        try {
+          await storage.updateSchool(user.schoolId, { logo: logoUrl });
+          console.log(`[SCHOOL_LOGO_SIMPLE] ✅ Logo saved to database for school ${user.schoolId}`);
+        } catch (dbError: any) {
+          console.error(`[SCHOOL_LOGO_SIMPLE] ⚠️ Failed to save logo to database:`, dbError.message);
+        }
+      }
+      
+      // Store in session as fallback
+      (req.session as any).schoolLogo = logoUrl;
+      
+      console.log(`[SCHOOL_LOGO_SIMPLE] ✅ Logo uploaded successfully`);
+      res.json({ 
+        success: true, 
+        logoUrl,
+        message: 'School logo uploaded successfully' 
+      });
+      
     } catch (error: any) {
-      console.error('[SCHOOL_LOGO] ❌ Error getting logo upload URL:', error.message || error);
-      res.status(500).json({ success: false, message: error.message || 'Failed to get upload URL' });
+      console.error('[SCHOOL_LOGO_SIMPLE] ❌ Error:', error.message || error);
+      res.status(500).json({ success: false, message: error.message || 'Failed to upload logo' });
     }
   });
 

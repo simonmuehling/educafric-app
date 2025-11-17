@@ -68,34 +68,120 @@ export class PdfLibBulletinGenerator {
       drawText('educafric.com', rightColX, yPosition - 46, { font: normalFont, size: 6, color: rgb(0.4, 0.4, 0.4) });
       
       // === COLONNE CENTRE: École et logo ===
-      // Logo placeholder (carré centré) - Zone définie plus strictement pour éviter débordement
-      const logoSize = 25;
+      const logoSize = 50;
       const logoX = centerX - (logoSize / 2);
-      const logoY = yPosition - 5;
+      const logoY = yPosition - 10;
       
-      // Dessiner le rectangle du logo
-      page.drawRectangle({
-        x: logoX,
-        y: logoY,
-        width: logoSize,
-        height: logoSize,
-        borderColor: rgb(0.6, 0.6, 0.6),
-        borderWidth: 1
-      });
-      
-      // Texte placeholder dans le logo - CENTRÉ CORRECTEMENT
-      drawText('LOGO', centerX, logoY + 15, { 
-        font: normalFont, 
-        size: 6, 
-        color: rgb(0.6, 0.6, 0.6),
-        align: 'center'
-      });
-      drawText('ÉCOLE', centerX, logoY + 8, { 
-        font: normalFont, 
-        size: 6, 
-        color: rgb(0.6, 0.6, 0.6),
-        align: 'center'
-      });
+      // 🔧 AFFICHER LE VRAI LOGO DE L'ÉCOLE SI DISPONIBLE
+      if (safeHeaderData.logoUrl) {
+        try {
+          console.log(`[PDF_LIB_HEADER] 🖼️ Chargement du logo de l'école: ${safeHeaderData.logoUrl}`);
+          
+          // Importer la méthode embedImage du générateur de bulletins
+          const { ComprehensiveBulletinGenerator } = await import('./comprehensiveBulletinGenerator');
+          const pdfDoc = page.doc;
+          
+          const schoolLogoImage = await ComprehensiveBulletinGenerator.embedImage(
+            pdfDoc, 
+            safeHeaderData.logoUrl, 
+            'logo'
+          );
+          
+          if (schoolLogoImage) {
+            // Calculer les dimensions pour maintenir l'aspect ratio
+            const logoAspectRatio = schoolLogoImage.width / schoolLogoImage.height;
+            let logoWidth = logoSize;
+            let logoHeight = logoSize;
+            
+            if (logoAspectRatio > 1) {
+              logoHeight = logoSize / logoAspectRatio;
+            } else {
+              logoWidth = logoSize * logoAspectRatio;
+            }
+            
+            // Centrer le logo
+            const centeredLogoX = centerX - (logoWidth / 2);
+            const centeredLogoY = logoY - (logoHeight - logoSize) / 2;
+            
+            page.drawImage(schoolLogoImage, {
+              x: centeredLogoX,
+              y: centeredLogoY,
+              width: logoWidth,
+              height: logoHeight
+            });
+            
+            console.log(`[PDF_LIB_HEADER] ✅ Logo affiché avec succès (${logoWidth}x${logoHeight})`);
+          } else {
+            console.warn(`[PDF_LIB_HEADER] ⚠️ Impossible de charger le logo, affichage du placeholder`);
+            // Fallback to placeholder
+            page.drawRectangle({
+              x: logoX,
+              y: logoY,
+              width: logoSize,
+              height: logoSize,
+              borderColor: rgb(0.6, 0.6, 0.6),
+              borderWidth: 1
+            });
+            drawText('LOGO', centerX, logoY + logoSize/2 + 5, { 
+              font: normalFont, 
+              size: 6, 
+              color: rgb(0.6, 0.6, 0.6),
+              align: 'center'
+            });
+            drawText('ÉCOLE', centerX, logoY + logoSize/2 - 2, { 
+              font: normalFont, 
+              size: 6, 
+              color: rgb(0.6, 0.6, 0.6),
+              align: 'center'
+            });
+          }
+        } catch (logoError: any) {
+          console.error(`[PDF_LIB_HEADER] ❌ Erreur chargement logo:`, logoError.message);
+          // Fallback to placeholder on error
+          page.drawRectangle({
+            x: logoX,
+            y: logoY,
+            width: logoSize,
+            height: logoSize,
+            borderColor: rgb(0.6, 0.6, 0.6),
+            borderWidth: 1
+          });
+          drawText('LOGO', centerX, logoY + logoSize/2 + 5, { 
+            font: normalFont, 
+            size: 6, 
+            color: rgb(0.6, 0.6, 0.6),
+            align: 'center'
+          });
+          drawText('ÉCOLE', centerX, logoY + logoSize/2 - 2, { 
+            font: normalFont, 
+            size: 6, 
+            color: rgb(0.6, 0.6, 0.6),
+            align: 'center'
+          });
+        }
+      } else {
+        // No logo URL provided, show placeholder
+        page.drawRectangle({
+          x: logoX,
+          y: logoY,
+          width: logoSize,
+          height: logoSize,
+          borderColor: rgb(0.6, 0.6, 0.6),
+          borderWidth: 1
+        });
+        drawText('LOGO', centerX, logoY + logoSize/2 + 5, { 
+          font: normalFont, 
+          size: 6, 
+          color: rgb(0.6, 0.6, 0.6),
+          align: 'center'
+        });
+        drawText('ÉCOLE', centerX, logoY + logoSize/2 - 2, { 
+          font: normalFont, 
+          size: 6, 
+          color: rgb(0.6, 0.6, 0.6),
+          align: 'center'
+        });
+      }
       
       // ✅ CONFIGURABLE SCHOOL NAME - A4 optimized et CENTRÉ CORRECTEMENT
       drawText(safeHeaderData.schoolName.toUpperCase(), centerX, logoY - 15, { 
