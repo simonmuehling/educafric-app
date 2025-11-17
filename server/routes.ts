@@ -1914,25 +1914,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get students for director (with optional class filter or specific student)
+  // ✅ UPDATED FOR SANDBOX ISOLATION - Uses is_sandbox database flag
   app.get("/api/director/students", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       const { classId, studentId } = req.query;
       
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') ||
-                           user.email?.includes('sandbox@') || 
-                           user.email?.includes('demo@') || 
-                           user.email?.includes('.sandbox@') ||
-                           user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@') ||
-                           user.email?.startsWith('sandbox.');
+      // ✅ STEP 1: Check if user is sandbox using utility function
+      const { isSandboxUserByEmail } = await import('./utils/sandboxUtils');
+      const userIsSandbox = isSandboxUserByEmail(user.email);
       
-      let students;
+      console.log(`[DIRECTOR_STUDENTS_API] User ${user.email} - Sandbox: ${userIsSandbox}, SchoolID: ${user.schoolId}`);
       
-      if (isSandboxUser) {
-        console.log('[DIRECTOR_STUDENTS_API] Sandbox user detected - using mock data');
+      // ✅ STEP 2: Query database with COMPLETE ISOLATION
+      const { db } = await import('./db');
+      const { users: usersTable, schools } = await import('@shared/schema');
+      const { eq, and, asc } = await import('drizzle-orm');
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      // ✅ STEP 3: Query students with schoolId AND is_sandbox filter
+      const dbStudents = await db
+        .select({
+          id: usersTable.id,
+          firstName: usersTable.firstName,
+          lastName: usersTable.lastName,
+          email: usersTable.email,
+          phone: usersTable.phone,
+          role: usersTable.role,
+          schoolId: usersTable.schoolId,
+          classId: usersTable.classId,
+          gender: usersTable.gender,
+          dateOfBirth: usersTable.dateOfBirth,
+          profilePictureUrl: usersTable.profilePictureUrl,
+          isActive: usersTable.isActive,
+          // Include school info for verification
+          schoolName: schools.name,
+          schoolIsSandbox: schools.isSandbox
+        })
+        .from(usersTable)
+        .leftJoin(schools, eq(usersTable.schoolId, schools.id))
+        .where(
+          and(
+            eq(usersTable.role, 'Student'),
+            eq(usersTable.schoolId, userSchoolId),
+            eq(schools.isSandbox, userIsSandbox) // ✅ CRITICAL: Prevents data leakage
+          )
+        )
+        .orderBy(asc(usersTable.firstName), asc(usersTable.lastName));
+      
+      // Handle specific student request
+      if (studentId) {
+        const student = dbStudents.find(s => s.id === parseInt(studentId as string, 10));
+        if (!student) {
+          return res.status(404).json({ success: false, message: 'Student not found' });
+        }
+        console.log(`[DIRECTOR_STUDENTS_API] ✅ Isolated student: ${student.firstName} ${student.lastName} (Sandbox: ${student.schoolIsSandbox})`);
+        return res.json({ success: true, student });
+      }
+      
+      // Filter by class if provided
+      const students = classId 
+        ? dbStudents.filter(s => s.classId === parseInt(classId as string, 10))
+        : dbStudents;
+      
+      console.log(`[DIRECTOR_STUDENTS_API] ✅ Returning ${students.length} isolated students (Sandbox: ${userIsSandbox})`);
+      res.json({ success: true, students });
+    } catch (error) {
+      console.error('[DIRECTOR_STUDENTS_API] Error fetching students:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch students' });
+    }
+  });
         // ✅ ÉTUDIANTS SANDBOX POUR TOUTES LES CLASSES : PRIMAIRE → LYCÉE
         const allStudents = [
         // === ÉLÈVES CP1 A (Class ID: 1) ===
