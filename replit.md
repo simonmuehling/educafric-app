@@ -1,9 +1,7 @@
 ## Overview
-Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform designed for the African market. It aims to revolutionize education by integrating academic management, communication, and financial features into a digital learning ecosystem. The platform seeks to reduce costs for schools, improve educational outcomes, and support high concurrent user loads, aligning with UN Sustainable Development Goals and aspiring to achieve significant market penetration as a complete educational solution.
+Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform for the African market. It aims to digitalize education by integrating academic management, communication, and financial features, reducing costs for schools, improving educational outcomes, and supporting high concurrent user loads. The platform aligns with UN Sustainable Development Goals and seeks to achieve significant market penetration as a complete educational solution.
 
 ## User Preferences
-Preferred communication style: Simple, everyday language.
-
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
 
 - **PROTECTION ANTI-CONFLIT MODULES**: Système de mapping des modules réorganisé avec séparation stricte par dashboard. Validation automatique des mappings pour détecter les conflits et doublons. Le module 'students' DOIT pointer vers FunctionalDirectorStudentManagement. Structure organisée : Director → Commercial → Parent → Student → Teacher → Freelancer → Shared. NE JAMAIS mélanger les mappings de modules entre dashboards différents.
@@ -32,7 +30,9 @@ Preferred communication style: Simple, everyday language.
 
 - **EMPLOIS DU TEMPS DATABASE-ONLY**: L'endpoint `/api/student/timetable` a été converti de mock data vers architecture database-only. Il récupère maintenant la classe de l'étudiant depuis la table `students`, puis filtre les emplois du temps depuis la table `timetables` par `classId`, `schoolId`, et `isActive=true`. L'endpoint `/api/teacher/timetable` filtre correctement par `teacherId`. Tous les endpoints d'emplois du temps utilisent UNIQUEMENT des requêtes database, conformément au principe ARCHITECTURE DATABASE-ONLY.
 
-- **SÉLECTION ET SUPPRESSION EN MASSE**: Fonctionnalité de sélection groupée et suppression en masse ajoutée pour les étudiants et enseignants. Inclut : checkboxes individuelles avec état Set, checkbox "Tout sélectionner", bouton de suppression groupée conditionnel, et dialogs de confirmation bilingues (français/anglais). Tous les dialogs d'alerte suivent le standard fond blanc pour lisibilité optimale.
+- **SÉLECTION ET SUPPRESSION EN MASSE**: Fonctionnalité de sélection groupée et suppression en masse ajoutée pour les étudiants, enseignants ET PARENTS. Inclut : checkboxes individuelles avec état Set, checkbox "Tout sélectionner", bouton de suppression groupée conditionnel, et dialogs de confirmation bilingues (français/anglais). Tous les dialogs d'alerte suivent le standard fond blanc pour lisibilité optimale.
+
+- **GESTION PARENTS DANS "DEMANDES PARENTS"**: Le module "Demandes Parents" utilise maintenant un système d'onglets avec 2 sections : 1) "Demandes" pour les requêtes des parents, 2) "Liste des Parents" pour la gestion des comptes parents. La liste des parents permet la sélection en masse et la suppression groupée via l'endpoint `/api/director/parents/bulk-delete`. Quand un parent est supprimé, il perd tous ses droits d'information et de communication avec l'école. L'endpoint `/api/director/parents` récupère la liste des parents avec isolation multi-tenant stricte (dual-filter par schoolId ET sandbox status).
 
 - **MASTERSHEET DATABASE-ONLY**: Le module Fiche Scolaire (Mastersheet) dans Gestion Académique utilise maintenant UNIQUEMENT des données database via l'endpoint `/api/director/bulletins/list`. Cet endpoint interroge la table `bulletinComprehensive` avec isolation multi-tenant stricte (filtre par `schoolId`, `classId`, et `term`). L'affichage inclut : informations réelles de l'école depuis `/api/director/settings`, liste des bulletins créés avec noms d'élèves/moyennes/rangs/codes de vérification, et entête d'impression bilingue format ministère (RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON) avec logo de l'école et délégations officielles. ZÉRO mock data, tout vient de la database.
 
@@ -51,57 +51,57 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend
-- **Web**: React with TypeScript, Wouter for routing, TanStack Query for state management. Radix UI + Shadcn/UI for components, styled with Tailwind CSS. Custom African-themed design, PWA, and mobile optimized.
-- **Mobile**: Separate React Native application (`educafric-mobile/`) for Android, sharing the backend, with production-ready configurations.
+- **Web**: React (TypeScript), Wouter, TanStack Query, Radix UI + Shadcn/UI (Tailwind CSS). Custom African-themed, PWA, mobile-optimized.
+- **Mobile**: React Native application (`educafric-mobile/`) for Android.
 
 ### Backend
-- **API**: Express.js for RESTful APIs.
+- **API**: Express.js (RESTful).
 - **ORM**: Drizzle ORM with PostgreSQL.
 - **Authentication**: Session-based with `express-session` and `Passport.js`.
-- **Security**: Robust role-based access control (8 roles), BCrypt for passwords, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
-- **CBA Support**: Competency-Based Approach bulletin generation with letter grading, performance bands, and competency tracking for technical schools.
+- **Security**: Role-based access control (8 roles), BCrypt, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
+- **CBA Support**: Competency-Based Approach bulletin generation.
 
 ### Database
-- **Type**: PostgreSQL, hosted on Neon Serverless, with multi-tenant support.
-- **Schema**: Comprehensive, covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation, structured by academic year/term.
+- **Type**: PostgreSQL on Neon Serverless, multi-tenant.
+- **Schema**: Comprehensive for users, schools, classes, grades, attendance, homework, payments, communication logs, geolocation, structured by academic year/term.
 
 ### Key Features and Design Choices
-- **Offline-First Architecture**: Comprehensive offline support including Service Worker for caching, IndexedDB for local storage, and Background Sync for data synchronization.
-- **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
-- **Educational Management**: Grade management (African-style report cards), real-time attendance, homework assignment, flexible timetable management.
-- **Communication System**: Multi-channel notifications via WhatsApp Click-to-Chat and Hostinger SMTP Email, with bilingual, contextual templates and automatic parent notifications.
-- **Payment & Subscription**: Stripe integration for international payments, local African payment methods.
-- **Geolocation Services**: GPS tracking, geofencing, safe zone management, real-time monitoring, emergency alerts.
-- **Document Management**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access.
-- **Bidirectional Connection System**: Facilitates parent-child, student-parent, and freelancer-student connections with verification.
-- **Bilingual Support**: Dynamic French/English language switching, full localization.
-- **Sandbox Environment**: Dedicated, fully unlocked environment with realistic African demo data, including an **Offline Demo Mode**.
-- **Academic Calendar**: iCal/ICS export for events with Jitsi links.
-- **Bulk Excel Imports**: Comprehensive service for mass importing data with bilingual templates and validation.
-- **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` for end-to-end report card workflow with advanced features, digital signatures, and PDF export.
-- **CBA (Competency-Based Approach) Bulletins**: Full support for Cameroon Ministry of Secondary Education CBA format for technical schools, including Competency Library, Letter Grading System (A-F), Performance Bands, subject min-max ranges, teacher remarks, and enhanced discipline tracking.
-- **5-Section Technical Bulletins**: Technical school bulletins support 5 distinct subject sections (General, Literary, Scientific, Technical, Other) that appear conditionally based on content, each with its own subtotal.
-- **Online Classes with Jitsi Meet**: Paid module for schools and independent teachers, featuring time-window access, JWT-secured video conferencing, course creation, attendance tracking, and integrated payments.
-- **Teacher Hybrid Work Mode**: Extends teacher roles to support `school`, `independent`, and `hybrid` modes, with a subscription model and integrated payment processing.
+- **Offline-First**: Service Worker, IndexedDB, Background Sync.
+- **Authentication & Authorization**: Local and Firebase Google OAuth, session management, granular permissions.
+- **Educational Management**: Grade management (African-style), real-time attendance, homework, flexible timetables.
+- **Communication**: Multi-channel notifications (WhatsApp, Hostinger SMTP Email), bilingual templates, automatic parent notifications.
+- **Payment & Subscription**: Stripe, local African payment methods.
+- **Geolocation**: GPS tracking, geofencing, safe zones, real-time monitoring, emergency alerts.
+- **Document Management**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation.
+- **Bidirectional Connection System**: Parent-child, student-parent, freelancer-student connections.
+- **Bilingual Support**: Dynamic French/English localization.
+- **Sandbox Environment**: Dedicated, fully unlocked with realistic African demo data, including an Offline Demo Mode.
+- **Academic Calendar**: iCal/ICS export with Jitsi links.
+- **Bulk Excel Imports**: Comprehensive service with bilingual templates and validation.
+- **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` for report cards with advanced features, digital signatures, and PDF export.
+- **CBA Bulletins**: Supports Cameroon Ministry of Secondary Education CBA format (technical schools), Competency Library, Letter Grading, Performance Bands.
+- **5-Section Technical Bulletins**: Conditional display of 5 subject sections (General, Literary, Scientific, Technical, Other) with subtotals.
+- **Online Classes with Jitsi Meet**: Paid module with time-window access, JWT-secured video conferencing, course creation, attendance tracking.
+- **Teacher Hybrid Work Mode**: Supports `school`, `independent`, and `hybrid` teacher roles with subscription model.
 
 ## External Dependencies
 
 ### Core Services
-- **Neon Database**: Serverless PostgreSQL hosting.
+- **Neon Database**: Serverless PostgreSQL.
 - **Stripe**: Payment processing.
 - **Firebase**: Authentication (Google OAuth).
-- **WhatsApp**: Click-to-Chat integration via wa.me links.
-- **Hostinger**: SMTP services for email communication.
-- **Jitsi Meet**: Video conferencing for online classes.
+- **WhatsApp**: Click-to-Chat integration.
+- **Hostinger**: SMTP services.
+- **Jitsi Meet**: Video conferencing.
 
 ### Development Tools
-- **Vite**: Fast development server and build tool.
-- **Drizzle Kit**: Database migrations and schema management.
+- **Vite**: Development server and build tool.
+- **Drizzle Kit**: Database migrations.
 - **ESBuild**: Server-side TypeScript compilation.
 
 ### UI/UX Libraries
 - **Radix UI**: Headless component primitives.
-- **Tailwind CSS**: Utility-first styling framework.
-- **React Hook Form + Zod**: Form validation and management.
+- **Tailwind CSS**: Styling framework.
+- **React Hook Form + Zod**: Form validation.
 - **Lucide Icons**: Icon library.
 - **jsPDF**: Client-side PDF generation.
