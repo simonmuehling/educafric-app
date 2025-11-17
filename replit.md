@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual (French/English), mobile-first educational technology platform for the African market. Its purpose is to revolutionize education by integrating academic management, communication, and financial features into a digital learning ecosystem. The platform aims to reduce costs for schools, improve educational outcomes, support high concurrent user loads, and align with UN Sustainable Development Goals. A key capability is the Offline Premium Mode, a two-tier PWA-based offline system providing varying data retention for schools, enabling functionality in areas with unreliable internet.
+Educafric is a bilingual (French/English), mobile-first educational technology platform for the African market. It aims to digitalize education by integrating academic management, communication, and financial features, focusing on reducing costs, improving educational outcomes, and supporting high concurrent user loads. A key feature is the Offline Premium Mode, a two-tier PWA-based offline system ensuring functionality in areas with unreliable internet access. The platform aligns with UN Sustainable Development Goals.
 
 # User Preferences
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -35,35 +35,35 @@ Educafric is a bilingual (French/English), mobile-first educational technology p
 # System Architecture
 
 ### Frontend
-- **Web**: React with TypeScript, Wouter for routing, TanStack Query for state management. Radix UI + Shadcn/UI for components, styled with Tailwind CSS. Custom African-themed design, PWA, and mobile optimized.
+- **Web**: React with TypeScript, Wouter for routing, TanStack Query for state management, Radix UI + Shadcn/UI for components, Tailwind CSS for styling. Custom African-themed design, PWA, mobile optimized.
 - **Mobile**: Separate React Native application (`educafric-mobile/`) for Android.
 
 ### Backend
 - **API**: Express.js for RESTful APIs.
 - **ORM**: Drizzle ORM with PostgreSQL.
 - **Authentication**: Session-based with `express-session` and `Passport.js`.
-- **Security**: Robust role-based access control (8 roles), BCrypt for passwords, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
-- **CBA Support**: Competency-Based Approach bulletin generation with letter grading, performance bands, and competency tracking for technical schools.
+- **Security**: Role-based access control, BCrypt for passwords, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
+- **CBA Support**: Competency-Based Approach bulletin generation with letter grading, performance bands, and competency tracking.
 
 ### Database
 - **Type**: PostgreSQL, hosted on Neon Serverless, with multi-tenant support.
 - **Schema**: Comprehensive, covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation, structured by academic year/term.
 
 ### Key Features and Design Choices
-- **Offline-First Architecture**: Comprehensive offline support including Service Worker for caching, IndexedDB for local storage, and Background Sync for data synchronization. Features a two-tier PWA Offline Premium Mode with configurable cache durations.
-- **Authentication & Authorization**: Secure local and Firebase Google OAuth, comprehensive session management, granular permissions.
-- **Educational Management**: Grade management (African-style report cards, CBA bulletins), real-time attendance, homework assignment, flexible timetable management.
-- **Communication System**: Multi-channel notifications via WhatsApp Click-to-Chat and Hostinger SMTP Email, with bilingual templates and automatic parent notifications.
+- **Offline-First Architecture**: Service Worker for caching, IndexedDB for local storage, Background Sync for data synchronization. Two-tier PWA Offline Premium Mode with configurable cache durations.
+- **Authentication & Authorization**: Local and Firebase Google OAuth, session management, granular permissions.
+- **Educational Management**: Grade management (African-style report cards, CBA bulletins), real-time attendance, homework, flexible timetable management.
+- **Communication System**: Multi-channel notifications via WhatsApp Click-to-Chat and Hostinger SMTP Email, with bilingual templates.
 - **Payment & Subscription**: Stripe integration for international and local African payment methods.
 - **Geolocation Services**: GPS tracking, geofencing, safe zone management, real-time monitoring, emergency alerts.
-- **Document Management**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access, with a standardized `/public/documents/` directory.
+- **Document Management**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation, controlled access, standardized `/public/documents/` directory.
 - **Bidirectional Connection System**: Facilitates parent-child, student-parent, and freelancer-student connections with verification.
 - **Bilingual Support**: Dynamic French/English language switching, full localization.
 - **Sandbox Environment**: Dedicated, fully unlocked environment with realistic African demo data.
 - **Academic Calendar**: iCal/ICS export for events with Jitsi links.
 - **Bulk Excel Imports**: Comprehensive service for mass importing data with bilingual templates and validation.
-- **Online Classes with Jitsi Meet**: Paid module for schools and independent teachers, featuring time-window access, JWT-secured video conferencing, course creation, attendance tracking, and integrated payments.
-- **Teacher Hybrid Work Mode**: Extends teacher roles to support `school`, `independent`, and `hybrid` modes, with a subscription model and integrated payment processing.
+- **Online Classes with Jitsi Meet**: Paid module with time-window access, JWT-secured video conferencing, course creation, attendance tracking, and integrated payments.
+- **Teacher Hybrid Work Mode**: Supports `school`, `independent`, and `hybrid` teacher roles with a subscription model and integrated payment processing.
 
 # External Dependencies
 
