@@ -1939,6 +1939,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // ✅ STEP 3: Query students with schoolId AND is_sandbox filter
       // DOUBLE VERIFICATION: School flag + Student email pattern for data integrity
+      const { classEnrollments } = await import('@shared/schema');
+      
       const dbStudentsRaw = await db
         .select({
           id: usersTable.id,
@@ -1948,17 +1950,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: usersTable.phone,
           role: usersTable.role,
           schoolId: usersTable.schoolId,
-          classId: usersTable.classId,
+          classId: classEnrollments.classId,
           gender: usersTable.gender,
           dateOfBirth: usersTable.dateOfBirth,
           profilePictureUrl: usersTable.profilePictureUrl,
-          isActive: usersTable.isActive,
           // Include school info for verification
           schoolName: schools.name,
-          schoolIsSandbox: schools.isSandbox
+          schoolIsSandbox: schools.isSandbox,
+          // Include enrollment status
+          enrollmentStatus: classEnrollments.status
         })
         .from(usersTable)
         .leftJoin(schools, eq(usersTable.schoolId, schools.id))
+        .leftJoin(classEnrollments, and(
+          eq(classEnrollments.studentId, usersTable.id),
+          eq(classEnrollments.status, 'active')
+        ))
         .where(
           and(
             eq(usersTable.role, 'Student'),
