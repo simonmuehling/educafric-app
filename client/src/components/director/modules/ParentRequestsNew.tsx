@@ -4,10 +4,14 @@ import { ModernCard, ModernStatsCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { MessageSquare, CheckCircle, XCircle, Clock, User, FileText, Eye, AlertTriangle, Send, Reply } from 'lucide-react';
+import { MessageSquare, CheckCircle, XCircle, Clock, User, FileText, Eye, AlertTriangle, Send, Reply, Users, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 // Mobile Action Button Component
 interface MobileActionButtonProps {
@@ -96,6 +100,12 @@ const ParentRequestsNew = () => {
   const [responseMessage, setResponseMessage] = useState('');
   const [showResponseDialog, setShowResponseDialog] = useState(false);
   const [currentAction, setCurrentAction] = useState<'approve' | 'reject' | 'respond'>('respond');
+  const [activeTab, setActiveTab] = useState<'requests' | 'parents'>('requests');
+  
+  // Parent selection state
+  const [selectedParents, setSelectedParents] = useState<Set<number>>(new Set());
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  
   const queryClient = useQueryClient();
 
   // Multilingual text content
@@ -144,7 +154,24 @@ const ParentRequestsNew = () => {
       createdAt: 'Créée le',
       low: 'Faible',
       medium: 'Moyenne',
-      high: 'Haute'
+      high: 'Haute',
+      // New parent list tab
+      requestsTab: 'Demandes',
+      parentsTab: 'Liste des Parents',
+      totalParents: 'Parents Totaux',
+      selectAll: 'Tout sélectionner',
+      deselectAll: 'Tout désélectionner',
+      deleteSelected: 'Supprimer sélectionnés',
+      confirmDelete: 'Confirmer la suppression',
+      confirmDeleteMessage: 'Êtes-vous sûr de vouloir supprimer {count} parent(s) ? Cette action est irréversible et ils perdront tous leurs droits d\'information et de communication avec l\'école.',
+      parentsDeleted: 'Parent(s) supprimé(s)',
+      parentsDeletedMessage: '{count} parent(s) supprimé(s) avec succès',
+      noParents: 'Aucun parent trouvé',
+      loadingParents: 'Chargement des parents...',
+      email: 'Email',
+      phone: 'Téléphone',
+      delete: 'Supprimer',
+      selected: 'sélectionné(s)'
     },
     en: {
       title: 'Parent Requests Management',
@@ -190,7 +217,24 @@ const ParentRequestsNew = () => {
       createdAt: 'Created on',
       low: 'Low',
       medium: 'Medium',
-      high: 'High'
+      high: 'High',
+      // New parent list tab
+      requestsTab: 'Requests',
+      parentsTab: 'Parent List',
+      totalParents: 'Total Parents',
+      selectAll: 'Select all',
+      deselectAll: 'Deselect all',
+      deleteSelected: 'Delete selected',
+      confirmDelete: 'Confirm deletion',
+      confirmDeleteMessage: 'Are you sure you want to delete {count} parent(s)? This action is irreversible and they will lose all their information and communication rights with the school.',
+      parentsDeleted: 'Parent(s) deleted',
+      parentsDeletedMessage: '{count} parent(s) successfully deleted',
+      noParents: 'No parents found',
+      loadingParents: 'Loading parents...',
+      email: 'Email',
+      phone: 'Phone',
+      delete: 'Delete',
+      selected: 'selected'
     }
   };
 
@@ -256,6 +300,14 @@ const ParentRequestsNew = () => {
       return response.json();
     }
   });
+  
+  // Fetch parents list
+  const { data: parentsData, isLoading: isLoadingParents } = useQuery({
+    queryKey: ['/api/director/parents'],
+    enabled: activeTab === 'parents'
+  });
+  
+  const parents = parentsData?.parents || [];
 
   // Process request mutation
   const processRequestMutation = useMutation({
@@ -317,6 +369,33 @@ const ParentRequestsNew = () => {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Erreur lors du marquage urgent.' : 'Error marking request as urgent.',
+        variant: 'destructive'
+      });
+    }
+  });
+  
+  // Bulk delete parents mutation
+  const bulkDeleteParentsMutation = useMutation({
+    mutationFn: async (parentIds: number[]) => {
+      return await apiRequest('/api/director/parents/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ parentIds }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/director/parents'] });
+      setSelectedParents(new Set());
+      setShowDeleteDialog(false);
+      toast({
+        title: t.parentsDeleted,
+        description: t.parentsDeletedMessage.replace('{count}', data.deletedCount.toString())
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Erreur lors de la suppression des parents' : 'Error deleting parents',
         variant: 'destructive'
       });
     }
@@ -385,6 +464,34 @@ const ParentRequestsNew = () => {
   const handleMarkUrgent = (requestId: number) => {
     markUrgentMutation.mutate({ requestId, isUrgent: true });
   };
+  
+  // Parent selection handlers
+  const handleToggleParent = (parentId: number) => {
+    const newSelection = new Set(selectedParents);
+    if (newSelection.has(parentId)) {
+      newSelection.delete(parentId);
+    } else {
+      newSelection.add(parentId);
+    }
+    setSelectedParents(newSelection);
+  };
+  
+  const handleToggleAll = () => {
+    if (selectedParents.size === parents.length && parents.length > 0) {
+      setSelectedParents(new Set());
+    } else {
+      setSelectedParents(new Set(parents.map((p: any) => p.id)));
+    }
+  };
+  
+  const handleBulkDelete = () => {
+    if (selectedParents.size === 0) return;
+    setShowDeleteDialog(true);
+  };
+  
+  const confirmBulkDelete = () => {
+    bulkDeleteParentsMutation.mutate(Array.from(selectedParents));
+  };
 
   if (error) {
     return (
@@ -414,8 +521,22 @@ const ParentRequestsNew = () => {
         </div>
       </div>
 
-      {/* Parent Requests List */}
-      <ModernCard className="p-0 overflow-hidden">
+      {/* Tabs for Requests and Parents List */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'requests' | 'parents')} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="requests" className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            {t.requestsTab}
+          </TabsTrigger>
+          <TabsTrigger value="parents" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            {t.parentsTab}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Requests Tab Content */}
+        <TabsContent value="requests">
+          <ModernCard className="p-0 overflow-hidden">
         {isLoading ? (
           <div className="text-center py-12 text-gray-500">
             <Clock className="w-8 h-8 mx-auto mb-4 animate-spin" />
@@ -527,7 +648,99 @@ const ParentRequestsNew = () => {
             ))}
           </div>
         )}
-      </ModernCard>
+          </ModernCard>
+        </TabsContent>
+
+        {/* Parents List Tab Content */}
+        <TabsContent value="parents">
+          <ModernCard className="p-0 overflow-hidden">
+            {/* Bulk Actions Header */}
+            {selectedParents.size > 0 && (
+              <div className="bg-blue-50 border-b border-blue-200 p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-blue-900">
+                    {selectedParents.size} {t.selected}
+                  </span>
+                </div>
+                <Button
+                  onClick={handleBulkDelete}
+                  variant="destructive"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  data-testid="button-delete-selected-parents"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {t.deleteSelected}
+                </Button>
+              </div>
+            )}
+
+            {isLoadingParents ? (
+              <div className="text-center py-12 text-gray-500">
+                <Clock className="w-8 h-8 mx-auto mb-4 animate-spin" />
+                {t.loadingParents}
+              </div>
+            ) : parents.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <Users className="w-8 h-8 mx-auto mb-4" />
+                {t.noParents}
+              </div>
+            ) : (
+              <>
+                {/* Select All Header */}
+                <div className="border-b bg-gray-50 p-4">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={selectedParents.size === parents.length && parents.length > 0}
+                      onCheckedChange={handleToggleAll}
+                      data-testid="checkbox-select-all-parents"
+                    />
+                    <span className="font-medium text-gray-700">
+                      {selectedParents.size === parents.length && parents.length > 0 
+                        ? t.deselectAll 
+                        : t.selectAll}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Parents List */}
+                <div className="divide-y divide-gray-200">
+                  {parents.map((parent: any) => (
+                    <div key={parent.id} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <Checkbox
+                          checked={selectedParents.has(parent.id)}
+                          onCheckedChange={() => handleToggleParent(parent.id)}
+                          data-testid={`checkbox-parent-${parent.id}`}
+                        />
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <User className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 truncate">
+                            {parent.firstName} {parent.lastName}
+                          </h4>
+                          <p className="text-sm text-gray-600 truncate">
+                            {t.email}: {parent.email || '-'}
+                          </p>
+                          <p className="text-sm text-gray-600 truncate">
+                            {t.phone}: {parent.phone || '-'}
+                          </p>
+                          {parent.createdAt && (
+                            <p className="text-xs text-gray-500">
+                              {t.createdAt}: {new Date(parent.createdAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </ModernCard>
+        </TabsContent>
+      </Tabs>
 
       {/* Response Dialog */}
       <Dialog open={showResponseDialog} onOpenChange={setShowResponseDialog}>
@@ -593,6 +806,41 @@ const ParentRequestsNew = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.confirmDelete}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t.confirmDeleteMessage.replace('{count}', selectedParents.size.toString())}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">
+              {t.cancel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBulkDelete}
+              disabled={bulkDeleteParentsMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="button-confirm-delete-parents"
+            >
+              {bulkDeleteParentsMutation.isPending ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  {language === 'fr' ? 'Suppression...' : 'Deleting...'}
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {t.delete}
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
