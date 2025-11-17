@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { 
   School, 
   Building2, 
@@ -41,8 +40,7 @@ import {
   Ban,
   Unlock,
   Save,
-  X,
-  WifiOff
+  X
 } from 'lucide-react';
 
 interface School {
@@ -64,7 +62,6 @@ interface School {
   createdAt: string;
   lastActiveAt: string | null;
   isBlocked?: boolean;
-  offlineEnabled?: boolean;
 }
 
 interface SubscriptionPlan {
@@ -372,42 +369,6 @@ const SchoolManagement = () => {
         title: 'Erreur',
         description: 'Échec de la mise à jour du statut de l\'école',
         variant: "destructive"
-      });
-    }
-  });
-
-  // Toggle Offline Premium mutation
-  const toggleOfflineModeMutation = useMutation({
-    mutationFn: async ({ schoolId, enabled }: { schoolId: number; enabled: boolean }) => {
-      const response = await apiRequest('PATCH', `/api/siteadmin/schools/${schoolId}/offline`, { 
-        offlineEnabled: enabled 
-      });
-      return response;
-    },
-    onSuccess: async (data, variables) => {
-      toast({
-        title: 'Succès',
-        description: variables.enabled 
-          ? 'Offline Premium activé pour cette école' 
-          : 'Offline Premium désactivé pour cette école'
-      });
-      
-      // Update local state immediately for instant UI feedback
-      if (selectedSchoolForSubscription) {
-        setSelectedSchoolForSubscription({
-          ...selectedSchoolForSubscription,
-          offlineEnabled: variables.enabled
-        });
-      }
-      
-      // Invalidate and refetch to ensure data consistency
-      await queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Erreur',
-        description: error.message || 'Impossible de modifier le mode Offline Premium',
-        variant: 'destructive'
       });
     }
   });
@@ -922,35 +883,51 @@ const SchoolManagement = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Offline Premium Toggle */}
-            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <WifiOff className="h-5 w-5 text-orange-600" />
-                  <Label htmlFor="offline-premium" className="text-base font-semibold text-gray-800 cursor-pointer">
-                    Offline Premium
-                  </Label>
-                </div>
-                <Switch
-                  id="offline-premium"
-                  checked={selectedSchoolForSubscription?.offlineEnabled || false}
-                  onCheckedChange={(checked) => {
-                    if (selectedSchoolForSubscription) {
-                      toggleOfflineModeMutation.mutate({
-                        schoolId: selectedSchoolForSubscription.id,
-                        enabled: checked
-                      });
-                    }
-                  }}
-                  disabled={toggleOfflineModeMutation.isPending}
-                />
-              </div>
-              <p className="text-sm text-gray-600">
-                {selectedSchoolForSubscription?.offlineEnabled 
-                  ? '✅ Activé - Cache de données pendant 1 an pour zones rurales sans internet' 
-                  : '❌ Désactivé - Cache standard de 1 semaine'}
-              </p>
+            <div>
+              <Label htmlFor="action">Action</Label>
+              <Select value={subscriptionData.action} onValueChange={(value: 'extend' | 'activate' | 'cancel') => setSubscriptionData({...subscriptionData, action: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="extend">Prolonger Abonnement</SelectItem>
+                  <SelectItem value="activate">Activer Abonnement</SelectItem>
+                  <SelectItem value="cancel">Annuler Abonnement</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {(subscriptionData.action === 'extend' || subscriptionData.action === 'activate') && (
+              <>
+                <div>
+                  <Label htmlFor="plan">Sélectionner Plan</Label>
+                  <Select value={subscriptionData.planId} onValueChange={(value) => setSubscriptionData({...subscriptionData, planId: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ecole_500_plus">École 500+ élèves (EDUCAFRIC paie 150.000 CFA/an)</SelectItem>
+                      <SelectItem value="ecole_500_moins">École moins de 500 élèves (EDUCAFRIC paie 200.000 CFA/an)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="duration">Durée (mois)</Label>
+                  <Select value={subscriptionData.duration} onValueChange={(value) => setSubscriptionData({...subscriptionData, duration: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3">3 mois</SelectItem>
+                      <SelectItem value="6">6 mois</SelectItem>
+                      <SelectItem value="12">12 mois</SelectItem>
+                      <SelectItem value="24">24 mois</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
 
             <div>
               <Label htmlFor="notes">Notes</Label>
@@ -958,14 +935,18 @@ const SchoolManagement = () => {
                 id="notes"
                 value={subscriptionData.notes}
                 onChange={(e) => setSubscriptionData({...subscriptionData, notes: e.target.value})}
-                placeholder="Notes additionnelles..."
+                placeholder="Notes additionnelles sur cette action..."
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSubscriptionDialog(false)}>
-              Fermer
+              Annuler
+            </Button>
+            <Button onClick={handleSubscriptionAction} disabled={manageSubscriptionMutation.isPending}>
+              {manageSubscriptionMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              Enregistrer
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -34,7 +34,7 @@ export function configureSecurityMiddleware(app: Express) {
         connectSrc: isProduction
           ? ["'self'", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "https://meet.educafric.com", "wss://meet.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net", "wss://*.educafric.com"]
           : ["'self'", "*.replit.dev", "*.replit.app", "*.educafric.com", "https://api.stripe.com", "https://m.stripe.network", "https://8x8.vc", "wss://meet.educafric.com", "wss://localhost:*", "ws://localhost:*", "wss://*.replit.dev", "wss://*.replit.app", "wss://*.educafric.com", "https://www.google-analytics.com", "https://stats.g.doubleclick.net"],
-        fontSrc: ["'self'", "data:", "*.googleapis.com", "*.gstatic.com", "https:", "data:"],
+        fontSrc: ["'self'", "data:", "*.googleapis.com", "*.gstatic.com"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'", "blob:", "https://8x8.vc", "https://meet.jit.si"],
         frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com", "https://8x8.vc", "https://meet.jit.si", "https://meet.educafric.com"],

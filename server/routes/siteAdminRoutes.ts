@@ -139,7 +139,6 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
             monthlyRevenue: 0,  // Frontend expects this field
             createdAt: school.createdAt,
             educafricNumber: school.educafricNumber,
-            offlineEnabled: school.offlineEnabled || false, // Offline Premium Mode
             director: director ? `${director.firstName || ''} ${director.lastName || ''}`.trim() : 'N/A',
             directorEmail: director?.email || null,
             directorPhone: director?.phone || null
@@ -161,7 +160,6 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
             monthlyRevenue: 0,  // Frontend expects this field
             createdAt: school.createdAt,
             educafricNumber: school.educafricNumber,
-            offlineEnabled: school.offlineEnabled || false, // Offline Premium Mode
             director: 'N/A',
             directorEmail: null,
             directorPhone: null
@@ -379,49 +377,6 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     } catch (error: any) {
       console.error('[SITE_ADMIN_API] Error deleting school:', error);
       res.status(500).json({ message: 'Failed to delete school' });
-    }
-  });
-
-  // Toggle Offline Premium Mode for school
-  app.patch("/api/siteadmin/schools/:schoolId/offline", requireAuth, requireSiteAdminAccess, async (req, res) => {
-    try {
-      const { schoolId } = req.params;
-      const { offlineEnabled } = req.body;
-      
-      console.log(`[OFFLINE_PREMIUM] 🔄 Request received for school ${schoolId}: ${offlineEnabled ? 'ENABLE' : 'DISABLE'}`);
-      console.log(`[OFFLINE_PREMIUM] Request body:`, req.body);
-      console.log(`[OFFLINE_PREMIUM] User:`, req.user?.email);
-      
-      // Update school in database
-      const updatedSchool = await storage.updateSchool(parseInt(schoolId), {
-        offlineEnabled: offlineEnabled
-      });
-
-      console.log(`[OFFLINE_PREMIUM] ✅ Database updated successfully for school ${schoolId}`);
-      console.log(`[OFFLINE_PREMIUM] Updated school data:`, {
-        id: updatedSchool.id,
-        name: updatedSchool.name,
-        offlineEnabled: updatedSchool.offlineEnabled
-      });
-      
-      res.json({ 
-        success: true,
-        message: `Offline Premium ${offlineEnabled ? 'activé' : 'désactivé'} avec succès`,
-        schoolId: parseInt(schoolId),
-        offlineEnabled,
-        school: {
-          id: updatedSchool.id,
-          name: updatedSchool.name,
-          offlineEnabled: updatedSchool.offlineEnabled
-        }
-      });
-    } catch (error: any) {
-      console.error('[OFFLINE_PREMIUM] ❌ Error toggling offline mode:', error);
-      res.status(500).json({ 
-        success: false,
-        message: 'Failed to toggle offline mode',
-        error: error.message
-      });
     }
   });
 

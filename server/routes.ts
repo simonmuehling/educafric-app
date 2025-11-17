@@ -8426,8 +8426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         boitePostale: schools.boitePostale,
         arrondissement: schools.arrondissement,
         academicYear: schools.academicYear,
-        currentTerm: schools.currentTerm,
-        offlineEnabled: schools.offlineEnabled
+        currentTerm: schools.currentTerm
       }).from(schools).where(eq(schools.id, schoolId)).limit(1);
       
       if (schoolQuery.length === 0) {
@@ -8444,8 +8443,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           regionaleMinisterielle: "Délégation Régionale du Centre",
           delegationDepartementale: "Délégation Départementale du Mfoundi",
           boitePostale: "B.P. 8524 Yaoundé",
-          arrondissement: "Yaoundé 1er",
-          offlineEnabled: true
+          arrondissement: "Yaoundé 1er"
         };
         
         return res.json({
@@ -8456,7 +8454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Return real school data
       const school = schoolQuery[0];
-      console.log(`[SCHOOL_SETTINGS] ✅ Returning real school data for: ${school.name} (Offline Premium: ${school.offlineEnabled ? 'ENABLED' : 'DISABLED'})`);
+      console.log(`[SCHOOL_SETTINGS] ✅ Returning real school data for: ${school.name}`);
       
       res.json({
         success: true,
@@ -8473,8 +8471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           boitePostale: school.boitePostale,
           arrondissement: school.arrondissement,
           academicYear: school.academicYear,
-          currentTerm: school.currentTerm,
-          offlineEnabled: school.offlineEnabled || false
+          currentTerm: school.currentTerm
         }
       });
     } catch (error) {
@@ -9087,8 +9084,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 31, title: "Guide Complet de Validation des Bulletins - Système EDUCAFRIC", description: "Guide complet du système de validation des bulletins EDUCAFRIC - Processus complet: Draft → Submitted → Approved → Published → Verified avec traçabilité hiérarchique", type: "commercial", url: "/documents/systeme-validation-bulletins-admin-commercial.html" },
         { id: 36, title: "Fonctionnalité Hors-Ligne - FR", description: "Solution complète pour la connectivité limitée en Afrique - Consultation et édition hors-ligne avec synchronisation automatique", type: "commercial", url: "/documents/fonctionnalite-hors-ligne.html" },
         { id: 37, title: "Offline Functionality - EN", description: "Complete solution for limited connectivity in Africa - Offline viewing and editing with automatic synchronization", type: "commercial", url: "/documents/offline-functionality.html" },
-        { id: 40, title: "Guide Offline Premium - FR/EN", description: "Guide complet système Offline Premium : fonctionnement à 3 niveaux (14 jours max), tarifs, activation (Site Admin, Commerciaux, Écoles) - Bilingue", type: "commercial", url: "/documents/guide-offline-premium-fr-en.html" },
-        { id: 41, title: "Business Plan 2025 - African Investor Edition", description: "Comprehensive investor-ready business plan focused on parent subscription revenue model for African EdTech market ($10B+ opportunity) - Bilingual FR/EN", type: "commercial", url: "/documents/educafric-business-plan-2025-investor.html" },
         
         // === GUIDES D'UTILISATION (Bilingue) ===
         { id: 38, title: "Guide Import Excel - Classes et Données Scolaires", description: "Guide complet pour l'import en masse via Excel - Classes, Enseignants, Élèves, Emplois du temps, Salles (Bilingue FR/EN)", type: "commercial", url: "/documents/guide-import-excel-classes.html" },

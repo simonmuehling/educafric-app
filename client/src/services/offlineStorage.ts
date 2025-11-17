@@ -144,41 +144,26 @@ class OfflineStorageManager {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
-      try {
-        const transaction = this.db!.transaction(['offlineQueue'], 'readonly');
-        const store = transaction.objectStore('offlineQueue');
-        
-        // Check if index exists before trying to use it
-        if (store.indexNames.contains('synced')) {
-          const index = store.index('synced');
-          const request = index.getAll(IDBKeyRange.only(false));
+      const transaction = this.db!.transaction(['offlineQueue'], 'readonly');
+      const store = transaction.objectStore('offlineQueue');
+      
+      // Check if index exists before trying to use it
+      if (store.indexNames.contains('synced')) {
+        const index = store.index('synced');
+        const request = index.getAll(IDBKeyRange.only(false));
 
-          request.onsuccess = () => {
-            resolve(request.result || []);
-          };
+        request.onsuccess = () => {
+          resolve(request.result || []);
+        };
 
-          request.onerror = (event) => {
-            // Prevent transaction from auto-aborting so fallback can proceed
-            event.preventDefault();
-            
-            if (import.meta.env.DEV) {
-              console.warn('[OFFLINE] Index query failed, falling back to full scan:', request.error);
-            }
-            // Fallback: get all items and filter manually
-            const fallbackRequest = store.getAll();
-            fallbackRequest.onsuccess = () => {
-              const allItems = fallbackRequest.result || [];
-              const pendingItems = allItems.filter((item: OfflineQueueItem) => item.synced === false);
-              resolve(pendingItems);
-            };
-            fallbackRequest.onerror = () => {
-              console.error('[OFFLINE] Failed to get pending actions (fallback also failed):', fallbackRequest.error);
-              // Resolve with empty array instead of rejecting
-              resolve([]);
-            };
-          };
-        } else {
-          // Index doesn't exist yet (during migration), use fallback
+        request.onerror = (event) => {
+          // Prevent transaction from auto-aborting so fallback can proceed
+          event.preventDefault();
+          
+          if (import.meta.env.DEV) {
+            console.warn('[OFFLINE] Index query failed, falling back to full scan:', request.error);
+          }
+          // Fallback: get all items and filter manually
           const fallbackRequest = store.getAll();
           fallbackRequest.onsuccess = () => {
             const allItems = fallbackRequest.result || [];
@@ -186,15 +171,22 @@ class OfflineStorageManager {
             resolve(pendingItems);
           };
           fallbackRequest.onerror = () => {
-            console.error('[OFFLINE] Failed to get pending actions:', fallbackRequest.error);
-            // Resolve with empty array instead of rejecting
-            resolve([]);
+            console.error('[OFFLINE] Failed to get pending actions (fallback also failed):', fallbackRequest.error);
+            reject(fallbackRequest.error);
           };
-        }
-      } catch (error) {
-        console.error('[OFFLINE] Exception in getPendingActions:', error);
-        // Resolve with empty array instead of rejecting to prevent app crashes
-        resolve([]);
+        };
+      } else {
+        // Index doesn't exist yet (during migration), use fallback
+        const fallbackRequest = store.getAll();
+        fallbackRequest.onsuccess = () => {
+          const allItems = fallbackRequest.result || [];
+          const pendingItems = allItems.filter((item: OfflineQueueItem) => item.synced === false);
+          resolve(pendingItems);
+        };
+        fallbackRequest.onerror = () => {
+          console.error('[OFFLINE] Failed to get pending actions:', fallbackRequest.error);
+          reject(fallbackRequest.error);
+        };
       }
     });
   }
@@ -400,51 +392,14 @@ class OfflineStorageManager {
 
   // ========== USER DATA CACHING METHODS ==========
   
-  // Cache user profile data with subscription info
+  // Cache user profile data
   async cacheUserProfile(userId: number, profileData: any): Promise<void> {
-    // For subscription data, use longer TTL (7 days) but track age
-    const dataWithMeta = {
-      ...profileData,
-      _cachedAt: Date.now(),
-      _cacheVersion: 2 // Version for future migrations
-    };
-    return this.cacheData(`profile-${userId}`, dataWithMeta, 10080); // 7 days TTL
+    return this.cacheData(`profile-${userId}`, profileData, 120); // 2 hour TTL
   }
 
   // Get cached user profile
   async getCachedUserProfile(userId: number): Promise<any | null> {
     return this.getCachedData(`profile-${userId}`);
-  }
-
-  // Check if cached user profile is stale (>7 days old)
-  async isUserProfileStale(userId: number): Promise<{ isStale: boolean; age: number; ageInDays: number }> {
-    const profile = await this.getCachedUserProfile(userId);
-    if (!profile || !profile._cachedAt) {
-      return { isStale: true, age: 0, ageInDays: 0 };
-    }
-    
-    const age = Date.now() - profile._cachedAt;
-    const ageInDays = age / (1000 * 60 * 60 * 24);
-    const isStale = ageInDays > 7;
-    
-    return { isStale, age, ageInDays };
-  }
-
-  // Check if subscription data is fresh enough for offline use
-  async isSubscriptionDataFresh(userId: number): Promise<{ 
-    isFresh: boolean; 
-    daysOld: number; 
-    shouldWarn: boolean;
-    shouldBlock: boolean;
-  }> {
-    const staleness = await this.isUserProfileStale(userId);
-    
-    return {
-      isFresh: !staleness.isStale,
-      daysOld: Math.floor(staleness.ageInDays),
-      shouldWarn: staleness.ageInDays > 3, // Warn after 3 days
-      shouldBlock: staleness.ageInDays > 14 // Block after 14 days
-    };
   }
 
   // Cache user settings

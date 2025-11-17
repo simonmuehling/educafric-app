@@ -22,8 +22,7 @@ import {
 import { 
   Settings, School, Shield, Bell, MapPin, Clock, Users, 
   BookOpen, GraduationCap, Palette, Globe, Database,
-  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image, Flag,
-  WifiOff, CheckCircle, XCircle
+  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image, Flag
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
@@ -51,8 +50,6 @@ interface SchoolProfile {
   delegationDepartementale?: string;
   boitePostale?: string;
   arrondissement?: string;
-  // Offline Premium
-  offlineEnabled?: boolean;
 }
 
 interface SchoolConfiguration {
@@ -77,6 +74,14 @@ interface NotificationSettings {
   emergencyAlerts: boolean;
 }
 
+interface SecuritySettings {
+  twoFactorAuth: boolean;
+  sessionTimeout: number;
+  passwordExpiry: number;
+  loginAttempts: number;
+  ipWhitelist: string[];
+  backupFrequency: 'daily' | 'weekly' | 'monthly';
+}
 
 const UnifiedSchoolSettings: React.FC = () => {
   const { language } = useLanguage();
@@ -97,6 +102,7 @@ const UnifiedSchoolSettings: React.FC = () => {
       officialTab: 'Informations Officielles',
       configTab: 'Configuration',
       notificationsTab: 'Notifications',
+      securityTab: 'Sécurité',
       save: 'Enregistrer',
       cancel: 'Annuler',
       edit: 'Modifier',
@@ -140,6 +146,12 @@ const UnifiedSchoolSettings: React.FC = () => {
       teacherAlerts: 'Alertes Enseignants',
       systemMaintenance: 'Maintenance Système',
       emergencyAlerts: 'Alertes d\'Urgence',
+      twoFactorAuth: 'Authentification 2FA',
+      sessionTimeout: 'Expiration Session (min)',
+      passwordExpiry: 'Expiration Mot de Passe (jours)',
+      loginAttempts: 'Tentatives de Connexion Max',
+      ipWhitelist: 'Liste Blanche IP',
+      backupFrequency: 'Fréquence de Sauvegarde',
       logo: 'Logo École',
       uploadLogo: 'Télécharger Logo',
       logoDescription: 'Logo qui apparaîtra sur les bulletins et transcripts',
@@ -164,6 +176,7 @@ const UnifiedSchoolSettings: React.FC = () => {
       officialTab: 'Official Information',
       configTab: 'Configuration',
       notificationsTab: 'Notifications',
+      securityTab: 'Security',
       save: 'Save',
       cancel: 'Cancel',
       edit: 'Edit',
@@ -207,6 +220,12 @@ const UnifiedSchoolSettings: React.FC = () => {
       teacherAlerts: 'Teacher Alerts',
       systemMaintenance: 'System Maintenance',
       emergencyAlerts: 'Emergency Alerts',
+      twoFactorAuth: '2FA Authentication',
+      sessionTimeout: 'Session Timeout (min)',
+      passwordExpiry: 'Password Expiry (days)',
+      loginAttempts: 'Max Login Attempts',
+      ipWhitelist: 'IP Whitelist',
+      backupFrequency: 'Backup Frequency',
       logo: 'School Logo',
       uploadLogo: 'Upload Logo',
       logoDescription: 'Logo will appear on bulletins and transcripts',
@@ -299,6 +318,16 @@ const UnifiedSchoolSettings: React.FC = () => {
   };
   const notificationsLoading = false;
 
+  // Use dummy data for security settings for now
+  const securitySettings = {
+    twoFactorAuth: false,
+    sessionTimeout: 30,
+    passwordExpiry: 90,
+    loginAttempts: 5,
+    ipWhitelist: [],
+    backupFrequency: 'daily'
+  };
+  const securityLoading = false;
 
   // Update mutations - use director API
   const updateProfileMutation = useMutation({
@@ -363,6 +392,25 @@ const UnifiedSchoolSettings: React.FC = () => {
     }
   });
 
+  const updateSecurityMutation = useMutation({
+    mutationFn: async (data: Partial<SecuritySettings>) => {
+      // For now, just simulate success since we're using dummy data
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: t.successUpdate
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || t.errorUpdate,
+        variant: 'destructive'
+      });
+    }
+  });
 
   // Logo upload handlers
   const handleGetLogoUploadParameters = async () => {
@@ -425,10 +473,11 @@ const UnifiedSchoolSettings: React.FC = () => {
     { id: 'official', label: t.officialTab, icon: Flag },
     { id: 'academic', label: language === 'fr' ? 'Académique' : 'Academic', icon: BookOpen },
     { id: 'configuration', label: t.configTab, icon: Settings },
-    { id: 'notifications', label: t.notificationsTab, icon: Bell }
+    { id: 'notifications', label: t.notificationsTab, icon: Bell },
+    { id: 'security', label: t.securityTab, icon: Shield }
   ];
 
-  if (profileLoading || configLoading || notificationsLoading) {
+  if (profileLoading || configLoading || notificationsLoading || securityLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -464,47 +513,6 @@ const UnifiedSchoolSettings: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Offline Premium Status Badge */}
-      {schoolProfile && (
-        <Card className={`border-2 ${schoolProfile.offlineEnabled ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-gray-300 bg-gray-50 dark:bg-gray-900'}`}>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${schoolProfile.offlineEnabled ? 'bg-green-500' : 'bg-gray-400'}`}>
-                  {schoolProfile.offlineEnabled ? <CheckCircle className="w-6 h-6 text-white" /> : <XCircle className="w-6 h-6 text-white" />}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    <WifiOff className="w-5 h-5" />
-                    {language === 'fr' ? 'Mode Hors Ligne Premium' : 'Offline Premium Mode'}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {language === 'fr' 
-                      ? (schoolProfile.offlineEnabled 
-                          ? 'Accès hors ligne activé pour votre école (14 jours)' 
-                          : 'Accès hors ligne standard (3-7 jours)')
-                      : (schoolProfile.offlineEnabled 
-                          ? 'Offline access enabled for your school (14 days)' 
-                          : 'Standard offline access (3-7 days)')
-                    }
-                  </p>
-                </div>
-              </div>
-              <Badge 
-                variant={schoolProfile.offlineEnabled ? "default" : "secondary"}
-                className={`text-sm px-3 py-1 ${schoolProfile.offlineEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-500'}`}
-                data-testid="offline-premium-status-badge"
-              >
-                {schoolProfile.offlineEnabled 
-                  ? (language === 'fr' ? 'ACTIVÉ' : 'ENABLED') 
-                  : (language === 'fr' ? 'DÉSACTIVÉ' : 'DISABLED')
-                }
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop Navigation */}
@@ -1084,9 +1092,85 @@ const UnifiedSchoolSettings: React.FC = () => {
           </Card>
         </TabsContent>
 
+        {/* Security Tab */}
         {/* Academic Tab */}
         <TabsContent value="academic" className="space-y-6">
           <SchoolLevelsManager />
+        </TabsContent>
+
+        <TabsContent value="security" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                {t.securityTab}
+              </CardTitle>
+              <CardDescription>
+                Paramètres de sécurité et confidentialité
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">{t.twoFactorAuth}</p>
+                    <p className="text-sm text-gray-600">Authentification à deux facteurs</p>
+                  </div>
+                  <Switch defaultChecked={securitySettings?.twoFactorAuth} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sessionTimeout">{t.sessionTimeout}</Label>
+                  <Input
+                    id="sessionTimeout"
+                    type="number"
+                    defaultValue={securitySettings?.sessionTimeout || 30}
+                    min="5"
+                    max="480"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="passwordExpiry">{t.passwordExpiry}</Label>
+                  <Input
+                    id="passwordExpiry"
+                    type="number"
+                    defaultValue={securitySettings?.passwordExpiry || 90}
+                    min="30"
+                    max="365"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="loginAttempts">{t.loginAttempts}</Label>
+                  <Input
+                    id="loginAttempts"
+                    type="number"
+                    defaultValue={securitySettings?.loginAttempts || 5}
+                    min="3"
+                    max="10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="backupFrequency">{t.backupFrequency}</Label>
+                  <Select defaultValue={securitySettings?.backupFrequency || 'daily'}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">{t.daily}</SelectItem>
+                      <SelectItem value="weekly">{t.weekly}</SelectItem>
+                      <SelectItem value="monthly">{t.monthly}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <Button
+                onClick={() => updateSecurityMutation.mutate({})}
+                disabled={updateSecurityMutation.isPending}
+              >
+                {updateSecurityMutation.isPending ? t.loading : t.save}
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

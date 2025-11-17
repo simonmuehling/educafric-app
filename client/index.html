@@ -199,7 +199,7 @@
           try {
             // Check for invalid URLs (undefined port, etc.)
             if (typeof url === 'string' && (url.includes('undefined') || url.includes(':undefined'))) {
-              console.log('[WEBSOCKET] Blocked invalid WebSocket URL:', url);
+              console.warn('[WEBSOCKET] Blocked invalid WebSocket URL:', url);
               // Return a comprehensive mock WebSocket that doesn't connect
               return {
                 readyState: 3, // CLOSED
@@ -223,15 +223,12 @@
             
             // Add error handling for connection failures
             ws.addEventListener('error', function(event) {
-              // Silently handle connection errors (development only)
-              if (!url.includes('/ws')) {
-                console.log('[WEBSOCKET] Connection error handled gracefully');
-              }
+              console.warn('[WEBSOCKET] Connection error handled gracefully:', event);
             });
             
             return ws;
           } catch (error) {
-            console.log('[WEBSOCKET] WebSocket creation error handled');
+            console.warn('[WEBSOCKET] WebSocket creation error handled:', error.message);
             // Return a comprehensive mock WebSocket on error
             return {
               readyState: 3, // CLOSED
@@ -277,11 +274,6 @@
     <!-- End Google Tag Manager (noscript) -->
     
     <div id="root"></div>
-    
-    <!-- Offline Premium Mode Scripts -->
-    <script src="/offline-db.js"></script>
-    <script src="/offline-sync.js"></script>
-    
     <script type="module" src="/src/main.tsx"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
