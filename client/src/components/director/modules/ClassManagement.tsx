@@ -54,6 +54,10 @@ const ClassManagement: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<{id: number, name: string} | null>(null);
   
+  // Bulk selection states
+  const [selectedClasses, setSelectedClasses] = useState<Set<number>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  
   // État pour la gestion des matières
   const [showSubjectSection, setShowSubjectSection] = useState(false);
   const [newSubject, setNewSubject] = useState({
@@ -396,6 +400,47 @@ const ClassManagement: React.FC = () => {
     }
   });
 
+  // Bulk delete mutation
+  const bulkDeleteClassesMutation = useMutation({
+    mutationFn: async (classIds: number[]) => {
+      const responses = await Promise.all(
+        classIds.map(id => 
+          fetch(`/api/classes/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          }).then(res => {
+            if (!res.ok) throw new Error(`Failed to delete class ${id}`);
+            return res.json();
+          })
+        )
+      );
+      return responses;
+    },
+    onSuccess: (_, classIds) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/classes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
+      
+      setSelectedClasses(new Set());
+      setBulkDeleteDialogOpen(false);
+      
+      toast({
+        title: language === 'fr' ? '✅ Suppression réussie' : '✅ Deletion Successful',
+        description: language === 'fr' 
+          ? `${classIds.length} classe(s) supprimée(s) avec succès` 
+          : `${classIds.length} class(es) deleted successfully`
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? '❌ Erreur' : '❌ Error',
+        description: language === 'fr' 
+          ? 'Impossible de supprimer les classes sélectionnées' 
+          : 'Failed to delete selected classes',
+        variant: 'destructive'
+      });
+    }
+  });
+
   // Edit class mutation
   const editClassMutation = useMutation({
     mutationFn: async ({ classId, classData }: { classId: number, classData: any }) => {
@@ -687,6 +732,35 @@ const ClassManagement: React.FC = () => {
     console.log('[CLASS_MANAGEMENT] 👁️ Opening view modal for class:', classItem.name);
     setSelectedClass(classItem);
     setIsViewModalOpen(true);
+  };
+
+  // Bulk selection handlers
+  const toggleSelectClass = (classId: number) => {
+    const newSelected = new Set(selectedClasses);
+    if (newSelected.has(classId)) {
+      newSelected.delete(classId);
+    } else {
+      newSelected.add(classId);
+    }
+    setSelectedClasses(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedClasses.size === filteredClasses.length && filteredClasses.length > 0) {
+      setSelectedClasses(new Set());
+    } else {
+      setSelectedClasses(new Set(filteredClasses.map((c: any) => c.id)));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedClasses.size > 0) {
+      setBulkDeleteDialogOpen(true);
+    }
+  };
+
+  const confirmBulkDelete = () => {
+    bulkDeleteClassesMutation.mutate(Array.from(selectedClasses));
   };
 
   // Loading state
@@ -1375,6 +1449,24 @@ const ClassManagement: React.FC = () => {
               />
             </div>
           </div>
+          {/* Bulk actions */}
+          {selectedClasses.size > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">
+                {selectedClasses.size} {language === 'fr' ? 'sélectionnée(s)' : 'selected'}
+              </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+                className="bg-red-600 hover:bg-red-700"
+                data-testid="button-bulk-delete-classes"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Supprimer' : 'Delete'}
+              </Button>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -1384,6 +1476,13 @@ const ClassManagement: React.FC = () => {
           <table className="w-full">
             <thead className="border-b bg-gray-50">
               <tr>
+                <th className="text-left p-4 w-12">
+                  <Checkbox
+                    checked={selectedClasses.size === filteredClasses.length && filteredClasses.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                    data-testid="checkbox-select-all-classes"
+                  />
+                </th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.name) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.students) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.capacity) || "N/A"}</th>
@@ -1395,6 +1494,13 @@ const ClassManagement: React.FC = () => {
             <tbody>
               {(Array.isArray(finalClasses) ? finalClasses : []).map((classItem: any) => (
                 <tr key={String(classItem?.id) || "N/A"} className="border-b hover:bg-gray-50">
+                  <td className="p-4">
+                    <Checkbox
+                      checked={selectedClasses.has(classItem.id)}
+                      onCheckedChange={() => toggleSelectClass(classItem.id)}
+                      data-testid={`checkbox-class-${classItem.id}`}
+                    />
+                  </td>
                   <td className="p-4">
                     <div>
                       <div className="font-medium">{String(classItem?.name) || "N/A"}</div>
@@ -1825,6 +1931,19 @@ const ClassManagement: React.FC = () => {
           description={language === 'fr' 
             ? `Êtes-vous sûr de vouloir supprimer la classe "${classToDelete?.name}" ? Cette action est irréversible et supprimera tous les élèves inscrits.`
             : `Are you sure you want to delete the class "${classToDelete?.name}"? This action cannot be undone and will remove all enrolled students.`}
+          confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
+          cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
+        />
+
+        {/* Bulk Delete Confirmation Dialog */}
+        <DeleteConfirmationDialog
+          open={bulkDeleteDialogOpen}
+          onOpenChange={setBulkDeleteDialogOpen}
+          onConfirm={confirmBulkDelete}
+          title={language === 'fr' ? 'Supprimer les classes sélectionnées' : 'Delete Selected Classes'}
+          description={language === 'fr' 
+            ? `Êtes-vous sûr de vouloir supprimer ${selectedClasses.size} classe(s) sélectionnée(s) ? Cette action est irréversible et supprimera tous les élèves inscrits dans ces classes.`
+            : `Are you sure you want to delete ${selectedClasses.size} selected class(es)? This action cannot be undone and will remove all enrolled students from these classes.`}
           confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
           cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
         />
