@@ -2038,8 +2038,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lName = nameParts.slice(1).join(' ') || nameParts[0];
       }
       
-      if (!fName || !phone) {
-        return res.status(400).json({ success: false, message: 'Name and phone are required' });
+      if (!fName) {
+        return res.status(400).json({ success: false, message: 'Name is required' });
       }
       
       console.log('[CREATE_STUDENT] Creating student:', { firstName: fName, lastName: lName, phone, schoolId: userSchoolId });
@@ -2091,7 +2091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: 'Student',
         firstName: fName,
         lastName: lName,
-        phone,
+        phone: phone || null, // Phone is now optional
         password: hashedPassword,
         schoolId: userSchoolId,
         email: email || null, // Email is optional

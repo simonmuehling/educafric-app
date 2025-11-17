@@ -434,16 +434,6 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return;
     }
     
-    // Validate: Student phone is required (backend requirement)
-    if (!studentForm.phone || !studentForm.phone.trim()) {
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Le numéro de téléphone de l\'élève est requis' : 'Student phone number is required',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
     createStudentMutation.mutate({
       ...studentForm,
       age: parseInt(studentForm.age) || 16,
@@ -1021,12 +1011,11 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                     'Select this student\'s class from those created in your school'}
                 </p>
               </div>
-              {/* Student Phone - REQUIRED FIELD */}
+              {/* Student Phone - OPTIONAL FIELD */}
               <div>
                 <Label className="text-sm font-medium flex items-center gap-1">
                   <Phone className="w-4 h-4" />
-                  {language === 'fr' ? 'Téléphone de l\'élève' : 'Student Phone'}
-                  <span className="text-red-500">*</span>
+                  {language === 'fr' ? 'Téléphone de l\'élève (optionnel)' : 'Student Phone (optional)'}
                 </Label>
                 <Input
                   value={studentForm.phone || ''}
@@ -1036,8 +1025,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   {language === 'fr' ? 
-                    'Numéro unique pour identifier l\'élève dans le système' : 
-                    'Unique number to identify the student in the system'}
+                    'Numéro pour identifier l\'élève dans le système (facultatif)' : 
+                    'Number to identify the student in the system (optional)'}
                 </p>
               </div>
               
