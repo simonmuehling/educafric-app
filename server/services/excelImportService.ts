@@ -770,15 +770,25 @@ export class ExcelImportService {
         // Create subjects for the class if provided with complete metadata
         if (subjectsToCreate.length > 0) {
           for (const subjectData of subjectsToCreate) {
-            await db.insert(subjects).values({
-              nameFr: subjectData.name,
-              nameEn: subjectData.name,
-              coefficient: subjectData.coefficient.toString(),
-              schoolId,
-              classId: newClass.id,
-              subjectType: subjectData.category || 'general',
-              code: `${subjectData.name.substring(0, 3).toUpperCase()}-${newClass.name}`
-            } as any);
+            try {
+              // Generate unique subject code with timestamp to avoid duplicates
+              const baseCode = `${subjectData.name.substring(0, 3).toUpperCase()}-${newClass.name}`;
+              const uniqueCode = `${baseCode}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+              
+              await db.insert(subjects).values({
+                nameFr: subjectData.name,
+                nameEn: subjectData.name,
+                coefficient: subjectData.coefficient.toString(),
+                schoolId,
+                classId: newClass.id,
+                subjectType: subjectData.category || 'general',
+                code: uniqueCode
+              } as any);
+            } catch (subjectError: any) {
+              // If subject creation fails (duplicate code), log and continue
+              console.log(`[IMPORT_CLASSES] ⚠️ Subject creation failed for ${subjectData.name} in ${newClass.name}: ${subjectError.message}`);
+              // Don't fail the entire class import if one subject fails
+            }
           }
         }
         
