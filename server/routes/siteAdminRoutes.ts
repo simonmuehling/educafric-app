@@ -388,25 +388,39 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       const { schoolId } = req.params;
       const { offlineEnabled } = req.body;
       
-      console.log(`[SITE_ADMIN_API] ${offlineEnabled ? 'Enabling' : 'Disabling'} offline mode for school ${schoolId}`);
+      console.log(`[OFFLINE_PREMIUM] 🔄 Request received for school ${schoolId}: ${offlineEnabled ? 'ENABLE' : 'DISABLE'}`);
+      console.log(`[OFFLINE_PREMIUM] Request body:`, req.body);
+      console.log(`[OFFLINE_PREMIUM] User:`, req.user?.email);
       
       // Update school in database
-      await storage.updateSchool(parseInt(schoolId), {
+      const updatedSchool = await storage.updateSchool(parseInt(schoolId), {
         offlineEnabled: offlineEnabled
       });
 
-      console.log(`[SITE_ADMIN_API] ✅ Offline mode ${offlineEnabled ? 'enabled' : 'disabled'} for school ${schoolId}`);
+      console.log(`[OFFLINE_PREMIUM] ✅ Database updated successfully for school ${schoolId}`);
+      console.log(`[OFFLINE_PREMIUM] Updated school data:`, {
+        id: updatedSchool.id,
+        name: updatedSchool.name,
+        offlineEnabled: updatedSchool.offlineEnabled
+      });
+      
       res.json({ 
         success: true,
-        message: `Mode hors ligne ${offlineEnabled ? 'activé' : 'désactivé'} avec succès`,
+        message: `Offline Premium ${offlineEnabled ? 'activé' : 'désactivé'} avec succès`,
         schoolId: parseInt(schoolId),
-        offlineEnabled 
+        offlineEnabled,
+        school: {
+          id: updatedSchool.id,
+          name: updatedSchool.name,
+          offlineEnabled: updatedSchool.offlineEnabled
+        }
       });
     } catch (error: any) {
-      console.error('[SITE_ADMIN_API] Error toggling offline mode:', error);
+      console.error('[OFFLINE_PREMIUM] ❌ Error toggling offline mode:', error);
       res.status(500).json({ 
         success: false,
-        message: 'Failed to toggle offline mode' 
+        message: 'Failed to toggle offline mode',
+        error: error.message
       });
     }
   });
