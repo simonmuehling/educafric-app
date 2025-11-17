@@ -47,12 +47,34 @@ router.post('/generate', requireAuth, requireAnyRole(['director', 'teacher', 'st
       ? await SchoolDataService.getSchoolData(user.schoolId)
       : null;
     
-    // TODO: Fetch real student data from database
-    // For now, use demo data with provided student ID
+    // Fetch real student data from database
+    const { db } = await import('../../db.js');
+    const { users } = await import('../../../shared/schemas/userSchema.js');
+    const { eq } = await import('drizzle-orm');
+    
+    const [student] = await db.select()
+      .from(users)
+      .where(eq(users.id, studentId))
+      .limit(1);
+    
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+    
+    // Use demo data as fallback for academic history (until real data is implemented)
     const demoData = TranscriptGenerator.generateDemoData();
     const transcriptData: TranscriptData = {
       ...demoData,
       studentId,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      matricule: student.educafricNumber || `STU-${studentId}`,
+      birthDate: student.dateOfBirth || undefined,
+      birthPlace: student.placeOfBirth || undefined,
+      photo: student.profilePictureUrl || undefined, // Include student photo
       // Merge real school data including logo with proper field mapping
       schoolInfo: schoolData ? {
         id: demoData.schoolInfo.id, // CameroonOfficialHeaderData doesn't have id

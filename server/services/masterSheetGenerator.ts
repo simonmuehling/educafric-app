@@ -21,6 +21,7 @@ export interface StudentMasterData {
   matricule: string;
   firstName: string;
   lastName: string;
+  photo?: string; // Student photo URL
   grades: { [subjectId: number]: number | null };
   average: number;
   rank: number;

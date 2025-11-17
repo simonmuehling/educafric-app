@@ -2075,7 +2075,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name, firstName, lastName, email, phone, className, level, age, gender,
         dateOfBirth, placeOfBirth, matricule, 
         parentName, parentEmail, parentPhone,
-        redoublant
+        redoublant,
+        photo // Photo as base64 data URL from camera capture
       } = req.body;
       
       const userSchoolId = user.schoolId || user.school_id;
@@ -2099,6 +2100,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[CREATE_STUDENT] Creating student:', { firstName: fName, lastName: lName, phone, schoolId: userSchoolId });
       
+      // Handle photo upload if provided (base64 data URL from camera)
+      let profilePictureUrl: string | null = null;
+      if (photo && typeof photo === 'string' && photo.startsWith('data:image')) {
+        try {
+          const fs = await import('fs');
+          const path = await import('path');
+          
+          // Create uploads directory if it doesn't exist
+          const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'students');
+          if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          }
+          
+          // Extract base64 data and convert to buffer
+          const matches = photo.match(/^data:image\/(\w+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const imageType = matches[1]; // jpeg, png, etc.
+            const base64Data = matches[2];
+            const buffer = Buffer.from(base64Data, 'base64');
+            
+            // Generate unique filename
+            const timestamp = Date.now();
+            const randomString = Math.random().toString(36).substring(2, 8);
+            const filename = `student-${timestamp}-${randomString}.${imageType}`;
+            const filePath = path.join(uploadsDir, filename);
+            
+            // Save file
+            fs.writeFileSync(filePath, buffer);
+            profilePictureUrl = `/uploads/students/${filename}`;
+            
+            console.log('[CREATE_STUDENT] Photo saved:', profilePictureUrl);
+          }
+        } catch (photoError) {
+          console.error('[CREATE_STUDENT] Photo upload error:', photoError);
+          // Continue without photo - don't fail the whole request
+        }
+      }
+      
       // Generate default password
       const defaultPassword = `${lName.toLowerCase()}${new Date().getFullYear()}`;
       const hashedPassword = await bcrypt.hash(defaultPassword, 10);
@@ -2114,7 +2153,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: email || null, // Email is optional
         gender: gender || null,
         dateOfBirth: dateOfBirth || null,
-        placeOfBirth: placeOfBirth || null
+        placeOfBirth: placeOfBirth || null,
+        profilePictureUrl: profilePictureUrl // Save photo URL
       }).returning();
       
       console.log('[CREATE_STUDENT] ✅ Student created:', { id: newStudent.id, name: `${fName} ${lName}` });
