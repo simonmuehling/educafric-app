@@ -86,6 +86,41 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  // Initialize camera when showCamera becomes true
+  React.useEffect(() => {
+    if (showCamera && !cameraStream) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+        .then(stream => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            setCameraStream(stream);
+            setIsCameraReady(true);
+          }
+        })
+        .catch(err => {
+          console.error('Camera access error:', err);
+          toast({
+            title: language === 'fr' ? '❌ Erreur caméra' : '❌ Camera Error',
+            description: language === 'fr' ? 
+              'Impossible d\'accéder à la caméra. Vérifiez les permissions.' : 
+              'Cannot access camera. Check permissions.',
+            variant: 'destructive'
+          });
+          setShowCamera(false);
+        });
+    }
+    
+    // Cleanup: stop camera when component unmounts
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        setCameraStream(null);
+      }
+    };
+  }, [showCamera, cameraStream, toast, language]); // Include all dependencies
 
   // Fetch classes data for dropdown
   const { data: classesResponse = {}, isLoading: isLoadingClasses } = useQuery({
@@ -389,7 +424,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   });
 
   const handleCreateStudent = () => {
-    // Validate: At least name is required
+    // Validate: Name is required
     if (!studentForm.name || !studentForm.name.trim()) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
@@ -399,9 +434,20 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return;
     }
     
+    // Validate: Student phone is required (backend requirement)
+    if (!studentForm.phone || !studentForm.phone.trim()) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Le numéro de téléphone de l\'élève est requis' : 'Student phone number is required',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     createStudentMutation.mutate({
       ...studentForm,
-      age: parseInt(studentForm.age) || 16
+      age: parseInt(studentForm.age) || 16,
+      photo: capturedPhoto || studentForm.photo // Include captured photo
     });
   };
 
@@ -975,6 +1021,26 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                     'Select this student\'s class from those created in your school'}
                 </p>
               </div>
+              {/* Student Phone - REQUIRED FIELD */}
+              <div>
+                <Label className="text-sm font-medium flex items-center gap-1">
+                  <Phone className="w-4 h-4" />
+                  {language === 'fr' ? 'Téléphone de l\'élève' : 'Student Phone'}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  value={studentForm.phone || ''}
+                  onChange={(e) => setStudentForm(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="+237 6XX XXX XXX"
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'fr' ? 
+                    'Numéro unique pour identifier l\'élève dans le système' : 
+                    'Unique number to identify the student in the system'}
+                </p>
+              </div>
+              
               <div>
                 <Label className="text-sm font-medium">{text.form.parentName}</Label>
                 <Input
@@ -1151,79 +1217,91 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                 variant="ghost" 
                 size="sm"
                 onClick={() => {
-                  setShowCamera(false);
+                  // Stop camera stream and reset state
+                  if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                  }
+                  setCameraStream(null);
                   setIsCameraReady(false);
+                  setShowCamera(false);
                 }}
+                data-testid="button-close-camera"
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
             <div className="space-y-4">
               {/* Camera Preview Area */}
-              <div className="bg-gray-100 rounded-lg p-8 text-center min-h-[300px] flex items-center justify-center">
-                <div className="text-center">
-                  <Camera className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600 mb-4">
-                    {language === 'fr' ? 
-                      'Simulation caméra - Cliquez "Capturer" pour simuler la prise de photo' : 
-                      'Camera simulation - Click "Capture" to simulate photo taking'}
-                  </p>
-                  <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded">
-                    {language === 'fr' ? 
-                      '💡 Astuce: En production, cette interface se connecterait à la vraie caméra du dispositif' : 
-                      '💡 Tip: In production, this interface would connect to the device\'s actual camera'}
+              <div className="bg-gray-100 rounded-lg overflow-hidden relative" style={{ height: '400px' }}>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+                {!isCameraReady && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                    <div className="text-center">
+                      <Camera className="w-16 h-16 mx-auto text-gray-400 mb-4 animate-pulse" />
+                      <p className="text-gray-600">
+                        {language === 'fr' ? 'Initialisation de la caméra...' : 'Initializing camera...'}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
               
               {/* Camera Controls */}
               <div className="flex gap-3">
                 <Button
                   onClick={() => {
-                    // Simulation: générer une image de démonstration
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 300;
-                    canvas.height = 400;
-                    const ctx = canvas.getContext('2d')!;
-                    
-                    // Créer une image de démonstration simple
-                    const gradient = ctx.createLinearGradient(0, 0, 300, 400);
-                    gradient.addColorStop(0, '#e3f2fd');
-                    gradient.addColorStop(1, '#bbdefb');
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, 0, 300, 400);
-                    
-                    // Ajouter du texte de démonstration
-                    ctx.fillStyle = '#1976d2';
-                    ctx.font = '20px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('Photo Élève', 150, 200);
-                    ctx.font = '14px Arial';
-                    ctx.fillText(new Date().toLocaleString(), 150, 230);
-                    ctx.fillText('EDUCAFRIC', 150, 250);
-                    
-                    const dataUrl = canvas.toDataURL('image/png');
-                    setCapturedPhoto(dataUrl);
-                    setShowCamera(false);
-                    
-                    toast({
-                      title: language === 'fr' ? '📸 Photo capturée!' : '📸 Photo captured!',
-                      description: language === 'fr' ? 
-                        'Photo simulée créée avec succès' : 
-                        'Simulated photo created successfully'
-                    });
+                    if (videoRef.current && isCameraReady) {
+                      // Create canvas and capture photo from video
+                      const canvas = document.createElement('canvas');
+                      canvas.width = videoRef.current.videoWidth;
+                      canvas.height = videoRef.current.videoHeight;
+                      const ctx = canvas.getContext('2d');
+                      if (ctx) {
+                        ctx.drawImage(videoRef.current, 0, 0);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        setCapturedPhoto(dataUrl);
+                        
+                        // Stop camera stream and reset state
+                        if (cameraStream) {
+                          cameraStream.getTracks().forEach(track => track.stop());
+                        }
+                        setCameraStream(null);
+                        setIsCameraReady(false);
+                        setShowCamera(false);
+                        
+                        toast({
+                          title: language === 'fr' ? '📸 Photo capturée!' : '📸 Photo captured!',
+                          description: language === 'fr' ? 
+                            'Photo enregistrée avec succès' : 
+                            'Photo saved successfully'
+                        });
+                      }
+                    }
                   }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  disabled={!isCameraReady}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                 >
                   <Camera className="w-4 h-4 mr-2" />
                   {language === 'fr' ? 'Capturer la Photo' : 'Capture Photo'}
                 </Button>
                 <Button
                   onClick={() => {
-                    setShowCamera(false);
+                    // Stop camera stream and reset state
+                    if (cameraStream) {
+                      cameraStream.getTracks().forEach(track => track.stop());
+                    }
+                    setCameraStream(null);
                     setIsCameraReady(false);
+                    setShowCamera(false);
                   }}
                   variant="outline"
+                  data-testid="button-cancel-camera"
                 >
                   {language === 'fr' ? 'Annuler' : 'Cancel'}
                 </Button>
@@ -1231,8 +1309,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
               
               <div className="text-xs text-gray-500 text-center">
                 {language === 'fr' ? 
-                  'Mode simulation - En production, utilisera la caméra réelle du dispositif' : 
-                  'Simulation mode - In production, will use device\'s actual camera'}
+                  '📷 Caméra en direct - Position yourself and click "Capture"' : 
+                  '📷 Live camera - Position yourself and click "Capture"'}
               </div>
             </div>
           </div>
