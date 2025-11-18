@@ -5,6 +5,7 @@ import { Lock, Crown, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
+import { FEATURE_FLAGS } from '@shared/config';
 
 interface PremiumFeatureBlockProps {
   feature?: string;
@@ -17,6 +18,11 @@ export default function PremiumFeatureBlock({
   description,
   className = '' 
 }: PremiumFeatureBlockProps) {
+  // ⚡ FEATURE FLAG: Don't show premium blocks if enforcement is disabled
+  if (!FEATURE_FLAGS.PREMIUM_ENFORCEMENT_ENABLED) {
+    return null;
+  }
+
   const { language } = useLanguage();
   const { user } = useAuth();
   const [, navigate] = useLocation();

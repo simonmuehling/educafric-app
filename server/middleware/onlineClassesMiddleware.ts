@@ -3,6 +3,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedUser } from '@shared/types';
+import { FEATURE_FLAGS } from '../../shared/config';
 
 interface AuthenticatedRequest extends Request {
   user?: AuthenticatedUser;
@@ -15,6 +16,12 @@ export const requireOnlineClassesSubscription = async (
   next: NextFunction
 ) => {
   try {
+    // ⚡ FEATURE FLAG: Skip all premium checks if enforcement is disabled
+    if (!FEATURE_FLAGS.PREMIUM_ENFORCEMENT_ENABLED) {
+      console.log(`[ONLINE_CLASSES_BYPASS] ✅ Premium enforcement disabled - granting access to online classes`);
+      return next();
+    }
+
     const user = req.user;
     
     if (!user) {

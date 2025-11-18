@@ -6,12 +6,18 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'wouter';
+import { FEATURE_FLAGS } from '@shared/config';
 
 interface SubscriptionStatusCardProps {
   showForRole?: string;
 }
 
 export const SubscriptionStatusCard = ({ showForRole }: SubscriptionStatusCardProps) => {
+  // ⚡ FEATURE FLAG: Don't show subscription status if enforcement is disabled
+  if (!FEATURE_FLAGS.PREMIUM_ENFORCEMENT_ENABLED) {
+    return null;
+  }
+
   const { language } = useLanguage();
   const { user } = useAuth();
 

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { SubscriptionService } from '../services/subscriptionService';
 import { storage } from '../storage';
+import { FEATURE_FLAGS } from '../../shared/config';
 
 interface AuthenticatedRequest extends Request {
   user?: any;
@@ -43,6 +44,20 @@ const isSandboxOrTestUser = (user: any): boolean => {
 export const checkSubscriptionFeature = (requiredFeature: string) => {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      // ⚡ FEATURE FLAG: Skip all premium checks if enforcement is disabled
+      if (!FEATURE_FLAGS.PREMIUM_ENFORCEMENT_ENABLED) {
+        console.log(`[PREMIUM_BYPASS] ✅ Premium enforcement disabled - granting access to feature: ${requiredFeature}`);
+        req.subscription = { 
+          isPremium: true, 
+          planName: 'All Access (Premium Disabled)', 
+          isExempt: true,
+          features: ['*'],
+          type: 'unrestricted'
+        };
+        req.limits = { canAccess: true, isExempt: true, unlimited: true };
+        return next();
+      }
+
       // Vérifier l'authentification
       if (!req.isAuthenticated?.() || !req.user) {
         return res.status(401).json({ error: 'Authentication required' });
@@ -130,6 +145,13 @@ export const checkSubscriptionFeature = (requiredFeature: string) => {
 export const checkFreemiumLimits = (resourceType: string) => {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      // ⚡ FEATURE FLAG: Skip all freemium limits if enforcement is disabled
+      if (!FEATURE_FLAGS.PREMIUM_ENFORCEMENT_ENABLED) {
+        console.log(`[LIMITS_BYPASS] ✅ Premium enforcement disabled - unlimited ${resourceType}`);
+        req.limits = { canAdd: true, limit: 999999, remaining: 999999, message: 'Unlimited (Premium Disabled)' };
+        return next();
+      }
+
       if (!req.isAuthenticated?.() || !req.user) {
         return res.status(401).json({ error: 'Authentication required' });
       }
