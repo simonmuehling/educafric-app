@@ -115,7 +115,20 @@ export class SyncQueueManager {
     // For CREATE actions, get real ID from server response and update local record
     if (item.action === 'create' && item.tempId) {
       const responseData = await response.json();
-      const realId = responseData.id || responseData.classId || responseData.studentId || responseData.attendanceId;
+      
+      // Extract real ID from response based on module
+      let realId: number | undefined;
+      switch (item.module) {
+        case 'classes':
+          realId = responseData.class?.id;
+          break;
+        case 'students':
+          realId = responseData.student?.id;
+          break;
+        case 'attendance':
+          realId = responseData.attendance?.id || responseData.id;
+          break;
+      }
       
       if (realId) {
         // Update local record with real ID
@@ -125,6 +138,8 @@ export class SyncQueueManager {
         await this.updateQueueEntityIds(item.module, item.tempId, realId);
         
         console.log(`[SYNC_QUEUE] 🔄 Mapped temp ID ${item.tempId} to real ID ${realId} for ${item.module}`);
+      } else {
+        console.warn(`[SYNC_QUEUE] ⚠️ Could not extract real ID from response for ${item.module}`, responseData);
       }
     }
 
