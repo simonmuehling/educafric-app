@@ -691,13 +691,15 @@ const ClassManagement: React.FC = () => {
 
   const handleEditClass = (classItem: any) => {
     console.log('[CLASS_MANAGEMENT] ✏️ Opening edit modal for class:', classItem.name);
+    console.log('[CLASS_MANAGEMENT] 📋 Full class data:', classItem);
+    
+    // Preserve ALL fields from original class to prevent data loss
     setSelectedClass({
-      id: classItem.id,
-      name: classItem.name,
-      capacity: classItem?.capacity?.toString(),
-      teacherId: classItem.teacherId || '',
-      teacherName: classItem.teacher,
-      room: classItem.room
+      ...classItem, // Start with ALL original fields
+      capacity: classItem?.capacity?.toString() || classItem?.maxStudents?.toString() || '',
+      teacherId: classItem.teacherId?.toString() || '',
+      teacherName: classItem.teacher || '',
+      subjects: classItem.subjects || []
     });
     setShowEditModal(true);
   };
@@ -714,15 +716,22 @@ const ClassManagement: React.FC = () => {
     
     console.log('[CLASS_MANAGEMENT] 💾 Saving class changes:', selectedClass);
     
-    // Transform data to match backend API contract
+    // Transform data to match backend API contract - preserve ALL fields
     const classDataForAPI = {
       name: selectedClass.name,
       room: selectedClass.room || null,
-      maxStudents: selectedClass.capacity ? parseInt(selectedClass.capacity) : null, // Optional field
-      schedule: '', // Optional field
-      description: `Classe ${selectedClass.name}` // Auto-generated description
+      maxStudents: selectedClass.capacity ? parseInt(selectedClass.capacity) : (selectedClass.maxStudents || null),
+      teacherId: selectedClass.teacherId ? parseInt(selectedClass.teacherId) : null,
+      subjects: selectedClass.subjects || [],
+      level: selectedClass.level || null,
+      section: selectedClass.section || null,
+      academicYearId: selectedClass.academicYearId || 1,
+      isActive: selectedClass.isActive !== undefined ? selectedClass.isActive : true,
+      schedule: selectedClass.schedule || '',
+      description: selectedClass.description || `Classe ${selectedClass.name}`
     };
     
+    console.log('[CLASS_MANAGEMENT] 📤 Sending edit to API:', classDataForAPI);
     editClassMutation.mutate({
       classId: selectedClass.id,
       classData: classDataForAPI
@@ -1489,7 +1498,7 @@ const ClassManagement: React.FC = () => {
                 <th className="text-left p-4 font-semibold">{String(t?.table?.capacity) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.teacher) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.status) || "N/A"}</th>
-                <th className="text-left p-4 font-semibold">{String(t?.table?.actions) || "N/A"}</th>
+                <th className="text-left p-4 font-semibold hidden md:table-cell">{String(t?.table?.actions) || "N/A"}</th>
               </tr>
             </thead>
             <tbody>
@@ -1506,6 +1515,33 @@ const ClassManagement: React.FC = () => {
                     <div>
                       <div className="font-medium">{String(classItem?.name) || "N/A"}</div>
                       <div className="text-sm text-gray-500">{String(classItem?.room) || "N/A"}</div>
+                      {/* Mobile action buttons - shown on small screens directly under name */}
+                      <div className="flex gap-1 mt-2 md:hidden">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewClass(classItem)}
+                          data-testid={`button-view-class-${String(classItem?.id) || "N/A"}`}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleEditClass(classItem)}
+                          data-testid={`button-edit-class-${String(classItem?.id) || "N/A"}`}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDeleteClass(classItem.id, classItem.name)}
+                          data-testid={`button-delete-class-${String(classItem?.id) || "N/A"}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
+                      </div>
                     </div>
                   </td>
                   <td className="p-4">
@@ -1520,7 +1556,8 @@ const ClassManagement: React.FC = () => {
                       {t.status[classItem.status as keyof typeof t.status]}
                     </Badge>
                   </td>
-                  <td className="p-4">
+                  {/* Desktop action buttons - hidden on small screens */}
+                  <td className="p-4 hidden md:table-cell">
                     <div className="flex gap-1">
                       <Button 
                         variant="ghost" 
