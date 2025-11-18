@@ -159,6 +159,7 @@ export class ModularStorage {
   async updateSchoolNotificationSettings(schoolId: number, settings: any) { return this.schoolStorage.updateSchoolNotificationSettings(schoolId, settings); }
   async getSchoolsWithStats() { return this.schoolStorage.getSchoolsWithStats(); }
   async getSchoolDirector(schoolId: number) { return this.schoolStorage.getSchoolDirector(schoolId); }
+  async updateSchoolOfflinePremium(schoolId: number, enabled: boolean) { return this.schoolStorage.updateSchoolOfflinePremium(schoolId, enabled); }
 
   // === STUDENT METHODS ===
   async createStudentRecord(student: any) { return this.studentStorage.createStudentRecord(student); }

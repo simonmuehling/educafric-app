@@ -48,6 +48,11 @@ export const schools = pgTable("schools", {
   // ALL queries MUST filter by this flag to prevent data leakage
   isSandbox: boolean("is_sandbox").default(false).notNull(),
   
+  // Offline Premium feature toggle (free for all schools, managed by Site Admin)
+  // TRUE = School has unlimited offline access for all 12 modules
+  // FALSE/NULL = School has standard online-only access
+  offlinePremiumEnabled: boolean("offline_premium_enabled").default(false).notNull(),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });

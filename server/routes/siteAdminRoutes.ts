@@ -400,6 +400,44 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // Toggle Offline Premium for school
+  app.patch("/api/siteadmin/schools/:schoolId/offline-premium", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { schoolId } = req.params;
+      const { enabled } = req.body;
+      
+      if (typeof enabled !== 'boolean') {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Invalid request: enabled must be a boolean' 
+        });
+      }
+
+      console.log(`[SITE_ADMIN_API] ${enabled ? 'Enabling' : 'Disabling'} Offline Premium for school ${schoolId}`);
+
+      // Update school in database
+      await storage.updateSchoolOfflinePremium(parseInt(schoolId), enabled);
+
+      console.log(`[SITE_ADMIN_API] ✅ Offline Premium ${enabled ? 'enabled' : 'disabled'} for school ${schoolId}`);
+      res.json({ 
+        success: true,
+        message: `Offline Premium ${enabled ? 'activé' : 'désactivé'} avec succès`,
+        messageFr: `Offline Premium ${enabled ? 'activé' : 'désactivé'} avec succès`,
+        messageEn: `Offline Premium ${enabled ? 'enabled' : 'disabled'} successfully`,
+        schoolId: parseInt(schoolId),
+        offlinePremiumEnabled: enabled 
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating Offline Premium status:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to update Offline Premium status',
+        messageFr: 'Échec de la mise à jour du statut Offline Premium',
+        messageEn: 'Failed to update Offline Premium status'
+      });
+    }
+  });
+
   // Manage school subscription
   app.post("/api/siteadmin/schools/:schoolId/subscription", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {

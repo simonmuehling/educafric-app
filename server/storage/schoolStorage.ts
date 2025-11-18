@@ -371,4 +371,27 @@ export class SchoolStorage implements ISchoolStorage {
       return null;
     }
   }
+
+  // Toggle Offline Premium for a school (Site Admin only)
+  async updateSchoolOfflinePremium(schoolId: number, enabled: boolean): Promise<any> {
+    try {
+      console.log(`[SCHOOL_STORAGE] ${enabled ? 'Enabling' : 'Disabling'} Offline Premium for school ${schoolId}`);
+      
+      const [updatedSchool] = await db
+        .update(schools)
+        .set({ offlinePremiumEnabled: enabled })
+        .where(eq(schools.id, schoolId))
+        .returning();
+      
+      if (!updatedSchool) {
+        throw new Error(`School ${schoolId} not found`);
+      }
+      
+      console.log(`[SCHOOL_STORAGE] ✅ Offline Premium ${enabled ? 'enabled' : 'disabled'} for school ${schoolId}`);
+      return updatedSchool;
+    } catch (error) {
+      console.error(`[SCHOOL_STORAGE] Error updating Offline Premium for school ${schoolId}:`, error);
+      throw new Error(`Failed to update Offline Premium: ${error}`);
+    }
+  }
 }
