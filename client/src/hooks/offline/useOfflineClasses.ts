@@ -41,10 +41,21 @@ export function useOfflineClasses() {
       const data = await response.json();
       const serverClasses = data.classes || [];
       
-      // Clear old local data
-      await offlineDb.classes.where('schoolId').equals(user.schoolId).delete();
+      // Get local classes with pending sync
+      const pendingClasses = await offlineDb.classes
+        .where('schoolId')
+        .equals(user.schoolId)
+        .and(cls => cls.syncStatus === 'pending')
+        .toArray();
       
-      // Cache new data
+      // Only delete synced classes (preserve pending changes)
+      await offlineDb.classes
+        .where('schoolId')
+        .equals(user.schoolId)
+        .and(cls => cls.syncStatus === 'synced')
+        .delete();
+      
+      // Cache new server data
       const classesToCache = serverClasses.map((cls: any) => ({
         id: cls.id,
         name: cls.name,
@@ -62,9 +73,12 @@ export function useOfflineClasses() {
         localOnly: false
       }));
       
-      await offlineDb.classes.bulkAdd(classesToCache);
+      await offlineDb.classes.bulkPut(classesToCache);
       
-      return classesToCache;
+      // Merge with pending changes
+      const allClasses = [...classesToCache, ...pendingClasses];
+      
+      return allClasses;
     } catch (error) {
       console.error('[OFFLINE_CLASSES] Error fetching from server:', error);
       throw error;
@@ -141,7 +155,7 @@ export function useOfflineClasses() {
       teacherId: newClass.teacherId,
       room: newClass.room,
       subjects: newClass.subjects
-    });
+    }, undefined, tempId);
     
     // Update state
     setClasses(prev => [...prev, newClass]);

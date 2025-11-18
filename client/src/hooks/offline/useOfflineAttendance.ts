@@ -42,10 +42,18 @@ export function useOfflineAttendance(date?: string) {
       const data = await response.json();
       const serverAttendance = data.attendance || [];
       
-      // Clear old attendance for this date
+      // Get local attendance with pending sync for this date
+      const pendingAttendance = await offlineDb.attendance
+        .where('[schoolId+date]')
+        .equals([user.schoolId, targetDate])
+        .and(record => record.syncStatus === 'pending')
+        .toArray();
+      
+      // Only delete synced attendance for this date (preserve pending changes)
       await offlineDb.attendance
         .where('[schoolId+date]')
         .equals([user.schoolId, targetDate])
+        .and(record => record.syncStatus === 'synced')
         .delete();
       
       // Cache new data
@@ -66,10 +74,13 @@ export function useOfflineAttendance(date?: string) {
       }));
       
       if (attendanceToCache.length > 0) {
-        await offlineDb.attendance.bulkAdd(attendanceToCache);
+        await offlineDb.attendance.bulkPut(attendanceToCache);
       }
       
-      return attendanceToCache;
+      // Merge with pending changes
+      const allAttendance = [...attendanceToCache, ...pendingAttendance];
+      
+      return allAttendance;
     } catch (error) {
       console.error('[OFFLINE_ATTENDANCE] Error fetching from server:', error);
       throw error;
@@ -153,7 +164,7 @@ export function useOfflineAttendance(date?: string) {
         date: targetDate,
         status,
         notes
-      }, existing.id);
+      }, existing.id, existing.id);
       
       setAttendance(prev => prev.map(att => 
         att.id === existing.id ? { ...att, status, notes } : att
@@ -171,7 +182,7 @@ export function useOfflineAttendance(date?: string) {
         status,
         notes,
         markedBy: user.id
-      });
+      }, undefined, record.id);
       
       setAttendance(prev => [...prev, record]);
       

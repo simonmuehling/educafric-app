@@ -64,6 +64,7 @@ export interface SyncQueueItem {
   module: 'classes' | 'students' | 'attendance';
   action: 'create' | 'update' | 'delete';
   entityId?: number;
+  tempId?: number; // Temporary ID for offline-created entities
   payload: any;
   timestamp: number;
   retryCount: number;
@@ -75,6 +76,13 @@ export interface OfflineMetadata {
   key: string;
   value: any;
   lastUpdated: number;
+}
+
+export interface TempIdMapping {
+  tempId: number;
+  realId: number;
+  module: 'classes' | 'students' | 'attendance';
+  timestamp: number;
 }
 
 // ===========================
@@ -92,9 +100,9 @@ class OfflineDatabase extends Dexie {
     
     this.version(1).stores({
       classes: 'id, schoolId, syncStatus, lastModified',
-      students: 'id, schoolId, classId, syncStatus, lastModified',
-      attendance: '++id, studentId, classId, date, schoolId, syncStatus, lastModified',
-      syncQueue: '++id, module, synced, timestamp',
+      students: 'id, schoolId, classId, syncStatus, lastModified, [schoolId+classId]',
+      attendance: '++id, studentId, classId, date, schoolId, syncStatus, lastModified, [studentId+date], [schoolId+date]',
+      syncQueue: '++id, module, synced, timestamp, tempId, entityId, [module+synced]',
       metadata: 'key, lastUpdated'
     });
   }

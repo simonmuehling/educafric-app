@@ -41,8 +41,19 @@ export function useOfflineStudents() {
       const data = await response.json();
       const serverStudents = data.students || [];
       
-      // Clear old local data
-      await offlineDb.students.where('schoolId').equals(user.schoolId).delete();
+      // Get local students with pending sync
+      const pendingStudents = await offlineDb.students
+        .where('schoolId')
+        .equals(user.schoolId)
+        .and(student => student.syncStatus === 'pending')
+        .toArray();
+      
+      // Only delete synced students (preserve pending changes)
+      await offlineDb.students
+        .where('schoolId')
+        .equals(user.schoolId)
+        .and(student => student.syncStatus === 'synced')
+        .delete();
       
       // Cache new data
       const studentsToCache = serverStudents.map((student: any) => ({
@@ -62,9 +73,12 @@ export function useOfflineStudents() {
         localOnly: false
       }));
       
-      await offlineDb.students.bulkAdd(studentsToCache);
+      await offlineDb.students.bulkPut(studentsToCache);
       
-      return studentsToCache;
+      // Merge with pending changes
+      const allStudents = [...studentsToCache, ...pendingStudents];
+      
+      return allStudents;
     } catch (error) {
       console.error('[OFFLINE_STUDENTS] Error fetching from server:', error);
       throw error;
@@ -135,7 +149,7 @@ export function useOfflineStudents() {
       classId: newStudent.classId,
       parentPhone: newStudent.parentPhone,
       parentEmail: newStudent.parentEmail
-    });
+    }, undefined, tempId);
     
     setStudents(prev => [...prev, newStudent]);
     

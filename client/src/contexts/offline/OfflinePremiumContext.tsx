@@ -107,6 +107,30 @@ export function OfflinePremiumProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // ===========================
+  // ⏰ RECALCULATE DAYS OFFLINE PERIODICALLY
+  // ===========================
+  useEffect(() => {
+    const recalculateDays = () => {
+      if (lastSync) {
+        const days = calculateDaysOffline(lastSync);
+        setDaysOffline(days);
+        console.log('[OFFLINE_PREMIUM] 🔄 Recalculated days offline:', days);
+      }
+    };
+
+    // Recalculate every 5 minutes
+    const interval = setInterval(recalculateDays, 5 * 60 * 1000);
+    
+    // Also recalculate when window gains focus
+    window.addEventListener('focus', recalculateDays);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', recalculateDays);
+    };
+  }, [lastSync]);
+
+  // ===========================
   // ⏰ PERIODIC SYNC CHECK
   // ===========================
   useEffect(() => {
@@ -147,15 +171,15 @@ export function OfflinePremiumProvider({ children }: { children: ReactNode }) {
       return true;
     }
 
-    // School unlimited mode
-    if (offlineMode === 'unlimited') {
-      return true;
-    }
-
     // Premium roles with 14-day limit
     const premiumRoles = ['Director', 'Parent', 'Admin'];
     if (premiumRoles.includes(user.role)) {
-      return daysOffline <= 14;
+      // School unlimited mode bypasses 14-day limit for premium roles
+      if (offlineMode === 'unlimited') {
+        return true;
+      }
+      // Otherwise enforce 14-day limit
+      return daysOffline < 14;
     }
 
     return false;
@@ -169,25 +193,39 @@ export function OfflinePremiumProvider({ children }: { children: ReactNode }) {
   // ⚠️ WARNING LEVEL CALCULATION
   // ===========================
   const getWarningLevel = (): OfflineWarningLevel => {
-    // No warnings for unlimited access
+    if (!user) return 'none';
+
+    // No warnings for unlimited roles (Teachers, Students)
+    const unlimitedRoles = ['Teacher', 'Student'];
+    if (unlimitedRoles.includes(user.role)) {
+      return 'none';
+    }
+
+    // No warnings for sandbox accounts
+    const isSandbox = user.email?.includes('@test.educafric.com') ||
+                     user.email?.includes('sandbox@') ||
+                     user.email?.includes('demo@');
+    if (isSandbox) {
+      return 'none';
+    }
+
+    // No warnings if school has unlimited mode
     if (offlineMode === 'unlimited') {
       return 'none';
     }
 
-    // No warnings for free unlimited roles
-    if (user && ['Teacher', 'Student'].includes(user.role)) {
-      return 'none';
-    }
-
-    // 3-tier system from PDF guide
-    if (daysOffline >= 14) {
-      return 'blocked'; // 🚫 14+ days
-    }
-    if (daysOffline >= 7) {
-      return 'urgent'; // ⚠️ 7-14 days - Red banner with countdown
-    }
-    if (daysOffline >= 3) {
-      return 'light'; // ⚠️ 3-7 days - Yellow banner
+    // Premium roles (Directors, Parents) - enforce 3-tier system
+    const premiumRoles = ['Director', 'Parent', 'Admin'];
+    if (premiumRoles.includes(user.role)) {
+      if (daysOffline >= 14) {
+        return 'blocked'; // 🚫 14+ days - Access locked
+      }
+      if (daysOffline >= 7) {
+        return 'urgent'; // ⚠️ 7-14 days - Red banner with countdown
+      }
+      if (daysOffline >= 3) {
+        return 'light'; // ⚠️ 3-7 days - Yellow banner
+      }
     }
     
     return 'none'; // ✅ 0-3 days - Full access
