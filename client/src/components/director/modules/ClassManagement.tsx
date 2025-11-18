@@ -981,10 +981,11 @@ const ClassManagement: React.FC = () => {
                       value={newClass?.capacity || ""}
                       onChange={(e) => setNewClass({...newClass, capacity: e?.target?.value})}
                       placeholder="30"
+                      min="1"
+                      max="999"
                       className="bg-white border-gray-300"
                     />
-                  </div>
-                  <div>
+                  </div>                  <div>
                     <Label className="flex items-center">
                       {String(t?.form?.teacher) || "N/A"}
                       <span className="ml-1 text-xs text-gray-500">(optionnel)</span>
@@ -1141,6 +1142,8 @@ const ClassManagement: React.FC = () => {
                       value={selectedClass?.capacity || ''}
                       onChange={(e) => setSelectedClass({...selectedClass, capacity: e?.target?.value})}
                       placeholder="30"
+                      min="1"
+                      max="999"
                       className="bg-white border-gray-300"
                     />
                   </div>
