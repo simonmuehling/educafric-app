@@ -226,13 +226,20 @@ class OfflineDatabase extends Dexie {
   constructor() {
     super('EducafricOfflineDB');
     
-    // Version 1: Complete Offline Premium schema with all 12 modules
-    // NOTE: This is a fresh implementation. Users with experimental/dev versions should clear IndexedDB.
+    // Version 1: Original schema (deployed in production)
+    // Contains: 3 CRUD modules (Classes, Students, Attendance) + 2 system tables
     this.version(1).stores({
-      // Full CRUD modules with sync tracking
       classes: 'id, schoolId, syncStatus, lastModified',
       students: 'id, schoolId, classId, syncStatus, lastModified, [schoolId+classId]',
       attendance: '++id, studentId, classId, date, schoolId, syncStatus, lastModified, [studentId+date], [schoolId+date]',
+      syncQueue: '++id, module, synced, timestamp, tempId, entityId, [module+synced]',
+      metadata: 'key, lastUpdated'
+    });
+
+    // Version 2: Extended schema (upgrade from v1)
+    // Adds: 2 new CRUD modules (Teachers, Messages) + 7 read-only modules
+    this.version(2).stores({
+      // New CRUD modules
       teachers: 'id, schoolId, syncStatus, lastModified, phone',
       messages: 'id, schoolId, from, syncStatus, lastModified, [schoolId+from]',
       
@@ -243,11 +250,7 @@ class OfflineDatabase extends Dexie {
       reports: 'id, type, schoolId, lastCached',
       academicData: 'id, type, studentId, classId, schoolId, lastCached',
       canteen: 'id, menuDate, schoolId, lastCached, [schoolId+menuDate]',
-      bus: 'id, schoolId, lastCached',
-      
-      // System tables
-      syncQueue: '++id, module, synced, timestamp, tempId, entityId, [module+synced]',
-      metadata: 'key, lastUpdated'
+      bus: 'id, schoolId, lastCached'
     });
   }
 }
