@@ -127,7 +127,6 @@ import teacherIndependentPaymentsRouter from "./routes/api/teacher-independent-p
 import canteenRoutes from "./routes/canteenRoutes";
 import busRoutes from "./routes/busRoutes";
 import schoolLevelsRoutes from "./routes/schoolLevelsRoutes";
-import calendarRoutes from "./routes/calendar";
 import syncRoutes from "./routes/sync";
 
 // Import new PDF generators routes
@@ -8314,9 +8313,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Online class scheduler (school-controlled session scheduling)
   app.use('/api/online-class-scheduler', onlineClassSchedulerRouter);
-  
-  // Calendar integration for academic events (school & teacher only)
-  app.use('/api/calendar', calendarRoutes);
   
   // app.use('/api/grades', gradesRoutes); // REMOVED - using unified comprehensive bulletin system
   // 🔥 PREMIUM RESTRICTED: Grade review system for directors (director role required)

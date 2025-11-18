@@ -15,7 +15,6 @@ import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
-import CalendarExport from '@/components/shared/CalendarExport';
 
 interface DirectorDashboardProps {
   activeModule?: string;
@@ -177,7 +176,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       schoolSettings: 'Paramètres École',
       onlineClasses: 'Classes en ligne',
       onlineClassScheduler: 'Planification Sessions en Ligne',
-      calendarExport: 'Export Calendrier',
       canteen: 'Cantine',
       bus: 'Transport Scolaire'
     },
@@ -206,7 +204,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       schoolSettings: 'School Settings',
       onlineClasses: 'Online Classes',
       onlineClassScheduler: 'Online Class Scheduler',
-      calendarExport: 'Calendar Export',
       canteen: 'Canteen',
       bus: 'School Bus'
     }
@@ -244,13 +241,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.timetable,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-pink-500'
-    },
-    {
-      id: 'calendar-export',
-      label: t.calendarExport,
-      icon: <Calendar className="w-6 h-6" />,
-      color: 'bg-blue-500',
-      component: <CalendarExport userType="school" schoolId={user?.schoolId} />
     },
     {
       id: 'director-attendance',
