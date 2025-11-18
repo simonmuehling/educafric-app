@@ -80,7 +80,7 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       refetchOnMount: true,
-      staleTime: 0, // Always refetch after invalidation for immediate updates
+      staleTime: 30 * 1000, // 30 seconds - balance between performance and freshness
       gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
       retry: (failureCount, error: any) => {
         // Don't retry on authentication errors

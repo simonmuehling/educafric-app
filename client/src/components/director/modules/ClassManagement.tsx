@@ -454,12 +454,9 @@ const ClassManagement: React.FC = () => {
       if (!response.ok) throw new Error('Failed to edit class');
       return response.json();
     },
-    onSuccess: () => {
-      // Invalidate and immediately refetch to update the UI
-      queryClient.invalidateQueries({ queryKey: ['/api/classes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
-      queryClient.refetchQueries({ queryKey: ['/api/classes'] });
-      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
+    onSuccess: async () => {
+      // Wait for refetch to complete before showing success
+      await queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
       
       toast({
         title: language === 'fr' ? 'Classe modifiée' : 'Class updated',
