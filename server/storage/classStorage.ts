@@ -104,28 +104,70 @@ export class ClassStorage {
     try {
       console.log('[CLASS_STORAGE] Updating class:', classId, 'with data:', updates);
       
-      // Prepare update data (remove undefined values, but allow null for clearing fields)
-      const updateData: any = {};
-      if (updates.name !== undefined) updateData.name = updates.name;
-      if (updates.level !== undefined) updateData.level = updates.level;
-      if (updates.section !== undefined) updateData.section = updates.section;
-      if (updates.maxStudents !== undefined) updateData.maxStudents = updates.maxStudents;
-      if (updates.teacherId !== undefined) updateData.teacherId = updates.teacherId;
-      if (updates.isActive !== undefined) updateData.isActive = updates.isActive;
-      if (updates.room !== undefined) updateData.room = updates.room;
-      if (updates.schedule !== undefined) updateData.schedule = updates.schedule;
-      if (updates.description !== undefined) updateData.description = updates.description;
-      if (updates.academicYearId !== undefined) updateData.academicYearId = updates.academicYearId;
+      // Use transaction to update class and subjects atomically
+      const result = await db.transaction(async (tx) => {
+        // Prepare update data (remove undefined values, but allow null for clearing fields)
+        const updateData: any = {};
+        if (updates.name !== undefined) updateData.name = updates.name;
+        if (updates.level !== undefined) updateData.level = updates.level;
+        if (updates.section !== undefined) updateData.section = updates.section;
+        if (updates.maxStudents !== undefined) updateData.maxStudents = updates.maxStudents;
+        if (updates.teacherId !== undefined) updateData.teacherId = updates.teacherId;
+        if (updates.isActive !== undefined) updateData.isActive = updates.isActive;
+        if (updates.room !== undefined) updateData.room = updates.room;
+        if (updates.schedule !== undefined) updateData.schedule = updates.schedule;
+        if (updates.description !== undefined) updateData.description = updates.description;
+        if (updates.academicYearId !== undefined) updateData.academicYearId = updates.academicYearId;
+        
+        console.log('[CLASS_STORAGE] Prepared update data:', updateData);
+        
+        // Update the class
+        const [updatedClass] = await tx.update(classes)
+          .set(updateData)
+          .where(eq(classes.id, classId))
+          .returning();
+        
+        // Handle subjects update if subjects array is provided
+        if (updates.subjects !== undefined) {
+          console.log('[CLASS_STORAGE] Updating subjects for class:', classId);
+          
+          // Delete existing subjects for this class
+          await tx.delete(subjects).where(eq(subjects.classId, classId));
+          console.log('[CLASS_STORAGE] Deleted existing subjects');
+          
+          // Insert new subjects if provided
+          if (Array.isArray(updates.subjects) && updates.subjects.length > 0) {
+            const subjectsToInsert = updates.subjects.map((subject: any) => {
+              const providedName = subject.nameFr || subject.name || subject.nameEn;
+              if (!providedName || !providedName.trim()) {
+                throw new Error('Subject must have a name');
+              }
+              
+              const nameFr = subject.nameFr || subject.name || subject.nameEn;
+              const nameEn = subject.nameEn || subject.name || subject.nameFr;
+              
+              return {
+                nameFr,
+                nameEn,
+                code: subject.code || null,
+                coefficient: subject.coefficient?.toString() || '1',
+                schoolId: updatedClass.schoolId,
+                classId: classId,
+                subjectType: subject.category || subject.subjectType || 'general',
+                bulletinSection: subject.bulletinSection || null
+              };
+            });
+            
+            await tx.insert(subjects).values(subjectsToInsert);
+            console.log('[CLASS_STORAGE] ✅ Inserted', subjectsToInsert.length, 'subjects');
+          }
+        }
+        
+        console.log('[CLASS_STORAGE] ✅ Class updated successfully');
+        return updatedClass;
+      });
       
-      console.log('[CLASS_STORAGE] Prepared update data:', updateData);
-      
-      const [updatedClass] = await db.update(classes)
-        .set(updateData)
-        .where(eq(classes.id, classId))
-        .returning();
-      
-      console.log('[CLASS_STORAGE] ✅ Class updated successfully:', updatedClass);
-      return updatedClass;
+      return result;
     } catch (error) {
       console.error('[CLASS_STORAGE] ❌ Error updating class:', error);
       throw error;
