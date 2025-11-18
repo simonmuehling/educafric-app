@@ -67,6 +67,7 @@ Educafric is a comprehensive, bilingual (French/English), mobile-first education
 
 ### Key Features and Design Choices
 - **Offline-First**: Service Worker, IndexedDB, Background Sync.
+- **Offline Premium**: 14-day offline limit for Directors/Parents, unlimited for Teachers/Students. Progressive 3-tier warning system (0-3d, 3-7d, 7-14d, blocked 14+). Modules: Classes, Students, Attendance. Features: temp→real ID reconciliation, conflict-free sync queue, role-based access control.
 - **Authentication & Authorization**: Local and Firebase Google OAuth, session management, granular permissions.
 - **Educational Management**: Grade management (African-style), real-time attendance, homework, flexible timetables.
 - **Communication**: Multi-channel notifications (WhatsApp, Hostinger SMTP Email), bilingual templates, automatic parent notifications.
@@ -98,6 +99,7 @@ Educafric is a comprehensive, bilingual (French/English), mobile-first education
 - **Vite**: Development server and build tool.
 - **Drizzle Kit**: Database migrations.
 - **ESBuild**: Server-side TypeScript compilation.
+- **Dexie.js**: IndexedDB wrapper for offline data storage.
 
 ### UI/UX Libraries
 - **Radix UI**: Headless component primitives.
