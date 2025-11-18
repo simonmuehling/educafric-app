@@ -455,8 +455,12 @@ const ClassManagement: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate and immediately refetch to update the UI
       queryClient.invalidateQueries({ queryKey: ['/api/classes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
+      queryClient.refetchQueries({ queryKey: ['/api/classes'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
+      
       toast({
         title: language === 'fr' ? 'Classe modifiée' : 'Class updated',
         description: language === 'fr' ? 'La classe a été modifiée avec succès.' : 'Class has been updated successfully.'
