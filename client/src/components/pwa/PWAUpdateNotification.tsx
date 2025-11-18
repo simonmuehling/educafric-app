@@ -54,29 +54,30 @@ export function PWAUpdateNotification({
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           className={`fixed ${
             position === 'bottom' ? 'bottom-4' : 'top-4'
-          } left-1/2 -translate-x-1/2 z-[9999] w-full max-w-md px-4`}
+          } left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 z-[9999] sm:w-full sm:max-w-md`}
           data-testid="pwa-update-notification"
         >
-          <Card className="bg-primary dark:bg-primary text-primary-foreground p-4 shadow-lg border-0">
+          <Card className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-4 shadow-2xl border border-gray-200 dark:border-gray-700">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-0.5">
-                <RefreshCw className="w-5 h-5" />
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <RefreshCw className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
               
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm mb-1" data-testid="text-update-title">
+                <h3 className="font-semibold text-base sm:text-sm mb-1" data-testid="text-update-title">
                   Nouvelle version disponible
                 </h3>
-                <p className="text-sm opacity-90 mb-3" data-testid="text-update-message">
+                <p className="text-sm sm:text-xs text-gray-600 dark:text-gray-300 mb-3" data-testid="text-update-message">
                   Une mise à jour d'Educafric est disponible. Rafraîchissez pour profiter des dernières améliorations.
                 </p>
                 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button
                     size="sm"
-                    variant="secondary"
                     onClick={handleUpdate}
-                    className="flex items-center gap-2 bg-white hover:bg-gray-100 text-primary"
+                    className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
                     data-testid="button-apply-update"
                   >
                     <RefreshCw className="w-4 h-4" />
@@ -85,9 +86,9 @@ export function PWAUpdateNotification({
                   
                   <Button
                     size="sm"
-                    variant="ghost"
+                    variant="outline"
                     onClick={handleDismiss}
-                    className="text-primary-foreground hover:bg-primary-foreground/10"
+                    className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full sm:w-auto"
                     data-testid="button-dismiss-update"
                   >
                     Plus tard
@@ -97,7 +98,7 @@ export function PWAUpdateNotification({
               
               <button
                 onClick={handleDismiss}
-                className="flex-shrink-0 text-primary-foreground hover:bg-primary-foreground/10 rounded-full p-1 transition-colors"
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-1 transition-colors"
                 aria-label="Fermer"
                 data-testid="button-close-update"
               >
