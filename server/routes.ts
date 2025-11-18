@@ -8294,8 +8294,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(waConfigRoutes); // WhatsApp user configuration
   
   // Additional routes after main registrations  
-  // 🔥 PREMIUM RESTRICTED: Advanced class management (unlimited classes + analytics)
-  app.use('/api/classes', checkSubscriptionFeature('advanced_class_management'), checkFreemiumLimits('classes'), classesRoutes);
+  // Class management routes - Basic CRUD operations available to all schools
+  // Only analytics and unlimited classes require premium
+  app.use('/api/classes', classesRoutes);
   
   // 🔥 PREMIUM RESTRICTED: Online classes with Jitsi Meet integration (premium subscription only)
   // Note: Subscription validation handled by onlineClassesRoutes middleware
