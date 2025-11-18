@@ -11,6 +11,7 @@ import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
 import { ImageRefreshProvider } from "@/contexts/ImageRefreshContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { OfflinePremiumProvider } from "@/contexts/offline/OfflinePremiumContext";
 import { handleRedirect } from "@/lib/firebase";
 import React, { useEffect, lazy, Suspense, useState } from "react";
 import { BookOpen } from 'lucide-react';
@@ -599,12 +600,13 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ImageRefreshProvider>
           <AuthProvider>
-            <LanguageProvider>
-              <NotificationProvider>
-                <CurrencyProvider>
-                  <SandboxProvider>
-                    <SandboxPremiumProvider>
-                      <ConsolidatedNotificationProvider>
+            <OfflinePremiumProvider>
+              <LanguageProvider>
+                <NotificationProvider>
+                  <CurrencyProvider>
+                    <SandboxProvider>
+                      <SandboxPremiumProvider>
+                        <ConsolidatedNotificationProvider>
                     <TooltipProvider>
                       <FirebaseRedirectHandler />
                       <AppLayout>
@@ -617,11 +619,12 @@ function App() {
                       <Toaster />
                     </TooltipProvider>
                       </ConsolidatedNotificationProvider>
-                    </SandboxPremiumProvider>
-                  </SandboxProvider>
-                </CurrencyProvider>
-              </NotificationProvider>
-            </LanguageProvider>
+                      </SandboxPremiumProvider>
+                    </SandboxProvider>
+                  </CurrencyProvider>
+                </NotificationProvider>
+              </LanguageProvider>
+            </OfflinePremiumProvider>
           </AuthProvider>
         </ImageRefreshProvider>
       </QueryClientProvider>

@@ -92,6 +92,8 @@
     "csv-parse": "^6.1.0",
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.18",
+    "dexie": "^4.2.1",
+    "dexie-react-hooks": "^4.2.0",
     "drizzle-orm": "^0.39.1",
     "drizzle-zod": "^0.7.0",
     "eas-cli": "^16.17.3",
