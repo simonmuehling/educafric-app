@@ -102,9 +102,9 @@ export class ClassStorage {
   
   async updateClass(classId: number, updates: any) {
     try {
-      console.log('[CLASS_STORAGE] Updating class:', classId);
+      console.log('[CLASS_STORAGE] Updating class:', classId, 'with data:', updates);
       
-      // Prepare update data (remove undefined/null values)
+      // Prepare update data (remove undefined values, but allow null for clearing fields)
       const updateData: any = {};
       if (updates.name !== undefined) updateData.name = updates.name;
       if (updates.level !== undefined) updateData.level = updates.level;
@@ -112,13 +112,19 @@ export class ClassStorage {
       if (updates.maxStudents !== undefined) updateData.maxStudents = updates.maxStudents;
       if (updates.teacherId !== undefined) updateData.teacherId = updates.teacherId;
       if (updates.isActive !== undefined) updateData.isActive = updates.isActive;
+      if (updates.room !== undefined) updateData.room = updates.room;
+      if (updates.schedule !== undefined) updateData.schedule = updates.schedule;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.academicYearId !== undefined) updateData.academicYearId = updates.academicYearId;
+      
+      console.log('[CLASS_STORAGE] Prepared update data:', updateData);
       
       const [updatedClass] = await db.update(classes)
         .set(updateData)
         .where(eq(classes.id, classId))
         .returning();
       
-      console.log('[CLASS_STORAGE] ✅ Class updated successfully');
+      console.log('[CLASS_STORAGE] ✅ Class updated successfully:', updatedClass);
       return updatedClass;
     } catch (error) {
       console.error('[CLASS_STORAGE] ❌ Error updating class:', error);
