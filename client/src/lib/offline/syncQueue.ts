@@ -8,7 +8,7 @@ import { offlineDb, SyncQueueItem } from './db';
 export class SyncQueueManager {
   // Add item to sync queue
   static async enqueue(
-    module: 'classes' | 'students' | 'attendance',
+    module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages',
     action: 'create' | 'update' | 'delete',
     payload: any,
     entityId?: number,
@@ -26,6 +26,12 @@ export class SyncQueueManager {
     });
     
     console.log(`[SYNC_QUEUE] ✅ Enqueued ${action} on ${module}`, { entityId, tempId, payload });
+  }
+
+  // Alias for compatibility with other hooks
+  static async addToQueue(item: Omit<SyncQueueItem, 'id'>): Promise<void> {
+    await offlineDb.syncQueue.add(item);
+    console.log(`[SYNC_QUEUE] ✅ Added to queue: ${item.action} on ${item.module}`);
   }
 
   // Get all pending items
@@ -128,6 +134,12 @@ export class SyncQueueManager {
         case 'attendance':
           realId = responseData.attendance?.id || responseData.id;
           break;
+        case 'teachers':
+          realId = responseData.teacher?.id;
+          break;
+        case 'messages':
+          realId = responseData.message?.id;
+          break;
       }
       
       if (realId) {
@@ -148,7 +160,7 @@ export class SyncQueueManager {
 
   // Update local record with real ID after server sync
   private static async updateLocalRecordId(
-    module: 'classes' | 'students' | 'attendance',
+    module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages',
     tempId: number,
     realId: number
   ): Promise<void> {
@@ -174,12 +186,26 @@ export class SyncQueueManager {
           await offlineDb.attendance.put({ ...attendanceRecord, id: realId, syncStatus: 'synced' });
         }
         break;
+      case 'teachers':
+        const teacherRecord = await offlineDb.teachers.get(tempId);
+        if (teacherRecord) {
+          await offlineDb.teachers.delete(tempId);
+          await offlineDb.teachers.put({ ...teacherRecord, id: realId, syncStatus: 'synced' });
+        }
+        break;
+      case 'messages':
+        const messageRecord = await offlineDb.messages.get(tempId);
+        if (messageRecord) {
+          await offlineDb.messages.delete(tempId);
+          await offlineDb.messages.put({ ...messageRecord, id: realId, syncStatus: 'synced' });
+        }
+        break;
     }
   }
 
   // Update pending queue entries with real ID after CREATE sync
   private static async updateQueueEntityIds(
-    module: 'classes' | 'students' | 'attendance',
+    module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages',
     tempId: number,
     realId: number
   ): Promise<void> {
@@ -209,7 +235,9 @@ export class SyncQueueManager {
     const baseEndpoints = {
       classes: '/api/classes',
       students: '/api/director/students',
-      attendance: '/api/director/attendance'
+      attendance: '/api/director/attendance',
+      teachers: '/api/director/teachers',
+      messages: '/api/director/messages'
     };
 
     const base = baseEndpoints[module as keyof typeof baseEndpoints];

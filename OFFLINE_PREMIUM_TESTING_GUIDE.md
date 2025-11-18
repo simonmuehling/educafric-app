@@ -10,6 +10,24 @@ Le système Offline Premium permet aux utilisateurs de travailler hors ligne pen
 - **Directors/Parents**: Accès offline limité à 14 jours (sauf école avec mode unlimited activé)
 - **Sandbox accounts**: Accès offline ILLIMITÉ
 
+### 📦 Modules supportés
+
+#### ✅ Modules avec CRUD complet offline (5)
+1. **Classes** - Créer, modifier, supprimer des classes
+2. **Students** - Gestion complète des étudiants
+3. **Attendance** - Marquage présences/absences
+4. **Teachers** - Gestion des enseignants
+5. **Messages & Communications** - Envoi et gestion de messages
+
+#### 👁️ Modules en lecture seule offline (7)
+6. **Schedule (Timetable)** - Consultation de l'emploi du temps
+7. **School Attendance** - Statistiques de présence de l'école
+8. **Delegated Administrators** - Liste des administrateurs délégués
+9. **Reports** - Consultation des rapports
+10. **Academic Management** - Bulletins, notes, examens
+11. **Canteen** - Menus et gestion cantine
+12. **School Bus / Transport** - Itinéraires et gestion transport
+
 ### ⚠️ Système d'avertissement à 3 niveaux
 1. **0-3 jours**: ✅ Aucun avertissement - Accès complet
 2. **3-7 jours**: 🟡 Bannière jaune - "Connexion recommandée"
@@ -22,14 +40,17 @@ Le système Offline Premium permet aux utilisateurs de travailler hors ligne pen
 ```
 client/src/
 ├── lib/offline/
-│   ├── db.ts                          # Schema IndexedDB avec Dexie.js
+│   ├── db.ts                          # Schema IndexedDB avec Dexie.js (12 tables)
 │   └── syncQueue.ts                   # Gestionnaire de file de synchronisation
 ├── contexts/offline/
 │   └── OfflinePremiumContext.tsx      # Contexte global offline premium
 ├── hooks/offline/
-│   ├── useOfflineClasses.ts           # Hook offline pour classes
-│   ├── useOfflineStudents.ts          # Hook offline pour étudiants
-│   └── useOfflineAttendance.ts        # Hook offline pour présences
+│   ├── useOfflineClasses.ts           # Hook offline CRUD - Classes
+│   ├── useOfflineStudents.ts          # Hook offline CRUD - Students
+│   ├── useOfflineAttendance.ts        # Hook offline CRUD - Attendance
+│   ├── useOfflineTeachers.ts          # Hook offline CRUD - Teachers
+│   ├── useOfflineMessages.ts          # Hook offline CRUD - Messages
+│   └── useOfflineReadOnly.ts          # Hook générique lecture seule (7 modules)
 └── components/offline/
     └── OfflineWarningBanner.tsx       # Composant d'avertissement visuel
 ```
@@ -37,9 +58,18 @@ client/src/
 ### Backend
 ```
 server/routes.ts
-├── POST /api/classes               # Retourne { class: { id, ... } }
-├── POST /api/director/students     # Retourne { student: { id, ... } }
-└── POST /api/director/attendance   # Retourne { attendance: { id, ... } }
+├── POST /api/classes                    # Retourne { class: { id, ... } }
+├── POST /api/director/students          # Retourne { student: { id, ... } }
+├── POST /api/director/attendance        # Retourne { attendance: { id, ... } }
+├── POST /api/director/teachers          # Retourne { teacher: { id, ... } }
+├── POST /api/director/messages          # Retourne { message: { id, ... } }
+├── GET  /api/director/timetable         # Emploi du temps (read-only)
+├── GET  /api/director/school-attendance # Stats présence (read-only)
+├── GET  /api/director/delegated-admins  # Admins délégués (read-only)
+├── GET  /api/director/reports           # Rapports (read-only)
+├── GET  /api/director/academic-data     # Bulletins/Notes (read-only)
+├── GET  /api/director/canteen           # Cantine (read-only)
+└── GET  /api/director/bus               # Transport (read-only)
 ```
 
 ## 🔄 Flux de synchronisation
@@ -69,11 +99,29 @@ server/routes.ts
 2. Vérifier les logs: `[OFFLINE_PREMIUM] 📊 Metadata loaded`
 3. Vérifier: `daysOffline`, `offlineMode`, `lastSync`
 
-### Test 2: Simuler offline
+### Test 2: Simuler offline (modules CRUD)
 1. DevTools > Network > Throttling > Offline
-2. Créer une classe/étudiant/présence
+2. Créer entités offline:
+   - Classe (via module Classes)
+   - Étudiant (via module Students)
+   - Présence (via module Attendance)
+   - Enseignant (via module Teachers)
+   - Message (via module Messages)
 3. Vérifier création dans IndexedDB: DevTools > Application > IndexedDB > EducafricOfflineDB
-4. Vérifier entrée dans `syncQueue` avec `tempId`
+4. Vérifier entrées dans `syncQueue` avec `tempId` pour chaque module
+
+### Test 2b: Simuler offline (modules read-only)
+1. Aller online, charger données des modules read-only
+2. DevTools > Network > Throttling > Offline
+3. Vérifier que les données sont toujours visibles:
+   - Emploi du temps (Timetable)
+   - Statistiques présence (School Attendance)
+   - Admins délégués (Delegated Admins)
+   - Rapports (Reports)
+   - Bulletins/Notes (Academic Data)
+   - Menus cantine (Canteen)
+   - Itinéraires bus (Bus)
+4. Vérifier dans IndexedDB que les données ont `lastCached` timestamp
 
 ### Test 3: Synchronisation au retour online
 1. DevTools > Network > Throttling > No throttling (online)
@@ -128,20 +176,41 @@ await setOfflineMode('limited');
 
 ## ✅ Checklist de validation
 
-- [ ] IndexedDB créée avec schema Dexie (tables: classes, students, attendance, syncQueue, metadata)
+### Infrastructure
+- [ ] IndexedDB créée avec schema Dexie v2 (12 tables: 5 CRUD + 7 read-only + 2 system)
 - [ ] OfflinePremiumProvider intégré dans App.tsx
 - [ ] OfflineWarningBanner visible dans DirectorPage
-- [ ] Création offline avec tempId → realId mapping fonctionne
+
+### Modules CRUD complets (5)
+- [ ] **Classes**: Création/modification/suppression offline fonctionne
+- [ ] **Students**: Création/modification/suppression offline fonctionne
+- [ ] **Attendance**: Création/modification/suppression offline fonctionne
+- [ ] **Teachers**: Création/modification/suppression offline fonctionne
+- [ ] **Messages**: Création/modification/suppression offline fonctionne
+
+### Modules lecture seule (7)
+- [ ] **Timetable**: Cache et affichage offline fonctionne
+- [ ] **School Attendance**: Cache et affichage offline fonctionne
+- [ ] **Delegated Admins**: Cache et affichage offline fonctionne
+- [ ] **Reports**: Cache et affichage offline fonctionne
+- [ ] **Academic Data**: Cache et affichage offline fonctionne
+- [ ] **Canteen**: Cache et affichage offline fonctionne
+- [ ] **Bus**: Cache et affichage offline fonctionne
+
+### Synchronisation
+- [ ] tempId → realId mapping fonctionne pour les 5 modules CRUD
 - [ ] Modification offline → synchronisation fonctionne
 - [ ] Suppression offline → synchronisation fonctionne
+- [ ] Synchronisation automatique toutes les 60 secondes
+- [ ] Entrées pending préservées lors du fetch server
+
+### Avertissements & Contrôle d'accès
 - [ ] Bannière jaune (3-7 jours) s'affiche correctement
 - [ ] Bannière rouge (7-14 jours) s'affiche avec countdown
 - [ ] Accès bloqué (14+ jours) pour Directors/Parents
 - [ ] Teachers/Students ont accès unlimited
 - [ ] Sandbox accounts ont accès unlimited
-- [ ] Synchronisation automatique toutes les 60 secondes
 - [ ] Recalcul daysOffline toutes les 5 minutes
-- [ ] Entrées pending préservées lors du fetch server
 
 ## 🔮 Fonctionnalités futures
 

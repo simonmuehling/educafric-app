@@ -3,8 +3,9 @@ import Dexie, { Table } from 'dexie';
 // ===========================
 // 📦 OFFLINE DATABASE SCHEMA
 // ===========================
-// IndexedDB schema for offline storage of critical modules
-// Supports: Classes, Students, Attendance
+// IndexedDB schema for offline storage
+// Full CRUD: Classes, Students, Attendance, Teachers, Messages
+// Read-only: Timetable, School Attendance, Delegated Admins, Reports, Academic Mgmt, Canteen, Bus
 
 export interface OfflineClass {
   id: number;
@@ -59,9 +60,122 @@ export interface OfflineAttendance {
   localOnly?: boolean;
 }
 
+export interface OfflineTeacher {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone: string;
+  subject?: string;
+  classIds?: number[];
+  schoolId: number;
+  qualifications?: string;
+  photoUrl?: string;
+  // Offline metadata
+  lastModified: number;
+  syncStatus: 'synced' | 'pending' | 'conflict';
+  localOnly?: boolean;
+}
+
+export interface OfflineMessage {
+  id: number;
+  subject: string;
+  content: string;
+  from: number;
+  to: number[];
+  recipientType: 'parent' | 'teacher' | 'student' | 'all';
+  status: 'draft' | 'sent' | 'delivered' | 'read';
+  sentAt?: number;
+  schoolId: number;
+  classId?: number;
+  // Offline metadata
+  lastModified: number;
+  syncStatus: 'synced' | 'pending' | 'conflict';
+  localOnly?: boolean;
+}
+
+// Read-only modules (cache only, no offline modifications)
+export interface OfflineTimetable {
+  id: number;
+  classId: number;
+  teacherId: number;
+  subject: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  room?: string;
+  schoolId: number;
+  isActive: boolean;
+  lastCached: number;
+}
+
+export interface OfflineSchoolAttendance {
+  id: number;
+  date: string;
+  totalPresent: number;
+  totalAbsent: number;
+  totalLate: number;
+  classBreakdown: any;
+  schoolId: number;
+  lastCached: number;
+}
+
+export interface OfflineDelegatedAdmin {
+  id: number;
+  userId: number;
+  name: string;
+  email: string;
+  phone: string;
+  permissions: string[];
+  schoolId: number;
+  isActive: boolean;
+  lastCached: number;
+}
+
+export interface OfflineReport {
+  id: number;
+  type: string;
+  title: string;
+  generatedAt: number;
+  data: any;
+  schoolId: number;
+  lastCached: number;
+}
+
+export interface OfflineAcademicData {
+  id: number;
+  type: 'bulletin' | 'grade' | 'exam';
+  studentId?: number;
+  classId?: number;
+  term?: string;
+  data: any;
+  schoolId: number;
+  lastCached: number;
+}
+
+export interface OfflineCanteen {
+  id: number;
+  menuDate: string;
+  menu: any;
+  studentIds: number[];
+  schoolId: number;
+  lastCached: number;
+}
+
+export interface OfflineBus {
+  id: number;
+  routeName: string;
+  driverName?: string;
+  studentIds: number[];
+  stops: any[];
+  schoolId: number;
+  isActive: boolean;
+  lastCached: number;
+}
+
 export interface SyncQueueItem {
   id?: number;
-  module: 'classes' | 'students' | 'attendance';
+  module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages';
   action: 'create' | 'update' | 'delete';
   entityId?: number;
   tempId?: number; // Temporary ID for offline-created entities
@@ -81,7 +195,7 @@ export interface OfflineMetadata {
 export interface TempIdMapping {
   tempId: number;
   realId: number;
-  module: 'classes' | 'students' | 'attendance';
+  module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages';
   timestamp: number;
 }
 
@@ -89,19 +203,49 @@ export interface TempIdMapping {
 // 🗄️ DEXIE DATABASE CLASS
 // ===========================
 class OfflineDatabase extends Dexie {
+  // Full CRUD modules
   classes!: Table<OfflineClass, number>;
   students!: Table<OfflineStudent, number>;
   attendance!: Table<OfflineAttendance, number>;
+  teachers!: Table<OfflineTeacher, number>;
+  messages!: Table<OfflineMessage, number>;
+  
+  // Read-only modules
+  timetable!: Table<OfflineTimetable, number>;
+  schoolAttendance!: Table<OfflineSchoolAttendance, number>;
+  delegatedAdmins!: Table<OfflineDelegatedAdmin, number>;
+  reports!: Table<OfflineReport, number>;
+  academicData!: Table<OfflineAcademicData, number>;
+  canteen!: Table<OfflineCanteen, number>;
+  bus!: Table<OfflineBus, number>;
+  
+  // System tables
   syncQueue!: Table<SyncQueueItem, number>;
   metadata!: Table<OfflineMetadata, string>;
 
   constructor() {
     super('EducafricOfflineDB');
     
+    // Version 1: Complete Offline Premium schema with all 12 modules
+    // NOTE: This is a fresh implementation. Users with experimental/dev versions should clear IndexedDB.
     this.version(1).stores({
+      // Full CRUD modules with sync tracking
       classes: 'id, schoolId, syncStatus, lastModified',
       students: 'id, schoolId, classId, syncStatus, lastModified, [schoolId+classId]',
       attendance: '++id, studentId, classId, date, schoolId, syncStatus, lastModified, [studentId+date], [schoolId+date]',
+      teachers: 'id, schoolId, syncStatus, lastModified, phone',
+      messages: 'id, schoolId, from, syncStatus, lastModified, [schoolId+from]',
+      
+      // Read-only modules (cache only)
+      timetable: 'id, classId, teacherId, schoolId, lastCached, [schoolId+classId]',
+      schoolAttendance: 'id, date, schoolId, lastCached, [schoolId+date]',
+      delegatedAdmins: 'id, userId, schoolId, lastCached',
+      reports: 'id, type, schoolId, lastCached',
+      academicData: 'id, type, studentId, classId, schoolId, lastCached',
+      canteen: 'id, menuDate, schoolId, lastCached, [schoolId+menuDate]',
+      bus: 'id, schoolId, lastCached',
+      
+      // System tables
       syncQueue: '++id, module, synced, timestamp, tempId, entityId, [module+synced]',
       metadata: 'key, lastUpdated'
     });

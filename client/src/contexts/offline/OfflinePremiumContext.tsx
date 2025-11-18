@@ -42,7 +42,7 @@ interface OfflinePremiumContextType {
   updateLastSync: () => Promise<void>;
 }
 
-const OfflinePremiumContext = createContext<OfflinePremiumContextType | undefined>(undefined);
+export const OfflinePremiumContext = createContext<OfflinePremiumContextType | undefined>(undefined);
 
 export function OfflinePremiumProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
