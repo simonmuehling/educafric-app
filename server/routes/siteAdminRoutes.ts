@@ -139,6 +139,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
             monthlyRevenue: 0,  // Frontend expects this field
             createdAt: school.createdAt,
             educafricNumber: school.educafricNumber,
+            offlinePremiumEnabled: school.offlinePremiumEnabled || false,  // Offline Premium toggle
             director: director ? `${director.firstName || ''} ${director.lastName || ''}`.trim() : 'N/A',
             directorEmail: director?.email || null,
             directorPhone: director?.phone || null
@@ -160,6 +161,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
             monthlyRevenue: 0,  // Frontend expects this field
             createdAt: school.createdAt,
             educafricNumber: school.educafricNumber,
+            offlinePremiumEnabled: school.offlinePremiumEnabled || false,  // Offline Premium toggle
             director: 'N/A',
             directorEmail: null,
             directorPhone: null
