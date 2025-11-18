@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { 
   School, 
   Building2, 
@@ -62,6 +63,7 @@ interface School {
   createdAt: string;
   lastActiveAt: string | null;
   isBlocked?: boolean;
+  offlinePremiumEnabled?: boolean;
 }
 
 interface SubscriptionPlan {
@@ -187,7 +189,14 @@ const SchoolManagement = () => {
       blockSchoolConfirm: 'Êtes-vous sûr de vouloir bloquer cette école ?',
       unblockSchoolConfirm: 'Êtes-vous sûr de vouloir débloquer cette école ?',
       blocked: 'Bloquée',
-      unblocked: 'Active'
+      unblocked: 'Active',
+      offlinePremium: 'Offline Premium',
+      offlinePremiumEnabled: 'Offline Premium Activé',
+      offlinePremiumDisabled: 'Offline Premium Désactivé',
+      enableOfflinePremium: 'Activer Offline Premium',
+      disableOfflinePremium: 'Désactiver Offline Premium',
+      offlinePremiumDescription: 'Accès hors ligne illimité pour tous les 12 modules',
+      offlinePremiumUpdated: 'Statut Offline Premium mis à jour'
     },
     en: {
       title: 'School Management',
@@ -236,7 +245,44 @@ const SchoolManagement = () => {
       primary: 'Primary',
       secondary: 'Secondary',
       university: 'University',
-      mixed: 'Mixed'
+      mixed: 'Mixed',
+      manageSubscription: 'Manage Subscription',
+      blockSchool: 'Block School',
+      unblockSchool: 'Unblock School',
+      createNewSchool: 'Create New School',
+      subscriptionManagement: 'Subscription Management',
+      extendSubscription: 'Extend Subscription',
+      activateSubscription: 'Activate Subscription',
+      cancelSubscription: 'Cancel Subscription',
+      selectPlan: 'Select Plan',
+      duration: 'Duration (months)',
+      notes: 'Notes',
+      save: 'Save',
+      cancel: 'Cancel',
+      address: 'Address',
+      city: 'City',
+      country: 'Country',
+      phone: 'Phone',
+      email: 'Email',
+      website: 'Website',
+      level: 'Level',
+      schoolCreated: 'School created successfully',
+      subscriptionUpdated: 'Subscription updated',
+      schoolBlocked: 'School blocked',
+      schoolUnblocked: 'School unblocked',
+      confirmBlock: 'Confirm Block',
+      confirmUnblock: 'Confirm Unblock',
+      blockSchoolConfirm: 'Are you sure you want to block this school?',
+      unblockSchoolConfirm: 'Are you sure you want to unblock this school?',
+      blocked: 'Blocked',
+      unblocked: 'Active',
+      offlinePremium: 'Offline Premium',
+      offlinePremiumEnabled: 'Offline Premium Enabled',
+      offlinePremiumDisabled: 'Offline Premium Disabled',
+      enableOfflinePremium: 'Enable Offline Premium',
+      disableOfflinePremium: 'Disable Offline Premium',
+      offlinePremiumDescription: 'Unlimited offline access for all 12 modules',
+      offlinePremiumUpdated: 'Offline Premium status updated'
     }
   };
 
@@ -368,6 +414,28 @@ const SchoolManagement = () => {
       toast({
         title: 'Erreur',
         description: 'Échec de la mise à jour du statut de l\'école',
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Toggle Offline Premium mutation
+  const toggleOfflinePremiumMutation = useMutation({
+    mutationFn: ({ schoolId, enabled }: { schoolId: number; enabled: boolean }) => 
+      apiRequest('PATCH', `/api/siteadmin/schools/${schoolId}/offline-premium`, { enabled }),
+    onSuccess: (_, { enabled }) => {
+      toast({
+        title: t.success,
+        description: t.offlinePremiumUpdated
+      });
+      setShowSubscriptionDialog(false);
+      setSelectedSchoolForSubscription(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+    },
+    onError: () => {
+      toast({
+        title: t.error,
+        description: language === 'fr' ? 'Échec de la mise à jour du statut Offline Premium' : 'Failed to update Offline Premium status',
         variant: "destructive"
       });
     }
@@ -774,9 +842,17 @@ const SchoolManagement = () => {
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <Badge className={getStatusColor(school.subscriptionStatus)}>
-                      {school.subscriptionStatus}
-                    </Badge>
+                    <div className="flex flex-col gap-1">
+                      {school.offlinePremiumEnabled ? (
+                        <Badge className="bg-purple-100 text-purple-800">
+                          {t.offlinePremiumEnabled}
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-gray-100 text-gray-600">
+                          {t.offlinePremiumDisabled}
+                        </Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
@@ -873,80 +949,44 @@ const SchoolManagement = () => {
       {/* School Table */}
       {renderSchoolTable()}
 
-      {/* Subscription Management Dialog */}
+      {/* Offline Premium Management Dialog */}
       <Dialog open={showSubscriptionDialog} onOpenChange={setShowSubscriptionDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white">
           <DialogHeader>
-            <DialogTitle>Gestion des abonnements</DialogTitle>
+            <DialogTitle>{t.offlinePremium}</DialogTitle>
             <DialogDescription>
-              Gérer l'abonnement de {selectedSchoolForSubscription?.name}
+              {selectedSchoolForSubscription?.name}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="action">Action</Label>
-              <Select value={subscriptionData.action} onValueChange={(value: 'extend' | 'activate' | 'cancel') => setSubscriptionData({...subscriptionData, action: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="extend">Prolonger Abonnement</SelectItem>
-                  <SelectItem value="activate">Activer Abonnement</SelectItem>
-                  <SelectItem value="cancel">Annuler Abonnement</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {(subscriptionData.action === 'extend' || subscriptionData.action === 'activate') && (
-              <>
-                <div>
-                  <Label htmlFor="plan">Sélectionner Plan</Label>
-                  <Select value={subscriptionData.planId} onValueChange={(value) => setSubscriptionData({...subscriptionData, planId: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un plan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ecole_500_plus">École 500+ élèves (EDUCAFRIC paie 150.000 CFA/an)</SelectItem>
-                      <SelectItem value="ecole_500_moins">École moins de 500 élèves (EDUCAFRIC paie 200.000 CFA/an)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="duration">Durée (mois)</Label>
-                  <Select value={subscriptionData.duration} onValueChange={(value) => setSubscriptionData({...subscriptionData, duration: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="3">3 mois</SelectItem>
-                      <SelectItem value="6">6 mois</SelectItem>
-                      <SelectItem value="12">12 mois</SelectItem>
-                      <SelectItem value="24">24 mois</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            )}
-
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={subscriptionData.notes}
-                onChange={(e) => setSubscriptionData({...subscriptionData, notes: e.target.value})}
-                placeholder="Notes additionnelles sur cette action..."
-                rows={3}
+          <div className="space-y-6 py-4">
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1">
+                <Label htmlFor="offline-premium-toggle" className="text-base font-medium">
+                  {selectedSchoolForSubscription?.offlinePremiumEnabled ? t.offlinePremiumEnabled : t.offlinePremiumDisabled}
+                </Label>
+                <p className="text-sm text-gray-500 mt-1">
+                  {t.offlinePremiumDescription}
+                </p>
+              </div>
+              <Switch
+                id="offline-premium-toggle"
+                checked={selectedSchoolForSubscription?.offlinePremiumEnabled || false}
+                onCheckedChange={(checked) => {
+                  if (selectedSchoolForSubscription) {
+                    toggleOfflinePremiumMutation.mutate({
+                      schoolId: selectedSchoolForSubscription.id,
+                      enabled: checked
+                    });
+                  }
+                }}
+                disabled={toggleOfflinePremiumMutation.isPending}
+                data-testid="switch-offline-premium"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSubscriptionDialog(false)}>
-              Annuler
-            </Button>
-            <Button onClick={handleSubscriptionAction} disabled={manageSubscriptionMutation.isPending}>
-              {manageSubscriptionMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-              Enregistrer
+            <Button variant="outline" onClick={() => setShowSubscriptionDialog(false)} data-testid="button-close-offline-premium">
+              {t.cancel}
             </Button>
           </DialogFooter>
         </DialogContent>
