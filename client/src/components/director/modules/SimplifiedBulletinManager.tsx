@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   FileText, 
   Download, 
@@ -54,6 +55,7 @@ export default function SimplifiedBulletinManager() {
   const { language } = useLanguage();
   const { toast } = useToast();
   const { isAuthenticated, user } = useAuth();
+  const queryClient = useQueryClient();
 
   // State management
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);

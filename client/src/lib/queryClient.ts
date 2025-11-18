@@ -80,8 +80,8 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       refetchOnMount: true,
-      staleTime: 15 * 60 * 1000, // 15 minutes cache - optimized for 3500+ users
-      gcTime: 30 * 60 * 1000, // 30 minutes garbage collection - enterprise scale
+      staleTime: 0, // Always refetch after invalidation for immediate updates
+      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
       retry: (failureCount, error: any) => {
         // Don't retry on authentication errors
         if (error.message?.includes('401')) return false;
