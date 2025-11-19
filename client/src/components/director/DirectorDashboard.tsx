@@ -173,6 +173,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       finances: 'Finances',
       reports: 'Rapports', 
       configGuide: 'Guide Configuration',
+      offlinePremiumGuide: 'Guide Offline Premium',
       schoolSettings: 'Paramètres École',
       onlineClasses: 'Classes en ligne',
       onlineClassScheduler: 'Planification Sessions en Ligne',
@@ -201,6 +202,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       finances: 'Finances',
       reports: 'Reports',
       configGuide: 'Configuration Guide',
+      offlinePremiumGuide: 'Offline Premium Guide',
       schoolSettings: 'School Settings',
       onlineClasses: 'Online Classes',
       onlineClassScheduler: 'Online Class Scheduler',
@@ -295,6 +297,14 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.configGuide,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-indigo-500'
+    },
+    {
+      id: 'offline-premium-guide',
+      label: t.offlinePremiumGuide,
+      icon: <FileText className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-purple-600 to-violet-600',
+      skipPreload: true,
+      externalUrl: '/documents/guide-offline-premium-educafric.html'
     },
     {
       id: 'school-settings',

@@ -10,6 +10,8 @@ interface IconModule {
   icon: React.ReactNode;
   color: string;
   component?: React.ReactNode;
+  skipPreload?: boolean;
+  externalUrl?: string;
 }
 
 interface UnifiedIconDashboardProps {
@@ -26,8 +28,18 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
   activeModule: propActiveModule
 }) => {
   const { language } = useLanguage();
-  const [internalActiveModule, setInternalActiveModule] = useState<string | null>(propActiveModule || null);
+  
+  // Initialize state synchronously, filtering out external modules to prevent blank renders
+  const [internalActiveModule, setInternalActiveModule] = useState<string | null>(() => {
+    if (!propActiveModule) return null;
+    const module = modules.find(m => m.id === propActiveModule);
+    // External modules should never be set as active - they open in new tab
+    if (module?.externalUrl) return null;
+    return propActiveModule;
+  });
+  
   const [forceUpdate, setForceUpdate] = useState(0); // Force re-render when modules load
+  const lastProcessedProp = React.useRef<string | null>(null);
   
   // Wrapped setter with logging
   const setActiveModule = (value: string | null) => {
@@ -55,10 +67,31 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
 
   const { preloadModule, getModule, isReady } = useFastModules();
 
+  // Handle external-only modules passed as activeModule prop
+  // Tracks last processed prop to avoid infinite loops while allowing re-selection
+  useEffect(() => {
+    // Reset tracking when prop is cleared to allow re-selection
+    if (!propActiveModule) {
+      lastProcessedProp.current = null;
+      return;
+    }
+    
+    if (propActiveModule !== lastProcessedProp.current) {
+      const module = modules.find(m => m.id === propActiveModule);
+      if (module?.externalUrl) {
+        console.log(`[UNIFIED_DASHBOARD] 🔗 External module via prop: ${propActiveModule}`);
+        lastProcessedProp.current = propActiveModule;
+        window.open(module.externalUrl, '_blank');
+        // State already initialized to null in useState for external modules
+      }
+    }
+  }, [propActiveModule, modules]);
+
   // Ultra-fast preload ALL modules instantly when dashboard opens  
   useEffect(() => {
     const preloadAllModules = async () => {
-      const moduleIds = modules.map(m => m.id);
+      // Filter out external-only modules that don't need React component preloading
+      const moduleIds = modules.filter(m => !m.skipPreload).map(m => m.id);
       console.log(`[UNIFIED_DASHBOARD] ⚡ Instant preloading ${moduleIds.length} modules`);
       
       // Preload ALL modules immediately in parallel - no delays
@@ -75,6 +108,14 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
 
   const handleModuleClick = async (moduleId: string) => {
     console.log(`[UNIFIED_DASHBOARD] ⚡ Switching to module: ${moduleId}`);
+    
+    // Handle external link modules (documentation, guides, etc.)
+    const module = modules.find(m => m.id === moduleId);
+    if (module?.externalUrl) {
+      console.log(`[UNIFIED_DASHBOARD] 🔗 Opening external document: ${moduleId}`);
+      window.open(module.externalUrl, '_blank');
+      return;
+    }
     
     // Set active module immediately to show loading state
     setActiveModule(moduleId);
@@ -99,6 +140,10 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
   };
 
   const handleModuleHover = (moduleId: string) => {
+    // Skip preload for external-only modules
+    const module = modules.find(m => m.id === moduleId);
+    if (module?.skipPreload) return;
+    
     if (!isReady(moduleId)) {
       preloadModule(moduleId);
     }
@@ -118,6 +163,13 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
       // Vérifier si le module existe
       const module = modules.find(m => m.id === moduleId);
       if (module) {
+        // Handle external-only modules (documentation links, etc.)
+        if (module.externalUrl) {
+          console.log(`[UNIFIED_DASHBOARD] 🔗 External module detected via event: ${moduleId}`);
+          window.open(module.externalUrl, '_blank');
+          return;
+        }
+        
         console.log(`[UNIFIED_DASHBOARD] ✅ Switching to module: ${moduleId}`);
         setActiveModule(moduleId);
       } else {
@@ -180,6 +232,33 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
   const renderModuleView = () => {
     const activeModuleData = modules.find(m => m.id === activeModule);
     if (!activeModuleData) return null;
+    
+    // External modules should never reach here - state initialization prevents it
+    // If we do reach here, show visible error instead of silent blank
+    if (activeModuleData.externalUrl) {
+      console.error(`[UNIFIED_DASHBOARD] ❌ CRITICAL: External module bypassed state guard: ${activeModule}`);
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
+            <div className="text-red-600 text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              {language === 'fr' ? 'Erreur de Navigation' : 'Navigation Error'}
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {language === 'fr' 
+                ? "Ce module devrait s'ouvrir dans un nouvel onglet. Veuillez réessayer."
+                : 'This module should open in a new tab. Please try again.'}
+            </p>
+            <button
+              onClick={handleBackClick}
+              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              {t.backToDashboard}
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
