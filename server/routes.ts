@@ -9159,7 +9159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Liste des documents commerciaux
-  app.get('/api/commercial/documents', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
+  app.get('/api/commercial/documents', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin', 'Director']), async (req: Request, res: Response) => {
     try {
       const commercialDocuments = [
         // === GUIDES COMMERCIAUX PRINCIPAUX (Bilingue) ===
@@ -9233,7 +9233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // CRITICAL: Add missing commercial document routes to fix PDF Content-Length errors
-  app.get('/api/commercial/documents/:id/download', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
+  app.get('/api/commercial/documents/:id/download', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin', 'Director']), async (req: Request, res: Response) => {
     try {
       const docId = parseInt(req.params.id);
       if (!docId || isNaN(docId)) {
