@@ -247,6 +247,10 @@ class HealthMonitorMigration {
     return result.isHealthy;
   }
   
+  public async manualCheck(): Promise<void> {
+    await healthCheckService.checkHealthImmediate();
+  }
+  
   /**
    * Legacy NetworkOptimizer API
    */
