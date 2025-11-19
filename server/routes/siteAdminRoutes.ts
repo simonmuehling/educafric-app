@@ -2766,5 +2766,25 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // Site Admin Technical Documents
+  app.get('/api/siteadmin/documents', requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const siteAdminDocuments = [
+        { 
+          id: 1, 
+          title: "Guide Technique Offline Premium EDUCAFRIC", 
+          description: "Documentation technique complète du système Offline Premium pour Site Admin - Activation/désactivation, gestion des écoles, architecture technique, capacités hors ligne (Bilingue FR/EN)", 
+          type: "technical", 
+          url: "/documents/guide-offline-premium-educafric.html" 
+        }
+      ];
+      
+      res.json({ success: true, documents: siteAdminDocuments });
+    } catch (error) {
+      console.error('[SITE_ADMIN_API] Error fetching documents:', error);
+      res.status(500).json({ error: 'Failed to fetch Site Admin documents' });
+    }
+  });
+
   console.log('[SITE_ADMIN_API] ✅ Site Admin routes registered successfully');
 }

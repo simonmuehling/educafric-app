@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide d'Utilisation - Offline Premium - Educafric</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        .document {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .header .subtitle {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .intro {
+            background: linear-gradient(135deg, #e9d8fd 0%, #d4edda 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            text-align: center;
+        }
+        .intro h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+        .intro p {
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .section h2 {
+            color: #667eea;
+            font-size: 26px;
+            margin-bottom: 18px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #667eea;
+        }
+        .section h3 {
+            color: #495057;
+            font-size: 20px;
+            margin: 20px 0 12px 0;
+        }
+        .feature-box {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 18px;
+            margin: 18px 0;
+            border-radius: 8px;
+        }
+        .feature-box h3 {
+            color: #667eea;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .info-card {
+            background: #e7f3ff;
+            border: 2px solid #b3d9ff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .info-card h3 {
+            color: #0056b3;
+            margin-top: 0;
+        }
+        .warning-card {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .warning-card h3 {
+            color: #856404;
+            margin-top: 0;
+        }
+        .success-card {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .success-card h3 {
+            color: #155724;
+            margin-top: 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 3px;
+        }
+        .badge-director {
+            background: #667eea;
+            color: white;
+        }
+        .badge-teacher {
+            background: #28a745;
+            color: white;
+        }
+        .badge-parent {
+            background: #ffc107;
+            color: #333;
+        }
+        .badge-student {
+            background: #17a2b8;
+            color: white;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            color: #667eea;
+            margin-top: 0;
+            font-size: 18px;
+        }
+        .card-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        ul {
+            margin: 12px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+        .step strong {
+            color: #28a745;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 3px solid #e9ecef;
+        }
+        .footer p {
+            color: #6c757d;
+            margin: 5px 0;
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .document {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <div class="header">
+            <h1>📱 Guide d'Utilisation Offline Premium</h1>
+            <p class="subtitle">Travaillez sans connexion, synchronisez quand vous voulez</p>
+        </div>
+
+        <div class="content">
+            <div class="intro">
+                <h2>🌍 Conçu pour l'Afrique</h2>
+                <p><strong>Offline Premium</strong> vous permet d'utiliser Educafric même sans connexion Internet. Vos données sont sauvegardées localement sur votre appareil et se synchronisent automatiquement quand la connexion revient.</p>
+                <p><strong>Parfait pour les zones à connectivité limitée ou instable.</strong></p>
+            </div>
+
+            <!-- SECTION: C'EST QUOI -->
+            <div class="section" id="overview">
+                <h2>📋 C'est quoi Offline Premium ?</h2>
+                <p>Offline Premium est une fonctionnalité qui vous permet de continuer à travailler sur Educafric même quand vous n'avez pas de connexion Internet.</p>
+                
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-icon">✅</div>
+                        <h3>Travail Hors Ligne</h3>
+                        <p>Consultez et modifiez vos données sans Internet</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🔄</div>
+                        <h3>Synchronisation Auto</h3>
+                        <p>Vos changements s'envoient automatiquement au retour de la connexion</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">💾</div>
+                        <h3>Stockage Local</h3>
+                        <p>Vos données sont sauvegardées sur votre appareil</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">⚡</div>
+                        <h3>Accès Rapide</h3>
+                        <p>Pas besoin d'attendre le chargement, tout est déjà là</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: MODULES DISPONIBLES -->
+            <div class="section" id="modules">
+                <h2>🎯 Modules Disponibles Hors Ligne</h2>
+                
+                <div class="feature-box">
+                    <h3>📝 Modules avec Création et Modification (CRUD)</h3>
+                    <p>Vous pouvez créer, modifier et supprimer dans ces modules même hors ligne :</p>
+                    <ul>
+                        <li><strong>Élèves</strong> - Gestion complète des élèves</li>
+                        <li><strong>Enseignants</strong> - Gestion des enseignants</li>
+                        <li><strong>Classes</strong> - Création et modification des classes</li>
+                        <li><strong>Emplois du temps</strong> - Gestion des horaires</li>
+                        <li><strong>Salles</strong> - Organisation des salles de classe</li>
+                    </ul>
+                </div>
+
+                <div class="feature-box">
+                    <h3>👁️ Modules en Consultation Uniquement (Read-Only)</h3>
+                    <p>Vous pouvez consulter ces informations hors ligne, mais pas les modifier :</p>
+                    <ul>
+                        <li><strong>Notes et Bulletins</strong> - Consultation des résultats</li>
+                        <li><strong>Présence</strong> - Historique des présences</li>
+                        <li><strong>Devoirs</strong> - Liste des devoirs donnés</li>
+                        <li><strong>Messages</strong> - Communication (lecture seule)</li>
+                        <li><strong>Paiements</strong> - Historique des paiements</li>
+                        <li><strong>Calendrier</strong> - Événements et activités</li>
+                        <li><strong>Géolocalisation</strong> - Historique des déplacements</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- SECTION: LIMITES PAR RÔLE -->
+            <div class="section" id="limits">
+                <h2>⏱️ Durées d'Accès Hors Ligne</h2>
+                <p>La durée pendant laquelle vous pouvez travailler hors ligne dépend de votre rôle :</p>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3><span class="badge badge-teacher">Enseignant</span></h3>
+                        <p><strong>Illimité</strong></p>
+                        <p>Vous pouvez travailler hors ligne aussi longtemps que nécessaire.</p>
+                    </div>
+                    <div class="card">
+                        <h3><span class="badge badge-student">Élève</span></h3>
+                        <p><strong>Illimité</strong></p>
+                        <p>Accès permanent à vos données même sans connexion.</p>
+                    </div>
+                    <div class="card">
+                        <h3><span class="badge badge-director">Directeur</span></h3>
+                        <p><strong>14 jours</strong></p>
+                        <p>Maximum de 2 semaines hors ligne avant synchronisation requise.</p>
+                    </div>
+                    <div class="card">
+                        <h3><span class="badge badge-parent">Parent</span></h3>
+                        <p><strong>14 jours</strong></p>
+                        <p>Maximum de 2 semaines pour consulter les données de vos enfants.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: COMMENT UTILISER -->
+            <div class="section" id="how-to-use">
+                <h2>🚀 Comment Utiliser Offline Premium</h2>
+
+                <h3>Première Utilisation</h3>
+                <div class="step">
+                    <p><strong>Étape 1 :</strong> Assurez-vous d'avoir une connexion Internet</p>
+                    <p>Connectez-vous à Educafric avec une connexion stable pour télécharger vos données.</p>
+                </div>
+                <div class="step">
+                    <p><strong>Étape 2 :</strong> Laissez les données se charger</p>
+                    <p>La première fois, Educafric télécharge automatiquement vos données pour un accès hors ligne.</p>
+                </div>
+                <div class="step">
+                    <p><strong>Étape 3 :</strong> Travaillez hors ligne</p>
+                    <p>Vous pouvez maintenant fermer votre connexion Internet. Vos données restent disponibles.</p>
+                </div>
+
+                <h3>Travail Quotidien</h3>
+                <div class="info-card">
+                    <h3>✨ C'est Automatique !</h3>
+                    <p>Vous n'avez rien à faire de spécial. Educafric détecte automatiquement si vous êtes hors ligne et utilise les données locales.</p>
+                    <ul>
+                        <li>Ouvrez Educafric normalement</li>
+                        <li>Naviguez dans les modules comme d'habitude</li>
+                        <li>Vos modifications sont sauvegardées localement</li>
+                        <li>Tout se synchronise au retour de la connexion</li>
+                    </ul>
+                </div>
+
+                <h3>Synchronisation des Données</h3>
+                <div class="success-card">
+                    <h3>🔄 Synchronisation Automatique</h3>
+                    <p>Quand votre connexion Internet revient, Educafric synchronise automatiquement :</p>
+                    <ul>
+                        <li>Les nouvelles données créées hors ligne</li>
+                        <li>Les modifications que vous avez faites</li>
+                        <li>Les suppressions effectuées</li>
+                        <li>Les nouvelles données du serveur</li>
+                    </ul>
+                    <p><strong>Vous verrez une notification quand la synchronisation est terminée.</strong></p>
+                </div>
+            </div>
+
+            <!-- SECTION: AVERTISSEMENTS -->
+            <div class="section" id="warnings">
+                <h2>⚠️ Système d'Avertissement (Director & Parent)</h2>
+                <p>Pour les Directeurs et Parents, le système vous avertit quand vous approchez de la limite de 14 jours :</p>
+
+                <div class="warning-card">
+                    <h3>📢 Avertissements Progressifs</h3>
+                    <p><strong>Jour 7 :</strong> Premier avertissement - Vous avez utilisé la moitié de votre temps offline (7 jours restants)</p>
+                    <p><strong>Jour 12 :</strong> Deuxième avertissement - Il ne reste que 2 jours (48 heures)</p>
+                    <p><strong>Jour 14 :</strong> Avertissement final - Dernières heures, synchronisation requise bientôt</p>
+                    <p><strong>Jour 15+ :</strong> Mode lecture seule - Vous devez vous connecter pour continuer à modifier</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>💡 Conseil</h3>
+                    <p>Pour éviter les problèmes, connectez-vous à Internet au moins une fois par semaine. Cela permet de :</p>
+                    <ul>
+                        <li>Synchroniser vos modifications</li>
+                        <li>Recevoir les nouvelles données</li>
+                        <li>Réinitialiser le compteur de 14 jours</li>
+                        <li>Éviter le mode lecture seule</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- SECTION: INDICATEURS -->
+            <div class="section" id="indicators">
+                <h2>📊 Indicateurs d'État</h2>
+                <p>Educafric vous montre toujours votre état de connexion :</p>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>🟢 En Ligne</h3>
+                        <p>Connexion Internet active</p>
+                        <ul>
+                            <li>Synchronisation en temps réel</li>
+                            <li>Accès à toutes les fonctionnalités</li>
+                            <li>Données à jour</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3>🔴 Hors Ligne</h3>
+                        <p>Pas de connexion Internet</p>
+                        <ul>
+                            <li>Données locales disponibles</li>
+                            <li>Modifications sauvegardées localement</li>
+                            <li>Synchronisation en attente</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3>🔄 Synchronisation</h3>
+                        <p>Transfert des données en cours</p>
+                        <ul>
+                            <li>Envoi des modifications</li>
+                            <li>Réception des nouvelles données</li>
+                            <li>Mise à jour en cours</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3>✅ Synchronisé</h3>
+                        <p>Tout est à jour</p>
+                        <ul>
+                            <li>Toutes les modifications envoyées</li>
+                            <li>Données serveur reçues</li>
+                            <li>Système à jour</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: CONSEILS -->
+            <div class="section" id="tips">
+                <h2>💡 Conseils d'Utilisation</h2>
+
+                <div class="feature-box">
+                    <h3>✨ Bonnes Pratiques</h3>
+                    <ul>
+                        <li><strong>Première connexion :</strong> Utilisez une connexion WiFi stable pour le premier téléchargement complet</li>
+                        <li><strong>Synchronisation régulière :</strong> Connectez-vous au moins une fois par semaine</li>
+                        <li><strong>Évitez les modifications simultanées :</strong> Si possible, ne modifiez pas les mêmes données sur plusieurs appareils en même temps</li>
+                        <li><strong>Sauvegarde :</strong> Vos données sont sauvegardées automatiquement, pas besoin de cliquer sur "Enregistrer"</li>
+                        <li><strong>Mises à jour :</strong> Acceptez les mises à jour de l'application pour bénéficier des dernières améliorations</li>
+                    </ul>
+                </div>
+
+                <div class="warning-card">
+                    <h3>⚠️ À Éviter</h3>
+                    <ul>
+                        <li>Ne videz pas le cache de votre navigateur sans synchroniser d'abord</li>
+                        <li>N'utilisez pas plusieurs appareils pour modifier les mêmes données en même temps</li>
+                        <li>Ne désinstallez pas l'application sans avoir synchronisé vos modifications</li>
+                        <li>Ne changez pas de compte sans synchroniser</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- SECTION: FAQ -->
+            <div class="section" id="faq">
+                <h2>❓ Questions Fréquentes</h2>
+
+                <div class="info-card">
+                    <h3>Est-ce que je dois activer Offline Premium ?</h3>
+                    <p>Non, si votre école a activé Offline Premium, c'est automatique. Vous n'avez rien à faire.</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>Combien d'espace cela prend sur mon téléphone ?</h3>
+                    <p>Généralement entre 50 Mo et 200 Mo selon la taille de votre école et le nombre de données.</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>Que se passe-t-il si je dépasse les 14 jours ?</h3>
+                    <p>Pour les Directeurs et Parents, vous passerez en mode lecture seule. Vous pourrez consulter les données mais pas les modifier jusqu'à ce que vous vous reconnectiez.</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>Est-ce que mes données sont sécurisées hors ligne ?</h3>
+                    <p>Oui, vos données sont chiffrées et protégées sur votre appareil. Personne d'autre ne peut y accéder.</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>Puis-je utiliser Educafric sur plusieurs appareils ?</h3>
+                    <p>Oui, mais assurez-vous de synchroniser régulièrement pour éviter les conflits de données.</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>Comment savoir si mes données sont synchronisées ?</h3>
+                    <p>Un indicateur de statut en haut de l'écran vous montre toujours l'état : En ligne, Hors ligne, Synchronisation, ou Synchronisé.</p>
+                </div>
+            </div>
+
+            <!-- SECTION: SUPPORT -->
+            <div class="section" id="support">
+                <h2>📞 Besoin d'Aide ?</h2>
+                
+                <div class="success-card">
+                    <h3>💬 Support Educafric</h3>
+                    <p>Si vous rencontrez des problèmes avec Offline Premium :</p>
+                    <ul>
+                        <li><strong>Email :</strong> support@educafric.com</li>
+                        <li><strong>WhatsApp :</strong> +237 656 200 472</li>
+                        <li><strong>Téléphone :</strong> +237 656 200 472</li>
+                    </ul>
+                    <p><strong>Notre équipe est là pour vous aider du lundi au vendredi, de 8h à 18h.</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>EDUCAFRIC</strong> - Plateforme Éducative pour l'Afrique</p>
+            <p>Guide d'Utilisation Offline Premium - Version 1.0 - Novembre 2025</p>
+            <p>© 2025 Educafric. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>

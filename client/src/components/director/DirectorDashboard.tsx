@@ -304,7 +304,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-purple-600 to-violet-600',
       skipPreload: true,
-      externalUrl: '/documents/guide-offline-premium-educafric.html'
+      externalUrl: '/documents/guide-utilisation-offline-premium.html'
     },
     {
       id: 'school-settings',
