@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler, useStableCallback } from '@/hooks/useStableCallback';
 import { useFastModules } from '@/utils/fastModuleLoader';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
@@ -26,6 +26,12 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   const queryClient = useQueryClient();
   const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
+  
+  // Fetch school settings to get module visibility
+  const { data: settingsData } = useQuery({
+    queryKey: ['/api/director/settings'],
+    enabled: !!user && user.role === 'Director'
+  });
   
   // API PRELOADING DISABLED - Load data on-demand only for better performance
   // Previously: Aggressive preloading of 5 APIs caused slow dashboard loading
@@ -338,11 +344,33 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     }
   ];
 
+  // Filter modules based on school visibility settings
+  const schoolSettings = (settingsData as any)?.settings?.school;
+  const visibleModules = modules.filter(module => {
+    // Map module IDs to their corresponding visibility fields
+    const moduleVisibilityMap: { [key: string]: boolean } = {
+      'director-communications': schoolSettings?.communicationsEnabled ?? true,
+      'content-approval': schoolSettings?.educationalContentEnabled ?? true,
+      'school-administrators': schoolSettings?.delegateAdminsEnabled ?? true,
+      'canteen-management': schoolSettings?.canteenEnabled ?? true,
+      'bus-management': schoolSettings?.schoolBusEnabled ?? true,
+      'online-classes': schoolSettings?.onlineClassesEnabled ?? true
+    };
+
+    // Check if module should be visible
+    if (module.id in moduleVisibilityMap) {
+      return moduleVisibilityMap[module.id];
+    }
+
+    // All other modules are always visible
+    return true;
+  });
+
   return (
     <UnifiedIconDashboard
       title={t.title || ''}
       subtitle={t.subtitle}
-      modules={modules}
+      modules={visibleModules}
       activeModule={activeModule}
     />
   );

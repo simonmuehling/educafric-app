@@ -947,7 +947,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: schoolInfo?.email || '',
           logoUrl: schoolInfo?.logoUrl || '',
           academicYear: '2024-2025',
-          currentTerm: 'Premier Trimestre'
+          currentTerm: 'Premier Trimestre',
+          communicationsEnabled: schoolInfo?.communicationsEnabled ?? true,
+          educationalContentEnabled: schoolInfo?.educationalContentEnabled ?? true,
+          delegateAdminsEnabled: schoolInfo?.delegateAdminsEnabled ?? true,
+          canteenEnabled: schoolInfo?.canteenEnabled ?? true,
+          schoolBusEnabled: schoolInfo?.schoolBusEnabled ?? true,
+          onlineClassesEnabled: schoolInfo?.onlineClassesEnabled ?? true
         },
         director: {
           name: `${dbUser?.firstName} ${dbUser?.lastName}`,
