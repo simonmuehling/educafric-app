@@ -1,5 +1,5 @@
 ### Overview
-Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform for the African market. Its core purpose is to digitalize education by integrating academic management, communication, and financial features. The platform aims to reduce school costs, improve educational outcomes, and support a high volume of concurrent users. It addresses critical needs in African education, with significant market potential for educational transformation.
+Educafric is a comprehensive, bilingual, mobile-first educational technology platform for the African market. It digitalizes education by integrating academic management, communication, and financial features to reduce school costs, improve educational outcomes, and support high user volumes. The platform aims to address critical needs and capitalize on significant market potential in African education.
 
 ### User Preferences
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -37,25 +37,24 @@ Educafric is a comprehensive, bilingual (French/English), mobile-first education
 ### System Architecture
 - **Frontend**: React (TypeScript) with Wouter, TanStack Query, Radix UI + Shadcn/UI (Tailwind CSS) for an African-themed, PWA, mobile-optimized design. React Native for Android.
 - **Backend**: Express.js (RESTful API), Drizzle ORM with PostgreSQL.
-- **Authentication**: Session-based with `express-session` and `Passport.js`, Firebase Google OAuth. Role-based access control (8 roles).
-- **Security**: BCrypt, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
-- **Database**: PostgreSQL on Neon Serverless, multi-tenant. Schema structured for users, schools, classes, grades, attendance, homework, payments, communication logs, geolocation, organized by academic year/term.
-- **Key Features**: Offline-First (Service Worker, IndexedDB, Background Sync, Offline Premium), African-style grade management, real-time attendance, flexible timetables, multi-channel notifications (WhatsApp, Hostinger SMTP), bilingual templates, Stripe and local African payment methods, GPS tracking, geofencing, real-time monitoring, centralized document management with digital signatures and PDF generation, bidirectional connection system, iCal/ICS export, bulk Excel imports, Competency-Based Approach bulletin generation, Jitsi Meet integration for online classes, Teacher Hybrid Work Mode.
+- **Authentication**: Session-based with `express-session` and `Passport.js`, Firebase Google OAuth. Features role-based access control (8 roles) and enhanced security with BCrypt, consolidated error handling, helmet, cors, rate-limiting, 2FA, and IDS.
+- **Database**: PostgreSQL on Neon Serverless, designed for multi-tenancy. Schema includes tables for users, schools, classes, grades, attendance, homework, payments, communication logs, geolocation, structured by academic year/term.
+- **Key Features**: Offline-First capabilities (Service Worker, IndexedDB, Background Sync, Offline Premium), African-style grade management, real-time attendance, flexible timetables, multi-channel notifications (WhatsApp, SMTP), bilingual templates, Stripe and local African payment methods, GPS tracking, geofencing, real-time monitoring, centralized document management with digital signatures and PDF generation, bidirectional connection system, iCal/ICS export, bulk Excel imports, Competency-Based Approach bulletin generation, Jitsi Meet integration for online classes, and Teacher Hybrid Work Mode.
 - **Design Choices**: Custom African-themed UI, PWA and mobile-first approach, dedicated sandbox environment with realistic demo data.
 
 ### External Dependencies
-- **Neon Database**: Serverless PostgreSQL.
-- **Stripe**: Payment processing.
-- **Firebase**: Authentication (Google OAuth).
-- **WhatsApp**: Click-to-Chat integration.
-- **Hostinger**: SMTP services.
-- **Jitsi Meet**: Video conferencing.
+- **Neon Database**: Serverless PostgreSQL database.
+- **Stripe**: Payment processing gateway.
+- **Firebase**: Google OAuth for authentication.
+- **WhatsApp**: Click-to-Chat integration for communications.
+- **Hostinger**: SMTP services for email notifications.
+- **Jitsi Meet**: Video conferencing for online classes.
 - **Vite**: Development server and build tool.
-- **Drizzle Kit**: Database migrations.
+- **Drizzle Kit**: Database schema migrations.
 - **ESBuild**: Server-side TypeScript compilation.
-- **Dexie.js**: IndexedDB wrapper.
-- **Radix UI**: Headless component primitives.
-- **Tailwind CSS**: Styling framework.
-- **React Hook Form + Zod**: Form validation.
+- **Dexie.js**: IndexedDB wrapper for offline data.
+- **Radix UI**: Headless UI component primitives.
+- **Tailwind CSS**: Utility-first CSS framework for styling.
+- **React Hook Form + Zod**: Form management and validation.
 - **Lucide Icons**: Icon library.
 - **jsPDF**: Client-side PDF generation.
