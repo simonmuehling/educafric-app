@@ -1,7 +1,7 @@
-## Overview
-Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform designed for the African market. Its primary purpose is to digitalize education by integrating academic management, communication, and financial features. The platform aims to reduce school costs, improve educational outcomes, and is built to support a high volume of concurrent users. It addresses critical needs in African education, presenting significant market potential and ambitious goals for educational transformation.
+### Overview
+Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform for the African market. Its core purpose is to digitalize education by integrating academic management, communication, and financial features. The platform aims to reduce school costs, improve educational outcomes, and support a high volume of concurrent users. It addresses critical needs in African education, with significant market potential for educational transformation.
 
-## User Preferences
+### User Preferences
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
 - **PROTECTION ANTI-CONFLIT MODULES**: Système de mapping des modules réorganisé avec séparation stricte par dashboard. Validation automatique des mappings pour détecter les conflits et doublons. Le module 'students' DOIT pointer vers FunctionalDirectorStudentManagement. Structure organisée : Director → Commercial → Parent → Student → Teacher → Freelancer → Shared. NE JAMAIS mélanger les mappings de modules entre dashboards différents.
 - **RÉSOLUTION CONFLITS ROUTES PARAMÈTRES**: Problème de conflits entre routes settings résolu par réorganisation de l'ordre d'enregistrement. Routes settings définies AVANT routers externes. Ordre prioritaire : Settings → API Modules → System Routes → Services. Toujours maintenir l'ordre d'enregistrement des routes.
@@ -34,7 +34,7 @@ Educafric is a comprehensive, bilingual (French/English), mobile-first education
   4. Update alphabetical index in `00-index-documents-alphabetique.html`.
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 
-## System Architecture
+### System Architecture
 - **Frontend**: React (TypeScript) with Wouter, TanStack Query, Radix UI + Shadcn/UI (Tailwind CSS) for an African-themed, PWA, mobile-optimized design. React Native for Android.
 - **Backend**: Express.js (RESTful API), Drizzle ORM with PostgreSQL.
 - **Authentication**: Session-based with `express-session` and `Passport.js`, Firebase Google OAuth. Role-based access control (8 roles).
@@ -43,7 +43,7 @@ Educafric is a comprehensive, bilingual (French/English), mobile-first education
 - **Key Features**: Offline-First (Service Worker, IndexedDB, Background Sync, Offline Premium), African-style grade management, real-time attendance, flexible timetables, multi-channel notifications (WhatsApp, Hostinger SMTP), bilingual templates, Stripe and local African payment methods, GPS tracking, geofencing, real-time monitoring, centralized document management with digital signatures and PDF generation, bidirectional connection system, iCal/ICS export, bulk Excel imports, Competency-Based Approach bulletin generation, Jitsi Meet integration for online classes, Teacher Hybrid Work Mode.
 - **Design Choices**: Custom African-themed UI, PWA and mobile-first approach, dedicated sandbox environment with realistic demo data.
 
-## External Dependencies
+### External Dependencies
 - **Neon Database**: Serverless PostgreSQL.
 - **Stripe**: Payment processing.
 - **Firebase**: Authentication (Google OAuth).

@@ -1765,14 +1765,14 @@ export default function AcademicManagementSuite() {
 
             <TabsContent value="report-cards" className="mt-0">
               {selectedClass ? (
-                <ReportCardsList selectedClass={selectedClass} selectedTerm={selectedTerm} />
+                <MasterSheet selectedClass={selectedClass} selectedTerm={selectedTerm} />
               ) : (
                 <div className="p-8 text-center">
-                  <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">
                     {language === 'fr' 
-                      ? 'Sélectionnez une classe pour voir les bulletins créés'
-                      : 'Select a class to view created report cards'
+                      ? 'Sélectionnez une classe pour voir la grille de notes'
+                      : 'Select a class to view the grade grid'
                     }
                   </p>
                 </div>
@@ -1781,10 +1781,10 @@ export default function AcademicManagementSuite() {
 
             <TabsContent value="mastersheet" className="mt-0">
               {selectedClass ? (
-                <MasterSheet selectedClass={selectedClass} selectedTerm={selectedTerm} />
+                <ReportCardsList selectedClass={selectedClass} selectedTerm={selectedTerm} />
               ) : (
                 <div className="p-8 text-center">
-                  <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">
                     {language === 'fr' 
                       ? 'Sélectionnez une classe pour voir la fiche scolaire'
