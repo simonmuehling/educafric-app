@@ -821,8 +821,21 @@ const ClassManagement: React.FC = () => {
                     <Input
                       value={newClass.name}
                       onChange={(e) => setNewClass({...newClass, name: e.target.value})}
-                      placeholder="Ex: 6ème A, Terminale C, CP..."
+                      placeholder={language === 'fr' ? "Ex: 6ème A, Terminale C, CP..." : "Ex: Grade 6A, Senior 3C, CP..."}
                       className="bg-white border-gray-300"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>{String(t?.form?.capacity) || "N/A"}</Label>
+                    <Input
+                      type="number"
+                      value={newClass.capacity}
+                      onChange={(e) => setNewClass({...newClass, capacity: e.target.value})}
+                      placeholder={language === 'fr' ? "Nombre d'élèves (ex: 30)" : "Number of students (e.g., 30)"}
+                      className="bg-white border-gray-300"
+                      min="1"
+                      max="200"
                     />
                   </div>
                   
@@ -839,7 +852,10 @@ const ClassManagement: React.FC = () => {
                     {newClass.subjects.length > 0 && (
                       <div className="space-y-2 mb-4">
                         <div className="text-sm text-gray-600">
-                          {newClass.subjects.length} matière{newClass.subjects.length > 1 ? 's' : ''} configurée{newClass.subjects.length > 1 ? 's' : ''}
+                          {language === 'fr' 
+                            ? `${newClass.subjects.length} matière${newClass.subjects.length > 1 ? 's' : ''} configurée${newClass.subjects.length > 1 ? 's' : ''}`
+                            : `${newClass.subjects.length} subject${newClass.subjects.length > 1 ? 's' : ''} configured`
+                          }
                         </div>
                         <div className="max-h-40 overflow-y-auto space-y-1">
                           {newClass.subjects.map((subject, index) => (
@@ -873,7 +889,7 @@ const ClassManagement: React.FC = () => {
                     {/* Formulaire ajout de matière */}
                     <div className="border rounded-md p-3 bg-blue-50">
                       <div className="text-sm font-medium mb-2 text-blue-800">
-                        {String(t?.form?.addSubject) || "Ajouter Matière"}
+                        {String(t?.form?.addSubject) || (language === 'fr' ? "Ajouter Matière" : "Add Subject")}
                       </div>
                       {/* Important reminder for technical schools */}
                       <div className="bg-amber-50 border border-amber-200 rounded-md p-2 mb-3 text-xs text-amber-800">
@@ -892,7 +908,7 @@ const ClassManagement: React.FC = () => {
                       <div className="grid grid-cols-2 gap-2 mb-3">
                         <div>
                           <Input
-                            placeholder={String(t?.form?.subjectName) || "Nom matière"}
+                            placeholder={String(t?.form?.subjectName) || (language === 'fr' ? "Nom matière" : "Subject name")}
                             value={newSubject.name}
                             onChange={(e) => setNewSubject(prev => ({ ...prev, name: e.target.value }))}
                             className="bg-white text-sm"
@@ -901,7 +917,7 @@ const ClassManagement: React.FC = () => {
                         <div className="flex gap-1">
                           <Input
                             type="number"
-                            placeholder="Coeff"
+                            placeholder={language === 'fr' ? "Coeff" : "Coef"}
                             value={newSubject.coefficient}
                             onChange={(e) => setNewSubject(prev => ({ ...prev, coefficient: parseInt(e.target.value) || 1 }))}
                             className="bg-white text-sm"
@@ -910,7 +926,7 @@ const ClassManagement: React.FC = () => {
                           />
                           <Input
                             type="number"
-                            placeholder="H/sem"
+                            placeholder={language === 'fr' ? "H/sem" : "H/wk"}
                             value={newSubject.hoursPerWeek}
                             onChange={(e) => setNewSubject(prev => ({ ...prev, hoursPerWeek: parseInt(e.target.value) || 1 }))}
                             className="bg-white text-sm"
