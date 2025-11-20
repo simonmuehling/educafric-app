@@ -73,12 +73,11 @@ const ClassManagement: React.FC = () => {
   // Ref for triggering dialogs from quick actions
   const createClassTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Ajouter une matière
   const addSubject = () => {
     if (!newSubject.name.trim()) {
       toast({
-        title: "Nom requis",
-        description: "Veuillez saisir le nom de la matière",
+        title: language === 'fr' ? "Nom requis" : "Name required",
+        description: language === 'fr' ? "Veuillez saisir le nom de la matière" : "Please enter the subject name",
         variant: "destructive"
       });
       return;
@@ -99,7 +98,7 @@ const ClassManagement: React.FC = () => {
     });
 
     toast({
-      title: "✅ Matière ajoutée",
+      title: language === 'fr' ? "✅ Matière ajoutée" : "✅ Subject added",
       description: `${newSubject.name} (coeff. ${newSubject.coefficient})`,
     });
   };
@@ -988,20 +987,21 @@ const ClassManagement: React.FC = () => {
                   </div>
                   
                   <div>
-                    <Label>{String(t?.form?.capacity) || "Capacité"}</Label>
+                    <Label>{String(t?.form?.capacity) || (language === 'fr' ? "Capacité" : "Capacity")}</Label>
                     <Input
                       type="number"
                       value={newClass?.capacity || ""}
                       onChange={(e) => setNewClass({...newClass, capacity: e?.target?.value})}
-                      placeholder="30"
+                      placeholder={language === 'fr' ? "Nombre d'élèves (ex: 30)" : "Number of students (e.g., 30)"}
                       min="1"
                       max="999"
                       className="bg-white border-gray-300"
                     />
-                  </div>                  <div>
+                  </div>
+                  <div>
                     <Label className="flex items-center">
                       {String(t?.form?.teacher) || "N/A"}
-                      <span className="ml-1 text-xs text-gray-500">(optionnel)</span>
+                      <span className="ml-1 text-xs text-gray-500">({language === 'fr' ? 'optionnel' : 'optional'})</span>
                     </Label>
                     <Select 
                       value={String(newClass?.teacherId) || ""} 
@@ -1036,7 +1036,7 @@ const ClassManagement: React.FC = () => {
                       <SelectContent className="bg-white">
                         <SelectItem value="no-teacher">
                           <div className="flex items-center text-gray-600">
-                            <span>❌ Aucun enseignant principal</span>
+                            <span>❌ {language === 'fr' ? 'Aucun enseignant principal' : 'No main teacher'}</span>
                           </div>
                         </SelectItem>
                         {isLoadingTeachers ? (
@@ -1055,7 +1055,7 @@ const ClassManagement: React.FC = () => {
                           teachersData.map((teacher: any) => (
                             <SelectItem key={String(teacher?.id) || "N/A"} value={teacher?.id?.toString()}>
                               <div className="flex items-center">
-                                <span>👨‍🏫 {String(teacher?.firstName) || "Prénom"} {String(teacher?.lastName) || "Nom"}</span>
+                                <span>👨‍🏫 {String(teacher?.firstName) || (language === 'fr' ? "Prénom" : "First")} {String(teacher?.lastName) || (language === 'fr' ? "Nom" : "Last")}</span>
                                 {teacher.subjects && teacher.subjects.length > 0 && (
                                   <span className="ml-2 text-xs text-gray-500">({teacher?.subjects?.join(', ')})</span>
                                 )}
@@ -1071,11 +1071,11 @@ const ClassManagement: React.FC = () => {
                       </p>
                     )}
                     <p className="text-xs text-gray-500 mt-1">
-                      💡 Vous pouvez assigner un enseignant principal plus tard
+                      💡 {language === 'fr' ? 'Vous pouvez assigner un enseignant principal plus tard' : 'You can assign a main teacher later'}
                     </p>
                   </div>
                   <div>
-                    <Label>{String(t?.form?.room) || "Salle"}</Label>
+                    <Label>{String(t?.form?.room) || (language === 'fr' ? "Salle" : "Room")}</Label>
                     <Select 
                       value={newClass.room || ''} 
                       onValueChange={(value) => {
@@ -1087,21 +1087,21 @@ const ClassManagement: React.FC = () => {
                       <SelectTrigger className="bg-white border-gray-300">
                         <SelectValue placeholder={
                           isLoadingRooms 
-                            ? "Chargement des salles..." 
+                            ? (language === 'fr' ? "Chargement des salles..." : "Loading rooms...")
                             : roomsData.length === 0 
-                              ? "Aucune salle disponible"
-                              : "Sélectionner une salle (optionnel)"
+                              ? (language === 'fr' ? "Aucune salle disponible" : "No rooms available")
+                              : (language === 'fr' ? "Sélectionner une salle (optionnel)" : "Select a room (optional)")
                         } />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="no-room">Aucune salle assignée</SelectItem>
+                        <SelectItem value="no-room">{language === 'fr' ? 'Aucune salle assignée' : 'No room assigned'}</SelectItem>
                         {isLoadingRooms ? (
                           <SelectItem value="disabled-option" disabled>
-                            Chargement des salles...
+                            {language === 'fr' ? 'Chargement des salles...' : 'Loading rooms...'}
                           </SelectItem>
                         ) : roomsData.length === 0 ? (
                           <SelectItem value="disabled-option" disabled>
-                            Aucune salle trouvée - Utilisez "Gérer Salles" pour en ajouter
+                            {language === 'fr' ? 'Aucune salle trouvée - Utilisez "Gérer Salles" pour en ajouter' : 'No rooms found - Use "Manage Rooms" to add one'}
                           </SelectItem>
                         ) : (
                           roomsData.filter((room: any) => !room.isOccupied).map((room: any) => (
@@ -1120,7 +1120,7 @@ const ClassManagement: React.FC = () => {
                       disabled={createClassMutation?.isPending || false}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      {createClassMutation.isPending ? 'Création...' : t?.actions?.save}
+                      {createClassMutation.isPending ? (language === 'fr' ? 'Création...' : 'Creating...') : t?.actions?.save}
                     </Button>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="flex-1">
@@ -1144,17 +1144,17 @@ const ClassManagement: React.FC = () => {
                     <Input
                       value={selectedClass?.name || ''}
                       onChange={(e) => setSelectedClass({...selectedClass, name: e?.target?.value})}
-                      placeholder="6ème A"
+                      placeholder={language === 'fr' ? "Ex: 6ème A" : "Ex: Grade 6A"}
                       className="bg-white border-gray-300"
                     />
                   </div>
                   <div>
-                    <Label>{String(t?.form?.capacity) || "N/A"}</Label>
+                    <Label>{String(t?.form?.capacity) || (language === 'fr' ? "Capacité" : "Capacity")}</Label>
                     <Input
                       type="number"
                       value={selectedClass?.capacity || ''}
                       onChange={(e) => setSelectedClass({...selectedClass, capacity: e?.target?.value})}
-                      placeholder="30"
+                      placeholder={language === 'fr' ? "Nombre d'élèves (ex: 30)" : "Number of students (e.g., 30)"}
                       min="1"
                       max="999"
                       className="bg-white border-gray-300"
@@ -1202,7 +1202,7 @@ const ClassManagement: React.FC = () => {
                         ) : (
                           teachersData.map((teacher: any) => (
                             <SelectItem key={String(teacher?.id) || "N/A"} value={teacher?.id?.toString()}>
-                              {String(teacher?.firstName) || "Prénom"} {String(teacher?.lastName) || "Nom"}
+                              {String(teacher?.firstName) || (language === 'fr' ? "Prénom" : "First")} {String(teacher?.lastName) || (language === 'fr' ? "Nom" : "Last")}
                               {teacher.subjects && teacher.subjects.length > 0 && ` (${teacher?.subjects?.join(', ')})`}
                             </SelectItem>
                           ))
@@ -1216,7 +1216,7 @@ const ClassManagement: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <Label>{String(t?.form?.room) || "Salle"}</Label>
+                    <Label>{String(t?.form?.room) || (language === 'fr' ? "Salle" : "Room")}</Label>
                     <Select 
                       value={selectedClass?.room || ''} 
                       onValueChange={(value) => {
