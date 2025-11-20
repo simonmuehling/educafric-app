@@ -418,32 +418,11 @@ const handlePrint = (el: HTMLElement | null) => {
   requestAnimationFrame(() => window.print());
 };
 
-/**************************** MASTER SHEET COMPONENT ****************************/
-export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: string; selectedTerm: string }) {
+/**************************** REPORT CARDS LIST COMPONENT (Shows created bulletins) ****************************/
+export function ReportCardsList({ selectedClass, selectedTerm }: { selectedClass: string; selectedTerm: string }) {
   const { language } = useLanguage();
-  const printRef = useRef<HTMLDivElement>(null);
-  
-  // Fetch students for the selected class
-  const { data: studentsData, isLoading: studentsLoading } = useQuery({
-    queryKey: ['/api/director/students', selectedClass],
-    queryFn: () => fetch(`/api/director/students?classId=${selectedClass}`).then(res => res.json()),
-    enabled: !!selectedClass,
-  });
 
-  // Fetch subjects
-  const { data: subjectsData, isLoading: subjectsLoading } = useQuery({
-    queryKey: ['/api/director/subjects'],
-    queryFn: () => fetch('/api/director/subjects').then(res => res.json()),
-  });
-
-  // Fetch grades for the selected class and term
-  const { data: gradesData, isLoading: gradesLoading } = useQuery({
-    queryKey: ['/api/director/grades', selectedClass, selectedTerm],
-    queryFn: () => fetch(`/api/director/grades?classId=${selectedClass}&term=${selectedTerm}`).then(res => res.json()),
-    enabled: !!selectedClass && !!selectedTerm,
-  });
-
-  // Fetch school information from database (DATABASE-ONLY)
+  // Fetch school information from database
   const { data: schoolData, isLoading: schoolLoading } = useQuery({
     queryKey: ['/api/director/settings'],
     queryFn: async () => {
@@ -452,7 +431,7 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
       });
       if (!response.ok) throw new Error('Failed to fetch school settings');
       const data = await response.json();
-      console.log('[MASTERSHEET] ✅ School settings data:', data);
+      console.log('[REPORT_CARDS] ✅ School settings data:', data);
       return data;
     }
   });
@@ -472,54 +451,20 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
         if (!response.ok) throw new Error('Failed to fetch bulletins');
         const data = await response.json();
         
-        console.log('[MASTERSHEET] ✅ Fetched bulletins from database:', data.bulletins?.length || 0);
+        console.log('[REPORT_CARDS] ✅ Fetched bulletins from database:', data.bulletins?.length || 0);
         return data;
       } catch (error) {
-        console.error('[MASTERSHEET] Error fetching bulletins:', error);
+        console.error('[REPORT_CARDS] Error fetching bulletins:', error);
         return { bulletins: [] };
       }
     },
     enabled: !!selectedClass && !!selectedTerm,
   });
 
-  const students = studentsData?.students || [];
-  const subjects = subjectsData?.subjects || [];
-  const grades = gradesData?.grades || [];
   const school = schoolData?.settings?.school || schoolData?.school || {};
   const bulletins = bulletinsData?.bulletins || [];
 
-  const rows = useMemo(() => {
-    const memo: any = {};
-    
-    // Initialize with students
-    for (const student of students) {
-      memo[student.id] = { 
-        studentId: student.id, 
-        name: student.name, 
-        gender: student.gender 
-      };
-    }
-    
-    // Add grades
-    for (const grade of grades) {
-      if (memo[grade.studentId]) {
-        const subject = subjects.find((s: any) => s.id === grade.subjectId);
-        if (subject) {
-          memo[grade.studentId][subject.name] = parseFloat(grade.grade);
-        }
-      }
-    }
-    
-    // Calculate averages
-    return Object.values(memo).map((r: any) => ({ 
-      ...r, 
-      avg: computeAverageForRow(r, subjects) 
-    }));
-  }, [students, subjects, grades]);
-
-  const ranksAvg = useMemo(() => rank(rows.map(r => r.avg)), [rows]);
-
-  const isLoading = studentsLoading || subjectsLoading || gradesLoading || schoolLoading || bulletinsLoading;
+  const isLoading = schoolLoading || bulletinsLoading;
 
   if (isLoading) {
     return (
@@ -647,6 +592,99 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
         </CardContent>
       </Card>
 
+    </div>
+  );
+}
+
+/**************************** TRUE MASTERSHEET COMPONENT (Class-wide grade grid) ****************************/
+export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: string; selectedTerm: string }) {
+  const { language } = useLanguage();
+  const printRef = useRef<HTMLDivElement>(null);
+  
+  // Fetch students for the selected class
+  const { data: studentsData, isLoading: studentsLoading } = useQuery({
+    queryKey: ['/api/director/students', selectedClass],
+    queryFn: () => fetch(`/api/director/students?classId=${selectedClass}`).then(res => res.json()),
+    enabled: !!selectedClass,
+  });
+
+  // Fetch subjects
+  const { data: subjectsData, isLoading: subjectsLoading } = useQuery({
+    queryKey: ['/api/director/subjects'],
+    queryFn: () => fetch('/api/director/subjects').then(res => res.json()),
+  });
+
+  // Fetch grades for the selected class and term
+  const { data: gradesData, isLoading: gradesLoading } = useQuery({
+    queryKey: ['/api/director/grades', selectedClass, selectedTerm],
+    queryFn: () => fetch(`/api/director/grades?classId=${selectedClass}&term=${selectedTerm}`).then(res => res.json()),
+    enabled: !!selectedClass && !!selectedTerm,
+  });
+
+  // Fetch school information from database (DATABASE-ONLY)
+  const { data: schoolData, isLoading: schoolLoading } = useQuery({
+    queryKey: ['/api/director/settings'],
+    queryFn: async () => {
+      const response = await fetch('/api/director/settings', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch school settings');
+      const data = await response.json();
+      console.log('[MASTERSHEET] ✅ School settings data:', data);
+      return data;
+    }
+  });
+
+  const students = studentsData?.students || [];
+  const subjects = subjectsData?.subjects || [];
+  const grades = gradesData?.grades || [];
+  const school = schoolData?.settings?.school || schoolData?.school || {};
+
+  const rows = useMemo(() => {
+    const memo: any = {};
+    
+    // Initialize with students
+    for (const student of students) {
+      memo[student.id] = { 
+        studentId: student.id, 
+        name: student.name, 
+        gender: student.gender 
+      };
+    }
+    
+    // Add grades
+    for (const grade of grades) {
+      if (memo[grade.studentId]) {
+        const subject = subjects.find((s: any) => s.id === grade.subjectId);
+        if (subject) {
+          memo[grade.studentId][subject.name] = parseFloat(grade.grade);
+        }
+      }
+    }
+    
+    // Calculate averages
+    return Object.values(memo).map((r: any) => ({ 
+      ...r, 
+      avg: computeAverageForRow(r, subjects) 
+    }));
+  }, [students, subjects, grades]);
+
+  const ranksAvg = useMemo(() => rank(rows.map(r => r.avg)), [rows]);
+
+  const isLoading = studentsLoading || subjectsLoading || gradesLoading || schoolLoading;
+
+  if (isLoading) {
+    return (
+      <div className="p-4 text-sm text-center">
+        {language === 'fr' ? 'Chargement...' : 'Loading...'}
+      </div>
+    );
+  }
+
+  const termLabel = TRIMESTERS.find(t => t.key === selectedTerm)?.[language === 'fr' ? 'labelFR' : 'labelEN'] || selectedTerm;
+
+  return (
+    <div className="space-y-6">
       {/* Main Master Sheet with Ministry Header */}
       <Card className="w-full" ref={printRef}>
         <CardHeader className="print:hidden">
@@ -1686,10 +1724,14 @@ export default function AcademicManagementSuite() {
         <Card>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader className="pb-3">
-            <TabsList ref={tabsListRef} className="grid w-full grid-cols-4">
+            <TabsList ref={tabsListRef} className="grid w-full grid-cols-5">
               <TabsTrigger value="bulletins" className="flex items-center gap-2" data-testid="tab-bulletins">
                 <FileText className="h-4 w-4" />
                 <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Marksheet'}</span>
+              </TabsTrigger>
+              <TabsTrigger value="report-cards" className="flex items-center gap-2" data-testid="tab-report-cards">
+                <CheckCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">{language === 'fr' ? 'Cartes de Rapport' : 'Report Cards'}</span>
               </TabsTrigger>
               <TabsTrigger value="mastersheet" className="flex items-center gap-2" data-testid="tab-mastersheet">
                 <FileSpreadsheet className="h-4 w-4" />
@@ -1721,6 +1763,22 @@ export default function AcademicManagementSuite() {
               />
             </TabsContent>
 
+            <TabsContent value="report-cards" className="mt-0">
+              {selectedClass ? (
+                <ReportCardsList selectedClass={selectedClass} selectedTerm={selectedTerm} />
+              ) : (
+                <div className="p-8 text-center">
+                  <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
+                    {language === 'fr' 
+                      ? 'Sélectionnez une classe pour voir les bulletins créés'
+                      : 'Select a class to view created report cards'
+                    }
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
             <TabsContent value="mastersheet" className="mt-0">
               {selectedClass ? (
                 <MasterSheet selectedClass={selectedClass} selectedTerm={selectedTerm} />
@@ -1729,8 +1787,8 @@ export default function AcademicManagementSuite() {
                   <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">
                     {language === 'fr' 
-                      ? 'Sélectionnez une classe'
-                      : 'Select a class'
+                      ? 'Sélectionnez une classe pour voir la fiche scolaire'
+                      : 'Select a class to view the mastersheet'
                     }
                   </p>
                 </div>

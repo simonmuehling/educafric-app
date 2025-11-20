@@ -1,5 +1,5 @@
 ## Overview
-Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform designed for the African market. Its primary purpose is to digitalize education by integrating academic management, communication, and financial features. The platform aims to reduce costs for schools, improve educational outcomes, and support high concurrent user loads, aligning with UN Sustainable Development Goals and targeting significant market penetration.
+Educafric is a comprehensive, bilingual (French/English), mobile-first educational technology platform designed for the African market. Its primary purpose is to digitalize education by integrating academic management, communication, and financial features. The platform aims to reduce school costs, improve educational outcomes, and is built to support a high volume of concurrent users. It addresses critical needs in African education, presenting significant market potential and ambitious goals for educational transformation.
 
 ## User Preferences
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -34,56 +34,25 @@ Educafric is a comprehensive, bilingual (French/English), mobile-first education
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 
 ## System Architecture
-
-### Frontend
-- **Web**: React (TypeScript), Wouter, TanStack Query, Radix UI + Shadcn/UI (Tailwind CSS). Custom African-themed, PWA, mobile-optimized.
-- **Mobile**: React Native application (`educafric-mobile/`) for Android.
-
-### Backend
-- **API**: Express.js (RESTful).
-- **ORM**: Drizzle ORM with PostgreSQL.
-- **Authentication**: Session-based with `express-session` and `Passport.js`.
-- **Security**: Role-based access control (8 roles), BCrypt, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
-- **CBA Support**: Competency-Based Approach bulletin generation.
-
-### Database
-- **Type**: PostgreSQL on Neon Serverless, multi-tenant.
-- **Schema**: Comprehensive for users, schools, classes, grades, attendance, homework, payments, communication logs, geolocation, structured by academic year/term.
-
-### Key Features and Design Choices
-- **Offline-First**: Service Worker, IndexedDB, Background Sync, with Offline Premium features.
-- **Authentication & Authorization**: Local and Firebase Google OAuth, session management, granular permissions.
-- **Educational Management**: Grade management (African-style), real-time attendance, homework, flexible timetables.
-- **Communication**: Multi-channel notifications (WhatsApp, Hostinger SMTP Email), bilingual templates, automatic parent notifications.
-- **Payment & Subscription**: Stripe, local African payment methods.
-- **Geolocation**: GPS tracking, geofencing, safe zones, real-time monitoring, emergency alerts.
-- **Document Management**: Centralized system for commercial, administrative, legal documents; digital signatures, PDF generation.
-- **Bidirectional Connection System**: Parent-child, student-parent, freelancer-student connections.
-- **Bilingual Support**: Dynamic French/English localization.
-- **Sandbox Environment**: Dedicated, fully unlocked with realistic African demo data, including an Offline Demo Mode.
-- **Academic Calendar**: iCal/ICS export with Jitsi links.
-- **Bulk Excel Imports**: Comprehensive service with bilingual templates and validation.
-- **Consolidated Bulletin Generation**: `ComprehensiveBulletinGenerator` for report cards with advanced features, digital signatures, and PDF export, supporting Cameroon Ministry of Secondary Education CBA format.
-- **Online Classes with Jitsi Meet**: Paid module with time-window access, JWT-secured video conferencing, course creation, attendance tracking.
-- **Teacher Hybrid Work Mode**: Supports `school`, `independent`, and `hybrid` teacher roles with subscription model.
+- **Frontend**: React (TypeScript) with Wouter, TanStack Query, Radix UI + Shadcn/UI (Tailwind CSS) for an African-themed, PWA, mobile-optimized design. React Native for Android.
+- **Backend**: Express.js (RESTful API), Drizzle ORM with PostgreSQL.
+- **Authentication**: Session-based with `express-session` and `Passport.js`, Firebase Google OAuth. Role-based access control (8 roles).
+- **Security**: BCrypt, consolidated error handling, security hardening (helmet, cors, rate-limiting, 2FA, IDS).
+- **Database**: PostgreSQL on Neon Serverless, multi-tenant. Schema structured for users, schools, classes, grades, attendance, homework, payments, communication logs, geolocation, organized by academic year/term.
+- **Key Features**: Offline-First (Service Worker, IndexedDB, Background Sync, Offline Premium), African-style grade management, real-time attendance, flexible timetables, multi-channel notifications (WhatsApp, Hostinger SMTP), bilingual templates, Stripe and local African payment methods, GPS tracking, geofencing, real-time monitoring, centralized document management with digital signatures and PDF generation, bidirectional connection system, iCal/ICS export, bulk Excel imports, Competency-Based Approach bulletin generation, Jitsi Meet integration for online classes, Teacher Hybrid Work Mode.
+- **Design Choices**: Custom African-themed UI, PWA and mobile-first approach, dedicated sandbox environment with realistic demo data.
 
 ## External Dependencies
-
-### Core Services
 - **Neon Database**: Serverless PostgreSQL.
 - **Stripe**: Payment processing.
 - **Firebase**: Authentication (Google OAuth).
 - **WhatsApp**: Click-to-Chat integration.
 - **Hostinger**: SMTP services.
 - **Jitsi Meet**: Video conferencing.
-
-### Development Tools
 - **Vite**: Development server and build tool.
 - **Drizzle Kit**: Database migrations.
 - **ESBuild**: Server-side TypeScript compilation.
-- **Dexie.js**: IndexedDB wrapper for offline data storage.
-
-### UI/UX Libraries
+- **Dexie.js**: IndexedDB wrapper.
 - **Radix UI**: Headless component primitives.
 - **Tailwind CSS**: Styling framework.
 - **React Hook Form + Zod**: Form validation.
