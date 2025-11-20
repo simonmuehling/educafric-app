@@ -661,17 +661,14 @@ const ClassManagement: React.FC = () => {
     
     console.log('[CLASS_MANAGEMENT] 🚀 Preparing class creation with data:', newClass);
     
-    // Transform data to match backend API contract and database schema
+    // Transform data to match backend API contract
     const classDataForAPI = {
       name: newClass.name,
-      maxStudents: newClass.capacity ? parseInt(newClass.capacity) : null, // Optional field
-      level: newClass.subjects.length > 0 ? newClass.subjects[0].name : null, // Optional
-      section: null, // Optional
+      capacity: newClass.capacity ? parseInt(newClass.capacity) : null, // Backend expects 'capacity' not 'maxStudents'
+      level: newClass.name.split(/\s+/)[0] || 'General', // Use first word of class name as level (e.g., "6ème", "Terminale")
+      teacherId: newClass.teacherId ? parseInt(newClass.teacherId) : null,
       room: newClass.room || null,
-      teacherId: newClass.teacherId ? parseInt(newClass.teacherId) : null, // Optional field
-      academicYearId: 1, // Required field - use current academic year ID (TODO: fetch dynamically)
-      subjects: newClass.subjects, // Include subjects for later processing
-      isActive: true
+      subjects: newClass.subjects // Include all subjects
     };
     
     console.log('[CLASS_MANAGEMENT] 📤 Sending to API:', classDataForAPI);
