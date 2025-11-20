@@ -150,7 +150,10 @@ export interface OfflineAcademicData {
   term?: string;
   data: any;
   schoolId: number;
-  lastCached: number;
+  // Offline metadata for CRUD operations
+  lastModified: number;
+  syncStatus: 'synced' | 'pending' | 'conflict';
+  localOnly?: boolean;
 }
 
 export interface OfflineCanteen {
@@ -175,7 +178,7 @@ export interface OfflineBus {
 
 export interface SyncQueueItem {
   id?: number;
-  module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages';
+  module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages' | 'academicData';
   action: 'create' | 'update' | 'delete';
   entityId?: number;
   tempId?: number; // Temporary ID for offline-created entities
@@ -195,7 +198,7 @@ export interface OfflineMetadata {
 export interface TempIdMapping {
   tempId: number;
   realId: number;
-  module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages';
+  module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages' | 'academicData';
   timestamp: number;
 }
 
@@ -209,13 +212,13 @@ class OfflineDatabase extends Dexie {
   attendance!: Table<OfflineAttendance, number>;
   teachers!: Table<OfflineTeacher, number>;
   messages!: Table<OfflineMessage, number>;
+  academicData!: Table<OfflineAcademicData, number>;
   
   // Read-only modules
   timetable!: Table<OfflineTimetable, number>;
   schoolAttendance!: Table<OfflineSchoolAttendance, number>;
   delegatedAdmins!: Table<OfflineDelegatedAdmin, number>;
   reports!: Table<OfflineReport, number>;
-  academicData!: Table<OfflineAcademicData, number>;
   canteen!: Table<OfflineCanteen, number>;
   bus!: Table<OfflineBus, number>;
   
@@ -251,6 +254,13 @@ class OfflineDatabase extends Dexie {
       academicData: 'id, type, studentId, classId, schoolId, lastCached',
       canteen: 'id, menuDate, schoolId, lastCached, [schoolId+menuDate]',
       bus: 'id, schoolId, lastCached'
+    });
+
+    // Version 3: Academic Data becomes CRUD (upgrade from v2)
+    // Upgrades academicData from read-only to full CRUD for offline bulletin creation
+    this.version(3).stores({
+      // Upgrade academicData to CRUD module
+      academicData: 'id, type, studentId, classId, schoolId, syncStatus, lastModified, term, [schoolId+classId], [schoolId+studentId], [schoolId+term]'
     });
   }
 }
