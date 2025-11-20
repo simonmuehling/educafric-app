@@ -1,7 +1,7 @@
 # Educafric
 
 ### Overview
-Educafric is a comprehensive, bilingual, mobile-first educational technology platform tailored for the African market. It aims to digitalize education by integrating academic management, communication, and financial features to reduce school costs, improve educational outcomes, and support high user volumes. The platform addresses critical needs and capitalizes on significant market potential in African education by providing a robust, scalable, and culturally relevant solution.
+Educafric is a comprehensive, bilingual, mobile-first educational technology platform designed for the African market. Its core purpose is to digitalize education by integrating academic management, communication, and financial features. The platform aims to reduce school costs, improve educational outcomes, and support high user volumes, addressing critical needs and capitalizing on significant market potential in African education with a robust, scalable, and culturally relevant solution.
 
 ### User Preferences
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -51,12 +51,3 @@ Educafric is a comprehensive, bilingual, mobile-first educational technology pla
 - **WhatsApp**: Click-to-Chat integration for communications.
 - **Hostinger**: SMTP services for email notifications.
 - **Jitsi Meet**: Video conferencing for online classes.
-- **Vite**: Development server and build tool.
-- **Drizzle Kit**: Database schema migrations.
-- **ESBuild**: Server-side TypeScript compilation.
-- **Dexie.js**: IndexedDB wrapper for offline data.
-- **Radix UI**: Headless UI component primitives.
-- **Tailwind CSS**: Utility-first CSS framework for styling.
-- **React Hook Form + Zod**: Form management and validation.
-- **Lucide Icons**: Icon library.
-- **jsPDF**: Client-side PDF generation.
