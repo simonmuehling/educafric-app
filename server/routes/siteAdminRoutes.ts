@@ -440,6 +440,59 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // Update Module Visibility Settings for school
+  app.patch("/api/siteadmin/schools/:schoolId/module-visibility", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { schoolId } = req.params;
+      const { 
+        communicationsEnabled,
+        educationalContentEnabled,
+        delegateAdminsEnabled,
+        canteenEnabled,
+        schoolBusEnabled,
+        onlineClassesEnabled
+      } = req.body;
+
+      const updates: any = {};
+      if (typeof communicationsEnabled === 'boolean') updates.communicationsEnabled = communicationsEnabled;
+      if (typeof educationalContentEnabled === 'boolean') updates.educationalContentEnabled = educationalContentEnabled;
+      if (typeof delegateAdminsEnabled === 'boolean') updates.delegateAdminsEnabled = delegateAdminsEnabled;
+      if (typeof canteenEnabled === 'boolean') updates.canteenEnabled = canteenEnabled;
+      if (typeof schoolBusEnabled === 'boolean') updates.schoolBusEnabled = schoolBusEnabled;
+      if (typeof onlineClassesEnabled === 'boolean') updates.onlineClassesEnabled = onlineClassesEnabled;
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'No valid module settings provided' 
+        });
+      }
+
+      console.log(`[SITE_ADMIN_API] Updating module visibility for school ${schoolId}:`, updates);
+
+      // Update school in database
+      await storage.updateSchoolModuleVisibility(parseInt(schoolId), updates);
+
+      console.log(`[SITE_ADMIN_API] ✅ Module visibility updated for school ${schoolId}`);
+      res.json({ 
+        success: true,
+        message: 'Visibilité des modules mise à jour avec succès',
+        messageFr: 'Visibilité des modules mise à jour avec succès',
+        messageEn: 'Module visibility updated successfully',
+        schoolId: parseInt(schoolId),
+        updates
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating module visibility:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to update module visibility',
+        messageFr: 'Échec de la mise à jour de la visibilité des modules',
+        messageEn: 'Failed to update module visibility'
+      });
+    }
+  });
+
   // Manage school subscription
   app.post("/api/siteadmin/schools/:schoolId/subscription", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {

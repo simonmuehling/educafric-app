@@ -395,4 +395,34 @@ export class SchoolStorage implements ISchoolStorage {
       throw new Error(`Failed to update Offline Premium: ${error}`);
     }
   }
+
+  // Update Module Visibility Settings for a school (Site Admin only)
+  async updateSchoolModuleVisibility(schoolId: number, updates: {
+    communicationsEnabled?: boolean;
+    educationalContentEnabled?: boolean;
+    delegateAdminsEnabled?: boolean;
+    canteenEnabled?: boolean;
+    schoolBusEnabled?: boolean;
+    onlineClassesEnabled?: boolean;
+  }): Promise<any> {
+    try {
+      console.log(`[SCHOOL_STORAGE] Updating module visibility for school ${schoolId}:`, updates);
+      
+      const [updatedSchool] = await db
+        .update(schools)
+        .set(updates)
+        .where(eq(schools.id, schoolId))
+        .returning();
+      
+      if (!updatedSchool) {
+        throw new Error(`School ${schoolId} not found`);
+      }
+      
+      console.log(`[SCHOOL_STORAGE] ✅ Module visibility updated for school ${schoolId}`);
+      return updatedSchool;
+    } catch (error) {
+      console.error(`[SCHOOL_STORAGE] Error updating module visibility for school ${schoolId}:`, error);
+      throw new Error(`Failed to update module visibility: ${error}`);
+    }
+  }
 }
