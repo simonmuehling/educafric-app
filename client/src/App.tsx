@@ -113,6 +113,7 @@ const useGlobalModulePreloader = () => {
 const BulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
 const BulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
 const BulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
+const OfflineAcademicTest = lazy(() => import("@/pages/OfflineAcademicTest"));
 const PWANotificationTest = lazy(() => import("@/pages/PWANotificationTest"));
 const TeacherActivationPurchase = lazy(() => import("@/pages/TeacherActivationPurchase"));
 const CanteenPage = lazy(() => import("@/pages/CanteenPage"));
@@ -501,6 +502,7 @@ function Router() {
       <Route path="/bulletin-validation-test" component={BulletinValidationTest} />
       <Route path="/bulletin-creation-test" component={BulletinCreationTest} />
       <Route path="/bulletin-tests" component={BulletinTestSuite} />
+      <Route path="/offline-academic-test" component={OfflineAcademicTest} />
       <Route path="/test-bulletin-pdf" component={TestBulletinPDF} />
       <Route path="/pwa-notifications-test" component={PWANotificationTest} />
       <Route path="/websocket-test" component={WebSocketTest} />
