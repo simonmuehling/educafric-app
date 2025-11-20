@@ -1066,6 +1066,9 @@ export function Transcript({ selectedStudentId }: { selectedStudentId: string })
 /**************************** TIMETABLE COMPONENT ****************************/
 export function TimeTable({ selectedClass }: { selectedClass: string }) {
   const { language } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const printRef = useRef<HTMLDivElement>(null);
   
   const DAYS = language === 'fr' 
     ? ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"]
@@ -1078,6 +1081,27 @@ export function TimeTable({ selectedClass }: { selectedClass: string }) {
     DAYS.forEach(d => { obj[d] = PERIODS.map(() => ""); });
     return obj;
   });
+
+  const [timetableName, setTimetableName] = useState('');
+  const [savedTimetables, setSavedTimetables] = useState<any[]>([]);
+  const [selectedTimetable, setSelectedTimetable] = useState<string | null>(null);
+
+  // Fetch saved timetables
+  const { data: timetablesData, refetch: refetchTimetables } = useQuery({
+    queryKey: ['/api/director/timetables', selectedClass],
+    queryFn: async () => {
+      const response = await fetch(`/api/director/timetables?classId=${selectedClass}`, { credentials: 'include' });
+      if (!response.ok) return { timetables: [] };
+      return response.json();
+    },
+    enabled: !!selectedClass,
+  });
+
+  useEffect(() => {
+    if (timetablesData?.timetables) {
+      setSavedTimetables(timetablesData.timetables);
+    }
+  }, [timetablesData]);
 
   function updateCell(day: string, idx: number, value: string) {
     setGrid((prev: any) => ({ 
@@ -1092,6 +1116,79 @@ export function TimeTable({ selectedClass }: { selectedClass: string }) {
       for (const d of DAYS) o[d] = prev[d].map(() => "");
       return o;
     });
+  }
+
+  async function saveTimetable() {
+    if (!timetableName.trim()) {
+      toast({
+        title: language === 'fr' ? "Nom requis" : "Name required",
+        description: language === 'fr' ? "Donnez un nom à cet emploi du temps" : "Please provide a timetable name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/director/timetables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: timetableName,
+          classId: selectedClass,
+          grid: grid,
+          isActive: true
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to save');
+      
+      toast({
+        title: language === 'fr' ? "✅ Enregistré" : "✅ Saved",
+        description: language === 'fr' ? `Emploi du temps "${timetableName}" créé` : `Timetable "${timetableName}" created`
+      });
+      
+      setTimetableName('');
+      clearAll();
+      refetchTimetables();
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible d'enregistrer l'emploi du temps" : "Failed to save timetable",
+        variant: "destructive"
+      });
+    }
+  }
+
+  async function deleteTimetable(id: string) {
+    try {
+      const response = await fetch(`/api/director/timetables/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw new Error('Failed to delete');
+      
+      toast({
+        title: language === 'fr' ? "✅ Supprimé" : "✅ Deleted",
+        description: language === 'fr' ? "Emploi du temps supprimé" : "Timetable deleted"
+      });
+      
+      refetchTimetables();
+      setSelectedTimetable(null);
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de supprimer" : "Failed to delete",
+        variant: "destructive"
+      });
+    }
+  }
+
+  function loadTimetable(timetable: any) {
+    setSelectedTimetable(timetable.id);
+    setGrid(timetable.grid || grid);
+    setTimetableName(timetable.name);
   }
 
   if (!selectedClass) {
@@ -1111,70 +1208,118 @@ export function TimeTable({ selectedClass }: { selectedClass: string }) {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              {language === 'fr' ? 'Emploi du Temps' : 'Timetable'}
+    <div className="space-y-4" ref={printRef}>
+      {/* Saved Timetables List */}
+      {savedTimetables.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">
+              {language === 'fr' ? "Emplois du temps enregistrés" : "Saved Timetables"}
             </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {language === 'fr' 
-                ? `Classe ${selectedClass} • Cliquez pour saisir les matières et salles`
-                : `Class ${selectedClass} • Click to enter subjects and rooms`
-              }
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.print?.()}
-            >
-              <Printer className="h-4 w-4 mr-2" />
-              {language === 'fr' ? 'Imprimer' : 'Print'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearAll}
-            >
-              {language === 'fr' ? 'Vider' : 'Clear'}
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-xs">
-            <thead className="bg-gray-50">
-              <tr>
-                <Th>{language === 'fr' ? 'Jour / Heure' : 'Day / Time'}</Th>
-                {PERIODS.map(p => <Th key={p}>{p}</Th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(grid).map(([day, slots], rIndex) => (
-                <tr key={day} className={rIndex % 2 ? "bg-white" : "bg-gray-50/50"}>
-                  <Td className="font-medium">{day}</Td>
-                  {(slots as string[]).map((value, idx) => (
-                    <Td key={idx}>
-                      <Input
-                        className="w-full h-8 text-xs"
-                        placeholder={language === 'fr' ? "Ex: MATHS – Salle 3" : "Ex: MATH – Room 3"}
-                        value={value}
-                        onChange={e => updateCell(day, idx, e.target.value)}
-                      />
-                    </Td>
-                  ))}
-                </tr>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {savedTimetables.map(tt => (
+                <div key={tt.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <button
+                    onClick={() => loadTimetable(tt)}
+                    className="flex-1 text-left text-sm hover:text-blue-600 cursor-pointer"
+                  >
+                    📅 {tt.name}
+                  </button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => deleteTimetable(tt.id)}
+                    className="ml-2"
+                  >
+                    {language === 'fr' ? 'Supprimer' : 'Delete'}
+                  </Button>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Timetable Editor */}
+      <Card className="w-full">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                {language === 'fr' ? 'Emploi du Temps' : 'Timetable'}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {language === 'fr' 
+                  ? `Classe ${selectedClass} • Entrez les matières (optionnel: salle/enseignant)`
+                  : `Class ${selectedClass} • Enter subjects (optional: room/teacher)`
+                }
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder={language === 'fr' ? "Nom emploi du temps..." : "Timetable name..."}
+                value={timetableName}
+                onChange={e => setTimetableName(e.target.value)}
+                className="w-48"
+              />
+              <Button
+                onClick={saveTimetable}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {language === 'fr' ? 'Enregistrer' : 'Save'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.print?.()}
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                {language === 'fr' ? 'Imprimer' : 'Print'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearAll}
+              >
+                {language === 'fr' ? 'Vider' : 'Clear'}
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-xs">
+              <thead className="bg-gray-50">
+                <tr>
+                  <Th>{language === 'fr' ? 'Jour / Heure' : 'Day / Time'}</Th>
+                  {PERIODS.map(p => <Th key={p}>{p}</Th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(grid).map(([day, slots], rIndex) => (
+                  <tr key={day} className={rIndex % 2 ? "bg-white" : "bg-gray-50/50"}>
+                    <Td className="font-medium">{day}</Td>
+                    {(slots as string[]).map((value, idx) => (
+                      <Td key={idx}>
+                        <Input
+                          className="w-full h-8 text-xs"
+                          placeholder={language === 'fr' ? "Ex: MATHS – Salle 3" : "Ex: MATH – Room 3"}
+                          value={value}
+                          onChange={e => updateCell(day, idx, e.target.value)}
+                        />
+                      </Td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
