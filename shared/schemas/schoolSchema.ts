@@ -53,6 +53,15 @@ export const schools = pgTable("schools", {
   // FALSE/NULL = School has standard online-only access
   offlinePremiumEnabled: boolean("offline_premium_enabled").default(false).notNull(),
   
+  // Module visibility toggles (managed by Site Admin)
+  // These control which modules appear in the Director Dashboard
+  communicationsEnabled: boolean("communications_enabled").default(true).notNull(),
+  educationalContentEnabled: boolean("educational_content_enabled").default(true).notNull(),
+  delegateAdminsEnabled: boolean("delegate_admins_enabled").default(true).notNull(),
+  canteenEnabled: boolean("canteen_enabled").default(true).notNull(),
+  schoolBusEnabled: boolean("school_bus_enabled").default(true).notNull(),
+  onlineClassesEnabled: boolean("online_classes_enabled").default(true).notNull(),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
