@@ -420,7 +420,7 @@ const handlePrint = (el: HTMLElement | null) => {
 };
 
 /**************************** REPORT CARDS LIST COMPONENT (Shows created bulletins) ****************************/
-export function ReportCardsList({ selectedClass, selectedTerm }: { selectedClass: string; selectedTerm: string }) {
+export function ReportCardsList({ selectedClass, selectedTerm, className }: { selectedClass: string; selectedTerm: string; className?: string }) {
   const { language } = useLanguage();
 
   // Fetch school information from database
@@ -541,8 +541,8 @@ export function ReportCardsList({ selectedClass, selectedTerm }: { selectedClass
           </CardTitle>
           <p className="text-sm text-green-600">
             {language === 'fr' 
-              ? `${bulletins.length} bulletin(s) pour ${selectedClass} - ${termLabel}`
-              : `${bulletins.length} bulletin(s) for ${selectedClass} - ${termLabel}`
+              ? `${bulletins.length} bulletin(s) pour ${className || selectedClass} - ${termLabel}`
+              : `${bulletins.length} bulletin(s) for ${className || selectedClass} - ${termLabel}`
             }
           </p>
         </CardHeader>
@@ -598,7 +598,7 @@ export function ReportCardsList({ selectedClass, selectedTerm }: { selectedClass
 }
 
 /**************************** TRUE MASTERSHEET COMPONENT (Class-wide grade grid) ****************************/
-export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: string; selectedTerm: string }) {
+export function MasterSheet({ selectedClass, selectedTerm, className }: { selectedClass: string; selectedTerm: string; className?: string }) {
   const { language } = useLanguage();
   const printRef = useRef<HTMLDivElement>(null);
   
@@ -697,8 +697,8 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 {language === 'fr' 
-                  ? `Classe ${selectedClass} • ${termLabel}`
-                  : `Class ${selectedClass} • ${termLabel}`
+                  ? `Classe ${className || selectedClass} • ${termLabel}`
+                  : `Class ${className || selectedClass} • ${termLabel}`
                 }
               </p>
             </div>
@@ -764,8 +764,8 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
               </h1>
               <p className="text-sm font-semibold mt-2">
                 {language === 'fr' 
-                  ? `Classe: ${selectedClass} • ${termLabel} • Année ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
-                  : `Class: ${selectedClass} • ${termLabel} • Year ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
+                  ? `Classe: ${className || selectedClass} • ${termLabel} • Année ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
+                  : `Class: ${className || selectedClass} • ${termLabel} • Year ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
                 }
               </p>
             </div>
@@ -1065,7 +1065,7 @@ export function Transcript({ selectedStudentId }: { selectedStudentId: string })
 }
 
 /**************************** TIMETABLE COMPONENT ****************************/
-export function TimeTable({ selectedClass }: { selectedClass: string }) {
+export function TimeTable({ selectedClass, className }: { selectedClass: string; className?: string }) {
   const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1254,8 +1254,8 @@ export function TimeTable({ selectedClass }: { selectedClass: string }) {
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 {language === 'fr' 
-                  ? `Classe ${selectedClass} • Entrez les matières (optionnel: salle/enseignant)`
-                  : `Class ${selectedClass} • Enter subjects (optional: room/teacher)`
+                  ? `Classe ${className || selectedClass} • Entrez les matières (optionnel: salle/enseignant)`
+                  : `Class ${className || selectedClass} • Enter subjects (optional: room/teacher)`
                 }
               </p>
             </div>
@@ -1746,6 +1746,9 @@ export default function AcademicManagementSuite() {
 
   const classes = (classesData as any)?.classes || [];
   const students = (studentsData as any)?.students || [];
+  
+  // Get the selected class name for display
+  const selectedClassName = classes.find((c: any) => c.id.toString() === selectedClass)?.name || '';
 
   return (
     <div className="space-y-6">
@@ -1911,7 +1914,7 @@ export default function AcademicManagementSuite() {
 
             <TabsContent value="report-cards" className="mt-0">
               {selectedClass ? (
-                <MasterSheet selectedClass={selectedClass} selectedTerm={selectedTerm} />
+                <MasterSheet selectedClass={selectedClass} selectedTerm={selectedTerm} className={selectedClassName} />
               ) : (
                 <div className="p-8 text-center">
                   <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -1927,7 +1930,7 @@ export default function AcademicManagementSuite() {
 
             <TabsContent value="mastersheet" className="mt-0">
               {selectedClass ? (
-                <ReportCardsList selectedClass={selectedClass} selectedTerm={selectedTerm} />
+                <ReportCardsList selectedClass={selectedClass} selectedTerm={selectedTerm} className={selectedClassName} />
               ) : (
                 <div className="p-8 text-center">
                   <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
