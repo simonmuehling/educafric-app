@@ -94,18 +94,6 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
         },
         {
           title: { 
-            fr: '📅 Export Calendrier', 
-            en: '📅 Calendar Export' 
-          },
-          content: { 
-            fr: 'Exportez les événements scolaires au format iCal/ICS : cours, examens, réunions. Compatible avec Google Calendar, Outlook, Apple Calendar. Synchronisation automatique.',
-            en: 'Export school events in iCal/ICS format: classes, exams, meetings. Compatible with Google Calendar, Outlook, Apple Calendar. Automatic synchronization.'
-          },
-          icon: Calendar,
-          color: 'bg-blue-500'
-        },
-        {
-          title: { 
             fr: '✅ Présence École', 
             en: '✅ School Attendance' 
           },
@@ -297,18 +285,6 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
           },
           icon: Clock,
           color: 'bg-green-500'
-        },
-        {
-          title: { 
-            fr: '📅 Export Calendrier', 
-            en: '📅 Calendar Export' 
-          },
-          content: { 
-            fr: 'Exportez votre emploi du temps au format iCal/ICS : cours, réunions, événements. Compatible avec Google Calendar, Outlook, Apple Calendar. Mise à jour automatique.',
-            en: 'Export your schedule in iCal/ICS format: classes, meetings, events. Compatible with Google Calendar, Outlook, Apple Calendar. Automatic updates.'
-          },
-          icon: Calendar,
-          color: 'bg-cyan-500'
         },
         {
           title: { 
