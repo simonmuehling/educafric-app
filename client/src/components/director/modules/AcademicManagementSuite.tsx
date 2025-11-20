@@ -1727,7 +1727,7 @@ export default function AcademicManagementSuite() {
             <TabsList ref={tabsListRef} className="grid w-full grid-cols-5">
               <TabsTrigger value="bulletins" className="flex items-center gap-2" data-testid="tab-bulletins">
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Marksheet'}</span>
+                <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Report Cards'}</span>
               </TabsTrigger>
               <TabsTrigger value="report-cards" className="flex items-center gap-2" data-testid="tab-report-cards">
                 <FileSpreadsheet className="h-4 w-4" />
@@ -1735,11 +1735,11 @@ export default function AcademicManagementSuite() {
               </TabsTrigger>
               <TabsTrigger value="mastersheet" className="flex items-center gap-2" data-testid="tab-mastersheet">
                 <CheckCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Cartes de Rapport' : 'Report Cards'}</span>
+                <span className="hidden sm:inline">{language === 'fr' ? 'Liste Bulletins' : 'Bulletins List'}</span>
               </TabsTrigger>
               <TabsTrigger value="transcript" className="flex items-center gap-2" data-testid="tab-transcript">
                 <BookOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Relevé' : 'Transcript'}</span>
+                <span className="hidden sm:inline">{language === 'fr' ? 'Relevé' : 'Marksheet'}</span>
               </TabsTrigger>
               <TabsTrigger value="archives" className="flex items-center gap-2" data-testid="tab-archives">
                 <Archive className="h-4 w-4" />

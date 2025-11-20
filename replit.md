@@ -1,5 +1,7 @@
+# Educafric
+
 ### Overview
-Educafric is a comprehensive, bilingual, mobile-first educational technology platform for the African market. It digitalizes education by integrating academic management, communication, and financial features to reduce school costs, improve educational outcomes, and support high user volumes. The platform aims to address critical needs and capitalize on significant market potential in African education.
+Educafric is a comprehensive, bilingual, mobile-first educational technology platform tailored for the African market. It aims to digitalize education by integrating academic management, communication, and financial features to reduce school costs, improve educational outcomes, and support high user volumes. The platform addresses critical needs and capitalizes on significant market potential in African education by providing a robust, scalable, and culturally relevant solution.
 
 ### User Preferences
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -36,11 +38,11 @@ Educafric is a comprehensive, bilingual, mobile-first educational technology pla
 
 ### System Architecture
 - **Frontend**: React (TypeScript) with Wouter, TanStack Query, Radix UI + Shadcn/UI (Tailwind CSS) for an African-themed, PWA, mobile-optimized design. React Native for Android.
-- **Backend**: Express.js (RESTful API), Drizzle ORM with PostgreSQL.
-- **Authentication**: Session-based with `express-session` and `Passport.js`, Firebase Google OAuth. Features role-based access control (8 roles) and enhanced security with BCrypt, consolidated error handling, helmet, cors, rate-limiting, 2FA, and IDS.
-- **Database**: PostgreSQL on Neon Serverless, designed for multi-tenancy. Schema includes tables for users, schools, classes, grades, attendance, homework, payments, communication logs, geolocation, structured by academic year/term.
-- **Key Features**: Offline-First capabilities (Service Worker, IndexedDB, Background Sync, Offline Premium), African-style grade management, real-time attendance, flexible timetables, multi-channel notifications (WhatsApp, SMTP), bilingual templates, Stripe and local African payment methods, GPS tracking, geofencing, real-time monitoring, centralized document management with digital signatures and PDF generation, bidirectional connection system, iCal/ICS export, bulk Excel imports, Competency-Based Approach bulletin generation, Jitsi Meet integration for online classes, and Teacher Hybrid Work Mode.
-- **Design Choices**: Custom African-themed UI, PWA and mobile-first approach, dedicated sandbox environment with realistic demo data.
+- **Backend**: Express.js (RESTful API) with Drizzle ORM and PostgreSQL.
+- **Authentication**: Session-based with `express-session` and `Passport.js`, Firebase Google OAuth. Features role-based access control (8 roles), enhanced security with BCrypt, consolidated error handling, helmet, cors, rate-limiting, 2FA, and IDS.
+- **Database**: PostgreSQL on Neon Serverless, designed for multi-tenancy with tables for users, schools, classes, grades, attendance, homework, payments, communication logs, geolocation, structured by academic year/term.
+- **Key Features**: Offline-First capabilities (Service Worker, IndexedDB, Background Sync, Offline Premium), African-style grade management, real-time attendance, flexible timetables, multi-channel notifications, bilingual templates, payment methods, GPS tracking, geofencing, real-time monitoring, centralized document management with digital signatures and PDF generation, bidirectional connection system, iCal/ICS export, bulk Excel imports, Competency-Based Approach bulletin generation, Jitsi Meet integration for online classes, and Teacher Hybrid Work Mode.
+- **UI/UX Decisions**: Custom African-themed UI, PWA and mobile-first approach, dedicated sandbox environment with realistic demo data.
 
 ### External Dependencies
 - **Neon Database**: Serverless PostgreSQL database.
