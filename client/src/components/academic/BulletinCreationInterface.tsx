@@ -1021,19 +1021,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       secondTerm: "Second Term",
       thirdTerm: "Third Term",
       academicYear: "Academic year",
-      generalAverage: "General average",
+      generalAverage: "Overall average",
       studentInfo: "Student information",
       namePrenames: "Name & Surnames",
       studentId: "Student ID",
       class: "Class",
       classSize: "Class size",
-      birthDate: "Birth date",
-      birthPlace: "Birth place",
+      birthDate: "Date of birth",
+      birthPlace: "Place of birth",
       gender: "Gender",
       selectGender: "Select",
       male: "Male",
       female: "Female", 
-      homeTeacher: "Homeroom teacher", 
+      homeTeacher: "Form tutor", 
       guardian: "Parents/Guardians",
       // NEW: Ministry required field labels
       isRepeater: "Repeater",
@@ -1052,37 +1052,37 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       addSubject: "Add",
       subject: "Subject",
       coefficient: "Coefficient",
-      grade: "Grade /20",
-      appreciation: "Appreciation",
-      teacherAppreciation: "Teacher's appreciation",
+      grade: "Mark /20",
+      appreciation: "Comment",
+      teacherAppreciation: "Teacher's comment",
       disciplineAbsences: "Attendance and Discipline",
       justifiedAbs: "Justified absences (h)",
       unjustifiedAbs: "Unjustified absences (h)",
-      lates: "Lates",
+      lates: "Late arrivals",
       warnings: "Warnings/Reprimands",
-      generalAppreciation: "General appreciation",
-      generalAppreciationPlaceholder: "General appreciation for the term...",
+      generalAppreciation: "Overall comment",
+      generalAppreciationPlaceholder: "Overall comment for the term...",
       preview: "Preview",
       hide: "Hide", 
       save: "Save",
       printToPDF: "Print to PDF",
       generating: "Generating...",
       digitalSignature: "Digital Signature",
-      signBulletin: "Sign Bulletin",
+      signBulletin: "Sign Report Card",
       signed: "Signed ✓",
       sendToStudentParent: "Send to Students/Parents",
       annualSummary: "Annual Summary",
-      trimesterAverages: "Trimester Averages",
-      firstTrimester: "1st Trimester",
-      secondTrimester: "2nd Trimester",
-      thirdTrimester: "3rd Trimester", 
+      trimesterAverages: "Term Averages",
+      firstTrimester: "1st Term",
+      secondTrimester: "2nd Term",
+      thirdTrimester: "3rd Term", 
       annualAverage: "Annual Average",
       annualRank: "Annual Rank",
       passDecision: "Pass Decision",
-      passes: "PASSES to next grade",
-      repeats: "REPEATS grade",
+      passes: "PASSES to next year",
+      repeats: "REPEATS year",
       expelled: "EXPELLED",
-      finalAppreciation: "Final Appreciation",
+      finalAppreciation: "Final Comment",
       holidayRecommendations: "Holiday Recommendations",
       bulletinPreview: "Report card preview",
       uploadLogo: "Choose school logo",
@@ -1460,7 +1460,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                 </div>
 
                 <div>
-                  <Label htmlFor="classSize">Effectif</Label>
+                  <Label htmlFor="classSize">{labels[language].classSize}</Label>
                   <Input
                     id="classSize"
                     data-testid="input-class-size"
@@ -1494,14 +1494,14 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                 </div>
 
                 <div>
-                  <Label htmlFor="gender">Genre</Label>
+                  <Label htmlFor="gender">{labels[language].gender}</Label>
                   <Select value={student.gender} onValueChange={(value) => setStudent({...student, gender: value})}>
                     <SelectTrigger data-testid="select-gender">
-                      <SelectValue placeholder="Sélectionner" />
+                      <SelectValue placeholder={labels[language].selectGender} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="M">Masculin</SelectItem>
-                      <SelectItem value="F">Féminin</SelectItem>
+                      <SelectItem value="M">{labels[language].male}</SelectItem>
+                      <SelectItem value="F">{labels[language].female}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -2087,14 +2087,14 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                 className="w-full border-0 bg-transparent text-sm font-semibold"
                                 value={subject.name}
                                 onChange={(e) => updateSubject(subject.id, 'name', e.target.value)}
-                                placeholder="Matière..."
+                                placeholder={language === 'fr' ? "Matière..." : "Subject..."}
                                 data-testid={`input-subject-name-${index}`}
                               />
                               <Input
                                 className="w-full border-0 bg-transparent text-xs text-gray-600 italic"
                                 value={subject.teacher}
                                 onChange={(e) => updateSubject(subject.id, 'teacher', e.target.value)}
-                                placeholder="Nom enseignant..."
+                                placeholder={language === 'fr' ? "Nom enseignant..." : "Teacher name..."}
                                 data-testid={`input-teacher-name-${index}`}
                               />
                             </div>
