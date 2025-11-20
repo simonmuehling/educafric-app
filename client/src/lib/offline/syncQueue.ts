@@ -8,7 +8,7 @@ import { offlineDb, SyncQueueItem } from './db';
 export class SyncQueueManager {
   // Add item to sync queue
   static async enqueue(
-    module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages',
+    module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages' | 'academicData',
     action: 'create' | 'update' | 'delete',
     payload: any,
     entityId?: number,
@@ -102,7 +102,7 @@ export class SyncQueueManager {
   // Sync individual item
   private static async syncItem(item: SyncQueueItem): Promise<void> {
     const endpoint = this.getEndpoint(item.module, item.action, item.entityId);
-    const method = this.getMethod(item.action);
+    const method = this.getMethod(item.action, item.module);
 
     const response = await fetch(endpoint, {
       method,
@@ -140,6 +140,9 @@ export class SyncQueueManager {
         case 'messages':
           realId = responseData.message?.id;
           break;
+        case 'academicData':
+          realId = responseData.data?.id || responseData.id;
+          break;
       }
       
       if (realId) {
@@ -160,7 +163,7 @@ export class SyncQueueManager {
 
   // Update local record with real ID after server sync
   private static async updateLocalRecordId(
-    module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages',
+    module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages' | 'academicData',
     tempId: number,
     realId: number
   ): Promise<void> {
@@ -200,12 +203,19 @@ export class SyncQueueManager {
           await offlineDb.messages.put({ ...messageRecord, id: realId, syncStatus: 'synced' });
         }
         break;
+      case 'academicData':
+        const academicRecord = await offlineDb.academicData.get(tempId);
+        if (academicRecord) {
+          await offlineDb.academicData.delete(tempId);
+          await offlineDb.academicData.put({ ...academicRecord, id: realId, syncStatus: 'synced' });
+        }
+        break;
     }
   }
 
   // Update pending queue entries with real ID after CREATE sync
   private static async updateQueueEntityIds(
-    module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages',
+    module: 'classes' | 'students' | 'attendance' | 'teachers' | 'messages' | 'academicData',
     tempId: number,
     realId: number
   ): Promise<void> {
@@ -237,12 +247,17 @@ export class SyncQueueManager {
       students: '/api/director/students',
       attendance: '/api/director/attendance',
       teachers: '/api/director/teachers',
-      messages: '/api/director/messages'
+      messages: '/api/director/messages',
+      academicData: '/api/academic-bulletins/bulletins'
     };
 
     const base = baseEndpoints[module as keyof typeof baseEndpoints];
     
     if (action === 'create') {
+      return base;
+    }
+    
+    if (module === 'academicData' && action === 'update') {
       return base;
     }
     
@@ -254,7 +269,11 @@ export class SyncQueueManager {
   }
 
   // Get HTTP method for action
-  private static getMethod(action: string): string {
+  private static getMethod(action: string, module?: string): string {
+    if (module === 'academicData' && action === 'update') {
+      return 'POST';
+    }
+    
     switch (action) {
       case 'create': return 'POST';
       case 'update': return 'PATCH';

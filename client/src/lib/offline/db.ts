@@ -258,9 +258,27 @@ class OfflineDatabase extends Dexie {
 
     // Version 3: Academic Data becomes CRUD (upgrade from v2)
     // Upgrades academicData from read-only to full CRUD for offline bulletin creation
+    // MUST redefine ALL stores to prevent Dexie from deleting existing modules
     this.version(3).stores({
-      // Upgrade academicData to CRUD module
-      academicData: 'id, type, studentId, classId, schoolId, syncStatus, lastModified, term, [schoolId+classId], [schoolId+studentId], [schoolId+term]'
+      // CRUD modules (keep existing + upgrade academicData)
+      classes: 'id, schoolId, syncStatus, lastModified',
+      students: 'id, schoolId, classId, syncStatus, lastModified, [schoolId+classId]',
+      attendance: '++id, studentId, classId, date, schoolId, syncStatus, lastModified, [studentId+date], [schoolId+date]',
+      teachers: 'id, schoolId, syncStatus, lastModified, phone',
+      messages: 'id, schoolId, from, syncStatus, lastModified, [schoolId+from]',
+      academicData: 'id, type, studentId, classId, schoolId, syncStatus, lastModified, term, [schoolId+classId], [schoolId+studentId], [schoolId+term]',
+      
+      // Read-only modules (keep existing)
+      timetable: 'id, classId, teacherId, schoolId, lastCached, [schoolId+classId]',
+      schoolAttendance: 'id, date, schoolId, lastCached, [schoolId+date]',
+      delegatedAdmins: 'id, userId, schoolId, lastCached',
+      reports: 'id, type, schoolId, lastCached',
+      canteen: 'id, menuDate, schoolId, lastCached, [schoolId+menuDate]',
+      bus: 'id, schoolId, lastCached',
+      
+      // System tables (keep existing)
+      syncQueue: '++id, module, synced, timestamp, tempId, entityId, [module+synced]',
+      metadata: 'key, lastUpdated'
     });
   }
 }
