@@ -1,9 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { offlineDb, OfflineAcademicData } from '@/lib/offline/db';
 import { SyncQueueManager } from '@/lib/offline/syncQueue';
 import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+
+function buildBulletinPayload(record: OfflineAcademicData): any {
+  return {
+    id: record.id,
+    studentId: record.studentId,
+    studentName: record.data?.studentName || '',
+    classLabel: record.data?.classLabel || '',
+    trimester: record.term || record.data?.trimester,
+    academicYear: record.data?.academicYear || '',
+    subjects: record.data?.subjects || [],
+    discipline: record.data?.discipline || {},
+    ...record.data
+  };
+}
 
 export function useOfflineAcademicData() {
   const { user } = useAuth();
@@ -12,9 +26,14 @@ export function useOfflineAcademicData() {
   const [academicData, setAcademicData] = useState<OfflineAcademicData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const syncLockRef = useRef(false);
 
   const loadFromLocal = async () => {
     if (!user?.schoolId) return [];
+    
+    while (syncLockRef.current) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
     
     const localData = await offlineDb.academicData
       .where('schoolId')
@@ -24,6 +43,21 @@ export function useOfflineAcademicData() {
     
     return localData;
   };
+
+  const patchState = useCallback((id: number, updates: Partial<OfflineAcademicData> | null) => {
+    setAcademicData(prev => {
+      if (updates === null) {
+        return prev.filter(item => item.id !== id);
+      }
+      
+      const existing = prev.find(item => item.id === id);
+      if (existing) {
+        return prev.map(item => item.id === id ? { ...item, ...updates } : item);
+      } else {
+        return [...prev, { ...updates, id } as OfflineAcademicData];
+      }
+    });
+  }, []);
 
   const fetchAndCache = async () => {
     if (!user?.schoolId) return;
@@ -144,16 +178,7 @@ export function useOfflineAcademicData() {
       await offlineDb.academicData.add(newBulletin);
       
       try {
-        const payload = {
-          ...bulletinData.data,
-          studentId: bulletinData.studentId,
-          studentName: bulletinData.data?.studentName,
-          classLabel: bulletinData.data?.classLabel,
-          trimester: bulletinData.term,
-          academicYear: bulletinData.data?.academicYear,
-          subjects: bulletinData.data?.subjects || [],
-          discipline: bulletinData.data?.discipline
-        };
+        const payload = buildBulletinPayload(newBulletin);
         await SyncQueueManager.enqueue('academicData', 'create', payload, undefined, tempId);
       } catch (queueError) {
         console.error('[OFFLINE_ACADEMIC_DATA] Queue error, rolling back:', queueError);
@@ -161,8 +186,7 @@ export function useOfflineAcademicData() {
         throw queueError;
       }
       
-      const updated = await loadFromLocal();
-      setAcademicData(updated);
+      patchState(tempId, newBulletin);
       
       toast({
         title: 'Bulletin créé',
@@ -170,9 +194,14 @@ export function useOfflineAcademicData() {
       });
       
       if (isOnline) {
-        await SyncQueueManager.processQueue();
-        const refreshed = await loadFromLocal();
-        setAcademicData(refreshed);
+        syncLockRef.current = true;
+        try {
+          await SyncQueueManager.processQueue();
+          const refreshed = await loadFromLocal();
+          setAcademicData(refreshed);
+        } finally {
+          syncLockRef.current = false;
+        }
       }
       
       return newBulletin;
@@ -185,7 +214,7 @@ export function useOfflineAcademicData() {
       });
       return null;
     }
-  }, [user?.schoolId, isOnline, hasOfflineAccess, toast]);
+  }, [user?.schoolId, isOnline, hasOfflineAccess, toast, patchState]);
 
   const updateBulletin = useCallback(async (id: number, updates: Partial<OfflineAcademicData>): Promise<boolean> => {
     if (!hasOfflineAccess) {
@@ -216,29 +245,20 @@ export function useOfflineAcademicData() {
       
       await offlineDb.academicData.update(id, updateData);
       
+      const updatedRecord = await offlineDb.academicData.get(id);
+      if (!updatedRecord) throw new Error('Record disappeared after update');
+      
       try {
-        const payload = {
-          ...original.data,
-          ...updates.data,
-          id,
-          studentId: updates.studentId ?? original.studentId,
-          classLabel: updates.data?.classLabel ?? original.data?.classLabel,
-          trimester: updates.term ?? original.term,
-          academicYear: updates.data?.academicYear ?? original.data?.academicYear,
-          subjects: updates.data?.subjects ?? original.data?.subjects,
-          discipline: updates.data?.discipline ?? original.data?.discipline
-        };
+        const payload = buildBulletinPayload(updatedRecord);
         await SyncQueueManager.enqueue('academicData', 'update', payload, id);
       } catch (queueError) {
         console.error('[OFFLINE_ACADEMIC_DATA] Queue error, rolling back update:', queueError);
         await offlineDb.academicData.put(original);
-        const rolled = await loadFromLocal();
-        setAcademicData(rolled);
+        patchState(id, original);
         throw queueError;
       }
       
-      const updated = await loadFromLocal();
-      setAcademicData(updated);
+      patchState(id, updatedRecord);
 
       toast({
         title: 'Bulletin modifié',
@@ -246,9 +266,14 @@ export function useOfflineAcademicData() {
       });
       
       if (isOnline) {
-        await SyncQueueManager.processQueue();
-        const refreshed = await loadFromLocal();
-        setAcademicData(refreshed);
+        syncLockRef.current = true;
+        try {
+          await SyncQueueManager.processQueue();
+          const refreshed = await loadFromLocal();
+          setAcademicData(refreshed);
+        } finally {
+          syncLockRef.current = false;
+        }
       }
       
       return true;
@@ -261,7 +286,7 @@ export function useOfflineAcademicData() {
       });
       return false;
     }
-  }, [isOnline, hasOfflineAccess, toast]);
+  }, [isOnline, hasOfflineAccess, toast, patchState]);
 
   const deleteBulletin = useCallback(async (id: number): Promise<boolean> => {
     if (!hasOfflineAccess) {
@@ -291,13 +316,11 @@ export function useOfflineAcademicData() {
       } catch (queueError) {
         console.error('[OFFLINE_ACADEMIC_DATA] Queue error, restoring deleted item:', queueError);
         await offlineDb.academicData.put(original);
-        const rolled = await loadFromLocal();
-        setAcademicData(rolled);
+        patchState(id, original);
         throw queueError;
       }
       
-      const updated = await loadFromLocal();
-      setAcademicData(updated);
+      patchState(id, null);
 
       toast({
         title: 'Bulletin supprimé',
@@ -305,9 +328,14 @@ export function useOfflineAcademicData() {
       });
       
       if (isOnline) {
-        await SyncQueueManager.processQueue();
-        const refreshed = await loadFromLocal();
-        setAcademicData(refreshed);
+        syncLockRef.current = true;
+        try {
+          await SyncQueueManager.processQueue();
+          const refreshed = await loadFromLocal();
+          setAcademicData(refreshed);
+        } finally {
+          syncLockRef.current = false;
+        }
       }
       
       return true;
@@ -320,7 +348,7 @@ export function useOfflineAcademicData() {
       });
       return false;
     }
-  }, [isOnline, hasOfflineAccess, toast]);
+  }, [isOnline, hasOfflineAccess, toast, patchState]);
 
   const getBulletinsByClass = useCallback((classId: number): OfflineAcademicData[] => {
     return academicData.filter(item => item.classId === classId);
