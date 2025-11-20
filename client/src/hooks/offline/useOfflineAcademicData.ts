@@ -8,13 +8,18 @@ import { useToast } from '@/hooks/use-toast';
 function buildBulletinPayload(record: OfflineAcademicData): any {
   return {
     id: record.id,
+    type: record.type,
     studentId: record.studentId,
+    classId: record.classId,
+    schoolId: record.schoolId,
+    term: record.term,
     studentName: record.data?.studentName || '',
     classLabel: record.data?.classLabel || '',
-    trimester: record.term || record.data?.trimester,
+    trimester: record.term,
     academicYear: record.data?.academicYear || '',
     subjects: record.data?.subjects || [],
     discipline: record.data?.discipline || {},
+    status: record.data?.status,
     ...record.data
   };
 }
@@ -30,10 +35,6 @@ export function useOfflineAcademicData() {
 
   const loadFromLocal = async () => {
     if (!user?.schoolId) return [];
-    
-    while (syncLockRef.current) {
-      await new Promise(resolve => setTimeout(resolve, 50));
-    }
     
     const localData = await offlineDb.academicData
       .where('schoolId')
@@ -193,14 +194,14 @@ export function useOfflineAcademicData() {
         description: isOnline ? 'Enregistré avec succès' : 'Sera synchronisé lors de la reconnexion'
       });
       
-      if (isOnline) {
+      if (isOnline && !syncLockRef.current) {
         syncLockRef.current = true;
         try {
           await SyncQueueManager.processQueue();
-          const refreshed = await loadFromLocal();
-          setAcademicData(refreshed);
         } finally {
           syncLockRef.current = false;
+          const refreshed = await loadFromLocal();
+          setAcademicData(refreshed);
         }
       }
       
@@ -265,14 +266,14 @@ export function useOfflineAcademicData() {
         description: isOnline ? 'Enregistré avec succès' : 'Sera synchronisé lors de la reconnexion'
       });
       
-      if (isOnline) {
+      if (isOnline && !syncLockRef.current) {
         syncLockRef.current = true;
         try {
           await SyncQueueManager.processQueue();
-          const refreshed = await loadFromLocal();
-          setAcademicData(refreshed);
         } finally {
           syncLockRef.current = false;
+          const refreshed = await loadFromLocal();
+          setAcademicData(refreshed);
         }
       }
       
@@ -327,14 +328,14 @@ export function useOfflineAcademicData() {
         description: isOnline ? 'Supprimé avec succès' : 'Sera synchronisé lors de la reconnexion'
       });
       
-      if (isOnline) {
+      if (isOnline && !syncLockRef.current) {
         syncLockRef.current = true;
         try {
           await SyncQueueManager.processQueue();
-          const refreshed = await loadFromLocal();
-          setAcademicData(refreshed);
         } finally {
           syncLockRef.current = false;
+          const refreshed = await loadFromLocal();
+          setAcademicData(refreshed);
         }
       }
       
