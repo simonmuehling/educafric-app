@@ -156,11 +156,13 @@ export class ClassStorage {
             
             const nameFr = subject.nameFr || subject.name || subject.nameEn;
             const nameEn = subject.nameEn || subject.name || subject.nameFr;
+            // Generate code from subject name if not provided (required field)
+            const code = subject.code || `${nameFr.substring(0, 3).toUpperCase()}${Math.random().toString(36).substr(2, 3).toUpperCase()}`;
             
             return {
               nameFr,
               nameEn,
-              code: subject.code || null,
+              code,
               coefficient: subject.coefficient?.toString() || '1',
               schoolId: updatedClass.schoolId,
               classId: classId,
