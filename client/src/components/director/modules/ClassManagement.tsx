@@ -226,7 +226,7 @@ const ClassManagement: React.FC = () => {
       form: {
         className: 'Class name',
         capacity: 'Number of students',
-        teacher: 'Main teacher',
+        teacher: 'Class Master',
         room: 'Room',
         selectTeacher: 'Select a teacher (optional)',
         subjects: 'Subjects and Coefficients',
@@ -241,7 +241,7 @@ const ClassManagement: React.FC = () => {
         name: 'Class Name',
         students: 'Students',
         capacity: 'Number of students',
-        teacher: 'Main Teacher',
+        teacher: 'Class Master',
         status: 'Status',
         actions: 'Actions'
       },
