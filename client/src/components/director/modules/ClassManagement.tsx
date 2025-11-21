@@ -69,6 +69,14 @@ const ClassManagement: React.FC = () => {
     isRequired: true,
     bulletinSection: undefined as 'general' | 'scientific' | 'professional' | undefined
   });
+  const [editSubject, setEditSubject] = useState({
+    name: '',
+    coefficient: 1,
+    category: 'general' as 'general' | 'scientific' | 'literary' | 'professional' | 'other',
+    hoursPerWeek: 2,
+    isRequired: true,
+    bulletinSection: undefined as 'general' | 'scientific' | 'professional' | undefined
+  });
   
   // Ref for triggering dialogs from quick actions
   const createClassTriggerRef = useRef<HTMLButtonElement>(null);
@@ -108,6 +116,43 @@ const ClassManagement: React.FC = () => {
     setNewClass(prev => ({
       ...prev,
       subjects: prev.subjects.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addEditSubject = () => {
+    if (!editSubject.name.trim()) {
+      toast({
+        title: language === 'fr' ? "Nom requis" : "Name required",
+        description: language === 'fr' ? "Veuillez saisir le nom de la matière" : "Please enter the subject name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSelectedClass(prev => ({
+      ...prev,
+      subjects: [...(prev?.subjects || []), { ...editSubject }]
+    }));
+
+    setEditSubject({
+      name: '',
+      coefficient: 1,
+      category: 'general',
+      hoursPerWeek: 2,
+      isRequired: true,
+      bulletinSection: undefined
+    });
+
+    toast({
+      title: language === 'fr' ? "✅ Matière ajoutée" : "✅ Subject added",
+      description: `${editSubject.name} (coeff. ${editSubject.coefficient})`,
+    });
+  };
+
+  const removeEditSubject = (index: number) => {
+    setSelectedClass(prev => ({
+      ...prev,
+      subjects: prev?.subjects?.filter((_, i) => i !== index) || []
     }));
   };
 
@@ -1134,11 +1179,11 @@ const ClassManagement: React.FC = () => {
 
             {/* Edit Class Dialog */}
             <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-              <DialogContent className="bg-white max-w-[95vw] sm:max-w-md p-4 sm:p-6">
-                <DialogHeader className="bg-white">
+              <DialogContent className="bg-white max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+                <DialogHeader className="bg-white sticky top-0 z-10 border-b border-gray-200 pb-4">
                   <DialogTitle className="text-lg sm:text-xl">{String(t?.actions?.edit) || "N/A"} {selectedClass?.name}</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4 bg-white">
+                <div className="space-y-4 bg-white p-1">
                   <div>
                     <Label>{String(t?.form?.className) || "N/A"}</Label>
                     <Input
@@ -1160,6 +1205,122 @@ const ClassManagement: React.FC = () => {
                       className="bg-white border-gray-300"
                     />
                   </div>
+
+                  {/* Subjects Section in Edit Modal */}
+                  <div className="border-t pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-lg font-medium flex items-center">
+                        <GraduationCap className="w-5 h-5 mr-2 text-blue-600" />
+                        {String(t?.form?.subjects) || "Matières et Coefficients"}
+                      </Label>
+                    </div>
+                    
+                    {/* Liste des matières existantes */}
+                    {selectedClass?.subjects && selectedClass.subjects.length > 0 && (
+                      <div className="space-y-2 mb-4">
+                        <div className="text-sm text-gray-600">
+                          {language === 'fr' 
+                            ? `${selectedClass.subjects.length} matière${selectedClass.subjects.length > 1 ? 's' : ''} configurée${selectedClass.subjects.length > 1 ? 's' : ''}`
+                            : `${selectedClass.subjects.length} subject${selectedClass.subjects.length > 1 ? 's' : ''} configured`
+                          }
+                        </div>
+                        <div className="max-h-40 overflow-y-auto space-y-1">
+                          {selectedClass.subjects.map((subject, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                              <div className="flex-1">
+                                <span className="font-medium text-sm">{subject.name}</span>
+                                <div className="text-xs text-gray-500">
+                                  Coeff. {subject.coefficient} • {subject.hoursPerWeek}h/sem • {subject.category}
+                                  {isTechnicalSchool && subject.bulletinSection && (
+                                    <span className="ml-2 text-blue-600 font-medium">
+                                      → {language === 'fr' ? 'Bulletin' : 'Report'}: {subject.bulletinSection}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                onClick={() => removeEditSubject(index)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Formulaire ajout de matière */}
+                    <div className="border rounded-md p-3 bg-blue-50">
+                      <div className="text-sm font-medium mb-2 text-blue-800">
+                        {String(t?.form?.addSubject) || (language === 'fr' ? "Ajouter Matière" : "Add Subject")}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div>
+                          <Input
+                            placeholder={String(t?.form?.subjectName) || (language === 'fr' ? "Nom matière" : "Subject name")}
+                            value={editSubject.name}
+                            onChange={(e) => setEditSubject(prev => ({ ...prev, name: e.target.value }))}
+                            className="bg-white text-sm"
+                          />
+                        </div>
+                        <div className="flex gap-1">
+                          <Input
+                            type="number"
+                            placeholder={language === 'fr' ? "Coeff" : "Coef"}
+                            value={editSubject.coefficient}
+                            onChange={(e) => setEditSubject(prev => ({ ...prev, coefficient: parseInt(e.target.value) || 1 }))}
+                            className="bg-white text-sm"
+                            min="1"
+                            max="10"
+                          />
+                          <Input
+                            type="number"
+                            placeholder={language === 'fr' ? "H/sem" : "H/wk"}
+                            value={editSubject.hoursPerWeek}
+                            onChange={(e) => setEditSubject(prev => ({ ...prev, hoursPerWeek: parseInt(e.target.value) || 1 }))}
+                            className="bg-white text-sm"
+                            min="1"
+                            max="15"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mb-2">
+                        <Select 
+                          value={editSubject.category} 
+                          onValueChange={(value: 'general' | 'scientific' | 'literary' | 'professional' | 'other') => 
+                            setEditSubject(prev => ({ ...prev, category: value }))
+                          }
+                        >
+                          <SelectTrigger className="bg-white text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
+                            <SelectItem value="scientific">🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}</SelectItem>
+                            <SelectItem value="literary">📖 {language === 'fr' ? 'Littéraire' : 'Literary'}</SelectItem>
+                            <SelectItem value="professional">🔧 {language === 'fr' ? 'Professionnel' : 'Professional'}</SelectItem>
+                            <SelectItem value="other">🎨 {language === 'fr' ? 'Autre' : 'Other'}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          onClick={addEditSubject}
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          {language === 'fr' ? 'Ajouter' : 'Add'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <Label>{String(t?.form?.teacher) || "N/A"}</Label>
                     <Select 
@@ -1262,7 +1423,7 @@ const ClassManagement: React.FC = () => {
                       disabled={editClassMutation?.isPending || false}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      {editClassMutation.isPending ? 'Modification...' : t?.actions?.save}
+                      {editClassMutation.isPending ? (language === 'fr' ? 'Modification...' : 'Updating...') : t?.actions?.save}
                     </Button>
                     <Button 
                       variant="outline" 
