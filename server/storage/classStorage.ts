@@ -104,6 +104,15 @@ export class ClassStorage {
     try {
       console.log('[CLASS_STORAGE] Updating class:', classId, 'with data:', updates);
       
+      // Get the current class first to have schoolId for subject operations
+      const currentClass = await db.query.classes.findFirst({
+        where: eq(classes.id, classId)
+      });
+      
+      if (!currentClass) {
+        throw new Error(`Class with ID ${classId} not found`);
+      }
+      
       // Prepare update data (remove undefined values, but allow null for clearing fields)
       const updateData: any = {};
       if (updates.name !== undefined) updateData.name = updates.name;
@@ -124,6 +133,10 @@ export class ClassStorage {
         .set(updateData)
         .where(eq(classes.id, classId))
         .returning();
+      
+      if (!updatedClass) {
+        throw new Error(`Failed to update class with ID ${classId}`);
+      }
       
       // Handle subjects update if subjects array is provided
       if (updates.subjects !== undefined) {
