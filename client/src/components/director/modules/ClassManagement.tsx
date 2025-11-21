@@ -129,9 +129,21 @@ const ClassManagement: React.FC = () => {
       return;
     }
 
+    const newSubjectForBackend = {
+      nameFr: editSubject.name,
+      nameEn: editSubject.name,
+      coefficient: editSubject.coefficient.toString(),
+      hoursPerWeek: editSubject.hoursPerWeek,
+      category: editSubject.category,
+      subjectType: editSubject.category,
+      bulletinSection: editSubject.bulletinSection || null,
+      isRequired: editSubject.isRequired,
+      name: editSubject.name
+    };
+
     setSelectedClass(prev => ({
       ...prev,
-      subjects: [...(prev?.subjects || []), { ...editSubject }]
+      subjects: [...(prev?.subjects || []), newSubjectForBackend]
     }));
 
     setEditSubject({
@@ -376,14 +388,31 @@ const ClassManagement: React.FC = () => {
   });
 
   // Add default values for display
-  const finalClasses = (Array.isArray(filteredClasses) ? filteredClasses : []).map((classItem: any) => ({
-    ...classItem,
-    currentStudents: classItem.currentStudents || 0,
-    capacity: classItem.maxStudents || classItem.capacity || 30,
-    teacher: classItem.teacherName || 'Non assigné',
-    status: 'active',
-    room: classItem.room || 'Non définie'
-  }));
+  const finalClasses = (Array.isArray(filteredClasses) ? filteredClasses : []).map((classItem: any) => {
+    // Normalize subjects for consistency
+    const normalizedSubjects = (classItem.subjects || []).map((s: any) => ({
+      id: s.id,
+      nameFr: s.nameFr || s.name,
+      nameEn: s.nameEn || s.name,
+      name: s.name || s.nameFr || s.nameEn,
+      coefficient: s.coefficient,
+      hoursPerWeek: s.hoursPerWeek,
+      category: s.category || s.subjectType,
+      subjectType: s.subjectType || s.category,
+      bulletinSection: s.bulletinSection,
+      isRequired: s.isRequired
+    }));
+    
+    return {
+      ...classItem,
+      subjects: normalizedSubjects,
+      currentStudents: classItem.currentStudents || 0,
+      capacity: classItem.maxStudents || classItem.capacity || 30,
+      teacher: classItem.teacherName || 'Non assigné',
+      status: 'active',
+      room: classItem.room || 'Non définie'
+    };
+  });
 
   // Create class mutation
   const createClassMutation = useMutation({
@@ -758,13 +787,30 @@ const ClassManagement: React.FC = () => {
     
     console.log('[CLASS_MANAGEMENT] 💾 Saving class changes:', selectedClass);
     
+    // Normalize subjects to ensure they have all required fields for backend
+    const normalizedSubjects = (selectedClass.subjects || []).map((subject: any) => {
+      const name = subject.nameFr || subject.name || subject.nameEn || '';
+      return {
+        nameFr: subject.nameFr || name,
+        nameEn: subject.nameEn || name,
+        name: name,
+        coefficient: subject.coefficient?.toString ? subject.coefficient.toString() : String(subject.coefficient || 1),
+        hoursPerWeek: subject.hoursPerWeek || 2,
+        category: subject.category || subject.subjectType || 'general',
+        subjectType: subject.category || subject.subjectType || 'general',
+        bulletinSection: subject.bulletinSection || null,
+        isRequired: subject.isRequired !== undefined ? subject.isRequired : true,
+        code: subject.code || null
+      };
+    });
+    
     // Transform data to match backend API contract - preserve ALL fields
     const classDataForAPI = {
       name: selectedClass.name,
       room: selectedClass.room || null,
       maxStudents: selectedClass.capacity ? parseInt(selectedClass.capacity) : (selectedClass.maxStudents || null),
       teacherId: selectedClass.teacherId ? parseInt(selectedClass.teacherId) : null,
-      subjects: selectedClass.subjects || [],
+      subjects: normalizedSubjects,
       level: selectedClass.level || null,
       section: selectedClass.section || null,
       academicYearId: selectedClass.academicYearId || 1,
@@ -773,7 +819,7 @@ const ClassManagement: React.FC = () => {
       description: selectedClass.description || `Classe ${selectedClass.name}`
     };
     
-    console.log('[CLASS_MANAGEMENT] 📤 Sending edit to API:', classDataForAPI);
+    console.log('[CLASS_MANAGEMENT] 📤 Sending edit to API with subjects:', classDataForAPI.subjects);
     editClassMutation.mutate({
       classId: selectedClass.id,
       classData: classDataForAPI
