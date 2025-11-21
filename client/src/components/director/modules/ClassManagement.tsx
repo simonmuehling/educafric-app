@@ -141,10 +141,19 @@ const ClassManagement: React.FC = () => {
       name: editSubject.name
     };
 
-    setSelectedClass(prev => ({
-      ...prev,
-      subjects: [...(prev?.subjects || []), newSubjectForBackend]
-    }));
+    console.log('[CLASS_MANAGEMENT] ✅ Adding new subject:', newSubjectForBackend);
+
+    setSelectedClass(prev => {
+      const updatedSubjects = [...(prev?.subjects || []), newSubjectForBackend];
+      console.log('[CLASS_MANAGEMENT] 📋 Updated subjects array:', updatedSubjects);
+      return {
+        ...prev,
+        subjects: updatedSubjects
+      };
+    });
+
+    const subjectName = editSubject.name;
+    const coefficient = editSubject.coefficient;
 
     setEditSubject({
       name: '',
@@ -157,7 +166,7 @@ const ClassManagement: React.FC = () => {
 
     toast({
       title: language === 'fr' ? "✅ Matière ajoutée" : "✅ Subject added",
-      description: `${editSubject.name} (coeff. ${editSubject.coefficient})`,
+      description: `${subjectName} (coeff. ${coefficient})`,
     });
   };
 
