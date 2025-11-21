@@ -236,7 +236,8 @@ const TeacherManagement: React.FC = () => {
                 icon: <UserPlus className="w-5 h-5" />,
                 onClick: () => {
                   setFormData({
-                    name: '',
+                    firstName: '',
+                    lastName: '',
                     email: '',
                     phone: '',
                     subjects: [],
