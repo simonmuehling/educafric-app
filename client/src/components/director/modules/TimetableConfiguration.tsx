@@ -263,11 +263,11 @@ const TimetableConfiguration: React.FC = () => {
   const handleSubmit = useStableCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate required fields
-    if (!formData.className || !formData.day || !formData.subject || !formData.teacher || !formData.room || !formData.startTime || !formData.endTime) {
+    // Validate required fields - teacher and room are now optional
+    if (!formData.className || !formData.day || !formData.subject || !formData.startTime || !formData.endTime) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Tous les champs sont requis' : 'All fields are required',
+        description: language === 'fr' ? 'Classe, jour, matière, et horaires sont requis' : 'Class, day, subject, and times are required',
         variant: 'destructive'
       });
       return;
@@ -296,13 +296,13 @@ const TimetableConfiguration: React.FC = () => {
       const selectedClass = availableClasses.find((c: any) => c.name === formData.className);
       
       const apiData = {
-        teacherId: selectedTeacher?.id || 1, // fallback ID if not found
+        teacherId: selectedTeacher?.id || null, // Optional - can be null
         classId: selectedClass?.id || 1, // fallback ID if not found  
         subjectName: formData.subject,
         dayOfWeek: dayMapping[formData.day] || 1,
         startTime: formData.startTime,
         endTime: formData.endTime,
-        room: formData.room,
+        room: formData.room || null, // Optional - can be null
         academicYear: '2024-2025', // TODO: Get from context or settings
         term: 'Term 1', // TODO: Get from context or settings
         notes: ''
@@ -895,8 +895,8 @@ const TimetableConfiguration: React.FC = () => {
                     <Users className="w-4 h-4" />
                     {language === 'fr' ? 'Enseignant' : 'Teacher'}
                     {isLoadingTeachers && <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin" />}
-                    <Badge variant="outline" className="text-xs">
-                      {language === 'fr' ? 'Filtré par classe' : 'Filtered by class'}
+                    <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                      {language === 'fr' ? 'Optionnel' : 'Optional'}
                     </Badge>
                   </label>
                   {isLoadingTeachers ? (
@@ -943,8 +943,8 @@ const TimetableConfiguration: React.FC = () => {
                     <School className="w-4 h-4" />
                     {language === 'fr' ? 'Salle' : 'Room'}
                     {isLoadingRooms && <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin" />}
-                    <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700">
-                      {language === 'fr' ? 'API Intégrée' : 'API Integrated'}
+                    <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                      {language === 'fr' ? 'Optionnel' : 'Optional'}
                     </Badge>
                   </label>
                   {isLoadingRooms ? (
@@ -1005,9 +1005,7 @@ const TimetableConfiguration: React.FC = () => {
                     !formData.day || 
                     !formData.startTime || 
                     !formData.endTime || 
-                    !formData.subject || 
-                    !formData.teacher || 
-                    !formData.room ||
+                    !formData.subject ||
                     !!validateTimeSlot(formData.startTime, formData.endTime)
                   }
                   className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
