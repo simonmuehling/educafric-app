@@ -1075,13 +1075,13 @@ const ClassManagement: React.FC = () => {
                             ? (language === 'fr' ? "Chargement des enseignants..." : "Loading teachers...")
                             : teachersError 
                               ? (language === 'fr' ? "Erreur de chargement" : "Loading error")
-                              : (language === 'fr' ? "Aucun enseignant principal (optionnel)" : "No main teacher (optional)")
+                              : (language === 'fr' ? "Aucun responsable de classe (optionnel)" : "No class master (optional)")
                         } />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
                         <SelectItem value="no-teacher">
                           <div className="flex items-center text-gray-600">
-                            <span>❌ {language === 'fr' ? 'Aucun enseignant principal' : 'No main teacher'}</span>
+                            <span>❌ {language === 'fr' ? 'Aucun responsable de classe' : 'No class master'}</span>
                           </div>
                         </SelectItem>
                         {isLoadingTeachers ? (
@@ -1116,7 +1116,7 @@ const ClassManagement: React.FC = () => {
                       </p>
                     )}
                     <p className="text-xs text-gray-500 mt-1">
-                      💡 {language === 'fr' ? 'Vous pouvez assigner un enseignant principal plus tard' : 'You can assign a main teacher later'}
+                      💡 {language === 'fr' ? 'Vous pouvez assigner un responsable de classe plus tard' : 'You can assign a class master later'}
                     </p>
                   </div>
                   <div>

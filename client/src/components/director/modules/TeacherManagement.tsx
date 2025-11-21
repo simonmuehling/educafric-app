@@ -24,7 +24,8 @@ const TeacherManagement: React.FC = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     subjects: [] as string[],
@@ -150,7 +151,8 @@ const TeacherManagement: React.FC = () => {
               className="bg-blue-600 hover:bg-blue-700"
               onClick={() => {
                 setFormData({
-                  name: '',
+                  firstName: '',
+                  lastName: '',
                   email: '',
                   phone: '',
                   subjects: [],
@@ -413,13 +415,14 @@ const TeacherManagement: React.FC = () => {
                         onClick={() => {
                           setSelectedTeacher(teacher);
                           setFormData({
-                            name: `${String(teacher?.firstName) || "N/A"} ${String(teacher?.lastName) || "N/A"}`,
+                            firstName: String(teacher?.firstName) || "",
+                            lastName: String(teacher?.lastName) || "",
                             email: teacher.email,
                             phone: teacher.phone || '',
                             subjects: Array.isArray(teacher.subjects) ? teacher.subjects : [],
-                            classes: '',
-                            experience: '',
-                            qualification: ''
+                            classes: teacher.classes || '',
+                            experience: teacher.experience || '',
+                            qualification: teacher.qualification || ''
                           });
                           setShowEditModal(true);
                         }}
@@ -481,12 +484,21 @@ const TeacherManagement: React.FC = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="name">{language === 'fr' ? 'Nom complet' : 'Full Name'}</Label>
+                      <Label htmlFor="firstName">{language === 'fr' ? 'Prénom' : 'First Name'}</Label>
                       <Input
-                        id="name"
-                        value={String(formData?.name) || "N/A"}
-                        onChange={(e) => setFormData({...formData, name: e?.target?.value})}
-                        placeholder={language === 'fr' ? 'Entrez le nom complet' : 'Enter full name'}
+                        id="firstName"
+                        value={String(formData?.firstName) || ""}
+                        onChange={(e) => setFormData({...formData, firstName: e?.target?.value})}
+                        placeholder={language === 'fr' ? 'Entrez le prénom' : 'Enter first name'}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="lastName">{language === 'fr' ? 'Nom' : 'Last Name'}</Label>
+                      <Input
+                        id="lastName"
+                        value={String(formData?.lastName) || ""}
+                        onChange={(e) => setFormData({...formData, lastName: e?.target?.value})}
+                        placeholder={language === 'fr' ? 'Entrez le nom' : 'Enter last name'}
                       />
                     </div>
                     <div>
@@ -494,7 +506,7 @@ const TeacherManagement: React.FC = () => {
                       <Input
                         id="email"
                         type="email"
-                        value={String(formData?.email) || "N/A"}
+                        value={String(formData?.email) || ""}
                         onChange={(e) => setFormData({...formData, email: e?.target?.value})}
                         placeholder={language === 'fr' ? 'exemple@ecole?.edu?.cm' : 'example@school?.edu?.cm'}
                       />
@@ -503,7 +515,7 @@ const TeacherManagement: React.FC = () => {
                       <Label htmlFor="phone">{language === 'fr' ? 'Téléphone' : 'Phone'}</Label>
                       <Input
                         id="phone"
-                        value={String(formData?.phone) || "N/A"}
+                        value={String(formData?.phone) || ""}
                         onChange={(e) => setFormData({...formData, phone: e?.target?.value})}
                         placeholder="+237 6XX XXX XXX"
                       />
@@ -512,9 +524,18 @@ const TeacherManagement: React.FC = () => {
                       <Label htmlFor="experience">{language === 'fr' ? 'Expérience' : 'Experience'}</Label>
                       <Input
                         id="experience"
-                        value={String(formData?.experience) || "N/A"}
+                        value={String(formData?.experience) || ""}
                         onChange={(e) => setFormData({...formData, experience: e?.target?.value})}
                         placeholder={language === 'fr' ? '5 ans' : '5 years'}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="qualification">{language === 'fr' ? 'Qualification' : 'Qualification'}</Label>
+                      <Input
+                        id="qualification"
+                        value={String(formData?.qualification) || ""}
+                        onChange={(e) => setFormData({...formData, qualification: e?.target?.value})}
+                        placeholder={language === 'fr' ? 'Licence/Master' : 'Degree/Master'}
                       />
                     </div>
                   </div>
@@ -566,17 +587,6 @@ const TeacherManagement: React.FC = () => {
                       placeholder={language === 'fr' ? '6ème A, 5ème B' : '6th A, 5th B'}
                     />
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="qualification">{language === 'fr' ? 'Qualification' : 'Qualification'}</Label>
-                    <Textarea
-                      id="qualification"
-                      value={String(formData?.qualification) || "N/A"}
-                      onChange={(e) => setFormData({...formData, qualification: e?.target?.value})}
-                      placeholder={language === 'fr' ? 'Master en Mathématiques - Université de Yaoundé I' : 'Master in Mathematics - University of Yaoundé I'}
-                      rows={3}
-                    />
-                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
@@ -590,18 +600,18 @@ const TeacherManagement: React.FC = () => {
                   <Button 
                     onClick={() => {
                       const teacherData = {
-                        name: formData.name,
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
                         email: formData.email,
                         phone: formData.phone,
                         subjects: formData.subjects,
-                        classes: formData.classes,
                         experience: formData.experience,
                         qualification: formData.qualification,
                         role: 'Teacher'
                       };
                       createTeacherMutation.mutate(teacherData);
                     }}
-                    disabled={createTeacherMutation.isPending || !formData.name || !formData.email || !formData.phone || !formData.subjects || !formData.experience || !formData.qualification}
+                    disabled={createTeacherMutation.isPending || !formData.firstName || !formData.lastName || !formData.email || !formData.phone}
                     className="flex-1 bg-blue-600 hover:bg-blue-700"
                   >
                     {createTeacherMutation.isPending ? 
@@ -636,11 +646,19 @@ const TeacherManagement: React.FC = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="edit-name">{language === 'fr' ? 'Nom complet' : 'Full Name'}</Label>
+                      <Label htmlFor="edit-firstName">{language === 'fr' ? 'Prénom' : 'First Name'}</Label>
                       <Input
-                        id="edit-name"
-                        value={String(formData?.name) || "N/A"}
-                        onChange={(e) => setFormData({...formData, name: e?.target?.value})}
+                        id="edit-firstName"
+                        value={String(formData?.firstName) || ""}
+                        onChange={(e) => setFormData({...formData, firstName: e?.target?.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-lastName">{language === 'fr' ? 'Nom' : 'Last Name'}</Label>
+                      <Input
+                        id="edit-lastName"
+                        value={String(formData?.lastName) || ""}
+                        onChange={(e) => setFormData({...formData, lastName: e?.target?.value})}
                       />
                     </div>
                     <div>
@@ -648,7 +666,7 @@ const TeacherManagement: React.FC = () => {
                       <Input
                         id="edit-email"
                         type="email"
-                        value={String(formData?.email) || "N/A"}
+                        value={String(formData?.email) || ""}
                         onChange={(e) => setFormData({...formData, email: e?.target?.value})}
                       />
                     </div>
@@ -656,7 +674,7 @@ const TeacherManagement: React.FC = () => {
                       <Label htmlFor="edit-phone">{language === 'fr' ? 'Téléphone' : 'Phone'}</Label>
                       <Input
                         id="edit-phone"
-                        value={String(formData?.phone) || "N/A"}
+                        value={String(formData?.phone) || ""}
                         onChange={(e) => setFormData({...formData, phone: e?.target?.value})}
                       />
                     </div>
@@ -664,8 +682,16 @@ const TeacherManagement: React.FC = () => {
                       <Label htmlFor="edit-experience">{language === 'fr' ? 'Expérience' : 'Experience'}</Label>
                       <Input
                         id="edit-experience"
-                        value={String(formData?.experience) || "N/A"}
+                        value={String(formData?.experience) || ""}
                         onChange={(e) => setFormData({...formData, experience: e?.target?.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-qualification">{language === 'fr' ? 'Qualification' : 'Qualification'}</Label>
+                      <Input
+                        id="edit-qualification"
+                        value={String(formData?.qualification) || ""}
+                        onChange={(e) => setFormData({...formData, qualification: e?.target?.value})}
                       />
                     </div>
                   </div>
@@ -716,16 +742,6 @@ const TeacherManagement: React.FC = () => {
                       onChange={(e) => setFormData({...formData, classes: e?.target?.value})}
                     />
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="edit-qualification">{language === 'fr' ? 'Qualification' : 'Qualification'}</Label>
-                    <Textarea
-                      id="edit-qualification"
-                      value={String(formData?.qualification) || "N/A"}
-                      onChange={(e) => setFormData({...formData, qualification: e?.target?.value})}
-                      rows={3}
-                    />
-                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
@@ -738,15 +754,21 @@ const TeacherManagement: React.FC = () => {
                   </Button>
                   <Button 
                     onClick={() => {
-                      toast({
-                        title: language === 'fr' ? 'Enseignant modifié' : 'Teacher updated',
-                        description: language === 'fr' ? `${String(formData?.name) || "N/A"} a été modifié avec succès` : `${String(formData?.name) || "N/A"} has been updated successfully`,
-                      });
-                      setShowEditModal(false);
+                      const updateData = {
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
+                        email: formData.email,
+                        phone: formData.phone,
+                        subjects: formData.subjects,
+                        experience: formData.experience,
+                        qualification: formData.qualification
+                      };
+                      updateTeacherMutation.mutate({ id: selectedTeacher.id, ...updateData });
                     }}
+                    disabled={updateTeacherMutation.isPending}
                     className="flex-1 bg-green-600 hover:bg-green-700"
                   >
-                    {language === 'fr' ? 'Enregistrer' : 'Save'}
+                    {updateTeacherMutation.isPending ? (language === 'fr' ? 'Enregistrement...' : 'Saving...') : (language === 'fr' ? 'Enregistrer' : 'Save')}
                   </Button>
                 </div>
               </div>
