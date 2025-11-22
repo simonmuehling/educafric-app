@@ -1934,7 +1934,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // ✅ STEP 2: Query database with COMPLETE ISOLATION
       const { db } = await import('./db');
-      const { users: usersTable, schools } = await import('@shared/schema');
+      const { users: usersTable } = await import('@shared/schema');
       const { eq, and, asc } = await import('drizzle-orm');
       
       const userSchoolId = user.schoolId || user.school_id;
@@ -1943,9 +1943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'School ID required' });
       }
       
-      // ✅ STEP 3: Query students with schoolId AND is_sandbox filter
-      // DOUBLE VERIFICATION: School flag + Student email pattern for data integrity
-      
+      // ✅ STEP 3: Query students directly from users table
       const dbStudentsRaw = await db
         .select({
           id: usersTable.id,
@@ -1955,29 +1953,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: usersTable.phone,
           role: usersTable.role,
           schoolId: usersTable.schoolId,
-          classId: null, // No class enrollment table available
+          classId: null,
           gender: usersTable.gender,
           dateOfBirth: usersTable.dateOfBirth,
-          profilePictureUrl: usersTable.profilePictureUrl,
-          // Include school info for verification
-          schoolName: schools.name,
-          schoolIsSandbox: schools.isSandbox,
-          // Include enrollment status
-          enrollmentStatus: null
+          profilePictureUrl: usersTable.profilePictureUrl
         })
         .from(usersTable)
-        .leftJoin(schools, eq(usersTable.schoolId, schools.id))
         .where(
           and(
             eq(usersTable.role, 'Student'),
-            eq(usersTable.schoolId, userSchoolId),
-            eq(schools.isSandbox, userIsSandbox) // ✅ CRITICAL: Prevents data leakage
+            eq(usersTable.schoolId, userSchoolId)
           )
         )
         .orderBy(asc(usersTable.firstName), asc(usersTable.lastName));
       
       // ✅ STEP 4: SECONDARY FILTER - Verify student email pattern matches sandbox status
-      // This provides defense-in-depth against data inconsistencies
       const dbStudents = dbStudentsRaw.filter(student => {
         const studentIsSandbox = isSandboxUserByEmail(student.email || '');
         const isConsistent = studentIsSandbox === userIsSandbox;
