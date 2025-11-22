@@ -580,13 +580,38 @@ const TeacherManagement: React.FC = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="classes">{language === 'fr' ? 'Classes assignées' : 'Assigned Classes'}</Label>
-                    <Input
-                      id="classes"
-                      value={String(formData?.classes) || "N/A"}
-                      onChange={(e) => setFormData({...formData, classes: e?.target?.value})}
-                      placeholder={language === 'fr' ? '6ème A, 5ème B' : '6th A, 5th B'}
-                    />
+                    <Label>{language === 'fr' ? 'Classe (optionnelle)' : 'Class (optional)'}</Label>
+                    <Select 
+                      value={formData?.classes || ''} 
+                      onValueChange={(value) => {
+                        setFormData({...formData, classes: value});
+                      }}
+                    >
+                      <SelectTrigger className="bg-white border-gray-300">
+                        <SelectValue placeholder={language === 'fr' ? 'Choisir une classe' : 'Choose a class'} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="">
+                          {language === 'fr' ? 'Aucune classe (assigner plus tard)' : 'No class (assign later)'}
+                        </SelectItem>
+                        {classesList.map((classItem: any) => {
+                          const subjectCount = classItem.subjects?.length || 0;
+                          const subjectText = language === 'fr' 
+                            ? `${subjectCount} matière${subjectCount !== 1 ? 's' : ''}`
+                            : `${subjectCount} subject${subjectCount !== 1 ? 's' : ''}`;
+                          return (
+                            <SelectItem key={classItem.id} value={classItem.name}>
+                              <span className="flex items-center gap-2">
+                                {classItem.name}
+                                <span className="text-xs px-2 py-1 bg-gray-100 rounded-full">
+                                  ({subjectText})
+                                </span>
+                              </span>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
