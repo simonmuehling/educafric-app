@@ -97,7 +97,7 @@ interface Subject {
   competencyLevel?: 'CTBA' | 'CBA' | 'CA' | 'CMA' | 'CNA' | 'CVWA' | 'CWA' | 'CAA';
   competencyEvaluation?: string;
   subjectType?: 'general' | 'scientific' | 'literary' | 'professional' | 'other'; // Subject type for technical schools (5 sections)
-  bulletinSection?: 'general' | 'scientific' | 'literary' | 'technical' | 'other'; // Manual bulletin section mapping for technical schools (overrides subjectType for bulletin grouping)
+  bulletinSection?: 'general' | 'scientific' | 'literary' | 'professional' | 'other'; // Manual bulletin section mapping for technical schools (overrides subjectType for bulletin grouping)
   // Additional fields for official Cameroon format
   note1: number;
   moyenneFinale: number;
@@ -2105,7 +2105,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                             <td className="px-2 py-2 border bg-amber-50/50" data-testid={`cell-bulletin-section-${index}`}>
                               <Select 
                                 value={subject.bulletinSection || ''} 
-                                onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => 
+                                onValueChange={(value: 'general' | 'scientific' | 'literary' | 'professional' | 'other') => 
                                   updateSubject(subject.id, 'bulletinSection', value)
                                 }
                               >
@@ -2122,8 +2122,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                   <SelectItem value="literary">
                                     📖 {language === 'fr' ? 'Littéraire' : 'Literary'}
                                   </SelectItem>
-                                  <SelectItem value="technical">
-                                    🔧 {language === 'fr' ? 'Technique' : 'Technical'}
+                                  <SelectItem value="professional">
+                                    🔧 {language === 'fr' ? 'Professionnel' : 'Professional'}
                                   </SelectItem>
                                   <SelectItem value="other">
                                     🎨 {language === 'fr' ? 'Autre' : 'Other'}
@@ -2443,7 +2443,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                     <SelectItem value="general">📚 {language === 'fr' ? 'Général' : 'General'}</SelectItem>
                                     <SelectItem value="scientific">🔬 {language === 'fr' ? 'Scientifique' : 'Scientific'}</SelectItem>
                                     <SelectItem value="literary">📖 {language === 'fr' ? 'Littéraire' : 'Literary'}</SelectItem>
-                                    <SelectItem value="technical">🔧 {language === 'fr' ? 'Technique' : 'Technical'}</SelectItem>
+                                    <SelectItem value="professional">🔧 {language === 'fr' ? 'Professionnel' : 'Professional'}</SelectItem>
                                     <SelectItem value="other">🎨 {language === 'fr' ? 'Autre' : 'Other'}</SelectItem>
                                   </SelectContent>
                                 </Select>
@@ -2455,7 +2455,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                   </Label>
                                   <Select 
                                     value={subject.bulletinSection || ''} 
-                                    onValueChange={(value: 'general' | 'scientific' | 'literary' | 'technical' | 'other') => updateSubject(subject.id, 'bulletinSection', value)}
+                                    onValueChange={(value: 'general' | 'scientific' | 'literary' | 'professional' | 'other') => updateSubject(subject.id, 'bulletinSection', value)}
                                   >
                                     <SelectTrigger className="h-10">
                                       <SelectValue placeholder={language === 'fr' ? 'Section...' : 'Section...'} />
