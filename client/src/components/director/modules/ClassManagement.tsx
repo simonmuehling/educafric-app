@@ -430,12 +430,23 @@ const ClassManagement: React.FC = () => {
       isRequired: s.isRequired
     }));
     
+    // Map teacher ID to teacher name from teachersData
+    let teacherName = 'Non assigné';
+    if (classItem.teacherId && teachersData.length > 0) {
+      const foundTeacher = teachersData.find((t: any) => t.id === classItem.teacherId);
+      if (foundTeacher) {
+        teacherName = `${foundTeacher.firstName || ''} ${foundTeacher.lastName || ''}`.trim();
+      }
+    } else if (classItem.teacherName) {
+      teacherName = classItem.teacherName;
+    }
+    
     return {
       ...classItem,
       subjects: normalizedSubjects,
       currentStudents: classItem.currentStudents || 0,
       capacity: classItem.maxStudents || classItem.capacity || 30,
-      teacher: classItem.teacherName || 'Non assigné',
+      teacher: teacherName,
       status: 'active',
       room: classItem.room || 'Non définie'
     };
