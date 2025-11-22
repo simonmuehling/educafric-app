@@ -5,6 +5,39 @@ import bcrypt from 'bcryptjs';
 
 const router = Router();
 
+// Get all teachers (root endpoint)
+router.get('/', requireAuth, async (req: any, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const user = req.user;
+    if (!user?.schoolId) {
+      return res.status(400).json({ message: 'No school associated with user' });
+    }
+
+    const teachers = await storage.getTeachersBySchool(user.schoolId);
+    
+    // Return teachers with all fields
+    const teachersData = teachers.map(teacher => ({
+      id: teacher.id,
+      firstName: teacher.firstName,
+      lastName: teacher.lastName,
+      email: teacher.email,
+      phone: teacher.phone,
+      role: teacher.role,
+      schoolId: teacher.schoolId,
+      status: 'active'
+    }));
+
+    res.json(teachersData);
+  } catch (error: any) {
+    console.error('[TEACHERS_API] Error fetching teachers:', error);
+    res.status(500).json({ message: 'Failed to fetch teachers' });
+  }
+});
+
 // Get teachers for the authenticated user's school
 router.get('/school', requireAuth, async (req: any, res: Response) => {
   try {
