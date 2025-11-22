@@ -1945,19 +1945,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // ✅ STEP 3: Query students directly from users table
       const dbStudentsRaw = await db
-        .select({
-          id: usersTable.id,
-          firstName: usersTable.firstName,
-          lastName: usersTable.lastName,
-          email: usersTable.email,
-          phone: usersTable.phone,
-          role: usersTable.role,
-          schoolId: usersTable.schoolId,
-          classId: null,
-          gender: usersTable.gender,
-          dateOfBirth: usersTable.dateOfBirth,
-          profilePictureUrl: usersTable.profilePictureUrl
-        })
+        .select()
         .from(usersTable)
         .where(
           and(
@@ -1985,14 +1973,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!student) {
           return res.status(404).json({ success: false, message: 'Student not found' });
         }
-        console.log(`[DIRECTOR_STUDENTS_API] ✅ Isolated student: ${student.firstName} ${student.lastName} (Sandbox: ${student.schoolIsSandbox})`);
+        console.log(`[DIRECTOR_STUDENTS_API] ✅ Isolated student: ${student.firstName} ${student.lastName}`);
         return res.json({ success: true, student });
       }
       
-      // Filter by class if provided
-      const students = classId 
-        ? dbStudents.filter(s => s.classId === parseInt(classId as string, 10))
-        : dbStudents;
+      // Filter by class if provided (classId filter not available in direct users query)
+      const students = classId ? [] : dbStudents;
       
       console.log(`[DIRECTOR_STUDENTS_API] ✅ Returning ${students.length} isolated students (Sandbox: ${userIsSandbox})`);
       res.json({ success: true, students });
