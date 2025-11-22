@@ -45,13 +45,13 @@ export default function DeleteConfirmationDialog({
             {title || 'Confirmation de suppression / Delete Confirmation'}
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
-            <p className="font-medium">
+            <div className="font-medium">
               {description || 
                 `Êtes-vous sûr de vouloir supprimer ${itemName || 'cet élément'} ? Cette action est irréversible.`}
-            </p>
-            <p className="text-sm">
+            </div>
+            <div className="text-sm">
               {description ? '' : `Are you sure you want to delete ${itemName || 'this item'}? This action cannot be undone.`}
-            </p>
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

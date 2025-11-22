@@ -1977,8 +1977,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ success: true, student });
       }
       
-      // Filter by class if provided (classId filter not available in direct users query)
-      const students = classId ? [] : dbStudents;
+      // Return all students (students don't have classId in users table, so we can't filter by class)
+      // The frontend or Academic Management module should handle class filtering
+      const students = dbStudents;
       
       console.log(`[DIRECTOR_STUDENTS_API] ✅ Returning ${students.length} isolated students (Sandbox: ${userIsSandbox})`);
       res.json({ success: true, students });
