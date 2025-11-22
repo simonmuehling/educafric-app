@@ -3538,11 +3538,9 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
     enabled: !!selectedClassId, // Only fetch when class is selected
   });
 
-  // Ensure studentsData is always an array - filter by class on frontend if needed
+  // Ensure studentsData is always an array - use all students from API
   const allStudents = Array.isArray(apiResponse?.students) ? apiResponse.students : [];
-  const studentsData = selectedClassId 
-    ? allStudents.filter((s: any) => s.classId?.toString() === selectedClassId || s.class?.toString() === selectedClassId)
-    : [];
+  const studentsData = allStudents;
 
   const handleStudentChange = async (studentId: string) => {
     console.log('[STUDENT_SELECTOR] Student selected:', studentId);
