@@ -1974,12 +1974,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ success: false, message: 'Student not found' });
         }
         console.log(`[DIRECTOR_STUDENTS_API] ✅ Isolated student: ${student.firstName} ${student.lastName}`);
-        return res.json({ success: true, student });
+        return res.json({ success: true, student: { ...student, name: `${student.firstName} ${student.lastName}` } });
       }
       
-      // Return all students (students don't have classId in users table, so we can't filter by class)
-      // The frontend or Academic Management module should handle class filtering
-      const students = dbStudents;
+      // Return all students with combined name field
+      const students = dbStudents.map(student => ({
+        ...student,
+        name: `${student.firstName} ${student.lastName}`
+      }));
       
       console.log(`[DIRECTOR_STUDENTS_API] ✅ Returning ${students.length} isolated students (Sandbox: ${userIsSandbox})`);
       res.json({ success: true, students });
