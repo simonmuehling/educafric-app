@@ -215,6 +215,7 @@ const ClassManagement: React.FC = () => {
         name: 'Nom Classe',
         students: 'Élèves',
         capacity: "Nombres d'élèves",
+        teachers: 'Enseignants',
         teacher: 'Prof Principal',
         status: 'Statut',
         actions: 'Actions'
@@ -262,6 +263,7 @@ const ClassManagement: React.FC = () => {
         name: 'Class Name',
         students: 'Students',
         capacity: 'Number of students',
+        teachers: 'Teachers',
         teacher: 'Class Master',
         status: 'Status',
         actions: 'Actions'
@@ -1729,6 +1731,7 @@ const ClassManagement: React.FC = () => {
                 <th className="text-left p-4 font-semibold">{String(t?.table?.name) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.students) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.capacity) || "N/A"}</th>
+                <th className="text-left p-4 font-semibold">{String(t?.table?.teachers) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.teacher) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold">{String(t?.table?.status) || "N/A"}</th>
                 <th className="text-left p-4 font-semibold hidden md:table-cell">{String(t?.table?.actions) || "N/A"}</th>
@@ -1779,11 +1782,17 @@ const ClassManagement: React.FC = () => {
                   </td>
                   <td className="p-4">
                     <span className={`font-semibold ${getCapacityColor(classItem.currentStudents, classItem.capacity)}`}>
-                      {String(classItem?.currentStudents) || "N/A"}
+                      {String(classItem?.currentStudents) || "0"}
                     </span>
                   </td>
                   <td className="p-4">{String(classItem?.capacity) || "N/A"}</td>
-                  <td className="p-4">{String(classItem?.teacher) || "N/A"}</td>
+                  <td className="p-4">
+                    {(() => {
+                      const classTeachers = (teachersData || []).filter((t: any) => t.classes?.includes(classItem.name) || (t.className === classItem.name));
+                      return String(classTeachers.length || 0);
+                    })()}
+                  </td>
+                  <td className="p-4">{String(classItem?.teacher) || "Non assigné"}</td>
                   <td className="p-4">
                     <Badge className={getStatusBadge(classItem.status)}>
                       {t.status[classItem.status as keyof typeof t.status]}
