@@ -2545,7 +2545,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create a new teacher
+  // Create a new teacher - DIRECTOR ENDPOINT (Frontend uses this)
+  app.post("/api/director/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      let { firstName, lastName, name, email, phone, subjects: teacherSubjects } = req.body;
+      
+      // Handle name field - split into firstName and lastName if needed
+      if (name && (!firstName || !lastName)) {
+        const nameParts = name.split(' ');
+        firstName = firstName || nameParts[0];
+        lastName = lastName || nameParts.slice(1).join(' ') || nameParts[0];
+      }
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (!firstName || !lastName) {
+        return res.status(400).json({ success: false, message: 'First name and last name are required' });
+      }
+      
+      if (!email && !phone) {
+        return res.status(400).json({ success: false, message: 'At least email or phone is required' });
+      }
+      
+      console.log('[CREATE_TEACHER_DIRECTOR] Creating teacher:', { firstName, lastName, email, phone, schoolId: userSchoolId });
+      
+      // Generate default password (should be changed on first login)
+      const defaultPassword = `${lastName.toLowerCase()}${new Date().getFullYear()}`;
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+      
+      // Create teacher in database
+      const [newTeacher] = await db.insert(users).values({
+        role: 'Teacher',
+        firstName,
+        lastName,
+        phone: phone || null,
+        password: hashedPassword,
+        schoolId: userSchoolId,
+        email: email || null
+      }).returning();
+      
+      console.log('[CREATE_TEACHER_DIRECTOR] ✅ Teacher created:', { id: newTeacher.id, name: `${firstName} ${lastName}` });
+      
+      res.json({ 
+        success: true, 
+        teacher: newTeacher,
+        message: `Teacher ${firstName} ${lastName} created successfully. Default password: ${defaultPassword}`
+      });
+    } catch (error) {
+      console.error('[CREATE_TEACHER_DIRECTOR] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to create teacher' });
+    }
+  });
+
+  // Create a new teacher (legacy endpoint for compatibility)
   app.post("/api/administration/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
