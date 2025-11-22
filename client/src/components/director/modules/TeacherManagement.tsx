@@ -68,6 +68,7 @@ const TeacherManagement: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
       setShowAddModal(false);
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
@@ -90,6 +91,7 @@ const TeacherManagement: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
       setShowEditModal(false);
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
@@ -105,6 +107,7 @@ const TeacherManagement: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr' ? 'Enseignant supprimé avec succès' : 'Teacher deleted successfully'

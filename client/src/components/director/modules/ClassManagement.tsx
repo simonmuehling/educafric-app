@@ -318,6 +318,22 @@ const ClassManagement: React.FC = () => {
 
   const classesData = classesResponse?.classes || [];
 
+  // Fetch total students count
+  const { data: studentsResponse = {} } = useQuery({
+    queryKey: ['/api/director/students'],
+    queryFn: async () => {
+      const response = await fetch('/api/director/students', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch students');
+      return response.json();
+    },
+    retry: 2,
+    retryDelay: 1000
+  });
+
+  const totalStudentsCount = Array.isArray(studentsResponse?.students) ? studentsResponse.students.length : 0;
+
   // Fetch school data to determine if it's a technical school
   const { data: schoolData } = useQuery({
     queryKey: ['/api/director/school'],
