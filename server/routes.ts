@@ -2494,12 +2494,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[DIRECTOR_TEACHERS_API] Sandbox user detected - using mock data WITH REAL DB IDS');
         // Mock teachers data with REAL database IDs (348-353) to avoid FK violations
         teachers = [
-          { id: 348, firstName: 'Prof.', lastName: 'Mboua Jean', subject: 'Mathématiques', email: 'sandbox.teacher1@educafric.demo', isActive: true, experience: 8, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['6ème A', '5ème A'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123456' },
-          { id: 349, firstName: 'Prof.', lastName: 'Nkolo Marie', subject: 'Français', email: 'sandbox.teacher2@educafric.demo', isActive: true, experience: 12, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['5ème B', '4ème B'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123457' },
-          { id: 350, firstName: 'Prof.', lastName: 'Ateba Paul', subject: 'Histoire-Géographie', email: 'sandbox.teacher3@educafric.demo', isActive: true, experience: 6, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['4ème C', '3ème C'], canSignBulletins: false, digitalSignatureActive: false, phone: '+237677123458' },
-          { id: 351, firstName: 'Prof.', lastName: 'Essomba Claire', subject: 'Anglais', email: 'sandbox.teacher4@educafric.demo', isActive: true, experience: 5, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['3ème D', '2nde A'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123459' },
-          { id: 352, firstName: 'Prof.', lastName: 'Owona David', subject: 'Sciences Physiques', email: 'sandbox.teacher5@educafric.demo', isActive: true, experience: 10, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['2nde B', '1ère S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123460' },
-          { id: 353, firstName: 'Prof.', lastName: 'Ngono Sophie', subject: 'Sciences Naturelles', email: 'sandbox.teacher6@educafric.demo', isActive: true, experience: 7, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['1ère S', 'Terminale S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123461' }
+          { id: 348, name: 'Prof. Mboua Jean', firstName: 'Prof.', lastName: 'Mboua Jean', subject: 'Mathématiques', email: 'sandbox.teacher1@educafric.demo', isActive: true, experience: 8, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['6ème A', '5ème A'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123456' },
+          { id: 349, name: 'Prof. Nkolo Marie', firstName: 'Prof.', lastName: 'Nkolo Marie', subject: 'Français', email: 'sandbox.teacher2@educafric.demo', isActive: true, experience: 12, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['5ème B', '4ème B'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123457' },
+          { id: 350, name: 'Prof. Ateba Paul', firstName: 'Prof.', lastName: 'Ateba Paul', subject: 'Histoire-Géographie', email: 'sandbox.teacher3@educafric.demo', isActive: true, experience: 6, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['4ème C', '3ème C'], canSignBulletins: false, digitalSignatureActive: false, phone: '+237677123458' },
+          { id: 351, name: 'Prof. Essomba Claire', firstName: 'Prof.', lastName: 'Essomba Claire', subject: 'Anglais', email: 'sandbox.teacher4@educafric.demo', isActive: true, experience: 5, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['3ème D', '2nde A'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123459' },
+          { id: 352, name: 'Prof. Owona David', firstName: 'Prof.', lastName: 'Owona David', subject: 'Sciences Physiques', email: 'sandbox.teacher5@educafric.demo', isActive: true, experience: 10, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['2nde B', '1ère S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123460' },
+          { id: 353, name: 'Prof. Ngono Sophie', firstName: 'Prof.', lastName: 'Ngono Sophie', subject: 'Sciences Naturelles', email: 'sandbox.teacher6@educafric.demo', isActive: true, experience: 7, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['1ère S', 'Terminale S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123461' }
         ];
       } else {
         console.log('[DIRECTOR_TEACHERS_API] Real user detected - using database data');
@@ -2525,6 +2525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           return {
             id: teacher.id,
+            name: `${teacher.firstName} ${teacher.lastName}`,
             firstName: teacher.firstName,
             lastName: teacher.lastName,
             subject: randomSubject,
@@ -2532,7 +2533,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             phone: teacher.phone,
             isActive: true,
             experience,
-            schoolId: teacher.schoolId
+            schoolId: teacher.schoolId,
+            classes: [],
+            status: 'active'
           };
         });
       }
