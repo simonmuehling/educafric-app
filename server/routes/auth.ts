@@ -808,9 +808,20 @@ router.post('/sandbox-login', sandboxLoginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     
+    // Debug logging
+    console.log('[SANDBOX_LOGIN] 🔍 Request received:', { 
+      email, 
+      nodeEnv: process.env.NODE_ENV,
+      sandboxEnabled: process.env.SANDBOX_ENABLED,
+      ip: req.ip,
+      origin: req.headers.origin
+    });
+    
     // Production safety: Disable sandbox in production unless explicitly enabled
     const isProduction = process.env.NODE_ENV === 'production';
     const sandboxEnabled = process.env.SANDBOX_ENABLED === 'true';
+    
+    console.log('[SANDBOX_LOGIN] 🔒 Security check:', { isProduction, sandboxEnabled });
     
     if (isProduction && !sandboxEnabled) {
       console.warn('[SANDBOX_SECURITY] Sandbox login attempted in production - BLOCKED');
