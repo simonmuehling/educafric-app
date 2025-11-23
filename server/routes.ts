@@ -3750,7 +3750,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/director/teacher-grade-submissions/:id/history - Get review history
   app.get("/api/director/teacher-grade-submissions/:id/history", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
       const submissionId = parseInt(req.params.id);
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
       
       if (isNaN(submissionId)) {
         return res.status(400).json({ success: false, message: 'Invalid submission ID' });
@@ -3758,6 +3764,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[GRADE_HISTORY] Fetching history for submission:', submissionId);
       
+      // First verify the submission belongs to this school
+      const [submission] = await db
+        .select({ id: teacherGradeSubmissions.id, schoolId: teacherGradeSubmissions.schoolId })
+        .from(teacherGradeSubmissions)
+        .where(eq(teacherGradeSubmissions.id, submissionId))
+        .limit(1);
+      
+      if (!submission) {
+        return res.status(404).json({ success: false, message: 'Submission not found' });
+      }
+      
+      if (submission.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Unauthorized: Submission belongs to another school' });
+      }
+      
+      // Now fetch the history
       const history = await db
         .select({
           id: sql`grade_review_history.id`,

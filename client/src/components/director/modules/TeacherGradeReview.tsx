@@ -154,7 +154,9 @@ export default function TeacherGradeReview() {
       noHistory: 'Aucun historique',
       notificationSent: 'Notification envoyée',
       notificationSentDesc: 'L\'enseignant a été notifié',
-      errorSendingNotification: 'Erreur lors de l\'envoi'
+      errorSendingNotification: 'Erreur lors de l\'envoi',
+      returnReason: 'Raison du retour',
+      status: 'Statut'
     },
     en: {
       title: 'Teacher Grade Review',
@@ -221,7 +223,9 @@ export default function TeacherGradeReview() {
       noHistory: 'No history',
       notificationSent: 'Notification sent',
       notificationSentDesc: 'The teacher has been notified',
-      errorSendingNotification: 'Error sending notification'
+      errorSendingNotification: 'Error sending notification',
+      returnReason: 'Return reason',
+      status: 'Status'
     }
   };
 
