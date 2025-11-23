@@ -27,63 +27,24 @@ const FunctionalSiteAdminUsers: React.FC = () => {
   const queryClient = useQueryClient();
 
   const { data: users, isLoading, error } = useQuery({
-    queryKey: ['/api/admin/platform-users'],
-    queryFn: async () => {
-      // Mock data for demonstration - replace with real API
-      return [
-        {
-          id: 1,
-          firstName: 'Marie',
-          lastName: 'Ngono',
-          email: 'marie.ngono@educafric.com',
-          role: 'Director',
-          schoolName: 'Lycée Bilingue de Yaoundé',
-          status: 'active',
-          lastLogin: '2025-02-03 14:30',
-          createdAt: '2024-09-15T10:00:00Z'
-        },
-        {
-          id: 2,
-          firstName: 'Paul',
-          lastName: 'Kamdem',
-          email: 'paul.kamdem@educafric.com',
-          role: 'Teacher',
-          schoolName: 'École Primaire Central',
-          status: 'active',
-          lastLogin: '2025-02-03 16:45',
-          createdAt: '2024-10-20T08:00:00Z'
-        }
-      ];
-    }
+    queryKey: ['/api/siteadmin/users']
   });
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      const response = await fetch(`/api/admin/platform-users/${userId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to delete user');
-      return response.json();
+      return await apiRequest('DELETE', `/api/siteadmin/users/${userId}`, {});
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/users'] });
     }
   });
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, updates }: { userId: number; updates: any }) => {
-      const response = await fetch(`/api/admin/platform-users/${userId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(updates)
-      });
-      if (!response.ok) throw new Error('Failed to update user');
-      return response.json();
+      return await apiRequest('PATCH', `/api/siteadmin/users/${userId}/status`, updates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/users'] });
     }
   });
 

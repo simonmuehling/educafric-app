@@ -2,6 +2,9 @@ import type { Express } from "express";
 import { storage } from "../storage";
 import bcrypt from "bcryptjs";
 import { createSchoolSchema } from "../../shared/schemas";
+import { db } from "../db";
+import { users, schools, payments } from "../../shared/schema";
+import { eq, inArray, desc } from "drizzle-orm";
 
 // Security middleware for SiteAdmin features
 const requireSiteAdminAccess = (req: any, res: any, next: any) => {
@@ -199,6 +202,133 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+
+  // Get all platform users (Teachers, Parents, Students)
+  app.get("/api/siteadmin/users", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      console.log('[SITE_ADMIN_API] Fetching all platform users (Teachers, Parents, Students)');
+
+      const { search = '', role = 'all', page = 1, limit = 100 } = req.query;
+
+      // Récupérer tous les utilisateurs depuis la base de données
+      const allUsers = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        role: users.role,
+        schoolId: users.schoolId,
+        createdAt: users.createdAt,
+        lastLogin: users.lastLogin,
+        isActive: users.isActive
+      })
+      .from(users)
+      .where(
+        inArray(users.role, ['Teacher', 'Parent', 'Student', 'Director'])
+      );
+
+      // Récupérer les informations d'écoles pour chaque utilisateur
+      const usersWithSchools = await Promise.all(allUsers.map(async (user) => {
+        let schoolName = null;
+        if (user.schoolId) {
+          try {
+            const [school] = await db.select({ name: schools.name })
+              .from(schools)
+              .where(eq(schools.id, user.schoolId))
+              .limit(1);
+            schoolName = school?.name || null;
+          } catch (err) {
+            console.error(`Error fetching school for user ${user.id}:`, err);
+          }
+        }
+
+        return {
+          id: user.id,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          phone: user.phone || '',
+          role: user.role,
+          schoolName: schoolName,
+          status: user.isActive === false ? 'inactive' : 'active',
+          lastLogin: user.lastLogin || 'Jamais',
+          createdAt: user.createdAt
+        };
+      }));
+
+      // Apply search filter if provided
+      let filteredUsers = usersWithSchools;
+      if (search) {
+        const searchLower = search.toString().toLowerCase();
+        filteredUsers = usersWithSchools.filter(user => 
+          user.firstName.toLowerCase().includes(searchLower) ||
+          user.lastName.toLowerCase().includes(searchLower) ||
+          user.email.toLowerCase().includes(searchLower) ||
+          user.schoolName?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Apply role filter if provided
+      if (role && role !== 'all') {
+        filteredUsers = filteredUsers.filter(user => user.role === role);
+      }
+
+      console.log(`[SITE_ADMIN_API] ✅ Retrieved ${filteredUsers.length} real users from database`);
+      res.json(filteredUsers);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching users:', error);
+      res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  });
+
+  // Update user status (activate/deactivate)
+  app.patch("/api/siteadmin/users/:userId/status", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { status } = req.body;
+
+      console.log('[SITE_ADMIN_API] Updating user status:', { userId, status });
+
+      const isActive = status === 'active';
+
+      // Update user status in database
+      await db.update(users)
+        .set({ isActive })
+        .where(eq(users.id, parseInt(userId)));
+
+      console.log('[SITE_ADMIN_API] ✅ User status updated successfully');
+      res.json({ 
+        success: true, 
+        message: `Utilisateur ${isActive ? 'activé' : 'désactivé'} avec succès` 
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating user status:', error);
+      res.status(500).json({ message: 'Failed to update user status' });
+    }
+  });
+
+  // Delete user
+  app.delete("/api/siteadmin/users/:userId", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { userId } = req.params;
+
+      console.log('[SITE_ADMIN_API] Deleting user:', userId);
+
+      // Delete user from database
+      await db.delete(users)
+        .where(eq(users.id, parseInt(userId)));
+
+      console.log('[SITE_ADMIN_API] ✅ User deleted successfully');
+      res.json({ 
+        success: true, 
+        message: 'Utilisateur supprimé avec succès' 
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error deleting user:', error);
+      res.status(500).json({ message: 'Failed to delete user' });
+    }
+  });
 
   // School statistics
   app.get("/api/siteadmin/school-stats", requireAuth, requireSiteAdminAccess, async (req, res) => {
