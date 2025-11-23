@@ -3676,6 +3676,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: 'Failed to fetch submissions' });
     }
   });
+
+  // GET /api/teacher/grade-submissions/archives - Teacher views historical submissions with advanced filters
+  app.get("/api/teacher/grade-submissions/archives", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const { academicYear, term, className, status } = req.query;
+      
+      console.log('[TEACHER_ARCHIVES] Fetching archives for teacher:', teacherId, 'Filters:', { academicYear, term, className, status });
+      
+      const conditions = [eq(teacherGradeSubmissions.teacherId, teacherId)];
+      
+      // Apply filters
+      if (academicYear) {
+        conditions.push(eq(teacherGradeSubmissions.academicYear, academicYear as string));
+      }
+      if (term) {
+        conditions.push(eq(teacherGradeSubmissions.term, term as string));
+      }
+      if (status) {
+        conditions.push(eq(teacherGradeSubmissions.reviewStatus, status as string));
+      }
+      // Apply className filter if specified (filter by name since we don't have classId in query params)
+      // CRITICAL: Must add to conditions array BEFORE and() to maintain teacherId security filter
+      if (className) {
+        conditions.push(sql`${classes.name} ILIKE ${`%${className}%`}`);
+      }
+      
+      // Build query with joins for student, subject, and class names
+      const archives = await db
+        .select({
+          id: teacherGradeSubmissions.id,
+          studentFirstName: users.firstName,
+          studentLastName: users.lastName,
+          subjectName: subjects.name,
+          className: classes.name,
+          term: teacherGradeSubmissions.term,
+          academicYear: teacherGradeSubmissions.academicYear,
+          termAverage: teacherGradeSubmissions.termAverage,
+          coefficient: teacherGradeSubmissions.coefficient,
+          subjectComments: teacherGradeSubmissions.subjectComments,
+          status: teacherGradeSubmissions.reviewStatus,
+          reviewFeedback: teacherGradeSubmissions.reviewFeedback,
+          returnReason: teacherGradeSubmissions.returnReason,
+          submittedAt: teacherGradeSubmissions.submittedAt,
+          reviewedAt: teacherGradeSubmissions.reviewedAt
+        })
+        .from(teacherGradeSubmissions)
+        .leftJoin(users, eq(teacherGradeSubmissions.studentId, users.id))
+        .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
+        .leftJoin(classes, eq(teacherGradeSubmissions.classId, classes.id))
+        .where(and(...conditions))
+        .orderBy(desc(teacherGradeSubmissions.submittedAt));
+      
+      // Calculate comprehensive stats
+      const stats = {
+        total: archives.length,
+        byStatus: {
+          pending: archives.filter(a => a.status === 'pending').length,
+          approved: archives.filter(a => a.status === 'approved').length,
+          returned: archives.filter(a => a.status === 'returned').length
+        },
+        byYear: archives.reduce((acc: any, a) => {
+          const year = a.academicYear || 'Unknown';
+          acc[year] = (acc[year] || 0) + 1;
+          return acc;
+        }, {}),
+        byTerm: archives.reduce((acc: any, a) => {
+          const term = a.term || 'Unknown';
+          acc[term] = (acc[term] || 0) + 1;
+          return acc;
+        }, {})
+      };
+      
+      console.log('[TEACHER_ARCHIVES] ✅ Found', archives.length, 'archived submissions');
+      
+      res.json({ success: true, archives, stats });
+      
+    } catch (error) {
+      console.error('[TEACHER_ARCHIVES] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch archives' });
+    }
+  });
   
   // PATCH /api/teacher/grade-submissions/:id - Teacher resubmits after return
   app.patch("/api/teacher/grade-submissions/:id", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {

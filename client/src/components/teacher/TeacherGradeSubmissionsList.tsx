@@ -19,8 +19,10 @@ import {
   Edit,
   MessageSquare,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Archive
 } from 'lucide-react';
+import ArchivesTab from './ArchivesTab';
 
 interface GradeSubmission {
   id: number;
@@ -52,6 +54,7 @@ export default function TeacherGradeSubmissionsList() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'returned' | 'archives'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'returned'>('all');
   const [editingSubmission, setEditingSubmission] = useState<GradeSubmission | null>(null);
   const [editForm, setEditForm] = useState({
@@ -69,6 +72,7 @@ export default function TeacherGradeSubmissionsList() {
       pending: 'En attente',
       approved: 'Approuvées',
       returned: 'Retournées',
+      archives: 'Archives',
       student: 'Élève',
       subject: 'Matière',
       class: 'Classe',
@@ -102,6 +106,7 @@ export default function TeacherGradeSubmissionsList() {
       pending: 'Pending',
       approved: 'Approved',
       returned: 'Returned',
+      archives: 'Archives',
       student: 'Student',
       subject: 'Subject',
       class: 'Class',
@@ -278,18 +283,34 @@ export default function TeacherGradeSubmissionsList() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-        <TabsList>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={(v) => {
+        setActiveTab(v as any);
+        if (v !== 'archives') {
+          setStatusFilter(v as any);
+        }
+      }}>
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="all" data-testid="tab-all">{t.allSubmissions}</TabsTrigger>
           <TabsTrigger value="pending" data-testid="tab-pending">{t.pending}</TabsTrigger>
           <TabsTrigger value="approved" data-testid="tab-approved">{t.approved}</TabsTrigger>
           <TabsTrigger value="returned" data-testid="tab-returned">{t.returned}</TabsTrigger>
+          <TabsTrigger value="archives" data-testid="tab-archives">
+            <Archive className="h-4 w-4 mr-2" />
+            {t.archives}
+          </TabsTrigger>
         </TabsList>
-      </Tabs>
 
-      {/* Submissions Table */}
-      <Card>
+        {/* Archives Tab Content */}
+        <TabsContent value="archives" className="mt-6">
+          <ArchivesTab />
+        </TabsContent>
+
+        {/* Active Submissions Tabs Content */}
+        {['all', 'pending', 'approved', 'returned'].map((tab) => (
+          <TabsContent key={tab} value={tab} className="mt-6">
+            {/* Submissions Table */}
+            <Card>
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-8 text-center text-gray-500">Loading...</div>
@@ -382,6 +403,9 @@ export default function TeacherGradeSubmissionsList() {
           )}
         </CardContent>
       </Card>
+          </TabsContent>
+        ))}
+      </Tabs>
 
       {/* Edit Dialog */}
       <Dialog open={!!editingSubmission} onOpenChange={(open) => !open && setEditingSubmission(null)}>
