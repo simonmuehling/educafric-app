@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -25,8 +26,12 @@ import {
   Calendar,
   TrendingUp,
   History,
-  Bell
+  Bell,
+  BarChart3,
+  PieChart
 } from 'lucide-react';
+import { BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import GradeAnalyticsTab from './GradeAnalyticsTab';
 
 interface GradeSubmission {
   id: number;
@@ -74,6 +79,7 @@ export default function TeacherGradeReview() {
   const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [selectedTerm, setSelectedTerm] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('pending');
+  const [activeTab, setActiveTab] = useState<string>('pending');
 
   // Selection state
   const [selectedSubmissions, setSelectedSubmissions] = useState<Set<number>>(new Set());
@@ -156,7 +162,14 @@ export default function TeacherGradeReview() {
       notificationSentDesc: 'L\'enseignant a été notifié',
       errorSendingNotification: 'Erreur lors de l\'envoi',
       returnReason: 'Raison du retour',
-      status: 'Statut'
+      analytics: 'Analytiques',
+      analyticsTitle: 'Statistiques Avancées',
+      analyticsDesc: 'Analyse détaillée des soumissions de notes',
+      approvalRate: 'Taux d\'approbation',
+      byTeacher: 'Par enseignant',
+      bySubject: 'Par matière',
+      byClass: 'Par classe',
+      noData: 'Aucune donnée disponible'
     },
     en: {
       title: 'Teacher Grade Review',
@@ -225,7 +238,14 @@ export default function TeacherGradeReview() {
       notificationSentDesc: 'The teacher has been notified',
       errorSendingNotification: 'Error sending notification',
       returnReason: 'Return reason',
-      status: 'Status'
+      analytics: 'Analytics',
+      analyticsTitle: 'Advanced Statistics',
+      analyticsDesc: 'Detailed analysis of grade submissions',
+      approvalRate: 'Approval Rate',
+      byTeacher: 'By Teacher',
+      bySubject: 'By Subject',
+      byClass: 'By Class',
+      noData: 'No data available'
     }
   };
 
@@ -386,6 +406,21 @@ export default function TeacherGradeReview() {
     }
   });
 
+  // Fetch analytics
+  const { data: analyticsData } = useQuery({
+    queryKey: ['/api/director/teacher-grade-submissions', 'analytics'],
+    queryFn: async () => {
+      const response = await fetch('/api/director/teacher-grade-submissions/analytics', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch analytics');
+      return response.json();
+    },
+    enabled: activeTab === 'analytics'
+  });
+
+  const analytics = analyticsData?.stats || null;
+
   const getStatusBadge = (status: string) => {
     const badges = {
       pending: <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200"><Clock className="h-3 w-3 mr-1" />{t.pending}</Badge>,
@@ -451,61 +486,71 @@ export default function TeacherGradeReview() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            {t.filters}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <Label>{t.class}</Label>
-              <Input
-                placeholder={t.allClasses}
-                value={selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>{t.subject}</Label>
-              <Input
-                placeholder={t.allSubjects}
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>{t.term}</Label>
-              <Select value={selectedTerm || undefined} onValueChange={setSelectedTerm}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t.allTerms} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="T1">Trimestre 1</SelectItem>
-                  <SelectItem value="T2">Trimestre 2</SelectItem>
-                  <SelectItem value="T3">Trimestre 3</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>{t.status}</Label>
-              <Select value={selectedStatus || undefined} onValueChange={setSelectedStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t.all} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">{t.pending}</SelectItem>
-                  <SelectItem value="approved">{t.approved}</SelectItem>
-                  <SelectItem value="returned">{t.returned}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Tabs for different views */}
+      <Tabs value={activeTab} onValueChange={(value) => {
+        setActiveTab(value);
+        if (value !== 'analytics') {
+          setSelectedStatus(value === 'all' ? '' : value);
+        }
+      }}>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="all">{t.all}</TabsTrigger>
+          <TabsTrigger value="pending">{t.pending}</TabsTrigger>
+          <TabsTrigger value="approved">{t.approved}</TabsTrigger>
+          <TabsTrigger value="returned">{t.returned}</TabsTrigger>
+          <TabsTrigger value="analytics">{t.analytics}</TabsTrigger>
+        </TabsList>
+
+        {/* Analytics Tab Content */}
+        <TabsContent value="analytics" className="mt-6">
+          <GradeAnalyticsTab analytics={analytics} />
+        </TabsContent>
+
+        {/* Submissions Tabs Content (All, Pending, Approved, Returned) */}
+        {['all', 'pending', 'approved', 'returned'].map((tab) => (
+          <TabsContent key={tab} value={tab} className="mt-6 space-y-6">
+            {/* Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  {t.filters}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>{t.class}</Label>
+                    <Input
+                      placeholder={t.allClasses}
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>{t.subject}</Label>
+                    <Input
+                      placeholder={t.allSubjects}
+                      value={selectedSubject}
+                      onChange={(e) => setSelectedSubject(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>{t.term}</Label>
+                    <Select value={selectedTerm || undefined} onValueChange={setSelectedTerm}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t.allTerms} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="T1">Trimestre 1</SelectItem>
+                        <SelectItem value="T2">Trimestre 2</SelectItem>
+                        <SelectItem value="T3">Trimestre 3</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
       {/* Bulk Actions */}
       {selectedSubmissions.size > 0 && (
@@ -660,6 +705,9 @@ export default function TeacherGradeReview() {
           )}
         </CardContent>
       </Card>
+          </TabsContent>
+        ))}
+      </Tabs>
 
       {/* Review Dialog */}
       <Dialog open={!!reviewingSubmission} onOpenChange={() => setReviewingSubmission(null)}>
