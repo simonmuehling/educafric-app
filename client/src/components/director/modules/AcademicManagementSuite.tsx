@@ -126,6 +126,7 @@ const Td = ({ children, sticky = false, className = "", ...props }: any) => (
 /**************************** ARCHIVE MANAGEMENT COMPONENT ****************************/
 function ArchiveManagementContent() {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const [filters, setFilters] = useState({
     academicYear: 'all',
     classId: 'all',
@@ -136,31 +137,58 @@ function ArchiveManagementContent() {
     limit: 20
   });
 
-  // Fetch archives with filters
-  const { data: archivesData, isLoading: archivesLoading, refetch } = useQuery({
-    queryKey: ['/api/director/archives', filters],
-    queryFn: () => {
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value && value !== 'all') params.append(key, value.toString());
-      });
-      return fetch(`/api/director/archives?${params}`).then(res => res.json());
-    },
+  // Build URL with query params for archives
+  const archivesUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && value !== 'all') params.append(key, value.toString());
+    });
+    const queryString = params.toString();
+    return queryString ? `/api/director/archives?${queryString}` : '/api/director/archives';
+  }, [filters]);
+
+  // Build URL with query params for stats
+  const statsUrl = useMemo(() => {
+    return filters.academicYear && filters.academicYear !== 'all'
+      ? `/api/director/archives/stats?academicYear=${filters.academicYear}`
+      : '/api/director/archives/stats';
+  }, [filters.academicYear]);
+
+  // Fetch archives with filters - using default fetcher
+  const { data: archivesData, isLoading: archivesLoading, error: archivesError, refetch } = useQuery({
+    queryKey: [archivesUrl],
   });
 
-  // Fetch archive statistics
-  const { data: statsData } = useQuery({
-    queryKey: ['/api/director/archives/stats', filters.academicYear],
-    queryFn: () => {
-      const url = filters.academicYear && filters.academicYear !== 'all'
-        ? `/api/director/archives/stats?academicYear=${filters.academicYear}`
-        : '/api/director/archives/stats';
-      return fetch(url).then(res => res.json());
-    },
+  // Fetch archive statistics - using default fetcher
+  const { data: statsData, isLoading: statsLoading, error: statsError } = useQuery({
+    queryKey: [statsUrl],
   });
+
+  // Show error toast if queries fail
+  useEffect(() => {
+    if (archivesError) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' 
+          ? 'Impossible de charger les archives' 
+          : 'Failed to load archives',
+        variant: 'destructive',
+      });
+    }
+    if (statsError) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' 
+          ? 'Impossible de charger les statistiques' 
+          : 'Failed to load statistics',
+        variant: 'destructive',
+      });
+    }
+  }, [archivesError, statsError, language, toast]);
 
   const archives = archivesData?.documents || archivesData?.data?.documents || [];
   const stats = statsData?.data || statsData || {};
+  const isLoading = archivesLoading || statsLoading;
   
   const handleDownload = async (archiveId: number, filename: string) => {
     try {
@@ -328,7 +356,7 @@ function ArchiveManagementContent() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {archivesLoading ? (
+          {isLoading ? (
             <div className="p-8 text-center" data-testid="loading-archives">
               <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
               {language === 'fr' ? 'Chargement des archives...' : 'Loading archives...'}
