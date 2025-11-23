@@ -42,7 +42,8 @@ import {
   competencyEvaluationSystems, 
   competencyTemplates 
 } from "../shared/schemas/predefinedAppreciationsSchema";
-import { eq, and, or, asc, desc, sql, inArray, count, alias } from "drizzle-orm";
+import { eq, and, or, asc, desc, sql, inArray, count } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { 
   ArchiveFilter, 
   NewArchivedDocument, 
