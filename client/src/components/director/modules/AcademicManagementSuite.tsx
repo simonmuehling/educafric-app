@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import BulletinCreationInterface from "@/components/academic/BulletinCreationInterface";
 import TeacherSubmittedBulletins from "./TeacherSubmittedBulletins";
 import TeacherGradeReview from "./TeacherGradeReview";
@@ -122,6 +123,222 @@ const Td = ({ children, sticky = false, className = "", ...props }: any) => (
     {children}
   </td>
 );
+
+/**************************** COMPILE BULLETINS FROM GRADES COMPONENT ****************************/
+function CompileBulletinsFromGrades() {
+  const { language } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedClass, setSelectedClass] = useState<number | null>(null);
+  const [selectedTerm, setSelectedTerm] = useState('T1');
+  const [selectedYear, setSelectedYear] = useState('2024-2025');
+  const [compilingStudent, setCompilingStudent] = useState<number | null>(null);
+
+  // Fetch available classes
+  const { data: classesData } = useQuery({
+    queryKey: ['/api/director/classes']
+  });
+  const classes = classesData?.classes || [];
+
+  // Fetch students ready for compilation
+  const { data: studentsData, isLoading: studentsLoading } = useQuery({
+    queryKey: [`/api/director/students-ready-for-compilation?classId=${selectedClass}&term=${selectedTerm}&academicYear=${selectedYear}`],
+    enabled: !!selectedClass && !!selectedTerm && !!selectedYear
+  });
+
+  const readyStudents = studentsData?.students || [];
+
+  const text = {
+    fr: {
+      title: 'Compiler des Bulletins depuis Notes Approuvées',
+      subtitle: 'Les élèves dont toutes les notes sont approuvées peuvent avoir leur bulletin compilé automatiquement',
+      selectClass: 'Sélectionner une classe',
+      selectTerm: 'Sélectionner un trimestre',
+      selectYear: 'Année académique',
+      noStudents: 'Aucun élève prêt',
+      noStudentsDesc: 'Aucun élève n\'a toutes ses notes approuvées pour les filtres sélectionnés',
+      studentName: 'Élève',
+      notesCount: 'Notes',
+      compile: 'Compiler',
+      compiling: 'Compilation...',
+      compileSuccess: 'Bulletin compilé',
+      compileSuccessDesc: 'Le bulletin a été compilé avec succès et apparaît maintenant dans "Bulletins Soumis"',
+      compileError: 'Erreur de compilation',
+      loading: 'Chargement...'
+    },
+    en: {
+      title: 'Compile Bulletins from Approved Grades',
+      subtitle: 'Students with all approved grades can have their bulletin automatically compiled',
+      selectClass: 'Select a class',
+      selectTerm: 'Select a term',
+      selectYear: 'Academic year',
+      noStudents: 'No students ready',
+      noStudentsDesc: 'No students have all their grades approved for the selected filters',
+      studentName: 'Student',
+      notesCount: 'Grades',
+      compile: 'Compile',
+      compiling: 'Compiling...',
+      compileSuccess: 'Bulletin compiled',
+      compileSuccessDesc: 'The bulletin was successfully compiled and now appears in "Submitted Bulletins"',
+      compileError: 'Compilation error',
+      loading: 'Loading...'
+    }
+  };
+
+  const t = text[language as keyof typeof text];
+
+  // Compile mutation
+  const compileMutation = useMutation({
+    mutationFn: async (data: { studentId: number; classId: number; term: string; academicYear: string; studentName: string }) => {
+      setCompilingStudent(data.studentId);
+      const response = await apiRequest('POST', '/api/director/compile-approved-grades', {
+        studentId: data.studentId,
+        classId: data.classId,
+        term: data.term,
+        academicYear: data.academicYear
+      });
+      return { ...await response.json(), studentName: data.studentName };
+    },
+    onSuccess: (data) => {
+      toast({
+        title: t.compileSuccess,
+        description: `${t.compileSuccessDesc} (${data.studentName})`,
+      });
+      // Invalidate both queries
+      queryClient.invalidateQueries({ queryKey: ['/api/director/teacher-bulletins'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/director/students-ready-for-compilation?classId=${selectedClass}&term=${selectedTerm}&academicYear=${selectedYear}`] });
+      setCompilingStudent(null);
+    },
+    onError: (error: any) => {
+      const errorMessage = error.message || 'Failed to compile bulletin';
+      const isDuplicate = errorMessage.includes('already exists') || errorMessage.includes('already compiled');
+      
+      toast({
+        title: isDuplicate 
+          ? (language === 'fr' ? 'Bulletin déjà compilé' : 'Bulletin already compiled')
+          : t.compileError,
+        description: isDuplicate
+          ? (language === 'fr' 
+              ? 'Un bulletin compilé existe déjà pour cet élève et ce trimestre. Consultez la section "Bulletins Soumis".'
+              : 'A compiled bulletin already exists for this student and term. Check the "Submitted Bulletins" section.')
+          : errorMessage,
+        variant: 'destructive'
+      });
+      setCompilingStudent(null);
+    }
+  });
+
+  return (
+    <Card data-testid="card-compile-bulletins">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+        <CardTitle className="flex items-center gap-2">
+          <CheckCircle className="h-5 w-5 text-blue-600" />
+          {t.title}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">{t.subtitle}</p>
+      </CardHeader>
+      <CardContent className="pt-6">
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div>
+            <Label>{t.selectClass}</Label>
+            <Select value={selectedClass?.toString() || ''} onValueChange={(val) => setSelectedClass(parseInt(val))}>
+              <SelectTrigger data-testid="select-class">
+                <SelectValue placeholder={t.selectClass} />
+              </SelectTrigger>
+              <SelectContent>
+                {classes.map((cls: any) => (
+                  <SelectItem key={cls.id} value={cls.id.toString()}>
+                    {cls.name} ({cls.level})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>{t.selectTerm}</Label>
+            <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+              <SelectTrigger data-testid="select-term">
+                <SelectValue placeholder={t.selectTerm} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="T1">Trimestre 1</SelectItem>
+                <SelectItem value="T2">Trimestre 2</SelectItem>
+                <SelectItem value="T3">Trimestre 3</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>{t.selectYear}</Label>
+            <Input
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              placeholder="2024-2025"
+              data-testid="input-academic-year"
+            />
+          </div>
+        </div>
+
+        {/* Students list */}
+        {studentsLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="ml-3 text-gray-600">{t.loading}</span>
+          </div>
+        ) : readyStudents.length === 0 ? (
+          <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-8 text-center">
+            <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-600 font-medium">{t.noStudents}</p>
+            <p className="text-sm text-gray-500 mt-1">{t.noStudentsDesc}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              {language === 'fr' 
+                ? `${readyStudents.length} élève(s) avec toutes les notes approuvées :`
+                : `${readyStudents.length} student(s) with all grades approved:`
+              }
+            </p>
+            {readyStudents.map((student: any) => (
+              <div key={student.studentId} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">{student.studentName}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {student.approvedGradesCount} {language === 'fr' ? 'notes approuvées' : 'approved grades'}
+                  </p>
+                </div>
+                <Button
+                  onClick={() => compileMutation.mutate({
+                    studentId: student.studentId,
+                    classId: selectedClass!,
+                    term: selectedTerm,
+                    academicYear: selectedYear,
+                    studentName: student.studentName
+                  })}
+                  disabled={compilingStudent === student.studentId}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  data-testid={`button-compile-${student.studentId}`}
+                >
+                  {compilingStudent === student.studentId ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      {t.compiling}
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {t.compile}
+                    </>
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 /**************************** ARCHIVE MANAGEMENT COMPONENT ****************************/
 function ArchiveManagementContent() {
@@ -1936,6 +2153,9 @@ export default function AcademicManagementSuite() {
             </TabsContent>
 
             <TabsContent value="bulletins" className="mt-0 space-y-4">
+              {/* Compilation Manager - Convert approved grades to bulletins */}
+              <CompileBulletinsFromGrades />
+              
               {/* Bulletins soumis par les enseignants */}
               <TeacherSubmittedBulletins />
               

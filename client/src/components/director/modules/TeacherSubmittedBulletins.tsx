@@ -431,6 +431,12 @@ const TeacherSubmittedBulletins: React.FC = () => {
                           <div className="flex items-center gap-3">
                             <h4 className="font-semibold text-lg" data-testid={`student-name-${bulletin.id}`}>{bulletin.studentName || bulletin.studentInfo?.name || t.noData}</h4>
                             {getStatusBadge(bulletin.reviewStatus)}
+                            {bulletin.status === 'compiled_from_grades' && (
+                              <Badge className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 border-indigo-300" data-testid="badge-compiled">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                {language === 'fr' ? 'Compilé depuis Notes' : 'Compiled from Grades'}
+                              </Badge>
+                            )}
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600">
                             <div>

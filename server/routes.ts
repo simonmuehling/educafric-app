@@ -9349,6 +9349,269 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get list of students ready for bulletin compilation (all grades approved)
+  app.get('/api/director/students-ready-for-compilation', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as { schoolId: number };
+      const { classId, term, academicYear } = req.query;
+      
+      console.log('[READY_FOR_COMPILATION] Checking students for:', { classId, term, academicYear });
+      
+      if (!classId || !term || !academicYear) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required parameters: classId, term, academicYear' 
+        });
+      }
+      
+      // Get all grade submissions for this class/term/year with student names (single JOIN)
+      // and filter out students who already have a compiled bulletin
+      const allSubmissions = await db.select({
+        studentId: teacherGradeSubmissions.studentId,
+        reviewStatus: teacherGradeSubmissions.reviewStatus,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        existingBulletinId: teacherBulletins.id
+      })
+        .from(teacherGradeSubmissions)
+        .innerJoin(users, eq(teacherGradeSubmissions.studentId, users.id))
+        .leftJoin(teacherBulletins, and(
+          eq(teacherBulletins.studentId, teacherGradeSubmissions.studentId),
+          eq(teacherBulletins.classId, teacherGradeSubmissions.classId),
+          eq(teacherBulletins.term, teacherGradeSubmissions.term),
+          eq(teacherBulletins.academicYear, teacherGradeSubmissions.academicYear),
+          eq(teacherBulletins.status, 'compiled_from_grades'),
+          eq(teacherBulletins.schoolId, user.schoolId || 1)
+        ))
+        .where(and(
+          eq(teacherGradeSubmissions.classId, parseInt(classId as string)),
+          eq(teacherGradeSubmissions.term, term as string),
+          eq(teacherGradeSubmissions.academicYear, academicYear as string),
+          eq(teacherGradeSubmissions.schoolId, user.schoolId || 1)
+        ));
+      
+      // Group by student and check if already compiled
+      const studentMap = new Map<number, { approved: number; total: number; studentId: number; firstName: string; lastName: string; hasCompiledBulletin: boolean }>();
+      
+      for (const submission of allSubmissions) {
+        const key = submission.studentId;
+        if (!studentMap.has(key)) {
+          studentMap.set(key, {
+            studentId: submission.studentId,
+            firstName: submission.firstName || 'Unknown',
+            lastName: submission.lastName || 'Student',
+            approved: 0,
+            total: 0,
+            hasCompiledBulletin: !!submission.existingBulletinId
+          });
+        }
+        
+        const studentData = studentMap.get(key)!;
+        studentData.total++;
+        if (submission.reviewStatus === 'approved') {
+          studentData.approved++;
+        }
+      }
+      
+      // Filter students where all grades are approved AND no compiled bulletin exists
+      const readyStudents = Array.from(studentMap.values())
+        .filter(s => s.total > 0 && s.approved === s.total && !s.hasCompiledBulletin)
+        .map(s => ({
+          studentId: s.studentId,
+          studentName: `${s.firstName} ${s.lastName}`,
+          firstName: s.firstName,
+          lastName: s.lastName,
+          approvedGradesCount: s.approved,
+          totalGradesCount: s.total
+        }));
+      
+      console.log('[READY_FOR_COMPILATION] ✅ Found', readyStudents.length, 'students ready');
+      
+      res.json({
+        success: true,
+        students: readyStudents
+      });
+    } catch (error) {
+      console.error('[READY_FOR_COMPILATION] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to check students' });
+    }
+  });
+
+  // Compile approved grades into bulletin
+  app.post('/api/director/compile-approved-grades', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as { schoolId: number; id: number; role: string; firstName: string; lastName: string };
+      const { studentId, classId, term, academicYear } = req.body;
+      
+      console.log('[COMPILE_BULLETIN] Starting compilation for student:', studentId, 'term:', term);
+      
+      if (!studentId || !classId || !term || !academicYear) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields: studentId, classId, term, academicYear' 
+        });
+      }
+      
+      // Fetch all grade submissions for this student/term
+      const gradeSubmissions = await db.select()
+        .from(teacherGradeSubmissions)
+        .where(and(
+          eq(teacherGradeSubmissions.studentId, studentId),
+          eq(teacherGradeSubmissions.classId, classId),
+          eq(teacherGradeSubmissions.term, term),
+          eq(teacherGradeSubmissions.academicYear, academicYear),
+          eq(teacherGradeSubmissions.schoolId, user.schoolId || 1)
+        ));
+      
+      console.log('[COMPILE_BULLETIN] Found', gradeSubmissions.length, 'grade submissions');
+      
+      if (gradeSubmissions.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'No grade submissions found for this student and term' 
+        });
+      }
+      
+      // Check if ALL grades are approved
+      const unapprovedGrades = gradeSubmissions.filter(g => g.reviewStatus !== 'approved');
+      if (unapprovedGrades.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Cannot compile bulletin: ${unapprovedGrades.length} grades are not yet approved`,
+          unapprovedCount: unapprovedGrades.length
+        });
+      }
+      
+      // Fetch student information
+      const [student] = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        matricule: users.matricule,
+        dateOfBirth: users.dateOfBirth
+      }).from(users).where(eq(users.id, studentId));
+      
+      if (!student) {
+        return res.status(404).json({ success: false, message: 'Student not found' });
+      }
+      
+      // Fetch class information
+      const [classInfo] = await db.select({
+        id: classes.id,
+        name: classes.name,
+        level: classes.level
+      }).from(classes).where(eq(classes.id, classId));
+      
+      // Compile subjects data from approved grades
+      const compiledSubjects = await Promise.all(gradeSubmissions.map(async (grade) => {
+        const [subjectData] = await db.select({
+          id: subjects.id,
+          name: subjects.name
+        }).from(subjects).where(eq(subjects.id, grade.subjectId));
+        
+        return {
+          id: subjectData?.id || grade.subjectId,
+          name: subjectData?.name || 'Unknown Subject',
+          grade: parseFloat(grade.termAverage || '0'),
+          firstEval: parseFloat(grade.firstEvaluation || '0'),
+          secondEval: parseFloat(grade.secondEvaluation || '0'),
+          thirdEval: parseFloat(grade.thirdEvaluation || '0'),
+          coefficient: grade.coefficient || 1,
+          remark: grade.subjectComments || '',
+          maxScore: parseFloat(grade.maxScore || '20')
+        };
+      }));
+      
+      // Calculate overall average
+      let totalWeighted = 0;
+      let totalCoef = 0;
+      compiledSubjects.forEach(sub => {
+        totalWeighted += sub.grade * sub.coefficient;
+        totalCoef += sub.coefficient;
+      });
+      const generalAverage = totalCoef > 0 ? (totalWeighted / totalCoef).toFixed(2) : '0.00';
+      
+      // Student info for bulletin
+      const studentInfo = {
+        name: `${student.firstName} ${student.lastName}`,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        matricule: student.matricule || 'N/A',
+        dateOfBirth: student.dateOfBirth || null,
+        classLabel: classInfo?.name || 'Unknown Class',
+        classLevel: classInfo?.level || 'N/A',
+        generalAverage: parseFloat(generalAverage)
+      };
+      
+      // Default discipline info (can be enriched later with actual attendance data)
+      const discipline = {
+        absJ: 0,
+        absNJ: 0,
+        late: 0,
+        sanctions: 0
+      };
+      
+      // Check if bulletin already exists to avoid duplicates
+      const existingBulletin = await db.select()
+        .from(teacherBulletins)
+        .where(and(
+          eq(teacherBulletins.studentId, studentId),
+          eq(teacherBulletins.classId, classId),
+          eq(teacherBulletins.term, term),
+          eq(teacherBulletins.academicYear, academicYear),
+          eq(teacherBulletins.schoolId, user.schoolId || 1),
+          eq(teacherBulletins.status, 'compiled_from_grades')
+        ));
+      
+      if (existingBulletin.length > 0) {
+        return res.status(409).json({ 
+          success: false, 
+          message: 'A compiled bulletin already exists for this student and term',
+          bulletinId: existingBulletin[0].id
+        });
+      }
+      
+      // Get the first teacher ID from grade submissions (all grades from same class should have same teacher)
+      const teacherId = gradeSubmissions[0].teacherId;
+      
+      // Insert compiled bulletin
+      const [newBulletin] = await db.insert(teacherBulletins).values({
+        teacherId,
+        schoolId: user.schoolId || 1,
+        studentId,
+        classId,
+        term,
+        academicYear,
+        studentInfo: studentInfo as any,
+        subjects: compiledSubjects as any,
+        discipline: discipline as any,
+        bulletinType: 'general-fr',
+        language: 'fr',
+        status: 'compiled_from_grades',
+        reviewStatus: 'pending',
+        sentToSchoolAt: new Date(),
+        metadata: {
+          compiledBy: user.id,
+          compiledByName: `${user.firstName} ${user.lastName}`,
+          compiledAt: new Date().toISOString(),
+          sourceGradeIds: gradeSubmissions.map(g => g.id)
+        } as any
+      }).returning();
+      
+      console.log('[COMPILE_BULLETIN] ✅ Bulletin compiled successfully, ID:', newBulletin.id);
+      
+      res.json({
+        success: true,
+        message: 'Bulletin compiled successfully from approved grades',
+        bulletin: newBulletin
+      });
+    } catch (error) {
+      console.error('[COMPILE_BULLETIN] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to compile bulletin' });
+    }
+  });
+
   // Class Reports API Routes
   // ===== SCHOOL OFFICIAL SETTINGS API =====
   app.get('/api/director/school-settings', requireAuth, requireAnyRole(['Director']), async (req: Request, res: Response) => {
