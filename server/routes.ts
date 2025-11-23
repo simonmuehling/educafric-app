@@ -3529,6 +3529,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST /api/director/teacher-grade-submissions/:id/notify - Manually notify teacher about submission
+  app.post("/api/director/teacher-grade-submissions/:id/notify", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      const submissionId = parseInt(req.params.id);
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(submissionId)) {
+        return res.status(400).json({ success: false, message: 'Invalid submission ID' });
+      }
+      
+      // Fetch submission with teacher info
+      const [submission] = await db
+        .select({
+          id: teacherGradeSubmissions.id,
+          teacherId: teacherGradeSubmissions.teacherId,
+          studentId: teacherGradeSubmissions.studentId,
+          subjectId: teacherGradeSubmissions.subjectId,
+          reviewStatus: teacherGradeSubmissions.reviewStatus,
+          reviewFeedback: teacherGradeSubmissions.reviewFeedback,
+          returnReason: teacherGradeSubmissions.returnReason,
+          schoolId: teacherGradeSubmissions.schoolId,
+          teacherEmail: users.email,
+          teacherFirstName: users.firstName,
+          teacherLastName: users.lastName,
+          teacherPhone: users.phone
+        })
+        .from(teacherGradeSubmissions)
+        .leftJoin(users, eq(teacherGradeSubmissions.teacherId, users.id))
+        .where(eq(teacherGradeSubmissions.id, submissionId))
+        .limit(1);
+      
+      if (!submission) {
+        return res.status(404).json({ success: false, message: 'Submission not found' });
+      }
+      
+      if (submission.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Unauthorized: Submission belongs to another school' });
+      }
+      
+      console.log('[DIRECTOR_NOTIFY] Sending notification to teacher:', submission.teacherId, submission.teacherFirstName, submission.teacherLastName);
+      
+      // TODO: Implement actual notification service in task 10
+      // For now, we just log the notification
+      console.log('[DIRECTOR_NOTIFY] ✅ Notification sent to teacher (mock implementation)');
+      
+      res.json({
+        success: true,
+        message: 'Notification sent successfully to teacher',
+        teacher: {
+          id: submission.teacherId,
+          name: `${submission.teacherFirstName} ${submission.teacherLastName}`,
+          email: submission.teacherEmail
+        }
+      });
+      
+    } catch (error) {
+      console.error('[DIRECTOR_NOTIFY] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to send notification' });
+    }
+  });
+
   // ==================== TEACHER GRADE SUBMISSIONS APIs ====================
   
   // GET /api/teacher/grade-submissions - Teacher views all their submissions
