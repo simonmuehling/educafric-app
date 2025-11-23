@@ -415,12 +415,11 @@ export default function TeacherGradeReview() {
             </div>
             <div>
               <Label>{t.term}</Label>
-              <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+              <Select value={selectedTerm || undefined} onValueChange={setSelectedTerm}>
                 <SelectTrigger>
                   <SelectValue placeholder={t.allTerms} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t.allTerms}</SelectItem>
                   <SelectItem value="T1">Trimestre 1</SelectItem>
                   <SelectItem value="T2">Trimestre 2</SelectItem>
                   <SelectItem value="T3">Trimestre 3</SelectItem>
@@ -429,12 +428,11 @@ export default function TeacherGradeReview() {
             </div>
             <div>
               <Label>{t.status}</Label>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <Select value={selectedStatus || undefined} onValueChange={setSelectedStatus}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t.all} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t.all}</SelectItem>
                   <SelectItem value="pending">{t.pending}</SelectItem>
                   <SelectItem value="approved">{t.approved}</SelectItem>
                   <SelectItem value="returned">{t.returned}</SelectItem>
