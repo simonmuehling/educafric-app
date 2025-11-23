@@ -1390,25 +1390,46 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                     schoolPhone: selectedStudent.schoolPhone || ''
                   });
                   
-                  // Auto-fill subjects with grades from teachers
+                  // Auto-fill subjects with grades from approved teacher submissions
                   if (selectedStudent.grades && selectedStudent.grades.length > 0) {
-                    const updatedSubjects = subjects.map(subject => {
-                      const studentGrade = selectedStudent.grades.find((g: any) => 
-                        g.subjectName === subject.name || g.subject === subject.name
-                      );
-                      
-                      if (studentGrade) {
-                        return {
-                          ...subject,
-                          note1: studentGrade.note1 || 0,
-                          moyenneFinale: studentGrade.finalGrade || studentGrade.moyenne || 0,
-                          grade: studentGrade.finalGrade || studentGrade.moyenne || 0,
-                          remark: studentGrade.remark || studentGrade.appreciation || ''
-                        };
-                      }
-                      return subject;
+                    console.log('[BULLETIN] Pre-filling subjects with approved grades:', selectedStudent.grades);
+                    
+                    // Create subjects from approved grades with all necessary fields
+                    const newSubjects = selectedStudent.grades.map((gradeData: any, index: number) => ({
+                      id: (index + 1).toString(),
+                      name: gradeData.subjectName || '',
+                      teacher: gradeData.teacher || '',
+                      coefficient: gradeData.coefficient || 1,
+                      grade: gradeData.finalGrade || 0,
+                      remark: gradeData.remark || '',
+                      comments: gradeData.remark ? [gradeData.remark] : [],
+                      note1: gradeData.note1 || gradeData.finalGrade || 0,
+                      moyenneFinale: gradeData.finalGrade || 0,
+                      competence1: 'Communication orale et écrite',
+                      competence2: 'Raisonnement mathématique',
+                      competence3: 'Résolution de problèmes',
+                      totalPondere: (gradeData.finalGrade || 0) * (gradeData.coefficient || 1),
+                      cote: calculateCote(gradeData.finalGrade || 0)
+                    }));
+                    
+                    console.log('[BULLETIN] Pre-filled subjects:', newSubjects);
+                    setSubjects(newSubjects);
+                    
+                    toast({
+                      title: language === 'fr' ? 'Notes Chargées' : 'Grades Loaded',
+                      description: language === 'fr' 
+                        ? `${newSubjects.length} matières avec notes approuvées chargées automatiquement` 
+                        : `${newSubjects.length} subjects with approved grades loaded automatically`,
                     });
-                    setSubjects(updatedSubjects);
+                  } else if (selectedStudent.hasApprovedGrades === false) {
+                    // No approved grades available for this student
+                    toast({
+                      title: language === 'fr' ? 'Aucune Note Approuvée' : 'No Approved Grades',
+                      description: language === 'fr' 
+                        ? 'Aucune note approuvée trouvée pour cet élève. Vous devez d\'abord approuver les notes soumises par les enseignants.' 
+                        : 'No approved grades found for this student. You must first approve grades submitted by teachers.',
+                      variant: 'destructive'
+                    });
                   }
 
                   // Set student photo URL from profile
@@ -3537,6 +3558,31 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
     },
     enabled: !!selectedClassId, // Only fetch when class is selected
   });
+  
+  // Fetch approved teacher grade submissions for pre-filling bulletin
+  const { data: approvedGrades } = useQuery({
+    queryKey: ['/api/director/teacher-grade-submissions', selectedClassId, 'approved'],
+    queryFn: async () => {
+      if (!selectedClassId) {
+        return { success: true, submissions: [] };
+      }
+      
+      try {
+        const url = `/api/director/teacher-grade-submissions?classId=${selectedClassId}&reviewStatus=approved`;
+        const response = await fetch(url, {
+          credentials: 'include'
+        });
+        if (!response.ok) throw new Error('Failed to fetch approved grades');
+        const data = await response.json();
+        console.log('[BULLETIN] Approved grades loaded:', data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching approved grades:', error);
+        return { success: false, submissions: [] };
+      }
+    },
+    enabled: !!selectedClassId,
+  });
 
   // Ensure studentsData is always an array - use all students from API
   const allStudents = Array.isArray(apiResponse?.students) ? apiResponse.students : [];
@@ -3549,20 +3595,33 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
     console.log('[STUDENT_SELECTOR] Found student data:', selectedStudent);
     
     if (selectedStudent) {
-      // For real schools, we would fetch grades from teachers' submissions
-      // For now, we'll use mock data but structure it properly
+      // Get approved grades for this student from teacher submissions
+      const studentGrades = approvedGrades?.submissions?.filter(
+        (submission: any) => submission.studentId === selectedStudent.id
+      ) || [];
+      
+      console.log('[STUDENT_SELECTOR] Found approved grades:', studentGrades);
+      
+      // Transform approved grades into the format expected by bulletin
+      const gradesForBulletin = studentGrades.map((submission: any) => ({
+        subjectId: submission.subjectId,
+        subjectName: submission.subjectName,
+        finalGrade: parseFloat(submission.termAverage || submission.firstEvaluation || '0'),
+        note1: parseFloat(submission.firstEvaluation || '0'),
+        coefficient: submission.coefficient || 1,
+        remark: submission.subjectComments || '',
+        teacherFirstName: submission.teacherFirstName || '',
+        teacherLastName: submission.teacherLastName || '',
+        teacher: `${submission.teacherFirstName || ''} ${submission.teacherLastName || ''}`.trim()
+      }));
+      
       const studentWithGrades = {
         ...selectedStudent,
         // Set the photo URL from user profile
         photoUrl: selectedStudent.photoURL || selectedStudent.profilePictureUrl || '',
-        grades: [
-          { subjectName: 'FRANÇAIS', finalGrade: 15.5, note1: 14, remark: 'Bon travail' },
-          { subjectName: 'ANGLAIS', finalGrade: 12.0, note1: 11, remark: 'Peut mieux faire' },
-          { subjectName: 'MATHÉMATIQUES', finalGrade: 16.5, note1: 16, remark: 'Excellent' },
-          { subjectName: 'HISTOIRE', finalGrade: 13.0, note1: 12, remark: 'Satisfaisant' },
-          { subjectName: 'GÉOGRAPHIE', finalGrade: 14.0, note1: 13, remark: 'Bien' },
-          { subjectName: 'SCIENCES', finalGrade: 15.0, note1: 14, remark: 'Très bien' }
-        ]
+        // Use approved grades if available, otherwise empty array
+        grades: gradesForBulletin.length > 0 ? gradesForBulletin : [],
+        hasApprovedGrades: gradesForBulletin.length > 0
       };
       
       console.log('[STUDENT_SELECTOR] Calling onStudentSelect with:', studentWithGrades);

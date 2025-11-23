@@ -35,14 +35,14 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins } from "../shared/schema";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions } from "../shared/schema";
 import bcrypt from 'bcryptjs';
 import { 
   predefinedAppreciations, 
   competencyEvaluationSystems, 
   competencyTemplates 
 } from "../shared/schemas/predefinedAppreciationsSchema";
-import { eq, and, or, asc, desc, sql, inArray, count } from "drizzle-orm";
+import { eq, and, or, asc, desc, sql, inArray, count, alias } from "drizzle-orm";
 import { 
   ArchiveFilter, 
   NewArchivedDocument, 
@@ -3190,6 +3190,279 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[DELETE_GRADE] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to delete grade' });
+    }
+  });
+
+  // ================ TEACHER GRADE SUBMISSIONS REVIEW WORKFLOW ================
+  
+  // GET /api/director/teacher-grade-submissions - Get all teacher grade submissions for review
+  app.get("/api/director/teacher-grade-submissions", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      const { classId, subjectId, term, reviewStatus, teacherId } = req.query;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      console.log('[DIRECTOR_TEACHER_GRADES] Fetching teacher grade submissions for review');
+      console.log('[DIRECTOR_TEACHER_GRADES] Filters:', { classId, subjectId, term, reviewStatus, teacherId });
+      
+      // Build query conditions
+      const conditions = [eq(teacherGradeSubmissions.schoolId, userSchoolId)];
+      
+      if (classId) {
+        conditions.push(eq(teacherGradeSubmissions.classId, parseInt(classId as string)));
+      }
+      if (subjectId) {
+        conditions.push(eq(teacherGradeSubmissions.subjectId, parseInt(subjectId as string)));
+      }
+      if (term) {
+        conditions.push(eq(teacherGradeSubmissions.term, term as string));
+      }
+      if (reviewStatus) {
+        conditions.push(eq(teacherGradeSubmissions.reviewStatus, reviewStatus as string));
+      }
+      if (teacherId) {
+        conditions.push(eq(teacherGradeSubmissions.teacherId, parseInt(teacherId as string)));
+      }
+      
+      // Create aliases for users table to distinguish teacher and student
+      const teacher = alias(users, 'teacher');
+      const student = alias(users, 'student');
+      
+      // Fetch grade submissions with teacher, student, subject, and class info
+      const submissions = await db
+        .select({
+          id: teacherGradeSubmissions.id,
+          teacherId: teacherGradeSubmissions.teacherId,
+          teacherFirstName: teacher.firstName,
+          teacherLastName: teacher.lastName,
+          studentId: teacherGradeSubmissions.studentId,
+          studentFirstName: student.firstName,
+          studentLastName: student.lastName,
+          subjectId: teacherGradeSubmissions.subjectId,
+          subjectName: subjects.nameFr,
+          classId: teacherGradeSubmissions.classId,
+          className: classes.name,
+          term: teacherGradeSubmissions.term,
+          academicYear: teacherGradeSubmissions.academicYear,
+          firstEvaluation: teacherGradeSubmissions.firstEvaluation,
+          secondEvaluation: teacherGradeSubmissions.secondEvaluation,
+          thirdEvaluation: teacherGradeSubmissions.thirdEvaluation,
+          termAverage: teacherGradeSubmissions.termAverage,
+          coefficient: teacherGradeSubmissions.coefficient,
+          maxScore: teacherGradeSubmissions.maxScore,
+          subjectComments: teacherGradeSubmissions.subjectComments,
+          studentRank: teacherGradeSubmissions.studentRank,
+          isSubmitted: teacherGradeSubmissions.isSubmitted,
+          submittedAt: teacherGradeSubmissions.submittedAt,
+          reviewStatus: teacherGradeSubmissions.reviewStatus,
+          reviewedBy: teacherGradeSubmissions.reviewedBy,
+          reviewedAt: teacherGradeSubmissions.reviewedAt,
+          reviewFeedback: teacherGradeSubmissions.reviewFeedback,
+          returnReason: teacherGradeSubmissions.returnReason,
+          reviewPriority: teacherGradeSubmissions.reviewPriority,
+          requiresAttention: teacherGradeSubmissions.requiresAttention,
+          createdAt: teacherGradeSubmissions.createdAt,
+          updatedAt: teacherGradeSubmissions.updatedAt
+        })
+        .from(teacherGradeSubmissions)
+        .leftJoin(teacher, eq(teacherGradeSubmissions.teacherId, teacher.id))
+        .leftJoin(student, eq(teacherGradeSubmissions.studentId, student.id))
+        .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
+        .leftJoin(classes, eq(teacherGradeSubmissions.classId, classes.id))
+        .where(and(...conditions))
+        .orderBy(teacherGradeSubmissions.submittedAt);
+      
+      // Count submissions by status
+      const statusCounts = await db
+        .select({
+          reviewStatus: teacherGradeSubmissions.reviewStatus,
+          count: sql<number>`count(*)`
+        })
+        .from(teacherGradeSubmissions)
+        .where(eq(teacherGradeSubmissions.schoolId, userSchoolId))
+        .groupBy(teacherGradeSubmissions.reviewStatus);
+      
+      console.log('[DIRECTOR_TEACHER_GRADES] ✅ Found', submissions.length, 'submissions');
+      
+      res.json({
+        success: true,
+        submissions,
+        stats: {
+          total: submissions.length,
+          byStatus: statusCounts.reduce((acc: any, curr: any) => {
+            acc[curr.reviewStatus] = Number(curr.count);
+            return acc;
+          }, {})
+        }
+      });
+      
+    } catch (error) {
+      console.error('[DIRECTOR_TEACHER_GRADES] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher grade submissions' });
+    }
+  });
+  
+  // POST /api/director/teacher-grade-submissions/:id/approve - Approve a teacher grade submission
+  app.post("/api/director/teacher-grade-submissions/:id/approve", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      const submissionId = parseInt(req.params.id);
+      const { feedback } = req.body;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(submissionId)) {
+        return res.status(400).json({ success: false, message: 'Invalid submission ID' });
+      }
+      
+      console.log('[DIRECTOR_APPROVE_GRADE] Approving submission:', submissionId);
+      
+      // Update submission status
+      const [approvedSubmission] = await db
+        .update(teacherGradeSubmissions)
+        .set({
+          reviewStatus: 'approved',
+          reviewedBy: user.id,
+          reviewedAt: new Date(),
+          reviewFeedback: feedback || null,
+          lastStatusChange: new Date(),
+          requiresAttention: false
+        })
+        .where(and(
+          eq(teacherGradeSubmissions.id, submissionId),
+          eq(teacherGradeSubmissions.schoolId, userSchoolId)
+        ))
+        .returning();
+      
+      if (!approvedSubmission) {
+        return res.status(404).json({ success: false, message: 'Submission not found' });
+      }
+      
+      console.log('[DIRECTOR_APPROVE_GRADE] ✅ Submission approved successfully');
+      
+      res.json({
+        success: true,
+        message: 'Grade submission approved successfully',
+        submission: approvedSubmission
+      });
+      
+    } catch (error) {
+      console.error('[DIRECTOR_APPROVE_GRADE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to approve submission' });
+    }
+  });
+  
+  // POST /api/director/teacher-grade-submissions/:id/return - Return a teacher grade submission with feedback
+  app.post("/api/director/teacher-grade-submissions/:id/return", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      const submissionId = parseInt(req.params.id);
+      const { returnReason, feedback } = req.body;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(submissionId)) {
+        return res.status(400).json({ success: false, message: 'Invalid submission ID' });
+      }
+      
+      if (!returnReason) {
+        return res.status(400).json({ success: false, message: 'Return reason required' });
+      }
+      
+      console.log('[DIRECTOR_RETURN_GRADE] Returning submission:', submissionId, 'Reason:', returnReason);
+      
+      // Update submission status
+      const [returnedSubmission] = await db
+        .update(teacherGradeSubmissions)
+        .set({
+          reviewStatus: 'returned',
+          reviewedBy: user.id,
+          reviewedAt: new Date(),
+          returnReason,
+          reviewFeedback: feedback || null,
+          lastStatusChange: new Date(),
+          requiresAttention: true
+        })
+        .where(and(
+          eq(teacherGradeSubmissions.id, submissionId),
+          eq(teacherGradeSubmissions.schoolId, userSchoolId)
+        ))
+        .returning();
+      
+      if (!returnedSubmission) {
+        return res.status(404).json({ success: false, message: 'Submission not found' });
+      }
+      
+      console.log('[DIRECTOR_RETURN_GRADE] ✅ Submission returned successfully');
+      
+      res.json({
+        success: true,
+        message: 'Grade submission returned for revision',
+        submission: returnedSubmission
+      });
+      
+    } catch (error) {
+      console.error('[DIRECTOR_RETURN_GRADE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to return submission' });
+    }
+  });
+  
+  // POST /api/director/teacher-grade-submissions/bulk-approve - Approve multiple submissions at once
+  app.post("/api/director/teacher-grade-submissions/bulk-approve", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      const { submissionIds, feedback } = req.body;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (!submissionIds || !Array.isArray(submissionIds) || submissionIds.length === 0) {
+        return res.status(400).json({ success: false, message: 'Submission IDs array required' });
+      }
+      
+      console.log('[DIRECTOR_BULK_APPROVE] Approving', submissionIds.length, 'submissions');
+      
+      // Update all submissions
+      const approvedSubmissions = await db
+        .update(teacherGradeSubmissions)
+        .set({
+          reviewStatus: 'approved',
+          reviewedBy: user.id,
+          reviewedAt: new Date(),
+          reviewFeedback: feedback || null,
+          lastStatusChange: new Date(),
+          requiresAttention: false
+        })
+        .where(and(
+          sql`${teacherGradeSubmissions.id} = ANY(${submissionIds})`,
+          eq(teacherGradeSubmissions.schoolId, userSchoolId)
+        ))
+        .returning();
+      
+      console.log('[DIRECTOR_BULK_APPROVE] ✅ Approved', approvedSubmissions.length, 'submissions');
+      
+      res.json({
+        success: true,
+        message: `${approvedSubmissions.length} grade submissions approved successfully`,
+        approvedCount: approvedSubmissions.length,
+        submissions: approvedSubmissions
+      });
+      
+    } catch (error) {
+      console.error('[DIRECTOR_BULK_APPROVE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to bulk approve submissions' });
     }
   });
 

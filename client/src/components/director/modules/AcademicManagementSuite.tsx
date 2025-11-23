@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import BulletinCreationInterface from "@/components/academic/BulletinCreationInterface";
 import TeacherSubmittedBulletins from "./TeacherSubmittedBulletins";
+import TeacherGradeReview from "./TeacherGradeReview";
 import { 
   FileSpreadsheet, 
   Download, 
@@ -1873,7 +1874,11 @@ export default function AcademicManagementSuite() {
         <Card>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader className="pb-3">
-            <TabsList ref={tabsListRef} className="grid w-full grid-cols-5">
+            <TabsList ref={tabsListRef} className="grid w-full grid-cols-6">
+              <TabsTrigger value="grade-review" className="flex items-center gap-2" data-testid="tab-grade-review">
+                <UserCheck className="h-4 w-4" />
+                <span className="hidden sm:inline">{language === 'fr' ? 'Révision Notes' : 'Grade Review'}</span>
+              </TabsTrigger>
               <TabsTrigger value="bulletins" className="flex items-center gap-2" data-testid="tab-bulletins">
                 <FileText className="h-4 w-4" />
                 <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins' : 'Report Cards'}</span>
@@ -1898,6 +1903,10 @@ export default function AcademicManagementSuite() {
           </CardHeader>
 
           <CardContent>
+            <TabsContent value="grade-review" className="mt-0">
+              <TeacherGradeReview />
+            </TabsContent>
+
             <TabsContent value="bulletins" className="mt-0 space-y-4">
               {/* Bulletins soumis par les enseignants */}
               <TeacherSubmittedBulletins />
