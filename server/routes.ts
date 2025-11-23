@@ -3467,6 +3467,285 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==================== TEACHER GRADE SUBMISSIONS APIs ====================
+  
+  // GET /api/teacher/grade-submissions - Teacher views all their submissions
+  app.get("/api/teacher/grade-submissions", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const { status, classId, term, subjectId } = req.query;
+      
+      console.log('[TEACHER_SUBMISSIONS] Fetching submissions for teacher:', teacherId);
+      
+      const conditions = [eq(teacherGradeSubmissions.teacherId, teacherId)];
+      
+      if (status) {
+        conditions.push(eq(teacherGradeSubmissions.reviewStatus, status as string));
+      }
+      if (classId) {
+        conditions.push(eq(teacherGradeSubmissions.classId, parseInt(classId as string)));
+      }
+      if (term) {
+        conditions.push(eq(teacherGradeSubmissions.term, term as string));
+      }
+      if (subjectId) {
+        conditions.push(eq(teacherGradeSubmissions.subjectId, parseInt(subjectId as string)));
+      }
+      
+      const submissions = await db
+        .select({
+          id: teacherGradeSubmissions.id,
+          studentId: teacherGradeSubmissions.studentId,
+          subjectId: teacherGradeSubmissions.subjectId,
+          classId: teacherGradeSubmissions.classId,
+          term: teacherGradeSubmissions.term,
+          academicYear: teacherGradeSubmissions.academicYear,
+          firstEvaluation: teacherGradeSubmissions.firstEvaluation,
+          secondEvaluation: teacherGradeSubmissions.secondEvaluation,
+          thirdEvaluation: teacherGradeSubmissions.thirdEvaluation,
+          termAverage: teacherGradeSubmissions.termAverage,
+          coefficient: teacherGradeSubmissions.coefficient,
+          subjectComments: teacherGradeSubmissions.subjectComments,
+          studentRank: teacherGradeSubmissions.studentRank,
+          isSubmitted: teacherGradeSubmissions.isSubmitted,
+          submittedAt: teacherGradeSubmissions.submittedAt,
+          reviewStatus: teacherGradeSubmissions.reviewStatus,
+          reviewedAt: teacherGradeSubmissions.reviewedAt,
+          reviewFeedback: teacherGradeSubmissions.reviewFeedback,
+          returnReason: teacherGradeSubmissions.returnReason,
+          requiresAttention: teacherGradeSubmissions.requiresAttention,
+          createdAt: teacherGradeSubmissions.createdAt,
+          updatedAt: teacherGradeSubmissions.updatedAt,
+          studentFirstName: users.firstName,
+          studentLastName: users.lastName,
+          subjectName: subjects.name,
+          className: classes.name
+        })
+        .from(teacherGradeSubmissions)
+        .leftJoin(users, eq(teacherGradeSubmissions.studentId, users.id))
+        .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
+        .leftJoin(classes, eq(teacherGradeSubmissions.classId, classes.id))
+        .where(and(...conditions))
+        .orderBy(desc(teacherGradeSubmissions.updatedAt));
+      
+      const stats = {
+        total: submissions.length,
+        byStatus: {
+          pending: submissions.filter(s => s.reviewStatus === 'pending').length,
+          approved: submissions.filter(s => s.reviewStatus === 'approved').length,
+          returned: submissions.filter(s => s.reviewStatus === 'returned').length
+        },
+        requiresAttention: submissions.filter(s => s.requiresAttention).length
+      };
+      
+      console.log('[TEACHER_SUBMISSIONS] ✅ Found', submissions.length, 'submissions');
+      
+      res.json({ success: true, submissions, stats });
+      
+    } catch (error) {
+      console.error('[TEACHER_SUBMISSIONS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch submissions' });
+    }
+  });
+  
+  // PATCH /api/teacher/grade-submissions/:id - Teacher resubmits after return
+  app.patch("/api/teacher/grade-submissions/:id", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const submissionId = parseInt(req.params.id);
+      const { firstEvaluation, secondEvaluation, thirdEvaluation, subjectComments, termAverage } = req.body;
+      
+      if (isNaN(submissionId)) {
+        return res.status(400).json({ success: false, message: 'Invalid submission ID' });
+      }
+      
+      console.log('[TEACHER_RESUBMIT] Teacher', teacherId, 'resubmitting grade submission:', submissionId);
+      
+      // Verify submission belongs to teacher and was returned
+      const [existingSubmission] = await db
+        .select()
+        .from(teacherGradeSubmissions)
+        .where(and(
+          eq(teacherGradeSubmissions.id, submissionId),
+          eq(teacherGradeSubmissions.teacherId, teacherId)
+        ))
+        .limit(1);
+      
+      if (!existingSubmission) {
+        return res.status(404).json({ success: false, message: 'Submission not found' });
+      }
+      
+      if (existingSubmission.reviewStatus !== 'returned') {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Only returned submissions can be resubmitted' 
+        });
+      }
+      
+      // Update submission
+      const [updated] = await db
+        .update(teacherGradeSubmissions)
+        .set({
+          firstEvaluation: firstEvaluation || existingSubmission.firstEvaluation,
+          secondEvaluation: secondEvaluation || existingSubmission.secondEvaluation,
+          thirdEvaluation: thirdEvaluation || existingSubmission.thirdEvaluation,
+          termAverage: termAverage || existingSubmission.termAverage,
+          subjectComments: subjectComments || existingSubmission.subjectComments,
+          reviewStatus: 'pending',
+          reviewedAt: null,
+          reviewedBy: null,
+          reviewFeedback: null,
+          returnReason: null,
+          requiresAttention: false,
+          lastStatusChange: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(teacherGradeSubmissions.id, submissionId))
+        .returning();
+      
+      console.log('[TEACHER_RESUBMIT] ✅ Submission resubmitted successfully');
+      
+      res.json({
+        success: true,
+        message: 'Submission updated and sent for review',
+        submission: updated
+      });
+      
+    } catch (error) {
+      console.error('[TEACHER_RESUBMIT] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to resubmit grade' });
+    }
+  });
+  
+  // GET /api/director/teacher-grade-submissions/:id/history - Get review history
+  app.get("/api/director/teacher-grade-submissions/:id/history", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const submissionId = parseInt(req.params.id);
+      
+      if (isNaN(submissionId)) {
+        return res.status(400).json({ success: false, message: 'Invalid submission ID' });
+      }
+      
+      console.log('[GRADE_HISTORY] Fetching history for submission:', submissionId);
+      
+      const history = await db
+        .select({
+          id: sql`grade_review_history.id`,
+          reviewAction: sql`grade_review_history.review_action`,
+          previousStatus: sql`grade_review_history.previous_status`,
+          newStatus: sql`grade_review_history.new_status`,
+          feedback: sql`grade_review_history.feedback`,
+          returnReason: sql`grade_review_history.return_reason`,
+          reviewerFirstName: users.firstName,
+          reviewerLastName: users.lastName,
+          createdAt: sql`grade_review_history.created_at`
+        })
+        .from(sql`grade_review_history`)
+        .leftJoin(users, sql`grade_review_history.reviewer_id = ${users.id}`)
+        .where(sql`grade_review_history.grade_submission_id = ${submissionId}`)
+        .orderBy(sql`grade_review_history.created_at DESC`);
+      
+      console.log('[GRADE_HISTORY] ✅ Found', history.length, 'history entries');
+      
+      res.json({ success: true, history });
+      
+    } catch (error) {
+      console.error('[GRADE_HISTORY] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch history' });
+    }
+  });
+  
+  // GET /api/director/teacher-grade-submissions/analytics - Advanced statistics
+  app.get("/api/director/teacher-grade-submissions/analytics", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      console.log('[GRADE_ANALYTICS] Generating analytics for school:', userSchoolId);
+      
+      // Get all submissions for the school
+      const allSubmissions = await db
+        .select()
+        .from(teacherGradeSubmissions)
+        .where(eq(teacherGradeSubmissions.schoolId, userSchoolId));
+      
+      // Calculate statistics
+      const stats = {
+        total: allSubmissions.length,
+        byStatus: {
+          pending: allSubmissions.filter(s => s.reviewStatus === 'pending').length,
+          approved: allSubmissions.filter(s => s.reviewStatus === 'approved').length,
+          returned: allSubmissions.filter(s => s.reviewStatus === 'returned').length
+        },
+        approvalRate: allSubmissions.length > 0 
+          ? Math.round((allSubmissions.filter(s => s.reviewStatus === 'approved').length / allSubmissions.length) * 100)
+          : 0,
+        byTeacher: {} as Record<number, any>,
+        bySubject: {} as Record<number, any>,
+        byClass: {} as Record<number, any>
+      };
+      
+      // Group by teacher
+      allSubmissions.forEach(s => {
+        if (!stats.byTeacher[s.teacherId]) {
+          stats.byTeacher[s.teacherId] = {
+            teacherId: s.teacherId,
+            total: 0,
+            pending: 0,
+            approved: 0,
+            returned: 0
+          };
+        }
+        stats.byTeacher[s.teacherId].total++;
+        stats.byTeacher[s.teacherId][s.reviewStatus]++;
+      });
+      
+      // Group by subject
+      allSubmissions.forEach(s => {
+        if (!stats.bySubject[s.subjectId]) {
+          stats.bySubject[s.subjectId] = {
+            subjectId: s.subjectId,
+            total: 0,
+            pending: 0,
+            approved: 0,
+            returned: 0
+          };
+        }
+        stats.bySubject[s.subjectId].total++;
+        stats.bySubject[s.subjectId][s.reviewStatus]++;
+      });
+      
+      // Group by class
+      allSubmissions.forEach(s => {
+        if (!stats.byClass[s.classId]) {
+          stats.byClass[s.classId] = {
+            classId: s.classId,
+            total: 0,
+            pending: 0,
+            approved: 0,
+            returned: 0
+          };
+        }
+        stats.byClass[s.classId].total++;
+        stats.byClass[s.classId][s.reviewStatus]++;
+      });
+      
+      console.log('[GRADE_ANALYTICS] ✅ Analytics generated');
+      
+      res.json({ success: true, analytics: stats });
+      
+    } catch (error) {
+      console.error('[GRADE_ANALYTICS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to generate analytics' });
+    }
+  });
+
   // Get student transcript (all grades for a student across all terms)
   app.get("/api/director/student-transcript/:studentId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
