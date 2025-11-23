@@ -3325,6 +3325,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_APPROVE_GRADE] Approving submission:', submissionId);
       
+      // Get current submission to capture previous status
+      const [currentSubmission] = await db
+        .select()
+        .from(teacherGradeSubmissions)
+        .where(and(
+          eq(teacherGradeSubmissions.id, submissionId),
+          eq(teacherGradeSubmissions.schoolId, userSchoolId)
+        ))
+        .limit(1);
+      
+      if (!currentSubmission) {
+        return res.status(404).json({ success: false, message: 'Submission not found' });
+      }
+      
+      const previousStatus = currentSubmission.reviewStatus;
+      
       // Update submission status
       const [approvedSubmission] = await db
         .update(teacherGradeSubmissions)
@@ -3336,17 +3352,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastStatusChange: new Date(),
           requiresAttention: false
         })
-        .where(and(
-          eq(teacherGradeSubmissions.id, submissionId),
-          eq(teacherGradeSubmissions.schoolId, userSchoolId)
-        ))
+        .where(eq(teacherGradeSubmissions.id, submissionId))
         .returning();
       
-      if (!approvedSubmission) {
-        return res.status(404).json({ success: false, message: 'Submission not found' });
-      }
+      // Record in history
+      await db.execute(sql`
+        INSERT INTO grade_review_history (
+          grade_submission_id, reviewer_id, review_action,
+          previous_status, new_status, feedback
+        ) VALUES (
+          ${submissionId}, ${user.id}, 'approved',
+          ${previousStatus}, 'approved', ${feedback || null}
+        )
+      `);
       
-      console.log('[DIRECTOR_APPROVE_GRADE] ✅ Submission approved successfully');
+      console.log('[DIRECTOR_APPROVE_GRADE] ✅ Submission approved and recorded in history');
       
       res.json({
         success: true,
@@ -3382,6 +3402,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_RETURN_GRADE] Returning submission:', submissionId, 'Reason:', returnReason);
       
+      // Get current submission to capture previous status
+      const [currentSubmission] = await db
+        .select()
+        .from(teacherGradeSubmissions)
+        .where(and(
+          eq(teacherGradeSubmissions.id, submissionId),
+          eq(teacherGradeSubmissions.schoolId, userSchoolId)
+        ))
+        .limit(1);
+      
+      if (!currentSubmission) {
+        return res.status(404).json({ success: false, message: 'Submission not found' });
+      }
+      
+      const previousStatus = currentSubmission.reviewStatus;
+      
       // Update submission status
       const [returnedSubmission] = await db
         .update(teacherGradeSubmissions)
@@ -3394,17 +3430,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastStatusChange: new Date(),
           requiresAttention: true
         })
-        .where(and(
-          eq(teacherGradeSubmissions.id, submissionId),
-          eq(teacherGradeSubmissions.schoolId, userSchoolId)
-        ))
+        .where(eq(teacherGradeSubmissions.id, submissionId))
         .returning();
       
-      if (!returnedSubmission) {
-        return res.status(404).json({ success: false, message: 'Submission not found' });
-      }
+      // Record in history
+      await db.execute(sql`
+        INSERT INTO grade_review_history (
+          grade_submission_id, reviewer_id, review_action,
+          previous_status, new_status, feedback, return_reason
+        ) VALUES (
+          ${submissionId}, ${user.id}, 'returned',
+          ${previousStatus}, 'returned', ${feedback || null}, ${returnReason}
+        )
+      `);
       
-      console.log('[DIRECTOR_RETURN_GRADE] ✅ Submission returned successfully');
+      console.log('[DIRECTOR_RETURN_GRADE] ✅ Submission returned and recorded in history');
       
       res.json({
         success: true,
@@ -3435,6 +3475,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_BULK_APPROVE] Approving', submissionIds.length, 'submissions');
       
+      // Get current submissions to capture previous statuses
+      const currentSubmissions = await db
+        .select({ id: teacherGradeSubmissions.id, reviewStatus: teacherGradeSubmissions.reviewStatus })
+        .from(teacherGradeSubmissions)
+        .where(and(
+          sql`${teacherGradeSubmissions.id} = ANY(${submissionIds})`,
+          eq(teacherGradeSubmissions.schoolId, userSchoolId)
+        ));
+      
       // Update all submissions
       const approvedSubmissions = await db
         .update(teacherGradeSubmissions)
@@ -3452,7 +3501,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ))
         .returning();
       
-      console.log('[DIRECTOR_BULK_APPROVE] ✅ Approved', approvedSubmissions.length, 'submissions');
+      // Record in history for each submission
+      for (const current of currentSubmissions) {
+        await db.execute(sql`
+          INSERT INTO grade_review_history (
+            grade_submission_id, reviewer_id, review_action,
+            previous_status, new_status, feedback
+          ) VALUES (
+            ${current.id}, ${user.id}, 'approved',
+            ${current.reviewStatus}, 'approved', ${feedback || null}
+          )
+        `);
+      }
+      
+      console.log('[DIRECTOR_BULK_APPROVE] ✅ Approved', approvedSubmissions.length, 'submissions and recorded in history');
       
       res.json({
         success: true,
