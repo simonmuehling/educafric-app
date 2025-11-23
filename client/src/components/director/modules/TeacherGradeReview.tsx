@@ -23,7 +23,9 @@ import {
   User,
   BookOpen,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  History,
+  Bell
 } from 'lucide-react';
 
 interface GradeSubmission {
@@ -81,6 +83,9 @@ export default function TeacherGradeReview() {
   const [reviewAction, setReviewAction] = useState<'approve' | 'return'>('approve');
   const [reviewFeedback, setReviewFeedback] = useState('');
   const [returnReason, setReturnReason] = useState('');
+  
+  // History modal
+  const [historySubmissionId, setHistorySubmissionId] = useState<number | null>(null);
 
   // Text translations
   const text = {
@@ -138,7 +143,18 @@ export default function TeacherGradeReview() {
       submittedAt: 'Soumis le',
       reviewedAt: 'Révisé le',
       reviewFeedbackLabel: 'Feedback de révision',
-      loading: 'Chargement...'
+      loading: 'Chargement...',
+      history: 'Historique',
+      notify: 'Notifier',
+      historyTitle: 'Historique de Révision',
+      historyDesc: 'Toutes les actions effectuées sur cette soumission',
+      action: 'Action',
+      reviewer: 'Réviseur',
+      date: 'Date',
+      noHistory: 'Aucun historique',
+      notificationSent: 'Notification envoyée',
+      notificationSentDesc: 'L\'enseignant a été notifié',
+      errorSendingNotification: 'Erreur lors de l\'envoi'
     },
     en: {
       title: 'Teacher Grade Review',
@@ -194,7 +210,18 @@ export default function TeacherGradeReview() {
       submittedAt: 'Submitted on',
       reviewedAt: 'Reviewed on',
       reviewFeedbackLabel: 'Review feedback',
-      loading: 'Loading...'
+      loading: 'Loading...',
+      history: 'History',
+      notify: 'Notify',
+      historyTitle: 'Review History',
+      historyDesc: 'All actions performed on this submission',
+      action: 'Action',
+      reviewer: 'Reviewer',
+      date: 'Date',
+      noHistory: 'No history',
+      notificationSent: 'Notification sent',
+      notificationSentDesc: 'The teacher has been notified',
+      errorSendingNotification: 'Error sending notification'
     }
   };
 
@@ -321,6 +348,39 @@ export default function TeacherGradeReview() {
     }
     bulkApproveMutation.mutate(Array.from(selectedSubmissions));
   };
+
+  // Fetch history for a specific submission
+  const { data: historyData } = useQuery({
+    queryKey: ['/api/director/teacher-grade-submissions', historySubmissionId, 'history'],
+    queryFn: async () => {
+      if (!historySubmissionId) return null;
+      const response = await apiRequest('GET', `/api/director/teacher-grade-submissions/${historySubmissionId}/history`);
+      return await response.json();
+    },
+    enabled: !!historySubmissionId
+  });
+
+  const history = historyData?.history || [];
+
+  // Notify teacher mutation
+  const notifyMutation = useMutation({
+    mutationFn: async (submissionId: number) => {
+      return apiRequest('POST', `/api/director/teacher-grade-submissions/${submissionId}/notify`);
+    },
+    onSuccess: () => {
+      toast({
+        title: t.notificationSent,
+        description: t.notificationSentDesc,
+      });
+    },
+    onError: () => {
+      toast({
+        title: t.error,
+        description: t.errorSendingNotification,
+        variant: 'destructive'
+      });
+    }
+  });
 
   const getStatusBadge = (status: string) => {
     const badges = {
@@ -567,6 +627,25 @@ export default function TeacherGradeReview() {
                               </Button>
                             </>
                           )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setHistorySubmissionId(submission.id)}
+                            title={t.history}
+                            data-testid={`button-history-${submission.id}`}
+                          >
+                            <History className="h-4 w-4 text-blue-600" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => notifyMutation.mutate(submission.id)}
+                            title={t.notify}
+                            disabled={notifyMutation.isPending}
+                            data-testid={`button-notify-${submission.id}`}
+                          >
+                            <Bell className="h-4 w-4 text-purple-600" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -653,6 +732,97 @@ export default function TeacherGradeReview() {
               disabled={approveMutation.isPending || returnMutation.isPending}
             >
               {reviewAction === 'approve' ? t.confirmApprove : t.confirmReturn}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* History Dialog */}
+      <Dialog open={!!historySubmissionId} onOpenChange={() => setHistorySubmissionId(null)}>
+        <DialogContent className="max-w-3xl bg-white">
+          <DialogHeader>
+            <DialogTitle>{t.historyTitle}</DialogTitle>
+            <DialogDescription>{t.historyDesc}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {history.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <History className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>{t.noHistory}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {history.map((entry: any, index: number) => (
+                  <div 
+                    key={index}
+                    className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {entry.reviewAction === 'approved' && (
+                          <Badge variant="default" className="bg-green-600">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            {t.approved}
+                          </Badge>
+                        )}
+                        {entry.reviewAction === 'returned' && (
+                          <Badge variant="destructive">
+                            <XCircle className="h-3 w-3 mr-1" />
+                            {t.returned}
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {new Date(entry.createdAt).toLocaleString(
+                          language === 'fr' ? 'fr-FR' : 'en-US',
+                          { dateStyle: 'medium', timeStyle: 'short' }
+                        )}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        <strong>{t.reviewer}:</strong>{' '}
+                        {entry.reviewerFirstName} {entry.reviewerLastName}
+                      </p>
+                      
+                      {entry.previousStatus && entry.newStatus && (
+                        <p>
+                          <strong>{t.status}:</strong>{' '}
+                          <span className="text-gray-600">{entry.previousStatus}</span>
+                          {' → '}
+                          <span className="font-medium">{entry.newStatus}</span>
+                        </p>
+                      )}
+                      
+                      {entry.feedback && (
+                        <p>
+                          <strong>{t.feedback}:</strong>{' '}
+                          <span className="text-gray-700 dark:text-gray-300">{entry.feedback}</span>
+                        </p>
+                      )}
+                      
+                      {entry.returnReason && (
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3 mt-2">
+                          <p className="font-medium text-red-800 dark:text-red-300 mb-1">
+                            {t.returnReason}:
+                          </p>
+                          <p className="text-red-700 dark:text-red-400">{entry.returnReason}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setHistorySubmissionId(null)}
+              data-testid="button-close-history"
+            >
+              {t.cancel}
             </Button>
           </DialogFooter>
         </DialogContent>
