@@ -48,6 +48,7 @@ export const users = pgTable("users", {
   twoFactorSecret: text("two_factor_secret"),
   twoFactorBackupCodes: text("two_factor_backup_codes").array(),
   twoFactorVerifiedAt: timestamp("two_factor_verified_at"),
+  isActive: boolean("is_active").default(true),
   isTestAccount: boolean("is_test_account").default(false),
   preferredLanguage: varchar("preferred_language", { length: 2 }).default("en"),
   whatsappNumber: varchar("whatsapp_number", { length: 20 }).unique(),
