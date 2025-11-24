@@ -377,6 +377,7 @@ export class UserStorage implements IUserStorage {
           phone: users.phone,
           role: users.role,
           subscriptionStatus: users.subscriptionStatus,
+          isActive: users.isActive,
           lastLoginAt: users.lastLoginAt,
           createdAt: users.createdAt,
           educafricNumber: users.educafricNumber,

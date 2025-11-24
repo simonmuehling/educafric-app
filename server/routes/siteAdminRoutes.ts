@@ -58,7 +58,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
         email: user.email,
         role: user.role,
         schoolName: user.schoolName,
-        status: user.subscriptionStatus || 'inactive',
+        status: user.isActive ? 'active' : 'inactive',
         lastLogin: user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('fr-FR') : 'Jamais',
         createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : null
       }));
