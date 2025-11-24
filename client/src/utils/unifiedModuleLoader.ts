@@ -38,6 +38,11 @@ class UnifiedModuleLoader {
     { component: () => import('@/components/commercial/modules/DocumentsContracts'), strategy: 'instant', priority: 2 },
     { component: () => import('@/components/commercial/modules/CommercialStatistics'), strategy: 'instant', priority: 2 },
     
+    // SiteAdmin Dashboard - High priority
+    { component: () => import('@/components/siteadmin/modules/FunctionalSiteAdminUsers'), strategy: 'instant', priority: 2 },
+    { component: () => import('@/components/siteadmin/modules/FunctionalSiteAdminSchools'), strategy: 'instant', priority: 2 },
+    { component: () => import('@/components/siteadmin/modules/FunctionalSiteAdminDocuments'), strategy: 'instant', priority: 2 },
+    
     // Shared Components - Medium priority
     { component: () => import('@/components/shared/NotificationCenter'), strategy: 'preload', priority: 3 },
     { component: () => import('@/components/director/modules/SchoolConfigurationGuide'), strategy: 'preload', priority: 3 },
@@ -71,7 +76,8 @@ class UnifiedModuleLoader {
       'attendance', 'communications', 'notifications', 'reports', 'help',
       'school-administrators', 'AdministratorManagement', 'director-timetable',
       'MyChildren', 'FunctionalParentMessages', 'ParentGeolocation',
-      'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement'
+      'DocumentsContracts', 'CommercialStatistics', 'siteadmin-users', 
+      'siteadmin-schools', 'siteadmin-documents', 'ContactsManagement'
     ];
 
     moduleNames.forEach((name, index) => {
