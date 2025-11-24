@@ -26,7 +26,7 @@ const FunctionalSiteAdminUsers: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: users, isLoading, error } = useQuery({
+  const { data: users, isLoading, error } = useQuery<PlatformUser[]>({
     queryKey: ['/api/siteadmin/users']
   });
 
