@@ -10,6 +10,7 @@ import {
   UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare, FileSpreadsheet, Video, UtensilsCrossed, Bus
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
+import { OfflineIndicatorBadge } from '@/components/offline/OfflineSyncStatus';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
 // NotificationCenter and EducationalContentApproval now loaded dynamically via fastModuleLoader
 
@@ -367,12 +368,15 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   });
 
   return (
-    <UnifiedIconDashboard
-      title={t.title || ''}
-      subtitle={t.subtitle}
-      modules={visibleModules}
-      activeModule={activeModule}
-    />
+    <>
+      <UnifiedIconDashboard
+        title={t.title || ''}
+        subtitle={t.subtitle}
+        modules={visibleModules}
+        activeModule={activeModule}
+      />
+      <OfflineIndicatorBadge />
+    </>
   );
 };
 

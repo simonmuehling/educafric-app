@@ -11,17 +11,28 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp, Building, GraduationCap, Star } from 'lucide-react';
+import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp, Building, GraduationCap, Star, WifiOff } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
+import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
+import { useOfflineClasses } from '@/hooks/offline/useOfflineClasses';
+import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 
 const ClassManagement: React.FC = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { isOnline, pendingSyncCount } = useOfflinePremium();
+  const { 
+    classes: offlineClasses, 
+    loading: offlineLoading,
+    createClass: createOfflineClass,
+    updateClass: updateOfflineClass,
+    deleteClass: deleteOfflineClass
+  } = useOfflineClasses();
   const [searchTerm, setSearchTerm] = useState('');
   const [newClass, setNewClass] = useState({
     name: '',
@@ -316,7 +327,8 @@ const ClassManagement: React.FC = () => {
     retryDelay: 1000
   });
 
-  const classesData = classesResponse?.classes || [];
+  // Use offline data when not connected, otherwise use server data
+  const classesData = !isOnline ? offlineClasses : (classesResponse?.classes || offlineClasses);
 
   // Fetch total students count
   const { data: studentsResponse = {} } = useQuery({
@@ -760,7 +772,7 @@ const ClassManagement: React.FC = () => {
     });
   };
 
-  const handleCreateClass = () => {
+  const handleCreateClass = async () => {
     if (!newClass.name) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
@@ -775,15 +787,43 @@ const ClassManagement: React.FC = () => {
     // Transform data to match backend API contract
     const classDataForAPI = {
       name: newClass.name,
-      capacity: newClass.capacity ? parseInt(newClass.capacity) : null, // Backend expects 'capacity' not 'maxStudents'
-      level: newClass.name.split(/\s+/)[0] || 'General', // Use first word of class name as level (e.g., "6ème", "Terminale")
+      capacity: newClass.capacity ? parseInt(newClass.capacity) : null,
+      level: newClass.name.split(/\s+/)[0] || 'General',
       teacherId: newClass.teacherId ? parseInt(newClass.teacherId) : null,
       room: newClass.room || null,
-      subjects: newClass.subjects // Include all subjects
+      subjects: newClass.subjects
     };
     
-    console.log('[CLASS_MANAGEMENT] 📤 Sending to API:', classDataForAPI);
-    createClassMutation.mutate(classDataForAPI);
+    // Use offline-first approach: save locally and sync when online
+    if (!isOnline) {
+      console.log('[CLASS_MANAGEMENT] 📴 Offline mode - creating locally');
+      try {
+        await createOfflineClass({
+          name: classDataForAPI.name,
+          level: classDataForAPI.level,
+          maxStudents: classDataForAPI.capacity || 30,
+          teacherId: classDataForAPI.teacherId || undefined,
+          room: classDataForAPI.room || undefined,
+          subjects: classDataForAPI.subjects || []
+        });
+        toast({
+          title: language === 'fr' ? '📴 Classe créée localement' : '📴 Class created locally',
+          description: language === 'fr' ? 'Sera synchronisée à la reconnexion' : 'Will sync when reconnected'
+        });
+        setNewClass({ name: '', capacity: '', teacherId: '', teacherName: '', room: '', subjects: [] });
+        setShowCreateModal(false);
+      } catch (error) {
+        console.error('[CLASS_MANAGEMENT] ❌ Offline create error:', error);
+        toast({
+          title: language === 'fr' ? 'Erreur' : 'Error',
+          description: language === 'fr' ? 'Impossible de créer la classe' : 'Failed to create class',
+          variant: 'destructive'
+        });
+      }
+    } else {
+      console.log('[CLASS_MANAGEMENT] 📤 Online - sending to API:', classDataForAPI);
+      createClassMutation.mutate(classDataForAPI);
+    }
   };
 
   const handleDeleteClass = (classId: number, className: string) => {
@@ -1532,6 +1572,11 @@ const ClassManagement: React.FC = () => {
           </div>
           </div>
         </Card>
+
+        {/* Offline Status Banner */}
+        {(!isOnline || pendingSyncCount > 0) && (
+          <OfflineSyncStatus showDetails={true} className="mb-4" />
+        )}
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
