@@ -1734,18 +1734,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Si des matières sont fournies, les créer aussi
       if (classSubjects && Array.isArray(classSubjects) && classSubjects.length > 0) {
-        const subjectsToInsert = classSubjects.map((subject: any) => ({
-          nameFr: subject.name,
-          nameEn: subject.name,
-          code: subject.name.substring(0, 4).toUpperCase(),
-          coefficient: subject.coefficient?.toString() || '1',
-          schoolId: userSchoolId,
-          classId: newClass.id,
-          subjectType: subject.category || 'general'
-        }));
-        
-        await db.insert(subjects).values(subjectsToInsert);
-        console.log('[CREATE_CLASS] ✅ Created', subjectsToInsert.length, 'subjects for class');
+        let createdCount = 0;
+        for (const subject of classSubjects) {
+          // Generate a unique code per class by including classId
+          const baseCode = subject.name.substring(0, 4).toUpperCase();
+          const uniqueCode = `${baseCode}_C${newClass.id}`;
+          
+          try {
+            await db.insert(subjects).values({
+              nameFr: subject.name,
+              nameEn: subject.name,
+              code: uniqueCode,
+              coefficient: subject.coefficient?.toString() || '1',
+              schoolId: userSchoolId,
+              classId: newClass.id,
+              subjectType: subject.category || 'general'
+            });
+            createdCount++;
+          } catch (subjectError: any) {
+            // Skip if subject code already exists (shouldn't happen with unique codes)
+            if (subjectError.code === '23505') {
+              console.log('[CREATE_CLASS] ⚠️ Subject code conflict, skipping:', uniqueCode);
+            } else {
+              throw subjectError;
+            }
+          }
+        }
+        console.log('[CREATE_CLASS] ✅ Created', createdCount, 'subjects for class');
       }
       
       res.json({ success: true, class: newClass });
