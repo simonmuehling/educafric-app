@@ -13,11 +13,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   Users, UserPlus, Search, Download, Filter, MoreHorizontal, 
   BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, 
-  Eye, X, Mail, Phone, GraduationCap, Upload, Camera
+  Eye, X, Mail, Phone, GraduationCap, Upload, Camera, WifiOff
 } from 'lucide-react';
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
+import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
+import { useOfflineStudents } from '@/hooks/offline/useOfflineStudents';
+import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 
 interface Student {
   id: number;
@@ -42,6 +45,16 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Offline-first hooks
+  const { isOnline, pendingSyncCount } = useOfflinePremium();
+  const { 
+    students: offlineStudents, 
+    loading: offlineLoading,
+    createStudent: createOfflineStudent,
+    updateStudent: updateOfflineStudent,
+    deleteStudent: deleteOfflineStudent
+  } = useOfflineStudents();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('all');
@@ -161,7 +174,9 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   });
 
   // Extract students array from API response
-  const students = studentsData?.students || studentsData || [];
+  // Use offline data when not connected, otherwise use server data
+  const serverStudents = studentsData?.students || studentsData || [];
+  const students = !isOnline ? offlineStudents : (serverStudents.length > 0 ? serverStudents : offlineStudents);
 
   // Export function
   const handleExportStudents = () => {
@@ -423,7 +438,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     }
   });
 
-  const handleCreateStudent = () => {
+  const handleCreateStudent = async () => {
     // Validate: Name is required
     if (!studentForm.name || !studentForm.name.trim()) {
       toast({
@@ -434,11 +449,54 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return;
     }
     
-    createStudentMutation.mutate({
+    const studentData = {
       ...studentForm,
       age: parseInt(studentForm.age) || 16,
-      photo: capturedPhoto || studentForm.photo // Include captured photo
-    });
+      photo: capturedPhoto || studentForm.photo
+    };
+    
+    // Use offline-first approach: save locally and sync when online
+    if (!isOnline) {
+      console.log('[STUDENT_MANAGEMENT] 📴 Offline mode - creating locally');
+      try {
+        const nameParts = studentForm.name.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        await createOfflineStudent({
+          firstName,
+          lastName,
+          email: studentForm.email || undefined,
+          phone: studentForm.phone || undefined,
+          className: studentForm.className || undefined,
+          parentEmail: studentForm.parentEmail || undefined,
+          parentPhone: studentForm.parentPhone || undefined,
+          schoolId: user?.schoolId || 0
+        });
+        toast({
+          title: language === 'fr' ? '📴 Élève créé localement' : '📴 Student created locally',
+          description: language === 'fr' ? 'Sera synchronisé à la reconnexion' : 'Will sync when reconnected'
+        });
+        setIsAddStudentOpen(false);
+        setStudentForm({
+          name: '', email: '', phone: '', className: '', level: '', 
+          age: '', gender: '', dateOfBirth: '', placeOfBirth: '', 
+          matricule: '', parentName: '', parentEmail: '', parentPhone: '', 
+          photo: null, redoublant: false
+        });
+        setCapturedPhoto(null);
+      } catch (error) {
+        console.error('[STUDENT_MANAGEMENT] ❌ Offline create error:', error);
+        toast({
+          title: language === 'fr' ? 'Erreur' : 'Error',
+          description: language === 'fr' ? 'Impossible de créer l\'élève' : 'Failed to create student',
+          variant: 'destructive'
+        });
+      }
+    } else {
+      console.log('[STUDENT_MANAGEMENT] 📤 Online - sending to API');
+      createStudentMutation.mutate(studentData);
+    }
   };
 
   const handleUpdateStudent = () => {
@@ -708,6 +766,11 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Offline Status Banner */}
+      {(!isOnline || pendingSyncCount > 0) && (
+        <OfflineSyncStatus showDetails={true} className="mb-4" />
+      )}
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

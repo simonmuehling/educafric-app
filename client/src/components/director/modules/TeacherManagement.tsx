@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, Users, Search, Plus, Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, X, TrendingUp, UserPlus, Download, Filter, Check } from 'lucide-react';
+import { ArrowLeft, Users, Search, Plus, Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, X, TrendingUp, UserPlus, Download, Filter, Check, WifiOff } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import DashboardNavbar from '@/components/shared/DashboardNavbar';
 import { Card } from '@/components/ui/card';
@@ -10,14 +10,31 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
+import { useOfflineTeachers } from '@/hooks/offline/useOfflineTeachers';
+import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 
 const TeacherManagement: React.FC = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
+  // Offline-first hooks - pass schoolId from authenticated user
+  const { isOnline, pendingSyncCount } = useOfflinePremium();
+  const { 
+    teachers: offlineTeachers, 
+    isLoading: offlineLoading,
+    createTeacher: createOfflineTeacher,
+    updateTeacher: updateOfflineTeacher,
+    deleteTeacher: deleteOfflineTeacher
+  } = useOfflineTeachers(user?.schoolId || 0);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -56,10 +73,24 @@ const TeacherManagement: React.FC = () => {
 
   const subjects = Array.isArray(subjectsResponse) ? subjectsResponse : [];
 
+  // Fetch classes for dropdown
+  const { data: classesResponse } = useQuery({
+    queryKey: ['/api/director/classes'],
+    queryFn: async () => {
+      const response = await fetch('/api/director/classes', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch classes');
+      return response.json();
+    }
+  });
+  const classesList = classesResponse?.classes || [];
+
   // Assurer que teachers est toujours un array
-  const teachers = Array.isArray(teachersResponse) ? teachersResponse : 
+  const serverTeachers = Array.isArray(teachersResponse) ? teachersResponse : 
                   (teachersResponse?.teachers && Array.isArray(teachersResponse.teachers)) ? teachersResponse.teachers : 
                   [];
+  
+  // Use offline data when not connected, otherwise use server data
+  const teachers = !isOnline ? offlineTeachers : (serverTeachers.length > 0 ? serverTeachers : offlineTeachers);
 
   // Mutation pour créer un enseignant
   const createTeacherMutation = useMutation({
@@ -137,6 +168,11 @@ const TeacherManagement: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
+
+        {/* Offline Status Banner */}
+        {(!isOnline || pendingSyncCount > 0) && (
+          <OfflineSyncStatus showDetails={true} className="mb-4" />
+        )}
 
         {/* Search and Actions */}
         <Card className="bg-white/80 backdrop-blur-md shadow-xl border border-white/30 p-6">
@@ -627,7 +663,7 @@ const TeacherManagement: React.FC = () => {
                     {language === 'fr' ? 'Annuler' : 'Cancel'}
                   </Button>
                   <Button 
-                    onClick={() => {
+                    onClick={async () => {
                       const teacherData = {
                         firstName: formData.firstName,
                         lastName: formData.lastName,
@@ -638,14 +674,46 @@ const TeacherManagement: React.FC = () => {
                         qualification: formData.qualification,
                         role: 'Teacher'
                       };
-                      createTeacherMutation.mutate(teacherData);
+                      
+                      // Use offline-first approach
+                      if (!isOnline) {
+                        console.log('[TEACHER_MANAGEMENT] 📴 Offline mode - creating locally');
+                        try {
+                          await createOfflineTeacher({
+                            firstName: formData.firstName,
+                            lastName: formData.lastName,
+                            email: formData.email || undefined,
+                            phone: formData.phone,
+                            subject: formData.subjects?.join(', ') || undefined,
+                            schoolId: user?.schoolId || 0
+                          });
+                          toast({
+                            title: language === 'fr' ? '📴 Enseignant créé localement' : '📴 Teacher created locally',
+                            description: language === 'fr' ? 'Sera synchronisé à la reconnexion' : 'Will sync when reconnected'
+                          });
+                          setShowAddModal(false);
+                          setFormData({
+                            firstName: '', lastName: '', email: '', phone: '',
+                            subjects: [], classes: '', experience: '', qualification: ''
+                          });
+                        } catch (error) {
+                          console.error('[TEACHER_MANAGEMENT] ❌ Offline create error:', error);
+                          toast({
+                            title: language === 'fr' ? 'Erreur' : 'Error',
+                            description: language === 'fr' ? 'Impossible de créer l\'enseignant' : 'Failed to create teacher',
+                            variant: 'destructive'
+                          });
+                        }
+                      } else {
+                        createTeacherMutation.mutate(teacherData);
+                      }
                     }}
                     disabled={createTeacherMutation.isPending || !formData.firstName || !formData.lastName || !formData.email || !formData.phone}
                     className="flex-1 bg-blue-600 hover:bg-blue-700"
                   >
                     {createTeacherMutation.isPending ? 
                       (language === 'fr' ? 'Ajout...' : 'Adding...') : 
-                      (language === 'fr' ? 'Ajouter' : 'Add')
+                      (!isOnline ? (language === 'fr' ? 'Ajouter (hors ligne)' : 'Add (offline)') : (language === 'fr' ? 'Ajouter' : 'Add'))
                     }
                   </Button>
                 </div>

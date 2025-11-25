@@ -11,6 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
+import { useOfflineAcademicData } from '@/hooks/offline/useOfflineAcademicData';
+import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 import { 
   FileText, 
   Eye, 
@@ -40,7 +43,8 @@ import {
   Phone,
   Calendar,
   Star,
-  Save
+  Save,
+  WifiOff
 } from 'lucide-react';
 
 interface Subject {
@@ -150,6 +154,15 @@ const saveGradeToDatabase = async (studentId: string, classId: string, academicY
 export default function BulletinManagementUnified() {
   const { language } = useLanguage();
   const { toast } = useToast();
+  
+  // Offline-first hooks
+  const { isOnline, pendingSyncCount } = useOfflinePremium();
+  const { 
+    academicData: offlineBulletins, 
+    loading: offlineLoading,
+    createBulletin: createOfflineBulletin,
+    updateBulletin: updateOfflineBulletin
+  } = useOfflineAcademicData();
 
   // ✅ COMPREHENSIVE BILINGUAL TEXT SYSTEM
   const text = {
@@ -2767,6 +2780,11 @@ export default function BulletinManagementUnified() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="p-6 max-w-7xl mx-auto">
+        {/* Offline Status Banner */}
+        {(!isOnline || pendingSyncCount > 0) && (
+          <OfflineSyncStatus showDetails={true} className="mb-4" />
+        )}
+        
         {/* EN-TÊTE MODERNE INSPIRÉ GEGOK12 */}
         <div className="mb-8">
           <div className="rounded-2xl p-6">
