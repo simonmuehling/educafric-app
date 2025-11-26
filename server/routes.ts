@@ -35,7 +35,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions } from "../shared/schema";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments } from "../shared/schema";
 import bcrypt from 'bcryptjs';
 import { 
   predefinedAppreciations, 
@@ -1959,9 +1959,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'School ID required' });
       }
       
-      // ✅ STEP 3: Query students directly from users table
-      const { enrollments, classes: classesTable } = await import('@shared/schema');
-      
+      // ✅ STEP 3: Query students directly from users table with class enrollment info
       const dbStudentsRaw = await db
         .select({
           id: usersTable.id,
@@ -1980,12 +1978,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           educafricNumber: usersTable.educafricNumber,
           isRepeater: usersTable.isRepeater,
           classId: enrollments.classId,
-          className: classesTable.name,
-          classLevel: classesTable.level
+          className: classes.name,
+          classLevel: classes.level
         })
         .from(usersTable)
         .leftJoin(enrollments, eq(usersTable.id, enrollments.studentId))
-        .leftJoin(classesTable, eq(enrollments.classId, classesTable.id))
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
         .where(
           and(
             eq(usersTable.role, 'Student'),
