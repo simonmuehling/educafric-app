@@ -147,47 +147,20 @@ class OfflineStorageManager {
       const transaction = this.db!.transaction(['offlineQueue'], 'readonly');
       const store = transaction.objectStore('offlineQueue');
       
-      // Check if index exists before trying to use it
-      if (store.indexNames.contains('synced')) {
-        const index = store.index('synced');
-        const request = index.getAll(IDBKeyRange.only(false));
-
-        request.onsuccess = () => {
-          resolve(request.result || []);
-        };
-
-        request.onerror = (event) => {
-          // Prevent transaction from auto-aborting so fallback can proceed
-          event.preventDefault();
-          
-          if (import.meta.env.DEV) {
-            console.warn('[OFFLINE] Index query failed, falling back to full scan:', request.error);
-          }
-          // Fallback: get all items and filter manually
-          const fallbackRequest = store.getAll();
-          fallbackRequest.onsuccess = () => {
-            const allItems = fallbackRequest.result || [];
-            const pendingItems = allItems.filter((item: OfflineQueueItem) => item.synced === false);
-            resolve(pendingItems);
-          };
-          fallbackRequest.onerror = () => {
-            console.error('[OFFLINE] Failed to get pending actions (fallback also failed):', fallbackRequest.error);
-            reject(fallbackRequest.error);
-          };
-        };
-      } else {
-        // Index doesn't exist yet (during migration), use fallback
-        const fallbackRequest = store.getAll();
-        fallbackRequest.onsuccess = () => {
-          const allItems = fallbackRequest.result || [];
-          const pendingItems = allItems.filter((item: OfflineQueueItem) => item.synced === false);
-          resolve(pendingItems);
-        };
-        fallbackRequest.onerror = () => {
-          console.error('[OFFLINE] Failed to get pending actions:', fallbackRequest.error);
-          reject(fallbackRequest.error);
-        };
-      }
+      // Use getAll and filter manually - boolean values are not valid IndexedDB keys
+      // so we can't use IDBKeyRange.only(false) on the synced index
+      const request = store.getAll();
+      
+      request.onsuccess = () => {
+        const allItems = request.result || [];
+        const pendingItems = allItems.filter((item: OfflineQueueItem) => item.synced === false);
+        resolve(pendingItems);
+      };
+      
+      request.onerror = () => {
+        console.error('[OFFLINE] Failed to get pending actions:', request.error);
+        reject(request.error);
+      };
     });
   }
 
