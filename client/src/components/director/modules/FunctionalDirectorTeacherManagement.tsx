@@ -18,6 +18,9 @@ import {
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
+import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
+import { OfflineDataNotReadyModal, useOfflineDataCheck } from '@/components/offline/OfflineDataNotReadyModal';
+import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 import { sortBy, sortStrings } from '@/utils/sort';
 
 interface Teacher {
@@ -42,6 +45,10 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Offline-first hooks
+  const { isOnline, pendingSyncCount } = useOfflinePremium();
+  const { shouldShowModal: showOfflineDataModal } = useOfflineDataCheck();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
@@ -684,6 +691,17 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Offline Data Not Ready Modal */}
+      <OfflineDataNotReadyModal 
+        isOpen={showOfflineDataModal} 
+        moduleName={text.title || 'Gestion des Enseignants'}
+      />
+      
+      {/* Offline Status Banner */}
+      {(!isOnline || pendingSyncCount > 0) && (
+        <OfflineSyncStatus showDetails={true} className="mb-4" />
+      )}
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

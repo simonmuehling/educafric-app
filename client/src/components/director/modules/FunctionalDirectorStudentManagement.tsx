@@ -19,6 +19,7 @@ import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
+import { OfflineDataNotReadyModal, useOfflineDataCheck } from '@/components/offline/OfflineDataNotReadyModal';
 import { useOfflineStudents } from '@/hooks/offline/useOfflineStudents';
 import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 import { sortByMultiple, sortBy } from '@/utils/sort';
@@ -49,6 +50,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   
   // Offline-first hooks
   const { isOnline, pendingSyncCount } = useOfflinePremium();
+  const { shouldShowModal: showOfflineDataModal } = useOfflineDataCheck();
   const { 
     students: offlineStudents, 
     loading: offlineLoading,
@@ -759,6 +761,12 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Offline Data Not Ready Modal */}
+      <OfflineDataNotReadyModal 
+        isOpen={showOfflineDataModal} 
+        moduleName={text.title || 'Gestion des Élèves'}
+      />
+      
       {/* Offline Status Banner */}
       {(!isOnline || pendingSyncCount > 0) && (
         <OfflineSyncStatus showDetails={true} className="mb-4" />

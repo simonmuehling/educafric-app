@@ -17,6 +17,7 @@ import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
+import { OfflineDataNotReadyModal, useOfflineDataCheck } from '@/components/offline/OfflineDataNotReadyModal';
 import { useOfflineClasses } from '@/hooks/offline/useOfflineClasses';
 import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 import { sortBy } from '@/utils/sort';
@@ -27,6 +28,7 @@ const ClassManagement: React.FC = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { isOnline, pendingSyncCount } = useOfflinePremium();
+  const { shouldShowModal: showOfflineDataModal } = useOfflineDataCheck();
   const { 
     classes: offlineClasses, 
     loading: offlineLoading,
@@ -946,7 +948,18 @@ const ClassManagement: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      {/* Offline Data Not Ready Modal */}
+      <OfflineDataNotReadyModal 
+        isOpen={showOfflineDataModal} 
+        moduleName={t?.title || 'Gestion des Classes'}
+      />
+      
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Offline Status Banner */}
+        {(!isOnline || pendingSyncCount > 0) && (
+          <OfflineSyncStatus showDetails={true} className="mb-4" />
+        )}
+        
         {/* Header */}
         <Card className="bg-white/80 backdrop-blur-md shadow-xl border border-white/30 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
