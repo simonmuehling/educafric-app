@@ -981,7 +981,7 @@ const TimetableConfiguration: React.FC = () => {
                             {language === 'fr' ? 'Salles occupées pour ce créneau :' : 'Occupied rooms for this slot:'}
                           </div>
                         )}
-                        {getAvailableRoomsWithOccupancy().filter((room: any) => room.isOccupied).map((room: any) => (
+                        {sortBy(getAvailableRoomsWithOccupancy().filter((room: any) => room.isOccupied), (r: any) => r.name, 'text').map((room: any) => (
                           <SelectItem key={`occupied-${room.id}`} value={room.name} disabled>
                             <div className="flex items-center gap-2 opacity-50">
                               <span className="font-medium">🚫 {room.name}</span>
