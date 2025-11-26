@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,6 +7,7 @@ import { Building, Users, ChevronDown, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { sortBy } from "@/utils/sort";
 
 interface School {
   id: number;
@@ -162,7 +163,7 @@ export function MultiSchoolSelector({ userId, onSchoolChange }: MultiSchoolSelec
               <ChevronDown className="w-4 h-4 ml-2" />
             </SelectTrigger>
             <SelectContent>
-              {schools.affiliatedSchools.map((school) => (
+              {sortBy(schools.affiliatedSchools, (s) => s.name, 'text').map((school) => (
                 <SelectItem key={school.id} value={school?.id?.toString()}>
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">

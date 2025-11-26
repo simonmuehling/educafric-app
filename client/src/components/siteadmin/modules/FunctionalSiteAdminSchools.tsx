@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { sortBy } from '@/utils/sort';
 
 interface PlatformSchool {
   id: number;
@@ -148,10 +149,14 @@ const FunctionalSiteAdminSchools: React.FC = () => {
     setIsSettingsDialogOpen(true);
   };
 
-  const filteredSchools = schools?.filter((school: PlatformSchool) => {
-    return school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           school.location.toLowerCase().includes(searchTerm.toLowerCase());
-  }) || [];
+  const filteredSchools = sortBy(
+    (schools || []).filter((school: PlatformSchool) => {
+      return school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             school.location.toLowerCase().includes(searchTerm.toLowerCase());
+    }),
+    (s: PlatformSchool) => s.name,
+    'text'
+  );
 
   const handleDeleteSchool = (schoolId: number) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette école ?')) {
