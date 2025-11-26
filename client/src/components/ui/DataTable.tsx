@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cmpTextAsc, cmpNumberAsc, cmpDateAsc, detectType, type SortType } from '@/utils/sort';
 
 export interface Column<T> {
   key: keyof T | string;
@@ -21,6 +22,7 @@ export interface Column<T> {
   filterable?: boolean;
   render?: (value: any, row: T) => React.ReactNode;
   width?: string;
+  type?: SortType;
 }
 
 export interface DataTableAction<T> {
@@ -44,6 +46,8 @@ interface DataTableProps<T> {
   className?: string;
   loading?: boolean;
   emptyMessage?: string;
+  defaultSortKey?: string;
+  defaultSortDirection?: 'asc' | 'desc';
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -58,14 +62,28 @@ export function DataTable<T extends Record<string, any>>({
   onSelectionChange,
   className,
   loading = false,
-  emptyMessage
+  emptyMessage,
+  defaultSortKey,
+  defaultSortDirection = 'asc'
 }: DataTableProps<T>) {
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const initialSortConfig = useMemo(() => {
+    if (defaultSortKey) {
+      return { key: defaultSortKey, direction: defaultSortDirection };
+    }
+    const firstSortableColumn = columns.find(col => col.sortable);
+    if (firstSortableColumn) {
+      return { key: String(firstSortableColumn.key), direction: 'asc' as const };
+    }
+    return null;
+  }, [defaultSortKey, defaultSortDirection, columns]);
+  
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
-  } | null>(null);
+  } | null>(initialSortConfig);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
 
@@ -84,19 +102,32 @@ export function DataTable<T extends Record<string, any>>({
       );
     }
 
-    // Apply sorting
+    // Apply sorting with type-aware comparators
     if (sortConfig) {
+      const column = columns.find(col => String(col.key) === sortConfig.key);
+      const columnType = column?.type;
+      
       filtered = [...filtered].sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
         
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
+        // Detect type from column definition or first non-null value
+        const type = columnType || detectType(aValue ?? bValue);
+        
+        let result: number;
+        switch (type) {
+          case 'number':
+            result = cmpNumberAsc(aValue, bValue);
+            break;
+          case 'date':
+            result = cmpDateAsc(aValue, bValue);
+            break;
+          case 'text':
+          default:
+            result = cmpTextAsc(String(aValue ?? ''), String(bValue ?? ''));
         }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
+        
+        return sortConfig.direction === 'desc' ? -result : result;
       });
     }
 
