@@ -1968,6 +1968,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: usersTable.email,
           phone: usersTable.phone,
           gender: usersTable.gender,
+          role: usersTable.role,
           schoolId: usersTable.schoolId,
           dateOfBirth: usersTable.dateOfBirth,
           placeOfBirth: usersTable.placeOfBirth,
@@ -1992,8 +1993,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         )
         .orderBy(asc(usersTable.firstName), asc(usersTable.lastName));
       
-      // ✅ STEP 4: SECONDARY FILTER - Verify student email pattern matches sandbox status
-      const dbStudents = dbStudentsRaw.filter(student => {
+      // ✅ STEP 4: FILTER - Only pure students (exclude teacher-students), match sandbox status
+      const dbStudents = dbStudentsRaw.filter((student: any) => {
+        // EXCLUDE anyone who also has Teacher role
+        const role = student.role || '';
+        if (role === 'Teacher') {
+          return false;
+        }
+        
         const studentIsSandbox = isSandboxUserByEmail(student.email || '');
         const isConsistent = studentIsSandbox === userIsSandbox;
         
