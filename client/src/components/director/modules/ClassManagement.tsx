@@ -19,6 +19,7 @@ import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
 import { useOfflineClasses } from '@/hooks/offline/useOfflineClasses';
 import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
+import { sortBy } from '@/utils/sort';
 
 const ClassManagement: React.FC = () => {
   const { language } = useLanguage();
@@ -361,19 +362,14 @@ const ClassManagement: React.FC = () => {
   const isTechnicalSchool = schoolData?.educationalType === 'technical';
 
   // Filter classes based on search and sort alphabetically
-  const filteredClasses = (Array.isArray(classesData) ? classesData : [])
-    .filter((classItem: any) => {
+  const filteredClasses = sortBy(
+    (Array.isArray(classesData) ? classesData : []).filter((classItem: any) => {
       const matchesSearch = classItem.name?.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesSearch;
-    })
-    .sort((a: any, b: any) => {
-      // Sort alphabetically by class name
-      const nameA = (a.name || '').toLowerCase();
-      const nameB = (b.name || '').toLowerCase();
-      if (nameA < nameB) return -1;
-      if (nameA > nameB) return 1;
-      return 0;
-    });
+    }),
+    (c: any) => c.name,
+    'text'
+  );
 
   // Fetch teachers data for dropdown
   const { data: teachersResponse = {}, isLoading: isLoadingTeachers, error: teachersError } = useQuery({
@@ -417,14 +413,11 @@ const ClassManagement: React.FC = () => {
     retryDelay: 1000
   });
 
-  const roomsData = (roomsResponse?.rooms || []).sort((a: any, b: any) => {
-    // Sort alphabetically by room name
-    const nameA = (a.name || '').toLowerCase();
-    const nameB = (b.name || '').toLowerCase();
-    if (nameA < nameB) return -1;
-    if (nameA > nameB) return 1;
-    return 0;
-  });
+  const roomsData = sortBy(
+    roomsResponse?.rooms || [],
+    (r: any) => r.name,
+    'text'
+  );
 
   // Add default values for display
   const finalClasses = (Array.isArray(filteredClasses) ? filteredClasses : []).map((classItem: any) => {
