@@ -12,8 +12,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Building2, Search, Filter, Plus, Edit, 
-  Users, MapPin, Phone, Mail, Eye, Calendar
+  Users, MapPin, Phone, Mail, Eye, Calendar, CreditCard, Trash2
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { apiRequest } from '@/lib/queryClient';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,6 +40,8 @@ const FunctionalSiteAdminSchools: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [selectedSchool, setSelectedSchool] = useState<any>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [schoolForSettings, setSchoolForSettings] = useState<any>(null);
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   
   const form = useForm<z.infer<typeof createSchoolFormSchema>>({
     resolver: zodResolver(createSchoolFormSchema),
@@ -95,6 +99,104 @@ const FunctionalSiteAdminSchools: React.FC = () => {
 
   const onSubmitCreateSchool = (data: z.infer<typeof createSchoolFormSchema>) => {
     createSchoolMutation.mutate(data);
+  };
+
+  const toggleOfflinePremiumMutation = useMutation({
+    mutationFn: async ({ schoolId, enabled }: { schoolId: number; enabled: boolean }) => {
+      const response = await fetch(`/api/siteadmin/schools/${schoolId}/offline-premium`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ enabled })
+      });
+      if (!response.ok) throw new Error('Failed to update offline premium');
+      return response.json();
+    },
+    onSuccess: (_, { enabled }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' 
+          ? `Offline Premium ${enabled ? 'activé' : 'désactivé'}` 
+          : `Offline Premium ${enabled ? 'enabled' : 'disabled'}`
+      });
+      if (schoolForSettings) {
+        setSchoolForSettings({ ...schoolForSettings, offlinePremiumEnabled: enabled });
+      }
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Échec de la mise à jour' : 'Failed to update',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const updateModuleVisibilityMutation = useMutation({
+    mutationFn: async ({ schoolId, updates }: { schoolId: number; updates: any }) => {
+      const response = await fetch(`/api/siteadmin/schools/${schoolId}/module-visibility`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(updates)
+      });
+      if (!response.ok) throw new Error('Failed to update module visibility');
+      return response.json();
+    },
+    onSuccess: (_, { updates }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Visibilité des modules mise à jour' : 'Module visibility updated'
+      });
+      if (schoolForSettings) {
+        setSchoolForSettings({ ...schoolForSettings, ...updates });
+      }
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Échec de la mise à jour' : 'Failed to update',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const deleteSchoolMutation = useMutation({
+    mutationFn: async (schoolId: number) => {
+      const response = await fetch(`/api/siteadmin/schools/${schoolId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete school');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'École supprimée' : 'School deleted'
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Échec de la suppression' : 'Failed to delete',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleOpenSettings = (school: any) => {
+    setSchoolForSettings(school);
+    setIsSettingsDialogOpen(true);
+  };
+
+  const handleDeleteSchool = (schoolId: number) => {
+    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cette école?' : 'Are you sure you want to delete this school?')) {
+      deleteSchoolMutation.mutate(schoolId);
+    }
   };
 
   const text = {
@@ -426,7 +528,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-between pt-2 border-t">
+                <div className="flex justify-between pt-2 border-t gap-2">
                   <Button
                     size="sm"
                     variant="outline"
@@ -440,10 +542,21 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    data-testid={`button-edit-${school.id}`}
+                    onClick={() => handleOpenSettings(school)}
+                    title={language === 'fr' ? 'Paramètres Offline Premium' : 'Offline Premium Settings'}
+                    data-testid={`button-settings-${school.id}`}
                   >
-                    <Edit className="w-4 h-4 mr-1" />
-                    {t.actions.edit}
+                    <CreditCard className="w-4 h-4" />
+                  </Button>
+                  
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleDeleteSchool(school.id)}
+                    className="text-red-600 hover:text-red-700"
+                    data-testid={`button-delete-${school.id}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
@@ -689,6 +802,212 @@ const FunctionalSiteAdminSchools: React.FC = () => {
               </div>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Dialog - Offline Premium & Module Visibility */}
+      <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
+        <DialogContent className="sm:max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {language === 'fr' ? 'Offline Premium & Visibilité Modules' : 'Offline Premium & Module Visibility'}
+            </DialogTitle>
+            <DialogDescription>
+              {schoolForSettings?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Offline Premium Section */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700">
+                {language === 'fr' ? 'Offline Premium' : 'Offline Premium'}
+              </h3>
+              <div className="flex items-center justify-between space-x-4 p-4 border rounded-lg">
+                <div className="flex-1">
+                  <Label htmlFor="offline-premium-toggle" className="text-base font-medium">
+                    {schoolForSettings?.offlinePremiumEnabled 
+                      ? (language === 'fr' ? 'Offline Premium Activé' : 'Offline Premium Enabled')
+                      : (language === 'fr' ? 'Offline Premium Désactivé' : 'Offline Premium Disabled')
+                    }
+                  </Label>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {language === 'fr' 
+                      ? 'Accès hors ligne illimité pour tous les 12 modules'
+                      : 'Unlimited offline access for all 12 modules'
+                    }
+                  </p>
+                </div>
+                <Switch
+                  id="offline-premium-toggle"
+                  checked={schoolForSettings?.offlinePremiumEnabled || false}
+                  onCheckedChange={(checked) => {
+                    if (schoolForSettings) {
+                      toggleOfflinePremiumMutation.mutate({
+                        schoolId: schoolForSettings.id,
+                        enabled: checked
+                      });
+                    }
+                  }}
+                  disabled={toggleOfflinePremiumMutation.isPending}
+                  data-testid="switch-offline-premium"
+                />
+              </div>
+            </div>
+
+            {/* Module Visibility Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                  {language === 'fr' ? 'Visibilité des Modules' : 'Module Visibility'}
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  {language === 'fr' 
+                    ? 'Contrôler quels modules apparaissent dans le tableau de bord Director'
+                    : 'Control which modules appear in the Director Dashboard'
+                  }
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {/* Communications */}
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-communications" className="text-sm font-medium cursor-pointer">
+                    {language === 'fr' ? 'Communications' : 'Communications'}
+                  </Label>
+                  <Switch
+                    id="module-communications"
+                    checked={schoolForSettings?.communicationsEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { communicationsEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-communications"
+                  />
+                </div>
+
+                {/* Educational Content */}
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-content" className="text-sm font-medium cursor-pointer">
+                    {language === 'fr' ? 'Contenu Éducatif' : 'Educational Content'}
+                  </Label>
+                  <Switch
+                    id="module-content"
+                    checked={schoolForSettings?.educationalContentEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { educationalContentEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-educational-content"
+                  />
+                </div>
+
+                {/* Delegate Admins */}
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-delegates" className="text-sm font-medium cursor-pointer">
+                    {language === 'fr' ? 'Administrateurs Délégués' : 'Delegate Administrators'}
+                  </Label>
+                  <Switch
+                    id="module-delegates"
+                    checked={schoolForSettings?.delegateAdminsEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { delegateAdminsEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-delegate-admins"
+                  />
+                </div>
+
+                {/* Canteen */}
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-canteen" className="text-sm font-medium cursor-pointer">
+                    {language === 'fr' ? 'Cantine' : 'Canteen'}
+                  </Label>
+                  <Switch
+                    id="module-canteen"
+                    checked={schoolForSettings?.canteenEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { canteenEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-canteen"
+                  />
+                </div>
+
+                {/* School Bus */}
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-bus" className="text-sm font-medium cursor-pointer">
+                    {language === 'fr' ? 'Bus Scolaire' : 'School Bus'}
+                  </Label>
+                  <Switch
+                    id="module-bus"
+                    checked={schoolForSettings?.schoolBusEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { schoolBusEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-school-bus"
+                  />
+                </div>
+
+                {/* Online Classes */}
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-online-classes" className="text-sm font-medium cursor-pointer">
+                    {language === 'fr' ? 'Classes en Ligne' : 'Online Classes'}
+                  </Label>
+                  <Switch
+                    id="module-online-classes"
+                    checked={schoolForSettings?.onlineClassesEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { onlineClassesEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-online-classes"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsSettingsDialogOpen(false)} 
+              data-testid="button-close-settings"
+            >
+              {language === 'fr' ? 'Fermer' : 'Close'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
