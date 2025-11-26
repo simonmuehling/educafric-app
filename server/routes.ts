@@ -1960,9 +1960,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // ✅ STEP 3: Query students directly from users table
+      const { enrollments, classes: classesTable } = await import('@shared/schema');
+      
       const dbStudentsRaw = await db
-        .select()
+        .select({
+          id: usersTable.id,
+          firstName: usersTable.firstName,
+          lastName: usersTable.lastName,
+          email: usersTable.email,
+          phone: usersTable.phone,
+          gender: usersTable.gender,
+          schoolId: usersTable.schoolId,
+          dateOfBirth: usersTable.dateOfBirth,
+          placeOfBirth: usersTable.placeOfBirth,
+          guardian: usersTable.guardian,
+          parentEmail: usersTable.parentEmail,
+          parentPhone: usersTable.parentPhone,
+          profilePictureUrl: usersTable.profilePictureUrl,
+          educafricNumber: usersTable.educafricNumber,
+          isRepeater: usersTable.isRepeater,
+          classId: enrollments.classId,
+          className: classesTable.name,
+          classLevel: classesTable.level
+        })
         .from(usersTable)
+        .leftJoin(enrollments, eq(usersTable.id, enrollments.studentId))
+        .leftJoin(classesTable, eq(enrollments.classId, classesTable.id))
         .where(
           and(
             eq(usersTable.role, 'Student'),
@@ -1996,7 +2019,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Return all students with combined name field
       const students = dbStudents.map(student => ({
         ...student,
-        name: `${student.firstName} ${student.lastName}`
+        name: `${student.firstName} ${student.lastName}`,
+        className: student.className || null,
+        classId: student.classId || null
       }));
       
       console.log(`[DIRECTOR_STUDENTS_API] ✅ Returning ${students.length} isolated students (Sandbox: ${userIsSandbox})`);

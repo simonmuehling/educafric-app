@@ -3,6 +3,19 @@
 
 import { pgTable, serial, integer, text, boolean, timestamp, unique } from "drizzle-orm/pg-core";
 
+// ACTUAL enrollments table in database - matches existing 'enrollments' table structure
+export const enrollments = pgTable("enrollments", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull(),
+  classId: integer("class_id").notNull(),
+  academicYearId: integer("academic_year_id"),
+  enrollmentDate: timestamp("enrollment_date").defaultNow(),
+  status: text("status").default("active"), // active, transferred, graduated, withdrawn
+});
+
+export type Enrollment = typeof enrollments.$inferSelect;
+export type InsertEnrollment = typeof enrollments.$inferInsert;
+
 // Class enrollment table - tracks which students are enrolled in which classes
 export const classEnrollments = pgTable("class_enrollments", {
   id: serial("id").primaryKey(),

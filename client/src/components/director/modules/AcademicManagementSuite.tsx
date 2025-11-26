@@ -2104,7 +2104,7 @@ export default function AcademicManagementSuite() {
                 ) : (
                   students.map((student: any) => (
                     <SelectItem key={student.id} value={student.id.toString()}>
-                      {student.name} - {student.className || student.class || 'Classe inconnue'}
+                      {student.name}{student.className ? ` - ${student.className}` : ''}
                     </SelectItem>
                   ))
                 )}
