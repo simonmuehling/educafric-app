@@ -15,6 +15,7 @@ import { TimetableCreation } from '@/components/timetable/TimetableCreation';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import { useQueryClient } from '@tanstack/react-query';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
+import { sortBy } from '@/utils/sort';
 
 interface TimetableEntry {
   id: number;
@@ -749,7 +750,7 @@ const TimetableConfiguration: React.FC = () => {
                         <SelectValue placeholder={language === 'fr' ? 'Choisir une classe' : 'Choose a class'} />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableClasses.map((classItem: any) => (
+                        {sortBy(availableClasses, (c: any) => c.name, 'text').map((classItem: any) => (
                           <SelectItem key={classItem.id} value={classItem.name}>
                             <div className="flex items-center gap-2">
                               <span className="font-medium">{classItem.name}</span>
@@ -879,7 +880,7 @@ const TimetableConfiguration: React.FC = () => {
                         <SelectValue placeholder={language === 'fr' ? 'Choisir une matière' : 'Choose a subject'} />
                       </SelectTrigger>
                       <SelectContent>
-                        {getAvailableSubjects().map((subject) => (
+                        {sortBy(getAvailableSubjects() as string[], (s) => s, 'text').map((subject) => (
                           <SelectItem key={subject} value={subject}>
                             📚 {subject}
                           </SelectItem>
@@ -920,7 +921,7 @@ const TimetableConfiguration: React.FC = () => {
                         <SelectValue placeholder={language === 'fr' ? 'Choisir un enseignant' : 'Choose a teacher'} />
                       </SelectTrigger>
                       <SelectContent>
-                        {getAvailableTeachersForClass().map((teacher: any) => (
+                        {sortBy(getAvailableTeachersForClass(), (t: any) => t.name, 'text').map((teacher: any) => (
                           <SelectItem key={teacher.id} value={teacher.name}>
                             <div className="flex items-center gap-2">
                               <span className="font-medium">👨‍🏫 {teacher.name}</span>
@@ -963,7 +964,7 @@ const TimetableConfiguration: React.FC = () => {
                         <SelectValue placeholder={language === 'fr' ? 'Choisir une salle' : 'Choose a room'} />
                       </SelectTrigger>
                       <SelectContent>
-                        {getAvailableRoomsWithOccupancy().filter((room: any) => !room.isOccupied).map((room: any) => (
+                        {sortBy(getAvailableRoomsWithOccupancy().filter((room: any) => !room.isOccupied), (r: any) => r.name, 'text').map((room: any) => (
                           <SelectItem key={room.id} value={room.name}>
                             <div className="flex items-center gap-2">
                               <span className="font-medium">🏢 {room.name}</span>

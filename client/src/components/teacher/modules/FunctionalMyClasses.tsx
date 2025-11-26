@@ -15,6 +15,7 @@ import {
   Search, Filter, MoreVertical, School, LogOut,
   Phone, AlertTriangle
 } from 'lucide-react';
+import { sortBy } from '@/utils/sort';
 
 interface ClassData {
   id: number;
@@ -342,7 +343,7 @@ const FunctionalMyClasses: React.FC = () => {
                     <SelectValue placeholder={t.level} />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Array.isArray(levels) ? levels : []).map(level => (
+                    {sortBy(Array.isArray(levels) ? levels : [], (l) => l, 'text').map(level => (
                       <SelectItem key={level} value={level}>{level}</SelectItem>
                     ))}
                   </SelectContent>
@@ -395,7 +396,7 @@ const FunctionalMyClasses: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t.allLevels}</SelectItem>
-                {(Array.isArray(levels) ? levels : []).map(level => (
+                {sortBy(Array.isArray(levels) ? levels : [], (l) => l, 'text').map(level => (
                   <SelectItem key={level} value={level}>{level}</SelectItem>
                 ))}
               </SelectContent>

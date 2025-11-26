@@ -3,6 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Building, MapPin } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTeacherMultiSchool } from '@/contexts/TeacherMultiSchoolContext';
+import { sortBy } from '@/utils/sort';
 
 const SchoolSelector: React.FC = () => {
   const { language } = useLanguage();
@@ -47,7 +48,7 @@ const SchoolSelector: React.FC = () => {
                   {t.allSchools}
                 </div>
               </SelectItem>
-              {schools.map((school) => (
+              {sortBy(schools, (s) => s.name, 'text').map((school) => (
                 <SelectItem key={school.id} value={school.id.toString()}>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
