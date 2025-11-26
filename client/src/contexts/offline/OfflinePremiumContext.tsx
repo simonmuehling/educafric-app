@@ -1,11 +1,15 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   getLastServerSync,
   setLastServerSync,
   getOfflineMode,
   setOfflineMode,
-  calculateDaysOffline
+  calculateDaysOffline,
+  checkOfflineDataStatus,
+  setLastOfflinePrepare,
+  offlineDb,
+  OfflineDataStatus
 } from '@/lib/offline/db';
 import { SyncQueueManager } from '@/lib/offline/syncQueue';
 
@@ -33,6 +37,11 @@ interface OfflinePremiumContextType {
   hasOfflineAccess: boolean;
   canAccessPremium: boolean;
   
+  // Offline data readiness
+  offlineDataReady: boolean;
+  offlineDataStatus: OfflineDataStatus | null;
+  isPreparing: boolean;
+  
   // Sync state
   isSyncing: boolean;
   pendingSyncCount: number;
@@ -40,6 +49,8 @@ interface OfflinePremiumContextType {
   // Actions
   triggerSync: () => Promise<void>;
   updateLastSync: () => Promise<void>;
+  prepareOfflineData: () => Promise<boolean>;
+  refreshDataStatus: () => Promise<void>;
 }
 
 export const OfflinePremiumContext = createContext<OfflinePremiumContextType | undefined>(undefined);
@@ -54,6 +65,11 @@ export function OfflinePremiumProvider({ children }: { children: ReactNode }) {
   const [daysOffline, setDaysOffline] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
+  
+  // Offline data readiness state
+  const [offlineDataReady, setOfflineDataReady] = useState(false);
+  const [offlineDataStatus, setOfflineDataStatus] = useState<OfflineDataStatus | null>(null);
+  const [isPreparing, setIsPreparing] = useState(false);
 
   // ===========================
   // 🌐 ONLINE/OFFLINE DETECTION
@@ -105,6 +121,106 @@ export function OfflinePremiumProvider({ children }: { children: ReactNode }) {
 
     loadMetadata();
   }, []);
+
+  // ===========================
+  // 📦 CHECK OFFLINE DATA READINESS
+  // ===========================
+  const refreshDataStatus = useCallback(async (): Promise<void> => {
+    if (!user?.schoolId) {
+      setOfflineDataReady(false);
+      setOfflineDataStatus(null);
+      return;
+    }
+
+    try {
+      const status = await checkOfflineDataStatus(user.schoolId);
+      setOfflineDataStatus(status);
+      setOfflineDataReady(status.isReady);
+      console.log('[OFFLINE_PREMIUM] 📦 Data status checked:', status);
+    } catch (error) {
+      console.error('[OFFLINE_PREMIUM] ❌ Error checking data status:', error);
+      setOfflineDataReady(false);
+    }
+  }, [user?.schoolId]);
+
+  // Check data status on mount and when school changes
+  useEffect(() => {
+    refreshDataStatus();
+  }, [refreshDataStatus]);
+
+  // ===========================
+  // 📥 PREPARE OFFLINE DATA
+  // ===========================
+  const prepareOfflineData = useCallback(async (): Promise<boolean> => {
+    if (!user?.schoolId || !isOnline) {
+      console.log('[OFFLINE_PREMIUM] ⚠️ Cannot prepare - offline or no school');
+      return false;
+    }
+
+    setIsPreparing(true);
+    console.log('[OFFLINE_PREMIUM] 📥 Starting offline data preparation...');
+
+    try {
+      // 1. Fetch and cache classes
+      const classesRes = await fetch('/api/offline-sync/classes', { credentials: 'include' });
+      if (classesRes.ok) {
+        const classesData = await classesRes.json();
+        const classes = classesData.classes || [];
+        await offlineDb.classes.bulkPut(classes.map((c: any) => ({
+          ...c,
+          schoolId: user.schoolId,
+          lastModified: Date.now(),
+          syncStatus: 'synced' as const,
+          localOnly: false
+        })));
+        console.log('[OFFLINE_PREMIUM] ✅ Classes cached:', classes.length);
+      }
+
+      // 2. Fetch and cache students
+      const studentsRes = await fetch('/api/offline-sync/students', { credentials: 'include' });
+      if (studentsRes.ok) {
+        const studentsData = await studentsRes.json();
+        const students = studentsData.students || [];
+        await offlineDb.students.bulkPut(students.map((s: any) => ({
+          ...s,
+          schoolId: user.schoolId,
+          lastModified: Date.now(),
+          syncStatus: 'synced' as const,
+          localOnly: false
+        })));
+        console.log('[OFFLINE_PREMIUM] ✅ Students cached:', students.length);
+      }
+
+      // 3. Fetch and cache teachers
+      const teachersRes = await fetch('/api/offline-sync/teachers', { credentials: 'include' });
+      if (teachersRes.ok) {
+        const teachersData = await teachersRes.json();
+        const teachers = teachersData.teachers || [];
+        await offlineDb.teachers.bulkPut(teachers.map((t: any) => ({
+          ...t,
+          schoolId: user.schoolId,
+          lastModified: Date.now(),
+          syncStatus: 'synced' as const,
+          localOnly: false
+        })));
+        console.log('[OFFLINE_PREMIUM] ✅ Teachers cached:', teachers.length);
+      }
+
+      // 4. Update preparation timestamp
+      await setLastOfflinePrepare();
+      
+      // 5. Refresh status
+      await refreshDataStatus();
+      
+      console.log('[OFFLINE_PREMIUM] 🎉 Offline data preparation complete!');
+      return true;
+    } catch (error) {
+      console.error('[OFFLINE_PREMIUM] ❌ Error preparing offline data:', error);
+      return false;
+    } finally {
+      setIsPreparing(false);
+    }
+  }, [user?.schoolId, isOnline, refreshDataStatus]);
 
   // ===========================
   // ⏰ RECALCULATE DAYS OFFLINE PERIODICALLY
@@ -276,10 +392,15 @@ export function OfflinePremiumProvider({ children }: { children: ReactNode }) {
     warningLevel: getWarningLevel(),
     hasOfflineAccess: hasOfflineAccess(),
     canAccessPremium: canAccessPremium(),
+    offlineDataReady,
+    offlineDataStatus,
+    isPreparing,
     isSyncing,
     pendingSyncCount,
     triggerSync,
-    updateLastSync
+    updateLastSync,
+    prepareOfflineData,
+    refreshDataStatus
   };
 
   return (

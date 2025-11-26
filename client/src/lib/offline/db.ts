@@ -329,3 +329,63 @@ export function calculateDaysOffline(lastSync: number | null): number {
   const diffMs = now - lastSync;
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
+
+// ===========================
+// 📊 OFFLINE DATA READINESS CHECK
+// ===========================
+// Check if essential data is available locally for offline mode
+
+export interface OfflineDataStatus {
+  isReady: boolean;
+  classesCount: number;
+  studentsCount: number;
+  teachersCount: number;
+  lastPrepared: number | null;
+  missingData: string[];
+}
+
+export async function checkOfflineDataStatus(schoolId: number): Promise<OfflineDataStatus> {
+  try {
+    const classesCount = await offlineDb.classes.where('schoolId').equals(schoolId).count();
+    const studentsCount = await offlineDb.students.where('schoolId').equals(schoolId).count();
+    const teachersCount = await offlineDb.teachers.where('schoolId').equals(schoolId).count();
+    const lastPrepared = await getOfflineMetadata('lastOfflinePrepare');
+    
+    const missingData: string[] = [];
+    if (classesCount === 0) missingData.push('classes');
+    if (studentsCount === 0) missingData.push('students');
+    if (teachersCount === 0) missingData.push('teachers');
+    
+    // Data is ready if we have at least classes (minimum requirement)
+    const isReady = classesCount > 0;
+    
+    return {
+      isReady,
+      classesCount,
+      studentsCount,
+      teachersCount,
+      lastPrepared,
+      missingData
+    };
+  } catch (error) {
+    console.error('[OFFLINE_DB] Error checking data status:', error);
+    return {
+      isReady: false,
+      classesCount: 0,
+      studentsCount: 0,
+      teachersCount: 0,
+      lastPrepared: null,
+      missingData: ['classes', 'students', 'teachers']
+    };
+  }
+}
+
+// Set last offline preparation timestamp
+export async function setLastOfflinePrepare(): Promise<void> {
+  await setOfflineMetadata('lastOfflinePrepare', Date.now());
+}
+
+// Get last offline preparation timestamp
+export async function getLastOfflinePrepare(): Promise<number | null> {
+  return await getOfflineMetadata('lastOfflinePrepare');
+}
