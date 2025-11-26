@@ -288,7 +288,13 @@ export class SchoolStorage implements ISchoolStorage {
           type: schools.type,
           createdAt: schools.createdAt,
           educafricNumber: schools.educafricNumber,
-          offlinePremiumEnabled: schools.offlinePremiumEnabled
+          offlinePremiumEnabled: schools.offlinePremiumEnabled,
+          communicationsEnabled: schools.communicationsEnabled,
+          educationalContentEnabled: schools.educationalContentEnabled,
+          delegateAdminsEnabled: schools.delegateAdminsEnabled,
+          canteenEnabled: schools.canteenEnabled,
+          schoolBusEnabled: schools.schoolBusEnabled,
+          onlineClassesEnabled: schools.onlineClassesEnabled
         })
         .from(schools)
         .orderBy(desc(schools.createdAt));

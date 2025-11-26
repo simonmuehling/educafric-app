@@ -142,7 +142,13 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
             monthlyRevenue: 0,  // Frontend expects this field
             createdAt: school.createdAt,
             educafricNumber: school.educafricNumber,
-            offlinePremiumEnabled: school.offlinePremiumEnabled || false,  // Offline Premium toggle
+            offlinePremiumEnabled: school.offlinePremiumEnabled || false,
+            communicationsEnabled: school.communicationsEnabled ?? true,
+            educationalContentEnabled: school.educationalContentEnabled ?? true,
+            delegateAdminsEnabled: school.delegateAdminsEnabled ?? true,
+            canteenEnabled: school.canteenEnabled ?? true,
+            schoolBusEnabled: school.schoolBusEnabled ?? true,
+            onlineClassesEnabled: school.onlineClassesEnabled ?? true,
             director: director ? `${director.firstName || ''} ${director.lastName || ''}`.trim() : 'N/A',
             directorEmail: director?.email || null,
             directorPhone: director?.phone || null
@@ -164,7 +170,13 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
             monthlyRevenue: 0,  // Frontend expects this field
             createdAt: school.createdAt,
             educafricNumber: school.educafricNumber,
-            offlinePremiumEnabled: school.offlinePremiumEnabled || false,  // Offline Premium toggle
+            offlinePremiumEnabled: school.offlinePremiumEnabled || false,
+            communicationsEnabled: school.communicationsEnabled ?? true,
+            educationalContentEnabled: school.educationalContentEnabled ?? true,
+            delegateAdminsEnabled: school.delegateAdminsEnabled ?? true,
+            canteenEnabled: school.canteenEnabled ?? true,
+            schoolBusEnabled: school.schoolBusEnabled ?? true,
+            onlineClassesEnabled: school.onlineClassesEnabled ?? true,
             director: 'N/A',
             directorEmail: null,
             directorPhone: null

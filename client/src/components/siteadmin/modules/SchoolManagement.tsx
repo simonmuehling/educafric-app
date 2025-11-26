@@ -539,8 +539,10 @@ const SchoolManagement = () => {
   };
 
   const handleManageSubscription = (school: School) => {
+    console.log('[DEBUG] handleManageSubscription called for school:', school.name, 'offlinePremiumEnabled:', school.offlinePremiumEnabled);
     setSelectedSchoolForSubscription(school);
     setShowSubscriptionDialog(true);
+    console.log('[DEBUG] Dialog should now be open, showSubscriptionDialog set to true');
   };
 
   const handleSubscriptionAction = () => {
