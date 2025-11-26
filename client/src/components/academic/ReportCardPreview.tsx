@@ -197,10 +197,10 @@ const A4Sheet = ({ children }: { children: React.ReactNode }) => (
     {children}
   </div>
 );
-const Th = ({ children }: { children: React.ReactNode }) => <th className="px-3 py-2 text-left text-[11px] sm:text-xs text-gray-600">{children}</th>;
-const Td = ({ children, colSpan, className = "" }: { children: React.ReactNode; colSpan?: number; className?: string }) => <td colSpan={colSpan} className={`px-3 py-2 align-top ${className}`}>{children}</td>;
+const Th = ({ children }: { children: React.ReactNode }) => <th className="px-3 py-2 text-left text-[13px] sm:text-sm text-gray-600">{children}</th>;
+const Td = ({ children, colSpan, className = "" }: { children: React.ReactNode; colSpan?: number; className?: string }) => <td colSpan={colSpan} className={`px-3 py-2 align-top text-[12px] ${className}`}>{children}</td>;
 const Info = ({ label, value }: { label: string; value: string }) => (
-  <div className="grid grid-cols-3 text-xs">
+  <div className="grid grid-cols-3 text-sm">
     <div className="text-gray-500">{label}</div>
     <div className="col-span-2 font-medium">{value || "—"}</div>
   </div>
@@ -367,14 +367,14 @@ export default function ReportCardPreview({
   const labels = LABELS[language];
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0 bulletin-compact print:w-[210mm] print:h-[297mm] print:overflow-hidden print:text-[8px]" data-bulletin-preview="true">
+    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0 bulletin-compact print:w-[210mm] print:h-[297mm] print:overflow-hidden print:text-[10px]" data-bulletin-preview="true">
       <A4Sheet>
         <div className="p-2">
           {/* EXACT Ministry Header - Bilingual 3-Column Layout (EN - Logo - FR) */}
           <div className="text-center mb-3 relative header-section">
             <div className="grid grid-cols-3 gap-4">
               {/* Left Column: English */}
-              <div className="text-[9px] text-center leading-tight">
+              <div className="text-[11px] text-center leading-tight">
                 <div className="font-bold mb-0.5">{MINISTRY_HEADER.line1.en}</div>
                 <div className="italic mb-1 text-[8px]">{MINISTRY_HEADER.line2.en}</div>
                 <div className="mb-1">*************</div>
@@ -411,7 +411,7 @@ export default function ReportCardPreview({
               </div>
 
               {/* Right Column: French */}
-              <div className="text-[9px] text-center leading-tight">
+              <div className="text-[11px] text-center leading-tight">
                 <div className="font-bold mb-0.5">{MINISTRY_HEADER.line1.fr}</div>
                 <div className="italic mb-1 text-[8px]">{MINISTRY_HEADER.line2.fr}</div>
                 <div className="mb-1">*************</div>
@@ -450,7 +450,7 @@ export default function ReportCardPreview({
             </div>
             
             {/* RIGHT: Student Information in compact rows */}
-            <div className="flex-1 text-[9px] leading-tight">
+            <div className="flex-1 text-[11px] leading-tight">
               {/* First Row */}
               <div className="grid grid-cols-3 gap-3 mb-1.5">
                 <div><strong>{language === 'fr' ? 'Nom de l\'élève' : 'Name of Student'}:</strong> {student.name || ""}</div>
