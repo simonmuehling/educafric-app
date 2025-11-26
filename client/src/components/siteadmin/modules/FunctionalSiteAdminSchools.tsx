@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { School, Plus, Edit, Trash2, Search, MapPin, Users, DollarSign, TrendingUp } from 'lucide-react';
+import { School, Plus, Edit, Trash2, Search, MapPin, Users, DollarSign, TrendingUp, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface PlatformSchool {
   id: number;
@@ -18,12 +22,22 @@ interface PlatformSchool {
   createdAt: string;
   contactEmail?: string;
   phone?: string;
+  offlinePremiumEnabled?: boolean;
+  communicationsEnabled?: boolean;
+  educationalContentEnabled?: boolean;
+  delegateAdminsEnabled?: boolean;
+  canteenEnabled?: boolean;
+  schoolBusEnabled?: boolean;
+  onlineClassesEnabled?: boolean;
 }
 
 const FunctionalSiteAdminSchools: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [schoolForSettings, setSchoolForSettings] = useState<PlatformSchool | null>(null);
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: schoolsData, isLoading, error } = useQuery({
     queryKey: ['/api/siteadmin/schools'],
@@ -68,6 +82,71 @@ const FunctionalSiteAdminSchools: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-schools'] });
     }
   });
+
+  const toggleOfflinePremiumMutation = useMutation({
+    mutationFn: async ({ schoolId, enabled }: { schoolId: number; enabled: boolean }) => {
+      const response = await fetch(`/api/siteadmin/schools/${schoolId}/offline-premium`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ enabled })
+      });
+      if (!response.ok) throw new Error('Failed to update offline premium');
+      return response.json();
+    },
+    onSuccess: (_, { enabled }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+      toast({
+        title: 'Succès',
+        description: `Offline Premium ${enabled ? 'activé' : 'désactivé'}`
+      });
+      if (schoolForSettings) {
+        setSchoolForSettings({ ...schoolForSettings, offlinePremiumEnabled: enabled });
+      }
+    },
+    onError: () => {
+      toast({
+        title: 'Erreur',
+        description: 'Échec de la mise à jour',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const updateModuleVisibilityMutation = useMutation({
+    mutationFn: async ({ schoolId, updates }: { schoolId: number; updates: any }) => {
+      const response = await fetch(`/api/siteadmin/schools/${schoolId}/module-visibility`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(updates)
+      });
+      if (!response.ok) throw new Error('Failed to update module visibility');
+      return response.json();
+    },
+    onSuccess: (_, { updates }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
+      toast({
+        title: 'Succès',
+        description: 'Visibilité des modules mise à jour'
+      });
+      if (schoolForSettings) {
+        setSchoolForSettings({ ...schoolForSettings, ...updates });
+      }
+    },
+    onError: () => {
+      toast({
+        title: 'Erreur',
+        description: 'Échec de la mise à jour',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleOpenSettings = (school: PlatformSchool) => {
+    setSchoolForSettings(school);
+    setIsSettingsDialogOpen(true);
+  };
 
   const filteredSchools = schools?.filter((school: PlatformSchool) => {
     return school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -176,6 +255,16 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                     <Button
                       size="sm"
                       variant="outline"
+                      onClick={() => handleOpenSettings(school)}
+                      className="h-8 w-8 p-0"
+                      title="Paramètres Offline Premium"
+                      data-testid={`button-settings-school-${school.id}`}
+                    >
+                      <CreditCard className="h-4 w-4 text-purple-600" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       className="h-8 w-8 p-0"
                       data-testid={`button-edit-school-${school.id}`}
                     >
@@ -264,6 +353,189 @@ const FunctionalSiteAdminSchools: React.FC = () => {
           </div>
         )}
       </CardContent>
+
+      {/* Settings Dialog - Offline Premium & Module Visibility */}
+      <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
+        <DialogContent className="sm:max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Offline Premium & Visibilité Modules</DialogTitle>
+            <DialogDescription>{schoolForSettings?.name}</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Offline Premium Section */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700">Offline Premium</h3>
+              <div className="flex items-center justify-between space-x-4 p-4 border rounded-lg">
+                <div className="flex-1">
+                  <Label htmlFor="offline-premium-toggle" className="text-base font-medium">
+                    {schoolForSettings?.offlinePremiumEnabled ? 'Offline Premium Activé' : 'Offline Premium Désactivé'}
+                  </Label>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Accès hors ligne illimité pour tous les 12 modules
+                  </p>
+                </div>
+                <Switch
+                  id="offline-premium-toggle"
+                  checked={schoolForSettings?.offlinePremiumEnabled || false}
+                  onCheckedChange={(checked) => {
+                    if (schoolForSettings) {
+                      toggleOfflinePremiumMutation.mutate({
+                        schoolId: schoolForSettings.id,
+                        enabled: checked
+                      });
+                    }
+                  }}
+                  disabled={toggleOfflinePremiumMutation.isPending}
+                  data-testid="switch-offline-premium"
+                />
+              </div>
+            </div>
+
+            {/* Module Visibility Section */}
+            <div className="space-y-4">
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">Visibilité des Modules</h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Contrôler quels modules apparaissent dans le tableau de bord Director
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-communications" className="text-sm font-medium cursor-pointer">
+                    Communications
+                  </Label>
+                  <Switch
+                    id="module-communications"
+                    checked={schoolForSettings?.communicationsEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { communicationsEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-communications"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-content" className="text-sm font-medium cursor-pointer">
+                    Contenu Éducatif
+                  </Label>
+                  <Switch
+                    id="module-content"
+                    checked={schoolForSettings?.educationalContentEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { educationalContentEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-educational-content"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-delegates" className="text-sm font-medium cursor-pointer">
+                    Administrateurs Délégués
+                  </Label>
+                  <Switch
+                    id="module-delegates"
+                    checked={schoolForSettings?.delegateAdminsEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { delegateAdminsEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-delegate-admins"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-canteen" className="text-sm font-medium cursor-pointer">
+                    Cantine
+                  </Label>
+                  <Switch
+                    id="module-canteen"
+                    checked={schoolForSettings?.canteenEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { canteenEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-canteen"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-bus" className="text-sm font-medium cursor-pointer">
+                    Bus Scolaire
+                  </Label>
+                  <Switch
+                    id="module-bus"
+                    checked={schoolForSettings?.schoolBusEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { schoolBusEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-school-bus"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <Label htmlFor="module-online-classes" className="text-sm font-medium cursor-pointer">
+                    Classes en Ligne
+                  </Label>
+                  <Switch
+                    id="module-online-classes"
+                    checked={schoolForSettings?.onlineClassesEnabled ?? true}
+                    onCheckedChange={(checked) => {
+                      if (schoolForSettings) {
+                        updateModuleVisibilityMutation.mutate({
+                          schoolId: schoolForSettings.id,
+                          updates: { onlineClassesEnabled: checked }
+                        });
+                      }
+                    }}
+                    disabled={updateModuleVisibilityMutation.isPending}
+                    data-testid="switch-module-online-classes"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsSettingsDialogOpen(false)} 
+              data-testid="button-close-settings"
+            >
+              Fermer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
