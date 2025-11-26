@@ -18,6 +18,7 @@ import {
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
+import { sortBy, sortStrings } from '@/utils/sort';
 
 interface Teacher {
   id: number;
@@ -536,8 +537,8 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     input.click();
   };
 
-  const filteredTeachers = Array.isArray(teachers) ? teachers
-    .filter(teacher => {
+  const filteredTeachers = sortBy(
+    (Array.isArray(teachers) ? teachers : []).filter(teacher => {
       if (!teacher) return false;
       const name = teacher.name || '';
       const email = teacher.email || '';
@@ -557,23 +558,20 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
         (filters.experience === 'expert' && (teacher.experience || 0) > 10);
       
       return matchesSearch && matchesSubject && matchesGender && matchesFilterSubject && matchesExperience;
-    })
-    .sort((a, b) => {
-      // Sort alphabetically by name
-      const nameA = (a.name || '').toLowerCase();
-      const nameB = (b.name || '').toLowerCase();
-      if (nameA < nameB) return -1;
-      if (nameA > nameB) return 1;
-      return 0;
-    }) : [];
+    }),
+    (t: Teacher) => t.name,
+    'text'
+  );
   
-  // Extract unique subjects from all teachers for dynamic filter
-  const allSubjects = Array.from(new Set(
-    Array.isArray(teachers) ? teachers.flatMap(teacher => 
-      Array.isArray(teacher.teachingSubjects) ? teacher.teachingSubjects : 
-      Array.isArray(teacher.subjects) ? teacher.subjects : []
-    ).filter(subject => subject && subject.trim()) : []
-  )).sort();
+  // Extract unique subjects from all teachers for dynamic filter (sorted alphabetically)
+  const allSubjects = sortStrings(
+    Array.from(new Set(
+      Array.isArray(teachers) ? teachers.flatMap(teacher => 
+        Array.isArray(teacher.teachingSubjects) ? teacher.teachingSubjects : 
+        Array.isArray(teacher.subjects) ? teacher.subjects : []
+      ).filter(subject => subject && subject.trim()) : []
+    ))
+  );
 
   const stats = {
     totalTeachers: Array.isArray(teachers) ? teachers.length : 0,

@@ -21,6 +21,7 @@ import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
 import { useOfflineStudents } from '@/hooks/offline/useOfflineStudents';
 import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
+import { sortByMultiple, sortBy } from '@/utils/sort';
 
 interface Student {
   id: number;
@@ -647,8 +648,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     input.click();
   };
 
-  const filteredStudents = (Array.isArray(students) ? students : [])
-    .filter(student => {
+  const filteredStudents = sortByMultiple(
+    (Array.isArray(students) ? students : []).filter(student => {
       if (!student) return false;
       const firstName = student.firstName || '';
       const lastName = student.lastName || '';
@@ -666,20 +667,12 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       const matchesFilterClass = filters.class === 'all' || className === filters.class;
       
       return matchesSearch && matchesClass && matchesStatus && matchesGender && matchesFilterClass;
-    })
-    .sort((a, b) => {
-      // Sort alphabetically by last name, then first name
-      const lastNameA = (a.lastName || '').toLowerCase();
-      const lastNameB = (b.lastName || '').toLowerCase();
-      if (lastNameA < lastNameB) return -1;
-      if (lastNameA > lastNameB) return 1;
-      
-      const firstNameA = (a.firstName || '').toLowerCase();
-      const firstNameB = (b.firstName || '').toLowerCase();
-      if (firstNameA < firstNameB) return -1;
-      if (firstNameA > firstNameB) return 1;
-      return 0;
-    });
+    }),
+    [
+      { selector: (s: Student) => s.lastName, type: 'text' },
+      { selector: (s: Student) => s.firstName, type: 'text' }
+    ]
+  );
 
   const stats = {
     totalStudents: Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0,
