@@ -1296,7 +1296,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
         {/* Filter Panel */}
         {isFilterOpen && (
           <div className="border-b px-6 py-4 bg-gray-50">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium">
                   {language === 'fr' ? 'Genre' : 'Gender'}
@@ -1333,25 +1333,6 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                     <SelectItem value="Anglais">Anglais</SelectItem>
                     <SelectItem value="Sciences">Sciences</SelectItem>
                     <SelectItem value="Histoire">Histoire</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">
-                  {language === 'fr' ? 'Expérience' : 'Experience'}
-                </Label>
-                <Select 
-                  value={filters.experience} 
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, experience: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
-                    <SelectItem value="junior">{language === 'fr' ? 'Junior (0-3 ans)' : 'Junior (0-3 years)'}</SelectItem>
-                    <SelectItem value="senior">{language === 'fr' ? 'Senior (3-10 ans)' : 'Senior (3-10 years)'}</SelectItem>
-                    <SelectItem value="expert">{language === 'fr' ? 'Expert (10+ ans)' : 'Expert (10+ years)'}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1577,14 +1558,6 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                         ))}
                       </div>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Expérience' : 'Experience'}
-                      </label>
-                      <p className="text-gray-900">
-                        {viewingTeacher.experience || 0} {language === 'fr' ? 'années' : 'years'}
-                      </p>
-                    </div>
                   </div>
                 </div>
 
@@ -1603,8 +1576,8 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                   <h4 className="font-semibold text-gray-900 border-b pb-2">
                     {language === 'fr' ? 'Statistiques' : 'Statistics'}
                   </h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
                       <p className="text-2xl font-bold text-blue-600">
                         {(viewingTeacher.teachingSubjects || []).length}
                       </p>
@@ -1612,20 +1585,12 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                         {language === 'fr' ? 'Matières' : 'Subjects'}
                       </p>
                     </div>
-                    <div className="text-center">
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
                       <p className="text-2xl font-bold text-green-600">
                         {(viewingTeacher.classes || []).length}
                       </p>
                       <p className="text-sm text-gray-500">
                         {language === 'fr' ? 'Classes' : 'Classes'}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-purple-600">
-                        {viewingTeacher.experience || 0}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {language === 'fr' ? 'Ans d\'exp.' : 'Years exp.'}
                       </p>
                     </div>
                   </div>

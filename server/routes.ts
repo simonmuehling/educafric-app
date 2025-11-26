@@ -2512,20 +2512,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[DIRECTOR_TEACHERS_API] Sandbox user detected - using mock data WITH REAL DB IDS');
         // Mock teachers data with REAL database IDs (348-353) to avoid FK violations
         teachers = [
-          { id: 348, name: 'Prof. Mboua Jean', firstName: 'Prof.', lastName: 'Mboua Jean', subject: 'Mathématiques', email: 'sandbox.teacher1@educafric.demo', isActive: true, experience: 8, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['6ème A', '5ème A'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123456' },
-          { id: 349, name: 'Prof. Nkolo Marie', firstName: 'Prof.', lastName: 'Nkolo Marie', subject: 'Français', email: 'sandbox.teacher2@educafric.demo', isActive: true, experience: 12, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['5ème B', '4ème B'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123457' },
-          { id: 350, name: 'Prof. Ateba Paul', firstName: 'Prof.', lastName: 'Ateba Paul', subject: 'Histoire-Géographie', email: 'sandbox.teacher3@educafric.demo', isActive: true, experience: 6, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['4ème C', '3ème C'], canSignBulletins: false, digitalSignatureActive: false, phone: '+237677123458' },
-          { id: 351, name: 'Prof. Essomba Claire', firstName: 'Prof.', lastName: 'Essomba Claire', subject: 'Anglais', email: 'sandbox.teacher4@educafric.demo', isActive: true, experience: 5, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['3ème D', '2nde A'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123459' },
-          { id: 352, name: 'Prof. Owona David', firstName: 'Prof.', lastName: 'Owona David', subject: 'Sciences Physiques', email: 'sandbox.teacher5@educafric.demo', isActive: true, experience: 10, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['2nde B', '1ère S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123460' },
-          { id: 353, name: 'Prof. Ngono Sophie', firstName: 'Prof.', lastName: 'Ngono Sophie', subject: 'Sciences Naturelles', email: 'sandbox.teacher6@educafric.demo', isActive: true, experience: 7, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['1ère S', 'Terminale S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123461' }
+          { id: 348, name: 'Prof. Mboua Jean', firstName: 'Prof.', lastName: 'Mboua Jean', subject: 'Mathématiques', teachingSubjects: ['Mathématiques'], email: 'sandbox.teacher1@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['6ème A', '5ème A'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123456', status: 'active' },
+          { id: 349, name: 'Prof. Nkolo Marie', firstName: 'Prof.', lastName: 'Nkolo Marie', subject: 'Français', teachingSubjects: ['Français'], email: 'sandbox.teacher2@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['5ème B', '4ème B'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123457', status: 'active' },
+          { id: 350, name: 'Prof. Ateba Paul', firstName: 'Prof.', lastName: 'Ateba Paul', subject: 'Histoire-Géographie', teachingSubjects: ['Histoire-Géographie'], email: 'sandbox.teacher3@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['4ème C', '3ème C'], canSignBulletins: false, digitalSignatureActive: false, phone: '+237677123458', status: 'active' },
+          { id: 351, name: 'Prof. Essomba Claire', firstName: 'Prof.', lastName: 'Essomba Claire', subject: 'Anglais', teachingSubjects: ['Anglais'], email: 'sandbox.teacher4@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['3ème D', '2nde A'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123459', status: 'active' },
+          { id: 352, name: 'Prof. Owona David', firstName: 'Prof.', lastName: 'Owona David', subject: 'Sciences Physiques', teachingSubjects: ['Sciences Physiques'], email: 'sandbox.teacher5@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['2nde B', '1ère S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123460', status: 'active' },
+          { id: 353, name: 'Prof. Ngono Sophie', firstName: 'Prof.', lastName: 'Ngono Sophie', subject: 'Sciences Naturelles', teachingSubjects: ['Sciences Naturelles'], email: 'sandbox.teacher6@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['1ère S', 'Terminale S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123461', status: 'active' }
         ];
       } else {
         console.log('[DIRECTOR_TEACHERS_API] Real user detected - using database data');
         console.log('[DIRECTOR_TEACHERS_API] User object:', { id: user.id, email: user.email, school_id: user.school_id, schoolId: user.schoolId });
         // Get real teachers from database
         const { db } = await import('./db');
-        const { users } = await import('@shared/schema');
-        const { eq, and } = await import('drizzle-orm');
+        const { users, teacherSubjectAssignments, classes: classesTable, subjects: subjectsTable } = await import('@shared/schema');
+        const { eq, and, inArray } = await import('drizzle-orm');
         
         const userSchoolId = user.schoolId || user.school_id || 1;
         console.log('[DIRECTOR_TEACHERS_API] Using school ID:', userSchoolId);
@@ -2535,24 +2535,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(users)
           .where(and(eq(users.role, 'Teacher'), eq(users.schoolId, userSchoolId)));
         
+        // Get all teacher-subject assignments for this school with class and subject details
+        const assignments = await db.select({
+          teacherId: teacherSubjectAssignments.teacherId,
+          classId: teacherSubjectAssignments.classId,
+          subjectId: teacherSubjectAssignments.subjectId,
+          className: classesTable.name,
+          subjectName: subjectsTable.name
+        })
+          .from(teacherSubjectAssignments)
+          .leftJoin(classesTable, eq(teacherSubjectAssignments.classId, classesTable.id))
+          .leftJoin(subjectsTable, eq(teacherSubjectAssignments.subjectId, subjectsTable.id))
+          .where(and(
+            eq(teacherSubjectAssignments.schoolId, userSchoolId),
+            eq(teacherSubjectAssignments.active, true)
+          ));
+        
+        // Group assignments by teacher
+        const teacherAssignmentsMap = new Map<number, { classes: Set<string>, subjects: Set<string> }>();
+        assignments.forEach(a => {
+          if (!teacherAssignmentsMap.has(a.teacherId)) {
+            teacherAssignmentsMap.set(a.teacherId, { classes: new Set(), subjects: new Set() });
+          }
+          const entry = teacherAssignmentsMap.get(a.teacherId)!;
+          if (a.className) entry.classes.add(a.className);
+          if (a.subjectName) entry.subjects.add(a.subjectName);
+        });
+        
         // Map teachers to expected format
-        teachers = schoolTeachers.map((teacher, index) => {
-          const subjects = ['Mathématiques', 'Français', 'Histoire-Géographie', 'Anglais', 'Sciences Physiques', 'Sciences Naturelles', 'Education Physique', 'Arts Plastiques'];
-          const randomSubject = subjects[index % subjects.length];
-          const experience = Math.floor(Math.random() * 15) + 3; // 3-18 years experience
+        teachers = schoolTeachers.map((teacher) => {
+          const teacherData = teacherAssignmentsMap.get(teacher.id);
+          const teacherClasses = teacherData ? Array.from(teacherData.classes) : [];
+          const teacherSubjects = teacherData ? Array.from(teacherData.subjects) : [];
           
           return {
             id: teacher.id,
             name: `${teacher.firstName} ${teacher.lastName}`,
             firstName: teacher.firstName,
             lastName: teacher.lastName,
-            subject: randomSubject,
             email: teacher.email,
             phone: teacher.phone,
+            gender: teacher.gender,
+            matricule: teacher.educafricNumber,
             isActive: true,
-            experience,
             schoolId: teacher.schoolId,
-            classes: [],
+            classes: teacherClasses,
+            teachingSubjects: teacherSubjects,
             status: 'active'
           };
         });
