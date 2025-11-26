@@ -909,15 +909,14 @@ const SchoolManagement = () => {
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline">
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Button 
                         size="sm" 
                         variant="outline"
                         onClick={() => handleManageSubscription(school)}
                         disabled={manageSubscriptionMutation.isPending}
+                        title="Gérer Abonnement et Premium Offline"
+                        data-testid="button-manage-subscription"
                       >
                         <CreditCard className="w-4 h-4" />
                       </Button>
