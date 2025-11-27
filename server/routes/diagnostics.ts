@@ -1,8 +1,80 @@
 import type { Express } from "express";
 import { testDatabaseConnection, testUserQuery } from "../utils/databaseTest";
 import { healthCheck } from "../middleware/performance";
+import { db } from "../db";
+import { users } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
 
 export function registerDiagnosticsRoutes(app: Express) {
+  // Teacher diagnostic endpoint - helps debug teacher display issues
+  app.get('/api/diagnostics/teachers/:schoolId', async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      const user = req.user as any;
+      
+      // Get teachers for this school directly from DB
+      const teachersFromDB = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        role: users.role,
+        schoolId: users.schoolId
+      })
+      .from(users)
+      .where(and(eq(users.role, 'Teacher'), eq(users.schoolId, schoolId)));
+      
+      res.json({
+        success: true,
+        schoolIdRequested: schoolId,
+        currentUser: user ? {
+          id: user.id,
+          role: user.role,
+          schoolId: user.schoolId,
+          school_id: user.school_id,
+          email: user.email
+        } : null,
+        teachersCount: teachersFromDB.length,
+        teachers: teachersFromDB.map(t => ({
+          id: t.id,
+          name: `${t.firstName} ${t.lastName}`,
+          email: t.email,
+          phone: t.phone,
+          schoolId: t.schoolId
+        }))
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  // User session diagnostic - shows current user info
+  app.get('/api/diagnostics/session', (req, res) => {
+    const user = req.user as any;
+    if (!user) {
+      return res.json({
+        authenticated: false,
+        message: 'No user session found'
+      });
+    }
+    
+    res.json({
+      authenticated: true,
+      userId: user.id,
+      role: user.role,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      schoolId: user.schoolId,
+      school_id_raw: user.school_id, // Check if there's a difference
+      isSandboxUser: user.sandboxMode || user.email?.includes('@test.educafric.com')
+    });
+  });
+
   // Enhanced health check with database testing
   app.get('/api/diagnostics/health', async (req, res) => {
     try {
