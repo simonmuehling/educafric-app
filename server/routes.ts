@@ -2550,20 +2550,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { id: 353, name: 'Prof. Ngono Sophie', firstName: 'Prof.', lastName: 'Ngono Sophie', subject: 'Sciences Naturelles', teachingSubjects: ['Sciences Naturelles'], email: 'sandbox.teacher6@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['1ère S', 'Terminale S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123461', status: 'active' }
         ];
       } else {
-        console.log('[DIRECTOR_TEACHERS_API] Real user detected - using database data');
-        console.log('[DIRECTOR_TEACHERS_API] User object:', { id: user.id, email: user.email, school_id: user.school_id, schoolId: user.schoolId });
+        console.log('[DIRECTOR_TEACHERS_API] ==========================================');
+        console.log('[DIRECTOR_TEACHERS_API] 🔍 Real user detected - using database data');
+        console.log('[DIRECTOR_TEACHERS_API] 📋 Full User object:', JSON.stringify({
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          school_id: user.school_id,
+          schoolId: user.schoolId,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }));
         // Get real teachers from database
         const { db } = await import('./db');
         const { users, teacherSubjectAssignments, classes: classesTable, subjects: subjectsTable } = await import('@shared/schema');
         const { eq, and, inArray } = await import('drizzle-orm');
         
         const userSchoolId = user.schoolId || user.school_id || 1;
-        console.log('[DIRECTOR_TEACHERS_API] Using school ID:', userSchoolId);
+        console.log('[DIRECTOR_TEACHERS_API] 🏫 Resolved school ID:', userSchoolId, '(schoolId:', user.schoolId, ', school_id:', user.school_id, ')');
         
         // Get all teachers for this school
         const schoolTeachers = await db.select()
           .from(users)
           .where(and(eq(users.role, 'Teacher'), eq(users.schoolId, userSchoolId)));
+        
+        console.log('[DIRECTOR_TEACHERS_API] 📊 Raw DB query returned:', schoolTeachers.length, 'teachers for school', userSchoolId);
         
         // Get all teacher-subject assignments for this school with class and subject details
         const assignments = await db.select({
