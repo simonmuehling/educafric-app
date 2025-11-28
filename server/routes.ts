@@ -2113,6 +2113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await bcrypt.hash(defaultPassword, 10);
       
       // Create student in database
+      // ✅ FIX: Include educafricNumber (matricule), guardian, isRepeater, and parent info
       const [newStudent] = await db.insert(users).values({
         role: 'Student',
         firstName: fName,
@@ -2124,7 +2125,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         gender: gender || null,
         dateOfBirth: dateOfBirth || null,
         placeOfBirth: placeOfBirth || null,
-        profilePictureUrl: profilePictureUrl // Save photo URL
+        profilePictureUrl: profilePictureUrl, // Save photo URL
+        educafricNumber: matricule || null, // ✅ Save matricule as educafricNumber
+        guardian: parentName || null, // ✅ Save parent name as guardian
+        parentEmail: parentEmail || null, // ✅ Save parent email
+        parentPhone: parentPhone || null, // ✅ Save parent phone
+        isRepeater: redoublant === true || redoublant === 'true' // ✅ Save repeater status
       }).returning();
       
       console.log('[CREATE_STUDENT] ✅ Student created:', { id: newStudent.id, name: `${fName} ${lName}` });
@@ -2145,7 +2151,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const studentId = parseInt(req.params.studentId);
-      const { firstName, lastName, email, phone, classId, gender, dateOfBirth, placeOfBirth } = req.body;
+      // ✅ FIX: Include matricule, guardian, parentEmail, parentPhone, isRepeater, redoublant
+      const { 
+        firstName, lastName, email, phone, classId, gender, dateOfBirth, placeOfBirth,
+        matricule, guardian, parentName, parentEmail, parentPhone, isRepeater, redoublant
+      } = req.body;
       
       const userSchoolId = user.schoolId || user.school_id;
       
@@ -2157,7 +2167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'Invalid student ID' });
       }
       
-      console.log('[UPDATE_STUDENT] Updating student:', studentId, { firstName, lastName });
+      console.log('[UPDATE_STUDENT] Updating student:', studentId, { firstName, lastName, matricule });
       
       // Verify student belongs to user's school
       const [existingStudent] = await db.select().from(users)
@@ -2173,6 +2183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Update student in database
+      // ✅ FIX: Include all profile fields including matricule
       const updateData: any = {};
       if (firstName !== undefined) updateData.firstName = firstName;
       if (lastName !== undefined) updateData.lastName = lastName;
@@ -2182,6 +2193,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (gender !== undefined) updateData.gender = gender;
       if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth;
       if (placeOfBirth !== undefined) updateData.placeOfBirth = placeOfBirth;
+      // ✅ NEW: Save matricule, guardian, parent info, and repeater status
+      if (matricule !== undefined) updateData.educafricNumber = matricule;
+      if (guardian !== undefined) updateData.guardian = guardian;
+      if (parentName !== undefined) updateData.guardian = parentName; // Alias
+      if (parentEmail !== undefined) updateData.parentEmail = parentEmail;
+      if (parentPhone !== undefined) updateData.parentPhone = parentPhone;
+      if (isRepeater !== undefined) updateData.isRepeater = isRepeater === true || isRepeater === 'true';
+      if (redoublant !== undefined) updateData.isRepeater = redoublant === true || redoublant === 'true';
       
       const [updatedStudent] = await db.update(users)
         .set(updateData)
