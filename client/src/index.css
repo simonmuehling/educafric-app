@@ -132,124 +132,132 @@ svg {
   tr, th, td { 
     break-inside: avoid !important; 
     page-break-inside: avoid !important; 
-    line-height: 1.1 !important;
-    padding: 1px !important;
+    line-height: 1.25 !important;
+    padding: 3px 4px !important;
   }
   
-  /* Compact bulletin layout for 20+ subjects */
+  /* READABLE bulletin layout - optimized for PDF printing */
   .bulletin-compact {
-    line-height: 1.0 !important;
+    line-height: 1.2 !important;
+    font-size: 10pt !important;
   }
   
   .bulletin-compact table {
-    font-size: 6px !important;
-    margin-bottom: 2px !important;
+    font-size: 9pt !important;
+    margin-bottom: 6px !important;
   }
   
   .bulletin-compact th,
   .bulletin-compact td {
-    padding: 0.5px !important;
-    line-height: 1.0 !important;
+    padding: 3px 4px !important;
+    line-height: 1.2 !important;
+    font-size: 9pt !important;
   }
   
   .bulletin-compact .header-section {
-    margin-bottom: 2px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .bulletin-compact .header-section div {
+    font-size: 9pt !important;
   }
   
   .bulletin-compact .student-info {
-    margin-bottom: 3px !important;
+    margin-bottom: 8px !important;
+    font-size: 9pt !important;
   }
 
-  /* Annual Report Compact Layout - optimized for maximum page density */
+  /* Annual Report Layout - readable for PDF printing */
   .annual-report-compact {
-    line-height: 1.1 !important;
-    font-size: 8px !important;
+    line-height: 1.2 !important;
+    font-size: 10pt !important;
   }
 
   .annual-report-compact .ministry-header {
-    margin-bottom: 3px !important;
-    line-height: 1.0 !important;
+    margin-bottom: 6px !important;
+    line-height: 1.15 !important;
   }
 
   .annual-report-compact .ministry-header h1 {
-    font-size: 10px !important;
-    margin-bottom: 1px !important;
+    font-size: 11pt !important;
+    margin-bottom: 2px !important;
   }
 
   .annual-report-compact .ministry-header h2 {
-    font-size: 9px !important;
-    margin-bottom: 1px !important;
+    font-size: 10pt !important;
+    margin-bottom: 2px !important;
   }
 
   .annual-report-compact .student-header {
-    margin-bottom: 4px !important;
-    padding: 2px !important;
+    margin-bottom: 8px !important;
+    padding: 4px !important;
   }
 
   .annual-report-compact .student-header h3 {
-    font-size: 9px !important;
-    margin-bottom: 2px !important;
+    font-size: 10pt !important;
+    margin-bottom: 4px !important;
   }
 
   .annual-report-compact .trimester-section {
-    margin-bottom: 3px !important;
-    padding: 1px !important;
+    margin-bottom: 6px !important;
+    padding: 3px !important;
   }
 
   .annual-report-compact .trimester-grid {
-    gap: 1px !important;
+    gap: 4px !important;
   }
 
   .annual-report-compact .trimester-card {
-    padding: 2px !important;
-    margin-bottom: 1px !important;
+    padding: 4px !important;
+    margin-bottom: 3px !important;
   }
 
   .annual-report-compact .trimester-card h4 {
-    font-size: 8px !important;
-    margin-bottom: 1px !important;
+    font-size: 10pt !important;
+    margin-bottom: 3px !important;
   }
 
   .annual-report-compact .stats-row {
-    gap: 1px !important;
-    margin-bottom: 1px !important;
+    gap: 4px !important;
+    margin-bottom: 3px !important;
   }
 
   .annual-report-compact .discipline-grid {
-    gap: 1px !important;
-    font-size: 7px !important;
+    gap: 3px !important;
+    font-size: 9pt !important;
   }
 
   .annual-report-compact .observations {
-    font-size: 7px !important;
-    line-height: 1.0 !important;
-    margin-top: 1px !important;
+    font-size: 9pt !important;
+    line-height: 1.2 !important;
+    margin-top: 3px !important;
   }
 
   .annual-report-compact .annual-summary {
-    margin-top: 4px !important;
-    padding: 2px !important;
+    margin-top: 8px !important;
+    padding: 4px !important;
   }
 
   .annual-report-compact .annual-summary h3 {
-    font-size: 9px !important;
-    margin-bottom: 2px !important;
+    font-size: 11pt !important;
+    margin-bottom: 4px !important;
   }
 
   .annual-report-compact .decision-section {
-    padding: 2px !important;
-    margin-bottom: 2px !important;
+    padding: 4px !important;
+    margin-bottom: 4px !important;
   }
 
   .annual-report-compact .signatures-section {
-    margin-top: 3px !important;
-    padding: 1px !important;
+    margin-top: 6px !important;
+    padding: 3px !important;
   }
 
   .annual-report-compact .signature-box {
-    padding: 1px !important;
-    font-size: 7px !important;
-    height: 15px !important;
+    padding: 3px !important;
+    font-size: 9pt !important;
+    height: auto !important;
+    min-height: 25px !important;
   }
   
   /* Avoid breaks on important elements */
