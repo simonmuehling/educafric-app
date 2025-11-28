@@ -511,28 +511,32 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     }
   };
 
-  const handleEditStudent = (student: Student) => {
+  const handleEditStudent = (student: any) => {
+    // ✅ FIX: Populate ALL fields from student data including API fields
+    console.log('[EDIT_STUDENT] Loading student data:', student);
     setSelectedStudent(student);
     setStudentForm({
-      name: `${student.firstName} ${student.lastName}`,
-      email: student.email,
-      phone: '',
-      className: student.className,
-      level: student.level,
+      name: student.name || `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+      email: student.email || '',
+      phone: student.phone || '',
+      className: student.className || '',
+      level: student.level || student.classLevel || '',
       age: student.age ? student.age.toString() : '',
-      gender: '',
-      dateOfBirth: '', // Sera rempli avec les données existantes si disponible
-      placeOfBirth: '', // Sera rempli avec les données existantes si disponible
-      matricule: '',
-      parentName: student.parentName,
-      parentEmail: student.parentEmail,
-      parentPhone: student.parentPhone,
+      // ✅ Map API fields correctly (dateOfBirth -> dateOfBirth, placeOfBirth -> placeOfBirth)
+      gender: student.gender || '',
+      dateOfBirth: student.dateOfBirth || '',
+      placeOfBirth: student.placeOfBirth || '',
+      matricule: student.educafricNumber || student.matricule || '',
+      // ✅ Map parent/guardian fields
+      parentName: student.guardian || student.parentName || '',
+      parentEmail: student.parentEmail || '',
+      parentPhone: student.parentPhone || '',
       photo: null,
-      redoublant: student.redoublant || false // Ajouter le champ redoublant
+      redoublant: student.isRepeater || student.redoublant || false
     });
     // Réinitialiser les états de la caméra lors de l'édition
     setShowCamera(false);
-    setCapturedPhoto(null);
+    setCapturedPhoto(student.profilePictureUrl || null); // Show existing photo if available
     setIsCameraReady(false);
     setIsEditStudentOpen(true);
   };
@@ -1370,7 +1374,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Edit Student Modal */}
+      {/* Edit Student Modal - ✅ COMPLETE with ALL fields like Add Modal */}
       {isEditStudentOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
           <div className="bg-white p-4 sm:p-6 rounded-lg w-full max-w-[95vw] sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
@@ -1385,39 +1389,68 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
               </Button>
             </div>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">{(text.form.firstName || '')}</Label>
-                  <Input
-                    value={studentForm.name.split(' ')[0] || ''}
-                    onChange={(e) => {
-                      const lastName = studentForm.name.split(' ').slice(1).join(' ') || '';
-                      setStudentForm(prev => ({ ...prev, name: e.target.value + (lastName ? ' ' + lastName : '') }));
-                    }}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">{(text.form.lastName || '')}</Label>
-                  <Input
-                    value={studentForm.name.split(' ').slice(1).join(' ') || ''}
-                    onChange={(e) => {
-                      const firstName = studentForm.name.split(' ')[0] || '';
-                      setStudentForm(prev => ({ ...prev, name: firstName + (e.target.value ? ' ' + e.target.value : '') }));
-                    }}
-                    className="w-full"
-                  />
-                </div>
-              </div>
+              {/* Nom complet */}
               <div>
-                <Label className="text-sm font-medium">{(text.form.email || '')}</Label>
+                <Label className="text-sm font-medium">{language === 'fr' ? 'Nom complet de l\'élève' : 'Student Full Name'}</Label>
                 <Input
-                  type="email"
-                  value={studentForm.email || ''}
-                  onChange={(e) => setStudentForm(prev => ({ ...prev, email: e.target.value }))}
+                  value={studentForm.name || ''}
+                  onChange={(e) => setStudentForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Ex: Marie Nguemto"
                   className="w-full"
                 />
               </div>
+              
+              {/* Genre et Matricule */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">{language === 'fr' ? 'Genre' : 'Gender'}</Label>
+                  <Select 
+                    value={studentForm.gender} 
+                    onValueChange={(value) => setStudentForm(prev => ({ ...prev, gender: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={language === 'fr' ? 'Genre' : 'Gender'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">{language === 'fr' ? 'Masculin' : 'Male'}</SelectItem>
+                      <SelectItem value="female">{language === 'fr' ? 'Féminin' : 'Female'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">{language === 'fr' ? 'Matricule' : 'Student ID'}</Label>
+                  <Input
+                    value={studentForm.matricule || ''}
+                    onChange={(e) => setStudentForm(prev => ({ ...prev, matricule: e.target.value }))}
+                    placeholder="Ex: STU-001"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              
+              {/* Date et lieu de naissance */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">{language === 'fr' ? 'Date de naissance' : 'Date of Birth'}</Label>
+                  <Input
+                    type="date"
+                    value={studentForm.dateOfBirth || ''}
+                    onChange={(e) => setStudentForm(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">{language === 'fr' ? 'Lieu de naissance' : 'Place of Birth'}</Label>
+                  <Input
+                    value={studentForm.placeOfBirth || ''}
+                    onChange={(e) => setStudentForm(prev => ({ ...prev, placeOfBirth: e.target.value }))}
+                    placeholder="Ex: Yaoundé, Cameroun"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              
+              {/* Classe */}
               <div>
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <span>🏫 {text.form.className}</span>
@@ -1452,29 +1485,132 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                             <Badge variant="outline" className="text-xs">
                               {classItem.level}
                             </Badge>
-                            <span className="text-xs text-gray-500">
-                              ({classItem.subjects?.length || 0} {language === 'fr' ? 'matières' : 'subjects'})
-                            </span>
                           </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 )}
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'fr' ? 
-                    'Modifiez la classe de cet élève parmi celles créées dans votre école' : 
-                    'Modify this student\'s class from those created in your school'}
-                </p>
               </div>
-              <div className="flex gap-2 pt-4">
+              
+              {/* Téléphone de l'élève */}
+              <div>
+                <Label className="text-sm font-medium flex items-center gap-1">
+                  <Phone className="w-4 h-4" />
+                  {language === 'fr' ? 'Téléphone de l\'élève' : 'Student Phone'}
+                </Label>
+                <Input
+                  value={studentForm.phone || ''}
+                  onChange={(e) => setStudentForm(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="+237 6XX XXX XXX"
+                  className="w-full"
+                />
+              </div>
+              
+              {/* Email de l'élève */}
+              <div>
+                <Label className="text-sm font-medium flex items-center gap-1">
+                  <Mail className="w-4 h-4" />
+                  {language === 'fr' ? 'Email de l\'élève' : 'Student Email'}
+                </Label>
+                <Input
+                  type="email"
+                  value={studentForm.email || ''}
+                  onChange={(e) => setStudentForm(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="eleve@exemple.com"
+                  className="w-full"
+                />
+              </div>
+              
+              {/* Parent/Tuteur */}
+              <div className="border-t pt-4 mt-4">
+                <h4 className="text-sm font-semibold mb-3 text-gray-700">
+                  {language === 'fr' ? '👨‍👩‍👧 Informations du Parent/Tuteur' : '👨‍👩‍👧 Parent/Guardian Information'}
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium">{text.form.parentName}</Label>
+                    <Input
+                      value={studentForm.parentName}
+                      onChange={(e) => setStudentForm(prev => ({ ...prev, parentName: e.target.value }))}
+                      placeholder={language === 'fr' ? 'Nom du parent/tuteur' : 'Parent/Guardian name'}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">{text.form.parentEmail}</Label>
+                    <Input
+                      type="email"
+                      value={studentForm.parentEmail}
+                      onChange={(e) => setStudentForm(prev => ({ ...prev, parentEmail: e.target.value }))}
+                      placeholder="parent@exemple.com"
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">{text.form.parentPhone}</Label>
+                    <Input
+                      value={studentForm.parentPhone}
+                      onChange={(e) => setStudentForm(prev => ({ ...prev, parentPhone: e.target.value }))}
+                      placeholder="+237 6XX XXX XXX"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Redoublant */}
+              <div>
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4" />
+                  {language === 'fr' ? 'Redoublant' : 'Repeating Year'}
+                </Label>
+                <Select 
+                  value={studentForm.redoublant ? 'oui' : 'non'} 
+                  onValueChange={(value) => setStudentForm(prev => ({ ...prev, redoublant: value === 'oui' }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="non">
+                      {language === 'fr' ? '👍 Non - Promotion normale' : '👍 No - Normal promotion'}
+                    </SelectItem>
+                    <SelectItem value="oui">
+                      {language === 'fr' ? '🔄 Oui - Redoublant' : '🔄 Yes - Repeating year'}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Photo existante */}
+              {capturedPhoto && (
+                <div>
+                  <Label className="text-sm font-medium">{language === 'fr' ? 'Photo actuelle' : 'Current Photo'}</Label>
+                  <div className="mt-2 flex items-center gap-3">
+                    <img 
+                      src={capturedPhoto} 
+                      alt="Student" 
+                      className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                    />
+                    <span className="text-xs text-gray-500">
+                      {language === 'fr' ? 'Photo actuelle de l\'élève' : 'Current student photo'}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Boutons */}
+              <div className="flex gap-2 pt-4 border-t">
                 <Button 
                   onClick={handleUpdateStudent}
                   disabled={updateStudentMutation.isPending}
                   className="flex-1 bg-green-600 hover:bg-green-700"
                   data-testid="button-confirm-edit-student"
                 >
-                  {updateStudentMutation.isPending ? 'Modification...' : text.buttons.update}
+                  {updateStudentMutation.isPending ? 
+                    (language === 'fr' ? 'Modification...' : 'Updating...') : 
+                    text.buttons.update}
                 </Button>
                 <Button 
                   onClick={() => setIsEditStudentOpen(false)}
