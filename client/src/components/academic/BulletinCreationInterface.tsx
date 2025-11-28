@@ -1367,17 +1367,21 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   }
                   
                   // Auto-fill student information
+                  // ✅ FIX: Map API field names to form field names correctly
                   console.log('[BULLETIN] Auto-filling student data:', selectedStudent);
                   setStudent({
                     name: selectedStudent.name || '',
-                    id: selectedStudent.matricule || selectedStudent.id || '',
+                    id: selectedStudent.educafricNumber || selectedStudent.matricule || selectedStudent.id?.toString() || '',
                     classLabel: selectedStudent.className || selectedStudent.class || '',
                     classSize: selectedStudent.classSize || 0,
-                    birthDate: selectedStudent.birthDate || '',
-                    birthPlace: selectedStudent.birthPlace || '',
+                    // ✅ API returns dateOfBirth, placeOfBirth - map to birthDate, birthPlace
+                    birthDate: selectedStudent.dateOfBirth || selectedStudent.birthDate || '',
+                    birthPlace: selectedStudent.placeOfBirth || selectedStudent.birthPlace || '',
                     gender: selectedStudent.gender || '',
                     headTeacher: selectedStudent.headTeacher || '',
-                    guardian: selectedStudent.guardian || selectedStudent.parentName || '',
+                    // ✅ Map guardian from API guardian field or construct from parent info
+                    guardian: selectedStudent.guardian || selectedStudent.parentName || 
+                              (selectedStudent.parentPhone ? `Parent: ${selectedStudent.parentPhone}` : ''),
                     // NEW: Ministry required fields
                     isRepeater: selectedStudent.isRepeater || false,
                     numberOfSubjects: selectedStudent.numberOfSubjects || 0,
