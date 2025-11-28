@@ -954,7 +954,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           delegateAdminsEnabled: schoolInfo?.delegateAdminsEnabled ?? true,
           canteenEnabled: schoolInfo?.canteenEnabled ?? true,
           schoolBusEnabled: schoolInfo?.schoolBusEnabled ?? true,
-          onlineClassesEnabled: schoolInfo?.onlineClassesEnabled ?? true
+          onlineClassesEnabled: schoolInfo?.onlineClassesEnabled ?? true,
+          // Official school information for bulletins (Ministry headers)
+          regionaleMinisterielle: schoolInfo?.regionaleMinisterielle || '',
+          delegationDepartementale: schoolInfo?.delegationDepartementale || '',
+          boitePostale: schoolInfo?.boitePostale || '',
+          arrondissement: schoolInfo?.arrondissement || '',
+          educationalType: schoolInfo?.educationalType || 'general',
+          principalName: schoolInfo?.principalName || ''
         },
         director: {
           name: `${dbUser?.firstName} ${dbUser?.lastName}`,
