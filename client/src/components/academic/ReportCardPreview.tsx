@@ -197,10 +197,10 @@ const A4Sheet = ({ children }: { children: React.ReactNode }) => (
     {children}
   </div>
 );
-const Th = ({ children }: { children: React.ReactNode }) => <th className="px-3 py-2 text-left text-[13px] sm:text-sm text-gray-600">{children}</th>;
-const Td = ({ children, colSpan, className = "" }: { children: React.ReactNode; colSpan?: number; className?: string }) => <td colSpan={colSpan} className={`px-3 py-2 align-top text-[12px] ${className}`}>{children}</td>;
+const Th = ({ children }: { children: React.ReactNode }) => <th className="px-3 py-2 text-left text-[15px] sm:text-base text-gray-600">{children}</th>;
+const Td = ({ children, colSpan, className = "" }: { children: React.ReactNode; colSpan?: number; className?: string }) => <td colSpan={colSpan} className={`px-3 py-2 align-top text-[14px] ${className}`}>{children}</td>;
 const Info = ({ label, value }: { label: string; value: string }) => (
-  <div className="grid grid-cols-3 text-sm">
+  <div className="grid grid-cols-3 text-base">
     <div className="text-gray-500">{label}</div>
     <div className="col-span-2 font-medium">{value || "—"}</div>
   </div>
@@ -367,16 +367,16 @@ export default function ReportCardPreview({
   const labels = LABELS[language];
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0 bulletin-compact print:w-[210mm] print:h-[297mm] print:overflow-hidden print:text-[10px]" data-bulletin-preview="true">
+    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0 bulletin-compact print:w-[210mm] print:h-[297mm] print:overflow-hidden print:text-[12px]" data-bulletin-preview="true">
       <A4Sheet>
         <div className="p-2">
           {/* EXACT Ministry Header - Bilingual 3-Column Layout (EN - Logo - FR) */}
           <div className="text-center mb-3 relative header-section">
             <div className="grid grid-cols-3 gap-4">
               {/* Left Column: English */}
-              <div className="text-[11px] text-center leading-tight">
+              <div className="text-[13px] text-center leading-tight">
                 <div className="font-bold mb-0.5">{MINISTRY_HEADER.line1.en}</div>
-                <div className="italic mb-1 text-[8px]">{MINISTRY_HEADER.line2.en}</div>
+                <div className="italic mb-1 text-[11px]">{MINISTRY_HEADER.line2.en}</div>
                 <div className="mb-1">*************</div>
                 <div className="font-semibold mb-1">{MINISTRY_HEADER.line3.en}</div>
                 <div className="mb-1">*************</div>
@@ -399,21 +399,21 @@ export default function ReportCardPreview({
                     }}
                   />
                 ) : (
-                  <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-[7px] text-gray-400 bg-gray-50">
+                  <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-[10px] text-gray-400 bg-gray-50">
                     LOGO<br/>SCHOOL
                   </div>
                 )}
                 {registrationNumber && (
-                  <div className="text-[8px] font-semibold text-gray-700 mt-1">
+                  <div className="text-[11px] font-semibold text-gray-700 mt-1">
                     {registrationNumber}
                   </div>
                 )}
               </div>
 
               {/* Right Column: French */}
-              <div className="text-[11px] text-center leading-tight">
+              <div className="text-[13px] text-center leading-tight">
                 <div className="font-bold mb-0.5">{MINISTRY_HEADER.line1.fr}</div>
-                <div className="italic mb-1 text-[8px]">{MINISTRY_HEADER.line2.fr}</div>
+                <div className="italic mb-1 text-[11px]">{MINISTRY_HEADER.line2.fr}</div>
                 <div className="mb-1">*************</div>
                 <div className="font-semibold mb-1">{MINISTRY_HEADER.line3.fr}</div>
                 <div className="mb-1">*************</div>
@@ -428,8 +428,8 @@ export default function ReportCardPreview({
 
           {/* Ministry Required Report Card Title and Year */}
           <div className="text-center mb-3">
-            <div className="text-sm font-bold mb-2">{TRIMESTER_TITLES[language](trimester)}</div>
-            <div className="text-xs mb-2">{language === 'fr' ? 'Année scolaire' : 'School Year'}: {year}</div>
+            <div className="text-base font-bold mb-2">{TRIMESTER_TITLES[language](trimester)}</div>
+            <div className="text-sm mb-2">{language === 'fr' ? 'Année scolaire' : 'School Year'}: {year}</div>
           </div>
 
           {/* Ministry Student Information Layout - Photo on LEFT as per PDF */}
@@ -441,7 +441,7 @@ export default function ReportCardPreview({
                   (e.target as HTMLImageElement).style.display = 'none';
                 }} />
               ) : (
-                <div className="w-20 h-28 border-2 border-black flex items-center justify-center text-[7px] text-gray-500 bg-gray-50">
+                <div className="w-20 h-28 border-2 border-black flex items-center justify-center text-[10px] text-gray-500 bg-gray-50">
                   <div className="text-center">
                     {language === 'fr' ? 'Photo de l\'élève' : 'Student\'s photograph'}
                   </div>
@@ -450,7 +450,7 @@ export default function ReportCardPreview({
             </div>
             
             {/* RIGHT: Student Information in compact rows */}
-            <div className="flex-1 text-[11px] leading-tight">
+            <div className="flex-1 text-[13px] leading-tight">
               {/* First Row */}
               <div className="grid grid-cols-3 gap-3 mb-1.5">
                 <div><strong>{language === 'fr' ? 'Nom de l\'élève' : 'Name of Student'}:</strong> {student.name || ""}</div>
@@ -501,7 +501,7 @@ export default function ReportCardPreview({
 
           {/* EXACT Ministry Subject Table - MUST match documents precisely */}
           <div className="mt-2 overflow-auto">
-            <table className="w-full print:text-[7px] border border-black" style={{lineHeight: isTechnicalBulletin ? '1.0' : '1.3', tableLayout: 'fixed'}}>
+            <table className="w-full print:text-[9px] border border-black" style={{lineHeight: isTechnicalBulletin ? '1.0' : '1.3', tableLayout: 'fixed'}}>
               {/* Fixed Column Widths for A4 Fit - Conditional for Technical vs General Schools */}
               {showTwoColumns ? (
                 <colgroup><col style={{ width: '30mm' }} /><col style={{ width: '45mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '8mm' }} /><col style={{ width: '12mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '16mm' }} /><col style={{ width: '38mm' }} /></colgroup>
@@ -510,39 +510,39 @@ export default function ReportCardPreview({
               )}
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                  <th className="border border-black p-0.5 font-bold text-center text-[9px] print:text-[11px]">
                     {language === 'fr' ? 'Disciplines et noms des enseignants' : 'Subject and Teacher\'s Names'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                  <th className="border border-black p-0.5 font-bold text-center text-[9px] print:text-[11px]">
                     {language === 'fr' ? 'COMPÉTENCES ÉVALUÉES' : 'COMPETENCIES EVALUATED'}
                   </th>
                   {showTwoColumns ? (
                     <>
-                      <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                      <th className="border border-black p-0.5 font-bold text-center text-[9px] print:text-[11px]">
                         {language === 'fr' ? 'N/20' : 'MK/20'}
                       </th>
-                      <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                      <th className="border border-black p-0.5 font-bold text-center text-[9px] print:text-[11px]">
                         {language === 'fr' ? 'M/20' : 'AV/20'}
                       </th>
                     </>
                   ) : (
-                    <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                    <th className="border border-black p-0.5 font-bold text-center text-[9px] print:text-[11px]">
                       {language === 'fr' ? 'Note/20' : 'Mark/20'}
                     </th>
                   )}
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                  <th className="border border-black p-0.5 font-bold text-center text-[9px] print:text-[11px]">
                     Coef
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                  <th className="border border-black p-0.5 font-bold text-center text-[9px] print:text-[11px]">
                     {language === 'fr' ? 'M x coef' : 'AV x coef'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                  <th className="border border-black p-0.5 font-bold text-center text-[9px] print:text-[11px]">
                     {language === 'fr' ? 'COTE [Min - Max]' : 'GRADE [Min - Max]'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                  <th className="border border-black p-0.5 font-bold text-center text-[9px] print:text-[11px]">
                     {language === 'fr' ? 'Appréciations' : 'Remarks'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                  <th className="border border-black p-0.5 font-bold text-center text-[9px] print:text-[11px]">
                     {language === 'fr' ? 'COMMENTAIRES' : 'COMMENTS'}
                   </th>
                 </tr>
@@ -575,11 +575,11 @@ export default function ReportCardPreview({
                   
                   return (
                     <tr key={rowKey}>
-                      <td className={`border border-black ${cellPadding} text-[6px]`}>
+                      <td className={`border border-black ${cellPadding} text-[10px]`}>
                         <div className="font-bold">{r.subject}</div>
-                        <div className="text-[6px] text-gray-600">{r.teacher || ''}</div>
+                        <div className="text-[10px] text-gray-600">{r.teacher || ''}</div>
                       </td>
-                      <td className={`border border-black ${cellPadding} text-[6px] leading-tight`}>
+                      <td className={`border border-black ${cellPadding} text-[10px] leading-tight`}>
                         <div className="space-y-1">
                           {(() => {
                             // Use individual competencies if available, fallback to splitting concatenated string
@@ -593,17 +593,17 @@ export default function ReportCardPreview({
                             return (
                               <>
                                 {(comp1 || fallbackParts[0]) && (
-                                  <div className="text-[6px] font-medium border-b border-gray-200 pb-0.5">
+                                  <div className="text-[10px] font-medium border-b border-gray-200 pb-0.5">
                                     {comp1 || fallbackParts[0]}
                                   </div>
                                 )}
                                 {(comp2 || fallbackParts[1]) && (
-                                  <div className="text-[6px] font-medium border-b border-gray-200 pb-0.5">
+                                  <div className="text-[10px] font-medium border-b border-gray-200 pb-0.5">
                                     {comp2 || fallbackParts[1]}
                                   </div>
                                 )}
                                 {(comp3 || fallbackParts[2]) && (
-                                  <div className="text-[6px] font-medium">
+                                  <div className="text-[10px] font-medium">
                                     {comp3 || fallbackParts[2]}
                                   </div>
                                 )}
@@ -614,29 +614,29 @@ export default function ReportCardPreview({
                       </td>
                       {showTwoColumns ? (
                         <>
-                          <td className={`border border-black ${cellPadding} text-center text-[6px]`}>
+                          <td className={`border border-black ${cellPadding} text-center text-[10px]`}>
                             {mk20}
                           </td>
-                          <td className={`border border-black ${cellPadding} text-center text-[6px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
+                          <td className={`border border-black ${cellPadding} text-center text-[10px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
                             {av20}
                           </td>
                         </>
                       ) : (
-                        <td className={`border border-black ${cellPadding} text-center text-[6px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
+                        <td className={`border border-black ${cellPadding} text-center text-[10px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
                           {av20}
                         </td>
                       )}
-                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>
+                      <td className={`border border-black ${cellPadding} text-center text-[10px]`}>
                         {r.coef}
                       </td>
-                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>
+                      <td className={`border border-black ${cellPadding} text-center text-[10px]`}>
                         {r.avXcoef || avXcoef}
                       </td>
-                      <td className={`border border-black ${cellPadding} text-center text-[6px] font-bold`}>
+                      <td className={`border border-black ${cellPadding} text-center text-[10px] font-bold`}>
                         <div>{r.grade || cote}</div>
-                        <div className="text-[5px]">{minMax}</div>
+                        <div className="text-[9px]">{minMax}</div>
                       </td>
-                      <td className={`border border-black ${cellPadding} text-[5px]`}>
+                      <td className={`border border-black ${cellPadding} text-[9px]`}>
                         {(() => {
                           // Hybrid appreciation: Manual custom > Predefined bilingual > Legacy
                           const customApp = (r as any).customAppreciation;
@@ -648,7 +648,7 @@ export default function ReportCardPreview({
                           return r.remarksAndSignature || '';
                         })()}
                       </td>
-                      <td className={`border border-black ${cellPadding} text-[5px] align-top`}>
+                      <td className={`border border-black ${cellPadding} text-[9px] align-top`}>
                         {r.teacherComments && r.teacherComments.length > 0 ? (
                           <ul className="list-decimal list-inside space-y-0.5">
                             {r.teacherComments.map((commentText, index) => (
@@ -677,7 +677,7 @@ export default function ReportCardPreview({
 
                     return (
                       <tr className="bg-blue-50 font-semibold">
-                        <td colSpan={2} className="border border-black p-0.5 text-[7px] italic text-blue-700">
+                        <td colSpan={2} className="border border-black p-0.5 text-[11px] italic text-blue-700">
                           {language === 'fr' ? `Sous-total - ${sectionName}` : `Subtotal - ${sectionName}`}
                         </td>
                         {showTwoColumns ? (
@@ -688,9 +688,9 @@ export default function ReportCardPreview({
                         ) : (
                           <td className="border border-black p-0.5"></td>
                         )}
-                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">{sectionTotalCoef}</td>
-                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">{round2(sectionTotalMxCoef)}</td>
-                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">{sectionMoyenne}/20</td>
+                        <td className="border border-black p-0.5 text-center text-[10px] font-bold">{sectionTotalCoef}</td>
+                        <td className="border border-black p-0.5 text-center text-[10px] font-bold">{round2(sectionTotalMxCoef)}</td>
+                        <td className="border border-black p-0.5 text-center text-[10px] font-bold">{sectionMoyenne}/20</td>
                         <td colSpan={2} className="border border-black p-0.5"></td>
                       </tr>
                     );
@@ -714,7 +714,7 @@ export default function ReportCardPreview({
                         {groupedEntries.general && groupedEntries.general.length > 0 && (
                           <>
                             <tr className="bg-green-100" key="section-general-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-green-800">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[12px] text-green-800">
                                 📚 {sectionTitles.general}
                               </td>
                             </tr>
@@ -730,7 +730,7 @@ export default function ReportCardPreview({
                         {groupedEntries.literary && groupedEntries.literary.length > 0 && (
                           <>
                             <tr className="bg-purple-100" key="section-literary-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-purple-800">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[12px] text-purple-800">
                                 📖 {sectionTitles.literary}
                               </td>
                             </tr>
@@ -746,7 +746,7 @@ export default function ReportCardPreview({
                         {groupedEntries.scientific && groupedEntries.scientific.length > 0 && (
                           <>
                             <tr className="bg-blue-100" key="section-scientific-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-blue-800">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[12px] text-blue-800">
                                 🔬 {sectionTitles.scientific}
                               </td>
                             </tr>
@@ -762,7 +762,7 @@ export default function ReportCardPreview({
                         {groupedEntries.professional && groupedEntries.professional.length > 0 && (
                           <>
                             <tr className="bg-orange-100" key="section-professional-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-orange-800">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[12px] text-orange-800">
                                 🔧 {sectionTitles.professional}
                               </td>
                             </tr>
@@ -778,7 +778,7 @@ export default function ReportCardPreview({
                         {groupedEntries.other && groupedEntries.other.length > 0 && (
                           <>
                             <tr className="bg-pink-100" key="section-other-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-pink-800">
+                              <td colSpan={9} className="border border-black p-1 font-bold text-[12px] text-pink-800">
                                 🎨 {sectionTitles.other}
                               </td>
                             </tr>
@@ -799,7 +799,7 @@ export default function ReportCardPreview({
               </tbody>
               <tfoot>
                 <tr className="bg-gray-200">
-                  <td className="border border-black p-0.5 font-bold text-[6px] text-center">TOTAL</td>
+                  <td className="border border-black p-0.5 font-bold text-[10px] text-center">TOTAL</td>
                   <td className="border border-black p-1"></td>
                   {showTwoColumns ? (
                     <>
@@ -809,14 +809,14 @@ export default function ReportCardPreview({
                   ) : (
                     <td className="border border-black p-1"></td>
                   )}
-                  <td className="border border-black p-0.5 text-center font-bold text-[6px]">{totalCoef}</td>
-                  <td className="border border-black p-0.5 text-center font-bold text-[6px]">{round2(totalMxCoef)}</td>
+                  <td className="border border-black p-0.5 text-center font-bold text-[10px]">{totalCoef}</td>
+                  <td className="border border-black p-0.5 text-center font-bold text-[10px]">{round2(totalMxCoef)}</td>
                   <td className="border border-black p-1"></td>
                   <td className="border border-black p-1"></td>
                   <td className="border border-black p-1"></td>
                 </tr>
                 <tr className="bg-gray-100">
-                  <td className="border border-black p-1 font-bold text-[8px]">
+                  <td className="border border-black p-1 font-bold text-[12px]">
                     {language === 'fr' ? 'MOYENNE DE L\'\u00c9LÈVE :' : 'STUDENT AVERAGE :'}
                   </td>
                   <td className={`border border-black p-1 text-center font-bold text-[10px] ${moyenne < 10 ? 'text-red-600' : ''}`}>
@@ -830,7 +830,7 @@ export default function ReportCardPreview({
 
           {/* Ministry Discipline and Class Profile Section - EXACT format */}
           <div className={isTechnicalBulletin ? "mt-6" : "mt-4"}>
-            <table className="w-full text-[8px] border border-black">
+            <table className="w-full text-[12px] border border-black">
               <tbody>
                 <tr>
                   <td rowSpan={2} className="border border-black p-1 font-bold text-center w-16">
@@ -842,13 +842,13 @@ export default function ReportCardPreview({
                   <td rowSpan={2} className="border border-black p-1 font-bold text-center w-24">
                     {language === 'fr' ? 'Profil de la classe' : 'Class Profile'}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
+                  <td className="border border-black p-1 text-center text-[11px]">
                     {language === 'fr' ? 'Abs. non justifiées (h)' : 'Unjustified Abs. (h)'}
                   </td>
                   <td className="border border-black p-1 text-center font-bold">
                     {student.discipline?.absNJ || 0}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
+                  <td className="border border-black p-1 text-center text-[11px]">
                     {language === 'fr' ? 'Avertissement' : 'Conduct Warning'}
                   </td>
                   <td className="border border-black p-1 text-center">
@@ -865,13 +865,13 @@ export default function ReportCardPreview({
                   </td>
                 </tr>
                 <tr>
-                  <td className="border border-black p-1 text-center text-[7px]">
+                  <td className="border border-black p-1 text-center text-[11px]">
                     {language === 'fr' ? 'Abs. justifiées (h)' : 'Justified Abs (h)'}
                   </td>
                   <td className="border border-black p-1 text-center font-bold">
                     {student.discipline?.absJ || 0}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
+                  <td className="border border-black p-1 text-center text-[11px]">
                     {language === 'fr' ? 'Blâme' : 'Reprimand'}
                   </td>
                   <td className="border border-black p-1 text-center">
@@ -889,13 +889,13 @@ export default function ReportCardPreview({
                   <td className="border border-black p-1 text-center">
                     COEF
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
+                  <td className="border border-black p-1 text-center text-[11px]">
                     {language === 'fr' ? 'Retards (nombre)' : 'Late (nbr of times)'}
                   </td>
                   <td className="border border-black p-1 text-center font-bold">
                     {student.discipline?.late || 0}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
+                  <td className="border border-black p-1 text-center text-[11px]">
                     {language === 'fr' ? 'Suspension' : 'Suspension'}
                   </td>
                   <td className="border border-black p-1 text-center">
@@ -907,12 +907,12 @@ export default function ReportCardPreview({
                   <td className={`border border-black p-1 text-center font-bold text-lg ${moyenne < 10 ? 'text-red-600' : 'text-green-700'}`}>
                     {moyenne}/20
                   </td>
-                  <td rowSpan={3} className="border border-black p-1 text-[6px] align-top">
+                  <td rowSpan={3} className="border border-black p-1 text-[10px] align-top">
                     {student.generalRemark || (language === 'fr' ? 'Observations sur la performance de l\'\u00e9lève' : 'Remarks on student performance')}
                   </td>
                 </tr>
                 <tr>
-                  <td className="border border-black p-1 text-center text-[7px]">
+                  <td className="border border-black p-1 text-center text-[11px]">
                     {language === 'fr' ? 'Nombre réussi' : 'Number passed'}
                   </td>
                   <td className="border border-black p-1 text-center">
@@ -921,13 +921,13 @@ export default function ReportCardPreview({
                   <td className="border border-black p-1 text-center">
                     {totalCoef}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
+                  <td className="border border-black p-1 text-center text-[11px]">
                     {language === 'fr' ? 'Punition (heures)' : 'Punishment (hours)'}
                   </td>
                   <td className="border border-black p-1 text-center">
                     {student.discipline?.punishmentHours || 0}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
+                  <td className="border border-black p-1 text-center text-[11px]">
                     {language === 'fr' ? 'Renvoi' : 'Dismissed'}
                   </td>
                   <td className="border border-black p-1 text-center">
@@ -941,7 +941,7 @@ export default function ReportCardPreview({
                   </td>
                 </tr>
                 <tr>
-                  <td className="border border-black p-1 text-center text-[7px]">
+                  <td className="border border-black p-1 text-center text-[11px]">
                     {language === 'fr' ? 'Taux de réussite (%)' : 'Success rate (%)'}
                   </td>
                   <td className="border border-black p-1 text-center">
@@ -953,28 +953,28 @@ export default function ReportCardPreview({
                     CA: {entries.filter(e => Number(e.m20 || e.av20) >= 10 && Number(e.m20 || e.av20) < 14).length}<br/>
                     CAA: {entries.filter(e => Number(e.m20 || e.av20) < 10).length}
                   </td>
-                  <td colSpan={2} className="border border-black p-1 text-[6px] align-top">
+                  <td colSpan={2} className="border border-black p-1 text-[10px] align-top">
                     <div className="font-bold mb-1">
                       {language === 'fr' ? 'Conseil de Classe:' : 'Class Council:'}
                     </div>
-                    <div className="text-[5px] space-y-1">
+                    <div className="text-[9px] space-y-1">
                       <div>{language === 'fr' ? 'Décision:' : 'Decision:'} ____________</div>
                       <div>{language === 'fr' ? 'Date:' : 'Date:'} ____________</div>
                     </div>
                   </td>
-                  <td className="border border-black p-1 text-[6px] align-top">
+                  <td className="border border-black p-1 text-[10px] align-top">
                     <div className="font-bold mb-1">
                       {language === 'fr' ? 'Signatures Directeur:' : 'Principal Signatures:'}
                     </div>
-                    <div className="text-[5px] space-y-1">
+                    <div className="text-[9px] space-y-1">
                       <div>{language === 'fr' ? 'Directeur:' : 'Principal:'} ____________</div>
                     </div>
                   </td>
-                  <td colSpan={2} className="border border-black p-1 text-[6px] align-top">
+                  <td colSpan={2} className="border border-black p-1 text-[10px] align-top">
                     <div className="font-bold mb-1">
                       {language === 'fr' ? 'Signature Parent:' : 'Parent Signature:'}
                     </div>
-                    <div className="text-[5px] space-y-1">
+                    <div className="text-[9px] space-y-1">
                       <div>{language === 'fr' ? 'Parent:' : 'Parent:'} ____________</div>
                     </div>
                   </td>
@@ -994,44 +994,44 @@ export default function ReportCardPreview({
               {/* Trimester Averages */}
               <div className="grid grid-cols-4 gap-3 mb-4">
                 <div className="text-center">
-                  <div className="text-xs text-gray-600">
+                  <div className="text-sm text-gray-600">
                     {language === 'fr' ? '1er T.' : '1st T.'}
                   </div>
-                  <div className={`text-sm font-semibold ${annualSummary.firstTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.firstTrimesterAverage}/20</div>
+                  <div className={`text-base font-semibold ${annualSummary.firstTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.firstTrimesterAverage}/20</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-600">
+                  <div className="text-sm text-gray-600">
                     {language === 'fr' ? '2e T.' : '2nd T.'}
                   </div>
-                  <div className={`text-sm font-semibold ${annualSummary.secondTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.secondTrimesterAverage}/20</div>
+                  <div className={`text-base font-semibold ${annualSummary.secondTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.secondTrimesterAverage}/20</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-gray-600">
+                  <div className="text-sm text-gray-600">
                     {language === 'fr' ? '3e T.' : '3rd T.'}
                   </div>
-                  <div className={`text-sm font-semibold ${annualSummary.thirdTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.thirdTrimesterAverage}/20</div>
+                  <div className={`text-base font-semibold ${annualSummary.thirdTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.thirdTrimesterAverage}/20</div>
                 </div>
                 <div className="text-center bg-white rounded border p-2">
-                  <div className="text-xs text-orange-700 font-medium">
+                  <div className="text-sm text-orange-700 font-medium">
                     {language === 'fr' ? 'Moyenne Annuelle' : 'Annual Average'}
                   </div>
-                  <div className={`text-lg font-bold ${annualSummary.annualAverage < 10 ? 'text-red-600' : 'text-orange-800'}`}>{annualSummary.annualAverage}/20</div>
+                  <div className={`text-xl font-bold ${annualSummary.annualAverage < 10 ? 'text-red-600' : 'text-orange-800'}`}>{annualSummary.annualAverage}/20</div>
                 </div>
               </div>
 
               {/* Annual Rank and Pass Decision */}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center border rounded p-2">
-                  <div className="text-xs text-gray-600">
+                  <div className="text-sm text-gray-600">
                     {language === 'fr' ? 'Rang Annuel' : 'Annual Rank'}
                   </div>
-                  <div className="text-sm font-semibold">{annualSummary.annualRank}e / {annualSummary.totalStudents}</div>
+                  <div className="text-base font-semibold">{annualSummary.annualRank}e / {annualSummary.totalStudents}</div>
                 </div>
                 <div className="text-center border rounded p-2">
-                  <div className="text-xs text-gray-600">
+                  <div className="text-sm text-gray-600">
                     {language === 'fr' ? 'Décision de Passage' : 'Pass Decision'}
                   </div>
-                  <div className={`text-sm font-bold ${
+                  <div className={`text-base font-bold ${
                     annualSummary.passDecision === 'PASSE' ? 'text-green-700' : 
                     annualSummary.passDecision === 'REDOUBLE' ? 'text-orange-700' : 'text-red-700'
                   }`}>
@@ -1043,20 +1043,20 @@ export default function ReportCardPreview({
               {/* Final Appreciation */}
               {annualSummary.finalAppreciation && (
                 <div className="mb-3">
-                  <div className="text-xs text-gray-600 font-medium">
+                  <div className="text-sm text-gray-600 font-medium">
                     {language === 'fr' ? 'Appréciation Finale' : 'Final Appreciation'}
                   </div>
-                  <div className="text-sm italic bg-white border rounded p-2">{annualSummary.finalAppreciation}</div>
+                  <div className="text-base italic bg-white border rounded p-2">{annualSummary.finalAppreciation}</div>
                 </div>
               )}
 
               {/* Holiday Recommendations */}
               {annualSummary.holidayRecommendations && (
                 <div>
-                  <div className="text-xs text-gray-600 font-medium">
+                  <div className="text-sm text-gray-600 font-medium">
                     {language === 'fr' ? 'Recommandations pour les Vacances' : 'Holiday Recommendations'}
                   </div>
-                  <div className="text-sm bg-white border rounded p-2">{annualSummary.holidayRecommendations}</div>
+                  <div className="text-base bg-white border rounded p-2">{annualSummary.holidayRecommendations}</div>
                 </div>
               )}
             </div>
@@ -1066,9 +1066,9 @@ export default function ReportCardPreview({
           {(student as any).verificationCode && (
             <div className={`${isTechnicalBulletin ? "mt-4" : "mt-6"} flex justify-center`}>
               <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-3 w-64">
-                <div className="text-xs text-blue-700 text-center font-medium">{language === 'fr' ? 'Code de Vérification' : 'Verification Code'}</div>
-                <div className="text-lg font-bold text-blue-800 text-center">{(student as any).verificationCode}</div>
-                <div className="text-xs text-blue-600 text-center mt-1">{language === 'fr' ? 'Vérifiez sur educafric.com/verify' : 'Verify on educafric.com/verify'}</div>
+                <div className="text-sm text-blue-700 text-center font-medium">{language === 'fr' ? 'Code de Vérification' : 'Verification Code'}</div>
+                <div className="text-xl font-bold text-blue-800 text-center">{(student as any).verificationCode}</div>
+                <div className="text-sm text-blue-600 text-center mt-1">{language === 'fr' ? 'Vérifiez sur educafric.com/verify' : 'Verify on educafric.com/verify'}</div>
               </div>
             </div>
           )}
