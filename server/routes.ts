@@ -1960,6 +1960,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // ✅ STEP 3: Query students directly from users table with class enrollment info
+      // ✅ FIX: Filter by classId when provided
+      const parsedClassId = classId ? parseInt(classId as string, 10) : null;
+      
+      // Build WHERE conditions dynamically
+      const whereConditions = [
+        eq(usersTable.role, 'Student'),
+        eq(usersTable.schoolId, userSchoolId)
+      ];
+      
+      // ✅ FIX: Add classId filter if provided - use INNER JOIN for class filtering
+      if (parsedClassId && !isNaN(parsedClassId)) {
+        console.log(`[DIRECTOR_STUDENTS_API] Filtering by classId: ${parsedClassId}`);
+        
+        // When filtering by class, use INNER JOIN to only get students enrolled in that class
+        const dbStudentsRaw = await db
+          .select({
+            id: usersTable.id,
+            firstName: usersTable.firstName,
+            lastName: usersTable.lastName,
+            email: usersTable.email,
+            phone: usersTable.phone,
+            gender: usersTable.gender,
+            role: usersTable.role,
+            schoolId: usersTable.schoolId,
+            dateOfBirth: usersTable.dateOfBirth,
+            placeOfBirth: usersTable.placeOfBirth,
+            guardian: usersTable.guardian,
+            parentEmail: usersTable.parentEmail,
+            parentPhone: usersTable.parentPhone,
+            profilePictureUrl: usersTable.profilePictureUrl,
+            educafricNumber: usersTable.educafricNumber,
+            isRepeater: usersTable.isRepeater,
+            classId: enrollments.classId,
+            className: classes.name,
+            classLevel: classes.level
+          })
+          .from(usersTable)
+          .innerJoin(enrollments, eq(usersTable.id, enrollments.studentId))
+          .innerJoin(classes, eq(enrollments.classId, classes.id))
+          .where(
+            and(
+              eq(usersTable.role, 'Student'),
+              eq(usersTable.schoolId, userSchoolId),
+              eq(enrollments.classId, parsedClassId) // ✅ Filter by classId
+            )
+          )
+          .orderBy(asc(usersTable.firstName), asc(usersTable.lastName));
+        
+        // Process filtered students (continue with existing logic)
+        const dbStudents = dbStudentsRaw.filter((student: any) => {
+          const role = student.role || '';
+          if (role === 'Teacher') return false;
+          const studentIsSandbox = isSandboxUserByEmail(student.email || '');
+          return studentIsSandbox === userIsSandbox;
+        });
+        
+        const students = dbStudents.map(student => ({
+          ...student,
+          name: `${student.firstName} ${student.lastName}`,
+          className: student.className || null,
+          classId: student.classId || null
+        }));
+        
+        console.log(`[DIRECTOR_STUDENTS_API] ✅ Returning ${students.length} students for class ${parsedClassId}`);
+        return res.json({ success: true, students });
+      }
+      
+      // No classId filter - get all students with LEFT JOIN
       const dbStudentsRaw = await db
         .select({
           id: usersTable.id,
