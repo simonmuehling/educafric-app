@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   BookOpen, Upload, Download, Eye, Plus, Edit, Save, 
   FileText, Image, Video, AudioLines, Target, Clock,
@@ -13,10 +14,10 @@ import { ModernCard } from '@/components/ui/ModernCard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// Removed apiRequest import - using fetch with credentials instead
 
 const CreateEducationalContent = () => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('lessons');
   const [searchTerm, setSearchTerm] = useState('');
@@ -106,26 +107,69 @@ const CreateEducationalContent = () => {
 
   const t = text[language as keyof typeof text];
 
-  const subjects = [
-    { id: 'mathematiques', name: 'Mathématiques' },
-    { id: 'francais', name: 'Français' },
-    { id: 'anglais', name: 'Anglais' },
-    { id: 'sciences', name: 'Sciences' },
-    { id: 'histoire', name: 'Histoire-Géographie' },
-    { id: 'physique', name: 'Physique-Chimie' },
-    { id: 'svt', name: 'SVT' },
-    { id: 'education', name: 'Éducation Civique' }
-  ];
+  // Fetch teacher's assigned subjects from API
+  const { data: teacherSubjects = [], isLoading: subjectsLoading } = useQuery<any[]>({
+    queryKey: ['/api/teacher/subjects'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/subjects', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error('Failed to fetch subjects');
+      const data = await response.json();
+      return data.subjects || [];
+    },
+    enabled: !!user
+  });
 
-  const levels = [
-    { id: '6eme', name: '6ème' },
-    { id: '5eme', name: '5ème' },
-    { id: '4eme', name: '4ème' },
-    { id: '3eme', name: '3ème' },
-    { id: '2nde', name: '2nde' },
-    { id: '1ere', name: '1ère' },
-    { id: 'tle', name: 'Terminale' }
-  ];
+  // Fetch teacher's assigned classes for level selection
+  const { data: teacherClasses = [], isLoading: classesLoading } = useQuery<any[]>({
+    queryKey: ['/api/teacher/classes'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/classes', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error('Failed to fetch classes');
+      const data = await response.json();
+      return data.classes || data.schoolsWithClasses?.[0]?.classes || [];
+    },
+    enabled: !!user
+  });
+
+  // Build subjects list from teacher's assigned subjects
+  const subjects = teacherSubjects.length > 0 
+    ? teacherSubjects.map((subj: any) => ({ 
+        id: subj.id?.toString() || subj.name, 
+        name: subj.nameFr || subj.name 
+      }))
+    : [
+        { id: 'mathematiques', name: 'Mathématiques' },
+        { id: 'francais', name: 'Français' },
+        { id: 'anglais', name: 'Anglais' },
+        { id: 'sciences', name: 'Sciences' },
+        { id: 'histoire', name: 'Histoire-Géographie' },
+        { id: 'physique', name: 'Physique-Chimie' },
+        { id: 'svt', name: 'SVT' },
+        { id: 'education', name: 'Éducation Civique' }
+      ];
+
+  // Build levels from teacher's assigned classes
+  const levels = teacherClasses.length > 0
+    ? [...new Set(teacherClasses.map((cls: any) => cls.level || cls.name?.split(' ')[0]))]
+        .filter(Boolean)
+        .map(level => ({ id: level, name: level }))
+    : [
+        { id: '6eme', name: '6ème' },
+        { id: '5eme', name: '5ème' },
+        { id: '4eme', name: '4ème' },
+        { id: '3eme', name: '3ème' },
+        { id: '2nde', name: '2nde' },
+        { id: '1ere', name: '1ère' },
+        { id: 'tle', name: 'Terminale' }
+      ];
 
   const contentTypes = [
     { id: 'lesson', name: t.lesson, icon: BookOpen, color: 'blue' },

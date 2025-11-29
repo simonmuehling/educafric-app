@@ -569,4 +569,219 @@ router.get('/stats', requireAuth, async (req, res) => {
   }
 });
 
+// ===== DIRECTOR VIEW: Get all educational content from school's teachers =====
+// TODO: This module requires an educational_content table in the database schema
+// Currently returns empty array for real schools, demo data only for sandbox
+router.get('/school/all', requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+    
+    // Only directors and admins can view all school content
+    if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only directors can view all school content'
+      });
+    }
+
+    const schoolId = user.schoolId;
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: 'School ID required'
+      });
+    }
+
+    const { teacherId, subject, level, type, status } = req.query;
+
+    console.log(`[EDUCATIONAL_CONTENT] Director viewing school content:`, {
+      schoolId,
+      filters: { teacherId, subject, level, type, status }
+    });
+
+    // Check if sandbox user (demo data only for sandbox accounts)
+    const isSandboxUser = user.email?.includes('@test.educafric.com') ||
+                          user.email?.includes('sandbox@') ||
+                          user.email?.includes('.sandbox@') ||
+                          user.email?.includes('demo@');
+
+    // TODO: Replace with real database queries when educational_content table is created
+    // For now, return empty array for real schools (no mock data in production)
+    if (!isSandboxUser) {
+      console.log(`[EDUCATIONAL_CONTENT] Real school ${schoolId} - returning empty (no DB table yet)`);
+      return res.json({
+        success: true,
+        content: [],
+        total: 0,
+        filters: { teacherId, subject, level, type, status },
+        message: 'Educational content database table not yet implemented. Content uploaded via files only.'
+      });
+    }
+
+    // Demo data for sandbox schools only
+    const schoolContent = [
+      {
+        id: 1,
+        title: "Introduction aux Fractions",
+        description: "Cours complet sur les fractions pour les élèves de 6ème",
+        type: "lesson",
+        subject: "Mathématiques",
+        subjectId: 1,
+        level: "6ème",
+        duration: 45,
+        teacherId: 1,
+        teacherName: "Marie Dubois",
+        schoolId: schoolId,
+        status: "published",
+        visibility: "school",
+        createdAt: "2025-08-20T10:00:00Z",
+        submittedForApproval: true,
+        approvalStatus: "approved"
+      },
+      {
+        id: 2,
+        title: "Exercices sur les Verbes",
+        description: "Conjugaison des verbes du 1er groupe",
+        type: "exercise",
+        subject: "Français",
+        subjectId: 2,
+        level: "5ème",
+        duration: 30,
+        teacherId: 2,
+        teacherName: "Jean Martin",
+        schoolId: schoolId,
+        status: "pending",
+        visibility: "school",
+        createdAt: "2025-08-25T14:00:00Z",
+        submittedForApproval: true,
+        approvalStatus: "pending"
+      },
+      {
+        id: 3,
+        title: "Présentation: La Révolution française",
+        description: "Les causes et conséquences de la Révolution",
+        type: "presentation",
+        subject: "Histoire-Géographie",
+        subjectId: 3,
+        level: "4ème",
+        duration: 60,
+        teacherId: 3,
+        teacherName: "Sophie Bernard",
+        schoolId: schoolId,
+        status: "published",
+        visibility: "school",
+        createdAt: "2025-08-18T09:00:00Z",
+        submittedForApproval: true,
+        approvalStatus: "approved"
+      }
+    ];
+
+    // Filter by query params
+    let filteredContent = schoolContent;
+
+    if (teacherId) {
+      filteredContent = filteredContent.filter(c => c.teacherId === parseInt(teacherId as string));
+    }
+    if (subject) {
+      filteredContent = filteredContent.filter(c => 
+        c.subject.toLowerCase().includes((subject as string).toLowerCase())
+      );
+    }
+    if (level) {
+      filteredContent = filteredContent.filter(c => 
+        c.level.toLowerCase().includes((level as string).toLowerCase())
+      );
+    }
+    if (type) {
+      filteredContent = filteredContent.filter(c => c.type === type);
+    }
+    if (status) {
+      filteredContent = filteredContent.filter(c => c.approvalStatus === status);
+    }
+
+    res.json({
+      success: true,
+      content: filteredContent,
+      total: filteredContent.length,
+      filters: { teacherId, subject, level, type, status },
+      isSandboxDemo: true
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Director view error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch school content'
+    });
+  }
+});
+
+// ===== DIRECTOR: Approve or reject educational content =====
+// TODO: Implement persistence when educational_content table is created
+router.post('/:id/review', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, feedback } = req.body; // action: 'approve' | 'reject' | 'request_changes'
+    const user = (req as any).user;
+    
+    // Only directors can review content
+    if (!['Director', 'Admin'].includes(user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only directors can review content'
+      });
+    }
+
+    // Verify schoolId is present for tenant isolation
+    const schoolId = user.schoolId;
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: 'School ID required for content review'
+      });
+    }
+
+    // Validate action
+    if (!['approve', 'reject', 'request_changes'].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid action. Must be approve, reject, or request_changes'
+      });
+    }
+
+    console.log(`[EDUCATIONAL_CONTENT] Director reviewing content ${id}:`, {
+      action,
+      feedback,
+      reviewerId: user.id,
+      schoolId
+    });
+
+    // TODO: Update database when educational_content table exists
+    // For now, log the action and return success
+    const reviewRecord = {
+      contentId: parseInt(id),
+      action,
+      feedback: feedback || '',
+      reviewedBy: user.id,
+      reviewerName: `${user.firstName} ${user.lastName}`,
+      reviewedAt: new Date().toISOString(),
+      schoolId,
+      note: 'Review recorded - database persistence pending table creation'
+    };
+
+    res.json({
+      success: true,
+      message: `Content ${action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'returned for changes'}`,
+      review: reviewRecord
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Review error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to review content'
+    });
+  }
+});
+
 export default router;

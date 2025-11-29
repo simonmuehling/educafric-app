@@ -4486,6 +4486,304 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== NEW: /api/teacher/subjects - Get teacher's assigned subjects =====
+  app.get("/api/teacher/subjects", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      
+      console.log(`[TEACHER_API] GET /api/teacher/subjects for teacher ${user.id} at school ${schoolId}`);
+      
+      if (!schoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required', subjects: [] });
+      }
+      
+      // Get subjects from timetables (unique subjects teacher teaches)
+      const teacherSubjectsFromTimetables = await db
+        .selectDistinct({
+          subjectName: timetables.subjectName
+        })
+        .from(timetables)
+        .where(
+          and(
+            eq(timetables.teacherId, user.id),
+            eq(timetables.schoolId, schoolId),
+            eq(timetables.isActive, true)
+          )
+        );
+      
+      // Also get from subjects table if we have subject IDs in timetables
+      const assignedSubjects = await db
+        .selectDistinct({
+          id: subjects.id,
+          name: subjects.name,
+          nameFr: subjects.nameFr,
+          nameEn: subjects.nameEn,
+          code: subjects.code,
+          coefficient: subjects.coefficient,
+          category: subjects.category
+        })
+        .from(subjects)
+        .innerJoin(timetables, sql`${subjects.name} = ${timetables.subjectName} OR ${subjects.nameFr} = ${timetables.subjectName}`)
+        .where(
+          and(
+            eq(timetables.teacherId, user.id),
+            eq(timetables.schoolId, schoolId),
+            eq(timetables.isActive, true)
+          )
+        );
+      
+      // Merge results, prioritizing subjects table data
+      const subjectMap = new Map<string, any>();
+      
+      // Add from subjects table first
+      for (const subj of assignedSubjects) {
+        subjectMap.set(subj.name || subj.nameFr || '', {
+          id: subj.id,
+          name: subj.name || subj.nameFr || subj.nameEn || '',
+          nameFr: subj.nameFr || subj.name || '',
+          nameEn: subj.nameEn || subj.name || '',
+          code: subj.code || '',
+          coefficient: subj.coefficient || 1,
+          category: subj.category || 'General'
+        });
+      }
+      
+      // Add any remaining from timetables (in case subject not in subjects table)
+      for (const tt of teacherSubjectsFromTimetables) {
+        if (tt.subjectName && !subjectMap.has(tt.subjectName)) {
+          subjectMap.set(tt.subjectName, {
+            id: subjectMap.size + 1000, // Temporary ID
+            name: tt.subjectName,
+            nameFr: tt.subjectName,
+            nameEn: tt.subjectName,
+            code: tt.subjectName?.substring(0, 4).toUpperCase() || 'SUBJ',
+            coefficient: 1,
+            category: 'General'
+          });
+        }
+      }
+      
+      const subjectsList = Array.from(subjectMap.values());
+      console.log(`[TEACHER_API] ✅ Found ${subjectsList.length} subjects for teacher ${user.id}`);
+      
+      res.json({ success: true, subjects: subjectsList });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching subjects:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch subjects', subjects: [] });
+    }
+  });
+
+  // ===== NEW: /api/teacher/classes-with-parents - Get classes with students and parents for communications =====
+  app.get("/api/teacher/classes-with-parents", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      
+      console.log(`[TEACHER_API] GET /api/teacher/classes-with-parents for teacher ${user.id}`);
+      
+      if (!schoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required', classes: [] });
+      }
+      
+      // Get teacher's assigned classes from timetables
+      const assignedClasses = await db
+        .selectDistinct({
+          classId: timetables.classId,
+          className: classes.name,
+          classLevel: classes.level
+        })
+        .from(timetables)
+        .innerJoin(classes, eq(timetables.classId, classes.id))
+        .where(
+          and(
+            eq(timetables.teacherId, user.id),
+            eq(timetables.schoolId, schoolId),
+            eq(timetables.isActive, true)
+          )
+        );
+      
+      if (assignedClasses.length === 0) {
+        console.log(`[TEACHER_API] No assigned classes for teacher ${user.id}`);
+        return res.json({ success: true, classes: [] });
+      }
+      
+      const classIds = assignedClasses.map(c => c.classId);
+      
+      // Get students in these classes from enrollments
+      const studentsInClasses = await db
+        .select({
+          studentId: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          classId: enrollments.classId,
+          parentId: users.parentId
+        })
+        .from(users)
+        .innerJoin(enrollments, eq(enrollments.studentId, users.id))
+        .where(
+          and(
+            eq(users.role, 'Student'),
+            eq(users.schoolId, schoolId),
+            inArray(enrollments.classId, classIds),
+            eq(enrollments.status, 'active')
+          )
+        );
+      
+      // Get parent IDs for these students
+      const parentIds = [...new Set(studentsInClasses.filter(s => s.parentId).map(s => s.parentId))];
+      
+      // Fetch parent details if any
+      let parentsMap = new Map<number, any>();
+      if (parentIds.length > 0) {
+        const parents = await db
+          .select({
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            phone: users.phone
+          })
+          .from(users)
+          .where(
+            and(
+              eq(users.role, 'Parent'),
+              inArray(users.id, parentIds as number[])
+            )
+          );
+        
+        for (const parent of parents) {
+          parentsMap.set(parent.id, parent);
+        }
+      }
+      
+      // Build response structure: classes with students and their parents
+      const classesWithParents = assignedClasses.map(classItem => {
+        const classStudents = studentsInClasses
+          .filter(s => s.classId === classItem.classId)
+          .map(student => {
+            const parent = student.parentId ? parentsMap.get(student.parentId) : null;
+            return {
+              id: student.studentId,
+              name: `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+              firstName: student.firstName,
+              lastName: student.lastName,
+              email: student.email,
+              phone: student.phone,
+              parents: parent ? [{
+                id: parent.id,
+                name: `${parent.firstName || ''} ${parent.lastName || ''}`.trim(),
+                firstName: parent.firstName,
+                lastName: parent.lastName,
+                email: parent.email,
+                phone: parent.phone
+              }] : []
+            };
+          });
+        
+        return {
+          id: classItem.classId,
+          name: classItem.className,
+          level: classItem.classLevel,
+          studentCount: classStudents.length,
+          students: classStudents
+        };
+      });
+      
+      console.log(`[TEACHER_API] ✅ Found ${classesWithParents.length} classes with ${studentsInClasses.length} students and ${parentsMap.size} parents`);
+      
+      res.json({ success: true, classes: classesWithParents });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching classes with parents:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch classes with parents', classes: [] });
+    }
+  });
+
+  // ===== NEW: /api/teacher/assigned-schools - Get teacher's assigned schools =====
+  app.get("/api/teacher/assigned-schools", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      console.log(`[TEACHER_API] GET /api/teacher/assigned-schools for teacher ${user.id}`);
+      
+      // Primary school from user profile
+      let assignedSchools: any[] = [];
+      
+      if (user.schoolId) {
+        const [primarySchool] = await db
+          .select({
+            id: schools.id,
+            name: schools.name,
+            address: schools.address,
+            phone: schools.phone,
+            email: schools.email,
+            logoUrl: schools.logoUrl,
+            city: schools.city,
+            educafricNumber: schools.educafricNumber
+          })
+          .from(schools)
+          .where(eq(schools.id, user.schoolId))
+          .limit(1);
+        
+        if (primarySchool) {
+          assignedSchools.push({
+            ...primarySchool,
+            isPrimary: true,
+            assignmentDate: new Date().toISOString().split('T')[0]
+          });
+        }
+      }
+      
+      // Also check for any additional school assignments via timetables (for teachers who work at multiple schools)
+      const additionalSchoolIds = await db
+        .selectDistinct({ schoolId: timetables.schoolId })
+        .from(timetables)
+        .where(
+          and(
+            eq(timetables.teacherId, user.id),
+            eq(timetables.isActive, true)
+          )
+        );
+      
+      const otherSchoolIds = additionalSchoolIds
+        .map(s => s.schoolId)
+        .filter(id => id && id !== user.schoolId);
+      
+      if (otherSchoolIds.length > 0) {
+        const additionalSchools = await db
+          .select({
+            id: schools.id,
+            name: schools.name,
+            address: schools.address,
+            phone: schools.phone,
+            email: schools.email,
+            logoUrl: schools.logoUrl,
+            city: schools.city,
+            educafricNumber: schools.educafricNumber
+          })
+          .from(schools)
+          .where(inArray(schools.id, otherSchoolIds));
+        
+        for (const school of additionalSchools) {
+          assignedSchools.push({
+            ...school,
+            isPrimary: false,
+            assignmentDate: new Date().toISOString().split('T')[0]
+          });
+        }
+      }
+      
+      console.log(`[TEACHER_API] ✅ Found ${assignedSchools.length} assigned schools for teacher ${user.id}`);
+      
+      res.json({ success: true, schools: assignedSchools });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching assigned schools:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch assigned schools', schools: [] });
+    }
+  });
+
   // COMMERCIAL API ROUTES - Offer Letter Templates
   app.get("/api/commercial/offer-templates", requireAuth, async (req, res) => {
     try {
