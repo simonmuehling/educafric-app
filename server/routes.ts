@@ -13595,43 +13595,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[OFFLINE_SYNC] 📥 Fetching students for school:', schoolId);
       
-      const { db } = await import('./db');
-      const { students, classes: classesTable } = await import('@shared/schema');
-      const { eq, and } = await import('drizzle-orm');
-      
-      const allStudents = await db.select({
-        id: students.id,
-        firstName: students.firstName,
-        lastName: students.lastName,
-        email: students.email,
-        phone: students.phone,
-        classId: students.classId,
-        schoolId: students.schoolId,
-        isActive: students.isActive,
-        parentPhone: students.parentPhone,
-        photoUrl: students.photoUrl
-      })
-        .from(students)
-        .where(eq(students.schoolId, schoolId));
-      
-      // Get class names
-      const classIds = [...new Set(allStudents.filter(s => s.classId).map(s => s.classId))];
-      let classMap: Record<number, string> = {};
-      
-      if (classIds.length > 0) {
-        const classData = await db.select({ id: classesTable.id, name: classesTable.name })
-          .from(classesTable)
-          .where(eq(classesTable.schoolId, schoolId));
-        classMap = Object.fromEntries(classData.map(c => [c.id, c.name]));
-      }
+      // Use storage interface like the rest of the application
+      const allStudents = await storage.getStudentsBySchool(schoolId);
       
       console.log('[OFFLINE_SYNC] ✅ Students fetched:', allStudents.length);
       
       res.json({
         success: true,
-        students: allStudents.map(s => ({
-          ...s,
-          className: s.classId ? classMap[s.classId] : undefined
+        students: allStudents.map((s: any) => ({
+          id: s.id,
+          firstName: s.firstName,
+          lastName: s.lastName,
+          email: s.email,
+          phone: s.phone,
+          classId: s.classId,
+          className: s.className,
+          schoolId: schoolId,
+          isActive: s.isActive !== false,
+          parentPhone: s.parentPhone,
+          photoUrl: s.photoUrl
         }))
       });
     } catch (error) {
@@ -13652,29 +13634,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[OFFLINE_SYNC] 📥 Fetching teachers for school:', schoolId);
       
-      const { db } = await import('./db');
-      const { teachers } = await import('@shared/schema');
-      const { eq } = await import('drizzle-orm');
-      
-      const allTeachers = await db.select({
-        id: teachers.id,
-        firstName: teachers.firstName,
-        lastName: teachers.lastName,
-        email: teachers.email,
-        phone: teachers.phone,
-        schoolId: teachers.schoolId,
-        isActive: teachers.isActive,
-        qualifications: teachers.qualifications,
-        photoUrl: teachers.photoUrl
-      })
-        .from(teachers)
-        .where(eq(teachers.schoolId, schoolId));
+      // Use storage interface like the rest of the application
+      const allTeachers = await storage.getTeachersBySchool(schoolId);
       
       console.log('[OFFLINE_SYNC] ✅ Teachers fetched:', allTeachers.length);
       
       res.json({
         success: true,
-        teachers: allTeachers
+        teachers: allTeachers.map((t: any) => ({
+          id: t.id,
+          firstName: t.firstName,
+          lastName: t.lastName,
+          email: t.email,
+          phone: t.phone,
+          schoolId: schoolId,
+          isActive: t.isActive !== false,
+          qualifications: t.qualifications,
+          photoUrl: t.photoUrl,
+          subjects: t.subjects
+        }))
       });
     } catch (error) {
       console.error('[OFFLINE_SYNC] Error fetching teachers:', error);
