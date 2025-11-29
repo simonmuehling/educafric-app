@@ -175,6 +175,10 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
   (p) => p === '/api/auth/forgot-password',
   (p) => p === '/api/auth/reset-password',
   (p) => p === '/api/auth/sandbox-login',
+  (p) => p === '/api/auth/check-duplicate',
+  
+  // Multi-role detection (pre-auth check)
+  (p) => p === '/api/multirole/detect-roles',
   
   // PWA Notification routes (fetch API without CSRF token)
   (p) => p.startsWith('/api/notifications/'),
