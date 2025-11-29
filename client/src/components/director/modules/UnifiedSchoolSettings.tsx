@@ -22,11 +22,13 @@ import {
 import { 
   Settings, School, Bell, MapPin, Clock, Users, 
   GraduationCap, Palette, Globe, Database,
-  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image, Flag
+  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image, Flag,
+  WifiOff, Download, CheckCircle2, RefreshCw, AlertTriangle
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
+import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 
 interface SchoolProfile {
   id: number;
@@ -78,6 +80,16 @@ const UnifiedSchoolSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  
+  // Offline Premium Mode
+  const { 
+    isOnline, 
+    offlineDataReady, 
+    offlineDataStatus, 
+    isPreparing, 
+    prepareOfflineData,
+    refreshDataStatus
+  } = useOfflinePremium();
   
   // Local state for form data
   const [formData, setFormData] = useState<Partial<SchoolProfile>>({});
@@ -903,6 +915,126 @@ const UnifiedSchoolSettings: React.FC = () => {
                       <p className="text-sm text-gray-600">Suivi de géolocalisation</p>
                     </div>
                     <Switch defaultChecked={schoolConfig?.geolocationEnabled} />
+                  </div>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              {/* Offline Mode Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <WifiOff className="w-5 h-5" />
+                  {language === 'fr' ? 'Mode Hors Ligne' : 'Offline Mode'}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {language === 'fr' 
+                    ? 'Préparez votre appareil pour utiliser Educafric sans connexion internet. Les données seront stockées localement.'
+                    : 'Prepare your device to use Educafric without internet connection. Data will be stored locally.'
+                  }
+                </p>
+                
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <Database className="w-6 h-6 text-blue-600 mt-1" />
+                      <div>
+                        <p className="font-medium text-gray-800">
+                          {language === 'fr' ? 'État des données locales' : 'Local Data Status'}
+                        </p>
+                        <div className="flex flex-wrap gap-3 mt-2 text-sm">
+                          <span className="flex items-center gap-1 px-2 py-1 bg-white rounded border">
+                            <School className="w-4 h-4 text-blue-500" />
+                            {offlineDataStatus?.classesCount || 0} {language === 'fr' ? 'classes' : 'classes'}
+                          </span>
+                          <span className="flex items-center gap-1 px-2 py-1 bg-white rounded border">
+                            <GraduationCap className="w-4 h-4 text-green-500" />
+                            {offlineDataStatus?.studentsCount || 0} {language === 'fr' ? 'élèves' : 'students'}
+                          </span>
+                          <span className="flex items-center gap-1 px-2 py-1 bg-white rounded border">
+                            <Users className="w-4 h-4 text-purple-500" />
+                            {offlineDataStatus?.teachersCount || 0} {language === 'fr' ? 'enseignants' : 'teachers'}
+                          </span>
+                        </div>
+                        {offlineDataStatus?.lastPrepared && (
+                          <p className="text-xs text-gray-500 mt-2">
+                            {language === 'fr' ? 'Dernière préparation' : 'Last prepared'}: {' '}
+                            {new Date(offlineDataStatus.lastPrepared).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2">
+                      {offlineDataReady ? (
+                        <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+                          <CheckCircle2 className="w-5 h-5" />
+                          <span className="text-sm font-medium">
+                            {language === 'fr' ? 'Prêt pour le mode hors ligne' : 'Ready for offline mode'}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-orange-600 bg-orange-50 px-3 py-2 rounded-lg border border-orange-200">
+                          <AlertTriangle className="w-5 h-5" />
+                          <span className="text-sm font-medium">
+                            {language === 'fr' ? 'Non préparé' : 'Not prepared'}
+                          </span>
+                        </div>
+                      )}
+                      
+                      <Button
+                        onClick={async () => {
+                          const success = await prepareOfflineData();
+                          if (success) {
+                            toast({
+                              title: language === 'fr' ? 'Succès' : 'Success',
+                              description: language === 'fr' 
+                                ? 'Appareil préparé pour le mode hors ligne!' 
+                                : 'Device prepared for offline mode!'
+                            });
+                          } else {
+                            toast({
+                              title: language === 'fr' ? 'Erreur' : 'Error',
+                              description: language === 'fr'
+                                ? 'Échec de la préparation. Réessayez.'
+                                : 'Preparation failed. Please try again.',
+                              variant: 'destructive'
+                            });
+                          }
+                        }}
+                        disabled={!isOnline || isPreparing}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        data-testid="btn-prepare-offline"
+                      >
+                        {isPreparing ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            {language === 'fr' ? 'Préparation...' : 'Preparing...'}
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-4 h-4 mr-2" />
+                            {language === 'fr' ? 'Préparer cet appareil' : 'Prepare This Device'}
+                          </>
+                        )}
+                      </Button>
+                      
+                      {!isOnline && (
+                        <p className="text-xs text-red-600 flex items-center gap-1">
+                          <WifiOff className="w-3 h-3" />
+                          {language === 'fr' 
+                            ? 'Connexion requise pour préparer'
+                            : 'Connection required to prepare'
+                          }
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
