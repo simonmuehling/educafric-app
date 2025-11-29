@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -169,7 +169,12 @@ const FunctionalTeacherAttendance: React.FC = () => {
     }
   };
 
-  // Update students list when class changes
+  // Update students list when class changes - use stable reference to prevent infinite loops
+  const classStudentsKey = useMemo(() => 
+    classStudents.map((s: any) => s.id).join(','), 
+    [classStudents]
+  );
+  
   React.useEffect(() => {
     if (classStudents.length > 0) {
       const studentsWithStatus = classStudents.map((student: any) => ({
@@ -181,7 +186,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
     } else {
       setAttendanceForm(prev => ({ ...prev, students: [] }));
     }
-  }, [classStudents]);
+  }, [classStudentsKey]);
 
   const toggleStudentStatus = (studentId: number) => {
     setAttendanceForm(prev => ({

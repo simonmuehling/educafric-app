@@ -6681,42 +6681,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ success: true, attendance: [], message: 'No classes assigned' });
       }
       
-      // Get students from assigned classes
+      // Get students from assigned classes using enrollments table
       const studentsInClasses = await db.select({
-        id: students.id,
-        userId: students.userId,
+        id: users.id,
         firstName: users.firstName,
         lastName: users.lastName,
-        classId: students.classId,
+        classId: enrollments.classId,
         className: classes.name
       })
-      .from(students)
-      .innerJoin(users, eq(students.userId, users.id))
-      .innerJoin(classes, eq(students.classId, classes.id))
+      .from(enrollments)
+      .innerJoin(users, eq(enrollments.studentId, users.id))
+      .innerJoin(classes, eq(enrollments.classId, classes.id))
       .where(and(
-        inArray(students.classId, assignedClassIds),
-        eq(students.schoolId, schoolId)
+        inArray(enrollments.classId, assignedClassIds),
+        eq(classes.schoolId, schoolId),
+        eq(enrollments.status, 'active')
       ));
       
-      // Get attendance records for these students
-      const attendance = await db.select({
-        id: attendanceRecords.id,
-        studentId: attendanceRecords.studentId,
-        classId: attendanceRecords.classId,
-        date: attendanceRecords.date,
-        status: attendanceRecords.status,
-        arrivalTime: attendanceRecords.arrivalTime,
-        reason: attendanceRecords.reason
+      // Get attendance records for these students using attendance table
+      const attendanceData = await db.select({
+        id: attendance.id,
+        studentId: attendance.studentId,
+        classId: attendance.classId,
+        date: attendance.date,
+        status: attendance.status,
+        reason: attendance.reason
       })
-      .from(attendanceRecords)
+      .from(attendance)
+      .innerJoin(classes, eq(attendance.classId, classes.id))
       .where(and(
-        inArray(attendanceRecords.classId, assignedClassIds),
-        eq(attendanceRecords.schoolId, schoolId),
-        date ? eq(attendanceRecords.date, date as string) : undefined
-      ) as any);
+        inArray(attendance.classId, assignedClassIds),
+        eq(classes.schoolId, schoolId)
+      ));
       
       // Merge attendance with student info
-      const attendanceWithStudents = attendance.map(record => {
+      const attendanceWithStudents = attendanceData.map(record => {
         const student = studentsInClasses.find(s => s.id === record.studentId);
         return {
           id: record.id,
@@ -6726,7 +6725,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           classId: record.classId,
           date: record.date,
           status: record.status,
-          arrivalTime: record.arrivalTime,
           reason: record.reason
         };
       });
