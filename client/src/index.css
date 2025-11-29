@@ -74,10 +74,10 @@ svg {
   fill: none !important;
 }
 
-/* ===== CENTRALIZED PRINT CSS ===== */
+/* ===== CENTRALIZED PRINT CSS - OPTIMIZED A4 ===== */
 @page { 
   size: A4; 
-  margin: 5mm; 
+  margin: 8mm 6mm; 
 }
 
 @media print {
@@ -132,30 +132,144 @@ svg {
   tr, th, td { 
     break-inside: avoid !important; 
     page-break-inside: avoid !important; 
-    line-height: 1.25 !important;
-    padding: 3px 4px !important;
   }
   
-  /* READABLE bulletin layout - optimized for PDF printing */
-  .bulletin-compact {
+  /* ===== BULLETIN A4 OPTIMIZED - READABLE FONTS ===== */
+  .bulletin-a4-optimized {
+    width: 100% !important;
+    max-width: 210mm !important;
+    padding: 4mm !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 11pt !important;
+    line-height: 1.3 !important;
+    color: #000 !important;
+    background: white !important;
+  }
+  
+  .bulletin-a4-optimized .ministry-header {
+    margin-bottom: 3mm !important;
+  }
+  
+  .bulletin-a4-optimized .ministry-header-text {
+    font-size: 9pt !important;
     line-height: 1.2 !important;
+  }
+  
+  .bulletin-a4-optimized .ministry-header-title {
+    font-size: 10pt !important;
+    font-weight: bold !important;
+  }
+  
+  .bulletin-a4-optimized .school-logo {
+    width: 18mm !important;
+    height: 18mm !important;
+  }
+  
+  .bulletin-a4-optimized .bulletin-title {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    margin-bottom: 2mm !important;
+  }
+  
+  .bulletin-a4-optimized .student-photo {
+    width: 25mm !important;
+    height: 32mm !important;
+  }
+  
+  .bulletin-a4-optimized .student-info-grid {
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+    margin-bottom: 3mm !important;
+  }
+  
+  .bulletin-a4-optimized table {
+    font-size: 9pt !important;
+    margin-bottom: 2mm !important;
+    border: 1px solid #000 !important;
+  }
+  
+  .bulletin-a4-optimized th {
+    font-size: 8pt !important;
+    font-weight: bold !important;
+    padding: 2px 3px !important;
+    line-height: 1.2 !important;
+    background-color: #f0f0f0 !important;
+    border: 1px solid #000 !important;
+    text-align: center !important;
+  }
+  
+  .bulletin-a4-optimized td {
+    font-size: 9pt !important;
+    padding: 2px 3px !important;
+    line-height: 1.25 !important;
+    border: 1px solid #000 !important;
+    vertical-align: middle !important;
+  }
+  
+  .bulletin-a4-optimized .subject-name {
+    font-size: 9pt !important;
+    font-weight: 600 !important;
+  }
+  
+  .bulletin-a4-optimized .teacher-name {
+    font-size: 8pt !important;
+    color: #444 !important;
+  }
+  
+  .bulletin-a4-optimized .competency-text {
+    font-size: 7pt !important;
+    line-height: 1.2 !important;
+  }
+  
+  .bulletin-a4-optimized .grade-value {
+    font-size: 10pt !important;
+    font-weight: bold !important;
+    text-align: center !important;
+  }
+  
+  .bulletin-a4-optimized .grade-fail {
+    color: #c00 !important;
+  }
+  
+  .bulletin-a4-optimized .appreciation-text {
+    font-size: 8pt !important;
+  }
+  
+  .bulletin-a4-optimized .summary-section {
+    margin-top: 2mm !important;
+    font-size: 9pt !important;
+  }
+  
+  .bulletin-a4-optimized .signature-section {
+    margin-top: 3mm !important;
+    font-size: 9pt !important;
+  }
+  
+  .bulletin-a4-optimized .footer-compact {
+    margin-top: 2mm !important;
+    font-size: 8pt !important;
+  }
+  
+  /* Legacy bulletin-compact support */
+  .bulletin-compact {
+    line-height: 1.25 !important;
     font-size: 10pt !important;
   }
   
   .bulletin-compact table {
     font-size: 9pt !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 4px !important;
   }
   
   .bulletin-compact th,
   .bulletin-compact td {
-    padding: 3px 4px !important;
+    padding: 2px 3px !important;
     line-height: 1.2 !important;
     font-size: 9pt !important;
   }
   
   .bulletin-compact .header-section {
-    margin-bottom: 8px !important;
+    margin-bottom: 6px !important;
   }
   
   .bulletin-compact .header-section div {
@@ -163,7 +277,7 @@ svg {
   }
   
   .bulletin-compact .student-info {
-    margin-bottom: 8px !important;
+    margin-bottom: 6px !important;
     font-size: 9pt !important;
   }
 

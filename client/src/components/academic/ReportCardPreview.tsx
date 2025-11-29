@@ -367,115 +367,93 @@ export default function ReportCardPreview({
   const labels = LABELS[language];
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6 print:shadow-none print:p-0 bulletin-compact print:w-[210mm] print:h-[297mm] print:overflow-hidden print:text-[10px]" data-bulletin-preview="true">
+    <div className="bg-white rounded-2xl shadow p-4 print:shadow-none print:p-0 bulletin-a4-optimized print:w-[210mm] print:min-h-[297mm] print:overflow-hidden" data-bulletin-preview="true">
       <A4Sheet>
-        <div className="p-2">
-          {/* EXACT Ministry Header - Bilingual 3-Column Layout (EN - Logo - FR) */}
-          <div className="text-center mb-3 relative header-section">
-            <div className="grid grid-cols-3 gap-4">
+        <div className="p-3 print:p-[4mm]">
+          {/* EXACT Ministry Header - Bilingual 3-Column Layout (EN - Logo - FR) - PRINT OPTIMIZED */}
+          <div className="text-center mb-2 relative ministry-header">
+            <div className="grid grid-cols-3 gap-2">
               {/* Left Column: English */}
-              <div className="text-[11px] text-center leading-tight">
-                <div className="font-bold mb-0.5">{MINISTRY_HEADER.line1.en}</div>
-                <div className="italic mb-1 text-[8px]">{MINISTRY_HEADER.line2.en}</div>
-                <div className="mb-1">*************</div>
-                <div className="font-semibold mb-1">{MINISTRY_HEADER.line3.en}</div>
-                <div className="mb-1">*************</div>
-                <div className="font-semibold mb-0.5">{MINISTRY_HEADER.line4.en}</div>
-                <div className="mb-1">***********</div>
-                <div className="font-semibold mb-0.5">{MINISTRY_HEADER.line5.en}</div>
-                <div className="mb-1">*************</div>
-                <div className="font-semibold">{MINISTRY_HEADER.line6.en}</div>
+              <div className="ministry-header-text text-[10px] text-center leading-snug">
+                <div className="ministry-header-title font-bold">{MINISTRY_HEADER.line1.en}</div>
+                <div className="italic text-[9px]">{MINISTRY_HEADER.line2.en}</div>
+                <div className="text-[8px]">***</div>
+                <div className="font-semibold text-[9px]">{MINISTRY_HEADER.line3.en}</div>
+                <div className="text-[8px]">***</div>
+                <div className="font-semibold text-[9px]">{MINISTRY_HEADER.line4.en}</div>
+                <div className="font-semibold text-[9px]">{MINISTRY_HEADER.line5.en}</div>
+                <div className="font-bold text-[10px]">{MINISTRY_HEADER.line6.en}</div>
               </div>
 
               {/* Center Column: School Logo and Registration Number */}
-              <div className="flex flex-col items-center justify-start gap-1">
+              <div className="flex flex-col items-center justify-center">
                 {schoolLogoUrl ? (
                   <img 
                     src={schoolLogoUrl} 
                     alt="School logo" 
-                    className="w-20 h-20 object-contain"
+                    className="school-logo w-16 h-16 object-contain"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
                 ) : (
-                  <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-[7px] text-gray-400 bg-gray-50">
-                    LOGO<br/>SCHOOL
+                  <div className="school-logo w-16 h-16 border border-dashed border-gray-300 rounded flex items-center justify-center text-[8px] text-gray-400 bg-gray-50">
+                    LOGO
                   </div>
                 )}
                 {registrationNumber && (
-                  <div className="text-[8px] font-semibold text-gray-700 mt-1">
+                  <div className="text-[9px] font-semibold text-gray-700 mt-1">
                     {registrationNumber}
                   </div>
                 )}
               </div>
 
               {/* Right Column: French */}
-              <div className="text-[11px] text-center leading-tight">
-                <div className="font-bold mb-0.5">{MINISTRY_HEADER.line1.fr}</div>
-                <div className="italic mb-1 text-[8px]">{MINISTRY_HEADER.line2.fr}</div>
-                <div className="mb-1">*************</div>
-                <div className="font-semibold mb-1">{MINISTRY_HEADER.line3.fr}</div>
-                <div className="mb-1">*************</div>
-                <div className="font-semibold mb-0.5">{student.school?.officialInfo?.regionaleMinisterielle || MINISTRY_HEADER.line4.fr}</div>
-                <div className="mb-1">*************</div>
-                <div className="font-semibold mb-0.5">{student.school?.officialInfo?.delegationDepartementale || MINISTRY_HEADER.line5.fr}</div>
-                <div className="mb-1">*************</div>
-                <div className="font-semibold">{student.school?.name || MINISTRY_HEADER.line6.fr}</div>
+              <div className="ministry-header-text text-[10px] text-center leading-snug">
+                <div className="ministry-header-title font-bold">{MINISTRY_HEADER.line1.fr}</div>
+                <div className="italic text-[9px]">{MINISTRY_HEADER.line2.fr}</div>
+                <div className="text-[8px]">***</div>
+                <div className="font-semibold text-[9px]">{MINISTRY_HEADER.line3.fr}</div>
+                <div className="text-[8px]">***</div>
+                <div className="font-semibold text-[9px]">{student.school?.officialInfo?.regionaleMinisterielle || MINISTRY_HEADER.line4.fr}</div>
+                <div className="font-semibold text-[9px]">{student.school?.officialInfo?.delegationDepartementale || MINISTRY_HEADER.line5.fr}</div>
+                <div className="font-bold text-[10px]">{student.school?.name || MINISTRY_HEADER.line6.fr}</div>
               </div>
             </div>
           </div>
 
           {/* Ministry Required Report Card Title and Year */}
-          <div className="text-center mb-3">
-            <div className="text-sm font-bold mb-2">{TRIMESTER_TITLES[language](trimester)}</div>
-            <div className="text-xs mb-2">{language === 'fr' ? 'Année scolaire' : 'School Year'}: {year}</div>
+          <div className="text-center mb-2 bulletin-title">
+            <div className="text-[12px] font-bold">{TRIMESTER_TITLES[language](trimester)}</div>
+            <div className="text-[10px]">{language === 'fr' ? 'Année scolaire' : 'School Year'}: {year}</div>
           </div>
 
-          {/* Ministry Student Information Layout - Photo on LEFT as per PDF */}
-          <div className="flex justify-between items-start mb-3 student-info gap-3">
-            {/* LEFT: Student Photo - EXACT position as ministry PDF */}
+          {/* Ministry Student Information Layout - Photo on LEFT - COMPACT */}
+          <div className="flex items-start mb-2 student-info-grid gap-2 border border-gray-300 p-2 rounded">
+            {/* LEFT: Student Photo */}
             <div className="flex-shrink-0">
               {studentPhotoUrl ? (
-                <img src={studentPhotoUrl} alt="Student's photograph" className="w-20 h-28 object-cover border-2 border-black" onError={(e) => {
+                <img src={studentPhotoUrl} alt="Student's photograph" className="student-photo w-16 h-20 object-cover border border-black" onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }} />
               ) : (
-                <div className="w-20 h-28 border-2 border-black flex items-center justify-center text-[7px] text-gray-500 bg-gray-50">
-                  <div className="text-center">
-                    {language === 'fr' ? 'Photo de l\'élève' : 'Student\'s photograph'}
-                  </div>
+                <div className="student-photo w-16 h-20 border border-black flex items-center justify-center text-[8px] text-gray-500 bg-gray-50">
+                  <div className="text-center">PHOTO</div>
                 </div>
               )}
             </div>
             
-            {/* RIGHT: Student Information in compact rows */}
-            <div className="flex-1 text-[11px] leading-tight">
-              {/* First Row */}
-              <div className="grid grid-cols-3 gap-3 mb-1.5">
-                <div><strong>{language === 'fr' ? 'Nom de l\'élève' : 'Name of Student'}:</strong> {student.name || ""}</div>
-                <div><strong>{language === 'fr' ? 'Classe' : 'Class'}:</strong> {student.classLabel || ""}</div>
-                <div><strong>{language === 'fr' ? 'Effectif de la classe' : 'Class enrolment'}:</strong> {student.classSize || ""}</div>
-              </div>
-              
-              {/* Second Row */}
-              <div className="grid grid-cols-3 gap-3 mb-1.5">
-                <div><strong>{language === 'fr' ? 'Date et lieu de naissance' : 'Date and place of birth'}:</strong> {student.birthPlace || ""}</div>
+            {/* RIGHT: Student Information - COMPACT 2 columns */}
+            <div className="flex-1 text-[10px] leading-snug">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                <div><strong>{language === 'fr' ? 'Nom' : 'Name'}:</strong> {student.name || ""}</div>
+                <div><strong>{language === 'fr' ? 'Classe' : 'Class'}:</strong> {student.classLabel || ""} ({student.classSize || ""})</div>
+                <div><strong>{language === 'fr' ? 'Né(e) le' : 'Born'}:</strong> {student.birthPlace || ""}</div>
                 <div><strong>{language === 'fr' ? 'Genre' : 'Gender'}:</strong> {student.gender || ""}</div>
-                <div><strong>{language === 'fr' ? 'Nombre de matières' : 'Number of subjects'}:</strong> {entries.length}</div>
-              </div>
-              
-              {/* Third Row */}
-              <div className="grid grid-cols-3 gap-3 mb-1.5">
-                <div><strong>{language === 'fr' ? 'Numéro d\'identification unique' : 'Unique Identification number'}:</strong> {student.id || ""}</div>
+                <div><strong>{language === 'fr' ? 'Matricule' : 'ID'}:</strong> {student.id || ""}</div>
                 <div><strong>{language === 'fr' ? 'Redoublant' : 'Repeater'}:</strong> {student.isRepeater ? (language === 'fr' ? 'Oui' : 'Yes') : (language === 'fr' ? 'Non' : 'No')}</div>
-                <div><strong>{language === 'fr' ? 'Nombre réussi' : 'Number passed'}:</strong> {student.numberOfPassed || ""}</div>
-              </div>
-              
-              {/* Fourth Row */}
-              <div className="grid grid-cols-2 gap-3">
-                <div><strong>{language === 'fr' ? 'Nom et contact des parents/tuteurs' : 'Parent\'s/Guardian\'s name and contact'}:</strong> {student.guardian || ""}</div>
-                <div><strong>{language === 'fr' ? 'Professeur principal' : 'Class master'}:</strong> {student.headTeacher || ""}</div>
+                <div><strong>{language === 'fr' ? 'Parent/Tuteur' : 'Guardian'}:</strong> {student.guardian || ""}</div>
+                <div><strong>{language === 'fr' ? 'Prof. principal' : 'Class master'}:</strong> {student.headTeacher || ""}</div>
               </div>
             </div>
           </div>
@@ -499,51 +477,51 @@ export default function ReportCardPreview({
             </div>
           </div>
 
-          {/* EXACT Ministry Subject Table - MUST match documents precisely */}
-          <div className="mt-2 overflow-auto">
-            <table className="w-full print:text-[7px] border border-black" style={{lineHeight: isTechnicalBulletin ? '1.0' : '1.3', tableLayout: 'fixed'}}>
-              {/* Fixed Column Widths for A4 Fit - Conditional for Technical vs General Schools */}
+          {/* EXACT Ministry Subject Table - A4 PRINT OPTIMIZED */}
+          <div className="mt-1 overflow-visible">
+            <table className="w-full border border-black" style={{lineHeight: '1.2', tableLayout: 'fixed', borderCollapse: 'collapse'}}>
+              {/* Fixed Column Widths for A4 Fit - Optimized for readability */}
               {showTwoColumns ? (
-                <colgroup><col style={{ width: '30mm' }} /><col style={{ width: '45mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '8mm' }} /><col style={{ width: '12mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '16mm' }} /><col style={{ width: '38mm' }} /></colgroup>
+                <colgroup><col style={{ width: '22%' }} /><col style={{ width: '24%' }} /><col style={{ width: '7%' }} /><col style={{ width: '7%' }} /><col style={{ width: '6%' }} /><col style={{ width: '8%' }} /><col style={{ width: '8%' }} /><col style={{ width: '9%' }} /><col style={{ width: '9%' }} /></colgroup>
               ) : (
-                <colgroup><col style={{ width: '35mm' }} /><col style={{ width: '65mm' }} /><col style={{ width: '16mm' }} /><col style={{ width: '10mm' }} /><col style={{ width: '14mm' }} /><col style={{ width: '14mm' }} /><col style={{ width: '22mm' }} /><col style={{ width: '24mm' }} /></colgroup>
+                <colgroup><col style={{ width: '20%' }} /><col style={{ width: '28%' }} /><col style={{ width: '8%' }} /><col style={{ width: '7%' }} /><col style={{ width: '9%' }} /><col style={{ width: '10%' }} /><col style={{ width: '9%' }} /><col style={{ width: '9%' }} /></colgroup>
               )}
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                    {language === 'fr' ? 'Disciplines et noms des enseignants' : 'Subject and Teacher\'s Names'}
+                  <th className="border border-black px-1 py-0.5 font-bold text-center text-[9px]">
+                    {language === 'fr' ? 'Matière / Enseignant' : 'Subject / Teacher'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                    {language === 'fr' ? 'COMPÉTENCES ÉVALUÉES' : 'COMPETENCIES EVALUATED'}
+                  <th className="border border-black px-1 py-0.5 font-bold text-center text-[9px]">
+                    {language === 'fr' ? 'Compétences' : 'Competencies'}
                   </th>
                   {showTwoColumns ? (
                     <>
-                      <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                        {language === 'fr' ? 'N/20' : 'MK/20'}
+                      <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                        N/20
                       </th>
-                      <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                        {language === 'fr' ? 'M/20' : 'AV/20'}
+                      <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                        M/20
                       </th>
                     </>
                   ) : (
-                    <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                      {language === 'fr' ? 'Note/20' : 'Mark/20'}
+                    <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                      {language === 'fr' ? 'Note' : 'Mark'}
                     </th>
                   )}
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
+                  <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
                     Coef
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                    {language === 'fr' ? 'M x coef' : 'AV x coef'}
+                  <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                    {language === 'fr' ? 'Total' : 'Total'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                    {language === 'fr' ? 'COTE [Min - Max]' : 'GRADE [Min - Max]'}
+                  <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                    {language === 'fr' ? 'Cote' : 'Grade'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                    {language === 'fr' ? 'Appréciations' : 'Remarks'}
+                  <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                    {language === 'fr' ? 'Appréciation' : 'Remarks'}
                   </th>
-                  <th className="border border-black p-0.5 font-bold text-center text-[5px] print:text-[4px]">
-                    {language === 'fr' ? 'COMMENTAIRES' : 'COMMENTS'}
+                  <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                    {language === 'fr' ? 'Obs.' : 'Comments'}
                   </th>
                 </tr>
               </thead>
@@ -569,97 +547,71 @@ export default function ReportCardPreview({
                   };
                   
                   const cote = getCBAGrade(grade);
-                  const minMax = r.minMax || '[Min - Max]';
-                  
-                  const cellPadding = isTechnicalSchool ? "p-0.5" : "p-2";
                   
                   return (
                     <tr key={rowKey}>
-                      <td className={`border border-black ${cellPadding} text-[6px]`}>
-                        <div className="font-bold">{r.subject}</div>
-                        <div className="text-[6px] text-gray-600">{r.teacher || ''}</div>
+                      <td className="border border-black px-1 py-0.5">
+                        <div className="subject-name text-[9px] font-semibold">{r.subject}</div>
+                        <div className="teacher-name text-[8px] text-gray-600">{r.teacher || ''}</div>
                       </td>
-                      <td className={`border border-black ${cellPadding} text-[6px] leading-tight`}>
-                        <div className="space-y-1">
-                          {(() => {
-                            // Use individual competencies if available, fallback to splitting concatenated string
-                            const comp1 = r.competence1;
-                            const comp2 = r.competence2;
-                            const comp3 = r.competence3;
-                            const fallbackParts = !comp1 && !comp2 && !comp3 
-                              ? (r.competenciesEvaluated || r.competencesEvaluees || '').split(/;|,/).map(p => p.trim()).filter(Boolean)
-                              : [];
-                            
-                            return (
-                              <>
-                                {(comp1 || fallbackParts[0]) && (
-                                  <div className="text-[6px] font-medium border-b border-gray-200 pb-0.5">
-                                    {comp1 || fallbackParts[0]}
-                                  </div>
-                                )}
-                                {(comp2 || fallbackParts[1]) && (
-                                  <div className="text-[6px] font-medium border-b border-gray-200 pb-0.5">
-                                    {comp2 || fallbackParts[1]}
-                                  </div>
-                                )}
-                                {(comp3 || fallbackParts[2]) && (
-                                  <div className="text-[6px] font-medium">
-                                    {comp3 || fallbackParts[2]}
-                                  </div>
-                                )}
-                              </>
-                            );
-                          })()}
-                        </div>
+                      <td className="border border-black px-1 py-0.5 competency-text text-[8px] leading-tight">
+                        {(() => {
+                          const comp1 = r.competence1;
+                          const comp2 = r.competence2;
+                          const comp3 = r.competence3;
+                          const fallbackParts = !comp1 && !comp2 && !comp3 
+                            ? (r.competenciesEvaluated || r.competencesEvaluees || '').split(/;|,/).map(p => p.trim()).filter(Boolean)
+                            : [];
+                          
+                          return (
+                            <div className="space-y-0.5">
+                              {(comp1 || fallbackParts[0]) && <div>{comp1 || fallbackParts[0]}</div>}
+                              {(comp2 || fallbackParts[1]) && <div>{comp2 || fallbackParts[1]}</div>}
+                              {(comp3 || fallbackParts[2]) && <div>{comp3 || fallbackParts[2]}</div>}
+                            </div>
+                          );
+                        })()}
                       </td>
                       {showTwoColumns ? (
                         <>
-                          <td className={`border border-black ${cellPadding} text-center text-[6px]`}>
+                          <td className="border border-black px-0.5 py-0.5 text-center grade-value text-[9px]">
                             {mk20}
                           </td>
-                          <td className={`border border-black ${cellPadding} text-center text-[6px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
+                          <td className={`border border-black px-0.5 py-0.5 text-center grade-value text-[9px] font-bold ${Number(av20) < 10 ? 'grade-fail text-red-600' : ''}`}>
                             {av20}
                           </td>
                         </>
                       ) : (
-                        <td className={`border border-black ${cellPadding} text-center text-[6px] font-bold ${Number(av20) < 10 ? 'text-red-600' : ''}`}>
+                        <td className={`border border-black px-0.5 py-0.5 text-center grade-value text-[9px] font-bold ${Number(av20) < 10 ? 'grade-fail text-red-600' : ''}`}>
                           {av20}
                         </td>
                       )}
-                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>
+                      <td className="border border-black px-0.5 py-0.5 text-center text-[9px]">
                         {r.coef}
                       </td>
-                      <td className={`border border-black ${cellPadding} text-center text-[6px]`}>
+                      <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-semibold">
                         {r.avXcoef || avXcoef}
                       </td>
-                      <td className={`border border-black ${cellPadding} text-center text-[6px] font-bold`}>
-                        <div>{r.grade || cote}</div>
-                        <div className="text-[5px]">{minMax}</div>
+                      <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">
+                        {r.grade || cote}
                       </td>
-                      <td className={`border border-black ${cellPadding} text-[5px]`}>
+                      <td className="border border-black px-0.5 py-0.5 appreciation-text text-[8px]">
                         {(() => {
-                          // Hybrid appreciation: Manual custom > Predefined bilingual > Legacy
                           const customApp = (r as any).customAppreciation;
                           if (customApp) return customApp;
-                          
                           const remarkCode = r.remark;
                           if (remarkCode) return getAppreciationText(remarkCode, language);
-                          
                           return r.remarksAndSignature || '';
                         })()}
                       </td>
-                      <td className={`border border-black ${cellPadding} text-[5px] align-top`}>
+                      <td className="border border-black px-0.5 py-0.5 text-[8px] align-top">
                         {r.teacherComments && r.teacherComments.length > 0 ? (
-                          <ul className="list-decimal list-inside space-y-0.5">
-                            {r.teacherComments.map((commentText, index) => (
-                              <li key={index} className="text-[4px]">{commentText}</li>
+                          <div className="text-[7px] leading-tight">
+                            {r.teacherComments.slice(0, 2).map((c, i) => (
+                              <div key={i}>{i + 1}. {c}</div>
                             ))}
-                          </ul>
-                        ) : (
-                          <div className="text-[4px] text-gray-400 italic">
-                            {language === 'fr' ? 'Aucun commentaire sélectionné' : 'No comments selected'}
                           </div>
-                        )}
+                        ) : null}
                       </td>
                     </tr>
                     );
@@ -677,21 +629,21 @@ export default function ReportCardPreview({
 
                     return (
                       <tr className="bg-blue-50 font-semibold">
-                        <td colSpan={2} className="border border-black p-0.5 text-[7px] italic text-blue-700">
-                          {language === 'fr' ? `Sous-total - ${sectionName}` : `Subtotal - ${sectionName}`}
+                        <td colSpan={2} className="border border-black px-1 py-0.5 text-[9px] italic text-blue-700">
+                          {language === 'fr' ? `Sous-total ${sectionName}` : `Subtotal ${sectionName}`}
                         </td>
                         {showTwoColumns ? (
                           <>
-                            <td className="border border-black p-0.5"></td>
-                            <td className="border border-black p-0.5"></td>
+                            <td className="border border-black px-0.5 py-0.5"></td>
+                            <td className="border border-black px-0.5 py-0.5"></td>
                           </>
                         ) : (
-                          <td className="border border-black p-0.5"></td>
+                          <td className="border border-black px-0.5 py-0.5"></td>
                         )}
-                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">{sectionTotalCoef}</td>
-                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">{round2(sectionTotalMxCoef)}</td>
-                        <td className="border border-black p-0.5 text-center text-[6px] font-bold">{sectionMoyenne}/20</td>
-                        <td colSpan={2} className="border border-black p-0.5"></td>
+                        <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">{sectionTotalCoef}</td>
+                        <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">{round2(sectionTotalMxCoef)}</td>
+                        <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">{sectionMoyenne}/20</td>
+                        <td colSpan={2} className="border border-black px-0.5 py-0.5"></td>
                       </tr>
                     );
                   };
@@ -714,8 +666,8 @@ export default function ReportCardPreview({
                         {groupedEntries.general && groupedEntries.general.length > 0 && (
                           <>
                             <tr className="bg-green-100" key="section-general-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-green-800">
-                                📚 {sectionTitles.general}
+                              <td colSpan={9} className="border border-black px-1 py-0.5 font-bold text-[9px] text-green-800">
+                                {sectionTitles.general}
                               </td>
                             </tr>
                             {groupedEntries.general.map((r, idx) => {
@@ -730,8 +682,8 @@ export default function ReportCardPreview({
                         {groupedEntries.literary && groupedEntries.literary.length > 0 && (
                           <>
                             <tr className="bg-purple-100" key="section-literary-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-purple-800">
-                                📖 {sectionTitles.literary}
+                              <td colSpan={9} className="border border-black px-1 py-0.5 font-bold text-[9px] text-purple-800">
+                                {sectionTitles.literary}
                               </td>
                             </tr>
                             {groupedEntries.literary.map((r, idx) => {
@@ -746,8 +698,8 @@ export default function ReportCardPreview({
                         {groupedEntries.scientific && groupedEntries.scientific.length > 0 && (
                           <>
                             <tr className="bg-blue-100" key="section-scientific-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-blue-800">
-                                🔬 {sectionTitles.scientific}
+                              <td colSpan={9} className="border border-black px-1 py-0.5 font-bold text-[9px] text-blue-800">
+                                {sectionTitles.scientific}
                               </td>
                             </tr>
                             {groupedEntries.scientific.map((r, idx) => {
@@ -762,8 +714,8 @@ export default function ReportCardPreview({
                         {groupedEntries.professional && groupedEntries.professional.length > 0 && (
                           <>
                             <tr className="bg-orange-100" key="section-professional-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-orange-800">
-                                🔧 {sectionTitles.professional}
+                              <td colSpan={9} className="border border-black px-1 py-0.5 font-bold text-[9px] text-orange-800">
+                                {sectionTitles.professional}
                               </td>
                             </tr>
                             {groupedEntries.professional.map((r, idx) => {
@@ -778,8 +730,8 @@ export default function ReportCardPreview({
                         {groupedEntries.other && groupedEntries.other.length > 0 && (
                           <>
                             <tr className="bg-pink-100" key="section-other-header">
-                              <td colSpan={9} className="border border-black p-1 font-bold text-[8px] text-pink-800">
-                                🎨 {sectionTitles.other}
+                              <td colSpan={9} className="border border-black px-1 py-0.5 font-bold text-[9px] text-pink-800">
+                                {sectionTitles.other}
                               </td>
                             </tr>
                             {groupedEntries.other.map((r, idx) => {
@@ -799,38 +751,40 @@ export default function ReportCardPreview({
               </tbody>
               <tfoot>
                 <tr className="bg-gray-200">
-                  <td className="border border-black p-0.5 font-bold text-[6px] text-center">TOTAL</td>
-                  <td className="border border-black p-1"></td>
+                  <td className="border border-black px-1 py-0.5 font-bold text-[10px] text-center">TOTAL</td>
+                  <td className="border border-black px-0.5 py-0.5"></td>
                   {showTwoColumns ? (
                     <>
-                      <td className="border border-black p-1"></td>
-                      <td className="border border-black p-1"></td>
+                      <td className="border border-black px-0.5 py-0.5"></td>
+                      <td className="border border-black px-0.5 py-0.5"></td>
                     </>
                   ) : (
-                    <td className="border border-black p-1"></td>
+                    <td className="border border-black px-0.5 py-0.5"></td>
                   )}
-                  <td className="border border-black p-0.5 text-center font-bold text-[6px]">{totalCoef}</td>
-                  <td className="border border-black p-0.5 text-center font-bold text-[6px]">{round2(totalMxCoef)}</td>
-                  <td className="border border-black p-1"></td>
-                  <td className="border border-black p-1"></td>
-                  <td className="border border-black p-1"></td>
+                  <td className="border border-black px-0.5 py-0.5 text-center font-bold text-[10px]">{totalCoef}</td>
+                  <td className="border border-black px-0.5 py-0.5 text-center font-bold text-[10px]">{round2(totalMxCoef)}</td>
+                  <td className="border border-black px-0.5 py-0.5"></td>
+                  <td className="border border-black px-0.5 py-0.5"></td>
+                  <td className="border border-black px-0.5 py-0.5"></td>
                 </tr>
-                <tr className="bg-gray-100">
-                  <td className="border border-black p-1 font-bold text-[8px]">
-                    {language === 'fr' ? 'MOYENNE DE L\'\u00c9LÈVE :' : 'STUDENT AVERAGE :'}
+                <tr className="bg-yellow-50">
+                  <td colSpan={2} className="border border-black px-1 py-1 font-bold text-[11px]">
+                    {language === 'fr' ? 'MOYENNE GÉNÉRALE' : 'OVERALL AVERAGE'}
                   </td>
-                  <td className={`border border-black p-1 text-center font-bold text-[6px] ${moyenne < 10 ? 'text-red-600' : ''}`}>
+                  <td colSpan={showTwoColumns ? 3 : 2} className={`border border-black px-1 py-1 text-center font-bold text-[12px] ${moyenne < 10 ? 'text-red-600 bg-red-50' : 'text-green-700 bg-green-50'}`}>
                     {moyenne}/20
                   </td>
-                  <td colSpan={7} className="border border-black p-1"></td>
+                  <td colSpan={4} className="border border-black px-1 py-1 text-[10px]">
+                    <strong>{language === 'fr' ? 'Mention:' : 'Grade:'}</strong> {moyenne >= 16 ? 'A' : moyenne >= 14 ? 'B' : moyenne >= 12 ? 'C+' : moyenne >= 10 ? 'C' : 'D'}
+                  </td>
                 </tr>
               </tfoot>
             </table>
           </div>
 
-          {/* Ministry Discipline and Class Profile Section - EXACT format */}
-          <div className={isTechnicalBulletin ? "mt-6" : "mt-4"}>
-            <table className="w-full text-[8px] border border-black">
+          {/* Ministry Discipline and Class Profile Section - COMPACT A4 */}
+          <div className="mt-2 summary-section">
+            <table className="w-full text-[9px] border border-black" style={{borderCollapse: 'collapse'}}>
               <tbody>
                 <tr>
                   <td rowSpan={2} className="border border-black p-1 font-bold text-center w-16">
