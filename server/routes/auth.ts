@@ -664,6 +664,18 @@ router.post('/login', (req, res, next) => {
           }
         }
         
+        // AUTO-SYNC: Synchronize multi-role data on login
+        try {
+          const { MultiRoleService } = await import('../services/multiRoleService');
+          const syncResult = await MultiRoleService.syncRolesOnLogin(user.id);
+          if (syncResult.synced) {
+            console.log(`[MULTI_ROLE_SYNC] ✅ Roles synced for user ${user.id}: ${syncResult.message}`);
+          }
+        } catch (syncError) {
+          console.error('[MULTI_ROLE_SYNC] Failed to sync roles on login:', syncError);
+          // Don't fail login if sync fails
+        }
+        
         // Successfully authenticated and session created
         res.json({ user: user });
       });

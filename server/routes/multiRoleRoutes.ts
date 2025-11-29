@@ -178,4 +178,73 @@ router.post('/switch-role', requireAuth, async (req, res) => {
   }
 });
 
+// AUTO-SYNC: Synchronize roles on login (called after login)
+router.post('/sync-roles', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const result = await MultiRoleService.syncRolesOnLogin(userId);
+    
+    res.json({
+      success: result.synced,
+      addedRoles: result.addedRoles,
+      message: result.message
+    });
+  } catch (error) {
+    console.error('[MULTI_ROLE] Role sync error:', error);
+    res.status(500).json({ error: 'Failed to sync roles' });
+  }
+});
+
+// Get complete role profile with all details
+router.get('/role-profile', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const profile = await MultiRoleService.getCompleteRoleProfile(userId);
+    
+    if (!profile) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json(profile);
+  } catch (error) {
+    console.error('[MULTI_ROLE] Role profile error:', error);
+    res.status(500).json({ error: 'Failed to get role profile' });
+  }
+});
+
+// AUTO-DETECT: Check if user exists and merge roles (for admin use when adding users)
+router.post('/detect-and-merge', requireAuth, async (req, res) => {
+  try {
+    const { phone, email, newRole, schoolId } = req.body;
+    
+    if (!phone || !newRole) {
+      return res.status(400).json({ error: 'Phone and new role are required' });
+    }
+    
+    const result = await MultiRoleService.detectAndMergeExistingUser(
+      phone,
+      email || null,
+      newRole,
+      schoolId
+    );
+    
+    res.json({
+      existingUser: result.existingUser ? {
+        id: result.existingUser.id,
+        firstName: result.existingUser.firstName,
+        lastName: result.existingUser.lastName,
+        email: result.existingUser.email,
+        phone: result.existingUser.phone,
+        role: result.existingUser.role,
+        secondaryRoles: result.existingUser.secondaryRoles
+      } : null,
+      merged: result.merged,
+      message: result.message
+    });
+  } catch (error) {
+    console.error('[MULTI_ROLE] Detect and merge error:', error);
+    res.status(500).json({ error: 'Failed to detect and merge user' });
+  }
+});
+
 export default router;
