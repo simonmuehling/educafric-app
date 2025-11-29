@@ -1436,8 +1436,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                     });
                   }
 
-                  // Set student photo URL from profile
-                  setStudentPhotoUrl(selectedStudent.photoUrl || selectedStudent.photoURL || selectedStudent.profilePictureUrl || '');
+                  // Set student photo URL from profile (check all possible photo field names)
+                  setStudentPhotoUrl(selectedStudent.photo || selectedStudent.photoUrl || selectedStudent.photoURL || selectedStudent.profilePictureUrl || '');
                 }}
                 language={language}
               />
@@ -3621,8 +3621,8 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
       
       const studentWithGrades = {
         ...selectedStudent,
-        // Set the photo URL from user profile
-        photoUrl: selectedStudent.photoURL || selectedStudent.profilePictureUrl || '',
+        // Set the photo URL from user profile (check all possible photo field names)
+        photoUrl: selectedStudent.photo || selectedStudent.photoURL || selectedStudent.profilePictureUrl || '',
         // Use approved grades if available, otherwise empty array
         grades: gradesForBulletin.length > 0 ? gradesForBulletin : [],
         hasApprovedGrades: gradesForBulletin.length > 0
