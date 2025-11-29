@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
@@ -7,15 +7,29 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 import { 
   User, Users, UserCheck, Building2, 
   ChevronRight, Settings, Shield,
-  Home, School, Briefcase, GraduationCap
+  Home, School, Briefcase, GraduationCap, Loader2
 } from 'lucide-react';
 
 interface UniversalMultiRoleProps {
   onRoleSwitch?: (role: string) => void;
   currentUserRole?: string;
+}
+
+interface UserRoleData {
+  primaryRole: string;
+  activeRole: string;
+  secondaryRoles: string[];
+  affiliations: Array<{
+    id: number;
+    role: string;
+    schoolId?: number;
+    description?: string;
+    status: string;
+  }>;
 }
 
 const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({ 
@@ -26,52 +40,113 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
   const { language } = useLanguage();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const [selectedRole, setSelectedRole] = useState<string>(currentUserRole || user?.role || 'Teacher');
+  const [selectedRole, setSelectedRole] = useState<string>(currentUserRole || (user as any)?.activeRole || user?.role || 'Parent');
   const [isSwitching, setIsSwitching] = useState(false);
 
-  // Universal multi-role data - would come from API in real implementation
-  const userRoles = [
-    {
-      role: 'Teacher',
-      icon: <GraduationCap className="w-5 h-5" />,
-      color: 'bg-blue-500',
-      schools: ['École Primaire Bilingue', 'Collège International'],
-      description: 'Enseignant de mathématiques',
-      active: true
-    },
-    {
-      role: 'Parent',
-      icon: <Home className="w-5 h-5" />,
-      color: 'bg-green-500',
-      schools: ['École Primaire Bilingue'],
-      description: 'Parent de Marie et Jean Dupont',
-      active: true
-    },
-    {
-      role: 'Student',
-      icon: <User className="w-5 h-5" />,
-      color: 'bg-orange-500',
-      schools: ['École Primaire Bilingue'],
-      description: 'Élève en classe de 6ème A',
-      active: true
-    },
-    {
-      role: 'Freelancer',
-      icon: <Briefcase className="w-5 h-5" />,
-      color: 'bg-purple-500',
-      schools: ['Consultant indépendant'],
-      description: 'Formateur en TICE',
-      active: true
-    },
-    {
-      role: 'Commercial',
-      icon: <Building2 className="w-5 h-5" />,
-      color: 'bg-red-500',
-      schools: ['Représentant commercial'],
-      description: 'Développement commercial Afrique',
-      active: true
+  // Fetch actual user roles from API
+  const { data: userRoleData, isLoading: isLoadingRoles } = useQuery<UserRoleData>({
+    queryKey: ['/api/multi-role/user-roles'],
+    enabled: !!user?.id
+  });
+
+  // Build available roles list from actual user data
+  const userRoles = useMemo(() => {
+    const roles: Array<{
+      role: string;
+      icon: React.ReactNode;
+      color: string;
+      schools: string[];
+      description: string;
+      active: boolean;
+    }> = [];
+
+    const getRoleIcon = (role: string) => {
+      switch (role) {
+        case 'Teacher': return <GraduationCap className="w-5 h-5" />;
+        case 'Parent': return <Home className="w-5 h-5" />;
+        case 'Student': return <User className="w-5 h-5" />;
+        case 'Freelancer': return <Briefcase className="w-5 h-5" />;
+        case 'Commercial': return <Building2 className="w-5 h-5" />;
+        case 'Director': return <School className="w-5 h-5" />;
+        default: return <User className="w-5 h-5" />;
+      }
+    };
+
+    const getRoleColor = (role: string) => {
+      switch (role) {
+        case 'Teacher': return 'bg-blue-500';
+        case 'Parent': return 'bg-green-500';
+        case 'Student': return 'bg-orange-500';
+        case 'Freelancer': return 'bg-purple-500';
+        case 'Commercial': return 'bg-red-500';
+        case 'Director': return 'bg-indigo-500';
+        default: return 'bg-gray-500';
+      }
+    };
+
+    const getRoleDescription = (role: string) => {
+      const descriptions: Record<string, { fr: string; en: string }> = {
+        Teacher: { fr: 'Enseignant', en: 'Teacher' },
+        Parent: { fr: 'Parent d\'élève', en: 'Student Parent' },
+        Student: { fr: 'Élève', en: 'Student' },
+        Freelancer: { fr: 'Formateur indépendant', en: 'Freelance Trainer' },
+        Commercial: { fr: 'Représentant commercial', en: 'Commercial Representative' },
+        Director: { fr: 'Directeur d\'école', en: 'School Director' }
+      };
+      return descriptions[role]?.[language as 'fr' | 'en'] || role;
+    };
+
+    // Add primary role
+    if (userRoleData?.primaryRole) {
+      roles.push({
+        role: userRoleData.primaryRole,
+        icon: getRoleIcon(userRoleData.primaryRole),
+        color: getRoleColor(userRoleData.primaryRole),
+        schools: [],
+        description: getRoleDescription(userRoleData.primaryRole),
+        active: true
+      });
+    } else if (user?.role) {
+      // Fallback to user.role if API data not available
+      roles.push({
+        role: user.role,
+        icon: getRoleIcon(user.role),
+        color: getRoleColor(user.role),
+        schools: [],
+        description: getRoleDescription(user.role),
+        active: true
+      });
     }
-  ].filter(role => role.active);
+
+    // Add secondary roles
+    if (userRoleData?.secondaryRoles) {
+      for (const role of userRoleData.secondaryRoles) {
+        if (!roles.some(r => r.role === role)) {
+          roles.push({
+            role,
+            icon: getRoleIcon(role),
+            color: getRoleColor(role),
+            schools: [],
+            description: getRoleDescription(role),
+            active: true
+          });
+        }
+      }
+    }
+
+    return roles;
+  }, [userRoleData, user, language]);
+
+  // Update selected role when data loads
+  useEffect(() => {
+    if (userRoleData?.activeRole) {
+      setSelectedRole(userRoleData.activeRole);
+    } else if ((user as any)?.activeRole) {
+      setSelectedRole((user as any).activeRole);
+    } else if (user?.role) {
+      setSelectedRole(user.role);
+    }
+  }, [userRoleData, user]);
 
   const text = {
     fr: {
@@ -124,8 +199,9 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
       
       // Call API to switch role
       const response = await apiRequest('POST', '/api/multi-role/switch-role', { newRole });
+      const data = await response.json();
       
-      if (response.success) {
+      if (data.success) {
         setSelectedRole(newRole);
         
         // Show success message
@@ -155,7 +231,7 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
         const targetRoute = roleRoutes[newRole] || '/';
         setTimeout(() => setLocation(targetRoute), 500);
       } else {
-        throw new Error(response.message || 'Failed to switch role');
+        throw new Error(data.error || data.message || 'Failed to switch role');
       }
     } catch (error: any) {
       console.error('[ROLE_SWITCH] Error:', error);
@@ -264,6 +340,25 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
       {/* Available Roles */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t.availableRoles}</h2>
+        {isLoadingRoles ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-500 mr-2" />
+            <span className="text-gray-600">
+              {language === 'fr' ? 'Chargement des rôles...' : 'Loading roles...'}
+            </span>
+          </div>
+        ) : userRoles.length <= 1 ? (
+          <Card className="border-dashed border-2 border-gray-200 bg-gray-50">
+            <CardContent className="py-8 text-center">
+              <User className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-600">
+                {language === 'fr' 
+                  ? 'Vous n\'avez qu\'un seul rôle actuellement. Contactez un administrateur pour ajouter des rôles supplémentaires.'
+                  : 'You currently have only one role. Contact an administrator to add additional roles.'}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {(Array.isArray(userRoles) ? userRoles : []).filter(role => role.role !== selectedRole).map((role) => (
             <Card key={role.role} className="hover:shadow-lg transition-shadow cursor-pointer">
@@ -311,6 +406,7 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
             </Card>
           ))}
         </div>
+        )}
       </div>
 
       {/* Multi-Role Benefits */}
