@@ -606,7 +606,7 @@ export default function ReportCardPreview({
                       </td>
                       <td className="border border-black px-0.5 py-0.5 text-[8px] align-top">
                         {r.teacherComments && r.teacherComments.length > 0 ? (
-                          <div className="text-[7px] leading-tight">
+                          <div className="text-[8px] leading-tight">
                             {r.teacherComments.slice(0, 2).map((c, i) => (
                               <div key={i}>{i + 1}. {c}</div>
                             ))}
@@ -784,49 +784,61 @@ export default function ReportCardPreview({
 
           {/* Ministry Discipline and Class Profile Section - COMPACT A4 */}
           <div className="mt-2 summary-section">
-            <table className="w-full text-[9px] border border-black" style={{borderCollapse: 'collapse'}}>
+            <table className="w-full text-[9px] border border-black" style={{borderCollapse: 'collapse', tableLayout: 'fixed'}}>
+              <colgroup>
+                <col style={{width: '8%'}} />
+                <col style={{width: '12%'}} />
+                <col style={{width: '10%'}} />
+                <col style={{width: '8%'}} />
+                <col style={{width: '6%'}} />
+                <col style={{width: '8%'}} />
+                <col style={{width: '6%'}} />
+                <col style={{width: '12%'}} />
+                <col style={{width: '10%'}} />
+                <col style={{width: '20%'}} />
+              </colgroup>
               <tbody>
                 <tr>
-                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-16">
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center">
                     {language === 'fr' ? 'Discipline' : 'Discipline'}
                   </td>
-                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-24">
-                    {language === 'fr' ? 'Performance de l\'\u00e9lève' : 'Student performance'}
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center">
+                    {language === 'fr' ? 'Performance' : 'Performance'}
                   </td>
-                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-24">
-                    {language === 'fr' ? 'Profil de la classe' : 'Class Profile'}
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center">
+                    {language === 'fr' ? 'Profil' : 'Profile'}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
-                    {language === 'fr' ? 'Abs. non justifiées (h)' : 'Unjustified Abs. (h)'}
+                  <td className="border border-black p-1 text-center text-[8px]">
+                    {language === 'fr' ? 'Abs. NJ' : 'Unj. Abs'}
                   </td>
-                  <td className="border border-black p-1 text-center font-bold">
+                  <td className="border border-black p-1 text-center font-bold text-[8px]">
                     {student.discipline?.absNJ || 0}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
-                    {language === 'fr' ? 'Avertissement' : 'Conduct Warning'}
+                  <td className="border border-black p-1 text-center text-[8px]">
+                    {language === 'fr' ? 'Avert.' : 'Warn'}
                   </td>
-                  <td className="border border-black p-1 text-center">
+                  <td className="border border-black p-1 text-center text-[8px]">
                     {(student.discipline as any)?.conductWarning || 0}
                   </td>
-                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-20">
-                    {language === 'fr' ? 'SCORE TOTAL' : 'TOTAL SCORE'}
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center">
+                    {language === 'fr' ? 'SCORE' : 'SCORE'}
                   </td>
-                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-16">
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center text-[10px]">
                     {round2(totalMxCoef)}
                   </td>
-                  <td rowSpan={2} className="border border-black p-1 font-bold text-center w-20">
+                  <td rowSpan={2} className="border border-black p-1 font-bold text-center">
                     {language === 'fr' ? 'OBSERVATION' : 'REMARK'}
                   </td>
                 </tr>
                 <tr>
-                  <td className="border border-black p-1 text-center text-[7px]">
-                    {language === 'fr' ? 'Abs. justifiées (h)' : 'Justified Abs (h)'}
+                  <td className="border border-black p-1 text-center text-[8px]">
+                    {language === 'fr' ? 'Abs. J (h)' : 'Just. Abs'}
                   </td>
-                  <td className="border border-black p-1 text-center font-bold">
+                  <td className="border border-black p-1 text-center font-bold text-[8px]">
                     {student.discipline?.absJ || 0}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
-                    {language === 'fr' ? 'Blâme' : 'Reprimand'}
+                  <td className="border border-black p-1 text-center text-[8px]">
+                    {language === 'fr' ? 'Blâme' : 'Blame'}
                   </td>
                   <td className="border border-black p-1 text-center">
                     {(student.discipline as any)?.conductBlame || 0}
@@ -843,14 +855,14 @@ export default function ReportCardPreview({
                   <td className="border border-black p-1 text-center">
                     COEF
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
-                    {language === 'fr' ? 'Retards (nombre)' : 'Late (nbr of times)'}
+                  <td className="border border-black p-1 text-center text-[8px]">
+                    {language === 'fr' ? 'Retards' : 'Late'}
                   </td>
-                  <td className="border border-black p-1 text-center font-bold">
+                  <td className="border border-black p-1 text-center font-bold text-[8px]">
                     {student.discipline?.late || 0}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
-                    {language === 'fr' ? 'Suspension' : 'Suspension'}
+                  <td className="border border-black p-1 text-center text-[8px]">
+                    {language === 'fr' ? 'Susp.' : 'Susp.'}
                   </td>
                   <td className="border border-black p-1 text-center">
                     {(student.discipline as any)?.suspension || 0}
@@ -861,13 +873,13 @@ export default function ReportCardPreview({
                   <td className={`border border-black p-1 text-center font-bold text-lg ${moyenne < 10 ? 'text-red-600' : 'text-green-700'}`}>
                     {moyenne}/20
                   </td>
-                  <td rowSpan={3} className="border border-black p-1 text-[6px] align-top">
-                    {student.generalRemark || (language === 'fr' ? 'Observations sur la performance de l\'\u00e9lève' : 'Remarks on student performance')}
+                  <td rowSpan={3} className="border border-black p-1 text-[8px] align-top">
+                    {student.generalRemark || (language === 'fr' ? 'Observations' : 'Remarks')}
                   </td>
                 </tr>
                 <tr>
-                  <td className="border border-black p-1 text-center text-[7px]">
-                    {language === 'fr' ? 'Nombre réussi' : 'Number passed'}
+                  <td className="border border-black p-1 text-center text-[8px]">
+                    {language === 'fr' ? 'Réussi' : 'Passed'}
                   </td>
                   <td className="border border-black p-1 text-center">
                     {student.numberOfPassed || entries.filter(e => Number(e.m20 || e.av20) >= 10).length}
@@ -875,14 +887,14 @@ export default function ReportCardPreview({
                   <td className="border border-black p-1 text-center">
                     {totalCoef}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
-                    {language === 'fr' ? 'Punition (heures)' : 'Punishment (hours)'}
+                  <td className="border border-black p-1 text-center text-[8px]">
+                    {language === 'fr' ? 'Punit.' : 'Pun.'}
                   </td>
-                  <td className="border border-black p-1 text-center">
+                  <td className="border border-black p-1 text-center text-[8px]">
                     {student.discipline?.punishmentHours || 0}
                   </td>
-                  <td className="border border-black p-1 text-center text-[7px]">
-                    {language === 'fr' ? 'Renvoi' : 'Dismissed'}
+                  <td className="border border-black p-1 text-center text-[8px]">
+                    {language === 'fr' ? 'Renvoi' : 'Dismiss'}
                   </td>
                   <td className="border border-black p-1 text-center">
                     {(student.discipline as any)?.dismissal || 0}
@@ -895,8 +907,8 @@ export default function ReportCardPreview({
                   </td>
                 </tr>
                 <tr>
-                  <td className="border border-black p-1 text-center text-[7px]">
-                    {language === 'fr' ? 'Taux de réussite (%)' : 'Success rate (%)'}
+                  <td className="border border-black p-1 text-center text-[8px]">
+                    {language === 'fr' ? 'Taux (%)' : 'Rate (%)'}
                   </td>
                   <td className="border border-black p-1 text-center">
                     {entries.length ? Math.round((entries.filter(e => Number(e.m20 || e.av20) >= 10).length / entries.length) * 100) : 0}%
@@ -907,29 +919,28 @@ export default function ReportCardPreview({
                     CA: {entries.filter(e => Number(e.m20 || e.av20) >= 10 && Number(e.m20 || e.av20) < 14).length}<br/>
                     CAA: {entries.filter(e => Number(e.m20 || e.av20) < 10).length}
                   </td>
-                  <td colSpan={2} className="border border-black p-1 text-[6px] align-top">
-                    <div className="font-bold mb-1">
-                      {language === 'fr' ? 'Conseil de Classe:' : 'Class Council:'}
+                  <td colSpan={2} className="border border-black p-1 text-[8px] align-top">
+                    <div className="font-bold">
+                      {language === 'fr' ? 'Conseil:' : 'Council:'}
                     </div>
-                    <div className="text-[5px] space-y-1">
-                      <div>{language === 'fr' ? 'Décision:' : 'Decision:'} ____________</div>
-                      <div>{language === 'fr' ? 'Date:' : 'Date:'} ____________</div>
-                    </div>
-                  </td>
-                  <td className="border border-black p-1 text-[6px] align-top">
-                    <div className="font-bold mb-1">
-                      {language === 'fr' ? 'Signatures Directeur:' : 'Principal Signatures:'}
-                    </div>
-                    <div className="text-[5px] space-y-1">
-                      <div>{language === 'fr' ? 'Directeur:' : 'Principal:'} ____________</div>
+                    <div className="text-[8px]">
+                      <div>________________</div>
                     </div>
                   </td>
-                  <td colSpan={2} className="border border-black p-1 text-[6px] align-top">
-                    <div className="font-bold mb-1">
-                      {language === 'fr' ? 'Signature Parent:' : 'Parent Signature:'}
+                  <td className="border border-black p-1 text-[8px] align-top">
+                    <div className="font-bold">
+                      {language === 'fr' ? 'Directeur:' : 'Principal:'}
                     </div>
-                    <div className="text-[5px] space-y-1">
-                      <div>{language === 'fr' ? 'Parent:' : 'Parent:'} ____________</div>
+                    <div className="text-[8px]">
+                      <div>________________</div>
+                    </div>
+                  </td>
+                  <td colSpan={2} className="border border-black p-1 text-[8px] align-top">
+                    <div className="font-bold">
+                      {language === 'fr' ? 'Parent:' : 'Parent:'}
+                    </div>
+                    <div className="text-[8px]">
+                      <div>________________</div>
                     </div>
                   </td>
                 </tr>
