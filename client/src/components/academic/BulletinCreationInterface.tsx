@@ -550,55 +550,20 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   const [subjects, setSubjects] = useState<Subject[]>([
     { 
       id: '1', 
-      name: 'FRANÇAIS',
+      name: '',
       teacher: '',
-      coefficient: 6, 
+      coefficient: 1, 
       grade: 0, 
       remark: '', 
       comments: [],
       note1: 0, 
- 
       moyenneFinale: 0, 
-      competence1: 'Communication orale et écrite', 
-      competence2: 'Raisonnement mathématique', 
-      competence3: 'Résolution de problèmes',
+      competence1: '', 
+      competence2: '', 
+      competence3: '',
       totalPondere: 0, 
       cote: '' 
-    },
-    { 
-      id: '2', 
-      name: 'ANGLAIS',
-      teacher: '',
-      coefficient: 3, 
-      grade: 0, 
-      remark: '', 
-      comments: [],
-      note1: 0, 
- 
-      moyenneFinale: 0, 
-      competence1: 'Communication orale et écrite', 
-      competence2: 'Raisonnement mathématique', 
-      competence3: 'Résolution de problèmes',
-      totalPondere: 0, 
-      cote: '' 
-    },
-    { 
-      id: '3', 
-      name: 'MATHÉMATIQUES',
-      teacher: '',
-      coefficient: 4, 
-      grade: 0, 
-      remark: '', 
-      comments: [],
-      note1: 0, 
- 
-      moyenneFinale: 0, 
-      competence1: 'Communication orale et écrite', 
-      competence2: 'Raisonnement mathématique', 
-      competence3: 'Résolution de problèmes',
-      totalPondere: 0, 
-      cote: '' 
-    },
+    }
   ]);
 
   const [discipline, setDiscipline] = useState<DisciplineInfo>({
@@ -1650,93 +1615,95 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   </div>
                 </div>
 
-                {/* NEW: School Official Information */}
-                <div className="col-span-1 md:col-span-2 lg:col-span-3">
-                  <div className="border-t pt-4 mt-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3 bg-blue-50 p-2 rounded border-l-4 border-blue-400">
-                      🏫 {language === 'fr' ? 'Informations Officielles École' : 'Official School Information'}
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="schoolName">{labels[language].schoolName}</Label>
-                        <Input
-                          id="schoolName"
-                          value={student.schoolName}
-                          onChange={(e) => setStudent({...student, schoolName: e.target.value})}
-                          placeholder="Collège Notre-Dame de Fatima"
-                          data-testid="input-school-name"
-                        />
-                      </div>
+                {/* NEW: School Official Information - Hidden for teachers */}
+                {!isTeacherRole && (
+                  <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                    <div className="border-t pt-4 mt-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3 bg-blue-50 p-2 rounded border-l-4 border-blue-400">
+                        🏫 {language === 'fr' ? 'Informations Officielles École' : 'Official School Information'}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="schoolName">{labels[language].schoolName}</Label>
+                          <Input
+                            id="schoolName"
+                            value={student.schoolName}
+                            onChange={(e) => setStudent({...student, schoolName: e.target.value})}
+                            placeholder="Collège Notre-Dame de Fatima"
+                            data-testid="input-school-name"
+                          />
+                        </div>
 
-                      <div>
-                        <Label htmlFor="regionaleMinisterielle">{labels[language].regionaleMinisterielle}</Label>
-                        <Input
-                          id="regionaleMinisterielle"
-                          value={student.regionaleMinisterielle}
-                          onChange={(e) => setStudent({...student, regionaleMinisterielle: e.target.value})}
-                          placeholder="Délégation Régionale du Littoral"
-                          data-testid="input-regionale-ministerielle"
-                        />
-                      </div>
+                        <div>
+                          <Label htmlFor="regionaleMinisterielle">{labels[language].regionaleMinisterielle}</Label>
+                          <Input
+                            id="regionaleMinisterielle"
+                            value={student.regionaleMinisterielle}
+                            onChange={(e) => setStudent({...student, regionaleMinisterielle: e.target.value})}
+                            placeholder="Délégation Régionale du Littoral"
+                            data-testid="input-regionale-ministerielle"
+                          />
+                        </div>
 
-                      <div>
-                        <Label htmlFor="delegationDepartementale">{labels[language].delegationDepartementale}</Label>
-                        <Input
-                          id="delegationDepartementale"
-                          value={student.delegationDepartementale}
-                          onChange={(e) => setStudent({...student, delegationDepartementale: e.target.value})}
-                          placeholder="Délégation Départementale du Wouri"
-                          data-testid="input-delegation-departementale"
-                        />
-                      </div>
+                        <div>
+                          <Label htmlFor="delegationDepartementale">{labels[language].delegationDepartementale}</Label>
+                          <Input
+                            id="delegationDepartementale"
+                            value={student.delegationDepartementale}
+                            onChange={(e) => setStudent({...student, delegationDepartementale: e.target.value})}
+                            placeholder="Délégation Départementale du Wouri"
+                            data-testid="input-delegation-departementale"
+                          />
+                        </div>
 
-                      <div>
-                        <Label htmlFor="schoolPhone">{labels[language].schoolPhone}</Label>
-                        <Input
-                          id="schoolPhone"
-                          value={student.schoolPhone}
-                          onChange={(e) => setStudent({...student, schoolPhone: e.target.value})}
-                          placeholder="+237 233 12 34 56"
-                          data-testid="input-school-phone"
-                        />
-                      </div>
+                        <div>
+                          <Label htmlFor="schoolPhone">{labels[language].schoolPhone}</Label>
+                          <Input
+                            id="schoolPhone"
+                            value={student.schoolPhone}
+                            onChange={(e) => setStudent({...student, schoolPhone: e.target.value})}
+                            placeholder="+237 233 12 34 56"
+                            data-testid="input-school-phone"
+                          />
+                        </div>
 
-                      <div className="md:col-span-2">
-                        <Label htmlFor="schoolAddress">{labels[language].schoolAddress}</Label>
-                        <Input
-                          id="schoolAddress"
-                          value={student.schoolAddress}
-                          onChange={(e) => setStudent({...student, schoolAddress: e.target.value})}
-                          placeholder="BP 1234, Douala, Cameroun"
-                          data-testid="input-school-address"
-                        />
-                      </div>
+                        <div className="md:col-span-2">
+                          <Label htmlFor="schoolAddress">{labels[language].schoolAddress}</Label>
+                          <Input
+                            id="schoolAddress"
+                            value={student.schoolAddress}
+                            onChange={(e) => setStudent({...student, schoolAddress: e.target.value})}
+                            placeholder="BP 1234, Douala, Cameroun"
+                            data-testid="input-school-address"
+                          />
+                        </div>
 
-                      {/* Registration Number Field */}
-                      <div>
-                        <Label htmlFor="registrationNumber">
-                          {language === 'fr' ? 'Numéro d\'enregistrement' : 'Registration Number'}
-                        </Label>
-                        <Input
-                          id="registrationNumber"
-                          value={student.registrationNumber}
-                          onChange={(e) => setStudent({...student, registrationNumber: e.target.value})}
-                          placeholder={language === 'fr' ? 'EDU-CM-SC-001' : 'EDU-CM-SC-001'}
-                          data-testid="input-registration-number"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          {language === 'fr' 
-                            ? 'Auto-rempli depuis le numéro EDUCAFRIC de l\'école' 
-                            : 'Auto-filled from school EDUCAFRIC number'}
-                        </p>
+                        {/* Registration Number Field */}
+                        <div>
+                          <Label htmlFor="registrationNumber">
+                            {language === 'fr' ? 'Numéro d\'enregistrement' : 'Registration Number'}
+                          </Label>
+                          <Input
+                            id="registrationNumber"
+                            value={student.registrationNumber}
+                            onChange={(e) => setStudent({...student, registrationNumber: e.target.value})}
+                            placeholder={language === 'fr' ? 'EDU-CM-SC-001' : 'EDU-CM-SC-001'}
+                            data-testid="input-registration-number"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            {language === 'fr' 
+                              ? 'Auto-rempli depuis le numéro EDUCAFRIC de l\'école' 
+                              : 'Auto-filled from school EDUCAFRIC number'}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
-              {/* School Logo Section */}
-              {!schoolInfo?.data?.logoUrl && (
+              {/* School Logo Section - Hidden for teachers */}
+              {!isTeacherRole && !schoolInfo?.data?.logoUrl && (
                 <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -1841,109 +1808,111 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                 </div>
               )}
 
-              {/* Student Photo Section */}
-              <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="font-semibold text-purple-800 flex items-center gap-2">
-                      <Camera className="h-5 w-5" />
-                      {language === 'fr' ? 'Photo de l\'élève' : 'Student Photo'}
-                    </h4>
-                    <p className="text-sm text-purple-600">
-                      {language === 'fr' 
-                        ? 'Format ministère officiel requis pour le bulletin'
-                        : 'Official ministry format required for bulletin'
-                      }
-                    </p>
-                  </div>
-                  
-                  {/* Photo Preview */}
-                  <div className="flex items-center gap-4">
-                    {studentPhotoUrl ? (
-                      <div className="relative">
-                        <img 
-                          src={studentPhotoUrl} 
-                          alt="Photo élève" 
-                          className="w-20 h-24 object-cover border-2 border-purple-300 rounded-md"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                            setStudentPhotoUrl('');
-                          }}
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="absolute -top-2 -right-2 h-6 w-6 p-0 bg-red-500 text-white border-red-500 hover:bg-red-600"
-                          onClick={() => setStudentPhotoUrl('')}
-                          data-testid="button-remove-photo"
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="w-20 h-24 border-2 border-dashed border-purple-300 rounded-md flex items-center justify-center bg-purple-50">
-                        <div className="text-center">
-                          <Camera className="h-6 w-6 mx-auto text-purple-400 mb-1" />
-                          <p className="text-xs text-purple-500">
-                            {language === 'fr' ? 'Aucune photo' : 'No photo'}
-                          </p>
+              {/* Student Photo Section - Hidden for teachers */}
+              {!isTeacherRole && (
+                <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 className="font-semibold text-purple-800 flex items-center gap-2">
+                        <Camera className="h-5 w-5" />
+                        {language === 'fr' ? 'Photo de l\'élève' : 'Student Photo'}
+                      </h4>
+                      <p className="text-sm text-purple-600">
+                        {language === 'fr' 
+                          ? 'Format ministère officiel requis pour le bulletin'
+                          : 'Official ministry format required for bulletin'
+                        }
+                      </p>
+                    </div>
+                    
+                    {/* Photo Preview */}
+                    <div className="flex items-center gap-4">
+                      {studentPhotoUrl ? (
+                        <div className="relative">
+                          <img 
+                            src={studentPhotoUrl} 
+                            alt="Photo élève" 
+                            className="w-20 h-24 object-cover border-2 border-purple-300 rounded-md"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              setStudentPhotoUrl('');
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0 bg-red-500 text-white border-red-500 hover:bg-red-600"
+                            onClick={() => setStudentPhotoUrl('')}
+                            data-testid="button-remove-photo"
+                          >
+                            ×
+                          </Button>
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="w-20 h-24 border-2 border-dashed border-purple-300 rounded-md flex items-center justify-center bg-purple-50">
+                          <div className="text-center">
+                            <Camera className="h-6 w-6 mx-auto text-purple-400 mb-1" />
+                            <p className="text-xs text-purple-500">
+                              {language === 'fr' ? 'Aucune photo' : 'No photo'}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Photo Upload Interface - only show if no photo */}
-                {!studentPhotoUrl && (
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      <div className="relative">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = (event) => {
-                                const base64String = event.target?.result as string;
-                                setStudentPhotoUrl(base64String);
-                              };
-                              reader.readAsDataURL(file);
-                            }
+                  {/* Photo Upload Interface - only show if no photo */}
+                  {!studentPhotoUrl && (
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-2">
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const base64String = event.target?.result as string;
+                                  setStudentPhotoUrl(base64String);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            data-testid="input-upload-photo"
+                          />
+                          <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
+                            <Upload className="h-4 w-4 mr-2" />
+                            {language === 'fr' ? 'Télécharger photo' : 'Upload Photo'}
+                          </Button>
+                        </div>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                          onClick={() => {
+                            // Demo photo URL for testing
+                            setStudentPhotoUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=200&fit=crop&face=center');
                           }}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          data-testid="input-upload-photo"
-                        />
-                        <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
-                          <Upload className="h-4 w-4 mr-2" />
-                          {language === 'fr' ? 'Télécharger photo' : 'Upload Photo'}
+                          data-testid="button-demo-photo"
+                        >
+                          {language === 'fr' ? 'Photo de démo' : 'Demo Photo'}
                         </Button>
                       </div>
                       
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                        onClick={() => {
-                          // Demo photo URL for testing
-                          setStudentPhotoUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=200&fit=crop&face=center');
-                        }}
-                        data-testid="button-demo-photo"
-                      >
-                        {language === 'fr' ? 'Photo de démo' : 'Demo Photo'}
-                      </Button>
+                      <p className="text-xs text-purple-600">
+                        {language === 'fr' 
+                          ? 'Format recommandé : JPG/PNG, 150x200px minimum, taille < 2MB'
+                          : 'Recommended format: JPG/PNG, 150x200px minimum, size < 2MB'
+                        }
+                      </p>
                     </div>
-                    
-                    <p className="text-xs text-purple-600">
-                      {language === 'fr' 
-                        ? 'Format recommandé : JPG/PNG, 150x200px minimum, taille < 2MB'
-                        : 'Recommended format: JPG/PNG, 150x200px minimum, size < 2MB'
-                      }
-                    </p>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
