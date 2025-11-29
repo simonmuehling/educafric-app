@@ -4401,57 +4401,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[TEACHER_API] 🏫 School info: ${schoolInfo?.name || 'Not found'}`);
       
-      // Get ONLY classes assigned to this teacher from database
+      // Get ONLY classes assigned to this teacher from TIMETABLES (source of truth)
       let assignedClasses: any[] = [];
       try {
         assignedClasses = await db
           .select({
-            classId: teacherSubjectAssignments.classId,
+            classId: timetables.classId,
             className: classes.name,
             classLevel: classes.level,
-            subjectId: teacherSubjectAssignments.subjectId,
-            subjectName: subjects.nameFr,
-            schoolId: classes.schoolId,
+            subjectName: timetables.subjectName,
+            schoolId: timetables.schoolId,
+            room: timetables.room
           })
-          .from(teacherSubjectAssignments)
-          .innerJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
-          .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+          .from(timetables)
+          .innerJoin(classes, eq(timetables.classId, classes.id))
           .where(
             and(
-              eq(teacherSubjectAssignments.teacherId, user.id),
-              eq(teacherSubjectAssignments.schoolId, user.schoolId),
-              eq(teacherSubjectAssignments.active, true)
+              eq(timetables.teacherId, user.id),
+              eq(timetables.schoolId, user.schoolId),
+              eq(timetables.isActive, true)
             )
           );
+        console.log(`[TEACHER_API] 📚 Found ${assignedClasses.length} class assignments from timetables`);
       } catch (e) {
-        console.log('[TEACHER_API] Could not fetch from teacherSubjectAssignments, trying alternative table');
-        // Try alternative: teacherClassSubjects table
-        try {
-          const { teacherClassSubjects, classSubjects } = await import('../shared/schemas/classSubjectsSchema');
-          const altAssignments = await db
-            .select({
-              classId: teacherClassSubjects.classId,
-              className: classes.name,
-              classLevel: classes.level,
-              subjectId: classSubjects.subjectId,
-              subjectName: subjects.nameFr,
-              schoolId: teacherClassSubjects.schoolId,
-            })
-            .from(teacherClassSubjects)
-            .innerJoin(classSubjects, eq(teacherClassSubjects.classSubjectId, classSubjects.id))
-            .innerJoin(classes, eq(teacherClassSubjects.classId, classes.id))
-            .innerJoin(subjects, eq(classSubjects.subjectId, subjects.id))
-            .where(
-              and(
-                eq(teacherClassSubjects.teacherId, user.id),
-                eq(teacherClassSubjects.schoolId, user.schoolId),
-                eq(teacherClassSubjects.isActive, true)
-              )
-            );
-          assignedClasses = altAssignments;
-        } catch (e2) {
-          console.log('[TEACHER_API] Also failed with teacherClassSubjects:', e2);
-        }
+        console.log('[TEACHER_API] Error fetching from timetables:', e);
       }
 
       // Group classes with their subjects
@@ -4470,8 +4443,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             section: '',
             studentCount: 0,
             subject: curr.subjectName,
-            subjects: [curr.subjectName],
-            room: '',
+            subjects: [curr.subjectName].filter(Boolean),
+            room: curr.room || '',
             schedule: '',
             schoolId: curr.schoolId
           });
@@ -4482,6 +4455,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[TEACHER_API] ✅ Found ${uniqueClasses.length} assigned classes for teacher ${user.id}`);
       
+      // FALLBACK: If teacher has no timetable entries, show ALL classes in their school
+      let finalClasses = uniqueClasses;
+      if (uniqueClasses.length === 0 && schoolId) {
+        console.log(`[TEACHER_API] 📋 No timetable entries found, fetching ALL school classes as fallback`);
+        const allSchoolClasses = await db.select({
+          id: classes.id,
+          name: classes.name,
+          level: classes.level,
+          schoolId: classes.schoolId
+        })
+        .from(classes)
+        .where(eq(classes.schoolId, schoolId));
+        
+        finalClasses = allSchoolClasses.map(c => ({
+          id: c.id,
+          name: c.name,
+          level: c.level,
+          section: '',
+          studentCount: 0,
+          subject: '',
+          subjects: [],
+          room: '',
+          schedule: '',
+          schoolId: c.schoolId
+        }));
+        console.log(`[TEACHER_API] 📚 Found ${finalClasses.length} school classes as fallback`);
+      }
+      
       // Return in expected format with REAL school info
       const schoolsWithClasses = schoolInfo ? [
         {
@@ -4491,11 +4492,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           schoolPhone: schoolInfo.phone || '',
           isConnected: true,
           assignmentDate: new Date().toISOString().split('T')[0],
-          classes: uniqueClasses
+          classes: finalClasses
         }
       ] : [];
       
-      res.json({ success: true, schoolsWithClasses, classes: uniqueClasses });
+      res.json({ success: true, schoolsWithClasses, classes: finalClasses });
     } catch (error) {
       console.error('[TEACHER_API] Error fetching classes:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch classes' });
@@ -4822,23 +4823,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(filteredStudents);
       }
       
-      // Get ONLY students from classes assigned to this teacher
-      // First, get assigned class IDs
+      // Get ONLY students from classes assigned to this teacher via TIMETABLES
+      // First, get assigned class IDs from timetables (source of truth)
       const assignedClassIds = await db
-        .select({ classId: teacherSubjectAssignments.classId })
-        .from(teacherSubjectAssignments)
+        .selectDistinct({ classId: timetables.classId })
+        .from(timetables)
         .where(
           and(
-            eq(teacherSubjectAssignments.teacherId, user.id),
-            eq(teacherSubjectAssignments.schoolId, user.schoolId),
-            eq(teacherSubjectAssignments.active, true)
+            eq(timetables.teacherId, user.id),
+            eq(timetables.schoolId, user.schoolId),
+            eq(timetables.isActive, true)
           )
         );
 
-      const classIds = Array.from(new Set(assignedClassIds.map(a => a.classId)));
+      let classIds = Array.from(new Set(assignedClassIds.map(a => a.classId).filter(Boolean))) as number[];
+      console.log(`[TEACHER_API] 📚 Teacher ${user.id} is assigned to classes from timetables:`, classIds);
+      
+      // FALLBACK: If no timetable entries, show students from ALL school classes
+      if (classIds.length === 0 && user.schoolId) {
+        console.log('[TEACHER_API] 📋 No timetable entries found, fetching students from ALL school classes as fallback');
+        const allSchoolClasses = await db.select({ id: classes.id })
+          .from(classes)
+          .where(eq(classes.schoolId, user.schoolId));
+        classIds = allSchoolClasses.map(c => c.id);
+        console.log(`[TEACHER_API] 📚 Using ${classIds.length} school classes as fallback`);
+      }
       
       if (classIds.length === 0) {
-        console.log('[TEACHER_API] ⚠️ No assigned classes found for teacher:', user.id);
+        console.log('[TEACHER_API] ⚠️ No classes found for teacher:', user.id);
         return res.json({ success: true, students: [] });
       }
 
