@@ -421,12 +421,15 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     setBulletinType(getInitialBulletinType());
   }, [schoolData, testModeEducationalType, language]);
 
-  // Fetch available classes
+  // Fetch available classes - use role-appropriate endpoint
+  const isTeacherRole = effectiveRole === 'teacher';
+  const classesEndpoint = isTeacherRole ? '/api/teacher/classes' : '/api/director/classes';
+  
   const { data: classesData, isLoading: loadingClasses, error: classesError } = useQuery({
-    queryKey: ['/api/director/classes'],
+    queryKey: [classesEndpoint],
     queryFn: async () => {
-      console.log('[BULLETIN] Fetching classes...');
-      const response = await fetch('/api/director/classes', {
+      console.log('[BULLETIN] Fetching classes from:', classesEndpoint, 'for role:', effectiveRole);
+      const response = await fetch(classesEndpoint, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -437,7 +440,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         throw new Error('Failed to fetch classes');
       }
       const data = await response.json();
-      console.log('[BULLETIN] Classes received:', data?.classes?.length || 0, 'classes');
+      // Handle different response formats from teacher vs director endpoints
+      const classCount = data?.classes?.length || data?.schoolsWithClasses?.[0]?.classes?.length || 0;
+      console.log('[BULLETIN] Classes received:', classCount, 'classes');
       return data;
     },
   });
@@ -446,6 +451,27 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   if (classesError) {
     console.error('[BULLETIN] Classes query error:', classesError);
   }
+  
+  // Normalize classes data from both teacher and director endpoints
+  const availableClasses = useMemo(() => {
+    if (!classesData) return [];
+    // Director endpoint returns { classes: [...] }
+    if (classesData.classes && Array.isArray(classesData.classes)) {
+      return classesData.classes;
+    }
+    // Teacher endpoint returns { schoolsWithClasses: [{ classes: [...] }] }
+    if (classesData.schoolsWithClasses && Array.isArray(classesData.schoolsWithClasses)) {
+      return classesData.schoolsWithClasses.flatMap((school: any) => school.classes || []);
+    }
+    // Direct array format
+    if (Array.isArray(classesData)) {
+      return classesData;
+    }
+    return [];
+  }, [classesData]);
+  
+  // Check for no classes message from teacher endpoint
+  const noClassesMessage = classesData?.message || null;
 
   // Fetch competency templates
   const { data: competencyTemplates, isLoading: loadingTemplates } = useQuery({
@@ -1281,12 +1307,12 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                     <SelectItem value="loading" disabled>
                       {language === 'fr' ? 'Chargement...' : 'Loading...'}
                     </SelectItem>
-                  ) : !classesData?.classes || classesData.classes.length === 0 ? (
+                  ) : availableClasses.length === 0 ? (
                     <SelectItem value="no-classes" disabled>
-                      {language === 'fr' ? 'Aucune classe trouvée' : 'No classes found'}
+                      {noClassesMessage || (language === 'fr' ? 'Aucune classe assignée. Demandez à votre directeur de créer votre emploi du temps.' : 'No classes assigned. Please ask your director to create your timetable.')}
                     </SelectItem>
                   ) : (
-                    classesData.classes.map((cls: any) => (
+                    availableClasses.map((cls: any) => (
                       <SelectItem key={cls.id} value={cls.id.toString()}>
                         {cls.name}
                       </SelectItem>
@@ -3550,6 +3576,11 @@ interface StudentSelectorProps {
 
 function StudentSelector({ onStudentSelect, language, selectedClassId }: StudentSelectorProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const { user } = useAuth();
+  
+  // Determine if user is a teacher
+  const isTeacherRole = (user?.role || '').toLowerCase() === 'teacher';
+  const studentsEndpoint = isTeacherRole ? '/api/teacher/students' : '/api/director/students';
   
   // Clear selected student when class changes and notify parent
   React.useEffect(() => {
@@ -3559,21 +3590,23 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClassId]);
   
-  // Fetch students from API - only when class is selected
+  // Fetch students from API - only when class is selected (use role-appropriate endpoint)
   const { data: apiResponse, isLoading } = useQuery({
-    queryKey: ['/api/director/students', selectedClassId],
+    queryKey: [studentsEndpoint, selectedClassId],
     queryFn: async () => {
       if (!selectedClassId) {
         return { success: true, students: [] };
       }
       
       try {
-        const url = `/api/director/students?classId=${selectedClassId}`;
+        const url = `${studentsEndpoint}?classId=${selectedClassId}`;
+        console.log('[STUDENT_SELECTOR] Fetching students from:', url);
         const response = await fetch(url, {
           credentials: 'include'
         });
         if (!response.ok) throw new Error('Failed to fetch students');
         const data = await response.json();
+        console.log('[STUDENT_SELECTOR] Students received:', data);
         return data;
       } catch (error) {
         console.error('Error fetching students:', error);
@@ -3608,9 +3641,16 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
     enabled: !!selectedClassId,
   });
 
-  // Ensure studentsData is always an array - use all students from API
-  const allStudents = Array.isArray(apiResponse?.students) ? apiResponse.students : [];
-  const studentsData = allStudents;
+  // Ensure studentsData is always an array - handle both response formats
+  // Teacher endpoint returns array directly, director endpoint returns { students: [...] }
+  const studentsData = useMemo(() => {
+    if (!apiResponse) return [];
+    // Direct array response (teacher endpoint)
+    if (Array.isArray(apiResponse)) return apiResponse;
+    // Object with students array (director endpoint)
+    if (Array.isArray(apiResponse.students)) return apiResponse.students;
+    return [];
+  }, [apiResponse]);
 
   const handleStudentChange = async (studentId: string) => {
     console.log('[STUDENT_SELECTOR] Student selected:', studentId);

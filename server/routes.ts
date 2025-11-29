@@ -4455,32 +4455,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[TEACHER_API] ✅ Found ${uniqueClasses.length} assigned classes for teacher ${user.id}`);
       
-      // FALLBACK: If teacher has no timetable entries, show ALL classes in their school
-      let finalClasses = uniqueClasses;
-      if (uniqueClasses.length === 0 && schoolId) {
-        console.log(`[TEACHER_API] 📋 No timetable entries found, fetching ALL school classes as fallback`);
-        const allSchoolClasses = await db.select({
-          id: classes.id,
-          name: classes.name,
-          level: classes.level,
-          schoolId: classes.schoolId
-        })
-        .from(classes)
-        .where(eq(classes.schoolId, schoolId));
-        
-        finalClasses = allSchoolClasses.map(c => ({
-          id: c.id,
-          name: c.name,
-          level: c.level,
-          section: '',
-          studentCount: 0,
-          subject: '',
-          subjects: [],
-          room: '',
-          schedule: '',
-          schoolId: c.schoolId
-        }));
-        console.log(`[TEACHER_API] 📚 Found ${finalClasses.length} school classes as fallback`);
+      // Teachers should ONLY see classes they are assigned to via timetables
+      // No fallback - if no timetable entries, show empty list with message
+      if (uniqueClasses.length === 0) {
+        console.log(`[TEACHER_API] ⚠️ No timetable entries found for teacher ${user.id} - they need to be assigned by director`);
       }
       
       // Return in expected format with REAL school info
@@ -4492,11 +4470,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           schoolPhone: schoolInfo.phone || '',
           isConnected: true,
           assignmentDate: new Date().toISOString().split('T')[0],
-          classes: finalClasses
+          classes: uniqueClasses
         }
       ] : [];
       
-      res.json({ success: true, schoolsWithClasses, classes: finalClasses });
+      res.json({ 
+        success: true, 
+        schoolsWithClasses, 
+        classes: uniqueClasses,
+        message: uniqueClasses.length === 0 ? 'No classes assigned. Please ask your school director to create your timetable.' : null
+      });
     } catch (error) {
       console.error('[TEACHER_API] Error fetching classes:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch classes' });
@@ -4836,22 +4819,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         );
 
-      let classIds = Array.from(new Set(assignedClassIds.map(a => a.classId).filter(Boolean))) as number[];
+      const classIds = Array.from(new Set(assignedClassIds.map(a => a.classId).filter(Boolean))) as number[];
       console.log(`[TEACHER_API] 📚 Teacher ${user.id} is assigned to classes from timetables:`, classIds);
       
-      // FALLBACK: If no timetable entries, show students from ALL school classes
-      if (classIds.length === 0 && user.schoolId) {
-        console.log('[TEACHER_API] 📋 No timetable entries found, fetching students from ALL school classes as fallback');
-        const allSchoolClasses = await db.select({ id: classes.id })
-          .from(classes)
-          .where(eq(classes.schoolId, user.schoolId));
-        classIds = allSchoolClasses.map(c => c.id);
-        console.log(`[TEACHER_API] 📚 Using ${classIds.length} school classes as fallback`);
-      }
-      
+      // Teachers should ONLY see students from their assigned classes - no fallback
       if (classIds.length === 0) {
-        console.log('[TEACHER_API] ⚠️ No classes found for teacher:', user.id);
-        return res.json({ success: true, students: [] });
+        console.log('[TEACHER_API] ⚠️ No timetable entries found for teacher:', user.id, '- they need to be assigned by director');
+        return res.json({ 
+          success: true, 
+          students: [],
+          message: 'No classes assigned. Please ask your school director to create your timetable.'
+        });
       }
 
       // Then get students from those classes
