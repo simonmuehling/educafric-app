@@ -29,17 +29,23 @@ interface Student {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
   className: string;
   level: string;
   age: number;
+  gender?: string;
+  dateOfBirth?: string;
+  placeOfBirth?: string;
+  matricule?: string;
   parentName: string;
   parentEmail: string;
   parentPhone: string;
   status: 'active' | 'suspended' | 'graduated';
   average: number;
   attendance: number;
-  redoublant: boolean; // Nouveau champ pour indiquer si l'élève redouble
-  photo?: string; // URL de la photo de l'élève
+  redoublant: boolean;
+  photo?: string;
+  photoFilename?: string;
 }
 
 const FunctionalDirectorStudentManagement: React.FC = () => {
@@ -689,27 +695,59 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
 
   const text = language === 'fr' ? {
     title: 'Gestion des Élèves',
+    subtitle: 'Gérez tous les élèves de votre établissement',
     addStudent: 'Ajouter un Élève',
     editStudent: 'Modifier l\'Élève',
     search: 'Rechercher...',
     class: 'Classe',
     allClasses: 'Toutes les classes',
+    import: 'Importer',
+    export: 'Exporter',
+    noStudents: 'Aucun élève trouvé',
+    noStudentsDesc: 'Ajoutez des élèves ou importez-les depuis Excel',
     stats: {
       total: 'Total Élèves',
       active: 'Élèves Actifs',
       average: 'Moyenne Générale',
       attendance: 'Présence Moyenne'
     },
+    table: {
+      name: 'Nom',
+      email: 'Email',
+      class: 'Classe',
+      status: 'Statut',
+      average: 'Moyenne',
+      attendance: 'Présence',
+      actions: 'Actions'
+    },
     form: {
       firstName: 'Prénom',
       lastName: 'Nom',
       email: 'Email',
+      phone: 'Téléphone',
       className: 'Classe',
       level: 'Niveau',
       age: 'Âge',
+      gender: 'Genre',
+      dateOfBirth: 'Date de naissance',
+      placeOfBirth: 'Lieu de naissance',
+      matricule: 'Matricule',
       parentName: 'Nom du parent',
       parentEmail: 'Email parent',
       parentPhone: 'Téléphone parent'
+    },
+    profile: {
+      title: 'Profil de l\'Élève',
+      personalInfo: 'Informations Personnelles',
+      parentInfo: 'Informations Parent',
+      academicInfo: 'Performance Scolaire',
+      schoolInfo: 'Informations Scolaires',
+      averageGrade: 'Moyenne Générale',
+      attendanceRate: 'Taux de Présence',
+      years: 'ans',
+      male: 'Masculin',
+      female: 'Féminin',
+      notProvided: 'Non renseigné'
     },
     status: {
       active: 'Actif',
@@ -722,31 +760,64 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       delete: 'Supprimer',
       cancel: 'Annuler',
       edit: 'Modifier',
-      view: 'Voir'
+      view: 'Voir',
+      close: 'Fermer'
     }
   } : {
     title: 'Student Management',
+    subtitle: 'Manage all students in your institution',
     addStudent: 'Add Student',
     editStudent: 'Edit Student',
     search: 'Search...',
     class: 'Class',
     allClasses: 'All classes',
+    import: 'Import',
+    export: 'Export',
+    noStudents: 'No students found',
+    noStudentsDesc: 'Add students or import them from Excel',
     stats: {
       total: 'Total Students',
       active: 'Active Students',
       average: 'Average Grade',
       attendance: 'Average Attendance'
     },
+    table: {
+      name: 'Name',
+      email: 'Email',
+      class: 'Class',
+      status: 'Status',
+      average: 'Average',
+      attendance: 'Attendance',
+      actions: 'Actions'
+    },
     form: {
       firstName: 'First name',
       lastName: 'Last name',
       email: 'Email',
+      phone: 'Phone',
       className: 'Class',
       level: 'Level',
       age: 'Age',
+      gender: 'Gender',
+      dateOfBirth: 'Date of birth',
+      placeOfBirth: 'Place of birth',
+      matricule: 'Student ID',
       parentName: 'Parent name',
       parentEmail: 'Parent email',
       parentPhone: 'Parent phone'
+    },
+    profile: {
+      title: 'Student Profile',
+      personalInfo: 'Personal Information',
+      parentInfo: 'Parent Information',
+      academicInfo: 'Academic Performance',
+      schoolInfo: 'School Information',
+      averageGrade: 'Average Grade',
+      attendanceRate: 'Attendance Rate',
+      years: 'years',
+      male: 'Male',
+      female: 'Female',
+      notProvided: 'Not provided'
     },
     status: {
       active: 'Active',
@@ -759,7 +830,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       delete: 'Delete',
       cancel: 'Cancel',
       edit: 'Edit',
-      view: 'View'
+      view: 'View',
+      close: 'Close'
     }
   };
 
@@ -779,8 +851,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{text.title || ''}</h1>
-          <p className="text-gray-500">Gérez tous les élèves de votre établissement</p>
+          <h1 className="text-2xl font-bold text-gray-900">{text.title}</h1>
+          <p className="text-gray-500">{text.subtitle}</p>
         </div>
         <div className="flex gap-2">
           {selectedStudents.size > 0 && (
@@ -799,7 +871,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             data-testid="button-import-students"
           >
             <Upload className="w-4 h-4 mr-2" />
-            {language === 'fr' ? 'Importer' : 'Import'}
+            {text.import}
           </Button>
           <Button 
             onClick={() => setIsAddStudentOpen(true)}
@@ -1783,13 +1855,14 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                           size="sm"
                           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                           onClick={() => {
+                            queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
                             setViewingStudent(student);
                             setIsViewStudentOpen(true);
                           }}
                           data-testid={`button-view-student-${student.id}`}
                         >
                           <Eye className="w-4 h-4" />
-                          <span className="hidden sm:inline">Voir</span>
+                          <span className="hidden sm:inline">{text.buttons.view}</span>
                         </Button>
                         <Button 
                           variant="outline" 
@@ -1799,7 +1872,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                           data-testid={`button-edit-student-${student.id}`}
                         >
                           <Edit className="w-4 h-4" />
-                          <span className="hidden sm:inline">Modifier</span>
+                          <span className="hidden sm:inline">{text.buttons.edit}</span>
                         </Button>
                         <Button 
                           variant="outline" 
@@ -1820,7 +1893,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                           data-testid={`button-delete-student-${student.id}`}
                         >
                           <Trash2 className="w-4 h-4" />
-                          <span className="hidden sm:inline">Supprimer</span>
+                          <span className="hidden sm:inline">{text.buttons.delete}</span>
                         </Button>
                       </div>
                     </div>
@@ -1853,7 +1926,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-[95vw] sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">
-                {language === 'fr' ? 'Profil de l\'Élève' : 'Student Profile'}
+                {text.profile.title}
               </h2>
               <Button
                 variant="ghost"
@@ -1867,21 +1940,24 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             
             <div className="p-6">
               <div className="flex items-start gap-6 mb-6">
-                {/* Student Photo or Default Avatar */}
-                {viewingStudent.photo ? (
+                {/* Student Photo - with proper URL resolution */}
+                {(viewingStudent.photo || viewingStudent.photoFilename) ? (
                   <div className="w-24 h-28 rounded-lg overflow-hidden border-2 border-green-200 shadow-md flex-shrink-0">
                     <img 
-                      src={viewingStudent.photo} 
+                      src={viewingStudent.photo || `/uploads/students/${viewingStudent.photoFilename}`}
                       alt={`${viewingStudent.firstName} ${viewingStudent.lastName}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full bg-green-100 flex items-center justify-center"><svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"></path><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg></div>';
+                        const target = e.currentTarget;
+                        target.style.display = 'none';
+                        if (target.parentElement) {
+                          target.parentElement.innerHTML = '<div class="w-full h-full bg-green-100 flex items-center justify-center"><svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>';
+                        }
                       }}
                     />
                   </div>
                 ) : (
-                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-24 h-28 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 border-2 border-green-200">
                     <GraduationCap className="w-10 h-10 text-green-600" />
                   </div>
                 )}
@@ -1894,6 +1970,9 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                       {text.status[viewingStudent.status]}
                     </Badge>
                     <Badge variant="outline">🎓 {viewingStudent.className}</Badge>
+                    {viewingStudent.matricule && (
+                      <Badge variant="outline">#{viewingStudent.matricule}</Badge>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1901,77 +1980,75 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <h4 className="font-semibold text-gray-900 border-b pb-2">
-                    {language === 'fr' ? 'Informations Personnelles' : 'Personal Information'}
+                    {text.profile.personalInfo}
                   </h4>
                   <div className="space-y-3">
                     <div>
                       <label className="text-sm font-medium text-gray-500">Email</label>
-                      <p className="text-gray-900">{viewingStudent.email || 'N/A'}</p>
+                      <p className="text-gray-900">{viewingStudent.email || text.profile.notProvided}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Âge' : 'Age'}
-                      </label>
-                      <p className="text-gray-900">{viewingStudent.age || 'N/A'} ans</p>
+                      <label className="text-sm font-medium text-gray-500">{text.form.phone}</label>
+                      <p className="text-gray-900">{viewingStudent.phone || text.profile.notProvided}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Genre' : 'Gender'}
-                      </label>
-                      <p className="text-gray-900">N/A</p>
+                      <label className="text-sm font-medium text-gray-500">{text.form.age}</label>
+                      <p className="text-gray-900">
+                        {viewingStudent.age ? `${viewingStudent.age} ${text.profile.years}` : text.profile.notProvided}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Matricule' : 'Student ID'}
-                      </label>
-                      <p className="text-gray-900">N/A</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900 border-b pb-2">
-                    {language === 'fr' ? 'Informations Parent' : 'Parent Information'}
-                  </h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Nom du Parent' : 'Parent Name'}
-                      </label>
-                      <p className="text-gray-900">{viewingStudent.parentName || 'N/A'}</p>
+                      <label className="text-sm font-medium text-gray-500">{text.form.gender}</label>
+                      <p className="text-gray-900">
+                        {viewingStudent.gender === 'male' ? text.profile.male : 
+                         viewingStudent.gender === 'female' ? text.profile.female : 
+                         text.profile.notProvided}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Email Parent' : 'Parent Email'}
-                      </label>
-                      <p className="text-gray-900">{viewingStudent.parentEmail || 'N/A'}</p>
+                      <label className="text-sm font-medium text-gray-500">{text.form.dateOfBirth}</label>
+                      <p className="text-gray-900">{viewingStudent.dateOfBirth || text.profile.notProvided}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Téléphone Parent' : 'Parent Phone'}
-                      </label>
-                      <p className="text-gray-900">{viewingStudent.parentPhone || 'N/A'}</p>
+                      <label className="text-sm font-medium text-gray-500">{text.form.matricule}</label>
+                      <p className="text-gray-900">{viewingStudent.matricule || text.profile.notProvided}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <h4 className="font-semibold text-gray-900 border-b pb-2">
-                    {language === 'fr' ? 'Performance Scolaire' : 'Academic Performance'}
+                    {text.profile.parentInfo}
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Moyenne Générale' : 'Average Grade'}
-                      </label>
+                      <label className="text-sm font-medium text-gray-500">{text.form.parentName}</label>
+                      <p className="text-gray-900">{viewingStudent.parentName || text.profile.notProvided}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">{text.form.parentEmail}</label>
+                      <p className="text-gray-900">{viewingStudent.parentEmail || text.profile.notProvided}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">{text.form.parentPhone}</label>
+                      <p className="text-gray-900">{viewingStudent.parentPhone || text.profile.notProvided}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                    {text.profile.academicInfo}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">{text.profile.averageGrade}</label>
                       <p className="text-gray-900 text-2xl font-bold text-green-600">
                         {viewingStudent.average || 0}/20
                       </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Taux de Présence' : 'Attendance Rate'}
-                      </label>
+                      <label className="text-sm font-medium text-gray-500">{text.profile.attendanceRate}</label>
                       <p className="text-gray-900 text-2xl font-bold text-blue-600">
                         {viewingStudent.attendance || 0}%
                       </p>
@@ -1981,20 +2058,16 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
 
                 <div className="space-y-4">
                   <h4 className="font-semibold text-gray-900 border-b pb-2">
-                    {language === 'fr' ? 'Informations Scolaires' : 'School Information'}
+                    {text.profile.schoolInfo}
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Classe' : 'Class'}
-                      </label>
-                      <p className="text-gray-900">{viewingStudent.className || 'N/A'}</p>
+                      <label className="text-sm font-medium text-gray-500">{text.form.className}</label>
+                      <p className="text-gray-900">{viewingStudent.className || text.profile.notProvided}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">
-                        {language === 'fr' ? 'Niveau' : 'Level'}
-                      </label>
-                      <p className="text-gray-900">{viewingStudent.level || 'N/A'}</p>
+                      <label className="text-sm font-medium text-gray-500">{text.form.level}</label>
+                      <p className="text-gray-900">{viewingStudent.level || text.profile.notProvided}</p>
                     </div>
                   </div>
                 </div>
@@ -2007,15 +2080,17 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                     handleEditStudent(viewingStudent);
                   }}
                   className="bg-green-600 hover:bg-green-700"
+                  data-testid="button-edit-from-profile"
                 >
                   <Edit className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Modifier' : 'Edit'}
+                  {text.buttons.edit}
                 </Button>
                 <Button 
                   variant="outline"
                   onClick={() => setIsViewStudentOpen(false)}
+                  data-testid="button-close-profile"
                 >
-                  {language === 'fr' ? 'Fermer' : 'Close'}
+                  {text.buttons.close}
                 </Button>
               </div>
             </div>
