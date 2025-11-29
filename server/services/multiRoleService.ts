@@ -26,15 +26,19 @@ export class MultiRoleService {
   
   // Detect potential roles based on phone number
   static async detectRolesByPhone(phone: string): Promise<MultiRoleDetection> {
-    const suggestedRoles = [];
+    const suggestedRoles: Array<{
+      role: string;
+      schoolName?: string;
+      description: string;
+      confidence: number;
+    }> = [];
     
-    // Check if phone exists in different contexts
-    const existingUsers = await storage.getUsersByPhone(phone);
-    const schools = await storage.getSchoolsByPhone(phone);
+    // Check if phone exists in users table
+    const existingUser = await storage.getUserByPhone(phone);
     
-    for (const user of existingUsers) {
-      if (user.role === 'Teacher') {
-        const school = await storage.getSchoolById(user.schoolId!);
+    if (existingUser) {
+      if (existingUser.role === 'Teacher') {
+        const school = existingUser.schoolId ? await storage.getSchoolById(existingUser.schoolId) : null;
         suggestedRoles.push({
           role: 'Teacher',
           schoolName: school?.name,
@@ -43,23 +47,34 @@ export class MultiRoleService {
         });
       }
       
-      if (user.role === 'Parent') {
+      if (existingUser.role === 'Parent') {
         suggestedRoles.push({
           role: 'Parent',
           description: 'Parent d\'élève',
           confidence: 0.85
         });
       }
-    }
-    
-    // Check in commercial database
-    const commercialRecords = await storage.getCommercialByPhone(phone);
-    if (commercialRecords.length > 0) {
-      suggestedRoles.push({
-        role: 'Commercial',
-        description: 'Représentant commercial Educafric',
-        confidence: 0.8
-      });
+      
+      if (existingUser.role === 'Commercial') {
+        suggestedRoles.push({
+          role: 'Commercial',
+          description: 'Représentant commercial Educafric',
+          confidence: 0.8
+        });
+      }
+      
+      // Check secondary roles too
+      if (existingUser.secondaryRoles && existingUser.secondaryRoles.length > 0) {
+        for (const role of existingUser.secondaryRoles) {
+          if (!suggestedRoles.some(sr => sr.role === role)) {
+            suggestedRoles.push({
+              role,
+              description: `Rôle secondaire: ${role}`,
+              confidence: 0.7
+            });
+          }
+        }
+      }
     }
     
     return {

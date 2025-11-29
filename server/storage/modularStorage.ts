@@ -119,6 +119,29 @@ export class ModularStorage {
     return this.userStorage.createNotificationPreferences(data); 
   }
 
+  // === MULTI-ROLE METHODS ===
+  async updateUserSecondaryRoles(userId: number, secondaryRoles: string[]) {
+    return this.userStorage.updateUserSecondaryRoles(userId, secondaryRoles);
+  }
+  async updateUserActiveRole(userId: number, activeRole: string) {
+    return this.userStorage.updateUserActiveRole(userId, activeRole);
+  }
+  async updateUserRoleHistory(userId: number, roleHistory: any) {
+    return this.userStorage.updateUserRoleHistory(userId, roleHistory);
+  }
+  async createRoleAffiliation(data: any) {
+    return this.userStorage.createRoleAffiliation(data);
+  }
+  async getUserRoleAffiliations(userId: number) {
+    return this.userStorage.getUserRoleAffiliations(userId);
+  }
+  async updateRoleAffiliationMetadata(affiliationId: number, metadata: any) {
+    return this.userStorage.updateRoleAffiliationMetadata(affiliationId, metadata);
+  }
+  async updateUserSchoolId(userId: number, schoolId: number) {
+    return this.userStorage.updateUserSchoolId(userId, schoolId);
+  }
+
   // === COMMERCIAL ACTIVITY METHODS ===
   async createCommercialActivity(activity: {
     commercialId: number;
