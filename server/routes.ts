@@ -6662,61 +6662,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/attendance", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      const { classId, date } = req.query;
       
-      const attendance = [
-        {
-          id: 1,
-          studentName: 'Jean Kamga',
-          class: '6ème A',
-          date: '2025-08-31',
-          status: 'present',
-          arrivalTime: '07:45'
-        },
-        {
-          id: 2,
-          studentName: 'Marie Nkomo',
-          class: '5ème B',
-          date: '2025-08-31',
-          status: 'present',
-          arrivalTime: '07:50'
-        }
-      ];
+      console.log('[TEACHER_ATTENDANCE] 📋 Fetching attendance for teacher:', teacherId, 'school:', schoolId);
       
-      res.json({ success: true, attendance });
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      // Get teacher's assigned classes first
+      const teacherAssignments = await db.select({
+        classId: teacherSubjectAssignments.classId
+      })
+      .from(teacherSubjectAssignments)
+      .where(and(
+        eq(teacherSubjectAssignments.teacherId, teacherId),
+        eq(teacherSubjectAssignments.schoolId, schoolId),
+        eq(teacherSubjectAssignments.active, true)
+      ));
+      
+      const assignedClassIds = teacherAssignments.map(a => a.classId);
+      console.log('[TEACHER_ATTENDANCE] Assigned classes:', assignedClassIds);
+      
+      if (assignedClassIds.length === 0) {
+        return res.json({ success: true, attendance: [], message: 'No classes assigned' });
+      }
+      
+      // Get students from assigned classes
+      const studentsInClasses = await db.select({
+        id: students.id,
+        userId: students.userId,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        classId: students.classId,
+        className: classes.name
+      })
+      .from(students)
+      .innerJoin(users, eq(students.userId, users.id))
+      .innerJoin(classes, eq(students.classId, classes.id))
+      .where(and(
+        inArray(students.classId, assignedClassIds),
+        eq(students.schoolId, schoolId)
+      ));
+      
+      // Get attendance records for these students
+      const attendance = await db.select({
+        id: attendanceRecords.id,
+        studentId: attendanceRecords.studentId,
+        classId: attendanceRecords.classId,
+        date: attendanceRecords.date,
+        status: attendanceRecords.status,
+        arrivalTime: attendanceRecords.arrivalTime,
+        reason: attendanceRecords.reason
+      })
+      .from(attendanceRecords)
+      .where(and(
+        inArray(attendanceRecords.classId, assignedClassIds),
+        eq(attendanceRecords.schoolId, schoolId),
+        date ? eq(attendanceRecords.date, date as string) : undefined
+      ) as any);
+      
+      // Merge attendance with student info
+      const attendanceWithStudents = attendance.map(record => {
+        const student = studentsInClasses.find(s => s.id === record.studentId);
+        return {
+          id: record.id,
+          studentId: record.studentId,
+          studentName: student ? `${student.firstName} ${student.lastName}` : 'Unknown',
+          class: student?.className || `Class ${record.classId}`,
+          classId: record.classId,
+          date: record.date,
+          status: record.status,
+          arrivalTime: record.arrivalTime,
+          reason: record.reason
+        };
+      });
+      
+      console.log('[TEACHER_ATTENDANCE] ✅ Found', attendanceWithStudents.length, 'attendance records');
+      
+      res.json({ 
+        success: true, 
+        attendance: attendanceWithStudents,
+        assignedClasses: assignedClassIds,
+        studentsCount: studentsInClasses.length
+      });
     } catch (error) {
       console.error('[TEACHER_API] Error fetching attendance:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch attendance' });
     }
   });
 
-  // ===== TEACHER COMMUNICATIONS/MESSAGES - UNIFIED SYSTEM =====
+  // ===== TEACHER COMMUNICATIONS/MESSAGES - REAL DATABASE =====
   
   app.get("/api/teacher/communications", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
       
-      const communications = [
-        {
-          id: 1,
-          from: 'Marie Kamga',
-          fromRole: 'Parent',
-          subject: 'Absence de Jean',
-          message: 'Jean sera absent demain pour rendez-vous médical.',
-          date: '2025-08-30',
-          read: false,
-          type: 'parent'
-        },
-        {
-          id: 2,
-          from: 'Direction',
-          fromRole: 'Admin',
-          subject: 'Réunion pédagogique',
-          message: 'Réunion des enseignants prévue mardi à 16h.',
-          date: '2025-08-29',
-          read: true,
-          type: 'admin'
-        }
-      ];
+      console.log('[TEACHER_COMMS] 📨 Fetching communications for teacher:', teacherId);
+      
+      // Get real communications from database
+      const communications = await db.select({
+        id: messages.id,
+        from: messages.senderName,
+        fromRole: messages.senderRole,
+        subject: messages.subject,
+        message: messages.content,
+        date: messages.createdAt,
+        read: messages.isRead,
+        type: messages.messageType
+      })
+      .from(messages)
+      .where(
+        or(
+          eq(messages.recipientId, teacherId),
+          eq(messages.senderId, teacherId)
+        )
+      )
+      .orderBy(desc(messages.createdAt))
+      .limit(50);
+      
+      console.log('[TEACHER_COMMS] ✅ Found', communications.length, 'communications');
       
       res.json({ success: true, communications });
     } catch (error) {
@@ -6725,54 +6794,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== ROUTE MANQUANTE AJOUTÉE: /api/teacher/messages =====
+  // ===== ROUTE MANQUANTE AJOUTÉE: /api/teacher/messages - REAL DATABASE =====
   app.get("/api/teacher/messages", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      const teacherId = user.id;
       
-      const messages = [
-        {
-          id: 1,
-          from: "Parent Kamga",
-          fromRole: "Parent",
-          to: "Mme Kouam", 
-          toRole: "Enseignant",
-          subject: "Question sur les devoirs",
-          message: "Bonjour, pourriez-vous m'expliquer l'exercice de mathématiques de Jean?",
-          type: "question",
-          status: "unread",
-          date: "2025-08-25T14:30:00Z",
-          direction: "received"
-        },
-        {
-          id: 2,
-          from: "Mme Kouam",
-          fromRole: "Enseignant",
-          to: "Parent Mballa",
-          toRole: "Parent", 
-          subject: "Félicitations pour les progrès",
-          message: "Votre enfant fait d'excellents progrès en français cette semaine.",
-          type: "information",
-          status: "sent",
-          date: "2025-08-25T10:15:00Z",
-          direction: "sent"
-        },
-        {
-          id: 3,
-          from: "Direction École",
-          fromRole: "Administration",
-          to: "Mme Kouam",
-          toRole: "Enseignant",
-          subject: "Réunion pédagogique",
-          message: "Réunion des enseignants prévue mardi 3 septembre à 16h00 en salle des professeurs.",
-          type: "administration",
-          status: "unread",
-          date: "2025-08-29T09:00:00Z",
-          direction: "received"
-        }
-      ];
+      console.log('[TEACHER_MESSAGES] 📬 Fetching messages for teacher:', teacherId);
       
-      res.json({ success: true, messages, communications: messages });
+      // Get real messages from database
+      const messagesData = await db.select({
+        id: messages.id,
+        senderId: messages.senderId,
+        senderName: messages.senderName,
+        senderRole: messages.senderRole,
+        recipientId: messages.recipientId,
+        recipientName: messages.recipientName,
+        recipientRole: messages.recipientRole,
+        subject: messages.subject,
+        content: messages.content,
+        messageType: messages.messageType,
+        isRead: messages.isRead,
+        createdAt: messages.createdAt
+      })
+      .from(messages)
+      .where(
+        or(
+          eq(messages.recipientId, teacherId),
+          eq(messages.senderId, teacherId)
+        )
+      )
+      .orderBy(desc(messages.createdAt))
+      .limit(100);
+      
+      // Format for frontend
+      const formattedMessages = messagesData.map(msg => ({
+        id: msg.id,
+        from: msg.senderName || 'Unknown',
+        fromRole: msg.senderRole || 'User',
+        to: msg.recipientName || 'Unknown',
+        toRole: msg.recipientRole || 'User',
+        subject: msg.subject || '',
+        message: msg.content || '',
+        type: msg.messageType || 'message',
+        status: msg.isRead ? 'read' : 'unread',
+        date: msg.createdAt,
+        direction: msg.senderId === teacherId ? 'sent' : 'received'
+      }));
+      
+      console.log('[TEACHER_MESSAGES] ✅ Found', formattedMessages.length, 'messages');
+      
+      res.json({ success: true, messages: formattedMessages, communications: formattedMessages });
     } catch (error) {
       console.error('[TEACHER_API] Error fetching messages:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch messages' });
@@ -6782,20 +6854,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/schools", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
       
-      const schools = [
-        {
-          id: 1,
-          name: 'École Saint-Joseph',
-          type: 'Private',
-          address: 'Douala, Cameroun',
-          role: 'Teacher',
-          subjects: ['Mathématiques'],
-          classes: ['6ème A', '5ème B']
-        }
-      ];
+      console.log('[TEACHER_SCHOOLS] 🏫 Fetching school info for teacher:', teacherId);
       
-      res.json({ success: true, schools });
+      if (!schoolId) {
+        return res.json({ success: true, schools: [] });
+      }
+      
+      // Get school info from database
+      const [schoolData] = await db.select({
+        id: schools.id,
+        name: schools.name,
+        address: schools.address,
+        phone: schools.phone,
+        email: schools.email,
+        logoUrl: schools.logoUrl,
+        educationalType: schools.educationalType
+      })
+      .from(schools)
+      .where(eq(schools.id, schoolId))
+      .limit(1);
+      
+      if (!schoolData) {
+        return res.json({ success: true, schools: [] });
+      }
+      
+      // Get teacher's assigned classes and subjects
+      const assignments = await db.select({
+        classId: teacherSubjectAssignments.classId,
+        className: classes.name,
+        subjectId: teacherSubjectAssignments.subjectId,
+        subjectName: subjects.nameFr
+      })
+      .from(teacherSubjectAssignments)
+      .innerJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
+      .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+      .where(and(
+        eq(teacherSubjectAssignments.teacherId, teacherId),
+        eq(teacherSubjectAssignments.schoolId, schoolId),
+        eq(teacherSubjectAssignments.active, true)
+      ));
+      
+      const uniqueSubjects = [...new Set(assignments.map(a => a.subjectName))];
+      const uniqueClasses = [...new Set(assignments.map(a => a.className))];
+      
+      const schoolWithDetails = {
+        id: schoolData.id,
+        name: schoolData.name,
+        type: schoolData.educationalType || 'general',
+        address: schoolData.address || '',
+        phone: schoolData.phone || '',
+        role: 'Teacher',
+        subjects: uniqueSubjects,
+        classes: uniqueClasses
+      };
+      
+      console.log('[TEACHER_SCHOOLS] ✅ School:', schoolData.name, 'Subjects:', uniqueSubjects.length, 'Classes:', uniqueClasses.length);
+      
+      res.json({ success: true, schools: [schoolWithDetails] });
     } catch (error) {
       console.error('[TEACHER_API] Error fetching schools:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch schools' });
@@ -12349,11 +12467,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[TIMETABLES_API] 👩‍🏫 Fetching timetable for teacher:', teacherId);
       
-      // Get teacher's assigned timetable from PostgreSQL
+      // Get school info for this teacher
+      const [schoolInfo] = await db.select({
+        name: schools.name,
+        address: schools.address,
+        phone: schools.phone
+      }).from(schools).where(eq(schools.id, schoolId)).limit(1);
+      
+      // Get teacher's assigned timetable from PostgreSQL with class names
       const teacherTimetable = await db
         .select({
           id: timetables.id,
           classId: timetables.classId,
+          className: classes.name,
+          classLevel: classes.level,
           subjectName: timetables.subjectName,
           dayOfWeek: timetables.dayOfWeek,
           startTime: timetables.startTime,
@@ -12366,6 +12493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updatedAt: timetables.updatedAt
         })
         .from(timetables)
+        .leftJoin(classes, eq(timetables.classId, classes.id))
         .where(and(
           eq(timetables.teacherId, teacherId),
           eq(timetables.schoolId, schoolId),
@@ -12392,17 +12520,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: slot.id,
             time: `${slot.startTime}-${slot.endTime}`,
             subject: slot.subjectName,
-            class: `Classe ${slot.classId}`, // TODO: Get real class name
+            class: slot.className || `Classe ${slot.classId}`,
+            classId: slot.classId,
+            classLevel: slot.classLevel,
             room: slot.room,
-            color: 'blue' // Default color
+            color: 'blue'
           });
         }
       });
       
-      console.log('[TIMETABLES_API] ✅ Teacher timetable synchronized:', teacherTimetable.length, 'slots');
+      console.log('[TIMETABLES_API] ✅ Teacher timetable synchronized:', teacherTimetable.length, 'slots for school:', schoolInfo?.name);
       
       res.json({
         success: true,
+        school: schoolInfo || null,
         timetable: {
           teacherId,
           schedule,
