@@ -4377,47 +4377,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ success: true, schoolsWithClasses: sandboxSchoolsWithClasses });
       }
       
-      // Get ONLY classes assigned to this teacher from database
-      const assignedClasses = await db
-        .select({
-          classId: teacherSubjectAssignments.classId,
-          className: classes.name,
-          classLevel: classes.level,
-          subjectId: teacherSubjectAssignments.subjectId,
-          subjectName: subjects.nameFr,
-          schoolId: classes.schoolId,
+      // Get school information first
+      const schoolId = user.schoolId;
+      let schoolInfo = null;
+      
+      if (schoolId) {
+        const [school] = await db.select({
+          id: schools.id,
+          name: schools.name,
+          address: schools.address,
+          phone: schools.phone,
+          email: schools.email,
+          logoUrl: schools.logoUrl
         })
-        .from(teacherSubjectAssignments)
-        .innerJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
-        .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
-        .where(
-          and(
-            eq(teacherSubjectAssignments.teacherId, user.id),
-            eq(teacherSubjectAssignments.schoolId, user.schoolId),
-            eq(teacherSubjectAssignments.active, true)
-          )
-        );
+        .from(schools)
+        .where(eq(schools.id, schoolId))
+        .limit(1);
+        schoolInfo = school;
+      }
+      
+      console.log(`[TEACHER_API] 🏫 School info: ${schoolInfo?.name || 'Not found'}`);
+      
+      // Get ONLY classes assigned to this teacher from database
+      let assignedClasses: any[] = [];
+      try {
+        assignedClasses = await db
+          .select({
+            classId: teacherSubjectAssignments.classId,
+            className: classes.name,
+            classLevel: classes.level,
+            subjectId: teacherSubjectAssignments.subjectId,
+            subjectName: subjects.nameFr,
+            schoolId: classes.schoolId,
+          })
+          .from(teacherSubjectAssignments)
+          .innerJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
+          .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+          .where(
+            and(
+              eq(teacherSubjectAssignments.teacherId, user.id),
+              eq(teacherSubjectAssignments.schoolId, user.schoolId),
+              eq(teacherSubjectAssignments.active, true)
+            )
+          );
+      } catch (e) {
+        console.log('[TEACHER_API] Could not fetch from teacherSubjectAssignments, trying alternative table');
+        // Try alternative: teacherClassSubjects table
+        try {
+          const { teacherClassSubjects, classSubjects } = await import('../shared/schemas/classSubjectsSchema');
+          const altAssignments = await db
+            .select({
+              classId: teacherClassSubjects.classId,
+              className: classes.name,
+              classLevel: classes.level,
+              subjectId: classSubjects.subjectId,
+              subjectName: subjects.nameFr,
+              schoolId: teacherClassSubjects.schoolId,
+            })
+            .from(teacherClassSubjects)
+            .innerJoin(classSubjects, eq(teacherClassSubjects.classSubjectId, classSubjects.id))
+            .innerJoin(classes, eq(teacherClassSubjects.classId, classes.id))
+            .innerJoin(subjects, eq(classSubjects.subjectId, subjects.id))
+            .where(
+              and(
+                eq(teacherClassSubjects.teacherId, user.id),
+                eq(teacherClassSubjects.schoolId, user.schoolId),
+                eq(teacherClassSubjects.isActive, true)
+              )
+            );
+          assignedClasses = altAssignments;
+        } catch (e2) {
+          console.log('[TEACHER_API] Also failed with teacherClassSubjects:', e2);
+        }
+      }
 
-      // Group classes by removing duplicates (same class, different subjects)
-      const uniqueClasses = assignedClasses.reduce((acc: any[], curr) => {
-        const existing = acc.find(c => c.id === curr.classId);
-        if (!existing) {
-          acc.push({
+      // Group classes with their subjects
+      const classMap = new Map<number, any>();
+      for (const curr of assignedClasses) {
+        const existing = classMap.get(curr.classId);
+        if (existing) {
+          if (!existing.subjects.includes(curr.subjectName)) {
+            existing.subjects.push(curr.subjectName);
+          }
+        } else {
+          classMap.set(curr.classId, {
             id: curr.classId,
             name: curr.className,
             level: curr.classLevel,
+            section: '',
+            studentCount: 0,
+            subject: curr.subjectName,
+            subjects: [curr.subjectName],
+            room: '',
+            schedule: '',
             schoolId: curr.schoolId
           });
         }
-        return acc;
-      }, []);
+      }
+      
+      const uniqueClasses = Array.from(classMap.values());
 
       console.log(`[TEACHER_API] ✅ Found ${uniqueClasses.length} assigned classes for teacher ${user.id}`);
       
-      // Return in expected format for compatibility
-      const schoolsWithClasses = uniqueClasses.length > 0 ? [
+      // Return in expected format with REAL school info
+      const schoolsWithClasses = schoolInfo ? [
         {
-          schoolId: user.schoolId,
+          schoolId: schoolInfo.id,
+          schoolName: schoolInfo.name,
+          schoolAddress: schoolInfo.address || '',
+          schoolPhone: schoolInfo.phone || '',
+          isConnected: true,
+          assignmentDate: new Date().toISOString().split('T')[0],
           classes: uniqueClasses
         }
       ] : [];
@@ -6729,40 +6799,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Teacher Settings
+  // Teacher Settings - REAL DATA FROM DATABASE
   app.get("/api/teacher/settings", requireAuth, async (req, res) => {
     try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      
+      console.log(`[TEACHER_SETTINGS] Fetching real data for teacher ID: ${teacherId}`);
+      
+      // Fetch teacher profile from users table
+      const [teacherData] = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        gender: users.gender,
+        dateOfBirth: users.dateOfBirth,
+        twoFactorEnabled: users.twoFactorEnabled,
+        isActive: users.isActive,
+        createdAt: users.createdAt,
+        profilePictureUrl: users.profilePictureUrl,
+        educafricNumber: users.educafricNumber
+      })
+      .from(users)
+      .where(eq(users.id, teacherId))
+      .limit(1);
+      
+      if (!teacherData) {
+        return res.status(404).json({ success: false, message: 'Teacher not found' });
+      }
+      
+      // Fetch school information
+      let schoolInfo = null;
+      if (schoolId) {
+        const [school] = await db.select({
+          id: schools.id,
+          name: schools.name,
+          address: schools.address,
+          phone: schools.phone,
+          email: schools.email,
+          logoUrl: schools.logoUrl,
+          academicYear: schools.academicYear
+        })
+        .from(schools)
+        .where(eq(schools.id, schoolId))
+        .limit(1);
+        schoolInfo = school;
+      }
+      
+      // Fetch assigned subjects (from teacherClassSubjects or teacherSubjectAssignments)
+      let assignedSubjects: string[] = [];
+      try {
+        const assignments = await db.select({
+          subjectName: subjects.nameFr
+        })
+        .from(teacherSubjectAssignments)
+        .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+        .where(
+          and(
+            eq(teacherSubjectAssignments.teacherId, teacherId),
+            eq(teacherSubjectAssignments.active, true)
+          )
+        );
+        assignedSubjects = [...new Set(assignments.map(a => a.subjectName).filter(Boolean))] as string[];
+      } catch (e) {
+        console.log('[TEACHER_SETTINGS] Could not fetch subject assignments:', e);
+      }
+      
       const settings = {
         profile: {
-          firstName: 'Marie',
-          lastName: 'Dubois',
-          email: 'marie.dubois@saintjoseph.edu',
-          phone: '+237657001234',
-          subjects: ['Mathématiques', 'Physique'],
-          experience: 8,
-          qualification: 'Licence en Mathématiques'
+          id: teacherData.id,
+          firstName: teacherData.firstName,
+          lastName: teacherData.lastName,
+          email: teacherData.email || '',
+          phone: teacherData.phone || '',
+          gender: teacherData.gender || '',
+          dateOfBirth: teacherData.dateOfBirth || '',
+          profilePictureUrl: teacherData.profilePictureUrl || '',
+          educafricNumber: teacherData.educafricNumber || '',
+          subjects: assignedSubjects,
+          experience: 0,
+          qualification: ''
         },
+        school: schoolInfo ? {
+          id: schoolInfo.id,
+          name: schoolInfo.name,
+          address: schoolInfo.address || '',
+          phone: schoolInfo.phone || '',
+          email: schoolInfo.email || '',
+          logoUrl: schoolInfo.logoUrl || '',
+          academicYear: schoolInfo.academicYear || ''
+        } : null,
         preferences: {
           language: 'fr',
           notifications: {
             email: true,
             sms: true,
-            push: true
+            push: true,
+            whatsapp: true
           },
           gradeDisplayMode: 'detailed',
           theme: 'modern'
         },
         security: {
-          twoFactorEnabled: false,
-          lastPasswordChange: '2024-07-15',
+          twoFactorEnabled: teacherData.twoFactorEnabled || false,
+          lastPasswordChange: teacherData.createdAt ? new Date(teacherData.createdAt).toISOString().split('T')[0] : null,
           sessionTimeout: 30
         }
       };
+      
+      console.log(`[TEACHER_SETTINGS] ✅ Loaded real data for: ${teacherData.firstName} ${teacherData.lastName}`);
       res.json({ success: true, settings });
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[TEACHER_SETTINGS] Error:', error);
-      }
+      console.error('[TEACHER_SETTINGS] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch teacher settings' });
     }
   });

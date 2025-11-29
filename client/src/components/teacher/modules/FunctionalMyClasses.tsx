@@ -43,7 +43,6 @@ const FunctionalMyClasses: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<ClassData | null>(null);
 
@@ -57,49 +56,9 @@ const FunctionalMyClasses: React.FC = () => {
   const [disconnectingSchool, setDisconnectingSchool] = useState<SchoolData | null>(null);
   const [disconnectReason, setDisconnectReason] = useState('');
 
-  // Fetch schools and classes data
-  const { data: schoolsData, isLoading } = useQuery<{success: boolean, schoolsWithClasses: SchoolData[]}>({
-    queryKey: ['/api/teacher/classes'],
-    queryFn: async () => {
-      const response = await fetch('/api/teacher/classes', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        console.warn('[TEACHER_CLASSES] API failed, using mock data');
-        return {
-          success: true,
-          schoolsWithClasses: [
-            {
-              schoolId: 1,
-              schoolName: 'Lycée de Yaoundé',
-              schoolAddress: 'Bastos, Yaoundé',
-              schoolPhone: '+237222123456',
-              isConnected: true,
-              assignmentDate: '2024-09-01',
-              classes: [
-                {
-                  id: 1,
-                  name: "6ème A",
-                  level: "6ème",
-                  section: "A",
-                  studentCount: 28,
-                  subject: "Mathématiques",
-                  room: "Salle 12",
-                  schedule: "Lun-Mer-Ven 08:00-10:00"
-                }
-              ]
-            }
-          ]
-        };
-      }
-      
-      return response.json();
-    }
+  // Fetch schools and classes data from REAL database
+  const { data: schoolsData, isLoading, error } = useQuery<{success: boolean, schoolsWithClasses: SchoolData[]}>({
+    queryKey: ['/api/teacher/classes']
   });
 
   // Mutation pour se déconnecter d'une école
@@ -225,7 +184,6 @@ const FunctionalMyClasses: React.FC = () => {
       deleteClass: 'Supprimer',
       viewStudents: 'Voir les élèves',
       searchPlaceholder: 'Rechercher une classe...',
-      allLevels: 'Tous les niveaux',
       className: 'Nom de la classe',
       level: 'Niveau',
       section: 'Section',
@@ -251,7 +209,6 @@ const FunctionalMyClasses: React.FC = () => {
       deleteClass: 'Delete',
       viewStudents: 'View Students',
       searchPlaceholder: 'Search classes...',
-      allLevels: 'All levels',
       className: 'Class Name',
       level: 'Level',
       section: 'Section',
@@ -284,14 +241,14 @@ const FunctionalMyClasses: React.FC = () => {
   
   const filteredClasses = allClasses.filter(cls => {
     if (!cls) return false;
-    const matchesSearch = cls?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cls?.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cls?.schoolName?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLevel = selectedLevel === 'all' || cls?.name?.includes(selectedLevel);
-    return matchesSearch && matchesLevel;
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm || 
+      cls?.name?.toLowerCase().includes(searchLower) ||
+      cls?.subject?.toLowerCase().includes(searchLower) ||
+      cls?.schoolName?.toLowerCase().includes(searchLower) ||
+      (cls as any)?.subjects?.some((s: string) => s?.toLowerCase().includes(searchLower));
+    return matchesSearch;
   });
-
-  const levels = ['6ème', '5ème', '4ème', '3ème', '2nde', '1ère', 'Terminale'];
 
   if (isLoading) {
     return (
@@ -338,16 +295,12 @@ const FunctionalMyClasses: React.FC = () => {
               </div>
               <div>
                 <Label htmlFor="level">{t.level}</Label>
-                <Select value={newClass.level} onValueChange={(value) => setNewClass({...newClass, level: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t.level} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortBy(Array.isArray(levels) ? levels : [], (l) => l, 'text').map(level => (
-                      <SelectItem key={level} value={level}>{level}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="level"
+                  value={newClass.level || ''}
+                  onChange={(e) => setNewClass({...newClass, level: e?.target?.value})}
+                  placeholder="6ème, 5ème, 4ème..."
+                />
               </div>
               <div>
                 <Label htmlFor="subject">{t.subject}</Label>
@@ -375,32 +328,18 @@ const FunctionalMyClasses: React.FC = () => {
         </Dialog>
       </div>
 
-      {/* Filters */}
+      {/* Search Bar - Simple */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                <Input
-                  placeholder="Rechercher école, classe ou matière..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e?.target?.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.allLevels} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.allLevels}</SelectItem>
-                {sortBy(Array.isArray(levels) ? levels : [], (l) => l, 'text').map(level => (
-                  <SelectItem key={level} value={level}>{level}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+            <Input
+              placeholder={language === 'fr' ? 'Rechercher une classe ou matière...' : 'Search class or subject...'}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e?.target?.value)}
+              className="pl-10"
+              data-testid="input-search-classes"
+            />
           </div>
         </CardContent>
       </Card>
