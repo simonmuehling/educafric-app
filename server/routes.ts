@@ -6672,19 +6672,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ success: false, message: 'School access required' });
       }
       
-      // Get teacher's assigned classes first
-      const teacherAssignments = await db.select({
-        classId: teacherSubjectAssignments.classId
+      // Get teacher's assigned classes - use timetables as source of truth
+      const teacherTimetableSlots = await db.selectDistinct({
+        classId: timetables.classId
       })
-      .from(teacherSubjectAssignments)
+      .from(timetables)
       .where(and(
-        eq(teacherSubjectAssignments.teacherId, teacherId),
-        eq(teacherSubjectAssignments.schoolId, schoolId),
-        eq(teacherSubjectAssignments.active, true)
+        eq(timetables.teacherId, teacherId),
+        eq(timetables.schoolId, schoolId),
+        eq(timetables.isActive, true)
       ));
       
-      const assignedClassIds = teacherAssignments.map(a => a.classId);
-      console.log('[TEACHER_ATTENDANCE] Assigned classes:', assignedClassIds);
+      const assignedClassIds = teacherTimetableSlots.map(a => a.classId).filter(Boolean) as number[];
+      console.log('[TEACHER_ATTENDANCE] Assigned classes from timetables:', assignedClassIds);
       
       if (assignedClassIds.length === 0) {
         return res.json({ success: true, attendance: [], message: 'No classes assigned' });
@@ -6754,7 +6754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== TEACHER COMMUNICATIONS/MESSAGES - REAL DATABASE =====
+  // ===== TEACHER COMMUNICATIONS/MESSAGES - REAL DATABASE WITH SCHOOL ISOLATION =====
   
   app.get("/api/teacher/communications", requireAuth, async (req, res) => {
     try {
@@ -6762,9 +6762,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = user.id;
       const schoolId = user.schoolId;
       
-      console.log('[TEACHER_COMMS] 📨 Fetching communications for teacher:', teacherId);
+      console.log('[TEACHER_COMMS] 📨 Fetching communications for teacher:', teacherId, 'school:', schoolId);
       
-      // Get real communications from database
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      // Get real communications from database filtered by school
       const communications = await db.select({
         id: messages.id,
         from: messages.senderName,
@@ -6776,16 +6780,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: messages.messageType
       })
       .from(messages)
-      .where(
+      .where(and(
+        eq(messages.schoolId, schoolId),
         or(
           eq(messages.recipientId, teacherId),
           eq(messages.senderId, teacherId)
         )
-      )
+      ))
       .orderBy(desc(messages.createdAt))
       .limit(50);
       
-      console.log('[TEACHER_COMMS] ✅ Found', communications.length, 'communications');
+      console.log('[TEACHER_COMMS] ✅ Found', communications.length, 'communications for school:', schoolId);
       
       res.json({ success: true, communications });
     } catch (error) {
@@ -6794,15 +6799,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== ROUTE MANQUANTE AJOUTÉE: /api/teacher/messages - REAL DATABASE =====
+  // ===== ROUTE MANQUANTE AJOUTÉE: /api/teacher/messages - REAL DATABASE WITH SCHOOL ISOLATION =====
   app.get("/api/teacher/messages", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
       const teacherId = user.id;
+      const schoolId = user.schoolId;
       
-      console.log('[TEACHER_MESSAGES] 📬 Fetching messages for teacher:', teacherId);
+      console.log('[TEACHER_MESSAGES] 📬 Fetching messages for teacher:', teacherId, 'school:', schoolId);
       
-      // Get real messages from database
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      // Get real messages from database with school isolation
       const messagesData = await db.select({
         id: messages.id,
         senderId: messages.senderId,
@@ -6818,12 +6828,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: messages.createdAt
       })
       .from(messages)
-      .where(
+      .where(and(
+        eq(messages.schoolId, schoolId),
         or(
           eq(messages.recipientId, teacherId),
           eq(messages.senderId, teacherId)
         )
-      )
+      ))
       .orderBy(desc(messages.createdAt))
       .limit(100);
       
@@ -6842,7 +6853,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         direction: msg.senderId === teacherId ? 'sent' : 'received'
       }));
       
-      console.log('[TEACHER_MESSAGES] ✅ Found', formattedMessages.length, 'messages');
+      console.log('[TEACHER_MESSAGES] ✅ Found', formattedMessages.length, 'messages for school:', schoolId);
       
       res.json({ success: true, messages: formattedMessages, communications: formattedMessages });
     } catch (error) {
@@ -6881,24 +6892,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ success: true, schools: [] });
       }
       
-      // Get teacher's assigned classes and subjects
+      // Get teacher's assigned classes and subjects from timetables
       const assignments = await db.select({
-        classId: teacherSubjectAssignments.classId,
+        classId: timetables.classId,
         className: classes.name,
-        subjectId: teacherSubjectAssignments.subjectId,
-        subjectName: subjects.nameFr
+        subjectName: timetables.subjectName
       })
-      .from(teacherSubjectAssignments)
-      .innerJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
-      .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+      .from(timetables)
+      .innerJoin(classes, eq(timetables.classId, classes.id))
       .where(and(
-        eq(teacherSubjectAssignments.teacherId, teacherId),
-        eq(teacherSubjectAssignments.schoolId, schoolId),
-        eq(teacherSubjectAssignments.active, true)
+        eq(timetables.teacherId, teacherId),
+        eq(timetables.schoolId, schoolId),
+        eq(timetables.isActive, true)
       ));
       
-      const uniqueSubjects = [...new Set(assignments.map(a => a.subjectName))];
-      const uniqueClasses = [...new Set(assignments.map(a => a.className))];
+      const uniqueSubjects = [...new Set(assignments.map(a => a.subjectName).filter(Boolean))];
+      const uniqueClasses = [...new Set(assignments.map(a => a.className).filter(Boolean))];
       
       const schoolWithDetails = {
         id: schoolData.id,
