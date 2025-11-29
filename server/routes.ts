@@ -4832,24 +4832,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Then get students from those classes
+      // Then get students from those classes using the enrollments table
       const studentsQuery = db
         .select({
           id: users.id,
           firstName: users.firstName,
           lastName: users.lastName,
           email: users.email,
-          classId: classEnrollments.classId,
+          classId: enrollments.classId,
           className: classes.name,
           matricule: users.educafricNumber,
         })
-        .from(classEnrollments)
-        .innerJoin(users, eq(classEnrollments.studentId, users.id))
-        .innerJoin(classes, eq(classEnrollments.classId, classes.id))
+        .from(enrollments)
+        .innerJoin(users, eq(enrollments.studentId, users.id))
+        .innerJoin(classes, eq(enrollments.classId, classes.id))
         .where(
           and(
-            inArray(classEnrollments.classId, classIds),
-            eq(classEnrollments.schoolId, user.schoolId)
+            inArray(enrollments.classId, classIds),
+            eq(classes.schoolId, user.schoolId),
+            eq(enrollments.status, 'active')
           )
         );
 
