@@ -939,7 +939,7 @@ export function MasterSheet({ selectedClass, selectedTerm, className }: { select
             <div>
               <CardTitle className="flex items-center gap-2">
                 <FileSpreadsheet className="h-5 w-5" />
-                {language === 'fr' ? 'Fiche Scolaire' : 'Mastersheet'}
+                {language === 'fr' ? 'Procès Verbal' : 'Mastersheet'}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 {language === 'fr' 
@@ -960,7 +960,7 @@ export function MasterSheet({ selectedClass, selectedTerm, className }: { select
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => exportCSV(rows, `fiche-scolaire-${selectedClass}-${selectedTerm}.csv`)}
+                onClick={() => exportCSV(rows, `proces-verbal-${selectedClass}-${selectedTerm}.csv`)}
               >
                 <Download className="h-4 w-4 mr-2" />
                 {language === 'fr' ? 'Exporter CSV' : 'Export CSV'}
@@ -1006,7 +1006,7 @@ export function MasterSheet({ selectedClass, selectedTerm, className }: { select
             {/* Title */}
             <div className="mt-6 pt-4 border-t-2 border-black">
               <h1 className="text-lg font-bold uppercase">
-                {language === 'fr' ? 'FICHE SCOLAIRE' : 'MASTERSHEET'}
+                {language === 'fr' ? 'PROCÈS VERBAL' : 'MASTERSHEET'}
               </h1>
               <p className="text-sm font-semibold mt-2">
                 {language === 'fr' 
@@ -2130,7 +2130,7 @@ export default function AcademicManagementSuite() {
               </TabsTrigger>
               <TabsTrigger value="report-cards" className="flex items-center gap-2" data-testid="tab-report-cards">
                 <FileSpreadsheet className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Fiche Scolaire' : 'Mastersheet'}</span>
+                <span className="hidden sm:inline">{language === 'fr' ? 'Procès Verbal' : 'Mastersheet'}</span>
               </TabsTrigger>
               <TabsTrigger value="mastersheet" className="flex items-center gap-2" data-testid="tab-mastersheet">
                 <CheckCircle className="h-4 w-4" />
@@ -2193,7 +2193,7 @@ export default function AcademicManagementSuite() {
                   <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">
                     {language === 'fr' 
-                      ? 'Sélectionnez une classe pour voir la fiche scolaire'
+                      ? 'Sélectionnez une classe pour voir le procès verbal'
                       : 'Select a class to view the mastersheet'
                     }
                   </p>
