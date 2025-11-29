@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { 
   TrendingUp, Users, CreditCard, FileText, BarChart3, Phone, 
   Building2, Calendar, DollarSign, Target, UserCheck, Archive,
-  MessageSquare, Settings, HelpCircle, User, Activity, Mail, Bell
+  MessageSquare, Settings, HelpCircle, User, Activity, Mail, Bell, WifiOff
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import { useFastModules } from '@/utils/fastModuleLoader';
@@ -173,6 +173,12 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-gray-500'
+    },
+    {
+      id: 'offline-premium-guide',
+      label: language === 'fr' ? 'Guide Offline Premium' : 'Offline Premium Guide',
+      icon: <WifiOff className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-green-600 to-emerald-600'
     }
   ];
 

@@ -211,6 +211,7 @@ class FastModuleLoader {
       'parent-settings': () => import('@/components/parent/modules/ParentSettings'),
       'freelancer-settings': () => import('@/components/freelancer/modules/FreelancerSettings'),
       'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'), // For school/admin settings with official Cameroon info
+      'offline-premium-guide': () => import('@/components/offline/OfflinePremiumGuide'), // Bilingual offline premium guide
       
       // Settings module aliases for different naming conventions
       'StudentSettings': () => import('@/components/student/modules/StudentSettings'),

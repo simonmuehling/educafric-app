@@ -925,7 +925,7 @@ const UnifiedSchoolSettings: React.FC = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
                   <WifiOff className="w-5 h-5" />
-                  {language === 'fr' ? 'Mode Hors Ligne' : 'Offline Mode'}
+                  {language === 'fr' ? 'Mode Hors Ligne Premium' : 'Offline Premium Mode'}
                 </h3>
                 <p className="text-sm text-gray-600">
                   {language === 'fr' 
@@ -933,6 +933,61 @@ const UnifiedSchoolSettings: React.FC = () => {
                     : 'Prepare your device to use Educafric without internet connection. Data will be stored locally.'
                   }
                 </p>
+                
+                {/* Activation Toggle */}
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-green-100 rounded-full">
+                      <WifiOff className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-green-800">
+                        {language === 'fr' ? 'Activer le Mode Hors Ligne Premium' : 'Enable Offline Premium Mode'}
+                      </p>
+                      <p className="text-sm text-green-700">
+                        {language === 'fr' 
+                          ? 'Permet le stockage local des données et l\'accès sans connexion'
+                          : 'Allows local data storage and offline access'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <Switch 
+                    defaultChecked={offlineDataReady}
+                    onCheckedChange={async (checked) => {
+                      if (checked && !offlineDataReady && isOnline) {
+                        const success = await prepareOfflineData();
+                        if (success) {
+                          toast({
+                            title: language === 'fr' ? 'Mode Hors Ligne Activé' : 'Offline Mode Enabled',
+                            description: language === 'fr' 
+                              ? 'Votre appareil est prêt pour le mode hors ligne!' 
+                              : 'Your device is ready for offline mode!'
+                          });
+                        }
+                      }
+                    }}
+                    data-testid="switch-offline-premium"
+                  />
+                </div>
+                
+                {/* Duration Recommendation */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-blue-800">
+                        {language === 'fr' ? 'Durée recommandée : 24-48 heures' : 'Recommended duration: 24-48 hours'}
+                      </p>
+                      <p className="text-sm text-blue-700">
+                        {language === 'fr' 
+                          ? 'Reconnectez-vous régulièrement pour synchroniser notes, présences et sauvegardes. Après 3 jours: avertissement. Après 14 jours: accès suspendu.'
+                          : 'Reconnect regularly to sync grades, attendance and backups. After 3 days: warning. After 14 days: access suspended.'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -1036,6 +1091,26 @@ const UnifiedSchoolSettings: React.FC = () => {
                       )}
                     </div>
                   </div>
+                </div>
+                
+                {/* Guide Link */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm text-gray-700">
+                      {language === 'fr' ? 'Voir le guide complet du mode hors ligne' : 'View the complete offline mode guide'}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('openOfflineGuide'));
+                    }}
+                    data-testid="btn-view-offline-guide"
+                  >
+                    {language === 'fr' ? 'Voir le guide' : 'View Guide'}
+                  </Button>
                 </div>
               </div>
               

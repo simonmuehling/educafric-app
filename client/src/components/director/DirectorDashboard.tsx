@@ -7,7 +7,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
-  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare, FileSpreadsheet, Video, UtensilsCrossed, Bus
+  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare, FileSpreadsheet, Video, UtensilsCrossed, Bus, WifiOff
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import { OfflineIndicatorBadge } from '@/components/offline/OfflineSyncStatus';
@@ -308,10 +308,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     {
       id: 'offline-premium-guide',
       label: t.offlinePremiumGuide,
-      icon: <FileText className="w-6 h-6" />,
-      color: 'bg-gradient-to-r from-purple-600 to-violet-600',
-      skipPreload: true,
-      externalUrl: '/documents/guide-utilisation-offline-premium.html'
+      icon: <WifiOff className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-green-600 to-emerald-600'
     },
     {
       id: 'school-settings',

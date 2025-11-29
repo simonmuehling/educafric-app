@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, TrendingUp, FileText, CreditCard, Building2, Lock, UserCheck, Briefcase, LogOut, Hash, Video } from 'lucide-react';
+import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, TrendingUp, FileText, CreditCard, Building2, Lock, UserCheck, Briefcase, LogOut, Hash, Video, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -258,6 +258,12 @@ const SiteAdminDashboard: React.FC = () => {
       label: 'Cours en Ligne',
       icon: <Video className="w-6 h-6" />,
       color: 'bg-orange-500'
+    },
+    {
+      id: 'offline-premium-guide',
+      label: 'Guide Offline Premium',
+      icon: <WifiOff className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-green-600 to-emerald-600'
     }
   ];
 
