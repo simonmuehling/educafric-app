@@ -191,8 +191,9 @@ router.get('/students', requireAuth, requireAdmin, async (req, res) => {
     
     // Filter by class if classId is provided
     if (classId) {
-      students = students.filter(student => student.classId === classId);
-      console.log(`[DIRECTOR_STUDENTS] Filtered ${students.length} students for class ${classId}`);
+      const numericClassId = parseInt(classId as string, 10);
+      students = students.filter(student => student.classId === numericClassId);
+      console.log(`[DIRECTOR_STUDENTS] Filtered ${students.length} students for class ${classId} (numericClassId: ${numericClassId})`);
     }
     
     res.json({

@@ -422,10 +422,30 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   }, [schoolData, testModeEducationalType, language]);
 
   // Fetch available classes
-  const { data: classesData, isLoading: loadingClasses } = useQuery({
+  const { data: classesData, isLoading: loadingClasses, error: classesError } = useQuery({
     queryKey: ['/api/director/classes'],
-    queryFn: () => fetch('/api/director/classes').then(res => res.json()),
+    queryFn: async () => {
+      console.log('[BULLETIN] Fetching classes...');
+      const response = await fetch('/api/director/classes', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      if (!response.ok) {
+        console.error('[BULLETIN] Classes fetch failed:', response.status, response.statusText);
+        throw new Error('Failed to fetch classes');
+      }
+      const data = await response.json();
+      console.log('[BULLETIN] Classes received:', data?.classes?.length || 0, 'classes');
+      return data;
+    },
   });
+  
+  // Log classes error if any
+  if (classesError) {
+    console.error('[BULLETIN] Classes query error:', classesError);
+  }
 
   // Fetch competency templates
   const { data: competencyTemplates, isLoading: loadingTemplates } = useQuery({

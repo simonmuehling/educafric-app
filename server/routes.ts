@@ -1700,7 +1700,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         classes = classesWithStudentCount;
       }
       
-      console.log('[DIRECTOR_CLASSES_API] Classes count:', classes.length);
+      console.log('[DIRECTOR_CLASSES_API] ✅ Returning classes count:', classes.length, 'for schoolId:', user.schoolId);
+      if (classes.length > 0) {
+        console.log('[DIRECTOR_CLASSES_API] First class:', classes[0]?.name);
+      }
       res.json({ success: true, classes });
     } catch (error) {
       console.error('[DIRECTOR_CLASSES_API] Error fetching classes:', error);
