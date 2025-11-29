@@ -345,24 +345,24 @@ export class OptimizedBulletinGenerator {
   ): SpacingSystem {
     console.log('[INTELLIGENT_SPACING] 🧮 Calculating optimal spacing for content...');
     
-    // Base spacing requirements
-    const headerHeight = 110; // Standardized Cameroonian header
-    const titleSectionHeight = 45; // Title + period
-    const studentInfoHeight = 65; // Student details in compact rows
-    const tableHeaderHeight = 25; // Column headers
-    const summaryHeight = 35; // Averages and totals
-    const conductHeight = contentRequirements.includeStatistics ? 20 : 15;
-    const signaturesHeight = contentRequirements.hasSignatures ? 50 : 0;
-    const footerHeight = contentRequirements.includeQRCode ? 90 : 60;
+    // Base spacing requirements - COMPACT VERSION
+    const headerHeight = 85; // Reduced Cameroonian header
+    const titleSectionHeight = 35; // Title + period (compact)
+    const studentInfoHeight = 55; // Student details in compact rows
+    const tableHeaderHeight = 22; // Column headers
+    const summaryHeight = 30; // Averages and totals
+    const conductHeight = contentRequirements.includeStatistics ? 18 : 14;
+    const signaturesHeight = contentRequirements.hasSignatures ? 48 : 0;
+    const footerHeight = contentRequirements.includeQRCode ? 80 : 55;
     
     // Calculate subject table requirements - Sample format needs space for teacher names
-    const baseSubjectRowHeight = 30; // Increased for teacher names below subjects (sample format)
+    const baseSubjectRowHeight = 28; // Compact but safe row height for subjects
     const commentPadding = contentRequirements.includeComments ? 3 : 0;
     const rankingPadding = contentRequirements.includeRankings ? 2 : 0;
     const subjectRowHeight = baseSubjectRowHeight + commentPadding + rankingPadding;
     
     // Performance levels text (if included)
-    const performanceLevelsHeight = contentRequirements.includePerformanceLevels ? 40 : 0;
+    const performanceLevelsHeight = contentRequirements.includePerformanceLevels ? 30 : 0;
     
     // Calculate total required height
     const totalRequiredHeight = 

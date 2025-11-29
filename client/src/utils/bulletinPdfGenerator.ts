@@ -93,41 +93,41 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(0, 0, 0);
     pdf.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 6;
+    yPosition += 5;
     
     // Devise du Cameroun
-    pdf.setFontSize(11);
+    pdf.setFontSize(10);
     pdf.setFont('helvetica', 'italic');
     pdf.text('Paix - Travail - Patrie', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 7;
+    yPosition += 5;
     
     // Ministère
-    pdf.setFontSize(12);
+    pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
     pdf.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 7;
+    yPosition += 5;
     
     // Délégations avec encadré simple
     const regionaleText = data.schoolBranding?.regionaleMinisterielle || 'Délégation Régionale du Centre';
     const departementaleText = data.schoolBranding?.delegationDepartementale || 'Délégation Départementale du Mfoundi';
     const boitePostaleText = data.schoolBranding?.boitePostale || 'B.P. 8524 Yaoundé';
     
-    pdf.setFontSize(11);
+    pdf.setFontSize(10);
     pdf.text(regionaleText, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 6;
+    yPosition += 5;
     
     pdf.text(departementaleText, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 6;
+    yPosition += 5;
     
-    pdf.setFontSize(10);
+    pdf.setFontSize(9);
     pdf.text(boitePostaleText, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 6;
+    yPosition += 4;
     
     // Ligne de séparation simple
     pdf.setLineWidth(0.5);
     pdf.setDrawColor(0, 0, 0);
-    pdf.line(margin, yPosition + 2, pageWidth - margin, yPosition + 2);
-    yPosition += 8;
+    pdf.line(margin, yPosition + 1, pageWidth - margin, yPosition + 1);
+    yPosition += 5;
   };
 
   // Enhanced bilingual text labels for official transcripts
@@ -274,11 +274,11 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
   pdf.text(schoolContact, pageWidth / 2, yPosition + 18, { align: 'center' });
   
   // National motto (mobile-optimized)
-  pdf.setFontSize(9); // Plus petit pour mobile
+  pdf.setFontSize(8); // Plus petit pour mobile
   pdf.setFont('helvetica', 'italic');
-  pdf.text('Paix - Travail - Patrie', pageWidth / 2, yPosition + 25, { align: 'center' });
+  pdf.text('Paix - Travail - Patrie', pageWidth / 2, yPosition + 22, { align: 'center' });
   
-  yPosition += 35;
+  yPosition += 28;
 
   // === SIMPLE STUDENT PHOTO SECTION ===
   // Student photo with simple border
@@ -323,9 +323,7 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     pdf.text('ÉLÈVE', photoX + photoSize/2, yPosition + photoSize/2 + 4, { align: 'center' });
   }
   
-  yPosition += 45;
-
-  yPosition += 45;
+  yPosition += 40;
 
   // === SIMPLE DOCUMENT TITLE ===
   pdf.setFontSize(18);
