@@ -1867,9 +1867,24 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             
             <div className="p-6">
               <div className="flex items-start gap-6 mb-6">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <GraduationCap className="w-10 h-10 text-green-600" />
-                </div>
+                {/* Student Photo or Default Avatar */}
+                {viewingStudent.photo ? (
+                  <div className="w-24 h-28 rounded-lg overflow-hidden border-2 border-green-200 shadow-md flex-shrink-0">
+                    <img 
+                      src={viewingStudent.photo} 
+                      alt={`${viewingStudent.firstName} ${viewingStudent.lastName}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full bg-green-100 flex items-center justify-center"><svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"></path><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg></div>';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <GraduationCap className="w-10 h-10 text-green-600" />
+                  </div>
+                )}
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
                     {viewingStudent.firstName} {viewingStudent.lastName}
