@@ -4,7 +4,7 @@
  */
 
 import { db } from '../db';
-import { classSessions, users, onlineCourses, courseEnrollments, classEnrollments, parentStudentRelations } from '../../shared/schema';
+import { classSessions, users, onlineCourses, courseEnrollments, enrollments, parentStudentRelations } from '../../shared/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 import { RefactoredNotificationService, NotificationRecipient } from './refactoredNotificationService';
 
@@ -342,13 +342,13 @@ export class OnlineClassNotificationService {
         
         const classStudents = await db
           .select({
-            studentId: classEnrollments.studentId
+            studentId: enrollments.studentId
           })
-          .from(classEnrollments)
+          .from(enrollments)
           .where(
             and(
-              eq(classEnrollments.classId, classId),
-              eq(classEnrollments.status, 'active')
+              eq(enrollments.classId, classId),
+              eq(enrollments.status, 'active')
             )
           );
 

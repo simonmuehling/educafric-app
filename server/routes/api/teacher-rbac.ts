@@ -6,7 +6,7 @@ import { classes, subjects } from '../../../shared/schemas/schoolSchema';
 import { users } from '../../../shared/schemas/userSchema';
 import { grades } from '../../../shared/schemas/academicSchema';
 import { teacherClassSubjects, classSubjects } from '../../../shared/schemas/classSubjectsSchema';
-import { classEnrollments } from '../../../shared/schemas/classEnrollmentSchema';
+import { enrollments } from '../../../shared/schemas/classEnrollmentSchema';
 
 // Import teacher grade submissions table for bulletin workflow
 import { teacherGradeSubmissions } from '../../../shared/schemas/bulletinSchema';
@@ -234,13 +234,13 @@ router.get('/students', requireAuth, requireRole('Teacher'), async (req: any, re
         dateOfBirth: users.dateOfBirth
       })
       .from(users)
-      .innerJoin(classEnrollments, eq(classEnrollments.studentId, users.id))
+      .innerJoin(enrollments, eq(enrollments.studentId, users.id))
       .where(
         and(
           eq(users.role, 'Student'),
           eq(users.schoolId, schoolId),
-          eq(classEnrollments.classId, classIdNum),
-          eq(classEnrollments.status, 'active')
+          eq(enrollments.classId, classIdNum),
+          eq(enrollments.status, 'active')
         )
       );
 

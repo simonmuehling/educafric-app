@@ -23,7 +23,7 @@ import {
 } from '../../shared/schema.js';
 import { archivedDocuments } from '../../shared/schemas/archiveSchema.js';
 import { teacherClassSubjects, classSubjects } from '../../shared/schemas/classSubjectsSchema.js';
-import { classEnrollments } from '../../shared/schemas/classEnrollmentSchema.js';
+import { enrollments } from '../../shared/schemas/classEnrollmentSchema.js';
 import { insertTeacherGradeSubmissionSchema } from '../../shared/schemas/bulletinSchema.js';
 import { 
   bulletinComprehensiveValidationSchema,
@@ -241,14 +241,14 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
       className: classes.name
     })
     .from(users)
-    .innerJoin(classEnrollments, eq(classEnrollments.studentId, users.id))
-    .innerJoin(classes, eq(classes.id, classEnrollments.classId))
+    .innerJoin(enrollments, eq(enrollments.studentId, users.id))
+    .innerJoin(classes, eq(classes.id, enrollments.classId))
     .where(and(
       eq(users.id, studentId),
       eq(users.role, 'Student'),
       eq(users.schoolId, schoolId),
-      eq(classEnrollments.classId, classId),
-      eq(classEnrollments.status, 'active'),
+      eq(enrollments.classId, classId),
+      eq(enrollments.status, 'active'),
       eq(classes.schoolId, schoolId)
     ))
     .limit(1);

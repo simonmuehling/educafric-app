@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { eq, and } from "drizzle-orm";
-import { parentStudentRelations, timetables, users, classes, classEnrollments } from "../../shared/schema";
+import { parentStudentRelations, timetables, users, classes, enrollments } from "../../shared/schema";
 
 export class TimetableStorage {
   
@@ -58,11 +58,11 @@ export class TimetableStorage {
       
       // First, find the student's current class enrollment
       const enrollment = await db.select()
-        .from(classEnrollments)
+        .from(enrollments)
         .where(
           and(
-            eq(classEnrollments.studentId, studentId),
-            eq(classEnrollments.status, 'active')
+            eq(enrollments.studentId, studentId),
+            eq(enrollments.status, 'active')
           )
         )
         .limit(1);

@@ -2,8 +2,8 @@
 // Extracted from huge storage.ts to prevent crashes
 
 import { db } from "../db";
-import { users, grades, attendance, classes, homework, homeworkSubmissions, classEnrollments } from "../../shared/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { users, grades, attendance, classes, homework, homeworkSubmissions, enrollments } from "../../shared/schema";
+import { eq, desc, and, asc } from "drizzle-orm";
 import type { IStudentStorage } from "./interfaces";
 
 export class StudentStorage implements IStudentStorage {
@@ -123,31 +123,33 @@ export class StudentStorage implements IStudentStorage {
     try {
       console.log('[STUDENT_STORAGE] Getting students for class:', classId);
       
-      // Use class_enrollments table to find all students enrolled in this class
-      const enrollments = await db.select({
-        studentId: classEnrollments.studentId,
-        enrollmentDate: classEnrollments.enrollmentDate,
-        status: classEnrollments.status,
+      // Use enrollments table to find all students enrolled in this class
+      const enrolledStudents = await db.select({
+        studentId: enrollments.studentId,
+        enrollmentDate: enrollments.enrollmentDate,
+        status: enrollments.status,
+        id: users.id,
         firstName: users.firstName,
         lastName: users.lastName,
         email: users.email,
         phone: users.phone,
         role: users.role
       })
-      .from(classEnrollments)
-      .innerJoin(users, eq(classEnrollments.studentId, users.id))
+      .from(enrollments)
+      .innerJoin(users, eq(enrollments.studentId, users.id))
       .where(
         and(
-          eq(classEnrollments.classId, classId),
-          eq(classEnrollments.status, 'active')
+          eq(enrollments.classId, classId),
+          eq(enrollments.status, 'active')
         )
-      );
+      )
+      .orderBy(asc(users.lastName), asc(users.firstName));
       
-      console.log(`[STUDENT_STORAGE] ✅ Found ${enrollments.length} students in class ${classId}`);
+      console.log(`[STUDENT_STORAGE] ✅ Found ${enrolledStudents.length} students in class ${classId}`);
       
-      // Format student data
-      return enrollments.map(enrollment => ({
-        id: enrollment.studentId,
+      // Format student data with proper ordering
+      return enrolledStudents.map(enrollment => ({
+        id: enrollment.id,
         firstName: enrollment.firstName,
         lastName: enrollment.lastName,
         name: `${enrollment.firstName} ${enrollment.lastName}`,
