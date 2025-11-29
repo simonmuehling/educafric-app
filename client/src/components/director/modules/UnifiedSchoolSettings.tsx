@@ -21,13 +21,12 @@ import {
 } from '@/components/ui/tabs';
 import { 
   Settings, School, Bell, MapPin, Clock, Users, 
-  BookOpen, GraduationCap, Palette, Globe, Database,
+  GraduationCap, Palette, Globe, Database,
   Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image, Flag
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
-import { SchoolLevelsManager } from '../SchoolLevelsManager';
 
 interface SchoolProfile {
   id: number;
@@ -409,7 +408,6 @@ const UnifiedSchoolSettings: React.FC = () => {
   const tabs = [
     { id: 'profile', label: t.profileTab, icon: School },
     { id: 'official', label: t.officialTab, icon: Flag },
-    { id: 'academic', label: language === 'fr' ? 'Académique' : 'Academic', icon: BookOpen },
     { id: 'configuration', label: t.configTab, icon: Settings },
     { id: 'notifications', label: t.notificationsTab, icon: Bell }
   ];
@@ -1040,10 +1038,6 @@ const UnifiedSchoolSettings: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Academic Tab */}
-        <TabsContent value="academic" className="space-y-6">
-          <SchoolLevelsManager />
-        </TabsContent>
       </Tabs>
     </div>
   );
