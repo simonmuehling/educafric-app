@@ -2617,20 +2617,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[DIRECTOR_TEACHERS_API] 📊 Raw DB query returned:', schoolTeachers.length, 'teachers for school', userSchoolId);
         
         // Get all teacher-subject assignments for this school with class and subject details
-        const assignments = await db.select({
-          teacherId: teacherSubjectAssignments.teacherId,
-          classId: teacherSubjectAssignments.classId,
-          subjectId: teacherSubjectAssignments.subjectId,
-          className: classesTable.name,
-          subjectName: subjectsTable.name
-        })
-          .from(teacherSubjectAssignments)
-          .leftJoin(classesTable, eq(teacherSubjectAssignments.classId, classesTable.id))
-          .leftJoin(subjectsTable, eq(teacherSubjectAssignments.subjectId, subjectsTable.id))
-          .where(and(
-            eq(teacherSubjectAssignments.schoolId, userSchoolId),
-            eq(teacherSubjectAssignments.active, true)
-          ));
+        // Using try-catch to handle cases where assignments table might have issues
+        let assignments: Array<{ teacherId: number; classId: number | null; subjectId: number | null; className: string | null; subjectName: string | null }> = [];
+        try {
+          const rawAssignments = await db.select()
+            .from(teacherSubjectAssignments)
+            .where(and(
+              eq(teacherSubjectAssignments.schoolId, userSchoolId),
+              eq(teacherSubjectAssignments.active, true)
+            ));
+          
+          // Get class and subject names separately to avoid JOIN issues
+          for (const assignment of rawAssignments) {
+            let className = null;
+            let subjectName = null;
+            
+            if (assignment.classId) {
+              const [classData] = await db.select().from(classesTable).where(eq(classesTable.id, assignment.classId)).limit(1);
+              className = classData?.name || null;
+            }
+            
+            if (assignment.subjectId) {
+              const [subjectData] = await db.select().from(subjectsTable).where(eq(subjectsTable.id, assignment.subjectId)).limit(1);
+              subjectName = subjectData?.name || null;
+            }
+            
+            assignments.push({
+              teacherId: assignment.teacherId,
+              classId: assignment.classId,
+              subjectId: assignment.subjectId,
+              className,
+              subjectName
+            });
+          }
+        } catch (assignmentError) {
+          console.log('[DIRECTOR_TEACHERS_API] ⚠️ Could not fetch assignments, continuing without them:', assignmentError);
+          assignments = [];
+        }
         
         // Group assignments by teacher
         const teacherAssignmentsMap = new Map<number, { classes: Set<string>, subjects: Set<string> }>();
