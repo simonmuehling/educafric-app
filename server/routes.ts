@@ -13540,6 +13540,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= OFFLINE SYNC API =============
+  // Bulk data download endpoints for offline mode preparation
+  
+  // GET /api/offline-sync/classes - Get all classes for offline caching
+  app.get('/api/offline-sync/classes', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId || user.school_id;
+      
+      if (!schoolId) {
+        return res.status(400).json({ success: false, message: 'No school ID' });
+      }
+      
+      console.log('[OFFLINE_SYNC] 📥 Fetching classes for school:', schoolId);
+      
+      const { db } = await import('./db');
+      const { classes: classesTable } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      const classes = await db.select()
+        .from(classesTable)
+        .where(eq(classesTable.schoolId, schoolId));
+      
+      console.log('[OFFLINE_SYNC] ✅ Classes fetched:', classes.length);
+      
+      res.json({
+        success: true,
+        classes: classes.map(c => ({
+          id: c.id,
+          name: c.name,
+          level: c.level,
+          section: c.section,
+          maxStudents: c.maxStudents,
+          schoolId: c.schoolId,
+          isActive: c.isActive
+        }))
+      });
+    } catch (error) {
+      console.error('[OFFLINE_SYNC] Error fetching classes:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch classes' });
+    }
+  });
+  
+  // GET /api/offline-sync/students - Get all students for offline caching
+  app.get('/api/offline-sync/students', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId || user.school_id;
+      
+      if (!schoolId) {
+        return res.status(400).json({ success: false, message: 'No school ID' });
+      }
+      
+      console.log('[OFFLINE_SYNC] 📥 Fetching students for school:', schoolId);
+      
+      const { db } = await import('./db');
+      const { students, classes: classesTable } = await import('@shared/schema');
+      const { eq, and } = await import('drizzle-orm');
+      
+      const allStudents = await db.select({
+        id: students.id,
+        firstName: students.firstName,
+        lastName: students.lastName,
+        email: students.email,
+        phone: students.phone,
+        classId: students.classId,
+        schoolId: students.schoolId,
+        isActive: students.isActive,
+        parentPhone: students.parentPhone,
+        photoUrl: students.photoUrl
+      })
+        .from(students)
+        .where(eq(students.schoolId, schoolId));
+      
+      // Get class names
+      const classIds = [...new Set(allStudents.filter(s => s.classId).map(s => s.classId))];
+      let classMap: Record<number, string> = {};
+      
+      if (classIds.length > 0) {
+        const classData = await db.select({ id: classesTable.id, name: classesTable.name })
+          .from(classesTable)
+          .where(eq(classesTable.schoolId, schoolId));
+        classMap = Object.fromEntries(classData.map(c => [c.id, c.name]));
+      }
+      
+      console.log('[OFFLINE_SYNC] ✅ Students fetched:', allStudents.length);
+      
+      res.json({
+        success: true,
+        students: allStudents.map(s => ({
+          ...s,
+          className: s.classId ? classMap[s.classId] : undefined
+        }))
+      });
+    } catch (error) {
+      console.error('[OFFLINE_SYNC] Error fetching students:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch students' });
+    }
+  });
+  
+  // GET /api/offline-sync/teachers - Get all teachers for offline caching
+  app.get('/api/offline-sync/teachers', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId || user.school_id;
+      
+      if (!schoolId) {
+        return res.status(400).json({ success: false, message: 'No school ID' });
+      }
+      
+      console.log('[OFFLINE_SYNC] 📥 Fetching teachers for school:', schoolId);
+      
+      const { db } = await import('./db');
+      const { teachers } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      const allTeachers = await db.select({
+        id: teachers.id,
+        firstName: teachers.firstName,
+        lastName: teachers.lastName,
+        email: teachers.email,
+        phone: teachers.phone,
+        schoolId: teachers.schoolId,
+        isActive: teachers.isActive,
+        qualifications: teachers.qualifications,
+        photoUrl: teachers.photoUrl
+      })
+        .from(teachers)
+        .where(eq(teachers.schoolId, schoolId));
+      
+      console.log('[OFFLINE_SYNC] ✅ Teachers fetched:', allTeachers.length);
+      
+      res.json({
+        success: true,
+        teachers: allTeachers
+      });
+    } catch (error) {
+      console.error('[OFFLINE_SYNC] Error fetching teachers:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch teachers' });
+    }
+  });
+  
+  console.log('[OFFLINE_SYNC] ✅ Offline sync routes registered');
+
   // API 404 handler - must be after all API routes
   app.use('/api/*', (req, res) => {
     res.status(404).json({ 
@@ -13699,150 +13843,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: 'Failed to send notification' });
     }
   });
-
-  // ============= OFFLINE SYNC API =============
-  // Bulk data download endpoints for offline mode preparation
-  
-  // GET /api/offline-sync/classes - Get all classes for offline caching
-  app.get('/api/offline-sync/classes', requireAuth, async (req, res) => {
-    try {
-      const user = req.user as any;
-      const schoolId = user.schoolId || user.school_id;
-      
-      if (!schoolId) {
-        return res.status(400).json({ success: false, message: 'No school ID' });
-      }
-      
-      console.log('[OFFLINE_SYNC] 📥 Fetching classes for school:', schoolId);
-      
-      const { db } = await import('./db');
-      const { classes: classesTable } = await import('@shared/schema');
-      const { eq } = await import('drizzle-orm');
-      
-      const classes = await db.select()
-        .from(classesTable)
-        .where(eq(classesTable.schoolId, schoolId));
-      
-      console.log('[OFFLINE_SYNC] ✅ Classes fetched:', classes.length);
-      
-      res.json({
-        success: true,
-        classes: classes.map(c => ({
-          id: c.id,
-          name: c.name,
-          level: c.level,
-          section: c.section,
-          maxStudents: c.maxStudents,
-          schoolId: c.schoolId,
-          isActive: c.isActive
-        }))
-      });
-    } catch (error) {
-      console.error('[OFFLINE_SYNC] Error fetching classes:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch classes' });
-    }
-  });
-  
-  // GET /api/offline-sync/students - Get all students for offline caching
-  app.get('/api/offline-sync/students', requireAuth, async (req, res) => {
-    try {
-      const user = req.user as any;
-      const schoolId = user.schoolId || user.school_id;
-      
-      if (!schoolId) {
-        return res.status(400).json({ success: false, message: 'No school ID' });
-      }
-      
-      console.log('[OFFLINE_SYNC] 📥 Fetching students for school:', schoolId);
-      
-      const { db } = await import('./db');
-      const { students, classes: classesTable } = await import('@shared/schema');
-      const { eq, and } = await import('drizzle-orm');
-      
-      const allStudents = await db.select({
-        id: students.id,
-        firstName: students.firstName,
-        lastName: students.lastName,
-        email: students.email,
-        phone: students.phone,
-        classId: students.classId,
-        schoolId: students.schoolId,
-        isActive: students.isActive,
-        parentPhone: students.parentPhone,
-        photoUrl: students.photoUrl
-      })
-        .from(students)
-        .where(eq(students.schoolId, schoolId));
-      
-      // Get class names
-      const classIds = [...new Set(allStudents.filter(s => s.classId).map(s => s.classId))];
-      let classMap: Record<number, string> = {};
-      
-      if (classIds.length > 0) {
-        const classData = await db.select({ id: classesTable.id, name: classesTable.name })
-          .from(classesTable)
-          .where(eq(classesTable.schoolId, schoolId));
-        classMap = Object.fromEntries(classData.map(c => [c.id, c.name]));
-      }
-      
-      console.log('[OFFLINE_SYNC] ✅ Students fetched:', allStudents.length);
-      
-      res.json({
-        success: true,
-        students: allStudents.map(s => ({
-          ...s,
-          className: s.classId ? classMap[s.classId] : undefined
-        }))
-      });
-    } catch (error) {
-      console.error('[OFFLINE_SYNC] Error fetching students:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch students' });
-    }
-  });
-  
-  // GET /api/offline-sync/teachers - Get all teachers for offline caching
-  app.get('/api/offline-sync/teachers', requireAuth, async (req, res) => {
-    try {
-      const user = req.user as any;
-      const schoolId = user.schoolId || user.school_id;
-      
-      if (!schoolId) {
-        return res.status(400).json({ success: false, message: 'No school ID' });
-      }
-      
-      console.log('[OFFLINE_SYNC] 📥 Fetching teachers for school:', schoolId);
-      
-      const { db } = await import('./db');
-      const { teachers } = await import('@shared/schema');
-      const { eq } = await import('drizzle-orm');
-      
-      const allTeachers = await db.select({
-        id: teachers.id,
-        firstName: teachers.firstName,
-        lastName: teachers.lastName,
-        email: teachers.email,
-        phone: teachers.phone,
-        schoolId: teachers.schoolId,
-        isActive: teachers.isActive,
-        qualifications: teachers.qualifications,
-        photoUrl: teachers.photoUrl
-      })
-        .from(teachers)
-        .where(eq(teachers.schoolId, schoolId));
-      
-      console.log('[OFFLINE_SYNC] ✅ Teachers fetched:', allTeachers.length);
-      
-      res.json({
-        success: true,
-        teachers: allTeachers
-      });
-    } catch (error) {
-      console.error('[OFFLINE_SYNC] Error fetching teachers:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch teachers' });
-    }
-  });
-  
-  console.log('[OFFLINE_SYNC] ✅ Offline sync routes registered');
 
   console.log('All routes configured ✅');
 
