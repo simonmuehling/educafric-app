@@ -2861,31 +2861,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_TEACHERS_API] 📊 Found', schoolTeachers.length, 'teachers');
       
-      // Get teacher assignments from TIMETABLES with class name join
-      let teacherAssignmentsFromTimetables: Array<{ teacherId: number; classId: number | null; className: string | null; subjectName: string | null }> = [];
+      // Get teacher assignments from teacherSubjectAssignments table (NOT timetables)
+      let teacherAssignmentsData: Array<{ teacherId: number; classId: number; className: string | null; subjectId: number; subjectName: string | null }> = [];
       try {
-        const timetableEntries = await db.selectDistinct({
-          teacherId: timetables.teacherId,
-          classId: timetables.classId,
+        const assignmentEntries = await db.select({
+          teacherId: teacherSubjectAssignments.teacherId,
+          classId: teacherSubjectAssignments.classId,
           className: classes.name,
-          subjectName: timetables.subjectName
+          subjectId: teacherSubjectAssignments.subjectId,
+          subjectName: subjects.nameFr
         })
-          .from(timetables)
-          .leftJoin(classes, eq(timetables.classId, classes.id))
+          .from(teacherSubjectAssignments)
+          .leftJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
+          .leftJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
           .where(and(
-            eq(timetables.schoolId, userSchoolId),
-            eq(timetables.isActive, true)
+            eq(teacherSubjectAssignments.schoolId, userSchoolId),
+            eq(teacherSubjectAssignments.active, true)
           ));
         
-        teacherAssignmentsFromTimetables = timetableEntries.filter(t => t.teacherId != null) as any;
-        console.log('[DIRECTOR_TEACHERS_API] ✅ Found', teacherAssignmentsFromTimetables.length, 'timetable assignments');
-      } catch (timetableError) {
-        console.error('[DIRECTOR_TEACHERS_API] ⚠️ Could not fetch timetable assignments:', timetableError);
+        teacherAssignmentsData = assignmentEntries as any;
+        console.log('[DIRECTOR_TEACHERS_API] ✅ Found', teacherAssignmentsData.length, 'teacher-subject assignments');
+      } catch (assignmentError) {
+        console.error('[DIRECTOR_TEACHERS_API] ⚠️ Could not fetch teacher assignments:', assignmentError);
       }
       
       // Group assignments by teacher
       const teacherAssignmentsMap = new Map<number, { classes: Set<string>, subjects: Set<string> }>();
-      teacherAssignmentsFromTimetables.forEach(a => {
+      teacherAssignmentsData.forEach(a => {
         if (!teacherAssignmentsMap.has(a.teacherId)) {
           teacherAssignmentsMap.set(a.teacherId, { classes: new Set(), subjects: new Set() });
         }
@@ -3050,12 +3052,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedTeacher = result;
       }
       
-      // Update teacher-class-subject assignments via timetables
+      // Update teacher-class-subject assignments via teacherSubjectAssignments table
       if (Array.isArray(assignedClasses) && assignedClasses.length > 0 && Array.isArray(teachingSubjects)) {
-        console.log('[UPDATE_TEACHER_DIRECTOR] 📚 Updating timetable assignments for classes:', assignedClasses, 'subjects:', teachingSubjects);
+        console.log('[UPDATE_TEACHER_DIRECTOR] 📚 Updating assignments for classes:', assignedClasses, 'subjects:', teachingSubjects);
         
-        // For each class-subject combination, ensure there's a timetable entry
-        // This is a simplified approach - in production you might want more sophisticated handling
+        // First, deactivate all existing assignments for this teacher
+        await db.update(teacherSubjectAssignments)
+          .set({ active: false })
+          .where(and(
+            eq(teacherSubjectAssignments.teacherId, teacherId),
+            eq(teacherSubjectAssignments.schoolId, userSchoolId)
+          ));
+        
+        // For each class-subject combination, create or reactivate an assignment
         for (const className of assignedClasses) {
           // Find the class ID
           const [classData] = await db.select()
@@ -3066,34 +3075,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ))
             .limit(1);
           
-          if (classData && teachingSubjects.length > 0) {
-            // Check if there are existing timetable entries for this teacher-class combo
-            const existingEntries = await db.select()
-              .from(timetables)
-              .where(and(
-                eq(timetables.teacherId, teacherId),
-                eq(timetables.classId, classData.id),
-                eq(timetables.schoolId, userSchoolId)
-              ));
-            
-            // If no entries exist, create a placeholder entry for each subject
-            if (existingEntries.length === 0) {
-              for (const subject of teachingSubjects) {
+          if (classData) {
+            for (const subjectName of teachingSubjects) {
+              // Find the subject ID
+              const [subjectData] = await db.select()
+                .from(subjects)
+                .where(and(
+                  or(
+                    eq(subjects.nameFr, subjectName),
+                    eq(subjects.nameEn, subjectName)
+                  ),
+                  eq(subjects.schoolId, userSchoolId)
+                ))
+                .limit(1);
+              
+              if (subjectData) {
                 try {
-                  await db.insert(timetables).values({
+                  // Try to insert, or update if exists
+                  await db.insert(teacherSubjectAssignments).values({
                     teacherId,
                     classId: classData.id,
+                    subjectId: subjectData.id,
                     schoolId: userSchoolId,
-                    subjectName: subject,
-                    dayOfWeek: 1, // Monday as default
-                    startTime: '08:00',
-                    endTime: '09:00',
-                    academicYear: new Date().getFullYear().toString(),
-                    isActive: true
-                  }).onConflictDoNothing();
+                    active: true
+                  }).onConflictDoUpdate({
+                    target: [
+                      teacherSubjectAssignments.schoolId,
+                      teacherSubjectAssignments.teacherId,
+                      teacherSubjectAssignments.classId,
+                      teacherSubjectAssignments.subjectId
+                    ],
+                    set: { active: true, updatedAt: new Date() }
+                  });
+                  console.log('[UPDATE_TEACHER_DIRECTOR] ✅ Assignment created:', { teacherId, classId: classData.id, subjectId: subjectData.id });
                 } catch (insertError) {
-                  console.log('[UPDATE_TEACHER_DIRECTOR] ⚠️ Could not insert timetable entry:', insertError);
+                  console.log('[UPDATE_TEACHER_DIRECTOR] ⚠️ Could not insert assignment:', insertError);
                 }
+              } else {
+                console.log('[UPDATE_TEACHER_DIRECTOR] ⚠️ Subject not found:', subjectName);
               }
             }
           }
