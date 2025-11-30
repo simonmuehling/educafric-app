@@ -104,3 +104,8 @@ integrations = ["javascript_object_storage:1.0.0", "javascript_database:1.0.0", 
 
 [objectStorage]
 defaultBucketID = "replit-objstore-5e32ab65-3e75-45f8-b547-a6f9ea5bc61a"
+
+[userenv]
+
+[userenv.development]
+SANDBOX_ENABLED = "true"
