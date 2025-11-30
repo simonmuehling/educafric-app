@@ -525,7 +525,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       console.log('[BULLETIN] 📚 Auto-loading subjects for class:', selectedClassId);
       
       try {
-        const response = await fetch(`/api/bulletin/class-subjects/${selectedClassId}`, {
+        const response = await fetch(`/api/bulletin/class-subjects/${selectedClassId}?lang=${language}`, {
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
         });

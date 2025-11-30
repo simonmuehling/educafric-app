@@ -1968,11 +1968,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ✅ NEW: Get subjects with teachers for bulletin auto-population
-  // Returns subjects assigned to a class with their teachers from timetables
+  // Returns subjects assigned to a class from the SUBJECTS TABLE with teacher info from teacherSubjectAssignments or timetables
   app.get("/api/bulletin/class-subjects/:classId", requireAuth, requireAnyRole(['Director', 'Admin', 'Teacher']), async (req, res) => {
     try {
       const user = req.user as any;
       const classId = parseInt(req.params.classId);
+      const userLanguage = (req.query.lang as string) || 'fr';
       
       if (isNaN(classId)) {
         return res.status(400).json({ success: false, message: 'Invalid class ID' });
@@ -1984,10 +1985,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'School ID required' });
       }
       
-      console.log('[BULLETIN_CLASS_SUBJECTS] 🔍 Fetching subjects for class:', classId, 'school:', userSchoolId);
+      console.log('[BULLETIN_CLASS_SUBJECTS] 🔍 Fetching subjects from SUBJECTS TABLE for class:', classId, 'school:', userSchoolId);
       
-      // Get unique subject-teacher combinations from timetables for this class
-      const timetableSubjects = await db
+      // ✅ FIX: Get subjects from the SUBJECTS table (the correct source)
+      const classSubjects = await db.select()
+        .from(subjects)
+        .where(and(
+          eq(subjects.classId, classId),
+          eq(subjects.schoolId, userSchoolId)
+        ));
+      
+      console.log('[BULLETIN_CLASS_SUBJECTS] 📚 Found', classSubjects.length, 'subjects in subjects table');
+      
+      // Get teacher assignments for these subjects from teacherSubjectAssignments table
+      const teacherAssignments = await db
+        .select({
+          subjectId: teacherSubjectAssignments.subjectId,
+          teacherId: teacherSubjectAssignments.teacherId,
+          teacherFirstName: users.firstName,
+          teacherLastName: users.lastName
+        })
+        .from(teacherSubjectAssignments)
+        .leftJoin(users, eq(teacherSubjectAssignments.teacherId, users.id))
+        .where(and(
+          eq(teacherSubjectAssignments.classId, classId),
+          eq(teacherSubjectAssignments.schoolId, userSchoolId),
+          eq(teacherSubjectAssignments.active, true)
+        ));
+      
+      // Create a map of subjectId to teacher name
+      const teacherMap = new Map<number, string>();
+      teacherAssignments.forEach((ta: any) => {
+        if (ta.teacherFirstName && ta.teacherLastName) {
+          teacherMap.set(ta.subjectId, `${ta.teacherFirstName} ${ta.teacherLastName}`);
+        }
+      });
+      
+      // Also try to get teachers from timetables as fallback
+      const timetableTeachers = await db
         .select({
           subjectName: timetables.subjectName,
           teacherId: timetables.teacherId,
@@ -2003,50 +2038,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ))
         .groupBy(timetables.subjectName, timetables.teacherId, users.firstName, users.lastName);
       
-      // Also get subjects from subjects table with default coefficients
-      const subjectsList = await db.select()
-        .from(subjects)
-        .where(and(
-          eq(subjects.classId, classId),
-          eq(subjects.schoolId, userSchoolId)
-        ));
-      
-      // Create a map of subject name to coefficient
-      const coefficientMap = new Map<string, number>();
-      subjectsList.forEach((s: any) => {
-        coefficientMap.set(s.name?.toLowerCase(), s.coefficient || 1);
+      // Create a map of subject name (lowercase) to teacher
+      const timetableTeacherMap = new Map<string, string>();
+      timetableTeachers.forEach((tt: any) => {
+        if (tt.subjectName && tt.teacherFirstName && tt.teacherLastName) {
+          timetableTeacherMap.set(tt.subjectName.toLowerCase(), `${tt.teacherFirstName} ${tt.teacherLastName}`);
+        }
       });
       
-      // Combine timetable data with subject coefficients
-      const classSubjectsWithTeachers = timetableSubjects.map((item: any, index: number) => ({
-        id: `auto-${index + 1}`,
-        name: item.subjectName || '',
-        teacher: item.teacherFirstName && item.teacherLastName 
-          ? `${item.teacherFirstName} ${item.teacherLastName}` 
-          : '',
-        teacherId: item.teacherId,
-        coefficient: coefficientMap.get(item.subjectName?.toLowerCase()) || 
-                    getDefaultCoefficient(item.subjectName || ''),
-        grade: 0,
-        note1: 0,
-        moyenneFinale: 0,
-        competence1: '',
-        competence2: '',
-        competence3: '',
-        totalPondere: 0,
-        cote: '',
-        remark: '',
-        comments: []
-      }));
+      // Build the subjects list with teacher info
+      const classSubjectsWithTeachers = classSubjects.map((subject: any, index: number) => {
+        // Get subject name based on language
+        const subjectName = userLanguage === 'en' 
+          ? (subject.nameEn || subject.nameFr || '') 
+          : (subject.nameFr || subject.nameEn || '');
+        
+        // Try to find teacher: first from teacherSubjectAssignments, then from timetables
+        let teacherName = teacherMap.get(subject.id) || '';
+        if (!teacherName) {
+          // Fallback: try to match by subject name in timetables
+          teacherName = timetableTeacherMap.get(subjectName.toLowerCase()) || 
+                       timetableTeacherMap.get((subject.nameFr || '').toLowerCase()) ||
+                       timetableTeacherMap.get((subject.nameEn || '').toLowerCase()) ||
+                       '';
+        }
+        
+        return {
+          id: `subject-${subject.id}`,
+          name: subjectName,
+          nameFr: subject.nameFr || '',
+          nameEn: subject.nameEn || '',
+          teacher: teacherName,
+          coefficient: parseFloat(subject.coefficient) || getDefaultCoefficient(subjectName),
+          subjectType: subject.subjectType || 'general',
+          bulletinSection: subject.bulletinSection || subject.subjectType || 'general',
+          grade: 0,
+          note1: 0,
+          moyenneFinale: 0,
+          competence1: '',
+          competence2: '',
+          competence3: '',
+          totalPondere: 0,
+          cote: '',
+          remark: '',
+          comments: []
+        };
+      });
       
-      console.log('[BULLETIN_CLASS_SUBJECTS] ✅ Found', classSubjectsWithTeachers.length, 'subjects with teachers');
+      console.log('[BULLETIN_CLASS_SUBJECTS] ✅ Returning', classSubjectsWithTeachers.length, 'subjects with teachers');
       
       res.json({ 
         success: true, 
         subjects: classSubjectsWithTeachers,
         message: classSubjectsWithTeachers.length > 0 
-          ? 'Subjects loaded from timetable' 
-          : 'No subjects found - add manually'
+          ? (userLanguage === 'fr' ? 'Matières chargées depuis la base de données' : 'Subjects loaded from database')
+          : (userLanguage === 'fr' ? 'Aucune matière trouvée - ajoutez manuellement' : 'No subjects found - add manually')
       });
       
     } catch (error) {
