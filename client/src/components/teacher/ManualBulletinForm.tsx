@@ -1274,8 +1274,9 @@ export default function ManualBulletinForm({
                           <div className="text-xs font-semibold text-blue-700 mb-1">
                             {language === 'fr' ? 'Compétence 1:' : 'Competency 1:'}
                           </div>
-                          <Input
-                            className="w-full border-0 bg-transparent text-xs"
+                          <input
+                            type="text"
+                            className="w-full border border-blue-200 bg-white text-xs p-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
                             value={r.competence1 || ''}
                             onChange={(e) => updateRow(i, { competence1: e.target.value })}
                             placeholder={language === 'fr' ? 'Première compétence...' : 'First competency...'}
@@ -1288,8 +1289,9 @@ export default function ManualBulletinForm({
                           <div className="text-xs font-semibold text-green-700 mb-1">
                             {language === 'fr' ? 'Compétence 2:' : 'Competency 2:'}
                           </div>
-                          <Input
-                            className="w-full border-0 bg-transparent text-xs"
+                          <input
+                            type="text"
+                            className="w-full border border-green-200 bg-white text-xs p-1 rounded focus:outline-none focus:ring-1 focus:ring-green-400"
                             value={r.competence2 || ''}
                             onChange={(e) => updateRow(i, { competence2: e.target.value })}
                             placeholder={language === 'fr' ? 'Deuxième compétence...' : 'Second competency...'}
@@ -1302,8 +1304,9 @@ export default function ManualBulletinForm({
                           <div className="text-xs font-semibold text-purple-700 mb-1">
                             {language === 'fr' ? 'Compétence 3:' : 'Competency 3:'}
                           </div>
-                          <Input
-                            className="w-full border-0 bg-transparent text-xs"
+                          <input
+                            type="text"
+                            className="w-full border border-purple-200 bg-white text-xs p-1 rounded focus:outline-none focus:ring-1 focus:ring-purple-400"
                             value={r.competence3 || ''}
                             onChange={(e) => updateRow(i, { competence3: e.target.value })}
                             placeholder={language === 'fr' ? 'Troisième compétence...' : 'Third competency...'}
