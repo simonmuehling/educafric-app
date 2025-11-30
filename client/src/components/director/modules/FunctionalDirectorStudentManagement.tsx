@@ -49,6 +49,12 @@ interface Student {
   profilePictureUrl?: string;
   photoURL?: string;
   profilePicture?: string;
+  educafricNumber?: string;
+  guardian?: string;
+  isRepeater?: boolean;
+  classRank?: number;
+  classId?: number;
+  createdAt?: string;
 }
 
 const FunctionalDirectorStudentManagement: React.FC = () => {
@@ -750,7 +756,15 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       years: 'ans',
       male: 'Masculin',
       female: 'Féminin',
-      notProvided: 'Non renseigné'
+      notProvided: 'Non renseigné',
+      educafricNumber: 'Numéro EDUCAFRIC',
+      guardian: 'Tuteur/Gardien',
+      repeater: 'Redoublant',
+      yes: 'Oui',
+      no: 'Non',
+      classRank: 'Rang en Classe',
+      enrollmentDate: 'Date d\'inscription',
+      placeOfBirth: 'Lieu de naissance'
     },
     status: {
       active: 'Actif',
@@ -820,7 +834,15 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       years: 'years',
       male: 'Male',
       female: 'Female',
-      notProvided: 'Not provided'
+      notProvided: 'Not provided',
+      educafricNumber: 'EDUCAFRIC Number',
+      guardian: 'Guardian',
+      repeater: 'Repeater',
+      yes: 'Yes',
+      no: 'No',
+      classRank: 'Class Rank',
+      enrollmentDate: 'Enrollment Date',
+      placeOfBirth: 'Place of Birth'
     },
     status: {
       active: 'Active',
@@ -1994,8 +2016,10 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Personal Information */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2 flex items-center gap-2">
+                    <User className="w-4 h-4" />
                     {text.profile.personalInfo}
                   </h4>
                   <div className="space-y-3">
@@ -2026,14 +2050,26 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                       <p className="text-gray-900">{viewingStudent.dateOfBirth || text.profile.notProvided}</p>
                     </div>
                     <div>
+                      <label className="text-sm font-medium text-gray-500">{text.profile.placeOfBirth}</label>
+                      <p className="text-gray-900">{viewingStudent.placeOfBirth || text.profile.notProvided}</p>
+                    </div>
+                    <div>
                       <label className="text-sm font-medium text-gray-500">{text.form.matricule}</label>
                       <p className="text-gray-900">{viewingStudent.matricule || text.profile.notProvided}</p>
                     </div>
+                    {viewingStudent.educafricNumber && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">{text.profile.educafricNumber}</label>
+                        <p className="text-gray-900 font-mono bg-green-50 px-2 py-1 rounded inline-block">{viewingStudent.educafricNumber}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
+                {/* Parent/Guardian Information */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
                     {text.profile.parentInfo}
                   </h4>
                   <div className="space-y-3">
@@ -2049,41 +2085,79 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                       <label className="text-sm font-medium text-gray-500">{text.form.parentPhone}</label>
                       <p className="text-gray-900">{viewingStudent.parentPhone || text.profile.notProvided}</p>
                     </div>
+                    {viewingStudent.guardian && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">{text.profile.guardian}</label>
+                        <p className="text-gray-900">{viewingStudent.guardian}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
+                {/* Academic Performance */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />
                     {text.profile.academicInfo}
                   </h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">{text.profile.averageGrade}</label>
-                      <p className="text-gray-900 text-2xl font-bold text-green-600">
-                        {viewingStudent.average || 0}/20
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-green-50 p-4 rounded-lg text-center">
+                      <label className="text-sm font-medium text-gray-500 block mb-1">{text.profile.averageGrade}</label>
+                      <p className="text-3xl font-bold text-green-600">
+                        {viewingStudent.average || 0}<span className="text-lg">/20</span>
                       </p>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">{text.profile.attendanceRate}</label>
-                      <p className="text-gray-900 text-2xl font-bold text-blue-600">
-                        {viewingStudent.attendance || 0}%
+                    <div className="bg-blue-50 p-4 rounded-lg text-center">
+                      <label className="text-sm font-medium text-gray-500 block mb-1">{text.profile.attendanceRate}</label>
+                      <p className="text-3xl font-bold text-blue-600">
+                        {viewingStudent.attendance || 0}<span className="text-lg">%</span>
                       </p>
+                    </div>
+                  </div>
+                  <div className="space-y-3 mt-4">
+                    {viewingStudent.classRank && (
+                      <div className="flex items-center justify-between bg-yellow-50 p-3 rounded-lg">
+                        <label className="text-sm font-medium text-gray-600">{text.profile.classRank}</label>
+                        <p className="text-xl font-bold text-yellow-600">#{viewingStudent.classRank}</p>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-gray-500">{text.profile.repeater}</label>
+                      <Badge variant={viewingStudent.redoublant || viewingStudent.isRepeater ? 'destructive' : 'outline'}>
+                        {viewingStudent.redoublant || viewingStudent.isRepeater ? text.profile.yes : text.profile.no}
+                      </Badge>
                     </div>
                   </div>
                 </div>
 
+                {/* School Information */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
                     {text.profile.schoolInfo}
                   </h4>
                   <div className="space-y-3">
-                    <div>
+                    <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
                       <label className="text-sm font-medium text-gray-500">{text.form.className}</label>
-                      <p className="text-gray-900">{viewingStudent.className || text.profile.notProvided}</p>
+                      <Badge variant="default" className="text-base px-3 py-1">
+                        🎓 {viewingStudent.className || text.profile.notProvided}
+                      </Badge>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">{text.form.level}</label>
                       <p className="text-gray-900">{viewingStudent.level || text.profile.notProvided}</p>
+                    </div>
+                    {viewingStudent.createdAt && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">{text.profile.enrollmentDate}</label>
+                        <p className="text-gray-900">{new Date(viewingStudent.createdAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-gray-500">{text.table.status}</label>
+                      <Badge variant={viewingStudent.status === 'active' ? 'default' : 'secondary'}>
+                        {text.status[viewingStudent.status]}
+                      </Badge>
                     </div>
                   </div>
                 </div>
