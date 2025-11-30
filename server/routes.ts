@@ -5590,18 +5590,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get student's class from enrollments table
+      // Get student's class from enrollments table (join with classes to verify schoolId)
       const studentRecord = await db
         .select({
-          classId: classEnrollments.classId,
-          className: classes.name
+          classId: enrollments.classId,
+          className: classes.name,
+          classSchoolId: classes.schoolId
         })
-        .from(classEnrollments)
-        .leftJoin(classes, eq(classEnrollments.classId, classes.id))
+        .from(enrollments)
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
         .where(and(
-          eq(classEnrollments.studentId, user.id),
-          eq(classEnrollments.schoolId, studentSchoolId),
-          eq(classEnrollments.status, 'active')
+          eq(enrollments.studentId, user.id),
+          eq(enrollments.status, 'active'),
+          eq(classes.schoolId, studentSchoolId)
         ))
         .limit(1);
       
@@ -5742,14 +5743,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get student's classId from enrollments
+      // Get student's classId from enrollments (join with classes to verify schoolId)
       const studentRecord = await db
-        .select({ classId: classEnrollments.classId })
-        .from(classEnrollments)
+        .select({ classId: enrollments.classId })
+        .from(enrollments)
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
         .where(and(
-          eq(classEnrollments.studentId, user.id),
-          eq(classEnrollments.schoolId, studentSchoolId),
-          eq(classEnrollments.status, 'active')
+          eq(enrollments.studentId, user.id),
+          eq(enrollments.status, 'active'),
+          eq(classes.schoolId, studentSchoolId)
         ))
         .limit(1);
       
@@ -6211,14 +6213,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get student record to find classId from enrollments
+      // Get student record to find classId from enrollments (join with classes to verify schoolId)
       const studentRecord = await db
-        .select({ classId: classEnrollments.classId })
-        .from(classEnrollments)
+        .select({ classId: enrollments.classId })
+        .from(enrollments)
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
         .where(and(
-          eq(classEnrollments.studentId, user.id),
-          eq(classEnrollments.schoolId, studentSchoolId),
-          eq(classEnrollments.status, 'active')
+          eq(enrollments.studentId, user.id),
+          eq(enrollments.status, 'active'),
+          eq(classes.schoolId, studentSchoolId)
         ))
         .limit(1);
       

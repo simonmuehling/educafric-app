@@ -5,7 +5,7 @@ import fs from 'fs';
 import { requireAuth } from '../middleware/auth';
 import { storage } from '../storage';
 import { db } from '../db';
-import { homework, homeworkSubmissions, subjects, users, grades, userAchievements, classes, classEnrollments } from '../../shared/schema';
+import { homework, homeworkSubmissions, subjects, users, grades, userAchievements, classes, enrollments } from '../../shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 
 const router = Router();
@@ -198,14 +198,15 @@ router.get('/homework', requireAuth, async (req, res) => {
       });
     }
     
-    // Get student's classId from enrollments
+    // Get student's classId from enrollments (join with classes to verify schoolId)
     const studentRecord = await db
-      .select({ classId: classEnrollments.classId })
-      .from(classEnrollments)
+      .select({ classId: enrollments.classId })
+      .from(enrollments)
+      .leftJoin(classes, eq(enrollments.classId, classes.id))
       .where(and(
-        eq(classEnrollments.studentId, studentId),
-        eq(classEnrollments.schoolId, schoolId),
-        eq(classEnrollments.status, 'active')
+        eq(enrollments.studentId, studentId),
+        eq(enrollments.status, 'active'),
+        eq(classes.schoolId, schoolId)
       ))
       .limit(1);
     
