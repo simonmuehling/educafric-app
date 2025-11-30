@@ -196,35 +196,40 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   const serverStudents = studentsData?.students || studentsData || [];
   const students = !isOnline ? offlineStudents : (serverStudents.length > 0 ? serverStudents : offlineStudents);
 
-  // Export function
-  const handleExportStudents = () => {
-    if (!students || students.length === 0) {
+  // Export function - uses filteredStudents to respect class filter selection
+  const handleExportStudents = (studentsToExport: Student[]) => {
+    if (!studentsToExport || studentsToExport.length === 0) {
       toast({
         title: language === 'fr' ? 'Aucune donnée à exporter' : 'No data to export',
-        description: language === 'fr' ? 'Ajoutez des élèves avant d\'exporter' : 'Add students before exporting',
+        description: language === 'fr' ? 'Aucun élève ne correspond aux filtres sélectionnés' : 'No students match the selected filters',
         variant: 'destructive'
       });
       return;
     }
 
     const csvHeaders = language === 'fr' ? 
-      'Nom,Email,Classe,Statut,Parent,Téléphone Parent' :
-      'Name,Email,Class,Status,Parent,Parent Phone';
+      'Nom,Prénom,Email,Téléphone,Classe,Niveau,Genre,Date Naissance,Matricule,Parent,Email Parent,Téléphone Parent,Statut' :
+      'Last Name,First Name,Email,Phone,Class,Level,Gender,Date of Birth,Student ID,Parent,Parent Email,Parent Phone,Status';
     
-    const csvData = students.map(student => 
-      `"${student.firstName} ${student.lastName}","${student.email}","${student.className}","${student.status}","${student.parentName}","${student.parentPhone}"`
+    const csvData = studentsToExport.map(student => 
+      `"${student.lastName || ''}","${student.firstName || ''}","${student.email || ''}","${student.phone || ''}","${student.className || ''}","${student.level || ''}","${student.gender || ''}","${student.dateOfBirth || ''}","${student.matricule || student.educafricNumber || ''}","${student.parentName || student.guardian || ''}","${student.parentEmail || ''}","${student.parentPhone || ''}","${student.status || 'active'}"`
     ).join('\n');
     
     const csv = `${csvHeaders}\n${csvData}`;
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `eleves_${new Date().toISOString().split('T')[0]}.csv`;
+    
+    // Include class name in filename if filtering by specific class
+    const classLabel = selectedClass !== 'all' ? `_${selectedClass.replace(/\s+/g, '_')}` : '';
+    link.download = `eleves${classLabel}_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     
     toast({
       title: language === 'fr' ? '📊 Export réussi !' : '📊 Export Successful!',
-      description: language === 'fr' ? 'Liste des élèves exportée' : 'Student list exported'
+      description: language === 'fr' 
+        ? `${studentsToExport.length} élève(s) exporté(s)${selectedClass !== 'all' ? ` - Classe: ${selectedClass}` : ''}`
+        : `${studentsToExport.length} student(s) exported${selectedClass !== 'all' ? ` - Class: ${selectedClass}` : ''}`
     });
   };
 
@@ -1752,13 +1757,19 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={handleExportStudents}
+                onClick={() => handleExportStudents(filteredStudents)}
                 data-testid="button-export-students"
                 className="flex-1 sm:flex-none"
               >
                 <Download className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Exporter' : 'Export'}</span>
-                <span className="sm:hidden">{language === 'fr' ? 'Export' : 'Export'}</span>
+                <span className="hidden sm:inline">
+                  {language === 'fr' ? 'Exporter' : 'Export'}
+                  {selectedClass !== 'all' && ` (${filteredStudents.length})`}
+                </span>
+                <span className="sm:hidden">
+                  {language === 'fr' ? 'Export' : 'Export'}
+                  {selectedClass !== 'all' && ` (${filteredStudents.length})`}
+                </span>
               </Button>
               <Button 
                 variant="outline" 
