@@ -2520,13 +2520,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If classId is valid (not null/0), create new enrollment
         if (classId && classId > 0) {
           try {
+            // Get current academic year via raw SQL (table not in schema)
+            const academicYearResult = await db.execute(sql`SELECT id FROM academic_years LIMIT 1`);
+            const academicYearId = (academicYearResult.rows?.[0] as any)?.id || 1;
+            
             await db.insert(enrollments).values({
               studentId: studentId,
               classId: classId,
-              enrollmentDate: new Date().toISOString().split('T')[0],
+              academicYearId: academicYearId,
               status: 'active'
             });
-            console.log('[UPDATE_STUDENT] ✅ Enrollment created for student:', studentId, 'in class:', classId);
+            console.log('[UPDATE_STUDENT] ✅ Enrollment created for student:', studentId, 'in class:', classId, 'academicYear:', academicYearId);
           } catch (enrollError) {
             console.log('[UPDATE_STUDENT] ⚠️ Could not create enrollment:', enrollError);
           }
