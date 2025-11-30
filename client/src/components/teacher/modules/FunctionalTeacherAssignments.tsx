@@ -95,45 +95,8 @@ const FunctionalTeacherAssignments: React.FC = () => {
       });
       
       if (!response.ok) {
-        console.warn(`[HOMEWORK_API] API failed for ${endpoint}, using mock data`);
-        return activeTab === 'archives' ? [] : [
-          {
-            id: 1,
-            title: "Devoir de Mathématiques",
-            description: "Exercices sur les fractions",
-            instructions: "Complétez les exercices 1 à 10 du manuel page 45",
-            className: "6ème A",
-            subjectName: "Mathématiques",
-            classId: 1,
-            subjectId: 1,
-            priority: "medium",
-            dueDate: "2025-08-30T23:59:00Z",
-            assignedDate: "2025-08-25T08:00:00Z",
-            status: "active",
-            totalStudents: 28,
-            submittedCount: 15,
-            pendingCount: 13,
-            completionRate: 54
-          },
-          {
-            id: 2,
-            title: "Rédaction Français",
-            description: "Écrire une composition sur l'amitié",
-            instructions: "Dissertation de 300 mots minimum avec introduction, développement et conclusion",
-            className: "5ème B",
-            subjectName: "Français",
-            classId: 2,
-            subjectId: 2,
-            priority: "high",
-            dueDate: "2025-09-02T23:59:00Z",
-            assignedDate: "2025-08-23T10:00:00Z",
-            status: "active",
-            totalStudents: 25,
-            submittedCount: 8,
-            pendingCount: 17,
-            completionRate: 32
-          }
-        ];
+        console.warn(`[HOMEWORK_API] API failed for ${endpoint}`);
+        return [];
       }
       
       const data = await response.json();
@@ -155,11 +118,8 @@ const FunctionalTeacherAssignments: React.FC = () => {
       });
       
       if (!response.ok) {
-        console.warn('[HOMEWORK_API] Classes API failed, using mock data');
-        return [
-          { id: 1, name: "6ème A", level: "6ème", section: "A" },
-          { id: 2, name: "5ème B", level: "5ème", section: "B" }
-        ];
+        console.warn('[HOMEWORK_API] Classes API failed');
+        return [];
       }
       
       const data = await response.json();
@@ -181,12 +141,8 @@ const FunctionalTeacherAssignments: React.FC = () => {
       });
       
       if (!response.ok) {
-        console.warn('[HOMEWORK_API] Subjects API failed, using mock data');
-        return [
-          { id: 1, name: "Mathématiques", code: "MATH", coefficient: 4 },
-          { id: 2, name: "Français", code: "FRAN", coefficient: 4 },
-          { id: 3, name: "Anglais", code: "ANGL", coefficient: 3 }
-        ];
+        console.warn('[HOMEWORK_API] Subjects API failed');
+        return [];
       }
       
       const data = await response.json();
