@@ -1956,12 +1956,6 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                     }
                   }
                   
-                  console.log('[STUDENT_PROFILE] Photo debug:', { 
-                    photo: viewingStudent.photo, 
-                    profilePictureUrl: viewingStudent.profilePictureUrl,
-                    photoSrc 
-                  });
-                  
                   return photoSrc ? (
                     <div className="w-24 h-28 rounded-lg overflow-hidden border-2 border-green-200 shadow-md flex-shrink-0">
                       <img 
@@ -1970,7 +1964,6 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.currentTarget;
-                          console.error('[STUDENT_PROFILE] Image load error for:', photoSrc);
                           target.style.display = 'none';
                           if (target.parentElement) {
                             target.parentElement.innerHTML = '<div class="w-full h-full bg-green-100 flex items-center justify-center"><svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>';
