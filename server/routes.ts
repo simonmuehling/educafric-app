@@ -2566,66 +2566,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get student transcript data (all terms/years for specific student)
+  // ✅ DATABASE-ONLY: Get student transcript data (all terms/years for specific student)
   app.get("/api/director/student-transcript", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       const { studentId } = req.query;
+      const userSchoolId = user.schoolId || user.school_id;
       
       if (!studentId) {
         return res.status(400).json({ success: false, message: 'Student ID is required' });
       }
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
 
-      console.log(`[DIRECTOR_STUDENT_TRANSCRIPT] Fetching transcript for student ID: ${studentId}`);
-
-      // ✅ SANDBOX MOCK DATA - Complete academic history for transcript
-      const mockTranscriptData = {
+      console.log(`[DIRECTOR_STUDENT_TRANSCRIPT] 📊 Fetching transcript from DATABASE for student ID: ${studentId}`);
+      
+      const parsedStudentId = parseInt(studentId as string, 10);
+      
+      // Get student info from database
+      const [studentRecord] = await db.select()
+        .from(students)
+        .where(and(eq(students.id, parsedStudentId), eq(students.schoolId, userSchoolId)))
+        .limit(1);
+      
+      if (!studentRecord) {
+        return res.status(404).json({ success: false, message: 'Student not found' });
+      }
+      
+      // Get class name
+      let className = '';
+      if (studentRecord.classId) {
+        const [classInfo] = await db.select({ name: classes.name })
+          .from(classes)
+          .where(eq(classes.id, studentRecord.classId))
+          .limit(1);
+        className = classInfo?.name || '';
+      }
+      
+      // Get all grades for this student from database
+      const studentGrades = await db.select()
+        .from(grades)
+        .where(and(eq(grades.studentId, parsedStudentId), eq(grades.schoolId, userSchoolId)))
+        .orderBy(desc(grades.academicYear), desc(grades.term));
+      
+      // Get unique academic years
+      const academicYears = [...new Set(studentGrades.map(g => g.academicYear).filter(Boolean))];
+      
+      const transcriptData = {
         success: true,
-        grades: [
-          // === 2023-2024 Academic Year ===
-          // Premier Trimestre
-          { id: 1, studentId: parseInt(studentId as string), subjectId: 1, grade: 16.5, term: 'T1', academicYear: '2023-2024', createdAt: '2023-12-15' },
-          { id: 2, studentId: parseInt(studentId as string), subjectId: 2, grade: 14.2, term: 'T1', academicYear: '2023-2024', createdAt: '2023-12-15' },
-          { id: 3, studentId: parseInt(studentId as string), subjectId: 3, grade: 18.0, term: 'T1', academicYear: '2023-2024', createdAt: '2023-12-15' },
-          { id: 4, studentId: parseInt(studentId as string), subjectId: 4, grade: 15.8, term: 'T1', academicYear: '2023-2024', createdAt: '2023-12-15' },
-          { id: 5, studentId: parseInt(studentId as string), subjectId: 5, grade: 13.5, term: 'T1', academicYear: '2023-2024', createdAt: '2023-12-15' },
-          
-          // Deuxième Trimestre
-          { id: 6, studentId: parseInt(studentId as string), subjectId: 1, grade: 15.8, term: 'T2', academicYear: '2023-2024', createdAt: '2024-03-15' },
-          { id: 7, studentId: parseInt(studentId as string), subjectId: 2, grade: 15.0, term: 'T2', academicYear: '2023-2024', createdAt: '2024-03-15' },
-          { id: 8, studentId: parseInt(studentId as string), subjectId: 3, grade: 17.2, term: 'T2', academicYear: '2023-2024', createdAt: '2024-03-15' },
-          { id: 9, studentId: parseInt(studentId as string), subjectId: 4, grade: 16.5, term: 'T2', academicYear: '2023-2024', createdAt: '2024-03-15' },
-          { id: 10, studentId: parseInt(studentId as string), subjectId: 5, grade: 14.2, term: 'T2', academicYear: '2023-2024', createdAt: '2024-03-15' },
-          
-          // Troisième Trimestre
-          { id: 11, studentId: parseInt(studentId as string), subjectId: 1, grade: 16.2, term: 'T3', academicYear: '2023-2024', createdAt: '2024-06-15' },
-          { id: 12, studentId: parseInt(studentId as string), subjectId: 2, grade: 14.8, term: 'T3', academicYear: '2023-2024', createdAt: '2024-06-15' },
-          { id: 13, studentId: parseInt(studentId as string), subjectId: 3, grade: 17.8, term: 'T3', academicYear: '2023-2024', createdAt: '2024-06-15' },
-          { id: 14, studentId: parseInt(studentId as string), subjectId: 4, grade: 16.0, term: 'T3', academicYear: '2023-2024', createdAt: '2024-06-15' },
-          { id: 15, studentId: parseInt(studentId as string), subjectId: 5, grade: 14.5, term: 'T3', academicYear: '2023-2024', createdAt: '2024-06-15' },
-
-          // === 2024-2025 Academic Year (Current) ===
-          // Premier Trimestre
-          { id: 16, studentId: parseInt(studentId as string), subjectId: 1, grade: 17.0, term: 'T1', academicYear: '2024-2025', createdAt: '2024-12-15' },
-          { id: 17, studentId: parseInt(studentId as string), subjectId: 2, grade: 15.5, term: 'T1', academicYear: '2024-2025', createdAt: '2024-12-15' },
-          { id: 18, studentId: parseInt(studentId as string), subjectId: 3, grade: 18.5, term: 'T1', academicYear: '2024-2025', createdAt: '2024-12-15' },
-          { id: 19, studentId: parseInt(studentId as string), subjectId: 4, grade: 16.8, term: 'T1', academicYear: '2024-2025', createdAt: '2024-12-15' },
-          { id: 20, studentId: parseInt(studentId as string), subjectId: 5, grade: 15.0, term: 'T1', academicYear: '2024-2025', createdAt: '2024-12-15' }
-        ],
-        totalRecords: 20,
-        academicYears: ['2023-2024', '2024-2025'],
+        grades: studentGrades.map(g => ({
+          id: g.id,
+          studentId: g.studentId,
+          subjectId: g.subjectId,
+          grade: parseFloat(g.grade || '0'),
+          term: g.term,
+          academicYear: g.academicYear,
+          createdAt: g.createdAt?.toISOString().split('T')[0] || ''
+        })),
+        totalRecords: studentGrades.length,
+        academicYears: academicYears.length > 0 ? academicYears : ['2024-2025'],
         student: {
-          id: parseInt(studentId as string),
-          firstName: 'Marie',
-          lastName: 'Fosso',
-          className: '6ème A',
-          matricule: `MAT-${studentId}-2024`
+          id: studentRecord.id,
+          firstName: studentRecord.firstName,
+          lastName: studentRecord.lastName,
+          className: className,
+          matricule: studentRecord.matricule || `EDU-${studentRecord.id}`
         }
       };
 
-      console.log(`[DIRECTOR_STUDENT_TRANSCRIPT] ✅ Returning ${mockTranscriptData.grades.length} grade records for student ${studentId}`);
+      console.log(`[DIRECTOR_STUDENT_TRANSCRIPT] ✅ Returning ${transcriptData.grades.length} grade records for student ${studentId}`);
       
-      res.json(mockTranscriptData);
+      res.json(transcriptData);
     } catch (error) {
       console.error('[DIRECTOR_STUDENT_TRANSCRIPT] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch student transcript' });
@@ -2768,64 +2781,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get teachers for school (accessible by director and admin)
+  // ✅ DATABASE-ONLY: Get teachers for school (accessible by director and admin)
   app.get("/api/school/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
+      const userSchoolId = user.schoolId || user.school_id;
       
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || 
-                           user.email?.includes('sandbox@') || 
-                           user.email?.includes('demo@') || 
-                           user.email?.includes('.sandbox@') ||
-                           user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@') ||
-                           user.email?.startsWith('sandbox.');
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
       
-      let teachers;
+      console.log('[SCHOOL_TEACHERS_API] 📊 Fetching teachers from DATABASE for school:', userSchoolId);
       
-      if (isSandboxUser) {
-        console.log('[SCHOOL_TEACHERS_API] Sandbox user detected - using mock data');
-        // Mock teachers data for sandbox/demo users
-        teachers = [
-          { id: 1, firstName: 'Marie', lastName: 'Dubois', subject: 'Mathématiques', email: 'marie.dubois@test.educafric.com', isActive: true, experience: 8 },
-          { id: 2, firstName: 'Jean', lastName: 'Ngono', subject: 'Français', email: 'jean.ngono@test.educafric.com', isActive: true, experience: 12 },
-          { id: 3, firstName: 'Alice', lastName: 'Nkomo', subject: 'Sciences Physiques', email: 'alice.nkomo@test.educafric.com', isActive: true, experience: 6 },
-          { id: 4, firstName: 'Paul', lastName: 'Mbida', subject: 'Anglais', email: 'paul.mbida@test.educafric.com', isActive: true, experience: 5 },
-          { id: 5, firstName: 'Fatima', lastName: 'Hassan', subject: 'Histoire-Géographie', email: 'fatima.hassan@test.educafric.com', isActive: true, experience: 10 },
-          { id: 6, firstName: 'Sophie', lastName: 'Mengue', subject: 'Sciences Naturelles', email: 'sophie.mengue@test.educafric.com', isActive: true, experience: 7 },
-          { id: 7, firstName: 'André', lastName: 'Bikanda', subject: 'Éducation Physique', email: 'andre.bikanda@test.educafric.com', isActive: true, experience: 4 },
-          { id: 8, firstName: 'Claire', lastName: 'Owono', subject: 'Arts Plastiques', email: 'claire.owono@test.educafric.com', isActive: true, experience: 9 }
-        ];
-      } else {
-        console.log('[SCHOOL_TEACHERS_API] Real user detected - using database data');
-        // Get real teachers from database
-        const { db } = await import('./db');
-        const { users } = await import('@shared/schema');
-        const { eq, and } = await import('drizzle-orm');
+      // Get all teachers for this school from database
+      const schoolTeachers = await db.select()
+        .from(users)
+        .where(and(
+          eq(users.role, 'Teacher'),
+          eq(users.schoolId, userSchoolId)
+        ));
+      
+      // Get subject assignments for each teacher
+      const teachers = await Promise.all(schoolTeachers.map(async (teacher) => {
+        // Get subjects taught by this teacher
+        const teacherSubjects = await db.select({
+          subjectId: teacherSubjectAssignments.subjectId,
+          subjectName: subjects.nameFr
+        })
+          .from(teacherSubjectAssignments)
+          .leftJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+          .where(eq(teacherSubjectAssignments.teacherId, teacher.id));
         
-        const userSchoolId = user.schoolId || user.school_id || 1;
+        const subjectNames = teacherSubjects.map(s => s.subjectName).filter(Boolean);
         
-        // Get all teachers for this school
-        const schoolTeachers = await db.select()
-          .from(users)
-          .where(and(
-            eq(users.role, 'Teacher'),
-            eq(users.schoolId, userSchoolId)
-          ));
-        
-        teachers = schoolTeachers.map(teacher => ({
+        return {
           id: teacher.id,
           firstName: teacher.firstName,
           lastName: teacher.lastName,
           email: teacher.email,
-          subject: 'Non spécifié', // Subject not in user schema
+          phone: teacher.phone,
+          subject: subjectNames[0] || 'Non spécifié',
+          teachingSubjects: subjectNames,
           isActive: true,
-          experience: Math.floor(Math.random() * 15) + 1 // Random for now
-        }));
-      }
+          profilePictureUrl: teacher.profilePictureUrl
+        };
+      }));
       
+      console.log('[SCHOOL_TEACHERS_API] ✅ Returning', teachers.length, 'teachers');
       res.json({ 
         success: true, 
         teachers,
@@ -2841,121 +2843,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get teachers for director
+  // ✅ DATABASE-ONLY: Get teachers for director
   app.get("/api/director/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
+      const userSchoolId = user.schoolId || user.school_id;
       
-      // Check if user is in sandbox/demo mode - patterns actualisés
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || // Nouveau: @educafric.demo
-                           user.email?.includes('sandbox@') || 
-                           user.email?.includes('demo@') || 
-                           user.email?.includes('.sandbox@') ||
-                           user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@') ||
-                           user.email?.startsWith('sandbox.'); // Nouveau: sandbox.* patterns
-      
-      let teachers;
-      
-      if (isSandboxUser) {
-        console.log('[DIRECTOR_TEACHERS_API] Sandbox user detected - using mock data WITH REAL DB IDS');
-        // Mock teachers data with REAL database IDs (348-353) to avoid FK violations
-        teachers = [
-          { id: 348, name: 'Prof. Mboua Jean', firstName: 'Prof.', lastName: 'Mboua Jean', subject: 'Mathématiques', teachingSubjects: ['Mathématiques'], email: 'sandbox.teacher1@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['6ème A', '5ème A'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123456', status: 'active' },
-          { id: 349, name: 'Prof. Nkolo Marie', firstName: 'Prof.', lastName: 'Nkolo Marie', subject: 'Français', teachingSubjects: ['Français'], email: 'sandbox.teacher2@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['5ème B', '4ème B'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123457', status: 'active' },
-          { id: 350, name: 'Prof. Ateba Paul', firstName: 'Prof.', lastName: 'Ateba Paul', subject: 'Histoire-Géographie', teachingSubjects: ['Histoire-Géographie'], email: 'sandbox.teacher3@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['4ème C', '3ème C'], canSignBulletins: false, digitalSignatureActive: false, phone: '+237677123458', status: 'active' },
-          { id: 351, name: 'Prof. Essomba Claire', firstName: 'Prof.', lastName: 'Essomba Claire', subject: 'Anglais', teachingSubjects: ['Anglais'], email: 'sandbox.teacher4@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['3ème D', '2nde A'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123459', status: 'active' },
-          { id: 352, name: 'Prof. Owona David', firstName: 'Prof.', lastName: 'Owona David', subject: 'Sciences Physiques', teachingSubjects: ['Sciences Physiques'], email: 'sandbox.teacher5@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['2nde B', '1ère S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123460', status: 'active' },
-          { id: 353, name: 'Prof. Ngono Sophie', firstName: 'Prof.', lastName: 'Ngono Sophie', subject: 'Sciences Naturelles', teachingSubjects: ['Sciences Naturelles'], email: 'sandbox.teacher6@educafric.demo', isActive: true, canTeachTimetable: true, availability: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'], classes: ['1ère S', 'Terminale S'], canSignBulletins: true, digitalSignatureActive: true, phone: '+237677123461', status: 'active' }
-        ];
-      } else {
-        console.log('[DIRECTOR_TEACHERS_API] ==========================================');
-        console.log('[DIRECTOR_TEACHERS_API] 🔍 Real user detected - using database data');
-        console.log('[DIRECTOR_TEACHERS_API] 📋 Full User object:', JSON.stringify({
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          school_id: user.school_id,
-          schoolId: user.schoolId,
-          firstName: user.firstName,
-          lastName: user.lastName
-        }));
-        // Get real teachers from database
-        const { db } = await import('./db');
-        const { users, teacherSubjectAssignments, classes: classesTable, subjects: subjectsTable } = await import('@shared/schema');
-        const { eq, and, inArray } = await import('drizzle-orm');
-        
-        const userSchoolId = user.schoolId || user.school_id || 1;
-        console.log('[DIRECTOR_TEACHERS_API] 🏫 Resolved school ID:', userSchoolId, '(schoolId:', user.schoolId, ', school_id:', user.school_id, ')');
-        
-        // Get all teachers for this school
-        const schoolTeachers = await db.select()
-          .from(users)
-          .where(and(eq(users.role, 'Teacher'), eq(users.schoolId, userSchoolId)));
-        
-        console.log('[DIRECTOR_TEACHERS_API] 📊 Raw DB query returned:', schoolTeachers.length, 'teachers for school', userSchoolId);
-        
-        // Get teacher assignments from TIMETABLES (primary source) since teacherSubjectAssignments may not exist
-        // This gives us the actual classes and subjects each teacher teaches
-        const { timetables } = await import('@shared/schema');
-        
-        let teacherAssignmentsFromTimetables: Array<{ teacherId: number; classId: number | null; className: string | null; subjectName: string | null }> = [];
-        try {
-          const timetableEntries = await db.selectDistinct({
-            teacherId: timetables.teacherId,
-            classId: timetables.classId,
-            className: timetables.className,
-            subjectName: timetables.subjectName
-          })
-            .from(timetables)
-            .where(and(
-              eq(timetables.schoolId, userSchoolId),
-              eq(timetables.isActive, true)
-            ));
-          
-          teacherAssignmentsFromTimetables = timetableEntries.filter(t => t.teacherId != null) as any;
-          console.log('[DIRECTOR_TEACHERS_API] 📚 Found', teacherAssignmentsFromTimetables.length, 'timetable assignments');
-        } catch (timetableError) {
-          console.log('[DIRECTOR_TEACHERS_API] ⚠️ Could not fetch timetable assignments:', timetableError);
-        }
-        
-        // Group assignments by teacher (from timetables)
-        const teacherAssignmentsMap = new Map<number, { classes: Set<string>, subjects: Set<string> }>();
-        teacherAssignmentsFromTimetables.forEach(a => {
-          if (!teacherAssignmentsMap.has(a.teacherId)) {
-            teacherAssignmentsMap.set(a.teacherId, { classes: new Set(), subjects: new Set() });
-          }
-          const entry = teacherAssignmentsMap.get(a.teacherId)!;
-          if (a.className) entry.classes.add(a.className);
-          if (a.subjectName) entry.subjects.add(a.subjectName);
-        });
-        
-        // Map teachers to expected format
-        teachers = schoolTeachers.map((teacher) => {
-          const teacherData = teacherAssignmentsMap.get(teacher.id);
-          const teacherClasses = teacherData ? Array.from(teacherData.classes) : [];
-          const teacherSubjects = teacherData ? Array.from(teacherData.subjects) : [];
-          
-          return {
-            id: teacher.id,
-            name: `${teacher.firstName} ${teacher.lastName}`,
-            firstName: teacher.firstName,
-            lastName: teacher.lastName,
-            email: teacher.email,
-            phone: teacher.phone,
-            gender: teacher.gender,
-            matricule: teacher.educafricNumber,
-            isActive: true,
-            schoolId: teacher.schoolId,
-            classes: teacherClasses,
-            teachingSubjects: teacherSubjects,
-            status: 'active'
-          };
-        });
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
       }
       
-      console.log('[DIRECTOR_TEACHERS_API] Teachers count:', teachers.length);
+      console.log('[DIRECTOR_TEACHERS_API] 📊 Fetching teachers from DATABASE for school:', userSchoolId);
+      
+      // Get all teachers for this school from database
+      const schoolTeachers = await db.select()
+        .from(users)
+        .where(and(eq(users.role, 'Teacher'), eq(users.schoolId, userSchoolId)));
+      
+      console.log('[DIRECTOR_TEACHERS_API] 📊 Found', schoolTeachers.length, 'teachers');
+      
+      // Get teacher assignments from TIMETABLES
+      let teacherAssignmentsFromTimetables: Array<{ teacherId: number; classId: number | null; className: string | null; subjectName: string | null }> = [];
+      try {
+        const timetableEntries = await db.selectDistinct({
+          teacherId: timetables.teacherId,
+          classId: timetables.classId,
+          className: timetables.className,
+          subjectName: timetables.subjectName
+        })
+          .from(timetables)
+          .where(and(
+            eq(timetables.schoolId, userSchoolId),
+            eq(timetables.isActive, true)
+          ));
+        
+        teacherAssignmentsFromTimetables = timetableEntries.filter(t => t.teacherId != null) as any;
+      } catch (timetableError) {
+        console.log('[DIRECTOR_TEACHERS_API] ⚠️ Could not fetch timetable assignments');
+      }
+      
+      // Group assignments by teacher
+      const teacherAssignmentsMap = new Map<number, { classes: Set<string>, subjects: Set<string> }>();
+      teacherAssignmentsFromTimetables.forEach(a => {
+        if (!teacherAssignmentsMap.has(a.teacherId)) {
+          teacherAssignmentsMap.set(a.teacherId, { classes: new Set(), subjects: new Set() });
+        }
+        const entry = teacherAssignmentsMap.get(a.teacherId)!;
+        if (a.className) entry.classes.add(a.className);
+        if (a.subjectName) entry.subjects.add(a.subjectName);
+      });
+      
+      // Map teachers to expected format
+      const teachers = schoolTeachers.map((teacher) => {
+        const teacherData = teacherAssignmentsMap.get(teacher.id);
+        const teacherClasses = teacherData ? Array.from(teacherData.classes) : [];
+        const teacherSubjects = teacherData ? Array.from(teacherData.subjects) : [];
+        
+        return {
+          id: teacher.id,
+          name: `${teacher.firstName} ${teacher.lastName}`,
+          firstName: teacher.firstName,
+          lastName: teacher.lastName,
+          email: teacher.email,
+          phone: teacher.phone,
+          gender: teacher.gender,
+          matricule: teacher.educafricNumber,
+          isActive: true,
+          schoolId: teacher.schoolId,
+          classes: teacherClasses,
+          teachingSubjects: teacherSubjects,
+          status: 'active',
+          profilePictureUrl: teacher.profilePictureUrl
+        };
+      });
+      
+      console.log('[DIRECTOR_TEACHERS_API] ✅ Returning', teachers.length, 'teachers');
       res.json({ success: true, teachers });
     } catch (error) {
       console.error('[DIRECTOR_TEACHERS_API] Error fetching teachers:', error);
