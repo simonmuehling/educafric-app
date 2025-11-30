@@ -2015,7 +2015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         )
         .orderBy(asc(usersTable.firstName), asc(usersTable.lastName));
       
-      // ✅ STEP 4: FILTER - Only pure students (exclude teacher-students), match sandbox status
+      // ✅ STEP 4: FILTER - Only pure students (exclude teacher-students), match sandbox status, AND filter by classId if provided
       const dbStudents = dbStudentsRaw.filter((student: any) => {
         // EXCLUDE anyone who also has Teacher role
         const role = student.role || '';
@@ -2028,9 +2028,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (!isConsistent) {
           console.warn(`[DIRECTOR_STUDENTS_API] ⚠️ DATA INCONSISTENCY: Student ${student.id} (${student.email}) sandbox status (${studentIsSandbox}) doesn't match user status (${userIsSandbox})`);
+          return false;
         }
         
-        return isConsistent;
+        // ✅ CRITICAL FIX: Filter by classId when provided (for bulletin creation)
+        if (parsedClassId && !isNaN(parsedClassId)) {
+          // Only include students enrolled in the selected class
+          if (student.classId !== parsedClassId) {
+            return false;
+          }
+        }
+        
+        return true;
       });
       
       // Handle specific student request
