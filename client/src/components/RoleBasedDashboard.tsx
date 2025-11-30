@@ -34,11 +34,10 @@ export default function RoleBasedDashboard() {
     'Teacher': '/teacher',
     'Student': '/student', 
     'Parent': '/parent',
-    'Freelancer': '/freelancer',
     'Commercial': '/commercial',
-    'Admin': '/director',  // School Admin uses Director Dashboard
+    'Admin': '/director',
     'Director': '/director',
-    'SiteAdmin': '/admin'  // Only SiteAdmin uses Admin Dashboard
+    'SiteAdmin': '/admin'
   };
 
   const redirectPath = roleRoutes[user.role as keyof typeof roleRoutes] || '/student';

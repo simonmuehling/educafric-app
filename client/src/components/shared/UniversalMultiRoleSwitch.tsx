@@ -65,7 +65,6 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
         case 'Teacher': return <GraduationCap className="w-5 h-5" />;
         case 'Parent': return <Home className="w-5 h-5" />;
         case 'Student': return <User className="w-5 h-5" />;
-        case 'Freelancer': return <Briefcase className="w-5 h-5" />;
         case 'Commercial': return <Building2 className="w-5 h-5" />;
         case 'Director': return <School className="w-5 h-5" />;
         default: return <User className="w-5 h-5" />;
@@ -77,7 +76,6 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
         case 'Teacher': return 'bg-blue-500';
         case 'Parent': return 'bg-green-500';
         case 'Student': return 'bg-orange-500';
-        case 'Freelancer': return 'bg-purple-500';
         case 'Commercial': return 'bg-red-500';
         case 'Director': return 'bg-indigo-500';
         default: return 'bg-gray-500';
@@ -89,7 +87,6 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
         Teacher: { fr: 'Enseignant', en: 'Teacher' },
         Parent: { fr: 'Parent d\'élève', en: 'Student Parent' },
         Student: { fr: 'Élève', en: 'Student' },
-        Freelancer: { fr: 'Formateur indépendant', en: 'Freelance Trainer' },
         Commercial: { fr: 'Représentant commercial', en: 'Commercial Representative' },
         Director: { fr: 'Directeur d\'école', en: 'School Director' }
       };
@@ -222,7 +219,6 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
           'Teacher': '/teacher',
           'Parent': '/parent',
           'Student': '/student',
-          'Freelancer': '/freelancer',
           'Commercial': '/commercial',
           'Director': '/director',
           'Admin': '/admin'
@@ -255,8 +251,6 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
         return <Home className="w-5 h-5" />;
       case 'Student':
         return <User className="w-5 h-5" />;
-      case 'Freelancer':
-        return <Briefcase className="w-5 h-5" />;
       case 'Commercial':
         return <Building2 className="w-5 h-5" />;
       default:
@@ -272,8 +266,6 @@ const UniversalMultiRoleSwitch: React.FC<UniversalMultiRoleProps> = ({
         return 'bg-green-500';
       case 'Student':
         return 'bg-orange-500';
-      case 'Freelancer':
-        return 'bg-purple-500';
       case 'Commercial':
         return 'bg-red-500';
       default:

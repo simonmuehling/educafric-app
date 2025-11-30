@@ -28,7 +28,6 @@ const LazyProfileComponent = lazy(() => import('@/pages/ModernProfile'));
 // Dashboard pages - Gros composants
 const LazyDirectorPageComponent = lazy(() => import('@/pages/DirectorPage'));
 const LazyCommercialPageComponent = lazy(() => import('@/pages/CommercialPage'));
-const LazyFreelancerPageComponent = lazy(() => import('@/pages/FreelancerPage'));
 const LazyParentsPageComponent = lazy(() => import('@/pages/ParentsPage'));
 
 // Security et admin
@@ -68,12 +67,6 @@ export const LazyDirectorPage = (props: any) => (
 export const LazyCommercialPage = (props: any) => (
   <Suspense fallback={<OptimizedLoading />}>
     <LazyCommercialPageComponent {...props} />
-  </Suspense>
-);
-
-export const LazyFreelancerPage = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyFreelancerPageComponent {...props} />
   </Suspense>
 );
 

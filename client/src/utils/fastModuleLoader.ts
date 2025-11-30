@@ -183,39 +183,17 @@ class FastModuleLoader {
       'ReportCardManagement': () => import('@/components/teacher/modules/ConsolidatedBulletinManagement'),
       
       // =============================================
-      // 🎓 FREELANCER MODULES - SEPARATE SECTION
-      // =============================================
-      'freelancer-students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'), // Note: renamed to avoid conflicts
-      'sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
-      'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
-      'resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
-      'freelancer-communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
-      'freelancer.communications': () => import('@/components/freelancer/modules/FreelancerCommunications'), // Role-namespaced
-      'freelancer.messages': () => import('@/components/freelancer/modules/FreelancerCommunications'), // Role-namespaced
-      
-      // Additional Freelancer module aliases
-      'FunctionalFreelancerStudents': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
-      'FunctionalFreelancerSessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
-      'FunctionalFreelancerPayments': () => import('@/components/freelancer/modules/FunctionalFreelancerPayments'),
-      'FunctionalFreelancerSchedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
-      'FunctionalFreelancerResources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
-      'FreelancerCommunications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
-      'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation'),
-      
-      // =============================================
       // 🔧 SETTINGS MODULES - ROLE SPECIFIC  
       // =============================================
       // Legacy compatibility - some dashboards use these IDs
       'student-settings': () => import('@/components/student/modules/StudentSettings'),
       'teacher-settings': () => import('@/components/teacher/modules/TeacherSettingsSimple'),
       'parent-settings': () => import('@/components/parent/modules/ParentSettings'),
-      'freelancer-settings': () => import('@/components/freelancer/modules/FreelancerSettings'),
-      'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'), // For school/admin settings with official Cameroon info
-      'offline-premium-guide': () => import('@/components/offline/OfflinePremiumGuide'), // Bilingual offline premium guide
+      'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
+      'offline-premium-guide': () => import('@/components/offline/OfflinePremiumGuide'),
       
       // Settings module aliases for different naming conventions
       'StudentSettings': () => import('@/components/student/modules/StudentSettings'),
-      'FreelancerSettings': () => import('@/components/freelancer/modules/FreelancerSettings'),
       
       // SiteAdmin modules - Using shared components for now until specific modules are created
       'siteadmin-overview': () => import('@/components/shared/UnifiedProfileManager'),
@@ -237,7 +215,6 @@ class FastModuleLoader {
       'student.settings': () => import('@/components/student/modules/StudentSettings'),
       'parent.settings': () => import('@/components/parent/modules/ParentSettings'),
       'teacher.settings': () => import('@/components/teacher/modules/TeacherSettingsSimple'),
-      'freelancer.settings': () => import('@/components/freelancer/modules/FreelancerSettings'),
       'commercial.settings': () => import('@/components/shared/UnifiedProfileManager'),
       // Generic settings fallback (removed duplication)
       'global-settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility for generic settings only

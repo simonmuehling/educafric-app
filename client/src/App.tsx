@@ -40,7 +40,6 @@ import {
   LazyProfile,
   LazyDirectorPage,
   LazyCommercialPage,
-  LazyFreelancerPage,
   LazyParentsPage,
   LazySchoolGeolocation,
   LazyRoleBasedGeolocation,
@@ -342,12 +341,6 @@ function Router() {
       <Route path="/parents">
         <ProtectedRoute>
           <LazyParentsPage />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/freelancer">
-        <ProtectedRoute>
-          <LazyFreelancerPage />
         </ProtectedRoute>
       </Route>
       
