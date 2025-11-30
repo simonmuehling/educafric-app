@@ -760,8 +760,8 @@ export default function ReportCardPreview({
                   // For general schools, render all subjects without sections
                   const subjectRows = entries.map((r, idx) => renderSubjectRow(r, `subject-${idx}`));
                   
-                  // Add filler rows to fill A4 page (minimum 15 rows for proper page fill)
-                  const MIN_ROWS = 15;
+                  // Add filler rows to fill A4 page (minimum 12 rows for proper page fill)
+                  const MIN_ROWS = 12;
                   const fillerRowsNeeded = Math.max(0, MIN_ROWS - entries.length);
                   const fillerRows = Array.from({ length: fillerRowsNeeded }, (_, idx) => (
                     <tr key={`filler-${idx}`} className="empty-filler-row">
