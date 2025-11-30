@@ -78,38 +78,54 @@ svg {
 .pdf-capture-mode #print-root {
   width: 794px !important;
   max-width: 794px !important;
-  min-height: auto !important;
-  max-height: 1123px !important;
+  min-height: 1123px !important;
   margin: 0 !important;
   padding: 8px !important;
-  overflow: hidden !important;
   background: white !important;
   box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .pdf-capture-mode .a4-container {
   width: 100% !important;
   max-width: 778px !important;
-  min-height: auto !important;
-  max-height: 1107px !important;
-  overflow: hidden !important;
+  min-height: 1107px !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .pdf-capture-mode .bulletin-a4-optimized,
 .pdf-capture-mode [data-bulletin-preview="true"] {
   width: 100% !important;
   max-width: 778px !important;
-  height: auto !important;
-  max-height: 1100px !important;
+  min-height: 1100px !important;
   margin: 0 !important;
-  padding: 4px !important;
+  padding: 8px !important;
   font-family: Arial, sans-serif !important;
   font-size: 8px !important;
-  line-height: 1.1 !important;
+  line-height: 1.15 !important;
   color: #000 !important;
-  overflow: hidden !important;
   background: white !important;
   box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.pdf-capture-mode .bulletin-main-content {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.pdf-capture-mode .grades-table-wrapper {
+  flex: 1 1 auto !important;
+  display: block !important;
+}
+
+.pdf-capture-mode .bulletin-footer-section {
+  flex: 0 0 auto !important;
+  margin-top: auto !important;
 }
 
 .pdf-capture-mode .ministry-header {

@@ -487,8 +487,10 @@ export default function ReportCardPreview({
             </div>
           </div>
 
+          {/* MAIN CONTENT - Flex grow to fill A4 page */}
+          <div className="bulletin-main-content">
           {/* EXACT Ministry Subject Table - A4 PRINT OPTIMIZED */}
-          <div className="mt-1 overflow-visible">
+          <div className="mt-1 grades-table-wrapper">
             <table className="w-full border border-black" style={{lineHeight: '1.2', tableLayout: 'fixed', borderCollapse: 'collapse'}}>
               {/* Fixed Column Widths for A4 Fit - Optimized for readability */}
               {showTwoColumns ? (
@@ -957,8 +959,10 @@ export default function ReportCardPreview({
               </tbody>
             </table>
           </div>
+          </div>
 
-
+          {/* FOOTER SECTION - Pushed to bottom via margin-top: auto */}
+          <div className="bulletin-footer-section">
           {/* Third Trimester Annual Summary - Compact for Print */}
           {isThirdTrimester && annualSummary && (
             <div className={`${isTechnicalBulletin ? "mt-2" : "mt-3"} border border-orange-300 rounded p-2 bg-orange-50 print:hidden`}>
@@ -1050,6 +1054,7 @@ export default function ReportCardPreview({
 
           {/* Educafric Footer - Bilingual - Compact */}
           <EducafricFooterCompact language={language} className="mt-2 print:mt-1" />
+          </div>
 
         </div>
       </A4Sheet>
