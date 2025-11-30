@@ -164,7 +164,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     },
     {
       id: 'multirole',
-      label: 'Multi-Rôles',
+      label: language === 'fr' ? 'Multi-Rôles' : 'Multi-Roles',
       icon: <User className="w-6 h-6" />,
       color: 'bg-purple-600'
     },

@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function MultiRoleManagement() {
+  const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('users');
@@ -39,35 +41,75 @@ export default function MultiRoleManagement() {
     },
     onSuccess: () => {
       toast({
-        title: "Rôles mis à jour",
-        description: "Les rôles de l'utilisateur ont été modifiés avec succès",
+        title: language === 'fr' ? "Rôles mis à jour" : "Roles updated",
+        description: language === 'fr' ? "Les rôles de l'utilisateur ont été modifiés avec succès" : "User roles have been successfully updated",
       });
       setIsDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['/api/admin/multi-role-users'] });
     },
     onError: () => {
       toast({
-        title: "Erreur de mise à jour",
-        description: "Impossible de modifier les rôles de l'utilisateur",
+        title: language === 'fr' ? "Erreur de mise à jour" : "Update error",
+        description: language === 'fr' ? "Impossible de modifier les rôles de l'utilisateur" : "Unable to update user roles",
         variant: "destructive",
       });
     }
   });
 
+  const text = {
+    fr: {
+      title: 'Gestion Multi-Rôles',
+      subtitle: 'Administration des utilisateurs avec plusieurs rôles sur la plateforme EDUCAFRIC',
+      multiRoleUsers: 'Utilisateurs Multi-Rôles',
+      manageMultiRoleUsers: 'Gérez les utilisateurs ayant plusieurs rôles',
+      permissions: 'Permissions',
+      delegatedAdmins: 'Admins Délégués',
+      rolesUpdated: 'Rôles mis à jour',
+      rolesUpdatedDesc: 'Les rôles de l\'utilisateur ont été modifiés avec succès',
+      updateError: 'Erreur de mise à jour',
+      updateErrorDesc: 'Impossible de modifier les rôles de l\'utilisateur',
+      teacher: 'Enseignant',
+      director: 'Directeur',
+      parent: 'Parent',
+      student: 'Étudiant',
+      commercial: 'Commercial',
+      admin: 'Administrateur'
+    },
+    en: {
+      title: 'Multi-Role Management',
+      subtitle: 'Manage users with multiple roles on the EDUCAFRIC platform',
+      multiRoleUsers: 'Multi-Role Users',
+      manageMultiRoleUsers: 'Manage users with multiple roles',
+      permissions: 'Permissions',
+      delegatedAdmins: 'Delegated Admins',
+      rolesUpdated: 'Roles updated',
+      rolesUpdatedDesc: 'User roles have been successfully updated',
+      updateError: 'Update error',
+      updateErrorDesc: 'Unable to update user roles',
+      teacher: 'Teacher',
+      director: 'Director',
+      parent: 'Parent',
+      student: 'Student',
+      commercial: 'Commercial',
+      admin: 'Administrator'
+    }
+  };
+  
+  const t = text[language as keyof typeof text] || text.fr;
+
   const availableRoles = [
-    { value: 'Teacher', label: 'Enseignant', icon: <GraduationCap className="w-4 h-4" />, color: 'blue' },
-    { value: 'Director', label: 'Directeur', icon: <Building2 className="w-4 h-4" />, color: 'green' },
-    { value: 'Parent', label: 'Parent', icon: <Users className="w-4 h-4" />, color: 'purple' },
-    { value: 'Student', label: 'Étudiant', icon: <UserCheck className="w-4 h-4" />, color: 'orange' },
-    { value: 'Commercial', label: 'Commercial', icon: <Briefcase className="w-4 h-4" />, color: 'pink' },
-    { value: 'Freelancer', label: 'Répétiteur', icon: <UserCog className="w-4 h-4" />, color: 'indigo' },
-    { value: 'Admin', label: 'Administrateur', icon: <Shield className="w-4 h-4" />, color: 'red' }
+    { value: 'Teacher', label: t.teacher, icon: <GraduationCap className="w-4 h-4" />, color: 'blue' },
+    { value: 'Director', label: t.director, icon: <Building2 className="w-4 h-4" />, color: 'green' },
+    { value: 'Parent', label: t.parent, icon: <Users className="w-4 h-4" />, color: 'purple' },
+    { value: 'Student', label: t.student, icon: <UserCheck className="w-4 h-4" />, color: 'orange' },
+    { value: 'Commercial', label: t.commercial, icon: <Briefcase className="w-4 h-4" />, color: 'pink' },
+    { value: 'Admin', label: t.admin, icon: <Shield className="w-4 h-4" />, color: 'red' }
   ];
 
   const tabs = [
-    { id: 'users', label: 'Utilisateurs Multi-Rôles', icon: <UserCog className="w-4 h-4" /> },
-    { id: 'permissions', label: 'Permissions', icon: <Shield className="w-4 h-4" /> },
-    { id: 'admins', label: 'Admins Délégués', icon: <Eye className="w-4 h-4" /> }
+    { id: 'users', label: t.multiRoleUsers, icon: <UserCog className="w-4 h-4" /> },
+    { id: 'permissions', label: t.permissions, icon: <Shield className="w-4 h-4" /> },
+    { id: 'admins', label: t.delegatedAdmins, icon: <Eye className="w-4 h-4" /> }
   ];
 
   const handleEditRoles = (user: any) => {
@@ -112,8 +154,8 @@ export default function MultiRoleManagement() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Gestion Multi-Rôles</h2>
-        <p className="text-gray-600">Administration des utilisateurs avec plusieurs rôles sur la plateforme EDUCAFRIC</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.title}</h2>
+        <p className="text-gray-600">{t.subtitle}</p>
       </div>
 
       {/* Navigation Tabs */}
@@ -139,12 +181,12 @@ export default function MultiRoleManagement() {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold">Utilisateurs Multi-Rôles</h3>
-              <p className="text-sm text-gray-600">Gérez les utilisateurs ayant plusieurs rôles</p>
+              <h3 className="text-lg font-semibold">{t.multiRoleUsers}</h3>
+              <p className="text-sm text-gray-600">{t.manageMultiRoleUsers}</p>
             </div>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Assigner Rôles
+              {language === 'fr' ? 'Assigner Rôles' : 'Assign Roles'}
             </Button>
           </div>
 
@@ -181,7 +223,7 @@ export default function MultiRoleManagement() {
                             </Badge>
                           ))}
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Dernière connexion: {user.lastLogin}</p>
+                        <p className="text-xs text-gray-500 mt-1">{language === 'fr' ? 'Dernière connexion' : 'Last login'}: {user.lastLogin}</p>
                       </div>
                       <Button
                         variant="outline"
@@ -189,7 +231,7 @@ export default function MultiRoleManagement() {
                         onClick={() => handleEditRoles(user)}
                       >
                         <Eye className="w-4 h-4 mr-1" />
-                        Modifier
+                        {language === 'fr' ? 'Modifier' : 'Edit'}
                       </Button>
                     </div>
                   </div>
@@ -204,7 +246,7 @@ export default function MultiRoleManagement() {
       {activeTab === 'permissions' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ModernCard className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Permissions par Rôle</h3>
+            <h3 className="text-lg font-semibold mb-4">{language === 'fr' ? 'Permissions par Rôle' : 'Permissions by Role'}</h3>
             <div className="space-y-4">
               {(Array.isArray(availableRoles) ? availableRoles : []).map((role) => (
                 <div key={role.value} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -214,14 +256,14 @@ export default function MultiRoleManagement() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge className={`bg-${role.color}-100 text-${role.color}-800`}>
-                      {role.value === 'Admin' ? 'Toutes' : 
-                       role.value === 'Director' ? 'École' :
-                       role.value === 'Teacher' ? 'Classes' :
-                       role.value === 'Commercial' ? 'Ventes' :
-                       'Limitées'}
+                      {role.value === 'Admin' ? (language === 'fr' ? 'Toutes' : 'All') : 
+                       role.value === 'Director' ? (language === 'fr' ? 'École' : 'School') :
+                       role.value === 'Teacher' ? (language === 'fr' ? 'Classes' : 'Classes') :
+                       role.value === 'Commercial' ? (language === 'fr' ? 'Ventes' : 'Sales') :
+                       (language === 'fr' ? 'Limitées' : 'Limited')}
                     </Badge>
                     <Button variant="outline" size="sm">
-                      Configurer
+                      {language === 'fr' ? 'Configurer' : 'Configure'}
                     </Button>
                   </div>
                 </div>
@@ -230,26 +272,26 @@ export default function MultiRoleManagement() {
           </ModernCard>
 
           <ModernCard className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Statistiques Rôles</h3>
+            <h3 className="text-lg font-semibold mb-4">{language === 'fr' ? 'Statistiques Rôles' : 'Role Statistics'}</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Utilisateurs Multi-Rôles</span>
+                <span className="text-sm text-gray-600">{t.multiRoleUsers}</span>
                 <span className="font-semibold">47</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Directeurs-Enseignants</span>
+                <span className="text-sm text-gray-600">{language === 'fr' ? 'Directeurs-Enseignants' : 'Director-Teachers'}</span>
                 <span className="font-semibold">23</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Parents-Commerciaux</span>
+                <span className="text-sm text-gray-600">{language === 'fr' ? 'Parents-Commerciaux' : 'Parent-Commercials'}</span>
                 <span className="font-semibold">12</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Enseignants-Parents</span>
+                <span className="text-sm text-gray-600">{language === 'fr' ? 'Enseignants-Parents' : 'Teacher-Parents'}</span>
                 <span className="font-semibold">18</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Admins Délégués</span>
+                <span className="text-sm text-gray-600">{t.delegatedAdmins}</span>
                 <span className="font-semibold">8</span>
               </div>
             </div>
@@ -261,10 +303,10 @@ export default function MultiRoleManagement() {
       {activeTab === 'admins' && (
         <ModernCard className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Administrateurs Délégués</h3>
+            <h3 className="text-lg font-semibold">{language === 'fr' ? 'Administrateurs Délégués' : 'Delegated Administrators'}</h3>
             <Button>
               <Shield className="w-4 h-4 mr-2" />
-              Nommer Admin
+              {language === 'fr' ? 'Nommer Admin' : 'Appoint Admin'}
             </Button>
           </div>
           
@@ -299,7 +341,7 @@ export default function MultiRoleManagement() {
                     <p className="text-sm text-gray-600">{admin.email || ''}</p>
                     <div className="flex items-center space-x-2 mt-1">
                       <Badge className="bg-red-100 text-red-800 text-xs">{admin.role}</Badge>
-                      <span className="text-xs text-gray-500">Région {admin.region}</span>
+                      <span className="text-xs text-gray-500">{language === 'fr' ? 'Région' : 'Region'} {admin.region}</span>
                     </div>
                   </div>
                 </div>
@@ -311,7 +353,7 @@ export default function MultiRoleManagement() {
                       </Badge>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500">Dernière activité: {admin.lastActivity}</p>
+                  <p className="text-xs text-gray-500">{language === 'fr' ? 'Dernière activité' : 'Last activity'}: {admin.lastActivity}</p>
                 </div>
               </div>
             ))}
@@ -323,7 +365,7 @@ export default function MultiRoleManagement() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
-            <DialogTitle>Modifier les Rôles</DialogTitle>
+            <DialogTitle>{language === 'fr' ? 'Modifier les Rôles' : 'Edit Roles'}</DialogTitle>
           </DialogHeader>
           {selectedUser && (
             <div className="space-y-4">
@@ -334,7 +376,7 @@ export default function MultiRoleManagement() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Rôle Principal
+                  {language === 'fr' ? 'Rôle Principal' : 'Primary Role'}
                 </label>
                 <Select defaultValue={selectedUser.primaryRole}>
                   <SelectTrigger>
@@ -355,7 +397,7 @@ export default function MultiRoleManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Rôles Secondaires
+                  {language === 'fr' ? 'Rôles Secondaires' : 'Secondary Roles'}
                 </label>
                 <div className="space-y-2">
                   {(Array.isArray(availableRoles) ? availableRoles : []).filter(r => r.value !== selectedUser.primaryRole).map((role) => (
@@ -374,10 +416,10 @@ export default function MultiRoleManagement() {
 
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Annuler
+                  {language === 'fr' ? 'Annuler' : 'Cancel'}
                 </Button>
                 <Button onClick={() => updateRolesMutation.mutate(selectedUser)}>
-                  Sauvegarder
+                  {language === 'fr' ? 'Sauvegarder' : 'Save'}
                 </Button>
               </div>
             </div>

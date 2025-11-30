@@ -113,7 +113,8 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       help: 'Aide',
       parentConnection: 'Trouver mes parents',
       canteen: 'Cantine',
-      bus: 'Transport Scolaire'
+      bus: 'Transport Scolaire',
+      multirole: 'Multi-Rôles'
     },
     en: {
       title: 'Student Dashboard',
@@ -133,7 +134,8 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       help: 'Help',
       parentConnection: 'Find my parents',
       canteen: 'Canteen',
-      bus: 'School Bus'
+      bus: 'School Bus',
+      multirole: 'Multi-Roles'
     }
   };
 
@@ -250,7 +252,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
     },
     {
       id: 'multirole',
-      label: 'Multi-Rôles',
+      label: t.multirole,
       icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600'
     }
