@@ -4831,6 +4831,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== NEW: /api/teacher/available-classes - Get all available classes in the school =====
+  app.get("/api/teacher/available-classes", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      
+      console.log(`[TEACHER_API] GET /api/teacher/available-classes for teacher ${user.id} at school ${schoolId}`);
+      
+      if (!schoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required', classes: [] });
+      }
+      
+      // Get all classes in the school
+      const allClasses = await db
+        .select({
+          id: classes.id,
+          name: classes.name,
+          level: classes.level,
+          section: classes.section,
+          room: classes.room
+        })
+        .from(classes)
+        .where(eq(classes.schoolId, schoolId));
+      
+      console.log(`[TEACHER_API] ✅ Found ${allClasses.length} available classes`);
+      res.json({ success: true, classes: allClasses });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching available classes:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch available classes', classes: [] });
+    }
+  });
+
+  // ===== NEW: /api/teacher/available-subjects - Get all available subjects in the school =====
+  app.get("/api/teacher/available-subjects", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      
+      console.log(`[TEACHER_API] GET /api/teacher/available-subjects for teacher ${user.id} at school ${schoolId}`);
+      
+      if (!schoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required', subjects: [] });
+      }
+      
+      // Get all subjects in the school
+      const allSubjects = await db
+        .select({
+          id: subjects.id,
+          name: subjects.name,
+          nameFr: subjects.nameFr,
+          nameEn: subjects.nameEn,
+          code: subjects.code,
+          coefficient: subjects.coefficient,
+          category: subjects.category
+        })
+        .from(subjects)
+        .where(eq(subjects.schoolId, schoolId));
+      
+      console.log(`[TEACHER_API] ✅ Found ${allSubjects.length} available subjects`);
+      res.json({ success: true, subjects: allSubjects });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching available subjects:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch available subjects', subjects: [] });
+    }
+  });
+
+  // ===== NEW: PUT /api/teacher/assignments - Update teacher's class-subject assignments =====
+  app.put("/api/teacher/assignments", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user.schoolId;
+      const { classIds, subjectIds } = req.body;
+      
+      console.log(`[TEACHER_API] PUT /api/teacher/assignments for teacher ${user.id}`);
+      console.log(`[TEACHER_API] Classes: ${JSON.stringify(classIds)}, Subjects: ${JSON.stringify(subjectIds)}`);
+      
+      if (!schoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (!Array.isArray(classIds) || !Array.isArray(subjectIds)) {
+        return res.status(400).json({ success: false, message: 'classIds and subjectIds must be arrays' });
+      }
+      
+      // First, deactivate all existing timetable entries for this teacher
+      await db
+        .update(timetables)
+        .set({ isActive: false })
+        .where(
+          and(
+            eq(timetables.teacherId, user.id),
+            eq(timetables.schoolId, schoolId)
+          )
+        );
+      
+      // Get class and subject names for the new assignments
+      const selectedClasses = await db
+        .select({ id: classes.id, name: classes.name })
+        .from(classes)
+        .where(
+          and(
+            eq(classes.schoolId, schoolId),
+            inArray(classes.id, classIds.length > 0 ? classIds : [-1])
+          )
+        );
+      
+      const selectedSubjects = await db
+        .select({ id: subjects.id, name: subjects.name, nameFr: subjects.nameFr })
+        .from(subjects)
+        .where(
+          and(
+            eq(subjects.schoolId, schoolId),
+            inArray(subjects.id, subjectIds.length > 0 ? subjectIds : [-1])
+          )
+        );
+      
+      // Create new timetable entries for each class-subject combination
+      const newAssignments: any[] = [];
+      for (const cls of selectedClasses) {
+        for (const subj of selectedSubjects) {
+          newAssignments.push({
+            schoolId,
+            teacherId: user.id,
+            classId: cls.id,
+            className: cls.name,
+            subjectId: subj.id,
+            subjectName: subj.name || subj.nameFr,
+            dayOfWeek: 'Monday',
+            startTime: '08:00',
+            endTime: '09:00',
+            room: '',
+            isActive: true
+          });
+        }
+      }
+      
+      if (newAssignments.length > 0) {
+        await db.insert(timetables).values(newAssignments);
+        console.log(`[TEACHER_API] ✅ Created ${newAssignments.length} new timetable assignments`);
+      }
+      
+      res.json({ 
+        success: true, 
+        message: 'Assignments updated successfully',
+        assignmentsCreated: newAssignments.length
+      });
+    } catch (error) {
+      console.error('[TEACHER_API] Error updating assignments:', error);
+      res.status(500).json({ success: false, message: 'Failed to update assignments' });
+    }
+  });
+
   // ===== NEW: /api/teacher/classes-with-parents - Get classes with students and parents for communications =====
   app.get("/api/teacher/classes-with-parents", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
     try {
