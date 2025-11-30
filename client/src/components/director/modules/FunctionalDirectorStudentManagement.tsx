@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   Users, UserPlus, Search, Download, Filter, MoreHorizontal, 
   BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, 
-  Eye, X, Mail, Phone, GraduationCap, Upload, Camera, WifiOff
+  Eye, X, Mail, Phone, GraduationCap, Upload, Camera, WifiOff, User
 } from 'lucide-react';
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
@@ -46,6 +46,9 @@ interface Student {
   redoublant: boolean;
   photo?: string;
   photoFilename?: string;
+  profilePictureUrl?: string;
+  photoURL?: string;
+  profilePicture?: string;
 }
 
 const FunctionalDirectorStudentManagement: React.FC = () => {
@@ -1940,27 +1943,36 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             
             <div className="p-6">
               <div className="flex items-start gap-6 mb-6">
-                {/* Student Photo - with proper URL resolution */}
-                {(viewingStudent.photo || viewingStudent.photoFilename) ? (
-                  <div className="w-24 h-28 rounded-lg overflow-hidden border-2 border-green-200 shadow-md flex-shrink-0">
-                    <img 
-                      src={viewingStudent.photo || `/uploads/students/${viewingStudent.photoFilename}`}
-                      alt={`${viewingStudent.firstName} ${viewingStudent.lastName}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = 'none';
-                        if (target.parentElement) {
-                          target.parentElement.innerHTML = '<div class="w-full h-full bg-green-100 flex items-center justify-center"><svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>';
-                        }
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div className="w-24 h-28 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 border-2 border-green-200">
-                    <GraduationCap className="w-10 h-10 text-green-600" />
-                  </div>
-                )}
+                {/* Student Photo - with proper URL resolution (checks all possible photo field names) */}
+                {(() => {
+                  const photoUrl = viewingStudent.photo || viewingStudent.photoFilename || viewingStudent.profilePictureUrl || viewingStudent.photoURL || viewingStudent.profilePicture;
+                  const photoSrc = photoUrl?.startsWith('http') || photoUrl?.startsWith('data:') 
+                    ? photoUrl 
+                    : photoUrl 
+                      ? `/uploads/students/${photoUrl}` 
+                      : null;
+                  
+                  return photoSrc ? (
+                    <div className="w-24 h-28 rounded-lg overflow-hidden border-2 border-green-200 shadow-md flex-shrink-0">
+                      <img 
+                        src={photoSrc}
+                        alt={`${viewingStudent.firstName} ${viewingStudent.lastName}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                          if (target.parentElement) {
+                            target.parentElement.innerHTML = '<div class="w-full h-full bg-green-100 flex items-center justify-center"><svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>';
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-24 h-28 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 border-2 border-green-200">
+                      <User className="w-10 h-10 text-green-600" />
+                    </div>
+                  );
+                })()}
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
                     {viewingStudent.firstName} {viewingStudent.lastName}
