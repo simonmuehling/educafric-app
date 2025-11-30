@@ -570,8 +570,18 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     'text'
   );
   
-  // Extract unique subjects from all teachers for dynamic filter (sorted alphabetically)
-  const allSubjects = sortStrings(
+  // Extract unique subjects from all classes (from API) for dynamic filter (sorted alphabetically)
+  // ✅ FIXED: Use real subjects from school's classes, not hardcoded values
+  const allSubjectsFromClasses = sortStrings(
+    Array.from(new Set(
+      (availableClasses || []).flatMap((cls: any) => 
+        Array.isArray(cls.subjects) ? cls.subjects.map((s: any) => s.name || s.nameFr || s.nameEn || s).filter(Boolean) : []
+      )
+    ))
+  );
+  
+  // Combine subjects from teachers and from classes for comprehensive filter
+  const allSubjectsFromTeachers = sortStrings(
     Array.from(new Set(
       Array.isArray(teachers) ? teachers.flatMap(teacher => 
         Array.isArray(teacher.teachingSubjects) ? teacher.teachingSubjects : 
@@ -579,6 +589,9 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       ).filter(subject => subject && subject.trim()) : []
     ))
   );
+  
+  // Use classes subjects first (real data), fall back to teacher subjects if available
+  const allSubjects = allSubjectsFromClasses.length > 0 ? allSubjectsFromClasses : allSubjectsFromTeachers;
 
   const stats = {
     totalTeachers: Array.isArray(teachers) ? teachers.length : 0,
@@ -860,19 +873,16 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{text.allSubjects}</SelectItem>
-                  {allSubjects.map(subject => (
-                    <SelectItem key={subject} value={subject}>
-                      {subject}
+                  {allSubjects.length > 0 ? (
+                    allSubjects.map(subject => (
+                      <SelectItem key={subject} value={subject}>
+                        {subject}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-subjects" disabled>
+                      {language === 'fr' ? 'Aucune matière définie' : 'No subjects defined'}
                     </SelectItem>
-                  ))}
-                  {allSubjects.length === 0 && (
-                    <>
-                      <SelectItem value="Mathématiques">Mathématiques</SelectItem>
-                      <SelectItem value="Français">Français</SelectItem>
-                      <SelectItem value="Sciences">Sciences</SelectItem>
-                      <SelectItem value="Histoire">Histoire</SelectItem>
-                      <SelectItem value="Anglais">Anglais</SelectItem>
-                    </>
                   )}
                 </SelectContent>
               </Select>

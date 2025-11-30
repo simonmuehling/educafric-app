@@ -2848,6 +2848,200 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update a teacher - DIRECTOR ENDPOINT
+  app.put("/api/director/teachers/:id", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = parseInt(req.params.id);
+      const { name, firstName, lastName, email, phone, gender, matricule, teachingSubjects, classes: assignedClasses } = req.body;
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(teacherId)) {
+        return res.status(400).json({ success: false, message: 'Invalid teacher ID' });
+      }
+      
+      console.log('[UPDATE_TEACHER_DIRECTOR] Updating teacher:', teacherId, { name, firstName, lastName, teachingSubjects, assignedClasses });
+      
+      // Verify teacher belongs to user's school
+      const [existingTeacher] = await db.select().from(users)
+        .where(and(eq(users.id, teacherId), eq(users.role, 'Teacher')))
+        .limit(1);
+      
+      if (!existingTeacher) {
+        return res.status(404).json({ success: false, message: 'Teacher not found' });
+      }
+      
+      if (existingTeacher.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Access denied - teacher belongs to another school' });
+      }
+      
+      // Handle name field - split into firstName and lastName if needed
+      let fName = firstName;
+      let lName = lastName;
+      if (name && (!firstName || !lastName)) {
+        const nameParts = name.split(' ');
+        fName = fName || nameParts[0];
+        lName = lName || nameParts.slice(1).join(' ') || nameParts[0];
+      }
+      
+      // Update teacher basic info in users table
+      const updateData: any = {};
+      if (fName !== undefined) updateData.firstName = fName;
+      if (lName !== undefined) updateData.lastName = lName;
+      if (email !== undefined) updateData.email = email || null;
+      if (phone !== undefined) updateData.phone = phone || null;
+      if (gender !== undefined) updateData.gender = gender;
+      if (matricule !== undefined) updateData.educafricNumber = matricule;
+      
+      const [updatedTeacher] = await db.update(users)
+        .set(updateData)
+        .where(and(
+          eq(users.id, teacherId),
+          eq(users.role, 'Teacher'),
+          eq(users.schoolId, userSchoolId)
+        ))
+        .returning();
+      
+      // Update teacher-class-subject assignments via timetables
+      if (Array.isArray(assignedClasses) && assignedClasses.length > 0 && Array.isArray(teachingSubjects)) {
+        console.log('[UPDATE_TEACHER_DIRECTOR] 📚 Updating timetable assignments for classes:', assignedClasses, 'subjects:', teachingSubjects);
+        
+        // For each class-subject combination, ensure there's a timetable entry
+        // This is a simplified approach - in production you might want more sophisticated handling
+        for (const className of assignedClasses) {
+          // Find the class ID
+          const [classData] = await db.select()
+            .from(classes)
+            .where(and(
+              eq(classes.name, className),
+              eq(classes.schoolId, userSchoolId)
+            ))
+            .limit(1);
+          
+          if (classData && teachingSubjects.length > 0) {
+            // Check if there are existing timetable entries for this teacher-class combo
+            const existingEntries = await db.select()
+              .from(timetables)
+              .where(and(
+                eq(timetables.teacherId, teacherId),
+                eq(timetables.classId, classData.id),
+                eq(timetables.schoolId, userSchoolId)
+              ));
+            
+            // If no entries exist, create a placeholder entry for each subject
+            if (existingEntries.length === 0) {
+              for (const subject of teachingSubjects) {
+                try {
+                  await db.insert(timetables).values({
+                    teacherId,
+                    classId: classData.id,
+                    schoolId: userSchoolId,
+                    subjectName: subject,
+                    dayOfWeek: 1, // Monday as default
+                    startTime: '08:00',
+                    endTime: '09:00',
+                    isActive: true
+                  }).onConflictDoNothing();
+                } catch (insertError) {
+                  console.log('[UPDATE_TEACHER_DIRECTOR] ⚠️ Could not insert timetable entry:', insertError);
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      console.log('[UPDATE_TEACHER_DIRECTOR] ✅ Teacher updated successfully:', `${updatedTeacher.firstName} ${updatedTeacher.lastName}`);
+      
+      res.json({ 
+        success: true, 
+        teacher: {
+          ...updatedTeacher,
+          name: `${updatedTeacher.firstName} ${updatedTeacher.lastName}`,
+          teachingSubjects: teachingSubjects || [],
+          classes: assignedClasses || []
+        },
+        message: 'Teacher updated successfully' 
+      });
+    } catch (error) {
+      console.error('[UPDATE_TEACHER_DIRECTOR] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update teacher' });
+    }
+  });
+
+  // Delete a teacher - DIRECTOR ENDPOINT
+  app.delete("/api/director/teachers/:id", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = parseInt(req.params.id);
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(teacherId)) {
+        return res.status(400).json({ success: false, message: 'Invalid teacher ID' });
+      }
+      
+      console.log('[DELETE_TEACHER_DIRECTOR] Deleting teacher:', teacherId);
+      
+      // Verify teacher belongs to user's school
+      const [existingTeacher] = await db.select().from(users)
+        .where(and(eq(users.id, teacherId), eq(users.role, 'Teacher')))
+        .limit(1);
+      
+      if (!existingTeacher) {
+        return res.status(404).json({ success: false, message: 'Teacher not found' });
+      }
+      
+      if (existingTeacher.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Access denied - teacher belongs to another school' });
+      }
+      
+      // Check if teacher is assigned as primary to any classes
+      const assignedClasses = await db.select({ count: count(classes.id) })
+        .from(classes)
+        .where(and(
+          eq(classes.teacherId, teacherId),
+          eq(classes.schoolId, userSchoolId)
+        ));
+      
+      const classCount = Number(assignedClasses[0]?.count) || 0;
+      if (classCount > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Cannot delete teacher assigned as primary to ${classCount} class(es). Please reassign classes first.` 
+        });
+      }
+      
+      // Remove teacher from timetables first
+      await db.delete(timetables).where(and(
+        eq(timetables.teacherId, teacherId),
+        eq(timetables.schoolId, userSchoolId)
+      ));
+      
+      // Delete teacher from database
+      await db.delete(users).where(and(
+        eq(users.id, teacherId),
+        eq(users.role, 'Teacher'),
+        eq(users.schoolId, userSchoolId)
+      ));
+      
+      console.log('[DELETE_TEACHER_DIRECTOR] ✅ Teacher deleted successfully');
+      res.json({ success: true, message: 'Teacher deleted successfully' });
+    } catch (error) {
+      console.error('[DELETE_TEACHER_DIRECTOR] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete teacher' });
+    }
+  });
+
   // Create a new teacher (legacy endpoint for compatibility)
   app.post("/api/administration/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
