@@ -92,7 +92,8 @@ const TeacherProfileSettings = () => {
   // Mutation to update assignments
   const updateAssignmentsMutation = useMutation({
     mutationFn: async (data: { classIds: number[]; subjectIds: number[] }) => {
-      const response = await apiRequest('PUT', '/api/teacher/assignments', data);
+      console.log('[TEACHER_PROFILE] Saving assignments:', data);
+      const response = await apiRequest('PUT', '/api/teacher/profile-assignments', data);
       return response;
     },
     onSuccess: () => {

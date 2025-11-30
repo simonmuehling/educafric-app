@@ -4897,15 +4897,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== NEW: PUT /api/teacher/assignments - Update teacher's class-subject assignments =====
-  app.put("/api/teacher/assignments", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+  // ===== NEW: PUT /api/teacher/profile-assignments - Update teacher's class-subject assignments =====
+  app.put("/api/teacher/profile-assignments", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       const schoolId = user.schoolId;
       const { classIds, subjectIds } = req.body;
       
-      console.log(`[TEACHER_API] PUT /api/teacher/assignments for teacher ${user.id}`);
-      console.log(`[TEACHER_API] Classes: ${JSON.stringify(classIds)}, Subjects: ${JSON.stringify(subjectIds)}`);
+      console.log(`[TEACHER_PROFILE] ✏️ PUT /api/teacher/profile-assignments for teacher ${user.id}`);
+      console.log(`[TEACHER_PROFILE] Classes: ${JSON.stringify(classIds)}, Subjects: ${JSON.stringify(subjectIds)}`);
       
       if (!schoolId) {
         return res.status(400).json({ success: false, message: 'School ID required' });
@@ -4969,16 +4969,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (newAssignments.length > 0) {
         await db.insert(timetables).values(newAssignments);
-        console.log(`[TEACHER_API] ✅ Created ${newAssignments.length} new timetable assignments`);
+        console.log(`[TEACHER_PROFILE] ✅ Created ${newAssignments.length} new timetable assignments`);
+      } else {
+        console.log(`[TEACHER_PROFILE] ⚠️ No assignments to create (empty class or subject selection)`);
       }
       
+      console.log(`[TEACHER_PROFILE] ✅ Success - ${newAssignments.length} assignments created`);
       res.json({ 
         success: true, 
         message: 'Assignments updated successfully',
         assignmentsCreated: newAssignments.length
       });
     } catch (error) {
-      console.error('[TEACHER_API] Error updating assignments:', error);
+      console.error('[TEACHER_PROFILE] ❌ Error updating assignments:', error);
       res.status(500).json({ success: false, message: 'Failed to update assignments' });
     }
   });
