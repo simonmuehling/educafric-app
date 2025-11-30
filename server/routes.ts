@@ -553,97 +553,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ DATABASE-ONLY: Teacher dashboard fetches all data from database
   app.get("/api/teacher/dashboard", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[TEACHER_DASHBOARD] GET /api/teacher/dashboard for user:', user.id);
+      const userSchoolId = user.schoolId || user.school_id;
+      console.log('[TEACHER_DASHBOARD] 📊 GET /api/teacher/dashboard for user:', user.id, 'school:', userSchoolId);
       
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || 
-                           user.email?.includes('sandbox@') || 
-                           user.email?.includes('demo@') || 
-                           user.email?.includes('.sandbox@') ||
-                           user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@') ||
-                           user.email?.startsWith('sandbox.');
-      
-      let dashboardData;
-      
-      if (isSandboxUser) {
-        console.log('[TEACHER_DASHBOARD] 🔧 Sandbox user detected, serving rich sandbox dashboard data');
-        // Rich sandbox data for sandbox users
-        dashboardData = {
-          classes: [
-            { 
-              id: 1, 
-              name: '6ème A', 
-              studentCount: 28, 
-              averageGrade: 15.9,
-              room: 'Salle 105',
-              schedule: 'Lun-Mar-Jeu 08:00-12:00',
-              subject: 'Mathématiques',
-              lastActivity: '2025-09-07'
-            },
-            { 
-              id: 2, 
-              name: '5ème B', 
-              studentCount: 32, 
-              averageGrade: 16.2,
-              room: 'Salle 203',
-              schedule: 'Mar-Mer-Ven 09:00-13:00',
-              subject: 'Français',
-              lastActivity: '2025-09-07'
-            },
-            { 
-              id: 3, 
-              name: '4ème C', 
-              studentCount: 26, 
-              averageGrade: 14.8,
-              room: 'Salle 301',
-              schedule: 'Lun-Mer-Ven 10:00-14:00',
-              subject: 'Histoire-Géographie',
-              lastActivity: '2025-09-07'
-            }
-          ],
-          recentGrades: [
-            { studentName: 'Marie Nkomo', subject: 'Mathématiques', grade: 16.5, maxGrade: 20, date: '2025-09-07', className: '6ème A' },
-            { studentName: 'Paul Atangana', subject: 'Mathématiques', grade: 14.0, maxGrade: 20, date: '2025-09-07', className: '6ème A' },
-            { studentName: 'Sophie Mbida', subject: 'Français', grade: 17.5, maxGrade: 20, date: '2025-09-06', className: '5ème B' },
-            { studentName: 'Jean Kamga', subject: 'Histoire-Géographie', grade: 14.5, maxGrade: 20, date: '2025-09-05', className: '4ème C' },
-            { studentName: 'Grace Fouda', subject: 'Mathématiques', grade: 17.2, maxGrade: 20, date: '2025-09-04', className: '3ème D' }
-          ],
-          upcomingEvents: [
-            { title: 'Formation signatures numériques bulletins', date: '2025-09-15', type: 'training', description: 'Formation pour les professeurs principaux' },
-            { title: 'Conseil de classe 6ème A', date: '2025-09-25', type: 'meeting', description: 'Évaluation trimestrielle' },
-            { title: 'Examen Mathématiques 5ème B', date: '2025-09-28', type: 'exam', description: 'Contrôle sur les équations' },
-            { title: 'Réunion parent-enseignant', date: '2025-10-05', type: 'meeting', description: 'Rencontre avec les familles' }
-          ],
-          schoolInfo: {
-            name: 'École Internationale de Yaoundé - Sandbox EDUCAFRIC 2025 ✨',
-            totalStudents: 542,
-            totalTeachers: 38,
-            totalClasses: 22,
-            features: ['Signatures numériques', 'Géolocalisation', 'Notifications multicanalées', 'Rapports avancés']
-          },
-          personalStats: {
-            totalGradesEntered: 247,
-            averageStudentPerformance: 15.6,
-            attendanceRate: 94.2,
-            messagesReceived: 23,
-            canSignBulletins: true,
-            digitalSignatureEnabled: true
-          }
-        };
-      } else {
-        // For real users, implement actual data fetching
-        dashboardData = {
-          classes: [],
-          recentGrades: [],
-          upcomingEvents: []
-        };
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
       }
       
+      const { count } = await import('drizzle-orm');
+      
+      // Get teacher's assigned classes from timetables
+      const teacherTimetables = await db.selectDistinct({ 
+        classId: timetables.classId,
+        subjectName: timetables.subjectName,
+        room: timetables.room,
+        dayOfWeek: timetables.dayOfWeek,
+        startTime: timetables.startTime,
+        endTime: timetables.endTime
+      })
+        .from(timetables)
+        .where(and(
+          eq(timetables.teacherId, user.id),
+          eq(timetables.schoolId, userSchoolId),
+          eq(timetables.isActive, true)
+        ));
+      
+      // Get unique class IDs
+      const classIds = [...new Set(teacherTimetables.map(t => t.classId).filter(id => id != null))] as number[];
+      
+      // Get class details with student counts
+      const teacherClasses = [];
+      for (const classId of classIds) {
+        const [classInfo] = await db.select().from(classes).where(eq(classes.id, classId)).limit(1);
+        if (classInfo) {
+          // Count students in this class
+          const studentCountResult = await db.select({ count: count() })
+            .from(enrollments)
+            .where(and(eq(enrollments.classId, classId), eq(enrollments.status, 'active')));
+          const studentCount = Number(studentCountResult[0]?.count) || 0;
+          
+          // Get timetable info for this class
+          const classTimetable = teacherTimetables.find(t => t.classId === classId);
+          
+          teacherClasses.push({
+            id: classInfo.id,
+            name: classInfo.name,
+            studentCount,
+            room: classTimetable?.room || classInfo.room || '',
+            subject: classTimetable?.subjectName || '',
+            schedule: classTimetable ? `${classTimetable.dayOfWeek} ${classTimetable.startTime}-${classTimetable.endTime}` : ''
+          });
+        }
+      }
+      
+      // Get recent grades entered by this teacher (last 10)
+      const recentGradesData = await db.select({
+        id: grades.id,
+        grade: grades.grade,
+        term: grades.term,
+        createdAt: grades.createdAt,
+        studentId: grades.studentId,
+        subjectId: grades.subjectId,
+        classId: grades.classId
+      })
+        .from(grades)
+        .where(and(eq(grades.teacherId, user.id), eq(grades.schoolId, userSchoolId)))
+        .orderBy(desc(grades.createdAt))
+        .limit(10);
+      
+      // Enrich grades with student names
+      const recentGrades = [];
+      for (const grade of recentGradesData) {
+        const [student] = await db.select({ firstName: students.firstName, lastName: students.lastName })
+          .from(students)
+          .where(eq(students.id, grade.studentId))
+          .limit(1);
+        const [classInfo] = await db.select({ name: classes.name })
+          .from(classes)
+          .where(eq(classes.id, grade.classId))
+          .limit(1);
+        
+        recentGrades.push({
+          studentName: student ? `${student.firstName} ${student.lastName}` : 'Élève',
+          grade: grade.grade,
+          maxGrade: 20,
+          date: grade.createdAt?.toISOString().split('T')[0] || '',
+          className: classInfo?.name || ''
+        });
+      }
+      
+      // Get school info
+      const [schoolInfo] = await db.select().from(schools).where(eq(schools.id, userSchoolId)).limit(1);
+      
+      // Count total students and teachers in school
+      const totalStudentsResult = await db.select({ count: count() })
+        .from(students)
+        .where(eq(students.schoolId, userSchoolId));
+      const totalStudents = Number(totalStudentsResult[0]?.count) || 0;
+      
+      const totalTeachersResult = await db.select({ count: count() })
+        .from(users)
+        .where(and(eq(users.schoolId, userSchoolId), eq(users.role, 'Teacher')));
+      const totalTeachers = Number(totalTeachersResult[0]?.count) || 0;
+      
+      const totalClassesResult = await db.select({ count: count() })
+        .from(classes)
+        .where(eq(classes.schoolId, userSchoolId));
+      const totalClasses = Number(totalClassesResult[0]?.count) || 0;
+      
+      // Count grades entered by this teacher
+      const gradesCountResult = await db.select({ count: count() })
+        .from(grades)
+        .where(and(eq(grades.teacherId, user.id), eq(grades.schoolId, userSchoolId)));
+      const totalGradesEntered = Number(gradesCountResult[0]?.count) || 0;
+      
+      const dashboardData = {
+        classes: teacherClasses,
+        recentGrades,
+        upcomingEvents: [], // Would need events table
+        schoolInfo: {
+          name: schoolInfo?.name || 'École',
+          totalStudents,
+          totalTeachers,
+          totalClasses
+        },
+        personalStats: {
+          totalGradesEntered,
+          classesAssigned: teacherClasses.length,
+          canSignBulletins: true,
+          digitalSignatureEnabled: true
+        }
+      };
+      
+      console.log('[TEACHER_DASHBOARD] ✅ Returning dashboard data with', teacherClasses.length, 'classes');
       res.json({
         success: true,
         data: {
@@ -662,58 +708,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ DATABASE-ONLY: Student dashboard fetches all data from database
   app.get("/api/student/dashboard", requireAuth, requireAnyRole(['Student', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[STUDENT_DASHBOARD] GET /api/student/dashboard for user:', user.id);
+      const userSchoolId = user.schoolId || user.school_id;
+      console.log('[STUDENT_DASHBOARD] 📊 GET /api/student/dashboard for user:', user.id, 'school:', userSchoolId);
       
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || 
-                           user.email?.includes('sandbox@') || 
-                           user.email?.includes('demo@') || 
-                           user.email?.includes('.sandbox@') ||
-                           user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@') ||
-                           user.email?.startsWith('sandbox.');
-      
-      let dashboardData;
-      
-      if (isSandboxUser) {
-        // Mock data for sandbox users
-        dashboardData = {
-          grades: [
-            { subject: 'Mathématiques', grade: 16, coefficient: 4, date: '2024-01-15' },
-            { subject: 'Français', grade: 14, coefficient: 4, date: '2024-01-14' },
-            { subject: 'Sciences Physiques', grade: 15, coefficient: 3, date: '2024-01-13' },
-            { subject: 'Histoire-Géographie', grade: 13, coefficient: 2, date: '2024-01-12' }
-          ],
-          attendance: {
-            present: 42,
-            absent: 3,
-            late: 1,
-            percentage: 93.5
-          },
-          homework: [
-            { subject: 'Mathématiques', title: 'Exercices chapitre 5', dueDate: '2024-01-18', status: 'pending' },
-            { subject: 'Français', title: 'Dissertation', dueDate: '2024-01-20', status: 'submitted' },
-            { subject: 'Sciences', title: 'TP Chimie', dueDate: '2024-01-19', status: 'pending' }
-          ],
-          announcements: [
-            { title: 'Conseil de classe', content: 'Le conseil de classe aura lieu le 20 janvier', date: '2024-01-16' },
-            { title: 'Sortie pédagogique', content: 'Visite du musée national le 25 janvier', date: '2024-01-15' }
-          ]
-        };
-      } else {
-        // For real users, implement actual data fetching
-        dashboardData = {
-          grades: [],
-          attendance: { present: 0, absent: 0, late: 0, percentage: 0 },
-          homework: [],
-          announcements: []
-        };
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
       }
       
+      const { count, sql: sqlFn } = await import('drizzle-orm');
+      
+      // Find student record linked to this user
+      const [studentRecord] = await db.select()
+        .from(students)
+        .where(and(eq(students.userId, user.id), eq(students.schoolId, userSchoolId)))
+        .limit(1);
+      
+      if (!studentRecord) {
+        // Try to find by email
+        const [studentByEmail] = await db.select()
+          .from(students)
+          .where(and(eq(students.email, user.email), eq(students.schoolId, userSchoolId)))
+          .limit(1);
+        
+        if (!studentByEmail) {
+          return res.json({
+            success: true,
+            data: {
+              grades: [],
+              attendance: { present: 0, absent: 0, late: 0, percentage: 0 },
+              homework: [],
+              announcements: [],
+              timestamp: new Date().toISOString(),
+              userRole: 'Student',
+              message: 'No student record found'
+            }
+          });
+        }
+      }
+      
+      const studentId = studentRecord?.id || 0;
+      
+      // Get student's recent grades
+      const studentGrades = await db.select({
+        id: grades.id,
+        grade: grades.grade,
+        term: grades.term,
+        subjectId: grades.subjectId,
+        createdAt: grades.createdAt
+      })
+        .from(grades)
+        .where(and(eq(grades.studentId, studentId), eq(grades.schoolId, userSchoolId)))
+        .orderBy(desc(grades.createdAt))
+        .limit(10);
+      
+      // Enrich grades with subject names
+      const enrichedGrades = [];
+      for (const grade of studentGrades) {
+        const [subject] = await db.select({ nameFr: subjects.nameFr, coefficient: subjects.coefficient })
+          .from(subjects)
+          .where(eq(subjects.id, grade.subjectId))
+          .limit(1);
+        
+        enrichedGrades.push({
+          subject: subject?.nameFr || 'Matière',
+          grade: parseFloat(grade.grade || '0'),
+          coefficient: subject?.coefficient || 1,
+          date: grade.createdAt?.toISOString().split('T')[0] || ''
+        });
+      }
+      
+      // Get student's attendance from database
+      const attendanceRecords = await db.select({
+        status: attendance.status
+      })
+        .from(attendance)
+        .where(and(eq(attendance.studentId, studentId), eq(attendance.schoolId, userSchoolId)));
+      
+      const present = attendanceRecords.filter(a => a.status === 'present').length;
+      const absent = attendanceRecords.filter(a => a.status === 'absent').length;
+      const late = attendanceRecords.filter(a => a.status === 'late').length;
+      const total = attendanceRecords.length || 1;
+      const percentage = Math.round((present / total) * 100 * 10) / 10;
+      
+      // Get student's homework assignments
+      const studentHomework = await db.select({
+        id: homework.id,
+        title: homework.title,
+        description: homework.description,
+        dueDate: homework.dueDate,
+        subjectId: homework.subjectId,
+        status: homework.status
+      })
+        .from(homework)
+        .where(eq(homework.classId, studentRecord?.classId || 0))
+        .orderBy(desc(homework.dueDate))
+        .limit(5);
+      
+      const enrichedHomework = [];
+      for (const hw of studentHomework) {
+        const [subject] = await db.select({ nameFr: subjects.nameFr })
+          .from(subjects)
+          .where(eq(subjects.id, hw.subjectId))
+          .limit(1);
+        
+        enrichedHomework.push({
+          subject: subject?.nameFr || 'Matière',
+          title: hw.title,
+          dueDate: hw.dueDate?.toISOString().split('T')[0] || '',
+          status: hw.status || 'pending'
+        });
+      }
+      
+      const dashboardData = {
+        grades: enrichedGrades,
+        attendance: { present, absent, late, percentage },
+        homework: enrichedHomework,
+        announcements: [] // Would need announcements table
+      };
+      
+      console.log('[STUDENT_DASHBOARD] ✅ Returning dashboard data with', enrichedGrades.length, 'grades');
       res.json({
         success: true,
         data: {
