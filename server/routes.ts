@@ -3032,14 +3032,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use null for empty matricule to avoid unique constraint violation on empty strings
       if (matricule !== undefined) updateData.educafricNumber = matricule?.trim() || null;
       
-      const [updatedTeacher] = await db.update(users)
-        .set(updateData)
-        .where(and(
-          eq(users.id, teacherId),
-          eq(users.role, 'Teacher'),
-          eq(users.schoolId, userSchoolId)
-        ))
-        .returning();
+      console.log('[UPDATE_TEACHER_DIRECTOR] Update data:', updateData);
+      
+      // Only update if there's data to update
+      let updatedTeacher = existingTeacher;
+      if (Object.keys(updateData).length > 0) {
+        const [result] = await db.update(users)
+          .set(updateData)
+          .where(and(
+            eq(users.id, teacherId),
+            eq(users.role, 'Teacher'),
+            eq(users.schoolId, userSchoolId)
+          ))
+          .returning();
+        updatedTeacher = result;
+      }
       
       // Update teacher-class-subject assignments via timetables
       if (Array.isArray(assignedClasses) && assignedClasses.length > 0 && Array.isArray(teachingSubjects)) {
@@ -3079,6 +3086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     dayOfWeek: 1, // Monday as default
                     startTime: '08:00',
                     endTime: '09:00',
+                    academicYear: new Date().getFullYear().toString(),
                     isActive: true
                   }).onConflictDoNothing();
                 } catch (insertError) {
