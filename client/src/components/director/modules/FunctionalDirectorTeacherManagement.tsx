@@ -1579,17 +1579,6 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
 
                 <div className="space-y-4 md:col-span-2">
                   <h4 className="font-semibold text-gray-900 border-b pb-2">
-                    {language === 'fr' ? 'Emploi du Temps' : 'Schedule'}
-                  </h4>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-gray-700 whitespace-pre-wrap">
-                      {viewingTeacher.schedule || (language === 'fr' ? 'Aucun emploi du temps défini' : 'No schedule defined')}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4 md:col-span-2">
-                  <h4 className="font-semibold text-gray-900 border-b pb-2">
                     {language === 'fr' ? 'Statistiques' : 'Statistics'}
                   </h4>
                   <div className="grid grid-cols-2 gap-4">

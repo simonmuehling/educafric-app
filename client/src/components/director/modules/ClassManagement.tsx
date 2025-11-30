@@ -1866,6 +1866,10 @@ const ClassManagement: React.FC = () => {
                   <td className="p-4">{String(classItem?.capacity) || "N/A"}</td>
                   <td className="p-4">
                     {(() => {
+                      // Use teacherCount from API if available, otherwise calculate from teachersData
+                      if (classItem.teacherCount !== undefined) {
+                        return String(classItem.teacherCount);
+                      }
                       const classTeachers = (teachersData || []).filter((t: any) => t.classes?.includes(classItem.name) || (t.className === classItem.name));
                       return String(classTeachers.length || 0);
                     })()}

@@ -1662,17 +1662,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(subjectsTable)
           .where(eq(subjectsTable.schoolId, userSchoolId));
         
-        // Count students in each class and include subjects
+        // Count students in each class (using enrollments table) and teachers from timetables
+        const { timetables, enrollments } = await import('@shared/schema');
+        
         const classesWithStudentCount = await Promise.all(
           schoolClasses.map(async (cls) => {
-            const studentCount = await db.select({ count: count() })
-              .from(users)
-              .where(and(eq(users.role, 'Student'), eq(users.schoolId, userSchoolId)));
+            // ✅ CORRECT: Count students enrolled in THIS specific class via enrollments table
+            const studentCountResult = await db.select({ count: count() })
+              .from(enrollments)
+              .where(and(
+                eq(enrollments.classId, cls.id),
+                eq(enrollments.status, 'active')
+              ));
             
-            // Distribute students across classes roughly equally
-            const totalStudents = studentCount[0]?.count || 0;
-            const avgStudentsPerClass = Math.floor(totalStudents / schoolClasses.length);
-            const studentCountForClass = avgStudentsPerClass + (cls.id % 3); // Add some variation
+            const actualStudentCount = Number(studentCountResult[0]?.count) || 0;
+            
+            // ✅ Count unique teachers assigned to this class from timetables
+            let teacherCount = 0;
+            try {
+              const teacherCountResult = await db.selectDistinct({ teacherId: timetables.teacherId })
+                .from(timetables)
+                .where(and(
+                  eq(timetables.schoolId, userSchoolId),
+                  eq(timetables.classId, cls.id),
+                  eq(timetables.isActive, true)
+                ));
+              
+              teacherCount = teacherCountResult.filter(t => t.teacherId != null).length;
+            } catch (ttError) {
+              console.log('[DIRECTOR_CLASSES_API] ⚠️ Could not count teachers for class', cls.id, ':', ttError);
+            }
             
             // Get subjects for this specific class
             const classSubjectsData = schoolSubjects
@@ -1688,10 +1707,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               level: cls.level,
               section: cls.section,
               capacity: cls.maxStudents || 35,
-              studentCount: Math.min(studentCountForClass, cls.maxStudents || 35),
+              currentStudents: actualStudentCount, // Real count from enrollments
+              studentCount: actualStudentCount, // Alias for compatibility
+              teacherCount: teacherCount, // Real teacher count from timetables
               schoolId: cls.schoolId,
               teacherId: cls.teacherId,
-              isActive: true,
+              teacher: cls.teacherId ? `Teacher #${cls.teacherId}` : null,
+              isActive: cls.isActive !== false,
               subjects: classSubjectsData
             };
           })
@@ -2702,48 +2724,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log('[DIRECTOR_TEACHERS_API] 📊 Raw DB query returned:', schoolTeachers.length, 'teachers for school', userSchoolId);
         
-        // Get all teacher-subject assignments for this school with class and subject details
-        // Using try-catch to handle cases where assignments table might have issues
-        let assignments: Array<{ teacherId: number; classId: number | null; subjectId: number | null; className: string | null; subjectName: string | null }> = [];
+        // Get teacher assignments from TIMETABLES (primary source) since teacherSubjectAssignments may not exist
+        // This gives us the actual classes and subjects each teacher teaches
+        const { timetables } = await import('@shared/schema');
+        
+        let teacherAssignmentsFromTimetables: Array<{ teacherId: number; classId: number | null; className: string | null; subjectName: string | null }> = [];
         try {
-          const rawAssignments = await db.select()
-            .from(teacherSubjectAssignments)
+          const timetableEntries = await db.selectDistinct({
+            teacherId: timetables.teacherId,
+            classId: timetables.classId,
+            className: timetables.className,
+            subjectName: timetables.subjectName
+          })
+            .from(timetables)
             .where(and(
-              eq(teacherSubjectAssignments.schoolId, userSchoolId),
-              eq(teacherSubjectAssignments.active, true)
+              eq(timetables.schoolId, userSchoolId),
+              eq(timetables.isActive, true)
             ));
           
-          // Get class and subject names separately to avoid JOIN issues
-          for (const assignment of rawAssignments) {
-            let className = null;
-            let subjectName = null;
-            
-            if (assignment.classId) {
-              const [classData] = await db.select().from(classesTable).where(eq(classesTable.id, assignment.classId)).limit(1);
-              className = classData?.name || null;
-            }
-            
-            if (assignment.subjectId) {
-              const [subjectData] = await db.select().from(subjectsTable).where(eq(subjectsTable.id, assignment.subjectId)).limit(1);
-              subjectName = subjectData?.name || null;
-            }
-            
-            assignments.push({
-              teacherId: assignment.teacherId,
-              classId: assignment.classId,
-              subjectId: assignment.subjectId,
-              className,
-              subjectName
-            });
-          }
-        } catch (assignmentError) {
-          console.log('[DIRECTOR_TEACHERS_API] ⚠️ Could not fetch assignments, continuing without them:', assignmentError);
-          assignments = [];
+          teacherAssignmentsFromTimetables = timetableEntries.filter(t => t.teacherId != null) as any;
+          console.log('[DIRECTOR_TEACHERS_API] 📚 Found', teacherAssignmentsFromTimetables.length, 'timetable assignments');
+        } catch (timetableError) {
+          console.log('[DIRECTOR_TEACHERS_API] ⚠️ Could not fetch timetable assignments:', timetableError);
         }
         
-        // Group assignments by teacher
+        // Group assignments by teacher (from timetables)
         const teacherAssignmentsMap = new Map<number, { classes: Set<string>, subjects: Set<string> }>();
-        assignments.forEach(a => {
+        teacherAssignmentsFromTimetables.forEach(a => {
           if (!teacherAssignmentsMap.has(a.teacherId)) {
             teacherAssignmentsMap.set(a.teacherId, { classes: new Set(), subjects: new Set() });
           }
