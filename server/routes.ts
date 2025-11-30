@@ -725,36 +725,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { count, sql: sqlFn } = await import('drizzle-orm');
       
-      // Find student record linked to this user
-      const [studentRecord] = await db.select()
-        .from(students)
-        .where(and(eq(students.userId, user.id), eq(students.schoolId, userSchoolId)))
-        .limit(1);
-      
-      if (!studentRecord) {
-        // Try to find by email
-        const [studentByEmail] = await db.select()
-          .from(students)
-          .where(and(eq(students.email, user.email), eq(students.schoolId, userSchoolId)))
-          .limit(1);
-        
-        if (!studentByEmail) {
-          return res.json({
-            success: true,
-            data: {
-              grades: [],
-              attendance: { present: 0, absent: 0, late: 0, percentage: 0 },
-              homework: [],
-              announcements: [],
-              timestamp: new Date().toISOString(),
-              userRole: 'Student',
-              message: 'No student record found'
-            }
-          });
-        }
+      // Student is the user - verify role and school affiliation
+      if (user.role !== 'Student' && user.activeRole !== 'Student') {
+        return res.status(403).json({ success: false, message: 'Student access required' });
       }
       
-      const studentId = studentRecord?.id || 0;
+      // The student ID is the user's ID (students are stored in users table)
+      const studentId = user.id;
       
       // Get student's recent grades
       const studentGrades = await db.select({
