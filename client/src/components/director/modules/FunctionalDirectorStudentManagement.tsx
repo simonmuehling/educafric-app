@@ -467,10 +467,26 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return;
     }
     
+    // Convert File to base64 if a file was uploaded (not camera capture)
+    let photoData: string | null = capturedPhoto;
+    if (!photoData && studentForm.photo instanceof File) {
+      try {
+        photoData = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(studentForm.photo as File);
+        });
+        console.log('[STUDENT_PHOTO] Converted file to base64, length:', photoData?.length);
+      } catch (err) {
+        console.error('[STUDENT_PHOTO] Failed to convert file to base64:', err);
+      }
+    }
+    
     const studentData = {
       ...studentForm,
       age: parseInt(studentForm.age) || 16,
-      photo: capturedPhoto || studentForm.photo
+      photo: photoData
     };
     
     // Use offline-first approach: save locally and sync when online
