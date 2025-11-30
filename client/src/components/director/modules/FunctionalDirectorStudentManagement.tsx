@@ -1057,12 +1057,17 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{text.allClasses}</SelectItem>
-                  <SelectItem value="6ème A">6ème A</SelectItem>
-                  <SelectItem value="6ème B">6ème B</SelectItem>
-                  <SelectItem value="5ème A">5ème A</SelectItem>
-                  <SelectItem value="5ème B">5ème B</SelectItem>
-                  <SelectItem value="4ème A">4ème A</SelectItem>
-                  <SelectItem value="3ème A">3ème A</SelectItem>
+                  {availableClasses.length > 0 ? (
+                    availableClasses.map((cls: any) => (
+                      <SelectItem key={cls.id} value={cls.name}>
+                        {cls.name} {cls.level ? `(${cls.level})` : ''}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-classes" disabled>
+                      {language === 'fr' ? 'Aucune classe disponible' : 'No classes available'}
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -1824,10 +1829,17 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
-                    <SelectItem value="6ème A">6ème A</SelectItem>
-                    <SelectItem value="6ème B">6ème B</SelectItem>
-                    <SelectItem value="5ème A">5ème A</SelectItem>
-                    <SelectItem value="4ème A">4ème A</SelectItem>
+                    {availableClasses.length > 0 ? (
+                      availableClasses.map((cls: any) => (
+                        <SelectItem key={cls.id} value={cls.name}>
+                          {cls.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-classes" disabled>
+                        {language === 'fr' ? 'Aucune classe' : 'No classes'}
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
