@@ -2272,21 +2272,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update student in database
       // ✅ FIX: Include all profile fields including matricule
+      // ✅ FIX: Convert empty strings to null to avoid unique constraint violations
       const updateData: any = {};
-      if (firstName !== undefined) updateData.firstName = firstName;
-      if (lastName !== undefined) updateData.lastName = lastName;
-      if (email !== undefined) updateData.email = email;
-      if (phone !== undefined) updateData.phone = phone;
+      if (firstName !== undefined) updateData.firstName = firstName || null;
+      if (lastName !== undefined) updateData.lastName = lastName || null;
+      // ✅ CRITICAL: Email must be null (not empty string) to avoid unique constraint violation
+      if (email !== undefined) updateData.email = email && email.trim() ? email.trim() : null;
+      if (phone !== undefined) updateData.phone = phone && phone.trim() ? phone.trim() : null;
       if (classId !== undefined) updateData.classId = classId;
-      if (gender !== undefined) updateData.gender = gender;
-      if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth;
-      if (placeOfBirth !== undefined) updateData.placeOfBirth = placeOfBirth;
+      if (gender !== undefined) updateData.gender = gender || null;
+      if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth || null;
+      if (placeOfBirth !== undefined) updateData.placeOfBirth = placeOfBirth || null;
       // ✅ NEW: Save matricule, guardian, parent info, and repeater status
-      if (matricule !== undefined) updateData.educafricNumber = matricule;
-      if (guardian !== undefined) updateData.guardian = guardian;
-      if (parentName !== undefined) updateData.guardian = parentName; // Alias
-      if (parentEmail !== undefined) updateData.parentEmail = parentEmail;
-      if (parentPhone !== undefined) updateData.parentPhone = parentPhone;
+      if (matricule !== undefined) updateData.educafricNumber = matricule || null;
+      if (guardian !== undefined) updateData.guardian = guardian || null;
+      if (parentName !== undefined) updateData.guardian = parentName || null; // Alias
+      if (parentEmail !== undefined) updateData.parentEmail = parentEmail && parentEmail.trim() ? parentEmail.trim() : null;
+      if (parentPhone !== undefined) updateData.parentPhone = parentPhone && parentPhone.trim() ? parentPhone.trim() : null;
       if (isRepeater !== undefined) updateData.isRepeater = isRepeater === true || isRepeater === 'true';
       if (redoublant !== undefined) updateData.isRepeater = redoublant === true || redoublant === 'true';
       
