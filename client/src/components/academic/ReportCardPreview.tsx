@@ -758,7 +758,32 @@ export default function ReportCardPreview({
                   }
 
                   // For general schools, render all subjects without sections
-                  return entries.map((r, idx) => renderSubjectRow(r, `subject-${idx}`));
+                  const subjectRows = entries.map((r, idx) => renderSubjectRow(r, `subject-${idx}`));
+                  
+                  // Add filler rows to fill A4 page (minimum 15 rows for proper page fill)
+                  const MIN_ROWS = 15;
+                  const fillerRowsNeeded = Math.max(0, MIN_ROWS - entries.length);
+                  const fillerRows = Array.from({ length: fillerRowsNeeded }, (_, idx) => (
+                    <tr key={`filler-${idx}`} className="empty-filler-row">
+                      <td className="border border-black px-1 py-2 text-[9px]">&nbsp;</td>
+                      <td className="border border-black px-1 py-2 text-[8px]">&nbsp;</td>
+                      {showTwoColumns ? (
+                        <>
+                          <td className="border border-black px-0.5 py-2 text-center">&nbsp;</td>
+                          <td className="border border-black px-0.5 py-2 text-center">&nbsp;</td>
+                        </>
+                      ) : (
+                        <td className="border border-black px-0.5 py-2 text-center">&nbsp;</td>
+                      )}
+                      <td className="border border-black px-0.5 py-2 text-center">&nbsp;</td>
+                      <td className="border border-black px-0.5 py-2 text-center">&nbsp;</td>
+                      <td className="border border-black px-0.5 py-2 text-center">&nbsp;</td>
+                      <td className="border border-black px-0.5 py-2">&nbsp;</td>
+                      <td className="border border-black px-0.5 py-2">&nbsp;</td>
+                    </tr>
+                  ));
+                  
+                  return [...subjectRows, ...fillerRows];
                 })()}
               </tbody>
               <tfoot>

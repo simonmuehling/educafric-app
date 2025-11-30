@@ -128,6 +128,11 @@ svg {
   margin-top: auto !important;
 }
 
+.pdf-capture-mode .empty-filler-row td {
+  height: 18px !important;
+  min-height: 18px !important;
+}
+
 .pdf-capture-mode .ministry-header {
   margin-bottom: 2px !important;
 }
