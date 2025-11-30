@@ -104,6 +104,7 @@ interface Subject {
   competence1: string;
   competence2: string;
   competence3: string;
+  competenceRaw?: string; // Raw input value to preserve semicolons during typing
   totalPondere: number;
   cote: string;
 }
@@ -2251,13 +2252,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                             <textarea
                               className="w-full border-0 bg-transparent text-xs resize-none print:text-[11px] print:leading-tight"
                               rows={3}
-                              value={competencesEvaluees}
+                              value={subject.competenceRaw !== undefined ? subject.competenceRaw : competencesEvaluees}
                               onChange={(e) => {
                                 const newCompetences = e.target.value;
-                                const parts = newCompetences.split(';');
-                                updateSubject(subject.id, 'competence1', parts[0]?.trim() || '');
-                                updateSubject(subject.id, 'competence2', parts[1]?.trim() || '');
-                                updateSubject(subject.id, 'competence3', parts[2]?.trim() || '');
+                                // Store raw value to preserve semicolons during typing
+                                updateSubject(subject.id, 'competenceRaw', newCompetences);
+                              }}
+                              onBlur={(e) => {
+                                // On blur, split and store in individual fields, then clear raw
+                                const parts = (e.target.value || '').split(';').map(p => p.trim());
+                                updateSubject(subject.id, 'competence1', parts[0] || '');
+                                updateSubject(subject.id, 'competence2', parts[1] || '');
+                                updateSubject(subject.id, 'competence3', parts[2] || '');
+                                updateSubject(subject.id, 'competenceRaw', undefined);
                               }}
                               placeholder={language === 'fr' ? "3 compétences séparées par ; (ex: Communication; Expression; Analyse)" : "3 competencies separated by ; (ex: Communication; Expression; Analysis)"}
                               data-testid={`input-competences-${index}`}
