@@ -37,6 +37,10 @@ import { db } from "./db.js";
 import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments } from "../shared/schema";
 import { attendance } from "../shared/schemas/academicSchema";
 import bcrypt from 'bcryptjs';
+
+// Alias 'users' as 'students' for queries filtering by role='Student'
+// This maintains backward compatibility with existing code
+const students = users;
 import { 
   predefinedAppreciations, 
   competencyEvaluationSystems, 
@@ -5609,15 +5613,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get student's class from the students table
+      // Get student's class from enrollments table
       const studentRecord = await db
         .select({
-          classId: students.classId,
+          classId: classEnrollments.classId,
           className: classes.name
         })
-        .from(students)
-        .leftJoin(classes, eq(students.classId, classes.id))
-        .where(eq(students.userId, user.id))
+        .from(classEnrollments)
+        .leftJoin(classes, eq(classEnrollments.classId, classes.id))
+        .where(and(
+          eq(classEnrollments.studentId, user.id),
+          eq(classEnrollments.schoolId, studentSchoolId),
+          eq(classEnrollments.status, 'active')
+        ))
         .limit(1);
       
       if (!studentRecord.length || !studentRecord[0].classId) {
