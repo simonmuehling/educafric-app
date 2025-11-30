@@ -666,15 +666,17 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     setSubjects(subjects.filter(s => s.id !== id));
   };
 
-  const updateSubject = (id: string, field: keyof Subject, value: string | number) => {
+  const updateSubject = (id: string, field: keyof Subject, value: string | number | undefined) => {
     setSubjects(prev => prev.map(s => {
       if (s.id !== id) return s;
       
       // Convert numeric inputs and create updated subject
       const numValue = Number(value) || 0;
+      // List of fields that should remain as strings (not converted to numbers)
+      const stringFields = ['name', 'remark', 'customAppreciation', 'cote', 'competence1', 'competence2', 'competence3', 'competenceRaw', 'teacher', 'comments', 'subjectType', 'bulletinSection', 'competencies', 'competencyEvaluation'];
       const updatedSubject = { 
         ...s, 
-        [field]: (field === 'name' || field === 'remark' || field === 'customAppreciation' || field === 'cote' || field === 'competence1' || field === 'competence2' || field === 'competence3' || field === 'teacher' || field === 'comments' || field === 'subjectType' || field === 'bulletinSection') ? value : numValue 
+        [field]: stringFields.includes(field) ? value : numValue 
       };
       
       // Always recalculate derived values
