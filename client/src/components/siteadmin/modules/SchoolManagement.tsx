@@ -299,7 +299,7 @@ const SchoolManagement = () => {
       offlinePremiumDescription: 'Unlimited offline access for all 12 modules',
       offlinePremiumUpdated: 'Offline Premium status updated',
       moduleVisibility: 'Module Visibility',
-      moduleVisibilityDescription: 'Control which modules appear in the Director Dashboard',
+      moduleVisibilityDescription: 'Control which modules appear in the School Dashboard',
       communications: 'Communications',
       educationalContent: 'Educational Content',
       delegateAdmins: 'Delegate Administrators',

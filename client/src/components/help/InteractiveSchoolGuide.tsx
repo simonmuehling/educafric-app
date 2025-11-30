@@ -27,7 +27,7 @@ const InteractiveSchoolGuide: React.FC<InteractiveSchoolGuideProps> = ({ onBack 
 
 ## 📋 ÉTAPE 1 : INFORMATIONS GÉNÉRALES DE L'ÉCOLE
 
-**🎯 Par où commencer :** Tableau de bord Directeur → Paramètres École
+**🎯 Par où commencer :** Tableau de bord École → Paramètres École
 
 ### Informations de base à configurer :
 - **Nom complet de l'école** (ex: "École Bilingue Excellence Yaoundé") 
@@ -240,7 +240,7 @@ Commencez par les étapes 1-2-3 dès aujourd'hui pour avoir une base solide, pui
 
 ## 📋 STEP 1: GENERAL SCHOOL INFORMATION
 
-**🎯 Where to start:** Director Dashboard → School Settings
+**🎯 Where to start:** School Dashboard → School Settings
 
 ### Basic information to configure:
 - **Full school name** (e.g., "Excellence Bilingual School Yaounde") 

@@ -22,7 +22,7 @@ class UnifiedModuleLoader {
 
   // CRITICAL MODULES - Load instantly at startup (no lazy loading)
   private criticalModules: ModuleConfig[] = [
-    // Director Dashboard - Highest priority
+    // School Dashboard - Highest priority
     { component: () => import('@/components/director/modules/FunctionalDirectorOverview'), strategy: 'instant', priority: 1 },
     { component: () => import('@/components/director/modules/FunctionalDirectorProfile'), strategy: 'instant', priority: 1 },
     { component: () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'), strategy: 'instant', priority: 1 },

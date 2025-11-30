@@ -863,8 +863,8 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
                   {language === 'fr' 
-                    ? 'Contrôler quels modules apparaissent dans le tableau de bord Director'
-                    : 'Control which modules appear in the Director Dashboard'
+                    ? 'Contrôler quels modules apparaissent dans le tableau de bord École'
+                    : 'Control which modules appear in the School Dashboard'
                   }
                 </p>
               </div>

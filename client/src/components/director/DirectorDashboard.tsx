@@ -159,7 +159,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
 
   const text = {
     fr: {
-      title: 'Tableau de Bord Directeur',
+      title: 'Tableau de Bord École',
       subtitle: 'Administration complète de votre établissement scolaire',
       settings: 'Profil Directeur',
       teachers: 'Enseignants',
@@ -188,7 +188,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       bus: 'Transport Scolaire'
     },
     en: {
-      title: 'Director Dashboard',
+      title: 'School Dashboard',
       subtitle: 'Complete administration of your educational institution',
       settings: 'Director Profile',
       teachers: 'Teachers',
