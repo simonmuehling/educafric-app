@@ -5757,11 +5757,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get student's classId from students table
+      // Get student's classId from enrollments
       const studentRecord = await db
-        .select({ classId: students.classId })
-        .from(students)
-        .where(eq(students.userId, user.id))
+        .select({ classId: classEnrollments.classId })
+        .from(classEnrollments)
+        .where(and(
+          eq(classEnrollments.studentId, user.id),
+          eq(classEnrollments.schoolId, studentSchoolId),
+          eq(classEnrollments.status, 'active')
+        ))
         .limit(1);
       
       const studentClassId = studentRecord.length > 0 ? studentRecord[0].classId : null;
@@ -6222,11 +6226,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get student record to find classId
+      // Get student record to find classId from enrollments
       const studentRecord = await db
-        .select({ classId: students.classId })
-        .from(students)
-        .where(eq(students.userId, user.id))
+        .select({ classId: classEnrollments.classId })
+        .from(classEnrollments)
+        .where(and(
+          eq(classEnrollments.studentId, user.id),
+          eq(classEnrollments.schoolId, studentSchoolId),
+          eq(classEnrollments.status, 'active')
+        ))
         .limit(1);
       
       const studentClassId = studentRecord.length > 0 ? studentRecord[0].classId : null;

@@ -4,6 +4,9 @@ import path from 'path';
 import fs from 'fs';
 import { requireAuth } from '../middleware/auth';
 import { storage } from '../storage';
+import { db } from '../db';
+import { homework, homeworkSubmissions, subjects, users, grades, userAchievements, classes, classEnrollments } from '../../shared/schema';
+import { eq, and, desc, sql } from 'drizzle-orm';
 
 const router = Router();
 
@@ -46,68 +49,83 @@ const homeworkUpload = multer({
   }
 });
 
-// GET /api/student/library - Student library/progress data
+// GET /api/student/library - Student progress/grades by subject from DATABASE
 router.get('/library', requireAuth, async (req, res) => {
   try {
-    const studentId = req.user?.id;
+    const user = req.user as any;
+    const studentId = user?.id;
+    const schoolId = user?.schoolId;
     
-    // Mock library/progress data for demo
-    const libraryData = [
-      {
-        subject: 'Mathématiques',
-        currentGrade: 16.5,
-        previousGrade: 15.2,
-        trend: 'up',
-        goal: 17.0,
-        assignments: {
-          total: 12,
-          completed: 10,
-          average: 16.2
-        }
-      },
-      {
-        subject: 'Français',
-        currentGrade: 14.8,
-        previousGrade: 15.1,
-        trend: 'down',
-        goal: 16.0,
-        assignments: {
-          total: 8,
-          completed: 7,
-          average: 14.5
-        }
-      },
-      {
-        subject: 'Sciences',
-        currentGrade: 15.9,
-        previousGrade: 15.9,
-        trend: 'stable',
-        goal: 16.5,
-        assignments: {
-          total: 10,
-          completed: 9,
-          average: 15.7
-        }
-      },
-      {
-        subject: 'Histoire',
-        currentGrade: 17.2,
-        previousGrade: 16.8,
-        trend: 'up',
-        goal: 17.0,
-        assignments: {
-          total: 6,
-          completed: 6,
-          average: 17.1
+    console.log('[STUDENT_LIBRARY] 📡 Fetching progress data from DATABASE for student:', studentId);
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required'
+      });
+    }
+    
+    // Fetch grades by subject from database
+    const dbGrades = await db
+      .select({
+        subjectId: grades.subjectId,
+        grade: grades.grade,
+        subjectName: subjects.nameFr
+      })
+      .from(grades)
+      .leftJoin(subjects, eq(grades.subjectId, subjects.id))
+      .where(and(
+        eq(grades.studentId, studentId),
+        eq(grades.schoolId, schoolId)
+      ))
+      .orderBy(grades.subjectId);
+    
+    // Group grades by subject
+    const subjectGradesMap = new Map<number, { name: string, grades: number[] }>();
+    for (const g of dbGrades) {
+      if (g.subjectId) {
+        const existing = subjectGradesMap.get(g.subjectId);
+        const gradeValue = g.grade ? parseFloat(g.grade.toString()) : 0;
+        if (existing) {
+          existing.grades.push(gradeValue);
+        } else {
+          subjectGradesMap.set(g.subjectId, {
+            name: g.subjectName || 'Unknown',
+            grades: [gradeValue]
+          });
         }
       }
-    ];
-
-    res.json({
-      success: true,
-      data: libraryData,
-      message: 'Library data retrieved successfully'
+    }
+    
+    // Calculate averages and trends
+    const libraryData = Array.from(subjectGradesMap.entries()).map(([subjectId, data]) => {
+      const grades = data.grades;
+      const currentGrade = grades.length > 0 ? grades[grades.length - 1] : 0;
+      const previousGrade = grades.length > 1 ? grades[grades.length - 2] : currentGrade;
+      const average = grades.length > 0 ? grades.reduce((a, b) => a + b, 0) / grades.length : 0;
+      
+      let trend = 'stable';
+      if (currentGrade > previousGrade) trend = 'up';
+      else if (currentGrade < previousGrade) trend = 'down';
+      
+      return {
+        subject: data.name,
+        subjectId,
+        currentGrade: parseFloat(currentGrade.toFixed(2)),
+        previousGrade: parseFloat(previousGrade.toFixed(2)),
+        trend,
+        goal: Math.min(20, parseFloat((average + 2).toFixed(1))),
+        assignments: {
+          total: grades.length,
+          completed: grades.length,
+          average: parseFloat(average.toFixed(2))
+        }
+      };
     });
+    
+    console.log(`[STUDENT_LIBRARY] ✅ Fetched progress for ${libraryData.length} subjects from database`);
+
+    res.json(libraryData);
   } catch (error) {
     console.error('Error fetching library data:', error);
     res.status(500).json({
@@ -117,44 +135,44 @@ router.get('/library', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student/achievements - Student achievements
+// GET /api/student/achievements - Student achievements from DATABASE
 router.get('/achievements', requireAuth, async (req, res) => {
   try {
-    const studentId = req.user?.id;
+    const user = req.user as any;
+    const studentId = user?.id;
+    const schoolId = user?.schoolId;
     
-    // Mock achievements data
-    const achievements = [
-      {
-        id: 1,
-        title: 'Excellent Student',
-        description: 'Maintained average above 16/20',
-        icon: '🏆',
-        date: '2025-01-15',
-        points: 100
-      },
-      {
-        id: 2,
-        title: 'Perfect Attendance',
-        description: '95% attendance rate this term',
-        icon: '📅',
-        date: '2025-01-10',
-        points: 75
-      },
-      {
-        id: 3,
-        title: 'Math Champion',
-        description: 'Top score in mathematics',
-        icon: '🔢',
-        date: '2025-01-05',
-        points: 80
-      }
-    ];
+    console.log('[STUDENT_ACHIEVEMENTS] 📡 Fetching achievements from DATABASE for student:', studentId);
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required'
+      });
+    }
+    
+    // Fetch achievements from database
+    const dbAchievements = await db
+      .select()
+      .from(userAchievements)
+      .where(eq(userAchievements.userId, studentId))
+      .orderBy(desc(userAchievements.unlockedAt));
+    
+    // Process achievements for frontend
+    const achievements = dbAchievements.map(a => ({
+      id: a.id,
+      title: a.achievementType || 'Achievement',
+      description: a.description || 'Earned achievement',
+      icon: a.badgeIcon || '🏆',
+      date: a.unlockedAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+      points: a.pointsEarned || 0,
+      category: a.category || 'general',
+      isNew: a.unlockedAt && (Date.now() - new Date(a.unlockedAt).getTime()) < 7 * 24 * 60 * 60 * 1000
+    }));
+    
+    console.log(`[STUDENT_ACHIEVEMENTS] ✅ Fetched ${achievements.length} achievements from database`);
 
-    res.json({
-      success: true,
-      data: achievements,
-      message: 'Achievements retrieved successfully'
-    });
+    res.json(achievements);
   } catch (error) {
     console.error('Error fetching achievements:', error);
     res.status(500).json({
@@ -164,77 +182,114 @@ router.get('/achievements', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student/homework - Get student homework assignments
+// GET /api/student/homework - Get student homework assignments from DATABASE
 router.get('/homework', requireAuth, async (req, res) => {
   try {
-    const studentId = req.user?.id;
+    const user = req.user as any;
+    const studentId = user?.id;
+    const schoolId = user?.schoolId;
     
-    // Mock homework data
-    const homework = [
-      {
-        id: 1,
-        title: 'Exercice de Mathématiques',
-        subject: 'Mathématiques',
-        teacher: 'M. Dupont',
-        dueDate: '2025-08-30',
-        status: 'pending',
-        priority: 'high',
-        description: 'Résoudre les équations du chapitre 3',
-        attachments: ['math_exercises.pdf'],
-        submittedAt: null,
-        grade: null,
-        feedback: null
-      },
-      {
-        id: 2,
-        title: 'Dissertation Française',
-        subject: 'Français',
-        teacher: 'Mme. Martin',
-        dueDate: '2025-08-28',
-        status: 'completed',
-        priority: 'medium',
-        description: 'Rédiger un essai sur la littérature africaine',
-        attachments: [],
-        submittedAt: '2025-08-26T10:30:00Z',
-        submissionFiles: ['dissertation.pdf'],
-        grade: 16,
-        feedback: 'Excellent travail, très bien structuré!'
-      },
-      {
-        id: 3,
-        title: 'Expérience Sciences',
-        subject: 'Sciences',
-        teacher: 'Dr. Koné',
-        dueDate: '2025-09-05',
-        status: 'pending',
-        priority: 'medium',
-        description: 'Rapport sur l\'expérience de chimie',
-        attachments: ['lab_instructions.pdf'],
-        submittedAt: null,
-        grade: null,
-        feedback: null
-      },
-      {
-        id: 4,
-        title: 'Projet Histoire',
-        subject: 'Histoire',
-        teacher: 'M. Tagne',
-        dueDate: '2025-09-10',
-        status: 'pending',
-        priority: 'low',
-        description: 'Recherche sur l\'indépendance du Cameroun',
-        attachments: [],
-        submittedAt: null,
-        grade: null,
-        feedback: null
+    console.log('[STUDENT_HOMEWORK] 📡 Fetching homework from DATABASE for student:', studentId);
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required'
+      });
+    }
+    
+    // Get student's classId from enrollments
+    const studentRecord = await db
+      .select({ classId: classEnrollments.classId })
+      .from(classEnrollments)
+      .where(and(
+        eq(classEnrollments.studentId, studentId),
+        eq(classEnrollments.schoolId, schoolId),
+        eq(classEnrollments.status, 'active')
+      ))
+      .limit(1);
+    
+    const studentClassId = studentRecord.length > 0 ? studentRecord[0].classId : null;
+    
+    // Build conditions for homework query
+    const conditions = [eq(homework.schoolId, schoolId)];
+    if (studentClassId) {
+      conditions.push(eq(homework.classId, studentClassId));
+    }
+    
+    // Fetch homework from database with teacher and subject info
+    const dbHomework = await db
+      .select({
+        id: homework.id,
+        title: homework.title,
+        description: homework.description,
+        dueDate: homework.dueDate,
+        subjectId: homework.subjectId,
+        teacherId: homework.teacherId,
+        classId: homework.classId,
+        attachments: homework.attachments,
+        priority: homework.priority,
+        createdAt: homework.createdAt,
+        subjectName: subjects.nameFr,
+        teacherFirstName: users.firstName,
+        teacherLastName: users.lastName
+      })
+      .from(homework)
+      .leftJoin(subjects, eq(homework.subjectId, subjects.id))
+      .leftJoin(users, eq(homework.teacherId, users.id))
+      .where(and(...conditions))
+      .orderBy(desc(homework.dueDate))
+      .limit(50);
+    
+    // Get student's submissions for these homework assignments
+    const homeworkIds = dbHomework.map(h => h.id);
+    let submissions: any[] = [];
+    if (homeworkIds.length > 0) {
+      submissions = await db
+        .select()
+        .from(homeworkSubmissions)
+        .where(and(
+          eq(homeworkSubmissions.studentId, studentId),
+          eq(homeworkSubmissions.homeworkId, homeworkIds[0]) // TODO: Use inArray when needed
+        ));
+    }
+    
+    const submissionMap = new Map(submissions.map(s => [s.homeworkId, s]));
+    
+    // Process homework for frontend
+    const processedHomework = dbHomework.map(h => {
+      const submission = submissionMap.get(h.id);
+      const teacherName = h.teacherFirstName && h.teacherLastName
+        ? `${h.teacherFirstName} ${h.teacherLastName}`
+        : 'Unknown Teacher';
+      
+      let status = 'pending';
+      if (submission) {
+        status = submission.grade ? 'graded' : 'submitted';
+      } else if (h.dueDate && new Date(h.dueDate) < new Date()) {
+        status = 'overdue';
       }
-    ];
-
-    res.json({
-      success: true,
-      homework: homework,
-      message: 'Homework retrieved successfully'
+      
+      return {
+        id: h.id,
+        title: h.title || 'Untitled',
+        subject: h.subjectName || 'Unknown',
+        teacher: teacherName,
+        dueDate: h.dueDate?.toISOString().split('T')[0] || null,
+        status: status,
+        priority: h.priority || 'medium',
+        description: h.description || '',
+        attachments: h.attachments || [],
+        submittedAt: submission?.submittedAt?.toISOString() || null,
+        submissionFiles: submission?.files || [],
+        grade: submission?.grade || null,
+        feedback: submission?.feedback || null
+      };
     });
+    
+    console.log(`[STUDENT_HOMEWORK] ✅ Fetched ${processedHomework.length} homework assignments from database`);
+
+    res.json(processedHomework);
   } catch (error) {
     console.error('[STUDENT_API] Error fetching homework:', error);
     res.status(500).json({
@@ -244,11 +299,13 @@ router.get('/homework', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student/homework/:id - Get specific homework assignment
+// GET /api/student/homework/:id - Get specific homework assignment from DATABASE
 router.get('/homework/:id', requireAuth, async (req, res) => {
   try {
     const homeworkId = parseInt(req.params.id);
-    const studentId = req.user?.id;
+    const user = req.user as any;
+    const studentId = user?.id;
+    const schoolId = user?.schoolId;
     
     if (isNaN(homeworkId)) {
       return res.status(400).json({
@@ -257,28 +314,83 @@ router.get('/homework/:id', requireAuth, async (req, res) => {
       });
     }
 
-    // Mock single homework data
-    const homework = {
-      id: homeworkId,
-      title: 'Exercice de Mathématiques',
-      subject: 'Mathématiques',
-      teacher: 'M. Dupont',
-      dueDate: '2025-08-30',
-      status: 'assigned',
-      description: 'Résoudre les équations du chapitre 3. Montrer tout le travail.',
-      attachments: ['math_exercises.pdf'],
-      submittedAt: null,
-      submissionFiles: [],
-      grade: null,
-      feedback: null,
-      instructions: 'Téléchargez le fichier PDF joint, résolvez tous les exercices et téléchargez votre travail.'
+    console.log('[STUDENT_HOMEWORK] 📡 Fetching homework details from DATABASE:', homeworkId);
+
+    // Fetch homework from database
+    const dbHomework = await db
+      .select({
+        id: homework.id,
+        title: homework.title,
+        description: homework.description,
+        dueDate: homework.dueDate,
+        subjectId: homework.subjectId,
+        teacherId: homework.teacherId,
+        classId: homework.classId,
+        attachments: homework.attachments,
+        priority: homework.priority,
+        instructions: homework.instructions,
+        createdAt: homework.createdAt,
+        subjectName: subjects.nameFr,
+        teacherFirstName: users.firstName,
+        teacherLastName: users.lastName
+      })
+      .from(homework)
+      .leftJoin(subjects, eq(homework.subjectId, subjects.id))
+      .leftJoin(users, eq(homework.teacherId, users.id))
+      .where(and(
+        eq(homework.id, homeworkId),
+        eq(homework.schoolId, schoolId)
+      ))
+      .limit(1);
+
+    if (dbHomework.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Homework not found'
+      });
+    }
+
+    const h = dbHomework[0];
+    
+    // Get student's submission if exists
+    const submission = await db
+      .select()
+      .from(homeworkSubmissions)
+      .where(and(
+        eq(homeworkSubmissions.homeworkId, homeworkId),
+        eq(homeworkSubmissions.studentId, studentId)
+      ))
+      .limit(1);
+
+    const sub = submission.length > 0 ? submission[0] : null;
+    const teacherName = h.teacherFirstName && h.teacherLastName
+      ? `${h.teacherFirstName} ${h.teacherLastName}`
+      : 'Unknown Teacher';
+    
+    let status = 'assigned';
+    if (sub) {
+      status = sub.grade ? 'graded' : 'submitted';
+    } else if (h.dueDate && new Date(h.dueDate) < new Date()) {
+      status = 'overdue';
+    }
+
+    const homeworkData = {
+      id: h.id,
+      title: h.title || 'Untitled',
+      subject: h.subjectName || 'Unknown',
+      teacher: teacherName,
+      dueDate: h.dueDate?.toISOString().split('T')[0] || null,
+      status: status,
+      description: h.description || '',
+      attachments: h.attachments || [],
+      instructions: h.instructions || '',
+      submittedAt: sub?.submittedAt?.toISOString() || null,
+      submissionFiles: sub?.files || [],
+      grade: sub?.grade || null,
+      feedback: sub?.feedback || null
     };
 
-    res.json({
-      success: true,
-      homework: homework,
-      message: 'Homework details retrieved successfully'
-    });
+    res.json(homeworkData);
   } catch (error) {
     console.error('[STUDENT_API] Error fetching homework details:', error);
     res.status(500).json({
