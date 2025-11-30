@@ -354,7 +354,7 @@ const StudentHelp = () => {
               <h4 className="font-semibold text-gray-900 mb-2">{t.supportEmail}</h4>
               <p className="text-sm text-gray-600 mb-3">{t.supportEmailDesc}</p>
               <button
-                onClick={() => window?.location?.href = 'mailto:info@educafric.com'}
+                onClick={() => { if (window?.location) window.location.href = 'mailto:info@educafric.com'; }}
                 className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors w-full"
               >
                 info@educafric.com
@@ -370,7 +370,7 @@ const StudentHelp = () => {
               <h4 className="font-semibold text-gray-900 mb-2">{t.supportPhone}</h4>
               <p className="text-sm text-gray-600 mb-3">{t.supportPhoneDesc}</p>
               <button
-                onClick={() => window?.location?.href = 'tel:+237656200472'}
+                onClick={() => { if (window?.location) window.location.href = 'tel:+237656200472'; }}
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors w-full"
               >
                 +237 656 200 472
