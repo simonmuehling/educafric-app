@@ -94,11 +94,11 @@ router.get('/students', requireAuth, async (req, res) => {
   }
 });
 
-// Get teacher's subjects for a specific class
+// Get teacher's subjects for a specific class - uses teacher_subject_assignments for strict multi-tenant isolation
 router.get('/class-subjects', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
-    const { classId } = req.query;
+    const { classId, schoolId: requestedSchoolId } = req.query;
     
     if (user.role !== 'Teacher') {
       return res.status(403).json({
@@ -114,32 +114,94 @@ router.get('/class-subjects', requireAuth, async (req, res) => {
       });
     }
 
-    console.log('[TEACHER_SUBJECTS] Fetching subjects for teacher:', user.id, 'classId:', classId);
+    const classIdNum = parseInt(classId as string);
+    // Use requested schoolId or get teacher's school from MultiRoleService
+    let targetSchoolId = requestedSchoolId ? parseInt(requestedSchoolId as string) : user.schoolId;
+    
+    console.log('[TEACHER_SUBJECTS] Fetching assigned subjects for teacher:', user.id, 'classId:', classIdNum, 'schoolId:', targetSchoolId);
 
-    // Get teacher's assigned subjects for this class from teacher_class_subjects table
-    const teacherSubjects = await db
+    // ✅ Use teacher_subject_assignments for proper multi-tenant isolation (teacherId + schoolId + classId)
+    const teacherAssignedSubjects = await db
       .select({
         id: subjects.id,
         name: subjects.nameFr,
+        nameEn: subjects.nameEn,
         code: subjects.code,
-        coefficient: subjects.coefficient
+        coefficient: subjects.coefficient,
+        bulletinSection: subjects.bulletinSection,
+        assignmentId: teacherSubjectAssignments.id
       })
-      .from(teacherClassSubjects)
-      .innerJoin(classSubjects, eq(classSubjects.id, teacherClassSubjects.classSubjectId))
-      .innerJoin(subjects, eq(subjects.id, classSubjects.subjectId))
+      .from(teacherSubjectAssignments)
+      .innerJoin(subjects, eq(subjects.id, teacherSubjectAssignments.subjectId))
       .where(
         and(
-          eq(teacherClassSubjects.teacherId, user.id),
-          eq(teacherClassSubjects.classId, parseInt(classId as string)),
-          eq(teacherClassSubjects.isActive, true)
+          eq(teacherSubjectAssignments.teacherId, user.id),
+          eq(teacherSubjectAssignments.classId, classIdNum),
+          eq(teacherSubjectAssignments.schoolId, targetSchoolId),
+          eq(teacherSubjectAssignments.active, true)
         )
       );
     
-    console.log('[TEACHER_SUBJECTS] ✅ Found', teacherSubjects.length, 'subjects');
+    console.log('[TEACHER_SUBJECTS] ✅ Found', teacherAssignedSubjects.length, 'assigned subjects from teacher_subject_assignments');
+    
+    // SECURITY: Verify teacher has access to the requested school before proceeding
+    const hasSchoolAccess = await verifyTeacherSchoolAccess(user.id, targetSchoolId);
+    if (!hasSchoolAccess) {
+      console.warn('[TEACHER_SUBJECTS] ⛔ Teacher', user.id, 'denied access to school', targetSchoolId);
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You are not assigned to this school.'
+      });
+    }
+    
+    // If no direct assignments found, fallback to teacherClassSubjects table (legacy compatibility)
+    // ✅ SECURITY FIX: Also constrain by schoolId in legacy query
+    if (teacherAssignedSubjects.length === 0) {
+      console.log('[TEACHER_SUBJECTS] ⚠️ No assignments in teacher_subject_assignments, checking legacy table...');
+      
+      try {
+        const legacySubjects = await db
+          .select({
+            id: subjects.id,
+            name: subjects.nameFr,
+            nameEn: subjects.nameEn,
+            code: subjects.code,
+            coefficient: subjects.coefficient,
+            bulletinSection: subjects.bulletinSection
+          })
+          .from(teacherClassSubjects)
+          .innerJoin(classSubjects, eq(classSubjects.id, teacherClassSubjects.classSubjectId))
+          .innerJoin(subjects, eq(subjects.id, classSubjects.subjectId))
+          .where(
+            and(
+              eq(teacherClassSubjects.teacherId, user.id),
+              eq(teacherClassSubjects.classId, classIdNum),
+              eq(teacherClassSubjects.schoolId, targetSchoolId), // ✅ Added schoolId constraint
+              eq(teacherClassSubjects.isActive, true)
+            )
+          );
+        
+        if (legacySubjects.length > 0) {
+          console.log('[TEACHER_SUBJECTS] ✅ Found', legacySubjects.length, 'subjects from legacy table (with schoolId filter)');
+          return res.json({
+            success: true,
+            subjects: legacySubjects,
+            classId: classIdNum,
+            schoolId: targetSchoolId,
+            source: 'legacy'
+          });
+        }
+      } catch (legacyError) {
+        console.log('[TEACHER_SUBJECTS] Legacy table query failed:', legacyError);
+      }
+    }
     
     res.json({
       success: true,
-      subjects: teacherSubjects
+      subjects: teacherAssignedSubjects,
+      classId: classIdNum,
+      schoolId: targetSchoolId,
+      source: 'teacher_subject_assignments'
     });
   } catch (error) {
     console.error('[TEACHER_API] Error fetching class subjects:', error);

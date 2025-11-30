@@ -190,17 +190,22 @@ const TeacherGradeSubmission: React.FC = () => {
 
   const students = Array.isArray(studentsData) ? studentsData : (studentsData?.students || []);
 
-  // Fetch teacher's subjects for this class
-  const { data: subjectsData } = useQuery({
-    queryKey: ['/api/teacher/class-subjects', selectedClass],
+  // Fetch teacher's assigned subjects for this class (from teacher_subject_assignments table)
+  const { data: subjectsData, isLoading: isLoadingSubjects } = useQuery({
+    queryKey: ['/api/teacher/class-subjects', selectedClass, selectedSchool],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/teacher/class-subjects?classId=${selectedClass}`);
+      const params = new URLSearchParams({
+        classId: selectedClass,
+        ...(selectedSchool && { schoolId: selectedSchool })
+      });
+      const response = await apiRequest('GET', `/api/teacher/class-subjects?${params}`);
       return await response.json();
     },
-    enabled: !!selectedClass
+    enabled: !!selectedClass && !!selectedSchool
   });
 
   const subjects = subjectsData?.subjects || [];
+  const hasNoAssignedSubjects = !isLoadingSubjects && subjects.length === 0 && !!selectedClass;
 
   // Submit grades mutation
   const submitGradesMutation = useMutation({
@@ -638,13 +643,28 @@ const TeacherGradeSubmission: React.FC = () => {
             </h3>
           </CardContent>
         </Card>
-      ) : selectedClass && subjects.length === 0 ? (
-        <Card className="text-center py-12">
+      ) : selectedClass && (hasNoAssignedSubjects || subjects.length === 0) ? (
+        <Card className="text-center py-12 border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
           <CardContent>
-            <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+            <BookOpen className="h-16 w-16 mx-auto mb-4 text-orange-400" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               {t.noSubjects}
             </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+              {language === 'fr' 
+                ? "Aucune matière ne vous a été assignée pour cette classe. Veuillez contacter le directeur de l'école pour qu'il vous assigne des matières à enseigner."
+                : "No subjects have been assigned to you for this class. Please contact the school director to assign subjects for you to teach."
+              }
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-orange-600 dark:text-orange-400">
+              <AlertCircle className="h-4 w-4" />
+              <span>
+                {language === 'fr'
+                  ? "Configuration nécessaire dans : Paramètres > Enseignants > Assignations"
+                  : "Configuration needed in: Settings > Teachers > Assignments"
+                }
+              </span>
+            </div>
           </CardContent>
         </Card>
       ) : (
