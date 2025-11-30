@@ -4483,102 +4483,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get student transcript (all grades for a student across all terms)
+  // ✅ DATABASE-ONLY: Get student transcript (all grades for a student across all terms)
   app.get("/api/director/student-transcript/:studentId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       const { studentId } = req.params;
+      const userSchoolId = user.schoolId || user.school_id;
       
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || 
-                           user.email?.includes('sandbox@') || 
-                           user.email?.includes('demo@') || 
-                           user.email?.includes('.sandbox@') ||
-                           user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@') ||
-                           user.email?.startsWith('sandbox.');
-      
-      let student;
-      let grades;
-      
-      if (isSandboxUser) {
-        console.log('[DIRECTOR_TRANSCRIPT_API] Sandbox user detected - using mock data');
-        
-        // Mock student data
-        const mockStudents = [
-          { id: 1, name: 'Clarisse Akoa', className: '6ème A' },
-          { id: 2, name: 'Idriss Bamba', className: '6ème A' },
-          { id: 3, name: 'John Ndah', className: '6ème A' }
-        ];
-        
-        student = mockStudents.find(s => s.id === parseInt(studentId, 10));
-        
-        // Mock grades across all terms
-        const mockTranscriptGrades = [
-          // T1 grades
-          { id: 1, studentId: parseInt(studentId, 10), subjectId: 1, grade: '14.5', term: 'T1', academicYear: '2024-2025' },
-          { id: 2, studentId: parseInt(studentId, 10), subjectId: 2, grade: '16.0', term: 'T1', academicYear: '2024-2025' },
-          { id: 3, studentId: parseInt(studentId, 10), subjectId: 3, grade: '12.5', term: 'T1', academicYear: '2024-2025' },
-          
-          // T2 grades
-          { id: 4, studentId: parseInt(studentId, 10), subjectId: 1, grade: '15.0', term: 'T2', academicYear: '2024-2025' },
-          { id: 5, studentId: parseInt(studentId, 10), subjectId: 2, grade: '15.5', term: 'T2', academicYear: '2024-2025' },
-          { id: 6, studentId: parseInt(studentId, 10), subjectId: 3, grade: '13.0', term: 'T2', academicYear: '2024-2025' },
-          
-          // T3 grades
-          { id: 7, studentId: parseInt(studentId, 10), subjectId: 1, grade: '16.0', term: 'T3', academicYear: '2024-2025' },
-          { id: 8, studentId: parseInt(studentId, 10), subjectId: 2, grade: '17.0', term: 'T3', academicYear: '2024-2025' },
-          { id: 9, studentId: parseInt(studentId, 10), subjectId: 3, grade: '14.0', term: 'T3', academicYear: '2024-2025' }
-        ];
-        
-        grades = mockTranscriptGrades;
-      } else {
-        console.log('[DIRECTOR_TRANSCRIPT_API] Real user detected - using database data');
-        // Get real data from database
-        const { db } = await import('./db');
-        const { grades: gradesTable, users } = await import('@shared/schema');
-        const { eq, and } = await import('drizzle-orm');
-        
-        const userSchoolId = user.schoolId || user.school_id || 1;
-        
-        // Get student info
-        const studentData = await db.select()
-          .from(users)
-          .where(and(
-            eq(users.id, parseInt(studentId, 10)),
-            eq(users.schoolId, userSchoolId),
-            eq(users.role, 'Student')
-          ));
-        
-        student = studentData[0] ? {
-          id: studentData[0].id,
-          name: `${studentData[0].firstName} ${studentData[0].lastName}`,
-          className: 'N/A' // TODO: Join with classes table to get actual class name
-        } : null;
-        
-        // Get all grades for this student
-        const studentGrades = await db.select()
-          .from(gradesTable)
-          .where(and(
-            eq(gradesTable.studentId, parseInt(studentId, 10)),
-            eq(gradesTable.schoolId, userSchoolId)
-          ));
-        
-        grades = studentGrades.map(grade => ({
-          id: grade.id,
-          studentId: grade.studentId,
-          subjectId: grade.subjectId,
-          grade: grade.grade,
-          term: grade.term,
-          academicYear: grade.academicYear,
-          examType: grade.examType,
-          comments: grade.comments
-        }));
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
       }
       
-      console.log('[DIRECTOR_TRANSCRIPT_API] Student:', student?.name, 'Grades count:', grades.length);
-      res.json({ success: true, student, grades });
+      console.log('[DIRECTOR_TRANSCRIPT_API] 📊 Fetching transcript from DATABASE for student:', studentId);
+      
+      // Get student from database with class info
+      const [studentRecord] = await db.select()
+        .from(students)
+        .where(and(
+          eq(students.id, parseInt(studentId, 10)),
+          eq(students.schoolId, userSchoolId)
+        ))
+        .limit(1);
+      
+      let className = 'N/A';
+      if (studentRecord?.classId) {
+        const [classInfo] = await db.select({ name: classes.name })
+          .from(classes)
+          .where(eq(classes.id, studentRecord.classId))
+          .limit(1);
+        className = classInfo?.name || 'N/A';
+      }
+      
+      const student = studentRecord ? {
+        id: studentRecord.id,
+        name: `${studentRecord.firstName} ${studentRecord.lastName}`,
+        className
+      } : null;
+      
+      // Get all grades for this student from database
+      const studentGrades = await db.select()
+        .from(grades)
+        .where(and(
+          eq(grades.studentId, parseInt(studentId, 10)),
+          eq(grades.schoolId, userSchoolId)
+        ))
+        .orderBy(desc(grades.academicYear), desc(grades.term));
+      
+      const formattedGrades = studentGrades.map(grade => ({
+        id: grade.id,
+        studentId: grade.studentId,
+        subjectId: grade.subjectId,
+        grade: grade.grade,
+        term: grade.term,
+        academicYear: grade.academicYear,
+        examType: grade.examType,
+        comments: grade.comments
+      }));
+      
+      console.log('[DIRECTOR_TRANSCRIPT_API] ✅ Student:', student?.name, 'Grades count:', formattedGrades.length);
+      res.json({ success: true, student, grades: formattedGrades });
     } catch (error) {
       console.error('[DIRECTOR_TRANSCRIPT_API] Error fetching student transcript:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch student transcript' });
@@ -4663,79 +4626,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // TEACHER API ROUTES - Complete implementation with sandbox data integration
+  // ✅ DATABASE-ONLY: TEACHER API ROUTES - Complete implementation
   app.get("/api/teacher/classes", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      const userSchoolId = user.schoolId || user.school_id;
       
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || 
-                           user.email?.includes('sandbox@') || 
-                           user.sandboxMode;
-      
-      if (isSandboxUser) {
-        console.log('[TEACHER_API] 🔧 Sandbox user detected, serving sandbox classes data');
-        // Use rich sandbox data for sandbox users
-        const sandboxSchoolsWithClasses = [
-          {
-            schoolId: 1,
-            schoolName: 'École Internationale de Yaoundé - Sandbox EDUCAFRIC 2025 ✨',
-            schoolAddress: 'Quartier Bastos, Avenue Kennedy, Yaoundé, Cameroun',
-            schoolPhone: '+237 222 123 456',
-            isConnected: true,
-            assignmentDate: '2025-09-01',
-            classes: [
-              {
-                id: 1,
-                name: '6ème A',
-                level: '6ème',
-                section: 'A',
-                studentCount: 28,
-                subject: 'Mathématiques',
-                room: 'Salle 105',
-                schedule: 'Lun-Mar-Jeu 08:00-12:00',
-                teacherId: 1,
-                teacherName: 'Mme. Essola Catherine',
-                lastUpdated: '2025-09-07',
-                canSignBulletins: true
-              },
-              {
-                id: 2,
-                name: '5ème B',
-                level: '5ème',
-                section: 'B',
-                studentCount: 32,
-                subject: 'Français',
-                room: 'Salle 203',
-                schedule: 'Mar-Mer-Ven 09:00-13:00',
-                teacherId: 2,
-                teacherName: 'M. Biya François',
-                lastUpdated: '2025-09-07',
-                canSignBulletins: true
-              },
-              {
-                id: 3,
-                name: '4ème C',
-                level: '4ème',
-                section: 'C',
-                studentCount: 26,
-                subject: 'Histoire-Géographie',
-                room: 'Salle 301',
-                schedule: 'Lun-Mer-Ven 10:00-14:00',
-                teacherId: 3,
-                teacherName: 'M. Ondoa Vincent',
-                lastUpdated: '2025-09-07',
-                canSignBulletins: false
-              }
-            ]
-          }
-        ];
-        return res.json({ success: true, schoolsWithClasses: sandboxSchoolsWithClasses });
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required', schoolsWithClasses: [] });
       }
       
+      console.log('[TEACHER_API] 📊 Fetching classes from DATABASE for teacher:', user.id);
+      
       // Get school information first
-      const schoolId = user.schoolId;
+      const schoolId = userSchoolId;
       let schoolInfo = null;
       
       if (schoolId) {
@@ -5341,122 +5245,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ DATABASE-ONLY: Get students for teacher's assigned classes
   app.get("/api/teacher/students", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      const { classId } = req.query; // Récupérer le paramètre classId
+      const { classId } = req.query;
+      const userSchoolId = user.schoolId || user.school_id;
       
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || 
-                           user.email?.includes('sandbox@') || 
-                           user.sandboxMode;
-      
-      if (isSandboxUser) {
-        console.log('[TEACHER_API] 🔧 Sandbox user detected, serving sandbox students data');
-        console.log('[TEACHER_API] 📚 Filtering by classId:', classId);
-        // Use rich sandbox data for sandbox users
-        const allSandboxStudents = [
-          {
-            id: 1, 
-            firstName: 'Marie', 
-            lastName: 'Nkomo', 
-            email: 'marie.nkomo@test.educafric.com',
-            classId: 1, 
-            className: '6ème A', 
-            gender: 'F', 
-            phone: '+237655123456',
-            grades: { math: 16.5, french: 15.2, english: 17.0 }, 
-            lastActivity: '2025-09-07',
-            status: 'Actif', 
-            parentPhone: '+237677234567',
-            age: 12,
-            enrollmentDate: '2024-09-01',
-            attendance: 95.8,
-            behavior: 'Excellent'
-          },
-          {
-            id: 2, 
-            firstName: 'Paul', 
-            lastName: 'Atangana', 
-            email: 'paul.atangana@test.educafric.com',
-            classId: 1, 
-            className: '6ème A', 
-            gender: 'M', 
-            phone: '+237655123457',
-            grades: { math: 14.0, french: 16.8, english: 15.5 }, 
-            lastActivity: '2025-09-07',
-            status: 'Actif', 
-            parentPhone: '+237677234568',
-            age: 13,
-            enrollmentDate: '2024-09-01',
-            attendance: 92.3,
-            behavior: 'Bon'
-          },
-          {
-            id: 3, 
-            firstName: 'Sophie', 
-            lastName: 'Mbida', 
-            email: 'sophie.mbida@test.educafric.com',
-            classId: 2, 
-            className: '5ème B', 
-            gender: 'F', 
-            phone: '+237655123458',
-            grades: { math: 18.0, french: 17.5, english: 16.2 }, 
-            lastActivity: '2025-09-07',
-            status: 'Actif', 
-            parentPhone: '+237677234569',
-            age: 14,
-            enrollmentDate: '2024-09-01',
-            attendance: 98.5,
-            behavior: 'Excellent'
-          },
-          {
-            id: 4, 
-            firstName: 'Jean', 
-            lastName: 'Kamga', 
-            email: 'jean.kamga@test.educafric.com',
-            classId: 3, 
-            className: '4ème C', 
-            gender: 'M', 
-            phone: '+237655123459',
-            grades: { math: 15.8, french: 14.5, english: 16.8 }, 
-            lastActivity: '2025-09-07',
-            status: 'Actif', 
-            parentPhone: '+237677234570',
-            age: 15,
-            enrollmentDate: '2024-09-01',
-            attendance: 89.7,
-            behavior: 'Bon'
-          },
-          {
-            id: 5, 
-            firstName: 'Grace', 
-            lastName: 'Fouda', 
-            email: 'grace.fouda@test.educafric.com',
-            classId: 4, 
-            className: '3ème D', 
-            gender: 'F', 
-            phone: '+237655123460',
-            grades: { math: 17.2, french: 18.0, english: 17.8 }, 
-            lastActivity: '2025-09-07',
-            status: 'Actif', 
-            parentPhone: '+237677234571',
-            age: 16,
-            enrollmentDate: '2024-09-01',
-            attendance: 96.4,
-            behavior: 'Excellent'
-          }
-        ];
-        
-        // Filtrer par classId si fourni
-        const filteredStudents = classId 
-          ? allSandboxStudents.filter(student => student.classId === parseInt(classId as string))
-          : allSandboxStudents;
-        
-        console.log('[TEACHER_API] 📊 Found', filteredStudents.length, 'students for classId:', classId);
-        return res.json(filteredStudents);
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required', students: [] });
       }
+      
+      console.log('[TEACHER_API] 📊 Fetching students from DATABASE for teacher:', user.id);
       
       // Get ONLY students from classes assigned to this teacher via TIMETABLES
       // First, get assigned class IDs from timetables (source of truth)
@@ -8050,117 +7850,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get available substitute teachers for assignment
+  // ✅ DATABASE-ONLY: Get available substitute teachers for assignment
   app.get("/api/schools/available-substitutes", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
+      const userSchoolId = user.schoolId || user.school_id;
       const { subjectId, date, startTime, endTime } = req.query;
       
-      console.log('[AVAILABLE_SUBSTITUTES] Finding substitutes for:', { subjectId, date, startTime, endTime });
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      console.log('[AVAILABLE_SUBSTITUTES] 📊 Finding substitutes from DATABASE for school:', userSchoolId);
 
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || 
-                           user.email?.includes('sandbox@') || 
-                           user.email?.includes('demo@') || 
-                           user.email?.includes('.sandbox@') ||
-                           user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@') ||
-                           user.email?.startsWith('sandbox.');
+      // Get all teachers for this school from database
+      const schoolTeachers = await db.select()
+        .from(users)
+        .where(and(
+          eq(users.role, 'Teacher'),
+          eq(users.schoolId, userSchoolId)
+        ));
       
-      let availableSubstitutes;
-      
-      if (isSandboxUser) {
-        console.log('[AVAILABLE_SUBSTITUTES] Sandbox user detected - using school teachers as substitutes');
-        // Use school teachers as potential substitutes (sandbox data)
-        availableSubstitutes = [
-          {
-            id: 1,
-            name: 'Marie Dubois',
-            subject: 'Mathématiques',
-            phone: '+237658741963',
-            email: 'marie.dubois@test.educafric.com',
-            availability: 'disponible',
-            canTeachSubject: true,
-            experienceLevel: 'senior',
-            rating: 4.8,
-            lastSubstitution: '2025-09-15'
-          },
-          {
-            id: 3,
-            name: 'Alice Nkomo',
-            subject: 'Sciences Physiques',
-            phone: '+237652147896',
-            email: 'alice.nkomo@test.educafric.com',
-            availability: 'disponible',
-            canTeachSubject: true,
-            experienceLevel: 'expert',
-            rating: 4.9,
-            lastSubstitution: '2025-09-10'
-          },
-          {
-            id: 4,
-            name: 'Paul Mbida',
-            subject: 'Anglais',
-            phone: '+237659876543',
-            email: 'paul.mbida@test.educafric.com',
-            availability: 'limité',
-            canTeachSubject: startTime && startTime < '12:00',
-            experienceLevel: 'junior',
-            rating: 4.5,
-            lastSubstitution: '2025-09-05',
-            note: startTime && startTime >= '12:00' ? 'Disponible seulement le matin' : undefined
-          },
-          {
-            id: 6,
-            name: 'Sophie Mengue',
-            subject: 'Sciences Naturelles',
-            phone: '+237655543210',
-            email: 'sophie.mengue@test.educafric.com',
-            availability: 'disponible',
-            canTeachSubject: true,
-            experienceLevel: 'senior',
-            rating: 4.7,
-            lastSubstitution: '2025-09-12'
-          }
-        ];
-      } else {
-        console.log('[AVAILABLE_SUBSTITUTES] Real user detected - using database teachers as substitutes');
-        // Get real teachers from database who could substitute
-        const { db } = await import('./db');
-        const { users } = await import('@shared/schema');
-        const { eq, and } = await import('drizzle-orm');
-        
-        const userSchoolId = user.schoolId || user.school_id || 1;
-        
-        // Get all teachers for this school
-        const schoolTeachers = await db.select()
-          .from(users)
+      // Get subject assignments from timetables for each teacher
+      const teachersWithSubjects = await Promise.all(schoolTeachers.map(async (teacher) => {
+        const subjectAssignments = await db.selectDistinct({ subjectName: timetables.subjectName })
+          .from(timetables)
           .where(and(
-            eq(users.role, 'Teacher'),
-            eq(users.schoolId, userSchoolId)
+            eq(timetables.teacherId, teacher.id),
+            eq(timetables.schoolId, userSchoolId),
+            eq(timetables.isActive, true)
           ));
         
-        // Format teachers as substitute candidates
-        availableSubstitutes = schoolTeachers.map(teacher => ({
+        const teachingSubjects = subjectAssignments.map(s => s.subjectName).filter(Boolean);
+        
+        return {
           id: teacher.id,
           name: `${teacher.firstName} ${teacher.lastName}`,
-          subject: 'Polyvalent', // Subject not in user schema
-          phone: teacher.phone || '+237 6XX XXX XXX',
+          subject: teachingSubjects[0] || 'Non spécifié',
+          teachingSubjects,
+          phone: teacher.phone || '',
           email: teacher.email,
           availability: 'disponible',
           canTeachSubject: true,
-          experienceLevel: Math.random() > 0.5 ? 'senior' : 'junior',
-          rating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10, // 3.5-5.0
-          lastSubstitution: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        }));
-      }
+          profilePictureUrl: teacher.profilePictureUrl
+        };
+      }));
 
+      console.log('[AVAILABLE_SUBSTITUTES] ✅ Found', teachersWithSubjects.length, 'substitute candidates');
       res.json({
         success: true,
-        substitutes: availableSubstitutes,
+        substitutes: teachersWithSubjects,
         criteria: { subjectId, date, startTime, endTime },
-        totalAvailable: availableSubstitutes.length
+        totalAvailable: teachersWithSubjects.length
       });
     } catch (error: any) {
       console.error('[AVAILABLE_SUBSTITUTES] Error fetching substitutes:', error);
@@ -13724,7 +13465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= MISSING SCHOOL API ROUTES =============
   
-  // Get school basic information by ID
+  // ✅ DATABASE-ONLY: Get school basic information by ID
   app.get('/api/school/:id', requireAuth, async (req, res) => {
     try {
       const schoolId = parseInt(req.params.id, 10);
@@ -13735,28 +13476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ success: false, message: 'Access denied' });
       }
       
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                            user.email?.includes('@sandbox.educafric.com') ||
-                            user.email?.includes('sandbox.') ||
-                            user.email?.includes('.sandbox@') ||
-                            user.email?.includes('demo@') ||
-                            user.email?.includes('.demo@');
-      
-      if (isSandboxUser) {
-        console.log('[SCHOOL_API] Sandbox user detected - returning mock school data');
-        // Return mock school data for sandbox users
-        const mockSchool = {
-          id: schoolId,
-          name: 'École Technique Sandbox',
-          educationalType: 'technical', // Technical school for testing
-          address: '123 Rue de la Paix, Yaoundé, Cameroun',
-          phone: '+237677001234',
-          email: 'contact@ecole-technique-sandbox.cm'
-        };
-        
-        return res.json({ success: true, school: mockSchool });
-      }
+      console.log('[SCHOOL_API] 📊 Fetching school from DATABASE:', schoolId);
       
       const school = await db.select({
         id: schools.id,
@@ -13774,6 +13494,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ success: false, message: 'School not found' });
       }
       
+      console.log('[SCHOOL_API] ✅ Returning school:', school[0].name);
       res.json({ success: true, school: school[0] });
     } catch (error) {
       console.error('[SCHOOL_API] Error fetching school:', error);
@@ -13844,64 +13565,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // School profile with sandbox data integration - ACCESSIBLE TO ALL AUTHENTICATED USERS
+  // ✅ DATABASE-ONLY: School profile - ACCESSIBLE TO ALL AUTHENTICATED USERS
   app.get('/api/school/profile', requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[SCHOOL_PROFILE_API] GET /api/school/profile for user:', user.id, 'schoolId:', user.schoolId, 'role:', user.role);
-      
-      // Check if user is in sandbox/demo mode
-      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
-                           user.email?.includes('@educafric.demo') || 
-                           user.email?.includes('sandbox@') || 
-                           user.sandboxMode;
-      
-      if (isSandboxUser) {
-        console.log('[SCHOOL_PROFILE_API] 🔧 Sandbox user detected, serving sandbox school profile');
-        // Use rich sandbox data for sandbox users
-        const sandboxProfile = {
-          id: 1,
-          name: 'École Internationale de Yaoundé - Sandbox EDUCAFRIC 2025 ✨',
-          type: 'Privé Bilingue Premium',
-          address: 'Quartier Bastos, Avenue Kennedy, Yaoundé, Cameroun',
-          phone: '+237 222 123 456',
-          email: 'contact@eiy-sandbox.educafric.com',
-          website: 'www.eiy-sandbox.educafric.com',
-          director: 'Dr. Marie NKOMO',
-          vicePrincipal: 'Prof. Paul ATANGANA',
-          studentsCount: 542,
-          teachersCount: 38,
-          classesCount: 22,
-          established: 2010,
-          lastUpdate: '2025-09-07',
-          accreditation: 'Ministère de l\'Éducation du Cameroun - Accréditation Premium 2025',
-          curriculum: 'Programme Bilingue Franco-Anglais avec IA & Signatures Numériques',
-          newFeatures2025: [
-            'Signatures numériques bulletins par professeurs principaux',
-            'Rapports filtrés par classes et enseignants', 
-            'Documents commerciaux bilingues français/anglais',
-            'Vérification QR codes DEMO2024 et EDU2024',
-            'Interface complètement bilingue'
-          ],
-          levels: ['Maternelle', 'Primaire', 'Collège', 'Lycée'],
-          specializations: ['Sciences & Technologies', 'Langues & Littératures', 'Arts & Communication'],
-          facilities: ['Laboratoires numériques', 'Bibliothèque multimédia', 'Centre sportif', 'Auditorium'],
-          status: 'Active',
-          academicYear: '2024-2025',
-          currentTerm: 'Trimestre 2',
-          logoUrl: null,
-          timezone: 'Africa/Douala',
-          language: 'fr'
-        };
-        return res.json(sandboxProfile);
-      }
+      const userSchoolId = user.schoolId || user.school_id;
+      console.log('[SCHOOL_PROFILE_API] 📊 GET /api/school/profile for user:', user.id, 'schoolId:', userSchoolId);
       
       // If user has a schoolId, fetch real school data from database
-      if (user.schoolId) {
+      if (userSchoolId) {
         try {
-          const schoolData = await storage.getSchoolById(user.schoolId);
+          const schoolData = await storage.getSchoolById(userSchoolId);
           if (schoolData) {
-            console.log('[SCHOOL_PROFILE_API] ✅ Returning real school data from database for:', schoolData.name);
+            console.log('[SCHOOL_PROFILE_API] ✅ Returning school data from database for:', schoolData.name);
             const profile = {
               id: schoolData.id,
               name: schoolData.name,
@@ -13910,7 +13586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               phone: schoolData.phone,
               email: schoolData.email,
               website: schoolData.website,
-              logoUrl: schoolData.logo || (req.session as any)?.schoolLogo || null, // Database first, session as fallback
+              logoUrl: schoolData.logo || (req.session as any)?.schoolLogo || null,
               description: schoolData.description,
               establishedYear: schoolData.establishedYear,
               principalName: schoolData.principalName,
@@ -13926,26 +13602,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (dbError: any) {
           console.error('[SCHOOL_PROFILE_API] ⚠️ Error fetching school from database:', dbError.message);
-          // Continue to fallback data
         }
       }
       
-      // Fallback to mock data if no schoolId or database fetch failed
-      const profile = {
-        id: 1,
-        name: 'Collège Saint-Joseph',
-        address: '123 Rue de l\'Education, Yaoundé, Cameroun',
-        phone: '+237677001234',
-        email: 'contact@saint-joseph.edu.cm',
-        website: 'https://saint-joseph.edu.cm',
-        logoUrl: (req.session as any)?.schoolLogo || null, // Get from session
-        description: 'Un établissement d\'excellence dédié à l\'éducation de qualité au Cameroun',
-        establishedYear: 1995,
-        principalName: 'M. Jean-Pierre Mballa',
-        studentCapacity: 800
-      };
-      
-      res.json({ success: true, profile });
+      // Return error if no school found
+      return res.status(404).json({ success: false, message: 'School not found' });
     } catch (error: any) {
       console.error('[SCHOOL_PROFILE_API] ❌ Error:', error.message || error);
       res.status(500).json({ success: false, message: error.message || 'Failed to fetch profile' });
