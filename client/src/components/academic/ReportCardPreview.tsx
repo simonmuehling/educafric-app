@@ -193,7 +193,13 @@ const QRImg = ({ value = "https://www.educafric.com", size = 64 }: { value?: str
   <img alt="QR" src={`https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(value)}`} style={{ width: size, height: size }} />
 );
 const A4Sheet = ({ children }: { children: React.ReactNode }) => (
-  <div className="mx-auto bg-white" style={{ width: "210mm", minHeight: "297mm" }}>
+  <div className="mx-auto bg-white a4-container" style={{ 
+    width: "210mm", 
+    minHeight: "297mm",
+    maxHeight: "297mm",
+    overflow: "hidden",
+    boxSizing: "border-box"
+  }}>
     {children}
   </div>
 );
@@ -371,9 +377,9 @@ export default function ReportCardPreview({
   const labels = LABELS[language];
 
   return (
-    <div className="bg-white rounded-2xl shadow p-4 print:shadow-none print:p-0 bulletin-a4-optimized print:w-[210mm] print:min-h-[297mm] print:overflow-hidden" data-bulletin-preview="true">
+    <div className="bg-white rounded-2xl shadow p-4 print:shadow-none print:p-0 bulletin-a4-optimized print:w-[198mm] print:max-h-[285mm] print:overflow-hidden" data-bulletin-preview="true">
       <A4Sheet>
-        <div className="p-3 print:p-[4mm]">
+        <div className="p-2 print:p-[2mm]">
           {/* EXACT Ministry Header - Bilingual 3-Column Layout (EN - Logo - FR) - PRINT OPTIMIZED */}
           <div className="text-center mb-2 relative ministry-header">
             <div className="grid grid-cols-3 gap-2">
@@ -953,9 +959,9 @@ export default function ReportCardPreview({
           </div>
 
 
-          {/* Third Trimester Annual Summary */}
+          {/* Third Trimester Annual Summary - Compact for Print */}
           {isThirdTrimester && annualSummary && (
-            <div className={`${isTechnicalBulletin ? "mt-6" : "mt-10"} border-2 border-orange-300 rounded-xl p-4 bg-orange-50`}>
+            <div className={`${isTechnicalBulletin ? "mt-2" : "mt-3"} border border-orange-300 rounded p-2 bg-orange-50 print:hidden`}>
               <h3 className="text-lg font-semibold text-orange-800 mb-3">
                 {language === 'fr' ? 'Résumé Annuel' : 'Annual Summary'}
               </h3>
@@ -1031,19 +1037,19 @@ export default function ReportCardPreview({
             </div>
           )}
 
-          {/* Verification Code */}
+          {/* Verification Code - Compact */}
           {(student as any).verificationCode && (
-            <div className={`${isTechnicalBulletin ? "mt-4" : "mt-6"} flex justify-center`}>
-              <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-3 w-64">
-                <div className="text-xs text-blue-700 text-center font-medium">{language === 'fr' ? 'Code de Vérification' : 'Verification Code'}</div>
-                <div className="text-lg font-bold text-blue-800 text-center">{(student as any).verificationCode}</div>
-                <div className="text-xs text-blue-600 text-center mt-1">{language === 'fr' ? 'Vérifiez sur educafric.com/verify' : 'Verify on educafric.com/verify'}</div>
+            <div className={`${isTechnicalBulletin ? "mt-1" : "mt-2"} flex justify-center print:mt-1`}>
+              <div className="rounded border border-blue-200 bg-blue-50 p-1 w-48 print:w-40">
+                <div className="text-[8px] text-blue-700 text-center font-medium print:text-[6pt]">{language === 'fr' ? 'Code Vérification' : 'Verification Code'}</div>
+                <div className="text-sm font-bold text-blue-800 text-center print:text-[8pt]">{(student as any).verificationCode}</div>
+                <div className="text-[7px] text-blue-600 text-center print:text-[5pt]">educafric.com/verify</div>
               </div>
             </div>
           )}
 
-          {/* Educafric Footer - Bilingual */}
-          <EducafricFooterCompact language={language} className="mt-6 print:mt-4" />
+          {/* Educafric Footer - Bilingual - Compact */}
+          <EducafricFooterCompact language={language} className="mt-2 print:mt-1" />
 
         </div>
       </A4Sheet>
