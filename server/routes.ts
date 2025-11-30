@@ -2048,19 +2048,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!student) {
           return res.status(404).json({ success: false, message: 'Student not found' });
         }
+        
+        // Calculate age from dateOfBirth for single student
+        let age = 0;
+        if (student.dateOfBirth) {
+          const birthDate = new Date(student.dateOfBirth);
+          const today = new Date();
+          age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+        }
+        
         console.log(`[DIRECTOR_STUDENTS_API] ✅ Isolated student: ${student.firstName} ${student.lastName}`);
-        return res.json({ success: true, student: { ...student, name: `${student.firstName} ${student.lastName}` } });
+        return res.json({ 
+          success: true, 
+          student: { 
+            ...student, 
+            name: `${student.firstName} ${student.lastName}`,
+            level: student.classLevel || null,
+            parentName: student.guardian || null,
+            matricule: student.educafricNumber || null,
+            redoublant: student.isRepeater || false,
+            photo: student.profilePictureUrl || null,
+            age: age || null,
+            average: 0,
+            attendance: 100,
+            status: 'active' as const
+          } 
+        });
       }
       
-      // Return all students with combined name field
+      // Return all students with combined name field and calculated fields
       // ✅ FIX: Use selected class name when filtering by classId (for bulletin creation)
-      const students = dbStudents.map(student => ({
-        ...student,
-        name: `${student.firstName} ${student.lastName}`,
-        // If we're filtering by classId, use that class name; otherwise use enrolled class name
-        className: selectedClassName || student.className || null,
-        classId: parsedClassId || student.classId || null
-      }));
+      // ✅ FIX: Include all field aliases for frontend compatibility
+      const students = dbStudents.map(student => {
+        // Calculate age from dateOfBirth
+        let age = 0;
+        if (student.dateOfBirth) {
+          const birthDate = new Date(student.dateOfBirth);
+          const today = new Date();
+          age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+        }
+        
+        return {
+          ...student,
+          name: `${student.firstName} ${student.lastName}`,
+          // If we're filtering by classId, use that class name; otherwise use enrolled class name
+          className: selectedClassName || student.className || null,
+          classId: parsedClassId || student.classId || null,
+          level: student.classLevel || null,
+          // Field aliases for frontend compatibility
+          parentName: student.guardian || null,
+          matricule: student.educafricNumber || null,
+          redoublant: student.isRepeater || false,
+          photo: student.profilePictureUrl || null,
+          // Calculated fields
+          age: age || null,
+          // Default academic values (will be fetched from grades/attendance tables if needed)
+          average: 0,
+          attendance: 100,
+          status: 'active' as const
+        };
+      });
       
       console.log(`[DIRECTOR_STUDENTS_API] ✅ Returning ${students.length} students (Sandbox: ${userIsSandbox}, classFilter: ${parsedClassId || 'none'})`);
       res.json({ success: true, students });
