@@ -102,3 +102,28 @@ export const subjects = pgTable("subjects", {
   subjectType: text("subject_type").default('general'), // 'general', 'scientific', 'literary', 'professional', or 'other' for technical schools (5 sections for bulletin)
   bulletinSection: text("bulletin_section") // For technical schools: manual mapping to 3 bulletin sections ('general', 'scientific', 'professional') - overrides subjectType for bulletin grouping
 });
+
+export const educationalContent = pgTable("educational_content", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  type: text("type").default("lesson"), // lesson, exercise, quiz, video, document
+  subjectId: integer("subject_id"),
+  level: text("level"), // 6eme, 5eme, etc.
+  duration: integer("duration"), // duration in minutes
+  objectives: text("objectives"),
+  prerequisites: text("prerequisites"),
+  teacherId: integer("teacher_id").notNull(),
+  schoolId: integer("school_id").notNull(),
+  files: jsonb("files"), // Array of file objects with url, filename, etc.
+  status: text("status").default("draft"), // draft, published, pending_approval, approved, rejected
+  visibility: text("visibility").default("school"), // school, public, private
+  downloadCount: integer("download_count").default(0),
+  rating: decimal("rating", { precision: 3, scale: 2 }),
+  tags: jsonb("tags"), // Array of string tags
+  approvedBy: integer("approved_by"),
+  approvedAt: timestamp("approved_at"),
+  sharedWith: jsonb("shared_with"), // Array of schoolIds for sharing
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});

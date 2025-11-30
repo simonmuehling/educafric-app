@@ -3,6 +3,9 @@ import { requireAuth } from '../../middleware/auth';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
+import { db } from '../../db';
+import { educationalContent, users, subjects } from '@shared/schema';
+import { eq, and, desc, or, sql } from 'drizzle-orm';
 
 const router = Router();
 
@@ -78,43 +81,42 @@ router.post('/', requireAuth, upload.array('files', 10), async (req, res) => {
       url: `/uploads/educational-content/${file.filename}`
     })) : [];
 
-    // Create educational content record
-    const educationalContent = {
-      id: Date.now(), // Temporary ID generation
+    // Insert into database
+    const insertData: typeof educationalContent.$inferInsert = {
       title: contentData.title,
-      description: contentData.description,
+      description: contentData.description || null,
       type: contentData.type || 'lesson',
-      subject: contentData.subject,
-      level: contentData.level,
+      subjectId: contentData.subjectId || null,
+      level: contentData.level || null,
       duration: contentData.duration || 60,
-      objectives: contentData.objectives || '',
-      prerequisites: contentData.prerequisites || '',
+      objectives: contentData.objectives || null,
+      prerequisites: contentData.prerequisites || null,
       teacherId: user.id,
-      teacherName: user.firstName + ' ' + user.lastName,
       schoolId: user.schoolId,
       files: fileUrls,
       status: 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      visibility: 'school', // school, public, private
+      visibility: 'school',
       downloadCount: 0,
-      rating: 0,
       tags: contentData.tags || []
     };
 
-    // In a real implementation, save to database
-    console.log('[EDUCATIONAL_CONTENT] Content created:', {
-      id: educationalContent.id,
-      title: educationalContent.title,
-      teacher: educationalContent.teacherName,
-      school: educationalContent.schoolId,
+    const [newContent] = await db.insert(educationalContent).values(insertData).returning();
+
+    console.log('[EDUCATIONAL_CONTENT] ✅ Content created in database:', {
+      id: newContent.id,
+      title: newContent.title,
+      teacherId: newContent.teacherId,
+      schoolId: newContent.schoolId,
       filesCount: fileUrls.length
     });
 
     res.json({
       success: true,
       message: 'Educational content created successfully',
-      content: educationalContent
+      content: {
+        ...newContent,
+        teacherName: user.firstName + ' ' + user.lastName
+      }
     });
 
   } catch (error) {
@@ -131,70 +133,77 @@ router.post('/', requireAuth, upload.array('files', 10), async (req, res) => {
 router.get('/', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
-    const { type, subject, level, teacherId } = req.query;
+    const { type, subject, level, teacherId: queryTeacherId } = req.query;
 
-    // Mock data for demonstration
-    const mockContent = [
-      {
-        id: 1,
-        title: "Introduction aux Fractions",
-        description: "Cours complet sur les fractions pour les élèves de 6ème",
-        type: "lesson",
-        subject: "mathematiques",
-        level: "6eme",
-        duration: 45,
-        objectives: "Comprendre le concept de fraction, savoir lire et écrire des fractions simples",
-        prerequisites: "Connaissance des nombres entiers",
-        teacherId: user.id,
-        teacherName: user.firstName + ' ' + user.lastName,
-        schoolId: user.schoolId,
-        files: [
-          { filename: "fractions-intro.pdf", originalName: "Introduction aux fractions.pdf", url: "/uploads/educational-content/fractions-intro.pdf" }
-        ],
-        status: "published",
-        createdAt: "2025-08-20T10:00:00Z",
-        updatedAt: "2025-08-20T10:00:00Z",
-        visibility: "school",
-        downloadCount: 15,
-        rating: 4.5,
-        tags: ["mathematiques", "fractions", "6eme"]
-      },
-      {
-        id: 2,
-        title: "Exercices sur les Verbes",
-        description: "Série d'exercices sur la conjugaison des verbes du 1er groupe",
-        type: "exercise",
-        subject: "francais",
-        level: "5eme",
-        duration: 30,
-        objectives: "Maîtriser la conjugaison des verbes du 1er groupe au présent",
-        prerequisites: "Connaissance des pronoms personnels",
-        teacherId: user.id,
-        teacherName: user.firstName + ' ' + user.lastName,
-        schoolId: user.schoolId,
-        files: [],
-        status: "draft",
-        createdAt: "2025-08-22T14:30:00Z",
-        updatedAt: "2025-08-22T14:30:00Z",
-        visibility: "school",
-        downloadCount: 3,
-        rating: 0,
-        tags: ["francais", "conjugaison", "verbes"]
-      }
+    console.log('[EDUCATIONAL_CONTENT] Fetching content for user:', user.id, 'school:', user.schoolId);
+
+    // Build query conditions - show content from teacher's school OR shared with their school
+    const conditions = [
+      eq(educationalContent.schoolId, user.schoolId)
     ];
 
-    // Filter content based on query parameters
-    let filteredContent = mockContent;
+    // Query database with optional filters
+    let query = db
+      .select({
+        id: educationalContent.id,
+        title: educationalContent.title,
+        description: educationalContent.description,
+        type: educationalContent.type,
+        subjectId: educationalContent.subjectId,
+        level: educationalContent.level,
+        duration: educationalContent.duration,
+        objectives: educationalContent.objectives,
+        prerequisites: educationalContent.prerequisites,
+        teacherId: educationalContent.teacherId,
+        schoolId: educationalContent.schoolId,
+        files: educationalContent.files,
+        status: educationalContent.status,
+        visibility: educationalContent.visibility,
+        downloadCount: educationalContent.downloadCount,
+        rating: educationalContent.rating,
+        tags: educationalContent.tags,
+        createdAt: educationalContent.createdAt,
+        updatedAt: educationalContent.updatedAt,
+        teacherFirstName: users.firstName,
+        teacherLastName: users.lastName,
+        subjectName: subjects.nameFr
+      })
+      .from(educationalContent)
+      .leftJoin(users, eq(educationalContent.teacherId, users.id))
+      .leftJoin(subjects, eq(educationalContent.subjectId, subjects.id))
+      .where(eq(educationalContent.schoolId, user.schoolId))
+      .orderBy(desc(educationalContent.createdAt));
+
+    const content = await query;
+
+    // Apply filters in JavaScript for more flexibility
+    let filteredContent = content;
     
-    if (type) filteredContent = filteredContent.filter(c => c.type === type);
-    if (subject) filteredContent = filteredContent.filter(c => c.subject === subject);
-    if (level) filteredContent = filteredContent.filter(c => c.level === level);
-    if (teacherId) filteredContent = filteredContent.filter(c => c.teacherId.toString() === teacherId);
+    if (type) {
+      filteredContent = filteredContent.filter(c => c.type === type);
+    }
+    if (level) {
+      filteredContent = filteredContent.filter(c => c.level === level);
+    }
+    if (queryTeacherId) {
+      filteredContent = filteredContent.filter(c => c.teacherId?.toString() === queryTeacherId);
+    }
+
+    // Format response
+    const formattedContent = filteredContent.map(c => ({
+      ...c,
+      teacherName: c.teacherFirstName && c.teacherLastName 
+        ? `${c.teacherFirstName} ${c.teacherLastName}` 
+        : 'Unknown Teacher',
+      subject: c.subjectName || 'General'
+    }));
+
+    console.log('[EDUCATIONAL_CONTENT] ✅ Found', formattedContent.length, 'content items');
 
     res.json({
       success: true,
-      content: filteredContent,
-      total: filteredContent.length
+      content: formattedContent,
+      total: formattedContent.length
     });
 
   } catch (error) {
@@ -211,36 +220,71 @@ router.get('/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const user = (req as any).user;
+    const contentId = parseInt(id);
 
-    // Mock response for specific content
-    const mockContent = {
-      id: parseInt(id),
-      title: "Introduction aux Fractions",
-      description: "Cours complet sur les fractions pour les élèves de 6ème",
-      type: "lesson",
-      subject: "mathematiques",
-      level: "6eme",
-      duration: 45,
-      objectives: "Comprendre le concept de fraction, savoir lire et écrire des fractions simples",
-      prerequisites: "Connaissance des nombres entiers",
-      teacherId: user.id,
-      teacherName: user.firstName + ' ' + user.lastName,
-      schoolId: user.schoolId,
-      files: [
-        { filename: "fractions-intro.pdf", originalName: "Introduction aux fractions.pdf", url: "/uploads/educational-content/fractions-intro.pdf" }
-      ],
-      status: "published",
-      createdAt: "2025-08-20T10:00:00Z",
-      updatedAt: "2025-08-20T10:00:00Z",
-      visibility: "school",
-      downloadCount: 15,
-      rating: 4.5,
-      tags: ["mathematiques", "fractions", "6eme"]
-    };
+    if (isNaN(contentId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content ID'
+      });
+    }
+
+    // Query database for specific content
+    const [content] = await db
+      .select({
+        id: educationalContent.id,
+        title: educationalContent.title,
+        description: educationalContent.description,
+        type: educationalContent.type,
+        subjectId: educationalContent.subjectId,
+        level: educationalContent.level,
+        duration: educationalContent.duration,
+        objectives: educationalContent.objectives,
+        prerequisites: educationalContent.prerequisites,
+        teacherId: educationalContent.teacherId,
+        schoolId: educationalContent.schoolId,
+        files: educationalContent.files,
+        status: educationalContent.status,
+        visibility: educationalContent.visibility,
+        downloadCount: educationalContent.downloadCount,
+        rating: educationalContent.rating,
+        tags: educationalContent.tags,
+        createdAt: educationalContent.createdAt,
+        updatedAt: educationalContent.updatedAt,
+        teacherFirstName: users.firstName,
+        teacherLastName: users.lastName,
+        subjectName: subjects.nameFr
+      })
+      .from(educationalContent)
+      .leftJoin(users, eq(educationalContent.teacherId, users.id))
+      .leftJoin(subjects, eq(educationalContent.subjectId, subjects.id))
+      .where(eq(educationalContent.id, contentId))
+      .limit(1);
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    // Check access: user must be from same school or content is public
+    if (content.schoolId !== user.schoolId && content.visibility !== 'public') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
 
     res.json({
       success: true,
-      content: mockContent
+      content: {
+        ...content,
+        teacherName: content.teacherFirstName && content.teacherLastName 
+          ? `${content.teacherFirstName} ${content.teacherLastName}` 
+          : 'Unknown Teacher',
+        subject: content.subjectName || 'General'
+      }
     });
 
   } catch (error) {
