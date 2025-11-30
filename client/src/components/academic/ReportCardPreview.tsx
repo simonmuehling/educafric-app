@@ -363,6 +363,10 @@ export default function ReportCardPreview({
   console.log('[PREVIEW] First line data:', entries[0]);
   console.log('[PREVIEW] Sample mk20:', entries[0]?.mk20);
   console.log('[PREVIEW] Sample av20:', entries[0]?.av20);
+  console.log('[PREVIEW] Competence1:', entries[0]?.competence1);
+  console.log('[PREVIEW] Competence2:', entries[0]?.competence2);
+  console.log('[PREVIEW] Competence3:', entries[0]?.competence3);
+  console.log('[PREVIEW] All entries competences:', entries.map(e => ({ subject: e.subject, c1: e.competence1, c2: e.competence2, c3: e.competence3 })));
 
   const labels = LABELS[language];
 
