@@ -2511,8 +2511,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ))
         .returning();
       
-      console.log('[UPDATE_STUDENT] ✅ Student updated successfully:', `${updatedStudent.firstName} ${updatedStudent.lastName}`);
-      res.json({ success: true, student: updatedStudent, message: 'Student updated successfully' });
+      // ✅ FIX: Also update/create enrollment record when classId is assigned
+      // The GET API reads className from enrollments table, so we must keep it in sync
+      if (classId !== undefined) {
+        // First, delete any existing enrollments for this student
+        await db.delete(enrollments).where(eq(enrollments.studentId, studentId));
+        
+        // If classId is valid (not null/0), create new enrollment
+        if (classId && classId > 0) {
+          try {
+            await db.insert(enrollments).values({
+              studentId: studentId,
+              classId: classId,
+              enrollmentDate: new Date().toISOString().split('T')[0],
+              status: 'active'
+            });
+            console.log('[UPDATE_STUDENT] ✅ Enrollment created for student:', studentId, 'in class:', classId);
+          } catch (enrollError) {
+            console.log('[UPDATE_STUDENT] ⚠️ Could not create enrollment:', enrollError);
+          }
+        }
+      }
+      
+      // Get the class name for the response
+      let className = '';
+      if (classId && classId > 0) {
+        const [classInfo] = await db.select({ name: classes.name })
+          .from(classes)
+          .where(eq(classes.id, classId))
+          .limit(1);
+        className = classInfo?.name || '';
+      }
+      
+      console.log('[UPDATE_STUDENT] ✅ Student updated successfully:', `${updatedStudent.firstName} ${updatedStudent.lastName}`, 'Class:', className);
+      res.json({ 
+        success: true, 
+        student: { ...updatedStudent, className, classId: classId || null }, 
+        message: 'Student updated successfully' 
+      });
     } catch (error) {
       console.error('[UPDATE_STUDENT] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to update student' });
