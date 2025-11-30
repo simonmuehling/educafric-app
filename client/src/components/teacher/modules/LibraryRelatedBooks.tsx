@@ -180,17 +180,59 @@ const LibraryRelatedBooks: React.FC = () => {
   });
   const recommendations = (recommendationsData as any)?.recommendations || [];
 
-  // Fetch teacher classes for recommendations
+  // Fetch teacher classes for recommendations (from assigned classes)
   const { data: classesData } = useQuery({
     queryKey: ['/api/teacher/classes'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/classes', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.warn('[LIBRARY] Classes API failed');
+        return { schoolsWithClasses: [] };
+      }
+      return response.json();
+    },
     enabled: !!user
   });
-  const classes = (classesData as any)?.classes || [];
+  
+  // Extract classes from all schools the teacher is assigned to
+  const classes = (classesData as any)?.schoolsWithClasses?.flatMap((school: any) => 
+    school.classes?.map((cls: any) => ({
+      ...cls,
+      schoolName: school.schoolName
+    })) || []
+  ) || [];
 
-  // Fetch teacher students for recommendations
+  // Fetch students from teacher's assigned classes
   const { data: studentsData } = useQuery({
-    queryKey: ['/api/teacher/students'],
-    enabled: !!user
+    queryKey: ['/api/teacher/class-students'],
+    queryFn: async () => {
+      // Get students from all teacher's assigned classes
+      const allStudents: any[] = [];
+      for (const cls of classes) {
+        try {
+          const response = await fetch(`/api/teacher/class/${cls.id}/students`, {
+            method: 'GET',
+            credentials: 'include'
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const studentsWithClass = (data.students || []).map((s: any) => ({
+              ...s,
+              classId: cls.id,
+              className: cls.name
+            }));
+            allStudents.push(...studentsWithClass);
+          }
+        } catch (error) {
+          console.warn(`[LIBRARY] Failed to fetch students for class ${cls.id}`);
+        }
+      }
+      return { students: allStudents };
+    },
+    enabled: !!user && classes.length > 0
   });
   const students = (studentsData as any)?.students || [];
 

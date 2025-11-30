@@ -7682,7 +7682,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Create a new book recommendation
+  // Create a new book recommendation with parent notifications
   app.post("/api/teacher/library/recommend", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
@@ -7705,6 +7705,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Get book details for notification
+      const book = await storage.getBook(bookId);
+      const bookTitle = book?.title?.fr || book?.title?.en || 'Livre recommandé';
+      
       const recommendationData = {
         bookId,
         teacherId: user.id,
@@ -7715,10 +7719,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const recommendation = await storage.createRecommendation(recommendationData);
       
+      // Send notifications to students AND their parents
+      const notificationRecipients: number[] = [];
+      
+      if (audienceType === 'class') {
+        // Get all students in the selected classes
+        for (const classId of audienceIds) {
+          const classStudents = await storage.getStudentsByClass(classId);
+          for (const student of classStudents) {
+            notificationRecipients.push(student.id);
+            // Get parent for this student
+            const parentLinks = await storage.getParentStudentLinks(student.id);
+            for (const link of parentLinks) {
+              if (link.parentId) notificationRecipients.push(link.parentId);
+            }
+          }
+        }
+      } else {
+        // Direct student selection - add students and their parents
+        for (const studentId of audienceIds) {
+          notificationRecipients.push(studentId);
+          const parentLinks = await storage.getParentStudentLinks(studentId);
+          for (const link of parentLinks) {
+            if (link.parentId) notificationRecipients.push(link.parentId);
+          }
+        }
+      }
+      
+      // Create PWA notifications for all recipients
+      const uniqueRecipients = [...new Set(notificationRecipients)];
+      console.log('[TEACHER_LIBRARY] 📤 Sending notifications to', uniqueRecipients.length, 'recipients');
+      
+      const teacherName = `${user.firstName} ${user.lastName}`;
+      for (const recipientId of uniqueRecipients) {
+        try {
+          // Always include teacher name in notification
+          const notificationMessage = note 
+            ? `${note} - Recommandé par ${teacherName}`
+            : `${teacherName} vous recommande ce livre.`;
+          
+          await storage.createPWANotification({
+            userId: recipientId,
+            title: `📚 Nouvelle recommandation: ${bookTitle}`,
+            message: notificationMessage,
+            type: 'library_recommendation',
+            data: {
+              bookId,
+              teacherId: user.id,
+              teacherName,
+              recommendationId: recommendation.id
+            }
+          });
+        } catch (notifError) {
+          console.warn('[TEACHER_LIBRARY] Failed to send notification to user:', recipientId);
+        }
+      }
+      
       res.json({ 
         success: true, 
         recommendation,
-        message: 'Book recommendation created successfully' 
+        notificationsSent: uniqueRecipients.length,
+        message: 'Book recommendation created and notifications sent' 
       });
     } catch (error) {
       console.error('[TEACHER_LIBRARY] Error creating recommendation:', error);
