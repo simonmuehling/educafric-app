@@ -268,16 +268,21 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   // Update teacher mutation
   const updateTeacherMutation = useMutation({
     mutationFn: async (teacherData: any) => {
+      console.log('[TEACHER_UPDATE] Sending PUT request:', teacherData);
       const response = await fetch(`/api/director/teachers/${teacherData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(teacherData),
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to update teacher');
-      return response.json();
+      console.log('[TEACHER_UPDATE] Response status:', response.status);
+      const data = await response.json();
+      console.log('[TEACHER_UPDATE] Response data:', data);
+      if (!response.ok) throw new Error(data.message || 'Failed to update teacher');
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[TEACHER_UPDATE] ✅ Success:', data);
       // ✅ IMMEDIATE VISUAL FEEDBACK - User sees updated teacher
       queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
       queryClient.refetchQueries({ queryKey: ['/api/director/teachers'] });
@@ -291,10 +296,11 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
         description: language === 'fr' ? 'L\'enseignant a été modifié avec succès.' : 'Teacher updated successfully.'
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('[TEACHER_UPDATE] ❌ Error:', error);
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Impossible de modifier l\'enseignant.' : 'Unable to update teacher.',
+        description: error.message || (language === 'fr' ? 'Impossible de modifier l\'enseignant.' : 'Unable to update teacher.'),
         variant: 'destructive'
       });
     }

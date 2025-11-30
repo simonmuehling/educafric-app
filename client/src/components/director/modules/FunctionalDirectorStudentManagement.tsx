@@ -328,16 +328,21 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Update student mutation
   const updateStudentMutation = useMutation({
     mutationFn: async (studentData: any) => {
+      console.log('[STUDENT_UPDATE] Sending PUT request:', studentData);
       const response = await fetch(`/api/director/students/${studentData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(studentData),
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to update student');
-      return response.json();
+      console.log('[STUDENT_UPDATE] Response status:', response.status);
+      const data = await response.json();
+      console.log('[STUDENT_UPDATE] Response data:', data);
+      if (!response.ok) throw new Error(data.message || 'Failed to update student');
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[STUDENT_UPDATE] ✅ Success:', data);
       // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student AND class queries
       queryClient.invalidateQueries({ 
         predicate: (query) => {
@@ -361,10 +366,11 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         description: `${editedStudentName} a été modifié avec succès. Les changements sont visibles immédiatement dans toutes les vues.`
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('[STUDENT_UPDATE] ❌ Error:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de modifier l\'élève.',
+        description: error.message || 'Impossible de modifier l\'élève.',
         variant: 'destructive'
       });
     }
@@ -540,10 +546,41 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
 
   const handleUpdateStudent = () => {
     if (selectedStudent) {
-      updateStudentMutation.mutate({
-        ...selectedStudent,
-        ...studentForm
-      });
+      // ✅ CRITICAL FIX: Convert className to classId for backend
+      let classId = selectedStudent.classId;
+      if (studentForm.className && studentForm.className !== 'unassigned') {
+        const selectedClass = availableClasses.find((c: any) => c.name === studentForm.className);
+        if (selectedClass) {
+          classId = selectedClass.id;
+        }
+      } else if (studentForm.className === 'unassigned') {
+        classId = null; // Explicitly unassign class
+      }
+      
+      // Parse name into firstName/lastName
+      const nameParts = (studentForm.name || '').trim().split(' ');
+      const firstName = nameParts[0] || selectedStudent.firstName;
+      const lastName = nameParts.slice(1).join(' ') || selectedStudent.lastName;
+      
+      const updateData = {
+        id: selectedStudent.id,
+        firstName,
+        lastName,
+        email: studentForm.email || null,
+        phone: studentForm.phone || null,
+        classId, // ✅ Send classId (number) not className (string)
+        gender: studentForm.gender || null,
+        dateOfBirth: studentForm.dateOfBirth || null,
+        placeOfBirth: studentForm.placeOfBirth || null,
+        matricule: studentForm.matricule || null,
+        parentName: studentForm.parentName || null,
+        parentEmail: studentForm.parentEmail || null,
+        parentPhone: studentForm.parentPhone || null,
+        redoublant: studentForm.redoublant
+      };
+      
+      console.log('[STUDENT_UPDATE] Prepared update data:', updateData);
+      updateStudentMutation.mutate(updateData);
     }
   };
 
@@ -551,11 +588,21 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     // ✅ FIX: Populate ALL fields from student data including API fields
     console.log('[EDIT_STUDENT] Loading student data:', student);
     setSelectedStudent(student);
+    
+    // ✅ FIX: Find className from classId if available
+    let className = student.className || '';
+    if (student.classId && availableClasses.length > 0) {
+      const foundClass = availableClasses.find((c: any) => c.id === student.classId);
+      if (foundClass) {
+        className = foundClass.name;
+      }
+    }
+    
     setStudentForm({
       name: student.name || `${student.firstName || ''} ${student.lastName || ''}`.trim(),
       email: student.email || '',
       phone: student.phone || '',
-      className: student.className || '',
+      className: className, // ✅ Use resolved className
       level: student.level || student.classLevel || '',
       age: student.age ? student.age.toString() : '',
       // ✅ Map API fields correctly (dateOfBirth -> dateOfBirth, placeOfBirth -> placeOfBirth)
