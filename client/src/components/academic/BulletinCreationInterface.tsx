@@ -2248,9 +2248,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                           </td>
 
                           {/* Compétences évaluées */}
-                          <td className="px-3 py-2 border print:px-2 print:py-1" data-testid={`cell-competences-${index}`}>
+                          <td className="px-3 py-2 border print:px-2 print:py-1 min-w-[200px]" data-testid={`cell-competences-${index}`}>
                             <textarea
-                              className="w-full border-0 bg-transparent text-xs resize-none print:text-[11px] print:leading-tight"
+                              className="w-full border border-blue-200 bg-white text-xs resize-none p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 print:text-[11px] print:leading-tight print:border-0 print:bg-transparent"
                               rows={3}
                               value={subject.competenceRaw !== undefined ? subject.competenceRaw : competencesEvaluees}
                               onChange={(e) => {
