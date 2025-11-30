@@ -10338,7 +10338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Class Reports API Routes
   // ===== SCHOOL OFFICIAL SETTINGS API =====
-  app.get('/api/director/school-settings', requireAuth, requireAnyRole(['Director']), async (req: Request, res: Response) => {
+  app.get('/api/director/school-settings', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
     try {
       // Get real school data from database instead of demo data
       const user = req.user as { schoolId: number; role: string };
@@ -10412,7 +10412,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/director/school-settings', requireAuth, requireAnyRole(['Director']), async (req: Request, res: Response) => {
+  app.post('/api/director/school-settings', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
       const settings = req.body;
@@ -10424,36 +10424,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, error: 'No school associated with user' });
       }
       
-      // Prepare school updates object
+      // Prepare school updates object - include all fields that were sent, even if empty
       const schoolUpdates: any = {};
       
-      // Map fields from settings to database fields
-      if (settings.name) schoolUpdates.name = settings.name;
-      if (settings.type) schoolUpdates.type = settings.type;
-      if (settings.address) schoolUpdates.address = settings.address;
-      if (settings.phone) schoolUpdates.phone = settings.phone;
-      if (settings.email) schoolUpdates.email = settings.email;
-      if (settings.website) schoolUpdates.website = settings.website;
-      if (settings.description) schoolUpdates.description = settings.description;
-      if (settings.establishedYear) schoolUpdates.establishedYear = settings.establishedYear;
-      if (settings.principalName) schoolUpdates.principalName = settings.principalName;
-      if (settings.studentCapacity) schoolUpdates.studentCapacity = settings.studentCapacity;
+      // Helper to check if a field was explicitly provided (even if empty string or null)
+      const hasField = (field: string) => field in settings;
+      
+      // Map fields from settings to database fields - allow clearing fields with empty strings
+      if (hasField('name') && settings.name) schoolUpdates.name = settings.name;
+      if (hasField('type') && settings.type) schoolUpdates.type = settings.type;
+      if (hasField('address')) schoolUpdates.address = settings.address || '';
+      if (hasField('phone')) schoolUpdates.phone = settings.phone || null;
+      if (hasField('email')) schoolUpdates.email = settings.email || null;
+      if (hasField('website')) schoolUpdates.website = settings.website || null;
+      if (hasField('description')) schoolUpdates.description = settings.description || null;
+      if (hasField('establishedYear') && settings.establishedYear) schoolUpdates.establishedYear = settings.establishedYear;
+      if (hasField('principalName')) schoolUpdates.principalName = settings.principalName || null;
+      if (hasField('studentCapacity') && settings.studentCapacity) schoolUpdates.studentCapacity = settings.studentCapacity;
       
       // Cameroon official fields
-      if (settings.regionaleMinisterielle) schoolUpdates.regionaleMinisterielle = settings.regionaleMinisterielle;
-      if (settings.delegationDepartementale) schoolUpdates.delegationDepartementale = settings.delegationDepartementale;
-      if (settings.boitePostale) schoolUpdates.boitePostale = settings.boitePostale;
-      if (settings.arrondissement) schoolUpdates.arrondissement = settings.arrondissement;
+      if (hasField('regionaleMinisterielle')) schoolUpdates.regionaleMinisterielle = settings.regionaleMinisterielle || null;
+      if (hasField('delegationDepartementale')) schoolUpdates.delegationDepartementale = settings.delegationDepartementale || null;
+      if (hasField('boitePostale')) schoolUpdates.boitePostale = settings.boitePostale || null;
+      if (hasField('arrondissement')) schoolUpdates.arrondissement = settings.arrondissement || null;
       
       // Academic settings
-      if (settings.academicYear) schoolUpdates.academicYear = settings.academicYear;
-      if (settings.currentTerm) schoolUpdates.currentTerm = settings.currentTerm;
+      if (hasField('academicYear') && settings.academicYear) schoolUpdates.academicYear = settings.academicYear;
+      if (hasField('currentTerm') && settings.currentTerm) schoolUpdates.currentTerm = settings.currentTerm;
       
       // Logo
       if (settings.logoUrl) {
         schoolUpdates.logo = settings.logoUrl;
         (req.session as any).schoolLogo = settings.logoUrl;
       }
+      
+      console.log('[SCHOOL_SETTINGS] Fields to update:', Object.keys(schoolUpdates));
       
       // Save to database using Drizzle
       if (Object.keys(schoolUpdates).length > 0) {
