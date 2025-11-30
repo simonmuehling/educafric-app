@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { 
   User, Mail, Phone, MapPin, Calendar, 
-  Save, Edit, Eye, EyeOff, Lock, Shield
+  Save, Edit, Eye, EyeOff, Lock, Shield, BookOpen, GraduationCap, Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
 
 const TeacherProfileSettings = () => {
   const { language } = useLanguage();
@@ -40,6 +41,34 @@ const TeacherProfileSettings = () => {
     newPassword: '',
     confirmPassword: ''
   });
+
+  // Fetch actual subjects assigned to teacher from database
+  const { data: subjectsData, isLoading: subjectsLoading } = useQuery({
+    queryKey: ['/api/teacher/subjects'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/subjects', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch subjects');
+      return response.json();
+    }
+  });
+
+  // Fetch actual classes assigned to teacher from database
+  const { data: classesData, isLoading: classesLoading } = useQuery({
+    queryKey: ['/api/teacher/classes'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/classes', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch classes');
+      return response.json();
+    }
+  });
+
+  // Extract subjects and classes from API response
+  const teacherSubjects = subjectsData?.subjects || [];
+  const teacherClasses = classesData?.classes || [];
+  const schoolsWithClasses = classesData?.schoolsWithClasses || [];
+  
+  // Calculate total students from assigned classes
+  const totalStudents = teacherClasses.reduce((acc: number, cls: any) => acc + (cls.studentCount || 0), 0);
 
   const text = {
     fr: {
@@ -515,23 +544,123 @@ const TeacherProfileSettings = () => {
         <p className="text-gray-600">{t.subtitle}</p>
       </div>
 
-      {/* Statistiques */}
+      {/* Statistiques - Données réelles */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <ModernCard className="p-4 text-center activity-card-blue">
-          <div className="text-2xl font-bold text-gray-800">{profile.experience}</div>
-          <div className="text-sm text-gray-600">Années d'expérience</div>
+          <BookOpen className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+          <div className="text-2xl font-bold text-gray-800">
+            {subjectsLoading ? '...' : teacherSubjects.length}
+          </div>
+          <div className="text-sm text-gray-600">
+            {language === 'fr' ? 'Matières enseignées' : 'Teaching Subjects'}
+          </div>
         </ModernCard>
         <ModernCard className="p-4 text-center activity-card-green">
-          <div className="text-2xl font-bold text-gray-800">4</div>
-          <div className="text-sm text-gray-600">Classes enseignées</div>
+          <GraduationCap className="w-6 h-6 mx-auto mb-2 text-green-600" />
+          <div className="text-2xl font-bold text-gray-800">
+            {classesLoading ? '...' : teacherClasses.length}
+          </div>
+          <div className="text-sm text-gray-600">
+            {language === 'fr' ? 'Classes assignées' : 'Assigned Classes'}
+          </div>
         </ModernCard>
         <ModernCard className="p-4 text-center activity-card-purple">
-          <div className="text-2xl font-bold text-gray-800">127</div>
-          <div className="text-sm text-gray-600">Élèves</div>
+          <Users className="w-6 h-6 mx-auto mb-2 text-purple-600" />
+          <div className="text-2xl font-bold text-gray-800">
+            {classesLoading ? '...' : totalStudents}
+          </div>
+          <div className="text-sm text-gray-600">
+            {language === 'fr' ? 'Élèves' : 'Students'}
+          </div>
         </ModernCard>
         <ModernCard className="p-4 text-center activity-card-orange">
-          <div className="text-2xl font-bold text-gray-800">95%</div>
-          <div className="text-sm text-gray-600">Taux de satisfaction</div>
+          <div className="text-2xl font-bold text-gray-800">{profile.experience}</div>
+          <div className="text-sm text-gray-600">
+            {language === 'fr' ? "Années d'expérience" : 'Years of Experience'}
+          </div>
+        </ModernCard>
+      </div>
+
+      {/* Teaching Subjects & Assigned Classes - Real Data from Database */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Teaching Subjects */}
+        <ModernCard className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen className="w-5 h-5 text-blue-600" />
+            <h3 className="text-lg font-semibold">
+              {language === 'fr' ? 'Matières Enseignées' : 'Teaching Subjects'}
+            </h3>
+          </div>
+          {subjectsLoading ? (
+            <div className="text-gray-500 text-center py-4">
+              {language === 'fr' ? 'Chargement...' : 'Loading...'}
+            </div>
+          ) : teacherSubjects.length === 0 ? (
+            <div className="text-gray-500 text-center py-4">
+              {language === 'fr' 
+                ? 'Aucune matière assignée. Demandez à votre directeur de créer votre emploi du temps.' 
+                : 'No subjects assigned. Ask your director to create your timetable.'}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {teacherSubjects.map((subject: any, index: number) => (
+                <Badge 
+                  key={subject.id || index} 
+                  variant="secondary"
+                  className="bg-blue-100 text-blue-800 px-3 py-1"
+                >
+                  {subject.name || subject.nameFr || subject.subjectName}
+                  {subject.coefficient && ` (Coef: ${subject.coefficient})`}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </ModernCard>
+
+        {/* Assigned Classes */}
+        <ModernCard className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <GraduationCap className="w-5 h-5 text-green-600" />
+            <h3 className="text-lg font-semibold">
+              {language === 'fr' ? 'Classes Assignées' : 'Assigned Classes'}
+            </h3>
+          </div>
+          {classesLoading ? (
+            <div className="text-gray-500 text-center py-4">
+              {language === 'fr' ? 'Chargement...' : 'Loading...'}
+            </div>
+          ) : teacherClasses.length === 0 ? (
+            <div className="text-gray-500 text-center py-4">
+              {language === 'fr' 
+                ? 'Aucune classe assignée. Demandez à votre directeur de vous assigner des classes.' 
+                : 'No classes assigned. Ask your director to assign you to classes.'}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {teacherClasses.map((cls: any, index: number) => (
+                <div 
+                  key={cls.id || index}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium text-gray-800">{cls.name || cls.className}</p>
+                    <p className="text-sm text-gray-500">
+                      {cls.level && `${cls.level} • `}
+                      {cls.subject && `${cls.subject} • `}
+                      {cls.studentCount !== undefined && (
+                        <span>{cls.studentCount} {language === 'fr' ? 'élèves' : 'students'}</span>
+                      )}
+                    </p>
+                  </div>
+                  {cls.room && (
+                    <Badge variant="outline" className="text-xs">
+                      {cls.room}
+                    </Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </ModernCard>
       </div>
 
