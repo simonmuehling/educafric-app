@@ -21,7 +21,6 @@ import notificationsRouter from "./routes/api/notifications";
 import teachersRouter from "./routes/api/teachers";
 import studentsRouter from "./routes/students";
 import studentRoutesApi from "./routes/studentRoutes";
-import freelancerRouter from "./routes/freelancer";
 import teacherRouter from "./routes/teacher";
 import teacherIndependentRouter from "./routes/teacherIndependent";
 import sandboxRouter from "./routes/api/sandbox";
@@ -8733,69 +8732,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Freelancer Messages
-  app.get("/api/freelancer/messages", requireAuth, async (req, res) => {
-    try {
-      const messages = [
-        {
-          id: 1,
-          from: 'Marie Kamga',
-          fromRole: 'Parent',
-          subject: 'Demande de cours particuliers',
-          message: 'Bonjour Sophie, pourriez-vous donner des cours de français à Junior ? Il a besoin d\'aide avec ses dissertations.',
-          date: '2025-08-24',
-          read: false,
-          type: 'parent',
-          priority: 'normal'
-        },
-        {
-          id: 2,
-          from: 'Administration',
-          fromRole: 'Admin',
-          subject: 'Nouveau contrat disponible',
-          message: 'Un nouveau contrat de cours particuliers est disponible pour le niveau 2nde en mathématiques.',
-          date: '2025-08-23',
-          read: true,
-          type: 'admin',
-          priority: 'normal'
-        }
-      ];
-      res.json({ success: true, messages });
-    } catch (error) {
-      console.error('[FREELANCER_MESSAGES] Error:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch freelancer messages' });
-    }
-  });
-
-  app.post("/api/freelancer/messages", requireAuth, async (req, res) => {
-    try {
-      const { to, toRole, subject, message, priority = 'normal' } = req.body;
-      
-      if (!to || !subject || !message) {
-        return res.status(400).json({ message: 'Recipient, subject, and message are required' });
-      }
-      
-      const newMessage = {
-        id: Date.now(),
-        from: req.user?.firstName ? `${req.user.firstName} ${req.user.lastName || ''}` : 'Freelancer',
-        fromRole: 'Freelancer',
-        to,
-        toRole,
-        subject,
-        message,
-        priority,
-        date: new Date().toISOString(),
-        status: 'sent'
-      };
-      
-      console.log('[FREELANCER_MESSAGES] Message sent:', newMessage);
-      res.json({ success: true, message: 'Message sent successfully', data: newMessage });
-    } catch (error) {
-      console.error('[FREELANCER_MESSAGES] Error sending message:', error);
-      res.status(500).json({ success: false, message: 'Failed to send message' });
-    }
-  });
-
   // Student Settings
   app.get("/api/student/settings", async (req, res) => {
     try {
@@ -9190,83 +9126,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
-  // 📊 ROUTES ABONNEMENT FREELANCER - Support module subscription freelancer
-  app.get('/api/freelancer/subscription', requireAuth, async (req, res) => {
-    try {
-      const user = req.user;
-      const { SubscriptionService } = await import('./services/subscriptionService');
-      const subscriptionDetails = await SubscriptionService.getFreelancerSubscriptionDetails(user.id, user.email);
-      
-      res.json({
-        success: true,
-        ...subscriptionDetails,
-        // Ajouter infos spécifiques freelancer
-        price: subscriptionDetails.isFreemium ? 0 : 5000, // Freelancer paie
-        billingCycle: subscriptionDetails.isFreemium ? 'Gratuit' : 'Mensuel',
-        nextRenewal: subscriptionDetails.isFreemium ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        limits: {
-          students: subscriptionDetails.isFreemium ? 10 : 50,
-          sessions: subscriptionDetails.isFreemium ? 20 : 100,
-          features: subscriptionDetails.isFreemium ? 'basic' : 'standard'
-        }
-      });
-    } catch (error) {
-      console.error('[FREELANCER_SUBSCRIPTION] Error:', error);
-      res.status(500).json({ success: false, error: 'Failed to fetch freelancer subscription details' });
-    }
-  });
-
-  // Freelancer Settings
-  app.get("/api/freelancer/settings", requireAuth, async (req, res) => {
-    try {
-      const settings = {
-        profile: {
-          firstName: 'Sophie',
-          lastName: 'Martin',
-          email: 'sophie.martin@freelance.edu',
-          phone: '+237657007890',
-          specialties: ['Mathématiques', 'Physique', 'Informatique'],
-          experience: 12,
-          qualification: 'Master en Sciences'
-        },
-        preferences: {
-          language: 'fr',
-          notifications: {
-            newStudents: true,
-            sessions: true,
-            payments: true
-          },
-          availability: {
-            monday: { start: '08:00', end: '18:00' },
-            tuesday: { start: '08:00', end: '18:00' },
-            wednesday: { start: '08:00', end: '18:00' },
-            thursday: { start: '08:00', end: '18:00' },
-            friday: { start: '08:00', end: '18:00' },
-            saturday: { start: '09:00', end: '15:00' },
-            sunday: { start: 'off', end: 'off' }
-          },
-          hourlyRate: 15000,
-          theme: 'modern'
-        }
-      };
-      res.json({ success: true, settings });
-    } catch (error) {
-      console.error('[FREELANCER_SETTINGS] Error:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch freelancer settings' });
-    }
-  });
-
-  app.put("/api/freelancer/settings", requireAuth, async (req, res) => {
-    try {
-      const updatedSettings = req.body;
-      console.log('[FREELANCER_SETTINGS_UPDATE] Updating settings:', updatedSettings);
-      res.json({ success: true, message: 'Freelancer settings updated successfully' });
-    } catch (error) {
-      console.error('[FREELANCER_SETTINGS_UPDATE] Error:', error);
-      res.status(500).json({ success: false, message: 'Failed to update freelancer settings' });
-    }
-  });
 
   // School Settings (Admin/Director)
   app.get("/api/school/settings", requireAuth, async (req, res) => {
@@ -9707,16 +9566,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/students', checkSubscriptionFeature('advanced_student_management'), checkFreemiumLimits('students'), studentsRouter);
   app.use('/api/student', studentRoutesApi);
   
-  // 🔥 NOUVEAU: Mode répétiteur indépendant (fusion Freelancer → Teacher)
+  // Mode enseignant indépendant (private tutoring within teacher role)
   app.use('/api/teacher/independent', teacherIndependentRouter);
-  
-  // 🔄 COMPATIBILITÉ: Redirection /api/freelancer → /api/teacher/independent
-  app.use('/api/freelancer', (req, res, next) => {
-    // Rediriger vers le nouveau endpoint
-    const newPath = req.originalUrl.replace('/api/freelancer', '/api/teacher/independent');
-    req.url = newPath;
-    teacherIndependentRouter(req, res, next);
-  });
   
   app.use('/api/sandbox', sandboxRouter);
   app.use('/api/sandbox-demo', requireAuth, sandboxDemoRouter); // 🎓 DEMO: Sandbox isolation pattern examples
