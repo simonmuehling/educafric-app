@@ -2861,24 +2861,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_TEACHERS_API] 📊 Found', schoolTeachers.length, 'teachers');
       
-      // Get teacher assignments from TIMETABLES
+      // Get teacher assignments from TIMETABLES with class name join
       let teacherAssignmentsFromTimetables: Array<{ teacherId: number; classId: number | null; className: string | null; subjectName: string | null }> = [];
       try {
         const timetableEntries = await db.selectDistinct({
           teacherId: timetables.teacherId,
           classId: timetables.classId,
-          className: timetables.className,
+          className: classes.name,
           subjectName: timetables.subjectName
         })
           .from(timetables)
+          .leftJoin(classes, eq(timetables.classId, classes.id))
           .where(and(
             eq(timetables.schoolId, userSchoolId),
             eq(timetables.isActive, true)
           ));
         
         teacherAssignmentsFromTimetables = timetableEntries.filter(t => t.teacherId != null) as any;
+        console.log('[DIRECTOR_TEACHERS_API] ✅ Found', teacherAssignmentsFromTimetables.length, 'timetable assignments');
       } catch (timetableError) {
-        console.log('[DIRECTOR_TEACHERS_API] ⚠️ Could not fetch timetable assignments');
+        console.error('[DIRECTOR_TEACHERS_API] ⚠️ Could not fetch timetable assignments:', timetableError);
       }
       
       // Group assignments by teacher
