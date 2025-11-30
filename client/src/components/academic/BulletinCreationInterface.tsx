@@ -509,6 +509,82 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       })));
     }
   }, [language, selectedCompetencySystem]);
+
+  // ✅ NEW: Auto-populate subjects when class is selected
+  const [autoLoadingSubjects, setAutoLoadingSubjects] = useState(false);
+  const [lastLoadedClassId, setLastLoadedClassId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const loadClassSubjects = async () => {
+      // Only load if class changed and we have a valid class ID
+      if (!selectedClassId || selectedClassId === lastLoadedClassId || selectedClassId === 'no-classes') {
+        return;
+      }
+      
+      setAutoLoadingSubjects(true);
+      console.log('[BULLETIN] 📚 Auto-loading subjects for class:', selectedClassId);
+      
+      try {
+        const response = await fetch(`/api/bulletin/class-subjects/${selectedClassId}`, {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.success && data.subjects && data.subjects.length > 0) {
+            console.log('[BULLETIN] ✅ Loaded', data.subjects.length, 'subjects with teachers');
+            
+            // Convert to Subject format and set
+            const loadedSubjects: Subject[] = data.subjects.map((s: any) => ({
+              id: s.id || Date.now().toString() + Math.random(),
+              name: s.name || '',
+              teacher: s.teacher || '',
+              coefficient: s.coefficient || 1,
+              grade: 0,
+              remark: '',
+              comments: [],
+              note1: 0,
+              moyenneFinale: 0,
+              competence1: '',
+              competence2: '',
+              competence3: '',
+              totalPondere: 0,
+              cote: '',
+              subjectType: 'general' as const,
+              competencyLevel: undefined,
+              competencyEvaluation: undefined
+            }));
+            
+            setSubjects(loadedSubjects);
+            setLastLoadedClassId(selectedClassId);
+            
+            // Show success toast
+            toast({
+              title: language === 'fr' ? '📚 Matières chargées' : '📚 Subjects loaded',
+              description: language === 'fr' 
+                ? `${loadedSubjects.length} matières avec enseignants ont été chargées automatiquement. Vous pouvez les modifier.`
+                : `${loadedSubjects.length} subjects with teachers have been auto-loaded. You can modify them.`
+            });
+          } else {
+            console.log('[BULLETIN] ⚠️ No subjects found for class, keeping manual entry');
+            // Keep empty subject for manual entry if no subjects found
+            if (subjects.length === 1 && !subjects[0].name) {
+              // Already have empty subject, don't change
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[BULLETIN] ❌ Error loading class subjects:', error);
+        // Don't show error toast, just allow manual entry
+      } finally {
+        setAutoLoadingSubjects(false);
+      }
+    };
+    
+    loadClassSubjects();
+  }, [selectedClassId, language]);
   
   const [student, setStudent] = useState<StudentInfo>({
     name: '',
@@ -1923,12 +1999,31 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center justify-between">
-                {labels[language].subjectsGrades}
+                <div className="flex items-center gap-2">
+                  {labels[language].subjectsGrades}
+                  {autoLoadingSubjects && (
+                    <div className="flex items-center gap-1 text-sm text-blue-600">
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-xs">
+                        {language === 'fr' ? 'Chargement...' : 'Loading...'}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <Button onClick={addSubject} size="sm" data-testid="button-add-subject">
                   <Plus className="h-4 w-4 mr-1" />
                   {labels[language].addSubject}
                 </Button>
               </CardTitle>
+              {/* Info about auto-population */}
+              {selectedClassId && !autoLoadingSubjects && subjects.length > 0 && subjects[0].name && (
+                <p className="text-xs text-green-600 mt-1">
+                  {language === 'fr' 
+                    ? '✅ Matières et enseignants chargés depuis l\'emploi du temps. Vous pouvez modifier les champs ci-dessous.'
+                    : '✅ Subjects and teachers loaded from timetable. You can edit the fields below.'
+                  }
+                </p>
+              )}
             </CardHeader>
             <CardContent>
               {/* Ministry Performance Grid - Reference for grading */}

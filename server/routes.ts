@@ -1967,6 +1967,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ NEW: Get subjects with teachers for bulletin auto-population
+  // Returns subjects assigned to a class with their teachers from timetables
+  app.get("/api/bulletin/class-subjects/:classId", requireAuth, requireAnyRole(['Director', 'Admin', 'Teacher']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const classId = parseInt(req.params.classId);
+      
+      if (isNaN(classId)) {
+        return res.status(400).json({ success: false, message: 'Invalid class ID' });
+      }
+      
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      console.log('[BULLETIN_CLASS_SUBJECTS] 🔍 Fetching subjects for class:', classId, 'school:', userSchoolId);
+      
+      // Get unique subject-teacher combinations from timetables for this class
+      const timetableSubjects = await db
+        .select({
+          subjectName: timetables.subjectName,
+          teacherId: timetables.teacherId,
+          teacherFirstName: users.firstName,
+          teacherLastName: users.lastName
+        })
+        .from(timetables)
+        .leftJoin(users, eq(timetables.teacherId, users.id))
+        .where(and(
+          eq(timetables.classId, classId),
+          eq(timetables.schoolId, userSchoolId),
+          eq(timetables.isActive, true)
+        ))
+        .groupBy(timetables.subjectName, timetables.teacherId, users.firstName, users.lastName);
+      
+      // Also get subjects from subjects table with default coefficients
+      const subjectsList = await db.select()
+        .from(subjects)
+        .where(and(
+          eq(subjects.classId, classId),
+          eq(subjects.schoolId, userSchoolId)
+        ));
+      
+      // Create a map of subject name to coefficient
+      const coefficientMap = new Map<string, number>();
+      subjectsList.forEach((s: any) => {
+        coefficientMap.set(s.name?.toLowerCase(), s.coefficient || 1);
+      });
+      
+      // Combine timetable data with subject coefficients
+      const classSubjectsWithTeachers = timetableSubjects.map((item: any, index: number) => ({
+        id: `auto-${index + 1}`,
+        name: item.subjectName || '',
+        teacher: item.teacherFirstName && item.teacherLastName 
+          ? `${item.teacherFirstName} ${item.teacherLastName}` 
+          : '',
+        teacherId: item.teacherId,
+        coefficient: coefficientMap.get(item.subjectName?.toLowerCase()) || 
+                    getDefaultCoefficient(item.subjectName || ''),
+        grade: 0,
+        note1: 0,
+        moyenneFinale: 0,
+        competence1: '',
+        competence2: '',
+        competence3: '',
+        totalPondere: 0,
+        cote: '',
+        remark: '',
+        comments: []
+      }));
+      
+      console.log('[BULLETIN_CLASS_SUBJECTS] ✅ Found', classSubjectsWithTeachers.length, 'subjects with teachers');
+      
+      res.json({ 
+        success: true, 
+        subjects: classSubjectsWithTeachers,
+        message: classSubjectsWithTeachers.length > 0 
+          ? 'Subjects loaded from timetable' 
+          : 'No subjects found - add manually'
+      });
+      
+    } catch (error) {
+      console.error('[BULLETIN_CLASS_SUBJECTS] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch class subjects' });
+    }
+  });
+
+  // Helper function to get default coefficient based on subject name
+  function getDefaultCoefficient(subjectName: string): number {
+    const name = subjectName.toLowerCase();
+    if (name.includes('math') || name.includes('français') || name.includes('french')) return 4;
+    if (name.includes('anglais') || name.includes('english')) return 3;
+    if (name.includes('physi') || name.includes('chimie') || name.includes('chemistry')) return 3;
+    if (name.includes('svt') || name.includes('biolog') || name.includes('science')) return 3;
+    if (name.includes('histoire') || name.includes('géo') || name.includes('history')) return 2;
+    if (name.includes('informatique') || name.includes('computer')) return 2;
+    if (name.includes('eps') || name.includes('sport')) return 1;
+    if (name.includes('art') || name.includes('musique') || name.includes('music')) return 1;
+    if (name.includes('ecm') || name.includes('civique') || name.includes('civic')) return 1;
+    return 2; // Default coefficient
+  }
+
   // Get students for director (with optional class filter or specific student)
   // ✅ UPDATED FOR SANDBOX ISOLATION - Uses is_sandbox database flag
   app.get("/api/director/students", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
