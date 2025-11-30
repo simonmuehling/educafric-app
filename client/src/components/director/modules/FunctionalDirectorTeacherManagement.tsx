@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Users, UserPlus, Search, Download, Filter, MoreHorizontal, 
   BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, 
@@ -189,19 +190,8 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   // Create teacher mutation
   const createTeacherMutation = useMutation({
     mutationFn: async (teacherData: any) => {
-      const response = await fetch('/api/director/teachers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(teacherData),
-        credentials: 'include'
-      });
-      
+      const response = await apiRequest('POST', '/api/director/teachers', teacherData);
       const data = await response.json();
-      
-      if (!response.ok) {
-        // Return specific error for better handling
-        throw { status: response.status, data };
-      }
       
       return data;
     },
@@ -268,17 +258,11 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   // Update teacher mutation
   const updateTeacherMutation = useMutation({
     mutationFn: async (teacherData: any) => {
-      console.log('[TEACHER_UPDATE] Sending PUT request:', teacherData);
-      const response = await fetch(`/api/director/teachers/${teacherData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(teacherData),
-        credentials: 'include'
-      });
+      console.log('[TEACHER_UPDATE] Sending PUT request with CSRF:', teacherData);
+      const response = await apiRequest('PUT', `/api/director/teachers/${teacherData.id}`, teacherData);
       console.log('[TEACHER_UPDATE] Response status:', response.status);
       const data = await response.json();
       console.log('[TEACHER_UPDATE] Response data:', data);
-      if (!response.ok) throw new Error(data.message || 'Failed to update teacher');
       return data;
     },
     onSuccess: (data) => {
@@ -309,11 +293,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   // Delete teacher mutation
   const deleteTeacherMutation = useMutation({
     mutationFn: async (teacherId: number) => {
-      const response = await fetch(`/api/director/teachers/${teacherId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to delete teacher');
+      const response = await apiRequest('DELETE', `/api/director/teachers/${teacherId}`);
       return response.json();
     },
     onSuccess: () => {

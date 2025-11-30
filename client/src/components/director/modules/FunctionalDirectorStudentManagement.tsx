@@ -237,19 +237,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Create student mutation
   const createStudentMutation = useMutation({
     mutationFn: async (studentData: any) => {
-      const response = await fetch('/api/director/students', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(studentData),
-        credentials: 'include'
-      });
-      
+      const response = await apiRequest('POST', '/api/director/students', studentData);
       const data = await response.json();
-      
-      if (!response.ok) {
-        // Return specific error for better handling
-        throw { status: response.status, data };
-      }
       
       return data;
     },

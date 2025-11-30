@@ -3029,7 +3029,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (email !== undefined) updateData.email = email || null;
       if (phone !== undefined) updateData.phone = phone || null;
       if (gender !== undefined) updateData.gender = gender;
-      if (matricule !== undefined) updateData.educafricNumber = matricule;
+      // Use null for empty matricule to avoid unique constraint violation on empty strings
+      if (matricule !== undefined) updateData.educafricNumber = matricule?.trim() || null;
       
       const [updatedTeacher] = await db.update(users)
         .set(updateData)
