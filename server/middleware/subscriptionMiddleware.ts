@@ -91,13 +91,6 @@ export const checkSubscriptionFeature = (requiredFeature: string) => {
           subscriptionDetails = await SubscriptionService.getParentSubscriptionDetails(user.id, user.email);
           upgradeUrl = `/subscribe?type=parent&user=${user.id}`;
         }
-      } else if (user.role === 'Freelancer') {
-        // Freelancers : vérification d'abonnement freelancer premium
-        canAccess = await SubscriptionService.canAccessFreelancerFeature(user.id, requiredFeature, user.email);
-        if (!canAccess) {
-          subscriptionDetails = await SubscriptionService.getFreelancerSubscriptionDetails(user.id, user.email);
-          upgradeUrl = `/subscribe?type=freelancer&user=${user.id}`;
-        }
       } else {
         // École (Director, Teacher, Commercial, etc.) : vérification d'abonnement école
         const schoolId = user.schoolId;
@@ -126,8 +119,6 @@ export const checkSubscriptionFeature = (requiredFeature: string) => {
       // Ajouter les informations d'abonnement à la requête selon le type
       if (user.role === 'Parent' || user.role === 'Student') {
         req.subscription = { type: 'parent', isPremium: true, userId: user.id };
-      } else if (user.role === 'Freelancer') {
-        req.subscription = { type: 'freelancer', isPremium: true, userId: user.id };
       } else {
         req.subscription = await SubscriptionService.getSchoolSubscription(user.schoolId);
       }
