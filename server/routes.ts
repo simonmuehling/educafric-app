@@ -35,6 +35,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 import { storage } from "./storage.js";
 import { db } from "./db.js";
 import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments } from "../shared/schema";
+import { attendance } from "../shared/schemas/academicSchema";
 import bcrypt from 'bcryptjs';
 import { 
   predefinedAppreciations, 
@@ -5744,13 +5745,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/student/grades", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      const term = req.query.term || 'current';
+      const term = req.query.term as string || 'current';
       
-      // 🔄 SYNCHRONISATION AUTOMATIQUE AVEC LES NOTES ENSEIGNANT
-      console.log('[STUDENT_GRADES] 🔄 Synchronizing with teacher grades database...');
-      console.log('[STUDENT_GRADES] 📡 Fetching latest grades from teachers for student:', user.id);
+      console.log('[STUDENT_GRADES] 📡 Fetching grades from DATABASE for student:', user.id);
       
-      // Récupérer l'ID de l'école et la classe de l'étudiant avec validation
       const studentSchoolId = user.schoolId;
       if (!studentSchoolId) {
         return res.status(403).json({ 
@@ -5758,147 +5756,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: 'School access required' 
         });
       }
-      const studentClass = user.class || '3ème A';
       
-      console.log(`[STUDENT_GRADES] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
+      // Get student's classId from students table
+      const studentRecord = await db
+        .select({ classId: students.classId })
+        .from(students)
+        .where(eq(students.userId, user.id))
+        .limit(1);
       
-      // Notes synchronisées en temps réel avec les saisies des enseignants
-      const synchronizedGrades = [
-        {
-          id: 1,
-          studentId: user.id,
-          subject: "Mathématiques",
-          subjectId: 1,
-          subjectName: "Mathématiques",
-          teacher: "Prof. Mvondo",
-          teacherId: 15,
-          grade: 16.5,
-          maxGrade: 20,
-          coefficient: 3,
-          type: "Contrôle",
-          assignment: "Algèbre - Chapitre 4",
-          date: "2025-08-25T14:30:00Z",
-          term: "trimestre_1",
-          comments: "Excellent travail ! Bonne maîtrise des équations du second degré.",
-          percentage: 82.5,
-          lastUpdated: "2025-08-25T15:00:00Z", // Dernière mise à jour par l'enseignant
-          gradedBy: "Prof. Mvondo"
-        },
-        {
-          id: 2,
-          studentId: user.id,
-          subject: "Français",
-          subjectId: 2, 
-          subjectName: "Français",
-          teacher: "Mme Kouame",
-          teacherId: 16,
-          grade: 14.0,
-          maxGrade: 20,
-          coefficient: 4,
-          type: "Dissertation",
-          assignment: "Analyse littéraire - Molière",
-          date: "2025-08-22T10:00:00Z",
-          term: "trimestre_1",
-          comments: "Bonne analyse mais il faut améliorer la structure de votre argumentation.",
-          percentage: 70.0,
-          lastUpdated: "2025-08-22T16:30:00Z",
-          gradedBy: "Mme Kouame"
-        },
-        {
-          id: 3,
-          studentId: user.id,
-          subject: "Anglais",
-          subjectId: 3,
-          subjectName: "Anglais", 
-          teacher: "Mr. Smith",
-          teacherId: 17,
-          grade: 17.5,
-          maxGrade: 20,
-          coefficient: 2,
-          type: "Expression Orale",
-          assignment: "Présentation - Environmental Issues",
-          date: "2025-08-20T11:00:00Z",
-          term: "trimestre_1",
-          comments: "Outstanding presentation! Very good pronunciation and vocabulary.",
-          percentage: 87.5,
-          lastUpdated: "2025-08-20T12:00:00Z",
-          gradedBy: "Mr. Smith"
-        },
-        {
-          id: 4,
-          studentId: user.id,
-          subject: "Sciences Physiques",
-          subjectId: 4,
-          subjectName: "Sciences Physiques",
-          teacher: "Dr. Biya",
-          teacherId: 18,
-          grade: 15.0,
-          maxGrade: 20,
-          coefficient: 2,
-          type: "TP Laboratoire",
-          assignment: "Optique - Réfraction de la lumière",
-          date: "2025-08-18T14:00:00Z",
-          term: "trimestre_1",
-          comments: "Bonne manipulation expérimentale. Améliorez la rédaction du compte-rendu.",
-          percentage: 75.0,
-          lastUpdated: "2025-08-18T17:00:00Z",
-          gradedBy: "Dr. Biya"
-        },
-        {
-          id: 5,
-          studentId: user.id,
-          subject: "Histoire-Géographie",
-          subjectId: 5,
-          subjectName: "Histoire-Géographie",
-          teacher: "Prof. Fouda",
-          teacherId: 19,
-          grade: 13.5,
-          maxGrade: 20,
-          coefficient: 3,
-          type: "Évaluation",
-          assignment: "La Révolution Française",
-          date: "2025-08-15T09:00:00Z",
-          term: "trimestre_1",
-          comments: "Connaissances correctes mais manque de précision dans les dates.",
-          percentage: 67.5,
-          lastUpdated: "2025-08-15T18:00:00Z",
-          gradedBy: "Prof. Fouda"
-        }
+      const studentClassId = studentRecord.length > 0 ? studentRecord[0].classId : null;
+      
+      console.log(`[STUDENT_GRADES] 🏫 School: ${studentSchoolId}, Class: ${studentClassId}`);
+      
+      // Build query conditions
+      const conditions = [
+        eq(grades.studentId, user.id),
+        eq(grades.schoolId, studentSchoolId)
       ];
       
-      // 📊 FILTRAGE PAR PÉRIODE SI DEMANDÉ
-      let filteredGrades = synchronizedGrades;
+      // Add term filter if specified
       if (term !== 'current' && term !== 'all') {
-        filteredGrades = synchronizedGrades.filter(grade => grade.term === term);
-        console.log(`[STUDENT_GRADES] 📅 Filtered to ${filteredGrades.length} grades for term: ${term}`);
+        conditions.push(eq(grades.term, term));
       }
       
-      // 🎯 MARQUAGE TEMPS RÉEL DES NOUVELLES NOTES
-      const now = new Date();
-      const recentThreshold = 24 * 60 * 60 * 1000; // 24 heures
+      // Fetch grades from database with teacher and subject info
+      const dbGrades = await db
+        .select({
+          id: grades.id,
+          studentId: grades.studentId,
+          subjectId: grades.subjectId,
+          teacherId: grades.teacherId,
+          grade: grades.grade,
+          coefficient: grades.coefficient,
+          examType: grades.examType,
+          term: grades.term,
+          academicYear: grades.academicYear,
+          comments: grades.comments,
+          createdAt: grades.createdAt,
+          updatedAt: grades.updatedAt,
+          subjectName: subjects.nameFr,
+          subjectNameEn: subjects.nameEn,
+          teacherFirstName: users.firstName,
+          teacherLastName: users.lastName
+        })
+        .from(grades)
+        .leftJoin(subjects, eq(grades.subjectId, subjects.id))
+        .leftJoin(users, eq(grades.teacherId, users.id))
+        .where(and(...conditions))
+        .orderBy(desc(grades.createdAt));
       
-      const processedGrades = filteredGrades.map(grade => {
-        const lastUpdateTime = new Date(grade.lastUpdated).getTime();
+      console.log(`[STUDENT_GRADES] ✅ Fetched ${dbGrades.length} grades from database`);
+      
+      // Process grades for frontend
+      const now = new Date();
+      const recentThreshold = 24 * 60 * 60 * 1000;
+      
+      const processedGrades = dbGrades.map(g => {
+        const gradeValue = g.grade ? parseFloat(g.grade.toString()) : 0;
+        const lastUpdateTime = g.updatedAt ? new Date(g.updatedAt).getTime() : 0;
         const isRecent = (now.getTime() - lastUpdateTime) < recentThreshold;
         
         return {
-          ...grade,
+          id: g.id,
+          studentId: g.studentId,
+          subject: g.subjectName || 'Unknown',
+          subjectId: g.subjectId,
+          subjectName: g.subjectName || 'Unknown',
+          teacher: g.teacherFirstName && g.teacherLastName 
+            ? `${g.teacherFirstName} ${g.teacherLastName}` 
+            : 'Unknown Teacher',
+          teacherId: g.teacherId,
+          grade: gradeValue,
+          maxGrade: 20,
+          coefficient: g.coefficient || 1,
+          type: g.examType || 'evaluation',
+          date: g.createdAt?.toISOString() || new Date().toISOString(),
+          term: g.term,
+          comments: g.comments || '',
+          percentage: (gradeValue / 20) * 100,
+          lastUpdated: g.updatedAt?.toISOString() || new Date().toISOString(),
           isNew: isRecent,
-          syncStatus: 'synchronized' // Indique que la note est synchronisée avec l'enseignant
+          syncStatus: 'synchronized'
         };
       });
       
-      console.log(`[STUDENT_GRADES] ✅ Synchronized ${processedGrades.length} grades from teacher database`);
-      console.log(`[STUDENT_GRADES] 🔄 Last sync: ${new Date().toISOString()}`);
-      console.log(`[STUDENT_GRADES] 📊 Recent grades (last 24h): ${processedGrades.filter(g => g.isNew).length}`);
-      
-      res.json({
-        success: true,
-        grades: processedGrades,
-        totalGrades: processedGrades.length,
-        syncTime: new Date().toISOString(),
-        message: 'Grades synchronized with teachers database'
-      });
+      res.json(processedGrades);
     } catch (error) {
       console.error('[STUDENT_API] Error fetching grades:', error);
       res.status(500).json({ 
@@ -6270,11 +6212,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       
-      // 🔄 SYNCHRONISATION AUTOMATIQUE AVEC LES PRÉSENCES ENSEIGNANT
-      console.log('[STUDENT_ATTENDANCE] 🔄 Synchronizing with teacher attendance database...');
-      console.log('[STUDENT_ATTENDANCE] 📡 Fetching latest attendance from teachers for student:', user.id);
+      console.log('[STUDENT_ATTENDANCE] 📡 Fetching attendance from DATABASE for student:', user.id);
       
-      // Récupérer l'ID de l'école et la classe de l'étudiant avec validation
       const studentSchoolId = user.schoolId;
       if (!studentSchoolId) {
         return res.status(403).json({ 
@@ -6282,169 +6221,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: 'School access required' 
         });
       }
-      const studentClass = user.class || '3ème A';
       
-      console.log(`[STUDENT_ATTENDANCE] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
+      // Get student record to find classId
+      const studentRecord = await db
+        .select({ classId: students.classId })
+        .from(students)
+        .where(eq(students.userId, user.id))
+        .limit(1);
       
-      // Présences synchronisées en temps réel avec les saisies des enseignants
-      const synchronizedAttendance = [
-        {
-          id: 1,
-          studentId: user.id,
-          subject: "Mathématiques",
-          subjectId: 1,
-          teacher: "Prof. Mvondo",
-          teacherId: 15,
-          date: "2025-09-10",
-          status: "present",
-          reason: "",
-          notes: "Arrivé à l'heure",
-          markedAt: "2025-09-10T08:00:00Z",
-          period: "1ère heure (08h00-09h00)",
-          markedBy: "Prof. Mvondo", // Enseignant qui a marqué la présence
-          lastUpdated: "2025-09-10T08:05:00Z"
-        },
-        {
-          id: 2,
-          studentId: user.id,
-          subject: "Français",
-          subjectId: 2,
-          teacher: "Mme Kouame",
-          teacherId: 16,
-          date: "2025-09-10",
-          status: "present",
-          reason: "",
-          notes: "Participation active en classe",
-          markedAt: "2025-09-10T09:15:00Z",
-          period: "2ème heure (09h15-10h15)",
-          markedBy: "Mme Kouame",
-          lastUpdated: "2025-09-10T09:20:00Z"
-        },
-        {
-          id: 3,
-          studentId: user.id,
-          subject: "Anglais",
-          subjectId: 3,
-          teacher: "Mr. Smith",
-          teacherId: 17,
-          date: "2025-09-09",
-          status: "late",
-          reason: "Retard transport",
-          notes: "Arrivé 10 minutes après le début du cours",
-          markedAt: "2025-09-09T10:40:00Z",
-          period: "3ème heure (10h30-11h30)",
-          markedBy: "Mr. Smith",
-          lastUpdated: "2025-09-09T10:45:00Z"
-        },
-        {
-          id: 4,
-          studentId: user.id,
-          subject: "Sciences Physiques",
-          subjectId: 4,
-          teacher: "Dr. Biya",
-          teacherId: 18,
-          date: "2025-09-08",
-          status: "absent",
-          reason: "Maladie - Certificat médical fourni",
-          notes: "Absence justifiée par certificat médical",
-          markedAt: "2025-09-08T08:00:00Z",
-          period: "1ère heure (08h00-09h00)",
-          markedBy: "Dr. Biya",
-          lastUpdated: "2025-09-08T09:00:00Z"
-        },
-        {
-          id: 5,
-          studentId: user.id,
-          subject: "Histoire-Géographie",
-          subjectId: 5,
-          teacher: "Prof. Fouda",
-          teacherId: 19,
-          date: "2025-09-07",
-          status: "excused",
-          reason: "Rendez-vous médical",
-          notes: "Absence autorisée par l'administration",
-          markedAt: "2025-09-07T09:15:00Z",
-          period: "2ème heure (09h15-10h15)",
-          markedBy: "Prof. Fouda",
-          lastUpdated: "2025-09-07T10:00:00Z"
-        },
-        {
-          id: 6,
-          studentId: user.id,
-          subject: "Mathématiques",
-          subjectId: 1,
-          teacher: "Prof. Mvondo",
-          teacherId: 15,
-          date: "2025-09-06",
-          status: "present",
-          reason: "",
-          notes: "Excellent travail en classe",
-          markedAt: "2025-09-06T08:00:00Z",
-          period: "1ère heure (08h00-09h00)",
-          markedBy: "Prof. Mvondo",
-          lastUpdated: "2025-09-06T08:05:00Z"
-        },
-        {
-          id: 7,
-          studentId: user.id,
-          subject: "Éducation Physique",
-          subjectId: 7,
-          teacher: "Coach Nkomo",
-          teacherId: 21,
-          date: "2025-09-05",
-          status: "present",
-          reason: "",
-          notes: "Bonne participation aux activités sportives",
-          markedAt: "2025-09-05T08:00:00Z",
-          period: "1ère heure (08h00-09h00)",
-          markedBy: "Coach Nkomo",
-          lastUpdated: "2025-09-05T08:10:00Z"
-        }
-      ];
+      const studentClassId = studentRecord.length > 0 ? studentRecord[0].classId : null;
       
-      // 🎯 MARQUAGE TEMPS RÉEL DES NOUVELLES PRÉSENCES
+      console.log(`[STUDENT_ATTENDANCE] 🏫 School: ${studentSchoolId}, Class: ${studentClassId}`);
+      
+      // Fetch attendance from database with teacher info
+      const dbAttendance = await db
+        .select({
+          id: attendance.id,
+          studentId: attendance.studentId,
+          classId: attendance.classId,
+          date: attendance.date,
+          status: attendance.status,
+          notes: attendance.notes,
+          markedBy: attendance.markedBy,
+          timeIn: attendance.timeIn,
+          createdAt: attendance.createdAt,
+          updatedAt: attendance.updatedAt,
+          teacherFirstName: users.firstName,
+          teacherLastName: users.lastName
+        })
+        .from(attendance)
+        .leftJoin(users, eq(attendance.markedBy, users.id))
+        .where(and(
+          eq(attendance.studentId, user.id),
+          eq(attendance.schoolId, studentSchoolId)
+        ))
+        .orderBy(desc(attendance.date))
+        .limit(100);
+      
+      console.log(`[STUDENT_ATTENDANCE] ✅ Fetched ${dbAttendance.length} attendance records from database`);
+      
+      // Process attendance for frontend
       const now = new Date();
-      const recentThreshold = 2 * 60 * 60 * 1000; // 2 heures
+      const recentThreshold = 2 * 60 * 60 * 1000;
       
-      const processedAttendance = synchronizedAttendance.map(record => {
-        const lastUpdateTime = new Date(record.lastUpdated).getTime();
+      const processedAttendance = dbAttendance.map(record => {
+        const lastUpdateTime = record.updatedAt ? new Date(record.updatedAt).getTime() : 0;
         const isRecent = (now.getTime() - lastUpdateTime) < recentThreshold;
+        const teacherName = record.teacherFirstName && record.teacherLastName
+          ? `${record.teacherFirstName} ${record.teacherLastName}`
+          : 'Unknown';
         
         return {
-          ...record,
+          id: record.id,
+          studentId: record.studentId,
+          date: record.date?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+          status: record.status || 'present',
+          notes: record.notes || '',
+          markedBy: teacherName,
+          teacher: teacherName,
+          teacherId: record.markedBy,
+          markedAt: record.createdAt?.toISOString() || new Date().toISOString(),
+          lastUpdated: record.updatedAt?.toISOString() || new Date().toISOString(),
           isNew: isRecent,
-          syncStatus: 'synchronized' // Indique que la présence est synchronisée avec l'enseignant
+          syncStatus: 'synchronized'
         };
       });
       
-      // 📊 CALCUL STATISTIQUES EN TEMPS RÉEL
+      // Calculate statistics
       const totalRecords = processedAttendance.length;
       const presentCount = processedAttendance.filter(r => r.status === 'present').length;
       const absentCount = processedAttendance.filter(r => r.status === 'absent').length;
       const lateCount = processedAttendance.filter(r => r.status === 'late').length;
       const excusedCount = processedAttendance.filter(r => r.status === 'excused').length;
-      
       const attendanceRate = totalRecords > 0 ? ((presentCount + lateCount) / totalRecords * 100) : 0;
       
-      console.log(`[STUDENT_ATTENDANCE] ✅ Synchronized ${processedAttendance.length} attendance records from teacher database`);
-      console.log(`[STUDENT_ATTENDANCE] 🔄 Last sync: ${new Date().toISOString()}`);
-      console.log(`[STUDENT_ATTENDANCE] 📊 Attendance rate: ${attendanceRate.toFixed(1)}%`);
-      console.log(`[STUDENT_ATTENDANCE] 📊 Recent records (last 2h): ${processedAttendance.filter(r => r.isNew).length}`);
-      
-      res.json({
-        success: true,
-        attendance: processedAttendance,
-        stats: {
-          totalRecords,
-          presentCount,
-          absentCount,
-          lateCount,
-          excusedCount,
-          attendanceRate: parseFloat(attendanceRate.toFixed(1))
-        },
-        syncTime: new Date().toISOString(),
-        message: 'Attendance synchronized with teachers database'
-      });
+      res.json(processedAttendance);
     } catch (error) {
       console.error('[STUDENT_API] Error fetching attendance:', error);
       res.status(500).json({ 

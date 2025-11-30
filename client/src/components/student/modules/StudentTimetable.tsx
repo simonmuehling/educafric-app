@@ -44,46 +44,30 @@ const StudentTimetable: React.FC = () => {
   const t = text[language as keyof typeof text];
 
   const { data: timetableData, isLoading, error } = useQuery({
-    queryKey: ['/api/sandbox/timetable/create'],
+    queryKey: ['/api/student/timetable'],
     queryFn: async () => {
-      const response = await fetch('/api/sandbox/timetable/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ class: '3ème A' })
+      const response = await fetch('/api/student/timetable', {
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch timetable');
       const data = await response.json();
       
-      // Convert sandbox format to component format
-      const timetableItems: any[] = [];
-      const dayMapping: Record<string, number> = {
-        monday: 1,
-        tuesday: 2,
-        wednesday: 3,
-        thursday: 4,
-        friday: 5
-      };
-      
-      Object.entries(data.schedule || {}).forEach(([dayName, slots]: [string, any]) => {
-        if (Array.isArray(slots)) {
-          slots.forEach((slot: any) => {
-            // Parse time from "08:00-09:00" format
-            const [startTime, endTime] = slot.time.split('-');
-            timetableItems.push({
-              id: `${dayName}-${slot.subject}`,
-              dayOfWeek: dayMapping[dayName] || 1,
-              startTime: startTime,
-              endTime: endTime,
-              subjectName: slot.subject,
-              teacherName: slot.teacher,
-              room: slot.room
-            });
-          });
-        }
-      });
-      
-      return timetableItems;
+      // Data comes directly from database with proper format
+      if (Array.isArray(data)) {
+        return data.map((slot: any) => ({
+          id: slot.id,
+          dayOfWeek: typeof slot.dayOfWeek === 'string' 
+            ? { monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 }[slot.dayOfWeek] || 1
+            : slot.dayOfWeek,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          subjectName: slot.subjectName || slot.subject,
+          teacherName: slot.teacherName || slot.teacher,
+          room: slot.room,
+          status: slot.status
+        }));
+      }
+      return [];
     }
   });
 
