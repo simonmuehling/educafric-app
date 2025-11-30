@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { storage } from '../storage';
 import { db } from '../db';
 import { teacherClassSubjects, classSubjects } from '../../shared/schemas/classSubjectsSchema';
-import { subjects, teacherBulletins, users } from '../../shared/schema';
-import { eq, and } from 'drizzle-orm';
+import { subjects, teacherBulletins, users, teacherSubjectAssignments, classes, schools, timetables, roleAffiliations } from '../../shared/schema';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { MultiRoleService } from '../services/multiRoleService';
 
 const router = Router();
@@ -233,7 +233,7 @@ function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
-// Get teacher classes
+// Get teacher classes - DATABASE ONLY, no mock data
 router.get('/classes', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
@@ -245,46 +245,110 @@ router.get('/classes', requireAuth, async (req, res) => {
       });
     }
 
-    console.log('[TEACHER_CLASSES] Fetching classes for teacher:', user.id, 'school:', user.schoolId);
+    const teacherId = user.id;
+    console.log('[TEACHER_CLASSES] Fetching classes for teacher:', teacherId);
 
-    // Get teacher's assigned classes from database
-    const allClasses = await storage.getSchoolClasses(user.schoolId);
-    const teacherClasses = allClasses.filter((cls: any) => cls.teacherId === user.id);
+    // Step 1: Get all schools where teacher is affiliated
+    const teacherSchools = await MultiRoleService.getTeacherSchools(teacherId);
     
-    // Enrich classes with student counts
-    const enrichedClasses = await Promise.all(
-      teacherClasses.map(async (cls: any) => {
-        try {
-          const students = await storage.getStudentsByClass(cls.id);
-          return {
-            id: cls.id,
-            name: cls.name,
-            school: cls.schoolName || 'École',
-            studentCount: students.length,
-            level: cls.level,
-            section: cls.section,
-            academicYear: cls.academicYear
-          };
-        } catch (error) {
-          console.warn('[TEACHER_CLASSES] Could not get student count for class:', cls.id);
-          return {
-            id: cls.id,
-            name: cls.name,
-            school: cls.schoolName || 'École',
-            studentCount: 0,
-            level: cls.level,
-            section: cls.section,
-            academicYear: cls.academicYear
-          };
+    if (!teacherSchools || teacherSchools.length === 0) {
+      console.log('[TEACHER_CLASSES] ⚠️ No school affiliations found for teacher:', teacherId);
+      return res.json({
+        success: true,
+        schoolsWithClasses: []
+      });
+    }
+
+    console.log('[TEACHER_CLASSES] Found', teacherSchools.length, 'school affiliations');
+
+    // Step 2: For each school, get teacher's class assignments from teacher_subject_assignments
+    const schoolsWithClasses = await Promise.all(
+      teacherSchools.map(async (school: any) => {
+        const schoolId = school.id;
+        
+        // Query teacher's class and subject assignments from database
+        const assignments = await db
+          .select({
+            classId: teacherSubjectAssignments.classId,
+            subjectId: teacherSubjectAssignments.subjectId,
+            className: classes.name,
+            classLevel: classes.level,
+            classSection: classes.section,
+            subjectName: subjects.nameFr
+          })
+          .from(teacherSubjectAssignments)
+          .leftJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
+          .leftJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+          .where(and(
+            eq(teacherSubjectAssignments.teacherId, teacherId),
+            eq(teacherSubjectAssignments.schoolId, schoolId),
+            eq(teacherSubjectAssignments.active, true)
+          ));
+
+        // Group by class and aggregate subjects
+        const classMap = new Map<number, any>();
+        for (const assignment of assignments) {
+          if (!assignment.classId) continue;
+          
+          if (!classMap.has(assignment.classId)) {
+            classMap.set(assignment.classId, {
+              id: assignment.classId,
+              name: assignment.className || '',
+              level: assignment.classLevel || '',
+              section: assignment.classSection || '',
+              subjects: [],
+              studentCount: 0,
+              room: '', // Empty - will be filled from timetable if exists
+              schedule: '' // Empty - will be filled from timetable if exists
+            });
+          }
+          
+          if (assignment.subjectName) {
+            const classData = classMap.get(assignment.classId);
+            if (!classData.subjects.includes(assignment.subjectName)) {
+              classData.subjects.push(assignment.subjectName);
+            }
+          }
         }
+
+        // Get student counts for each class
+        const classIds = Array.from(classMap.keys());
+        for (const classId of classIds) {
+          try {
+            const students = await storage.getStudentsByClass(classId);
+            const classData = classMap.get(classId);
+            if (classData) {
+              classData.studentCount = students.length;
+              // Format subject as first subject or combined
+              classData.subject = classData.subjects.length > 0 
+                ? classData.subjects[0] + (classData.subjects.length > 1 ? ` (+${classData.subjects.length - 1})` : '')
+                : '';
+            }
+          } catch (e) {
+            console.warn('[TEACHER_CLASSES] Could not get student count for class:', classId);
+          }
+        }
+
+        return {
+          schoolId: schoolId,
+          schoolName: school.name || '',
+          schoolAddress: school.address || '',
+          schoolPhone: school.phone || '',
+          isConnected: true,
+          assignmentDate: school.affiliatedAt || new Date().toISOString(),
+          classes: Array.from(classMap.values())
+        };
       })
     );
 
-    console.log('[TEACHER_CLASSES] ✅ Found', enrichedClasses.length, 'assigned classes');
+    // Filter out schools with no class assignments
+    const filteredSchools = schoolsWithClasses.filter(s => s.classes.length > 0 || teacherSchools.length === 1);
+
+    console.log('[TEACHER_CLASSES] ✅ Returning', filteredSchools.length, 'schools with classes');
     
     res.json({
       success: true,
-      classes: enrichedClasses
+      schoolsWithClasses: filteredSchools
     });
   } catch (error) {
     console.error('[TEACHER_API] Error fetching classes:', error);
@@ -1425,7 +1489,9 @@ router.get('/absences', requireAuth, async (req, res) => {
 
 // ===== TEACHER TIMETABLE MANAGEMENT ENDPOINTS =====
 
-// GET /api/teacher/timetable - Get teacher's timetable
+// GET /api/teacher/timetable - Get teacher's timetable from DATABASE
+// This endpoint is superseded by the one in routes.ts which queries real data
+// Keeping this as a fallback that also queries real database
 router.get('/timetable', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
@@ -1437,38 +1503,93 @@ router.get('/timetable', requireAuth, async (req, res) => {
       });
     }
 
-    console.log('[TEACHER_TIMETABLE] Fetching timetable for teacher:', user.id);
+    const teacherId = user.id;
+    console.log('[TEACHER_TIMETABLE] Fetching timetable for teacher:', teacherId);
 
-    // TODO: Get real timetable data from storage
-    const timetableData = {
-      teacherId: user.id,
-      teacherName: `${user.firstName} ${user.lastName}`,
-      schoolId: user.schoolId,
-      academicYear: '2024-2025',
-      schedule: {
-        monday: [
-          {
-            id: 1,
-            time: '08:00-09:00',
-            subject: 'Mathématiques',
-            class: '6ème A',
-            room: 'Salle 12',
-            status: 'confirmed'
-          }
-        ],
-        tuesday: [],
-        wednesday: [],
-        thursday: [],
-        friday: [],
-        saturday: []
-      },
-      pendingChanges: [],
-      lastUpdated: new Date().toISOString()
+    // Get all schools where teacher is affiliated
+    const teacherSchools = await MultiRoleService.getTeacherSchools(teacherId);
+    
+    // Initialize empty schedule
+    const schedule: Record<string, any[]> = {
+      monday: [],
+      tuesday: [],
+      wednesday: [],
+      thursday: [],
+      friday: [],
+      saturday: []
     };
+    
+    const dayNames = ['', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    let schoolInfo = null;
+
+    // Query timetable from all affiliated schools
+    for (const school of teacherSchools) {
+      const schoolId = school.id;
+      
+      // Get school info
+      if (!schoolInfo) {
+        const [info] = await db.select({
+          name: schools.name,
+          address: schools.address,
+          phone: schools.phone
+        }).from(schools).where(eq(schools.id, schoolId)).limit(1);
+        schoolInfo = info;
+      }
+      
+      // Query timetable entries for this teacher in this school
+      const timetableEntries = await db
+        .select({
+          id: timetables.id,
+          classId: timetables.classId,
+          className: classes.name,
+          classLevel: classes.level,
+          subjectName: timetables.subjectName,
+          dayOfWeek: timetables.dayOfWeek,
+          startTime: timetables.startTime,
+          endTime: timetables.endTime,
+          room: timetables.room,
+          academicYear: timetables.academicYear,
+          term: timetables.term
+        })
+        .from(timetables)
+        .leftJoin(classes, eq(timetables.classId, classes.id))
+        .where(and(
+          eq(timetables.teacherId, teacherId),
+          eq(timetables.schoolId, schoolId),
+          eq(timetables.isActive, true)
+        ))
+        .orderBy(timetables.dayOfWeek, timetables.startTime);
+
+      // Add entries to schedule
+      for (const entry of timetableEntries) {
+        const dayName = dayNames[entry.dayOfWeek];
+        if (dayName && schedule[dayName]) {
+          schedule[dayName].push({
+            id: entry.id,
+            time: `${entry.startTime}-${entry.endTime}`,
+            subject: entry.subjectName || '',
+            class: entry.className || '',
+            classId: entry.classId,
+            room: entry.room || '',
+            status: 'confirmed'
+          });
+        }
+      }
+    }
+
+    console.log('[TEACHER_TIMETABLE] ✅ Found timetable entries from', teacherSchools.length, 'schools');
 
     res.json({
       success: true,
-      timetable: timetableData
+      school: schoolInfo,
+      timetable: {
+        teacherId,
+        teacherName: `${user.firstName} ${user.lastName}`,
+        schedule,
+        pendingChanges: [],
+        lastUpdated: new Date().toISOString(),
+        source: 'school_database'
+      }
     });
   } catch (error) {
     console.error('[TEACHER_API] Error fetching timetable:', error);
@@ -1571,43 +1692,10 @@ router.get('/timetable/changes', requireAuth, async (req, res) => {
 
     console.log('[TEACHER_TIMETABLE_CHANGES] Fetching change requests for teacher:', user.id);
 
-    // TODO: Get real change requests from storage
-    const changeRequests = [
-      {
-        id: 1,
-        changeType: 'time_change',
-        originalTime: '08:00-09:00',
-        newTime: '09:00-10:00',
-        subject: 'Mathématiques',
-        class: '6ème A',
-        reason: 'Conflit avec réunion pédagogique',
-        status: 'approved',
-        urgency: 'normal',
-        createdAt: '2025-09-18T10:00:00Z',
-        adminResponse: {
-          adminName: 'Marie Directrice',
-          message: 'Changement approuvé, modification effectuée',
-          processedAt: '2025-09-18T14:30:00Z'
-        }
-      },
-      {
-        id: 2,
-        changeType: 'room_change',
-        originalRoom: 'Salle 12',
-        newRoom: 'Salle 15',
-        subject: 'Mathématiques',
-        class: '5ème A',
-        reason: 'Problème avec projecteur en salle 12',
-        status: 'pending',
-        urgency: 'high',
-        createdAt: '2025-09-19T08:00:00Z',
-        adminResponse: null
-      }
-    ];
-
+    // Return empty array - no mock data, real data will come from database when feature is implemented
     res.json({
       success: true,
-      changeRequests: changeRequests
+      changeRequests: []
     });
   } catch (error) {
     console.error('[TEACHER_TIMETABLE_CHANGES] Error fetching change requests:', error);
@@ -1632,50 +1720,11 @@ router.get('/admin-responses', requireAuth, async (req, res) => {
 
     console.log('[TEACHER_ADMIN_RESPONSES] Fetching admin responses for teacher:', user.id);
 
-    // Mock admin responses for now
-    const adminResponses = [
-      {
-        id: 1,
-        type: 'absence_response',
-        title: 'Absence Declaration Approved',
-        message: 'Your absence request for Sept 20-22 has been approved. Replacement teacher arranged.',
-        status: 'approved',
-        priority: 'normal',
-        isRead: false,
-        createdAt: new Date().toISOString(),
-        adminName: 'Marie Directrice',
-        originalSubmissionId: 123
-      },
-      {
-        id: 2,
-        type: 'timetable_response', 
-        title: 'Timetable Change Approved',
-        message: 'Room change from Salle 12 to Salle 15 approved for your 5ème A class.',
-        status: 'approved',
-        priority: 'normal',
-        isRead: false,
-        createdAt: new Date().toISOString(),
-        adminName: 'Jean Adjoint',
-        originalSubmissionId: 456
-      },
-      {
-        id: 3,
-        type: 'grade_response',
-        title: 'Grade Revision Required',
-        message: 'Please review the grade for student Marie Durand - seems unusually low for her performance.',
-        status: 'revision_requested',
-        priority: 'high',
-        isRead: false,
-        createdAt: new Date().toISOString(),
-        adminName: 'Marie Directrice',
-        originalSubmissionId: 789
-      }
-    ];
-
+    // Return empty array - database table for admin responses not yet implemented
     res.json({
       success: true,
-      responses: adminResponses,
-      unreadCount: adminResponses.filter(r => !r.isRead).length
+      responses: [],
+      unreadCount: 0
     });
   } catch (error) {
     console.error('[TEACHER_ADMIN_RESPONSES] Error fetching admin responses:', error);
@@ -1720,7 +1769,7 @@ router.post('/admin-responses/:id/read', requireAuth, async (req, res) => {
 // TEACHER BULLETIN ROUTES
 // ====================
 
-// Get saved bulletins for teacher
+// Get saved bulletins for teacher - DATABASE ONLY
 router.get('/saved-bulletins', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
@@ -1732,51 +1781,46 @@ router.get('/saved-bulletins', requireAuth, async (req, res) => {
       });
     }
 
-    console.log('[TEACHER_BULLETINS] Fetching saved bulletins for teacher:', user.id);
+    const teacherId = user.id;
+    console.log('[TEACHER_BULLETINS] Fetching saved bulletins for teacher:', teacherId);
 
     // Get all schools the teacher has access to
-    const teacherSchools = await MultiRoleService.getTeacherSchools(user.id);
-    // All schools returned by getTeacherSchools are accessible (status === 'active')
+    const teacherSchools = await MultiRoleService.getTeacherSchools(teacherId);
     const schoolIds = teacherSchools.map(s => s.id);
+
+    if (schoolIds.length === 0) {
+      return res.json({
+        success: true,
+        bulletins: []
+      });
+    }
 
     console.log('[TEACHER_BULLETINS] Teacher has access to schools:', schoolIds);
 
-    // TODO: Replace with actual database query filtering by teacherId and schoolIds
-    // For now, return mock data filtered by accessible schools
-    const savedBulletins = [
-      {
-        id: 'bulletin_1',
-        studentId: '1',
-        studentName: 'Marie Dupont',
-        schoolId: user.schoolId?.toString() || '1',
-        schoolName: 'Lycée Bilingue de Yaoundé',
-        classId: '1',
-        className: '6ème A',
-        term: 'T1',
-        academicYear: '2024-2025',
-        status: 'draft',
-        lastModified: new Date().toISOString(),
-        createdDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'bulletin_2', 
-        studentId: '2',
-        studentName: 'Jean Martin',
-        schoolId: user.schoolId?.toString() || '1',
-        schoolName: 'Lycée Bilingue de Yaoundé',
-        classId: '2',
-        className: '5ème B',
-        term: 'T2',
-        academicYear: '2024-2025',
-        status: 'signed',
-        lastModified: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        createdDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-      }
-    ].filter(bulletin => schoolIds.includes(parseInt(bulletin.schoolId)));
+    // Query real bulletins from teacherBulletins table
+    const bulletins = await db
+      .select({
+        id: teacherBulletins.id,
+        studentId: teacherBulletins.studentId,
+        classId: teacherBulletins.classId,
+        schoolId: teacherBulletins.schoolId,
+        term: teacherBulletins.term,
+        academicYear: teacherBulletins.academicYear,
+        status: teacherBulletins.status,
+        createdAt: teacherBulletins.createdAt,
+        updatedAt: teacherBulletins.updatedAt
+      })
+      .from(teacherBulletins)
+      .where(and(
+        eq(teacherBulletins.teacherId, teacherId),
+        inArray(teacherBulletins.schoolId, schoolIds)
+      ));
+
+    console.log('[TEACHER_BULLETINS] ✅ Found', bulletins.length, 'bulletins');
 
     res.json({
       success: true,
-      bulletins: savedBulletins
+      bulletins: bulletins
     });
   } catch (error) {
     console.error('[TEACHER_BULLETINS] Error fetching saved bulletins:', error);

@@ -388,39 +388,46 @@ const FunctionalMyClasses: React.FC = () => {
                   <Card key={classItem.id} className="border border-gray-200 hover:border-blue-300 transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-lg text-gray-800">{classItem.name}</h4>
-                        <Badge className="bg-blue-100 text-blue-800">{classItem.subject}</Badge>
+                        <h4 className="font-semibold text-lg text-gray-800">
+                          {classItem.name || (language === 'fr' ? 'Classe sans nom' : 'Unnamed class')}
+                        </h4>
+                        {classItem.subject && (
+                          <Badge className="bg-blue-100 text-blue-800">{classItem.subject}</Badge>
+                        )}
                       </div>
                       
                       <div className="space-y-2 text-sm text-gray-600">
                         <div className="flex items-center justify-between">
                           <span className="flex items-center gap-1">
                             <Users className="w-3 h-3" />
-                            Élèves:
+                            {language === 'fr' ? 'Élèves' : 'Students'}:
                           </span>
-                          <span className="font-medium">{classItem.studentCount}</span>
+                          <span className="font-medium">{classItem.studentCount || 0}</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            Salle:
-                          </span>
-                          <span className="font-medium">{classItem.room}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          <span className="text-xs">{classItem.schedule}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-2 mt-4">
-                        <Button size="sm" variant="outline" className="flex-1">
-                          <Eye className="w-3 h-3 mr-1" />
-                          Voir
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Edit className="w-3 h-3" />
-                        </Button>
+                        {classItem.room && (
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {language === 'fr' ? 'Salle' : 'Room'}:
+                            </span>
+                            <span className="font-medium">{classItem.room}</span>
+                          </div>
+                        )}
+                        {classItem.schedule && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            <span className="text-xs">{classItem.schedule}</span>
+                          </div>
+                        )}
+                        {classItem.level && (
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1">
+                              <GraduationCap className="w-3 h-3" />
+                              {language === 'fr' ? 'Niveau' : 'Level'}:
+                            </span>
+                            <span className="font-medium">{classItem.level}</span>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
