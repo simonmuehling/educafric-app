@@ -2130,7 +2130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const { 
-        name, firstName, lastName, email, phone, className, level, age, gender,
+        name, firstName, lastName, email, phone, className, classId, level, age, gender,
         dateOfBirth, placeOfBirth, matricule, 
         parentName, parentEmail, parentPhone,
         redoublant,
@@ -2156,7 +2156,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'Name is required' });
       }
       
-      console.log('[CREATE_STUDENT] Creating student:', { firstName: fName, lastName: lName, phone, schoolId: userSchoolId });
+      // Resolve classId from className if not provided directly
+      let resolvedClassId = classId ? parseInt(classId) : null;
+      if (!resolvedClassId && className && className !== 'unassigned' && className.trim() !== '') {
+        // Look up class by name in the school
+        const [foundClass] = await db.select({ id: classes.id })
+          .from(classes)
+          .where(and(
+            eq(classes.name, className),
+            eq(classes.schoolId, userSchoolId)
+          ))
+          .limit(1);
+        if (foundClass) {
+          resolvedClassId = foundClass.id;
+        }
+      }
+      
+      console.log('[CREATE_STUDENT] Creating student:', { firstName: fName, lastName: lName, phone, schoolId: userSchoolId, classId: resolvedClassId });
       
       // Handle photo upload if provided (base64 data URL from camera)
       let profilePictureUrl: string | null = null;
@@ -2201,7 +2217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await bcrypt.hash(defaultPassword, 10);
       
       // Create student in database
-      // ✅ FIX: Include educafricNumber (matricule), guardian, isRepeater, and parent info
+      // ✅ FIX: Include educafricNumber (matricule), guardian, isRepeater, parent info, AND classId
       const [newStudent] = await db.insert(users).values({
         role: 'Student',
         firstName: fName,
@@ -2209,6 +2225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phone: phone || null, // Phone is now optional
         password: hashedPassword,
         schoolId: userSchoolId,
+        classId: resolvedClassId, // ✅ CRITICAL: Save the class assignment
         email: email || null, // Email is optional
         gender: gender || null,
         dateOfBirth: dateOfBirth || null,
