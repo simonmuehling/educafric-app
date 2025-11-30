@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Users, UserPlus, Search, Download, Filter, MoreHorizontal, 
   BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, 
@@ -328,17 +329,11 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Update student mutation
   const updateStudentMutation = useMutation({
     mutationFn: async (studentData: any) => {
-      console.log('[STUDENT_UPDATE] Sending PUT request:', studentData);
-      const response = await fetch(`/api/director/students/${studentData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(studentData),
-        credentials: 'include'
-      });
+      console.log('[STUDENT_UPDATE] Sending PUT request with CSRF:', studentData);
+      const response = await apiRequest('PUT', `/api/director/students/${studentData.id}`, studentData);
       console.log('[STUDENT_UPDATE] Response status:', response.status);
       const data = await response.json();
       console.log('[STUDENT_UPDATE] Response data:', data);
-      if (!response.ok) throw new Error(data.message || 'Failed to update student');
       return data;
     },
     onSuccess: (data) => {
@@ -379,10 +374,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Delete student mutation
   const deleteStudentMutation = useMutation({
     mutationFn: async (studentId: number) => {
-      const response = await fetch(`/api/director/students/${studentId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
+      const response = await apiRequest('DELETE', `/api/director/students/${studentId}`);
       if (!response.ok) throw new Error('Failed to delete student');
       return response.json();
     },
@@ -419,15 +411,10 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   const bulkDeleteStudentsMutation = useMutation({
     mutationFn: async (studentIds: number[]) => {
       const responses = await Promise.all(
-        studentIds.map(id => 
-          fetch(`/api/director/students/${id}`, {
-            method: 'DELETE',
-            credentials: 'include'
-          }).then(res => {
-            if (!res.ok) throw new Error(`Failed to delete student ${id}`);
-            return res.json();
-          })
-        )
+        studentIds.map(async (id) => {
+          const res = await apiRequest('DELETE', `/api/director/students/${id}`);
+          return res.json();
+        })
       );
       return responses;
     },
