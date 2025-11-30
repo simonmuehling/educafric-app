@@ -37,6 +37,10 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
     setProgress('Préparation...');
 
     try {
+      document.documentElement.classList.add('pdf-capture-mode');
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       await (document.fonts?.ready ?? Promise.resolve());
       
       const imgs = Array.from(printArea.querySelectorAll('img')) as HTMLImageElement[];
@@ -54,17 +58,24 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
 
       setProgress('Génération du PDF...');
       
+      const A4_WIDTH_PX = 794;
+      const A4_HEIGHT_PX = 1123;
+      
       const canvas = await html2canvas(printArea, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
-        windowWidth: 794,
-        windowHeight: 1123,
+        width: A4_WIDTH_PX,
+        height: A4_HEIGHT_PX,
+        windowWidth: A4_WIDTH_PX,
+        windowHeight: A4_HEIGHT_PX,
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      document.documentElement.classList.remove('pdf-capture-mode');
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
       
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -72,28 +83,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
         format: 'a4',
       });
 
-      const pdfWidth = 210;
-      const pdfHeight = 297;
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      if (imgHeight <= pdfHeight) {
-        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-      } else {
-        let heightLeft = imgHeight;
-        let position = 0;
-        let page = 0;
-
-        while (heightLeft > 0) {
-          if (page > 0) {
-            pdf.addPage();
-          }
-          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-          heightLeft -= pdfHeight;
-          position -= pdfHeight;
-          page++;
-        }
-      }
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
 
       setProgress('Téléchargement...');
       
@@ -105,6 +95,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
 
     } catch (error) {
       console.error('PDF generation error:', error);
+      document.documentElement.classList.remove('pdf-capture-mode');
       setProgress('Erreur - Réessayez');
       setTimeout(() => setProgress(''), 3000);
     } finally {

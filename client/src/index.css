@@ -74,6 +74,149 @@ svg {
   fill: none !important;
 }
 
+/* ===== PDF CAPTURE MODE - Applies A4 compact styles for html2canvas ===== */
+.pdf-capture-mode #print-root {
+  width: 794px !important;
+  max-width: 794px !important;
+  min-height: 1123px !important;
+  max-height: 1123px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: white !important;
+  box-sizing: border-box !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized {
+  width: 100% !important;
+  max-width: 748px !important;
+  height: auto !important;
+  max-height: 1075px !important;
+  margin: 0 auto !important;
+  padding: 8px !important;
+  font-family: Arial, sans-serif !important;
+  font-size: 10px !important;
+  line-height: 1.15 !important;
+  color: #000 !important;
+  overflow: hidden !important;
+  background: white !important;
+  box-sizing: border-box !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .ministry-header {
+  margin-bottom: 4px !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .ministry-header-text {
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .ministry-header-title {
+  font-size: 10px !important;
+  font-weight: bold !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .school-logo {
+  width: 53px !important;
+  height: 53px !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .bulletin-title {
+  font-size: 12px !important;
+  font-weight: bold !important;
+  margin-bottom: 4px !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .student-photo {
+  width: 68px !important;
+  height: 83px !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .student-info-grid {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+  margin-bottom: 4px !important;
+  padding: 4px !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized table {
+  font-size: 9px !important;
+  margin-bottom: 4px !important;
+  border: 1px solid #000 !important;
+  width: 100% !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized th {
+  font-size: 8px !important;
+  font-weight: bold !important;
+  padding: 2px 4px !important;
+  line-height: 1.1 !important;
+  background-color: #f0f0f0 !important;
+  border: 1px solid #000 !important;
+  text-align: center !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized td {
+  font-size: 9px !important;
+  padding: 2px 4px !important;
+  line-height: 1.1 !important;
+  border: 1px solid #000 !important;
+  vertical-align: middle !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .subject-name {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .teacher-name {
+  font-size: 8px !important;
+  color: #444 !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .competency-text {
+  font-size: 7px !important;
+  line-height: 1.1 !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .grade-value {
+  font-size: 10px !important;
+  font-weight: bold !important;
+  text-align: center !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .grade-fail {
+  color: #c00 !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .appreciation-text {
+  font-size: 8px !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .summary-section {
+  margin-top: 4px !important;
+  font-size: 9px !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .signature-section {
+  margin-top: 4px !important;
+  font-size: 9px !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .footer-compact {
+  margin-top: 4px !important;
+  font-size: 8px !important;
+}
+
+.pdf-capture-mode .bulletin-a4-optimized .border-orange-300 {
+  display: none !important;
+}
+
+.pdf-capture-mode .no-print {
+  display: none !important;
+}
+
 /* ===== CENTRALIZED PRINT CSS - OPTIMIZED A4 ===== */
 @page { 
   size: A4 portrait; 
