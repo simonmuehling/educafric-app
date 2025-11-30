@@ -2251,26 +2251,32 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
 
                           {/* Compétences évaluées */}
                           <td className="px-3 py-2 border print:px-2 print:py-1 min-w-[200px]" data-testid={`cell-competences-${index}`}>
-                            <textarea
-                              className="w-full border border-blue-200 bg-white text-xs resize-none p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 print:text-[11px] print:leading-tight print:border-0 print:bg-transparent"
-                              rows={3}
-                              value={subject.competenceRaw !== undefined ? subject.competenceRaw : competencesEvaluees}
-                              onChange={(e) => {
-                                const newCompetences = e.target.value;
-                                // Store raw value to preserve semicolons during typing
-                                updateSubject(subject.id, 'competenceRaw', newCompetences);
-                              }}
-                              onBlur={(e) => {
-                                // On blur, split and store in individual fields, then clear raw
-                                const parts = (e.target.value || '').split(';').map(p => p.trim());
-                                updateSubject(subject.id, 'competence1', parts[0] || '');
-                                updateSubject(subject.id, 'competence2', parts[1] || '');
-                                updateSubject(subject.id, 'competence3', parts[2] || '');
-                                updateSubject(subject.id, 'competenceRaw', undefined);
-                              }}
-                              placeholder={language === 'fr' ? "3 compétences séparées par ; (ex: Communication; Expression; Analyse)" : "3 competencies separated by ; (ex: Communication; Expression; Analysis)"}
-                              data-testid={`input-competences-${index}`}
-                            />
+                            <div className="space-y-1">
+                              <Input
+                                className="w-full border border-blue-200 bg-white text-xs p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                type="text"
+                                value={subject.competence1 || ''}
+                                onChange={(e) => updateSubject(subject.id, 'competence1', e.target.value)}
+                                placeholder={language === 'fr' ? "Compétence 1 (ex: Communication)" : "Competency 1 (ex: Communication)"}
+                                data-testid={`input-competence1-${index}`}
+                              />
+                              <Input
+                                className="w-full border border-blue-200 bg-white text-xs p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                type="text"
+                                value={subject.competence2 || ''}
+                                onChange={(e) => updateSubject(subject.id, 'competence2', e.target.value)}
+                                placeholder={language === 'fr' ? "Compétence 2 (ex: Expression)" : "Competency 2 (ex: Expression)"}
+                                data-testid={`input-competence2-${index}`}
+                              />
+                              <Input
+                                className="w-full border border-blue-200 bg-white text-xs p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                type="text"
+                                value={subject.competence3 || ''}
+                                onChange={(e) => updateSubject(subject.id, 'competence3', e.target.value)}
+                                placeholder={language === 'fr' ? "Compétence 3 (ex: Analyse)" : "Competency 3 (ex: Analysis)"}
+                                data-testid={`input-competence3-${index}`}
+                              />
+                            </div>
                           </td>
 
                           {/* Appréciation */}
