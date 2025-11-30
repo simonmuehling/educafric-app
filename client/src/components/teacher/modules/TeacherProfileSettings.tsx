@@ -3,16 +3,17 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { 
   User, Mail, Phone, MapPin, Calendar, 
-  Save, Edit, Eye, EyeOff, Lock, Shield, BookOpen, GraduationCap, Users
+  Save, Edit, Eye, EyeOff, Lock, Shield, BookOpen, GraduationCap, Users, Plus, X, Check, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/ModernCard';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { useQuery } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 const TeacherProfileSettings = () => {
   const { language } = useLanguage();
@@ -22,6 +23,10 @@ const TeacherProfileSettings = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [isEditingClasses, setIsEditingClasses] = useState(false);
+  const [isEditingSubjects, setIsEditingSubjects] = useState(false);
+  const [selectedClassIds, setSelectedClassIds] = useState<number[]>([]);
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([]);
   
   const [profile, setProfile] = useState({
     firstName: user?.name?.split(' ')[0] || '',
@@ -43,7 +48,7 @@ const TeacherProfileSettings = () => {
   });
 
   // Fetch actual subjects assigned to teacher from database
-  const { data: subjectsData, isLoading: subjectsLoading } = useQuery({
+  const { data: subjectsData, isLoading: subjectsLoading, refetch: refetchSubjects } = useQuery({
     queryKey: ['/api/teacher/subjects'],
     queryFn: async () => {
       const response = await fetch('/api/teacher/subjects', { credentials: 'include' });
@@ -53,7 +58,7 @@ const TeacherProfileSettings = () => {
   });
 
   // Fetch actual classes assigned to teacher from database
-  const { data: classesData, isLoading: classesLoading } = useQuery({
+  const { data: classesData, isLoading: classesLoading, refetch: refetchClasses } = useQuery({
     queryKey: ['/api/teacher/classes'],
     queryFn: async () => {
       const response = await fetch('/api/teacher/classes', { credentials: 'include' });
@@ -62,13 +67,105 @@ const TeacherProfileSettings = () => {
     }
   });
 
+  // Fetch all available classes in the school
+  const { data: availableClassesData, isLoading: availableClassesLoading } = useQuery({
+    queryKey: ['/api/teacher/available-classes'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/available-classes', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch available classes');
+      return response.json();
+    },
+    enabled: isEditingClasses || isEditingSubjects
+  });
+
+  // Fetch all available subjects in the school
+  const { data: availableSubjectsData, isLoading: availableSubjectsLoading } = useQuery({
+    queryKey: ['/api/teacher/available-subjects'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/available-subjects', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch available subjects');
+      return response.json();
+    },
+    enabled: isEditingClasses || isEditingSubjects
+  });
+
+  // Mutation to update assignments
+  const updateAssignmentsMutation = useMutation({
+    mutationFn: async (data: { classIds: number[]; subjectIds: number[] }) => {
+      const response = await apiRequest('PUT', '/api/teacher/assignments', data);
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' 
+          ? 'Vos assignations ont été mises à jour' 
+          : 'Your assignments have been updated'
+      });
+      refetchClasses();
+      refetchSubjects();
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/classes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/subjects'] });
+      setIsEditingClasses(false);
+      setIsEditingSubjects(false);
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' 
+          ? 'Impossible de mettre à jour vos assignations' 
+          : 'Failed to update your assignments',
+        variant: 'destructive'
+      });
+    }
+  });
+
   // Extract subjects and classes from API response
   const teacherSubjects = subjectsData?.subjects || [];
   const teacherClasses = classesData?.classes || [];
   const schoolsWithClasses = classesData?.schoolsWithClasses || [];
+  const availableClasses = availableClassesData?.classes || [];
+  const availableSubjects = availableSubjectsData?.subjects || [];
   
   // Calculate total students from assigned classes
   const totalStudents = teacherClasses.reduce((acc: number, cls: any) => acc + (cls.studentCount || 0), 0);
+
+  // Initialize selected IDs when starting to edit - use id or classId (API returns both)
+  useEffect(() => {
+    if (isEditingClasses || isEditingSubjects) {
+      // Get class IDs - API may return as 'id' or 'classId' depending on endpoint
+      const classIds = teacherClasses.map((cls: any) => cls.id || cls.classId).filter(Boolean);
+      // Get subject IDs - API may return as 'id' or 'subjectId' depending on endpoint  
+      const subjectIds = teacherSubjects.map((subj: any) => subj.id || subj.subjectId).filter(Boolean);
+      
+      console.log('[TEACHER_PROFILE] Initializing edit with classes:', classIds, 'subjects:', subjectIds);
+      setSelectedClassIds(classIds);
+      setSelectedSubjectIds(subjectIds);
+    }
+  }, [isEditingClasses, isEditingSubjects, teacherClasses, teacherSubjects]);
+
+  const handleSaveAssignments = () => {
+    updateAssignmentsMutation.mutate({
+      classIds: selectedClassIds,
+      subjectIds: selectedSubjectIds
+    });
+  };
+
+  const toggleClassSelection = (classId: number) => {
+    setSelectedClassIds(prev => 
+      prev.includes(classId) 
+        ? prev.filter(id => id !== classId)
+        : [...prev, classId]
+    );
+  };
+
+  const toggleSubjectSelection = (subjectId: number) => {
+    setSelectedSubjectIds(prev => 
+      prev.includes(subjectId) 
+        ? prev.filter(id => id !== subjectId)
+        : [...prev, subjectId]
+    );
+  };
 
   const text = {
     fr: {
@@ -585,21 +682,111 @@ const TeacherProfileSettings = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Teaching Subjects */}
         <ModernCard className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <BookOpen className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-semibold">
-              {language === 'fr' ? 'Matières Enseignées' : 'Teaching Subjects'}
-            </h3>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-semibold">
+                {language === 'fr' ? 'Matières Enseignées' : 'Teaching Subjects'}
+              </h3>
+            </div>
+            {!isEditingSubjects ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditingSubjects(true)}
+                data-testid="button-edit-subjects"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Modifier' : 'Edit'}
+              </Button>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditingSubjects(false)}
+                  data-testid="button-cancel-subjects"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveAssignments}
+                  disabled={updateAssignmentsMutation.isPending}
+                  data-testid="button-save-subjects"
+                >
+                  {updateAssignmentsMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
-          {subjectsLoading ? (
+          
+          {isEditingSubjects ? (
+            <div className="space-y-3">
+              {availableSubjectsLoading ? (
+                <div className="text-gray-500 text-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+                  {language === 'fr' ? 'Chargement des matières...' : 'Loading subjects...'}
+                </div>
+              ) : availableSubjects.length === 0 ? (
+                <div className="text-gray-500 text-center py-4">
+                  {language === 'fr' 
+                    ? 'Aucune matière disponible dans votre école. Le directeur doit d\'abord créer des matières.' 
+                    : 'No subjects available in your school. The director must first create subjects.'}
+                </div>
+              ) : (
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {availableSubjects.map((subject: any) => (
+                    <div
+                      key={subject.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedSubjectIds.includes(subject.id)
+                          ? 'bg-blue-50 border border-blue-200'
+                          : 'bg-gray-50 hover:bg-gray-100 border border-transparent'
+                      }`}
+                      onClick={() => toggleSubjectSelection(subject.id)}
+                      data-testid={`checkbox-subject-${subject.id}`}
+                    >
+                      <Checkbox
+                        checked={selectedSubjectIds.includes(subject.id)}
+                        onCheckedChange={() => toggleSubjectSelection(subject.id)}
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-800">
+                          {subject.name || subject.nameFr}
+                        </p>
+                        {subject.code && (
+                          <p className="text-xs text-gray-500">{subject.code}</p>
+                        )}
+                      </div>
+                      {subject.coefficient && (
+                        <Badge variant="outline" className="text-xs">
+                          Coef: {subject.coefficient}
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-2">
+                {language === 'fr' 
+                  ? `${selectedSubjectIds.length} matière(s) sélectionnée(s)` 
+                  : `${selectedSubjectIds.length} subject(s) selected`}
+              </p>
+            </div>
+          ) : subjectsLoading ? (
             <div className="text-gray-500 text-center py-4">
               {language === 'fr' ? 'Chargement...' : 'Loading...'}
             </div>
           ) : teacherSubjects.length === 0 ? (
             <div className="text-gray-500 text-center py-4">
               {language === 'fr' 
-                ? 'Aucune matière assignée. Demandez à votre directeur de créer votre emploi du temps.' 
-                : 'No subjects assigned. Ask your director to create your timetable.'}
+                ? 'Aucune matière assignée. Cliquez sur Modifier pour ajouter des matières.' 
+                : 'No subjects assigned. Click Edit to add subjects.'}
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">
@@ -608,6 +795,7 @@ const TeacherProfileSettings = () => {
                   key={subject.id || index} 
                   variant="secondary"
                   className="bg-blue-100 text-blue-800 px-3 py-1"
+                  data-testid={`badge-subject-${subject.id || index}`}
                 >
                   {subject.name || subject.nameFr || subject.subjectName}
                   {subject.coefficient && ` (Coef: ${subject.coefficient})`}
@@ -619,21 +807,109 @@ const TeacherProfileSettings = () => {
 
         {/* Assigned Classes */}
         <ModernCard className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <GraduationCap className="w-5 h-5 text-green-600" />
-            <h3 className="text-lg font-semibold">
-              {language === 'fr' ? 'Classes Assignées' : 'Assigned Classes'}
-            </h3>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-green-600" />
+              <h3 className="text-lg font-semibold">
+                {language === 'fr' ? 'Classes Assignées' : 'Assigned Classes'}
+              </h3>
+            </div>
+            {!isEditingClasses ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditingClasses(true)}
+                data-testid="button-edit-classes"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Modifier' : 'Edit'}
+              </Button>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditingClasses(false)}
+                  data-testid="button-cancel-classes"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveAssignments}
+                  disabled={updateAssignmentsMutation.isPending}
+                  data-testid="button-save-classes"
+                >
+                  {updateAssignmentsMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
-          {classesLoading ? (
+          
+          {isEditingClasses ? (
+            <div className="space-y-3">
+              {availableClassesLoading ? (
+                <div className="text-gray-500 text-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+                  {language === 'fr' ? 'Chargement des classes...' : 'Loading classes...'}
+                </div>
+              ) : availableClasses.length === 0 ? (
+                <div className="text-gray-500 text-center py-4">
+                  {language === 'fr' 
+                    ? 'Aucune classe disponible dans votre école. Le directeur doit d\'abord créer des classes.' 
+                    : 'No classes available in your school. The director must first create classes.'}
+                </div>
+              ) : (
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {availableClasses.map((cls: any) => (
+                    <div
+                      key={cls.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedClassIds.includes(cls.id)
+                          ? 'bg-green-50 border border-green-200'
+                          : 'bg-gray-50 hover:bg-gray-100 border border-transparent'
+                      }`}
+                      onClick={() => toggleClassSelection(cls.id)}
+                      data-testid={`checkbox-class-${cls.id}`}
+                    >
+                      <Checkbox
+                        checked={selectedClassIds.includes(cls.id)}
+                        onCheckedChange={() => toggleClassSelection(cls.id)}
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-800">{cls.name}</p>
+                        {cls.level && (
+                          <p className="text-xs text-gray-500">{cls.level}</p>
+                        )}
+                      </div>
+                      {cls.room && (
+                        <Badge variant="outline" className="text-xs">
+                          {cls.room}
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-2">
+                {language === 'fr' 
+                  ? `${selectedClassIds.length} classe(s) sélectionnée(s)` 
+                  : `${selectedClassIds.length} class(es) selected`}
+              </p>
+            </div>
+          ) : classesLoading ? (
             <div className="text-gray-500 text-center py-4">
               {language === 'fr' ? 'Chargement...' : 'Loading...'}
             </div>
           ) : teacherClasses.length === 0 ? (
             <div className="text-gray-500 text-center py-4">
               {language === 'fr' 
-                ? 'Aucune classe assignée. Demandez à votre directeur de vous assigner des classes.' 
-                : 'No classes assigned. Ask your director to assign you to classes.'}
+                ? 'Aucune classe assignée. Cliquez sur Modifier pour ajouter des classes.' 
+                : 'No classes assigned. Click Edit to add classes.'}
             </div>
           ) : (
             <div className="space-y-2">
@@ -641,6 +917,7 @@ const TeacherProfileSettings = () => {
                 <div 
                   key={cls.id || index}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  data-testid={`card-class-${cls.id || index}`}
                 >
                   <div>
                     <p className="font-medium text-gray-800">{cls.name || cls.className}</p>
