@@ -956,13 +956,103 @@ export default function BulletinManagementUnified() {
     }
   };
 
+  // ✅ AUTO-REMPLISSAGE DES MATIÈRES: Fonction pour charger les matières d'une classe avec les enseignants
+  const loadClassSubjectsWithTeachers = async (classId: string) => {
+    try {
+      console.log('[AUTO_FILL_SUBJECTS] 🔍 Chargement matières pour classe:', classId);
+      
+      const response = await fetch(`/api/bulletin/class-subjects/${classId}?lang=${language}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && data.subjects && data.subjects.length > 0) {
+          console.log('[AUTO_FILL_SUBJECTS] ✅ Matières trouvées:', data.subjects.length);
+          
+          // Séparer les matières par section (général, professionnel, autres)
+          const generalSubjects: Subject[] = [];
+          const professionalSubjects: Subject[] = [];
+          const otherSubjects: Subject[] = [];
+          
+          data.subjects.forEach((subject: any) => {
+            const formattedSubject: Subject = {
+              name: subject.name || '',
+              code: subject.nameFr || subject.name || '',
+              t1Grade: 0,
+              t2Grade: 0,
+              t3Grade: 0,
+              coefficient: subject.coefficient || 1,
+              total: 0,
+              position: 0,
+              averageMark: 0,
+              remark: '',
+              teacherName: subject.teacher || '', // ✅ Nom de l'enseignant pré-rempli
+              comments: ''
+            };
+            
+            // Classer par type de matière
+            const sectionType = (subject.bulletinSection || subject.subjectType || 'general').toLowerCase();
+            if (sectionType === 'professional' || sectionType === 'professionnel') {
+              professionalSubjects.push(formattedSubject);
+            } else if (sectionType === 'other' || sectionType === 'autres') {
+              otherSubjects.push(formattedSubject);
+            } else {
+              generalSubjects.push(formattedSubject);
+            }
+          });
+          
+          // Mettre à jour formData avec les matières
+          setFormData(prev => ({
+            ...prev,
+            subjectsGeneral: generalSubjects,
+            subjectsProfessional: professionalSubjects,
+            subjectsOthers: otherSubjects
+          }));
+          
+          setSubjectsLoaded(true);
+          setSubjectsSource('class');
+          
+          console.log('[AUTO_FILL_SUBJECTS] ✅ Matières auto-remplies:', {
+            general: generalSubjects.length,
+            professional: professionalSubjects.length,
+            others: otherSubjects.length,
+            withTeachers: data.subjects.filter((s: any) => s.teacher).length
+          });
+          
+          toast({
+            title: language === 'fr' ? '📚 Matières chargées' : '📚 Subjects loaded',
+            description: language === 'fr' 
+              ? `${data.subjects.length} matières avec enseignants assignés`
+              : `${data.subjects.length} subjects with assigned teachers`,
+          });
+          
+          return true;
+        } else {
+          console.log('[AUTO_FILL_SUBJECTS] ⚠️ Aucune matière trouvée pour cette classe');
+          setSubjectsSource('manual');
+          return false;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('[AUTO_FILL_SUBJECTS] ❌ Erreur:', error);
+      return false;
+    }
+  };
+
   // Gestion de la sélection de classe
   const handleClassSelection = async (classId: string) => {
     setSelectedClassId(classId);
     setSelectedStudentId(''); // Reset student selection
+    setSubjectsLoaded(false); // Reset subjects loaded state
     
     if (classId) {
       await loadStudentsByClass(classId);
+      
+      // ✅ AUTO-REMPLISSAGE: Charger les matières de la classe avec les enseignants
+      await loadClassSubjectsWithTeachers(classId);
       
       // Mettre à jour les informations de classe dans le formulaire
       const selectedClass = classes.find(c => c.id.toString() === classId);
