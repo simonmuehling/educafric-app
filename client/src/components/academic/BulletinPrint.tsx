@@ -39,7 +39,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
     try {
       document.documentElement.classList.add('pdf-capture-mode');
       
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       await (document.fonts?.ready ?? Promise.resolve());
       
@@ -59,7 +59,6 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
       setProgress('Génération du PDF...');
       
       const A4_WIDTH_PX = 794;
-      const A4_HEIGHT_PX = 1123;
       
       const canvas = await html2canvas(printArea, {
         scale: 2,
@@ -68,9 +67,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
         backgroundColor: '#ffffff',
         logging: false,
         width: A4_WIDTH_PX,
-        height: A4_HEIGHT_PX,
         windowWidth: A4_WIDTH_PX,
-        windowHeight: A4_HEIGHT_PX,
       });
 
       document.documentElement.classList.remove('pdf-capture-mode');
@@ -83,7 +80,19 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
         format: 'a4',
       });
 
-      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+      const pdfWidth = 210;
+      const pdfHeight = 297;
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      if (imgHeight <= pdfHeight) {
+        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+      } else {
+        const scaleFactor = pdfHeight / imgHeight;
+        const scaledWidth = imgWidth * scaleFactor;
+        const xOffset = (pdfWidth - scaledWidth) / 2;
+        pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledWidth, pdfHeight);
+      }
 
       setProgress('Téléchargement...');
       
