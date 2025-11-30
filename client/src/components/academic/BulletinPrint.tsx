@@ -1,6 +1,8 @@
 'use client';
 import React, { useRef, useState, useEffect } from 'react';
-import { Printer, Download, Smartphone, Monitor } from "lucide-react";
+import { Printer, Download, Smartphone, FileDown, Loader2 } from "lucide-react";
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 type Props = {
   documentTitle?: string;
@@ -10,8 +12,8 @@ type Props = {
 export default function BulletinPrint({ documentTitle = 'bulletin', children }: Props) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
-  const [showMobileNotice, setShowMobileNotice] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [progress, setProgress] = useState('');
 
   useEffect(() => {
     const checkMobile = () => {
@@ -24,26 +26,104 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handlePrint = async () => {
-    if (isMobile) {
-      setShowMobileNotice(true);
-      setTimeout(() => setShowMobileNotice(false), 5000);
+  const generatePDF = async () => {
+    const printArea = document.getElementById('print-root');
+    if (!printArea) {
+      console.error('Print area not found');
+      return;
     }
-    
-    setIsPrinting(true);
+
+    setIsGenerating(true);
+    setProgress('Préparation...');
+
     try {
-      console.log('🖨️ Preparing to print...');
-      
       await (document.fonts?.ready ?? Promise.resolve());
-      console.log('✅ Fonts loaded');
+      
+      const imgs = Array.from(printArea.querySelectorAll('img')) as HTMLImageElement[];
+      const unloadedImgs = imgs.filter(img => !img.complete);
+      if (unloadedImgs.length > 0) {
+        setProgress('Chargement des images...');
+        await Promise.all(
+          unloadedImgs.map(img => 
+            new Promise(resolve => {
+              img.onload = img.onerror = resolve;
+            })
+          )
+        );
+      }
+
+      setProgress('Génération du PDF...');
+      
+      const canvas = await html2canvas(printArea, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: 794,
+        windowHeight: 1123,
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pdfWidth = 210;
+      const pdfHeight = 297;
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      if (imgHeight <= pdfHeight) {
+        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+      } else {
+        let heightLeft = imgHeight;
+        let position = 0;
+        let page = 0;
+
+        while (heightLeft > 0) {
+          if (page > 0) {
+            pdf.addPage();
+          }
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pdfHeight;
+          position -= pdfHeight;
+          page++;
+        }
+      }
+
+      setProgress('Téléchargement...');
+      
+      const fileName = `${documentTitle}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+
+      setProgress('Terminé!');
+      setTimeout(() => setProgress(''), 2000);
+
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      setProgress('Erreur - Réessayez');
+      setTimeout(() => setProgress(''), 3000);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDesktopPrint = async () => {
+    setIsGenerating(true);
+    setProgress('Préparation...');
+    
+    try {
+      await (document.fonts?.ready ?? Promise.resolve());
       
       const printArea = document.getElementById('print-root');
       if (printArea) {
         const imgs = Array.from(printArea.querySelectorAll('img')) as HTMLImageElement[];
         const unloadedImgs = imgs.filter(img => !img.complete);
-        
         if (unloadedImgs.length > 0) {
-          console.log(`⏳ Waiting for ${unloadedImgs.length} images to load...`);
           await Promise.all(
             unloadedImgs.map(img => 
               new Promise(resolve => {
@@ -52,58 +132,76 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
             )
           );
         }
-        console.log('✅ All images loaded');
       }
       
-      await new Promise(resolve => 
-        requestAnimationFrame(() => setTimeout(resolve, 150))
-      );
-      
-      console.log('🖨️ Opening print dialog...');
+      await new Promise(resolve => setTimeout(resolve, 100));
       window.print();
     } catch (error) {
-      console.error('❌ Print error:', error);
+      console.error('Print error:', error);
       window.print();
     } finally {
-      setIsPrinting(false);
+      setIsGenerating(false);
+      setProgress('');
     }
   };
 
   return (
     <div>
-      <div className="no-print flex flex-col gap-2 mb-4">
+      <div className="no-print flex flex-col gap-3 mb-4">
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={handlePrint}
-            disabled={isPrinting}
-            className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium shadow-sm disabled:opacity-50 touch-manipulation min-h-[48px]"
-            data-testid="button-print-pdf"
-          >
-            {isPrinting ? (
-              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-            ) : (
-              <Printer className="h-5 w-5" />
-            )}
-            <span className="text-base">{isPrinting ? 'Préparation...' : 'Imprimer PDF'}</span>
-          </button>
+          {isMobile ? (
+            <button
+              onClick={generatePDF}
+              disabled={isGenerating}
+              className="flex items-center gap-2 px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors font-medium shadow-md disabled:opacity-50 touch-manipulation min-h-[52px] text-base"
+              data-testid="button-download-pdf"
+            >
+              {isGenerating ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <FileDown className="h-5 w-5" />
+              )}
+              <span>{isGenerating ? progress : 'Télécharger PDF'}</span>
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleDesktopPrint}
+                disabled={isGenerating}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm disabled:opacity-50"
+                data-testid="button-print-pdf"
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Printer className="h-4 w-4" />
+                )}
+                <span>{isGenerating ? 'Préparation...' : 'Imprimer'}</span>
+              </button>
+              <button
+                onClick={generatePDF}
+                disabled={isGenerating}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm disabled:opacity-50"
+                data-testid="button-download-pdf"
+              >
+                <Download className="h-4 w-4" />
+                <span>Télécharger PDF</span>
+              </button>
+            </>
+          )}
           
           {isMobile && (
-            <div className="flex items-center gap-1 text-amber-600 text-sm">
+            <div className="flex items-center gap-1 text-blue-600 text-sm bg-blue-50 px-2 py-1 rounded">
               <Smartphone className="h-4 w-4" />
-              <span>Mobile</span>
+              <span>Mode mobile</span>
             </div>
           )}
         </div>
         
-        {showMobileNotice && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-            <div className="flex items-start gap-2">
-              <Monitor className="h-5 w-5 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium">Conseil pour mobile</p>
-                <p>Pour une meilleure qualité d'impression, utilisez un ordinateur ou sélectionnez "Enregistrer en PDF" dans les options d'impression.</p>
-              </div>
-            </div>
+        {isGenerating && progress && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700 flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>{progress}</span>
           </div>
         )}
       </div>
