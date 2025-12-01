@@ -1,12 +1,38 @@
 'use client';
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Printer, Smartphone, FileDown, Loader2 } from "lucide-react";
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Props = {
   documentTitle?: string;
   children: React.ReactNode;
+};
+
+const translations = {
+  fr: {
+    print: 'Imprimer',
+    downloadPdf: 'Télécharger PDF',
+    preparing: 'Préparation...',
+    mobileMode: 'Mode mobile',
+    loadingImages: 'Chargement des images...',
+    generatingPdf: 'Génération du PDF...',
+    downloading: 'Téléchargement...',
+    done: 'Terminé!',
+    errorRetry: 'Erreur - Réessayez',
+  },
+  en: {
+    print: 'Print',
+    downloadPdf: 'Download PDF',
+    preparing: 'Preparing...',
+    mobileMode: 'Mobile mode',
+    loadingImages: 'Loading images...',
+    generatingPdf: 'Generating PDF...',
+    downloading: 'Downloading...',
+    done: 'Done!',
+    errorRetry: 'Error - Retry',
+  }
 };
 
 export default function BulletinPrint({ documentTitle = 'bulletin', children }: Props) {
@@ -14,6 +40,8 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
   const [isMobile, setIsMobile] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState('');
+  const { language } = useLanguage();
+  const t = translations[language] || translations.fr;
 
   useEffect(() => {
     const checkMobile = () => {
@@ -34,7 +62,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
     }
 
     setIsGenerating(true);
-    setProgress('Préparation...');
+    setProgress(t.preparing);
 
     try {
       document.documentElement.classList.add('pdf-capture-mode');
@@ -46,7 +74,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
       const imgs = Array.from(printArea.querySelectorAll('img')) as HTMLImageElement[];
       const unloadedImgs = imgs.filter(img => !img.complete);
       if (unloadedImgs.length > 0) {
-        setProgress('Chargement des images...');
+        setProgress(t.loadingImages);
         await Promise.all(
           unloadedImgs.map(img => 
             new Promise(resolve => {
@@ -56,7 +84,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
         );
       }
 
-      setProgress('Génération du PDF...');
+      setProgress(t.generatingPdf);
       
       const A4_WIDTH_PX = 794;
       
@@ -94,18 +122,18 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
         pdf.addImage(imgData, 'JPEG', xOffset, 0, scaledWidth, pdfHeight);
       }
 
-      setProgress('Téléchargement...');
+      setProgress(t.downloading);
       
       const fileName = `${documentTitle}_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
 
-      setProgress('Terminé!');
+      setProgress(t.done);
       setTimeout(() => setProgress(''), 2000);
 
     } catch (error) {
       console.error('PDF generation error:', error);
       document.documentElement.classList.remove('pdf-capture-mode');
-      setProgress('Erreur - Réessayez');
+      setProgress(t.errorRetry);
       setTimeout(() => setProgress(''), 3000);
     } finally {
       setIsGenerating(false);
@@ -114,7 +142,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
 
   const handleDesktopPrint = async () => {
     setIsGenerating(true);
-    setProgress('Préparation...');
+    setProgress(t.preparing);
     
     try {
       await (document.fonts?.ready ?? Promise.resolve());
@@ -161,7 +189,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
               ) : (
                 <FileDown className="h-5 w-5" />
               )}
-              <span>{isGenerating ? progress : 'Télécharger PDF / Download PDF'}</span>
+              <span>{isGenerating ? progress : t.downloadPdf}</span>
             </button>
           ) : (
             <button
@@ -175,14 +203,14 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
               ) : (
                 <Printer className="h-4 w-4" />
               )}
-              <span>{isGenerating ? 'Préparation... / Preparing...' : 'Imprimer / Print'}</span>
+              <span>{isGenerating ? t.preparing : t.print}</span>
             </button>
           )}
           
           {isMobile && (
             <div className="flex items-center gap-1 text-blue-600 text-sm bg-blue-50 px-2 py-1 rounded">
               <Smartphone className="h-4 w-4" />
-              <span>Mode mobile / Mobile mode</span>
+              <span>{t.mobileMode}</span>
             </div>
           )}
         </div>
