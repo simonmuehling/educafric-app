@@ -402,18 +402,20 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   );
   
   // Initialize bulletin type based on school type and language
-  const getInitialBulletinType = (): 'general-fr' | 'general-en' | 'technical-fr' | 'technical-en' => {
+  type BulletinType = 'general-fr' | 'general-en' | 'literary-fr' | 'scientific-fr' | 'professional-fr' | 'technical-en';
+  
+  const getInitialBulletinType = (): BulletinType => {
     // Check school data
     const schoolType = testModeEducationalType || schoolData?.school?.educationalType;
     if (schoolType === 'technical') {
-      return language === 'en' ? 'technical-en' : 'technical-fr';
+      return language === 'en' ? 'technical-en' : 'professional-fr';
     }
     // For general schools, use language-specific format
     return language === 'en' ? 'general-en' : 'general-fr';
   };
   
-  const [bulletinType, setBulletinType] = useState<'general-fr' | 'general-en' | 'technical-fr' | 'technical-en'>(getInitialBulletinType());
-  const isTechnicalBulletin = bulletinType === 'technical-fr' || bulletinType === 'technical-en';
+  const [bulletinType, setBulletinType] = useState<BulletinType>(getInitialBulletinType());
+  const isSectionedBulletin = ['literary-fr', 'scientific-fr', 'professional-fr', 'technical-en'].includes(bulletinType);
   const [selectedClassId, setSelectedClassId] = useState<string>(defaultClass || '');
   const [year, setYear] = useState(defaultYear || '2025/2026');
   
@@ -1016,10 +1018,12 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       trimester: "Trimestre",
       bulletinType: "Type de Bulletin",
       selectBulletinType: "Sélectionner le type",
-      generalFr: "Général Francophone (1 colonne)",
+      generalFr: "Général Francophone",
       generalEn: "Général Anglophone (2 colonnes)",
-      technicalFr: "Technique Francophone (3 sections)",
-      technicalEn: "Technique Anglophone (3 sections)",
+      literaryFr: "Littéraire - Série A (3 sections)",
+      scientificFr: "Scientifique - Séries C/D/E (3 sections)",
+      professionalFr: "Technique - STT/TI/TAG (3 sections)",
+      technicalEn: "Technical Anglophone (3 sections)",
       selectClass: "Sélectionner la classe",
       selectTrimester: "Sélectionner le trimestre",
       firstTerm: "Premier Trimestre",
@@ -1101,9 +1105,11 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       trimester: "Term",
       bulletinType: "Report Type",
       selectBulletinType: "Select type",
-      generalFr: "General Francophone (1 column)",
+      generalFr: "General Francophone",
       generalEn: "General Anglophone (2 columns)",
-      technicalFr: "Technical Francophone (3 sections)",
+      literaryFr: "Literary - Series A (3 sections)",
+      scientificFr: "Scientific - Series C/D/E (3 sections)",
+      professionalFr: "Technical - STT/TI/TAG (3 sections)",
       technicalEn: "Technical Anglophone (3 sections)",
       selectClass: "Select class",
       selectTrimester: "Select term",
@@ -1389,7 +1395,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                 <SelectContent className="bg-white">
                   <SelectItem value="general-fr">{t.generalFr}</SelectItem>
                   <SelectItem value="general-en">{t.generalEn}</SelectItem>
-                  <SelectItem value="technical-fr">{t.technicalFr}</SelectItem>
+                  <SelectItem value="literary-fr">{t.literaryFr}</SelectItem>
+                  <SelectItem value="scientific-fr">{t.scientificFr}</SelectItem>
+                  <SelectItem value="professional-fr">{t.professionalFr}</SelectItem>
                   <SelectItem value="technical-en">{t.technicalEn}</SelectItem>
                 </SelectContent>
               </Select>
@@ -2184,7 +2192,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   <thead>
                     <tr className="bg-blue-50 border-b-2 border-blue-200">
                       <th className="px-3 py-2 text-left text-sm font-medium text-gray-700 border">{language === 'fr' ? 'Matière' : 'Subject'}</th>
-                      {isTechnicalBulletin && (
+                      {isSectionedBulletin && (
                         <th className="px-3 py-2 text-center text-sm font-medium text-gray-700 border bg-amber-50">
                           {language === 'fr' ? '📋 Section Bulletin' : '📋 Bulletin Section'}
                         </th>
@@ -2239,7 +2247,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                           </td>
 
                           {/* Section Bulletin - Only for technical bulletins */}
-                          {isTechnicalBulletin && (
+                          {isSectionedBulletin && (
                             <td className="px-2 py-2 border bg-amber-50/50" data-testid={`cell-bulletin-section-${index}`}>
                               <Select 
                                 value={subject.bulletinSection || ''} 
@@ -2598,7 +2606,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                                   </SelectContent>
                                 </Select>
                               </div>
-                              {isTechnicalBulletin && (
+                              {isSectionedBulletin && (
                                 <div className="space-y-1">
                                   <Label className="text-xs text-gray-600 bg-amber-50 px-1 rounded">
                                     {language === 'fr' ? '📋 Section Bulletin' : '📋 Bulletin Section'}
