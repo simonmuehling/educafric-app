@@ -652,6 +652,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       cote: '' 
     }
   ]);
+  
+  // Auto-fill teacher name for initial empty subject when teacher is logged in
+  useEffect(() => {
+    if (effectiveRole === 'teacher' && user && subjects.length === 1 && !subjects[0].name && !subjects[0].teacher) {
+      const teacherFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+      if (teacherFullName) {
+        setSubjects(prev => prev.map(s => ({
+          ...s,
+          teacher: teacherFullName
+        })));
+      }
+    }
+  }, [effectiveRole, user]);
 
   const [discipline, setDiscipline] = useState<DisciplineInfo>({
     absJ: 0,
@@ -729,10 +742,15 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   // Per-subject comments are now stored in each Subject's comments field
 
   const addSubject = () => {
+    // Auto-populate teacher name from authenticated user for teachers
+    const teacherName = effectiveRole === 'teacher' && user
+      ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+      : '';
+    
     const newSubject: Subject = {
       id: Date.now().toString(),
       name: '',
-      teacher: '',
+      teacher: teacherName,
       coefficient: 1,
       grade: 0,
       remark: '',
