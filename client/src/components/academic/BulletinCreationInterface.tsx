@@ -541,7 +541,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             // Convert to Subject format and set
             const loadedSubjects: Subject[] = data.subjects.map((s: any) => ({
               id: s.id || Date.now().toString() + Math.random(),
-              name: s.name || '',
+              name: s.name || s.name_fr || s.name_en || '',
               teacher: s.teacher || '',
               coefficient: s.coefficient || 1,
               grade: 0,
@@ -554,7 +554,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
               competence3: '',
               totalPondere: 0,
               cote: '',
-              subjectType: 'general' as const,
+              subjectType: (s.subject_type || s.subjectType || 'general') as 'general' | 'scientific' | 'literary' | 'professional' | 'other',
+              bulletinSection: (s.bulletin_section || s.bulletinSection || undefined) as 'general' | 'scientific' | 'literary' | 'professional' | 'other' | undefined,
               competencyLevel: undefined,
               competencyEvaluation: undefined
             }));
