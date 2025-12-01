@@ -2105,9 +2105,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ✅ UPDATED: Get teacher's assigned subjects OR all class subjects as fallback
-  // If teacher has timetable assignments, show only their subjects
-  // If teacher has NO assignments, show ALL class subjects (for flexibility)
+  // ✅ NEW: Get ONLY teacher's assigned subjects for a class (Teacher Bulletin Interface)
+  // Teachers should only see subjects they teach, not all class subjects
   app.get("/api/teacher/bulletin/class-subjects/:classId", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
@@ -2118,10 +2117,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'Invalid class ID' });
       }
       
-      const teacherFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
-      console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔍 Fetching subjects for teacher ${user.id} (${teacherFullName}) class ${classId}`);
+      console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔍 Fetching teacher ${user.id}'s subjects for class ${classId}`);
       
-      // Get teacher's assigned subjects for this class from timetables
+      // Get teacher's assigned subjects for this class from timetables (no groupBy to avoid Drizzle errors)
       const allTeacherTimetables = await db
         .select({
           subjectName: timetables.subjectName,
@@ -2145,19 +2143,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return true;
       });
       
-      console.log(`[TEACHER_BULLETIN_SUBJECTS] 📚 Teacher has ${teacherTimetables.length} timetable assignments for class ${classId}`);
+      console.log(`[TEACHER_BULLETIN_SUBJECTS] 📚 Teacher has ${teacherTimetables.length} subject assignments for class ${classId}`);
       
+      // Get unique subject names that teacher teaches
+      const teacherSubjectNames = [...new Set(teacherTimetables.map(t => t.subjectName?.toLowerCase()).filter(Boolean))];
+      const teacherSubjectIds = [...new Set(teacherTimetables.map(t => t.subjectId).filter(Boolean))];
       const schoolId = teacherTimetables[0]?.schoolId || user.schoolId;
-      let finalSubjects: any[] = [];
-      let loadedFromTimetable = false;
       
-      // CASE 1: Teacher has timetable assignments - filter to only their subjects
-      if (teacherTimetables.length > 0) {
-        loadedFromTimetable = true;
-        const teacherSubjectNames = [...new Set(teacherTimetables.map(t => t.subjectName?.toLowerCase()).filter(Boolean))];
-        const teacherSubjectIds = [...new Set(teacherTimetables.map(t => t.subjectId).filter(Boolean))];
-        
-        // Get subjects from subjects table, filtered by teacher's assignments
+      // Get full subject details from subjects table, filtered by what teacher teaches
+      let teacherSubjects: any[] = [];
+      
+      // Only query if teacher has assignments for this class
+      if (teacherTimetables.length > 0 && (teacherSubjectIds.length > 0 || teacherSubjectNames.length > 0)) {
+        // Get all subjects for the class from subjects table
         const allClassSubjects = await db.select()
           .from(subjects)
           .where(and(
@@ -2165,46 +2163,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
             eq(subjects.schoolId, schoolId)
           ));
         
-        finalSubjects = allClassSubjects.filter((s: any) => {
+        // STRICTLY filter to only subjects the teacher teaches (by ID or by name match)
+        teacherSubjects = allClassSubjects.filter((s: any) => {
           const matchById = teacherSubjectIds.includes(s.id);
           const matchByNameFr = teacherSubjectNames.includes(s.nameFr?.toLowerCase());
           const matchByNameEn = teacherSubjectNames.includes(s.nameEn?.toLowerCase());
           return matchById || matchByNameFr || matchByNameEn;
         });
         
-        console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔒 Filtered ${allClassSubjects.length} class subjects → ${finalSubjects.length} teacher-assigned`);
-        
-        // If no matching subjects in table, create from timetable data
-        if (finalSubjects.length === 0) {
-          finalSubjects = teacherTimetables.map((t: any, index: number) => ({
-            id: t.subjectId || `timetable-${index}`,
-            nameFr: t.subjectName,
-            nameEn: t.subjectName,
-            coefficient: 2,
-            subjectType: 'general',
-            bulletinSection: 'general'
-          }));
-        }
+        console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔒 Filtered ${allClassSubjects.length} class subjects → ${teacherSubjects.length} teacher-assigned`);
       }
       
-      // CASE 2: Teacher has NO timetable assignments - load ALL class subjects as fallback
-      if (teacherTimetables.length === 0) {
-        console.log(`[TEACHER_BULLETIN_SUBJECTS] ⚠️ No timetable assignments found - loading ALL class subjects as fallback`);
-        
-        // Get all subjects for this class
-        const allClassSubjects = await db.select()
-          .from(subjects)
-          .where(and(
-            eq(subjects.classId, classId),
-            eq(subjects.schoolId, schoolId)
-          ));
-        
-        finalSubjects = allClassSubjects;
-        console.log(`[TEACHER_BULLETIN_SUBJECTS] 📋 Loaded ${finalSubjects.length} subjects from class catalog (fallback mode)`);
+      // If no subjects found in subjects table, create from timetable data
+      if (teacherSubjects.length === 0 && teacherTimetables.length > 0) {
+        teacherSubjects = teacherTimetables.map((t: any, index: number) => ({
+          id: t.subjectId || `timetable-${index}`,
+          nameFr: t.subjectName,
+          nameEn: t.subjectName,
+          coefficient: 2,
+          subjectType: 'general',
+          bulletinSection: 'general'
+        }));
       }
       
-      // Build the response with teacher info (always use authenticated teacher's name)
-      const subjectsWithTeacher = finalSubjects.map((subject: any, index: number) => {
+      // Build the response with teacher info
+      const teacherFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+      const subjectsWithTeacher = teacherSubjects.map((subject: any, index: number) => {
         const subjectName = userLanguage === 'en' 
           ? (subject.nameEn || subject.nameFr || '') 
           : (subject.nameFr || subject.nameEn || '');
@@ -2214,7 +2198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: subjectName,
           nameFr: subject.nameFr || '',
           nameEn: subject.nameEn || '',
-          teacher: teacherFullName, // Always use authenticated teacher's name
+          teacher: teacherFullName,
           coefficient: parseFloat(subject.coefficient) || 2,
           subjectType: subject.subjectType || 'general',
           bulletinSection: subject.bulletinSection || subject.subjectType || 'general',
@@ -2231,18 +2215,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      console.log(`[TEACHER_BULLETIN_SUBJECTS] ✅ Returning ${subjectsWithTeacher.length} subjects with teacher: ${teacherFullName}`);
+      console.log(`[TEACHER_BULLETIN_SUBJECTS] ✅ Returning ${subjectsWithTeacher.length} teacher-assigned subjects`);
       
       res.json({ 
         success: true, 
         subjects: subjectsWithTeacher,
         teacherName: teacherFullName,
-        loadedFromTimetable,
         message: subjectsWithTeacher.length > 0 
-          ? (loadedFromTimetable 
-              ? (userLanguage === 'fr' ? 'Vos matières chargées' : 'Your subjects loaded')
-              : (userLanguage === 'fr' ? 'Matières de la classe chargées' : 'Class subjects loaded'))
-          : (userLanguage === 'fr' ? 'Aucune matière trouvée - ajoutez manuellement' : 'No subjects found - add manually')
+          ? (userLanguage === 'fr' ? 'Vos matières chargées' : 'Your subjects loaded')
+          : (userLanguage === 'fr' ? 'Aucune matière assignée pour cette classe' : 'No subjects assigned for this class')
       });
       
     } catch (error) {

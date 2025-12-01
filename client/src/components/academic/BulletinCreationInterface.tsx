@@ -653,34 +653,18 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     }
   ]);
   
-  // Auto-fill teacher name for ALL subjects without teacher when teacher is logged in
-  // This works on initial load AND when subjects are loaded from API without teacher names
-  // The hasSubjectsWithoutTeacher check prevents infinite loops - once all subjects have teachers, it won't re-run
+  // Auto-fill teacher name for initial empty subject when teacher is logged in
   useEffect(() => {
-    if (effectiveRole === 'teacher' && user) {
+    if (effectiveRole === 'teacher' && user && subjects.length === 1 && !subjects[0].name && !subjects[0].teacher) {
       const teacherFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
-      
       if (teacherFullName) {
-        // Check if any subject is missing teacher name
-        const subjectsWithoutTeacher = subjects.filter(s => !s.teacher || s.teacher.trim() === '');
-        
-        if (subjectsWithoutTeacher.length > 0) {
-          console.log('[BULLETIN_AUTOFILL] Teacher auto-fill check:', { 
-            role: effectiveRole, 
-            teacherName: teacherFullName,
-            subjectsCount: subjects.length,
-            subjectsWithoutTeacher: subjectsWithoutTeacher.length
-          });
-          console.log('[BULLETIN_AUTOFILL] ✅ Auto-filling teacher name:', teacherFullName);
-          
-          setSubjects(prev => prev.map(s => ({
-            ...s,
-            teacher: s.teacher && s.teacher.trim() !== '' ? s.teacher : teacherFullName
-          })));
-        }
+        setSubjects(prev => prev.map(s => ({
+          ...s,
+          teacher: teacherFullName
+        })));
       }
     }
-  }, [effectiveRole, user, subjects]);
+  }, [effectiveRole, user]);
 
   const [discipline, setDiscipline] = useState<DisciplineInfo>({
     absJ: 0,

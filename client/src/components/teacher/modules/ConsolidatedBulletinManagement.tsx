@@ -498,7 +498,6 @@ const ConsolidatedBulletinManagement: React.FC = () => {
               defaultClass={selectedClass}
               defaultTerm={getTrimesterLabel(selectedTerm)}
               defaultYear={academicYear}
-              userRole="teacher"
             />
           </TabsContent>
         </Tabs>
