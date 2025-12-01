@@ -193,7 +193,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   const { defaultClass, defaultTerm, defaultYear, userRole } = props;
   const { language } = useLanguage();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   
   // Determine effective user role (from prop or from user context)
   const effectiveRole = (userRole || user?.role || 'teacher').toLowerCase();
@@ -528,13 +528,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   // ✅ Auto-populate subjects when class is selected
   useEffect(() => {
     const loadClassSubjects = async () => {
+      // Wait for authentication to be ready before making API calls
+      if (isAuthLoading) {
+        console.log('[BULLETIN] ⏳ Waiting for authentication to complete...');
+        return;
+      }
+      
       // Only load if class changed and we have a valid class ID
       if (!selectedClassId || selectedClassId === lastLoadedClassId || selectedClassId === 'no-classes') {
         return;
       }
       
       setAutoLoadingSubjects(true);
-      console.log('[BULLETIN] 📚 Auto-loading subjects for class:', selectedClassId, 'Role:', effectiveRole);
+      console.log('[BULLETIN] 📚 Auto-loading subjects for class:', selectedClassId, 'Role:', effectiveRole, 'User:', user?.id);
       
       try {
         // For teachers, use teacher-specific endpoint that only shows their assigned subjects
@@ -546,7 +552,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         
         const response = await fetch(endpoint, {
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Accept': 'application/json' }
         });
         
         if (response.ok) {
@@ -589,11 +595,15 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             });
           } else {
             console.log('[BULLETIN] ⚠️ No subjects found for class, keeping manual entry');
-            // Keep empty subject for manual entry if no subjects found
-            if (subjects.length === 1 && !subjects[0].name) {
-              // Already have empty subject, don't change
-            }
+            setLastLoadedClassId(selectedClassId); // Mark as loaded to prevent retry
           }
+        } else {
+          // Log the error status for debugging
+          console.warn('[BULLETIN] ⚠️ API returned error:', response.status);
+          if (response.status === 401) {
+            console.warn('[BULLETIN] 🔐 Authentication issue - session may have expired');
+          }
+          setLastLoadedClassId(selectedClassId); // Mark as loaded to prevent retry
         }
       } catch (error) {
         console.error('[BULLETIN] ❌ Error loading class subjects:', error);
@@ -604,7 +614,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     };
     
     loadClassSubjects();
-  }, [selectedClassId, language, effectiveRole]);
+  }, [selectedClassId, language, effectiveRole, isAuthLoading, user?.id]);
   
   const [student, setStudent] = useState<StudentInfo>({
     name: '',

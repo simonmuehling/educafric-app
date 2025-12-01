@@ -2107,7 +2107,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ NEW: Get ONLY teacher's assigned subjects for a class (Teacher Bulletin Interface)
   // Teachers should only see subjects they teach, not all class subjects
-  app.get("/api/teacher/bulletin/class-subjects/:classId", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+  app.get("/api/teacher/bulletin/class-subjects/:classId", (req, res, next) => {
+    // Debug logging only in development with DEBUG_AUTH enabled
+    if (process.env.DEBUG_AUTH === 'true') {
+      console.log(`[TEACHER_BULLETIN_SUBJECTS_DEBUG] 🔐 Route matched! Path: ${req.path}`);
+      console.log(`[TEACHER_BULLETIN_SUBJECTS_DEBUG] Session ID: ${req.sessionID || 'none'}`);
+      console.log(`[TEACHER_BULLETIN_SUBJECTS_DEBUG] Has session: ${!!req.session}`);
+      console.log(`[TEACHER_BULLETIN_SUBJECTS_DEBUG] Is authenticated: ${req.isAuthenticated ? req.isAuthenticated() : 'N/A'}`);
+      console.log(`[TEACHER_BULLETIN_SUBJECTS_DEBUG] User: ${req.user ? JSON.stringify({ id: (req.user as any).id, role: (req.user as any).role }) : 'undefined'}`);
+      console.log(`[TEACHER_BULLETIN_SUBJECTS_DEBUG] Cookies: ${req.headers.cookie ? 'present' : 'missing'}`);
+    }
+    next();
+  }, requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       const classId = parseInt(req.params.classId);
@@ -2119,11 +2130,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔍 Fetching teacher ${user.id}'s subjects for class ${classId}`);
       
-      // Get teacher's assigned subjects for this class from timetables (no groupBy to avoid Drizzle errors)
+      // Get teacher's assigned subjects for this class from timetables
+      // Note: timetables table only has subjectName, not subjectId
       const allTeacherTimetables = await db
         .select({
           subjectName: timetables.subjectName,
-          subjectId: timetables.subjectId,
           classId: timetables.classId,
           schoolId: timetables.schoolId
         })
@@ -2134,11 +2145,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(timetables.isActive, true)
         ));
       
-      // De-duplicate manually in JavaScript
+      // De-duplicate by subject name (since we don't have subjectId)
       const seenSubjects = new Set<string>();
       const teacherTimetables = allTeacherTimetables.filter(t => {
-        const key = `${t.subjectId || ''}-${t.subjectName || ''}`;
-        if (seenSubjects.has(key)) return false;
+        const key = t.subjectName?.toLowerCase() || '';
+        if (seenSubjects.has(key) || !key) return false;
         seenSubjects.add(key);
         return true;
       });
@@ -2147,14 +2158,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get unique subject names that teacher teaches
       const teacherSubjectNames = [...new Set(teacherTimetables.map(t => t.subjectName?.toLowerCase()).filter(Boolean))];
-      const teacherSubjectIds = [...new Set(teacherTimetables.map(t => t.subjectId).filter(Boolean))];
       const schoolId = teacherTimetables[0]?.schoolId || user.schoolId;
       
       // Get full subject details from subjects table, filtered by what teacher teaches
       let teacherSubjects: any[] = [];
       
       // Only query if teacher has assignments for this class
-      if (teacherTimetables.length > 0 && (teacherSubjectIds.length > 0 || teacherSubjectNames.length > 0)) {
+      if (teacherTimetables.length > 0 && teacherSubjectNames.length > 0) {
         // Get all subjects for the class from subjects table
         const allClassSubjects = await db.select()
           .from(subjects)
@@ -2163,21 +2173,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             eq(subjects.schoolId, schoolId)
           ));
         
-        // STRICTLY filter to only subjects the teacher teaches (by ID or by name match)
+        // Filter to only subjects the teacher teaches (by name match)
         teacherSubjects = allClassSubjects.filter((s: any) => {
-          const matchById = teacherSubjectIds.includes(s.id);
           const matchByNameFr = teacherSubjectNames.includes(s.nameFr?.toLowerCase());
           const matchByNameEn = teacherSubjectNames.includes(s.nameEn?.toLowerCase());
-          return matchById || matchByNameFr || matchByNameEn;
+          return matchByNameFr || matchByNameEn;
         });
         
         console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔒 Filtered ${allClassSubjects.length} class subjects → ${teacherSubjects.length} teacher-assigned`);
       }
       
-      // If no subjects found in subjects table, create from timetable data
+      // If no subjects found in subjects table, create from timetable data directly
       if (teacherSubjects.length === 0 && teacherTimetables.length > 0) {
+        console.log(`[TEACHER_BULLETIN_SUBJECTS] 📝 Creating subjects from timetable data (${teacherTimetables.length} entries)`);
         teacherSubjects = teacherTimetables.map((t: any, index: number) => ({
-          id: t.subjectId || `timetable-${index}`,
+          id: `timetable-${index}`,
           nameFr: t.subjectName,
           nameEn: t.subjectName,
           coefficient: 2,
