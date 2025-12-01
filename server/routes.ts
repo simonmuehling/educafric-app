@@ -10207,6 +10207,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .where(eq(teacherBulletins.id, bulletinId));
       
+      // Track grades count for response
+      let totalGradesInserted = 0;
+      
       // If approved, auto-populate the grades into teacherGradeSubmissions
       if (reviewStatus === 'approved' && bulletin.subjects && Array.isArray(bulletin.subjects)) {
         console.log('[DIRECTOR_BULLETINS] 📊 Auto-populating approved grades for student:', bulletin.studentId);
@@ -10314,6 +10317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         console.log(`[DIRECTOR_BULLETINS] ✅ Auto-populated ${gradesInserted} grades for student ${bulletin.studentId} (${gradesSkipped} skipped)`);
+        totalGradesInserted = gradesInserted;
       }
       
       console.log('[DIRECTOR_BULLETINS] ✅ Bulletin reviewed successfully');
@@ -10322,7 +10326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         message: 'Bulletin reviewed successfully',
         gradesPopulated: reviewStatus === 'approved',
-        gradesInserted: reviewStatus === 'approved' ? subjectsData?.length || 0 : 0
+        gradesInserted: totalGradesInserted
       });
     } catch (error) {
       console.error('[DIRECTOR_BULLETINS] Error reviewing bulletin:', error);
