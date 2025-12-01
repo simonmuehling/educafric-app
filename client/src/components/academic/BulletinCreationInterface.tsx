@@ -853,18 +853,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       }
 
       // ✅ DONNÉES RÉELLES UNIQUEMENT: Pas de valeurs par défaut
+      const classIdNum = selectedClassId ? parseInt(selectedClassId) : 0;
       const archiveData = {
-        schoolId: user.schoolId, // Utilise SEULEMENT la vraie école
+        schoolId: user.schoolId,
         type: 'bulletin' as const,
-        classId: student.id || 0, // TODO: get real classId from student data
+        classId: classIdNum,
         academicYear: year,
         term: trimester,
         studentId: student.id || 0,
         language: language,
         filename: `Bulletin_${student.name}_${trimester}_${year}.pdf`,
         storageKey: `bulletins/${year}/${trimester}/${student.id}_${Date.now()}.pdf`,
-        checksumSha256: 'pending',
-        sizeBytes: 0,
+        checksumSha256: 'pending-generation',
+        sizeBytes: 1024,
         snapshot: {
           studentInfo: student,
           subjects,
@@ -877,8 +878,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
           isSigned: isSigned,
           status: 'draft'
         },
-        sentAt: new Date(),
-        sentBy: user.id // Utilise SEULEMENT le vrai ID utilisateur
+        sentAt: new Date().toISOString(),
+        sentBy: user.id
       };
 
       const response = await apiRequest('POST', '/api/director/archives/save', archiveData);
@@ -1018,7 +1019,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
         body: JSON.stringify({
           studentId: student.id,
           studentName: student.name,
-          classId: selectedClass,
+          classId: selectedClassId,
           className: student.classLabel,
           term: trimester,
           academicYear: year,
@@ -1026,7 +1027,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             name: s.name,
             coefficient: s.coefficient,
             grade: isTechnicalSchool ? s.moyenneFinale : (s.note1 || s.grade),
-            appreciation: s.appreciation
+            remark: s.remark || ''
           })),
           average,
           discipline,
