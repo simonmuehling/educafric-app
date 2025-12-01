@@ -322,23 +322,30 @@ export default function ReportCardPreview({
   const effectiveBulletinType = bulletinType || (isTechnicalSchool ? 'technical-fr' : 'general-fr');
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
   
-  // Determine if this is a technical bulletin (shows 3 sections: General, Scientific, Technical only)
+  // Determine if this is a technical bulletin (shows 5 sections: General, Literary, Scientific, Professional, Other)
   const isTechnicalBulletin = effectiveBulletinType === 'technical-fr' || effectiveBulletinType === 'technical-en';
   
   // Determine if we show 2 columns (only for general-en)
   const showTwoColumns = effectiveBulletinType === 'general-en';
   
-  // Group subjects by type for technical schools (3 distinct sections: General, Professional, Other)
+  // Group subjects by type for technical schools (5 distinct sections)
   const groupedEntries = useMemo(() => {
     if (!isTechnicalBulletin) {
       return { all: entries };
     }
     
-    // Technical bulletins: 3 sections only (General, Professional, Other)
-    // Literary and Scientific are merged into General section
+    // Technical bulletins: 5 distinct sections based on bulletinSection/subjectType
     const general = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
-      return section === 'general' || section === 'literary' || section === 'scientific';
+      return section === 'general';
+    });
+    const literary = entries.filter(e => {
+      const section = e.bulletinSection || e.subjectType;
+      return section === 'literary';
+    });
+    const scientific = entries.filter(e => {
+      const section = e.bulletinSection || e.subjectType;
+      return section === 'scientific';
     });
     const professional = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
@@ -349,7 +356,7 @@ export default function ReportCardPreview({
       return section === 'other' || !section;
     });
     
-    return { general, professional, other };
+    return { general, literary, scientific, professional, other };
   }, [entries, isTechnicalBulletin]);
   
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
@@ -469,7 +476,7 @@ export default function ReportCardPreview({
               </span>
               <span>
                 {isTechnicalBulletin 
-                  ? (language === 'fr' ? 'École TECHNIQUE - 3 sections (Général, Professionnel, Autres)' : 'TECHNICAL School - 3 sections (General, Professional, Other)')
+                  ? (language === 'fr' ? 'École TECHNIQUE - 5 sections' : 'TECHNICAL School - 5 sections')
                   : (showTwoColumns 
                     ? (language === 'fr' ? 'École GÉNÉRALE - Deux colonnes N/20 et M/20' : 'GENERAL School - Two columns N/20 and M/20')
                     : (language === 'fr' ? 'École GÉNÉRALE - Une colonne Note/20' : 'GENERAL School - Single Note/20 column')
@@ -652,12 +659,12 @@ export default function ReportCardPreview({
                     );
                   };
 
-                  // For technical bulletins, render 3 separate sections with subtotals (General, Scientific, Technical ONLY)
+                  // For technical bulletins, render 5 separate sections with subtotals
                   if (isTechnicalBulletin) {
                     const sectionTitles = {
                       general: language === 'fr' ? 'Matières Générales' : 'General Subjects',
-                      scientific: language === 'fr' ? 'Matières Scientifiques' : 'Scientific Subjects',
                       literary: language === 'fr' ? 'Matières Littéraires' : 'Literary Subjects',
+                      scientific: language === 'fr' ? 'Matières Scientifiques' : 'Scientific Subjects',
                       professional: language === 'fr' ? 'Matières Professionnelles' : 'Professional Subjects',
                       other: language === 'fr' ? 'Autres Matières' : 'Other Subjects'
                     };
