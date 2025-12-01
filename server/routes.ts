@@ -8130,6 +8130,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== TEACHER BULLETIN SUBMISSION - Simple workflow without signature =====
+  app.post("/api/teacher/submit-bulletin", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const bulletinData = req.body;
+      
+      console.log('[TEACHER_BULLETIN] 📤 Teacher submitting bulletin for validation:', {
+        teacherId: user.id,
+        studentName: bulletinData.studentName,
+        classId: bulletinData.classId,
+        term: bulletinData.term
+      });
+      
+      // Get teacher's school from timetables
+      const teacherAssignment = await db
+        .select({ schoolId: timetables.schoolId })
+        .from(timetables)
+        .where(eq(timetables.teacherId, user.id))
+        .limit(1);
+      
+      const schoolId = teacherAssignment[0]?.schoolId || user.schoolId;
+      
+      if (!schoolId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Aucune école assignée. Veuillez contacter votre directeur.'
+        });
+      }
+      
+      // Create notification for director
+      await storage.createNotification({
+        userId: 1, // In production, get actual director userId
+        title: `📝 Bulletin soumis - ${bulletinData.studentName}`,
+        message: `L'enseignant ${user.firstName} ${user.lastName} a soumis le bulletin de ${bulletinData.studentName} (${bulletinData.className}) pour le ${bulletinData.term}. Moyenne: ${bulletinData.average}. En attente de votre validation.`,
+        type: 'bulletin_submission',
+        isRead: false,
+        metadata: JSON.stringify({
+          teacherId: user.id,
+          teacherName: `${user.firstName} ${user.lastName}`,
+          studentId: bulletinData.studentId,
+          studentName: bulletinData.studentName,
+          classId: bulletinData.classId,
+          className: bulletinData.className,
+          term: bulletinData.term,
+          academicYear: bulletinData.academicYear,
+          average: bulletinData.average,
+          status: 'pending_review'
+        })
+      });
+      
+      console.log('[TEACHER_BULLETIN] ✅ Bulletin submitted successfully for director review');
+      
+      res.json({
+        success: true,
+        message: 'Bulletin soumis avec succès. Le directeur va le valider.',
+        data: {
+          teacherId: user.id,
+          studentName: bulletinData.studentName,
+          status: 'pending_review'
+        }
+      });
+    } catch (error) {
+      console.error('[TEACHER_BULLETIN] ❌ Error submitting bulletin:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la soumission du bulletin'
+      });
+    }
+  });
+
   // ===== STUDENT COMMUNICATIONS API - RESTRICTION ÉCOLE/ENSEIGNANTS SEULEMENT =====
   
   app.get("/api/student/messages", requireAuth, async (req, res) => {

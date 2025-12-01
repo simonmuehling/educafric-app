@@ -980,9 +980,86 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   // Alias for signing function (used by director interface)
   const handleSignBulletin = signBulletin;
 
+  // Simple function for teachers to send grades to school (no signature required)
+  const sendToSchool = async () => {
+    try {
+      // Validate student info
+      if (!student.name || subjects.length === 0) {
+        alert(language === 'fr' 
+          ? 'Veuillez remplir les informations de l\'élève et les notes avant d\'envoyer'
+          : 'Please fill in student information and grades before sending');
+        return;
+      }
+
+      // Confirm before sending
+      const confirmMessage = language === 'fr'
+        ? `Confirmer l'envoi du bulletin de ${student.name} au directeur pour validation ?`
+        : `Confirm sending ${student.name}'s report card to the director for validation?`;
+      
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+
+      console.log('[BULLETIN] 📤 Teacher sending bulletin to school for validation...');
+      
+      // Calculate average
+      const totalCoef = subjects.reduce((sum, s) => sum + (s.coefficient || 1), 0);
+      const totalPoints = subjects.reduce((sum, s) => {
+        const grade = isTechnicalSchool ? (s.moyenneFinale || 0) : (s.note1 || s.grade || 0);
+        return sum + (grade * (s.coefficient || 1));
+      }, 0);
+      const average = totalCoef > 0 ? (totalPoints / totalCoef).toFixed(2) : '0.00';
+
+      // Send to API
+      const response = await fetch('/api/teacher/submit-bulletin', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: student.id,
+          studentName: student.name,
+          classId: selectedClass,
+          className: student.classLabel,
+          term: trimester,
+          academicYear: year,
+          subjects: subjects.map(s => ({
+            name: s.name,
+            coefficient: s.coefficient,
+            grade: isTechnicalSchool ? s.moyenneFinale : (s.note1 || s.grade),
+            appreciation: s.appreciation
+          })),
+          average,
+          discipline,
+          generalRemark,
+          status: 'pending_review'
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: language === 'fr' ? '✅ Bulletin envoyé' : '✅ Report card sent',
+          description: language === 'fr' 
+            ? 'Le directeur va examiner et valider le bulletin'
+            : 'The director will review and validate the report card',
+          duration: 5000
+        });
+        console.log('[BULLETIN] ✅ Bulletin submitted for director review');
+      } else {
+        throw new Error('Failed to submit bulletin');
+      }
+    } catch (error) {
+      console.error('[BULLETIN] ❌ Error sending to school:', error);
+      alert(language === 'fr' 
+        ? 'Erreur lors de l\'envoi. Veuillez réessayer.'
+        : 'Error sending. Please try again.');
+    }
+  };
+
   const sendToStudentsParents = async () => {
     if (!isSigned) {
-      alert('Le bulletin doit d\'abord être signé avant l\'envoi');
+      alert(language === 'fr' 
+        ? 'Le bulletin doit d\'abord être signé par le directeur'
+        : 'The report card must first be signed by the director');
       return;
     }
     
@@ -3345,17 +3422,17 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   </Button>
 
                   <Button
-                    onClick={sendToStudentsParents}
+                    onClick={sendToSchool}
                     className="flex flex-col items-center gap-2 h-auto py-4 bg-green-600 hover:bg-green-700 border-2 border-green-500"
                     data-testid="button-submit-school"
                   >
                     <Send className="h-5 w-5 text-white" />
                     <div className="text-center text-white">
                       <div className="font-semibold text-sm">
-                        {language === 'fr' ? 'Envoyer à l\'école' : 'Send to School'}
+                        {language === 'fr' ? 'Envoyer au Directeur' : 'Send to Director'}
                       </div>
                       <div className="text-xs opacity-90">
-                        {language === 'fr' ? 'Validation finale par l\'école' : 'Final validation by school'}
+                        {language === 'fr' ? 'Pour validation' : 'For validation'}
                       </div>
                     </div>
                   </Button>
