@@ -12336,7 +12336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await db.insert(notifications).values({
         userId: parseInt(teacherId),
         title: 'Nouvelle classe assignée / New class assigned',
-        content: `${subjectName} - ${dayNames[dayOfWeek]} ${startTime}-${endTime}`,
+        message: `${subjectName} - ${dayNames[dayOfWeek]} ${startTime}-${endTime}`,
         type: 'class_assignment',
         isRead: false
       });
@@ -12464,7 +12464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await db.insert(notifications).values({
           userId: parseInt(teacherId),
           title: 'Emploi du temps modifié / Timetable updated',
-          content: `${subjectName} - ${updateDayNames[dayOfWeek]} ${startTime}-${endTime}`,
+          message: `${subjectName} - ${updateDayNames[dayOfWeek]} ${startTime}-${endTime}`,
           type: 'timetable_update',
           isRead: false
         });

@@ -172,15 +172,14 @@ export function setupNotificationRoutes(app: Express) {
         return res.status(403).json({ error: 'Insufficient permissions' });
       }
 
-      const notificationData: InsertNotification = req.body;
+      const notificationData = req.body;
       
-      // Basic notification data - remove unsupported fields
+      // Basic notification data - use message field (not content)
       const basicNotificationData = {
         userId: notificationData.userId,
         title: notificationData.title,
-        content: notificationData.content,
-        type: notificationData.type || 'general',
-        isRead: false
+        message: notificationData.message || notificationData.content || '',
+        type: notificationData.type || 'general'
       };
 
       const newNotification = await db
@@ -207,15 +206,14 @@ export function setupNotificationRoutes(app: Express) {
         return res.status(403).json({ error: 'Insufficient permissions' });
       }
 
-      const notificationsData: InsertNotification[] = req.body;
+      const notificationsData = req.body;
       
-      // Process notifications to basic format
-      const processedNotifications = notificationsData.map(notification => ({
+      // Process notifications to basic format - use message field (not content)
+      const processedNotifications = notificationsData.map((notification: any) => ({
         userId: notification.userId,
         title: notification.title,
-        content: notification.content,
-        type: notification.type || 'general',
-        isRead: false
+        message: notification.message || notification.content || '',
+        type: notification.type || 'general'
       }));
 
       await db.insert(notifications).values(processedNotifications);

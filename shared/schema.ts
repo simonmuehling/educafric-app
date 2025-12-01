@@ -414,9 +414,11 @@ export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   title: text("title").notNull(),
-  content: text("content").notNull(),
+  message: text("message").notNull(),
   type: text("type").default("info"),
+  priority: text("priority").default("normal"),
   isRead: boolean("is_read").default(false),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
