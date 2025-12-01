@@ -1883,10 +1883,14 @@ router.post('/archives/save', requireAuth, async (req: any, res: any) => {
     }
     
     // ✅ ISOLATION MULTI-TENANT: Forcer le schoolId de l'utilisateur authentifié
+    // Convert sentAt string to Date object for Drizzle timestamp column
+    const sentAtDate = archiveData.sentAt ? new Date(archiveData.sentAt) : new Date();
+    
     const safeArchiveData = {
       ...archiveData,
       schoolId: user.schoolId, // FORCE le vrai schoolId, ignore celui du client
-      sentBy: user.id // FORCE le vrai userId, ignore celui du client
+      sentBy: user.id, // FORCE le vrai userId, ignore celui du client
+      sentAt: sentAtDate // Ensure proper Date object for timestamp column
     };
     
     console.log('[ARCHIVES] 💾 Saving bulletin to archives for school:', user.schoolId, 'File:', archiveData.filename);
