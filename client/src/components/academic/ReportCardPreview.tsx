@@ -328,25 +328,17 @@ export default function ReportCardPreview({
   // Determine if we show 2 columns (only for general-en)
   const showTwoColumns = effectiveBulletinType === 'general-en';
   
-  // Group subjects by type for technical schools (5 distinct sections)
+  // Group subjects by type for technical schools (3 distinct sections: General, Professional, Other)
   const groupedEntries = useMemo(() => {
     if (!isTechnicalBulletin) {
       return { all: entries };
     }
     
-    // Technical bulletins: 5 distinct sections based on bulletinSection/subjectType
-    // Each type displays as its own section (no mapping)
+    // Technical bulletins: 3 sections only (General, Professional, Other)
+    // Literary and Scientific are merged into General section
     const general = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
-      return section === 'general';
-    });
-    const literary = entries.filter(e => {
-      const section = e.bulletinSection || e.subjectType;
-      return section === 'literary';
-    });
-    const scientific = entries.filter(e => {
-      const section = e.bulletinSection || e.subjectType;
-      return section === 'scientific';
+      return section === 'general' || section === 'literary' || section === 'scientific';
     });
     const professional = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
@@ -354,10 +346,10 @@ export default function ReportCardPreview({
     });
     const other = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
-      return section === 'other';
+      return section === 'other' || !section;
     });
     
-    return { general, literary, scientific, professional, other };
+    return { general, professional, other };
   }, [entries, isTechnicalBulletin]);
   
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
@@ -477,7 +469,7 @@ export default function ReportCardPreview({
               </span>
               <span>
                 {isTechnicalBulletin 
-                  ? (language === 'fr' ? 'École TECHNIQUE - 3 sections (Général, Scientifique, Technique)' : 'TECHNICAL School - 3 sections (General, Scientific, Technical)')
+                  ? (language === 'fr' ? 'École TECHNIQUE - 3 sections (Général, Professionnel, Autres)' : 'TECHNICAL School - 3 sections (General, Professional, Other)')
                   : (showTwoColumns 
                     ? (language === 'fr' ? 'École GÉNÉRALE - Deux colonnes N/20 et M/20' : 'GENERAL School - Two columns N/20 and M/20')
                     : (language === 'fr' ? 'École GÉNÉRALE - Une colonne Note/20' : 'GENERAL School - Single Note/20 column')
