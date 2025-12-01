@@ -423,6 +423,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   useEffect(() => {
     setBulletinType(getInitialBulletinType());
   }, [schoolData, testModeEducationalType, language]);
+  
+  // ✅ Declare lastLoadedClassId state early so it can be used in sync effect
+  const [autoLoadingSubjects, setAutoLoadingSubjects] = useState(false);
+  const [lastLoadedClassId, setLastLoadedClassId] = useState<string | null>(null);
+  
+  // Sync selectedClassId with defaultClass prop when parent changes class selection
+  useEffect(() => {
+    if (defaultClass && defaultClass !== selectedClassId) {
+      console.log('[BULLETIN] 📋 Parent class changed, syncing selectedClassId:', defaultClass);
+      setSelectedClassId(defaultClass);
+      setLastLoadedClassId(null); // Reset to trigger subject reload
+    }
+  }, [defaultClass, selectedClassId]);
 
   // Fetch available classes - use role-appropriate endpoint
   const isTeacherRole = effectiveRole === 'teacher';
@@ -512,10 +525,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     }
   }, [language, selectedCompetencySystem]);
 
-  // ✅ NEW: Auto-populate subjects when class is selected
-  const [autoLoadingSubjects, setAutoLoadingSubjects] = useState(false);
-  const [lastLoadedClassId, setLastLoadedClassId] = useState<string | null>(null);
-  
+  // ✅ Auto-populate subjects when class is selected
   useEffect(() => {
     const loadClassSubjects = async () => {
       // Only load if class changed and we have a valid class ID
