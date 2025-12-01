@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -51,21 +52,26 @@ interface Notification {
 }
 
 interface NotificationCenterProps {
-  userRole: 'Director' | 'Teacher' | 'Parent' | 'Student' | 'Freelancer';
-  userId: number;
+  userRole?: 'Director' | 'Teacher' | 'Parent' | 'Student' | 'Freelancer' | 'SiteAdmin' | 'Commercial';
+  userId?: number;
   className?: string;
 }
 
 const NotificationCenter: React.FC<NotificationCenterProps> = ({ 
-  userRole, 
-  userId, 
+  userRole: propsUserRole, 
+  userId: propsUserId, 
   className = '' 
 }) => {
   const { language } = useLanguage();
+  const authContext = useAuth();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
+  
+  // Use props if provided, otherwise fallback to AuthContext
+  const userId = propsUserId ?? authContext?.user?.id;
+  const userRole = propsUserRole ?? authContext?.user?.role ?? 'Student';
 
   const text = {
     fr: {

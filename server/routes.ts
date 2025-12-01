@@ -10322,6 +10322,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_BULLETINS] ✅ Bulletin reviewed successfully');
       
+      // Notify the teacher about bulletin review result
+      try {
+        // Get student name for notification
+        const [student] = await db.select({ firstName: students.firstName, lastName: students.lastName })
+          .from(students)
+          .where(eq(students.id, bulletin.studentId))
+          .limit(1);
+        
+        const studentName = student ? `${student.firstName} ${student.lastName}` : `Élève #${bulletin.studentId}`;
+        
+        const isApproved = reviewStatus === 'approved';
+        const notificationTitle = isApproved 
+          ? `✅ Bulletin Approuvé - ${studentName}`
+          : `❌ Bulletin Rejeté - ${studentName}`;
+        
+        const notificationTitleEn = isApproved 
+          ? `✅ Bulletin Approved - ${studentName}`
+          : `❌ Bulletin Rejected - ${studentName}`;
+        
+        const notificationMessage = isApproved
+          ? `Votre bulletin pour ${studentName} (${bulletin.term}, ${bulletin.academicYear}) a été approuvé par la direction.${reviewComments ? ` Commentaires: ${reviewComments}` : ''}`
+          : `Votre bulletin pour ${studentName} (${bulletin.term}, ${bulletin.academicYear}) a été rejeté par la direction.${reviewComments ? ` Raison: ${reviewComments}` : ' Veuillez contacter la direction pour plus de détails.'}`;
+        
+        const notificationMessageEn = isApproved
+          ? `Your bulletin for ${studentName} (${bulletin.term}, ${bulletin.academicYear}) has been approved by the school administration.${reviewComments ? ` Comments: ${reviewComments}` : ''}`
+          : `Your bulletin for ${studentName} (${bulletin.term}, ${bulletin.academicYear}) has been rejected by the school administration.${reviewComments ? ` Reason: ${reviewComments}` : ' Please contact the administration for more details.'}`;
+
+        await storage.createNotification({
+          userId: bulletin.teacherId,
+          title: notificationTitle,
+          message: notificationMessage,
+          type: 'bulletin_review',
+          priority: isApproved ? 'medium' : 'high',
+          metadata: {
+            bulletinId,
+            studentId: bulletin.studentId,
+            studentName,
+            term: bulletin.term,
+            academicYear: bulletin.academicYear,
+            reviewStatus,
+            reviewComments,
+            gradesInserted: totalGradesInserted,
+            titleFr: notificationTitle,
+            titleEn: notificationTitleEn,
+            messageFr: notificationMessage,
+            messageEn: notificationMessageEn,
+            actionType: 'bulletin_review_result',
+            actionEntityId: bulletinId,
+            actionTargetRole: 'Teacher',
+            actionRequired: !isApproved
+          }
+        });
+        
+        console.log(`[DIRECTOR_BULLETINS] 📧 Teacher ${bulletin.teacherId} notified of bulletin ${reviewStatus}`);
+      } catch (notificationError) {
+        console.error('[DIRECTOR_BULLETINS] ❌ Failed to notify teacher:', notificationError);
+        // Don't fail the request if notification fails
+      }
+      
       res.json({
         success: true,
         message: 'Bulletin reviewed successfully',
