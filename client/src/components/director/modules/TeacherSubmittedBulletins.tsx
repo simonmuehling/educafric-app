@@ -291,40 +291,93 @@ const TeacherSubmittedBulletins: React.FC = () => {
             </div>
           </div>
 
-          {/* Subjects Table */}
+          {/* Subjects Table - COMPLETE DATA DISPLAY */}
           <div className="space-y-2">
             <h3 className="font-semibold text-lg flex items-center gap-2" data-testid="heading-subjects">
               <FileText className="w-5 h-5" />
               {t.subjects}
             </h3>
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border">
+              <table className="w-full border-collapse border text-sm">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="border p-2 text-left">{language === 'fr' ? 'Matière' : 'Subject'}</th>
-                    <th className="border p-2 text-center">{language === 'fr' ? 'Note' : 'Grade'}</th>
-                    <th className="border p-2 text-center">{language === 'fr' ? 'Coef.' : 'Coef.'}</th>
-                    <th className="border p-2 text-left">{language === 'fr' ? 'Remarque' : 'Remark'}</th>
+                    <th className="border p-2 text-left" rowSpan={2}>{language === 'fr' ? 'Matière' : 'Subject'}</th>
+                    <th className="border p-2 text-center" colSpan={3}>{language === 'fr' ? 'Évaluations' : 'Evaluations'}</th>
+                    <th className="border p-2 text-center" rowSpan={2}>{language === 'fr' ? 'Moy.' : 'Avg.'}</th>
+                    <th className="border p-2 text-center" rowSpan={2}>{language === 'fr' ? 'Coef.' : 'Coef.'}</th>
+                    <th className="border p-2 text-left" rowSpan={2}>{language === 'fr' ? 'Compétences' : 'Competencies'}</th>
+                    <th className="border p-2 text-left" rowSpan={2}>{language === 'fr' ? 'Appréciation' : 'Appreciation'}</th>
+                    <th className="border p-2 text-left" rowSpan={2}>{language === 'fr' ? 'Remarque' : 'Remark'}</th>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <th className="border p-1 text-center text-xs">N/20</th>
+                    <th className="border p-1 text-center text-xs">M/20</th>
+                    <th className="border p-1 text-center text-xs">N3/20</th>
                   </tr>
                 </thead>
                 <tbody>
                   {selectedBulletin.subjects && selectedBulletin.subjects.length > 0 ? (
                     selectedBulletin.subjects.map((subject: any, idx: number) => (
-                      <tr key={idx} data-testid={`subject-row-${idx}`}>
-                        <td className="border p-2">{subject.name || subject.id}</td>
-                        <td className="border p-2 text-center font-semibold">{subject.grade || subject.note1 || subject.moyenneFinale || '-'}</td>
+                      <tr key={idx} data-testid={`subject-row-${idx}`} className="hover:bg-blue-50">
+                        <td className="border p-2 font-medium">{subject.name || subject.id}</td>
+                        <td className="border p-2 text-center">{subject.note1 ?? subject.grade ?? '-'}</td>
+                        <td className="border p-2 text-center">{subject.note2 ?? '-'}</td>
+                        <td className="border p-2 text-center">{subject.note3 ?? '-'}</td>
+                        <td className="border p-2 text-center font-bold text-blue-700">{subject.moyenneFinale ?? subject.average ?? subject.grade ?? '-'}</td>
                         <td className="border p-2 text-center">{subject.coefficient || 1}</td>
-                        <td className="border p-2 text-sm">{subject.remark || '-'}</td>
+                        <td className="border p-2 text-xs">
+                          {subject.competencies && Array.isArray(subject.competencies) && subject.competencies.length > 0 ? (
+                            <ul className="list-disc pl-3 space-y-0.5">
+                              {subject.competencies.slice(0, 3).map((comp: any, i: number) => (
+                                <li key={i} className="text-gray-600">
+                                  {typeof comp === 'string' ? comp : (comp?.name || comp?.code || `C${i+1}`)}
+                                  {comp?.score && <span className="ml-1 text-blue-600">({comp.score})</span>}
+                                </li>
+                              ))}
+                              {subject.competencies.length > 3 && (
+                                <li className="text-gray-400">+{subject.competencies.length - 3} {language === 'fr' ? 'autres' : 'more'}</li>
+                              )}
+                            </ul>
+                          ) : subject.evaluatedCompetencies ? (
+                            <span className="text-gray-600">{subject.evaluatedCompetencies}</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="border p-2 text-xs max-w-[150px] truncate" title={subject.appreciation || ''}>
+                          {subject.appreciation || '-'}
+                        </td>
+                        <td className="border p-2 text-xs max-w-[150px]">
+                          {subject.remark || subject.comment || subject.remarks || '-'}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="border p-4 text-center text-gray-500">{t.noData}</td>
+                      <td colSpan={9} className="border p-4 text-center text-gray-500">{t.noData}</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+            
+            {/* Bulletin Type and Language Info */}
+            {(selectedBulletin.bulletinType || selectedBulletin.language) && (
+              <div className="flex gap-4 mt-3 text-sm text-gray-600">
+                {selectedBulletin.bulletinType && (
+                  <div>
+                    <span className="font-medium">{language === 'fr' ? 'Type:' : 'Type:'}</span>{' '}
+                    <Badge variant="outline" className="ml-1">{selectedBulletin.bulletinType}</Badge>
+                  </div>
+                )}
+                {selectedBulletin.language && (
+                  <div>
+                    <span className="font-medium">{language === 'fr' ? 'Langue:' : 'Language:'}</span>{' '}
+                    <Badge variant="outline" className="ml-1">{selectedBulletin.language === 'fr' ? 'Français' : 'English'}</Badge>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Review Section */}

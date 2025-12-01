@@ -207,12 +207,39 @@ export const useNotifications = () => {
 function getActionRoute(actionType: string, entityId?: number, userRole?: string): string | null {
   const rolePrefix = userRole ? `/${userRole.toLowerCase()}` : '';
   
+  // Role-specific routing for bulletin submissions
+  const roleRoutes: Record<string, Record<string, string>> = {
+    director: {
+      'bulletin_submission': 'academic-management',
+      'view_bulletin': 'academic-management',
+      'review_bulletin': 'academic-management',
+    },
+    teacher: {
+      'bulletin_submission': 'teacher-bulletins',
+      'view_bulletin': 'teacher-bulletins',
+    },
+    siteadmin: {
+      'bulletin_submission': 'siteadmin-schools',
+      'view_bulletin': 'siteadmin-schools',
+    }
+  };
+  
+  // Check for role-specific routes first
+  const lowerRole = (userRole || '').toLowerCase();
+  if (roleRoutes[lowerRole] && roleRoutes[lowerRole][actionType]) {
+    return `/${lowerRole}?module=${roleRoutes[lowerRole][actionType]}`;
+  }
+  
   const routeMap: Record<string, string> = {
     // Academic actions
     'view_grade': entityId ? `/grades/${entityId}` : '/grades',
     'view_bulletin': entityId ? `/bulletins/${entityId}` : '/bulletins',
     'view_homework': entityId ? `/homework/${entityId}` : '/homework',
     'view_attendance': entityId ? `/attendance/${entityId}` : '/attendance',
+    
+    // Bulletin submission for Director - navigate to academic management module
+    'bulletin_submission': '/director?module=academic-management',
+    'review_bulletin': '/director?module=academic-management',
     
     // Financial actions
     'view_payment': entityId ? `/payments/${entityId}` : '/payments',
@@ -226,6 +253,9 @@ function getActionRoute(actionType: string, entityId?: number, userRole?: string
     // Geolocation actions
     'view_location': entityId ? `/geolocation/${entityId}` : '/geolocation',
     'view_safe_zone': entityId ? `/safe-zones/${entityId}` : '/safe-zones',
+    
+    // Notification center
+    'view_notifications': '/notifications',
     
     // System actions
     'view_settings': '/settings',

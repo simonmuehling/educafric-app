@@ -8331,13 +8331,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[TEACHER_BULLETIN] 💾 Bulletin saved to database with ID: ${savedBulletin?.id}`);
       
-      // Create notification for director
+      // Create notification for director with bilingual content and action metadata
       await storage.createNotification({
         userId: directorId,
         title: `📝 Bulletin soumis - ${bulletinData.studentName}`,
         message: `L'enseignant ${user.firstName} ${user.lastName} a soumis le bulletin de ${bulletinData.studentName} (${bulletinData.className}) pour le ${bulletinData.term}. Moyenne: ${bulletinData.average}. En attente de votre validation.`,
         type: 'bulletin_submission',
-        priority: 'normal',
+        priority: 'high',
         isRead: false,
         metadata: {
           bulletinId: savedBulletin?.id,
@@ -8350,7 +8350,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           term: bulletinData.term,
           academicYear: bulletinData.academicYear,
           average: bulletinData.average,
-          status: 'pending_review'
+          status: 'pending_review',
+          actionRequired: true,
+          actionType: 'bulletin_submission',
+          actionText: 'Voir',
+          actionUrl: '/director?module=academic-management',
+          titleFr: `📝 Bulletin soumis - ${bulletinData.studentName}`,
+          titleEn: `📝 Bulletin submitted - ${bulletinData.studentName}`,
+          messageFr: `L'enseignant ${user.firstName} ${user.lastName} a soumis le bulletin de ${bulletinData.studentName} (${bulletinData.className}) pour le ${bulletinData.term}. Moyenne: ${bulletinData.average}. En attente de votre validation.`,
+          messageEn: `Teacher ${user.firstName} ${user.lastName} submitted the report card for ${bulletinData.studentName} (${bulletinData.className}) for ${bulletinData.term}. Average: ${bulletinData.average}. Awaiting your validation.`
         }
       });
       
@@ -13927,9 +13935,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRead: n.is_read || false,
           readAt: n.read_at || null,
           actionRequired: metadata.actionRequired || n.type === 'bulletin_submission',
-          actionType: metadata.actionType || null,
+          actionType: metadata.actionType || n.type || null,
           actionEntityId: metadata.bulletinId || metadata.entityId || null,
-          actionUrl: metadata.actionUrl || null,
+          actionUrl: metadata.actionUrl || (n.type === 'bulletin_submission' ? '/director?module=academic-management' : null),
           actionText: metadata.actionText || (n.type === 'bulletin_submission' ? 'Voir' : null),
           actionIsExternal: metadata.actionIsExternal || false,
           actionExternalUrl: metadata.actionExternalUrl || null,

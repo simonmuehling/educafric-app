@@ -260,6 +260,12 @@ const SiteAdminDashboard: React.FC = () => {
       color: 'bg-orange-500'
     },
     {
+      id: 'notifications',
+      label: 'Notifications',
+      icon: <Bell className="w-6 h-6" />,
+      color: 'bg-blue-600'
+    },
+    {
       id: 'offline-premium-guide',
       label: 'Guide Offline Premium',
       icon: <WifiOff className="w-6 h-6" />,

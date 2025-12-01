@@ -35,6 +35,9 @@ class FastModuleLoader {
       'student.notifications': () => import('@/components/shared/NotificationCenter'), // Role-namespaced
       'parent.notifications': () => import('@/components/shared/NotificationCenter'), // Role-namespaced
       'teacher.notifications': () => import('@/components/shared/NotificationCenter'), // Role-namespaced
+      'siteadmin.notifications': () => import('@/components/shared/NotificationCenter'), // Role-namespaced
+      'siteadmin-notifications': () => import('@/components/shared/NotificationCenter'), // SiteAdmin specific
+      'commercial.notifications': () => import('@/components/commercial/modules/FunctionalCommercialNotifications'), // Commercial has own module
       'school-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'delegated-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
