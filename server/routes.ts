@@ -14220,16 +14220,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[NOTIFICATIONS_API] 📝 Marking notification ${notificationId} as read...`);
       
-      if (!notificationId) {
+      if (!notificationId || isNaN(notificationId)) {
         return res.status(400).json({ message: 'Invalid notification ID' });
       }
 
-      // Mark notification as read
-      const result = await db.execute(
-        sql`UPDATE notifications SET is_read = true WHERE id = ${notificationId}`
-      );
+      // Mark notification as read using Drizzle ORM properly
+      const { notifications } = await import('../shared/schema');
+      const result = await db.update(notifications)
+        .set({ isRead: true })
+        .where(eq(notifications.id, notificationId))
+        .returning();
       
-      console.log(`[NOTIFICATIONS_API] ✅ Notification ${notificationId} marked as read - DB result:`, result);
+      if (result.length === 0) {
+        console.log(`[NOTIFICATIONS_API] ⚠️ Notification ${notificationId} not found`);
+        return res.status(404).json({ message: 'Notification not found' });
+      }
+      
+      console.log(`[NOTIFICATIONS_API] ✅ Notification ${notificationId} marked as read`);
       res.json({ success: true, message: 'Notification marked as read' });
     } catch (error: any) {
       console.error('[NOTIFICATIONS_API] ❌ Error marking notification as read:', error);
@@ -14245,13 +14252,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Unauthorized' });
       }
 
-      // Mark all notifications as read for the user
-      await db.execute(
-        sql`UPDATE notifications SET is_read = true WHERE user_id = ${userId} AND is_read = false`
-      );
+      // Mark all notifications as read using Drizzle ORM properly
+      const { notifications } = await import('../shared/schema');
+      const result = await db.update(notifications)
+        .set({ isRead: true })
+        .where(and(
+          eq(notifications.userId, userId),
+          eq(notifications.isRead, false)
+        ))
+        .returning();
       
-      console.log(`[NOTIFICATIONS_API] ✅ All notifications marked as read for user ${userId}`);
-      res.json({ success: true, message: 'All notifications marked as read' });
+      console.log(`[NOTIFICATIONS_API] ✅ ${result.length} notifications marked as read for user ${userId}`);
+      res.json({ success: true, message: 'All notifications marked as read', count: result.length });
     } catch (error: any) {
       console.error('[NOTIFICATIONS_API] Error marking all notifications as read:', error);
       res.status(500).json({ success: false, message: 'Failed to mark all notifications as read' });
@@ -14263,19 +14275,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const notificationId = parseInt(id, 10);
       
-      if (!notificationId) {
+      if (!notificationId || isNaN(notificationId)) {
         return res.status(400).json({ message: 'Invalid notification ID' });
       }
 
-      // Delete notification
-      await db.execute(
-        sql`DELETE FROM notifications WHERE id = ${notificationId}`
-      );
+      console.log(`[NOTIFICATIONS_API] 🗑️ Attempting to delete notification ${notificationId}...`);
       
-      console.log(`[NOTIFICATIONS_API] 🗑️ Notification ${notificationId} deleted`);
+      // Delete notification using Drizzle ORM properly
+      const { notifications } = await import('../shared/schema');
+      const result = await db.delete(notifications)
+        .where(eq(notifications.id, notificationId))
+        .returning();
+      
+      if (result.length === 0) {
+        console.log(`[NOTIFICATIONS_API] ⚠️ Notification ${notificationId} not found`);
+        return res.status(404).json({ message: 'Notification not found' });
+      }
+      
+      console.log(`[NOTIFICATIONS_API] ✅ Notification ${notificationId} deleted successfully`);
       res.json({ success: true, message: 'Notification deleted' });
     } catch (error: any) {
-      console.error('[NOTIFICATIONS_API] Error deleting notification:', error);
+      console.error('[NOTIFICATIONS_API] ❌ Error deleting notification:', error);
       res.status(500).json({ success: false, message: 'Failed to delete notification' });
     }
   });
