@@ -12319,7 +12319,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .returning();
       
-      // Create notification for teacher
+      // Create notification for teacher in timetableNotifications
       const [newNotification] = await db
         .insert(timetableNotifications)
         .values({
@@ -12330,6 +12330,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdBy: user.id
         })
         .returning();
+
+      // Create in-app notification in main notifications table
+      const dayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+      await db.insert(notifications).values({
+        userId: parseInt(teacherId),
+        title: 'Nouvelle classe assignée / New class assigned',
+        content: `${subjectName} - ${dayNames[dayOfWeek]} ${startTime}-${endTime}`,
+        type: 'class_assignment',
+        isRead: false
+      });
 
       // Get teacher and class information for real-time notification
       const [teacherInfo] = await db
@@ -12438,16 +12448,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create notification for teacher
       let newNotification = null;
       if (teacherId) {
+        const updateDayNames = ['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
         [newNotification] = await db
           .insert(timetableNotifications)
           .values({
             teacherId: parseInt(teacherId),
             timetableId: timetableId,
             changeType: 'updated',
-            message: `Emploi du temps modifié: ${subjectName} - ${['', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][dayOfWeek]} ${startTime}-${endTime}`,
+            message: `Emploi du temps modifié: ${subjectName} - ${updateDayNames[dayOfWeek]} ${startTime}-${endTime}`,
             createdBy: user.id
           })
           .returning();
+
+        // Create in-app notification in main notifications table
+        await db.insert(notifications).values({
+          userId: parseInt(teacherId),
+          title: 'Emploi du temps modifié / Timetable updated',
+          content: `${subjectName} - ${updateDayNames[dayOfWeek]} ${startTime}-${endTime}`,
+          type: 'timetable_update',
+          isRead: false
+        });
 
         // Get teacher and class information for real-time notification
         const [teacherInfo] = await db

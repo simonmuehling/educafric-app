@@ -57,8 +57,12 @@ const FunctionalMyClasses: React.FC = () => {
   const [disconnectReason, setDisconnectReason] = useState('');
 
   // Fetch schools and classes data from REAL database
+  // Auto-refresh every 30 seconds to show new class assignments immediately
   const { data: schoolsData, isLoading, error } = useQuery<{success: boolean, schoolsWithClasses: SchoolData[]}>({
-    queryKey: ['/api/teacher/classes']
+    queryKey: ['/api/teacher/classes'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchOnWindowFocus: true, // Refresh when tab becomes active
+    staleTime: 10000 // Consider data stale after 10 seconds
   });
 
   // Mutation pour se déconnecter d'une école
