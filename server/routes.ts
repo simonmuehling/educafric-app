@@ -2119,8 +2119,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔍 Fetching teacher ${user.id}'s subjects for class ${classId}`);
       
-      // Get teacher's assigned subjects for this class from timetables
-      const teacherTimetables = await db
+      // Get teacher's assigned subjects for this class from timetables (no groupBy to avoid Drizzle errors)
+      const allTeacherTimetables = await db
         .select({
           subjectName: timetables.subjectName,
           subjectId: timetables.subjectId,
@@ -2132,8 +2132,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(timetables.teacherId, user.id),
           eq(timetables.classId, classId),
           eq(timetables.isActive, true)
-        ))
-        .groupBy(timetables.subjectName, timetables.subjectId, timetables.classId, timetables.schoolId);
+        ));
+      
+      // De-duplicate manually in JavaScript
+      const seenSubjects = new Set<string>();
+      const teacherTimetables = allTeacherTimetables.filter(t => {
+        const key = `${t.subjectId || ''}-${t.subjectName || ''}`;
+        if (seenSubjects.has(key)) return false;
+        seenSubjects.add(key);
+        return true;
+      });
       
       console.log(`[TEACHER_BULLETIN_SUBJECTS] 📚 Teacher has ${teacherTimetables.length} subject assignments for class ${classId}`);
       
@@ -8278,14 +8286,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Get director's userId for the school
+      const [director] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(and(
+          eq(users.schoolId, schoolId),
+          eq(users.role, 'Director')
+        ))
+        .limit(1);
+      
+      const directorId = director?.id || 1;
+      console.log(`[TEACHER_BULLETIN] 📍 School ID: ${schoolId}, Director ID: ${directorId}`);
+      
+      // Save bulletin to teacherBulletins table
+      const [savedBulletin] = await db.insert(teacherBulletins)
+        .values({
+          teacherId: user.id,
+          schoolId: schoolId,
+          studentId: parseInt(bulletinData.studentId) || 0,
+          classId: parseInt(bulletinData.classId) || 0,
+          term: bulletinData.term || 'T1',
+          academicYear: bulletinData.academicYear || '2024-2025',
+          studentInfo: {
+            name: bulletinData.studentName,
+            className: bulletinData.className,
+            matricule: bulletinData.matricule || '',
+            average: bulletinData.average
+          },
+          subjects: bulletinData.subjects || [],
+          discipline: bulletinData.discipline || { absJ: 0, absNJ: 0, late: 0, sanctions: [] },
+          bulletinType: bulletinData.bulletinType || 'general-fr',
+          language: bulletinData.language || 'fr',
+          status: 'sent',
+          sentToSchoolAt: new Date(),
+          reviewStatus: 'pending',
+          metadata: {
+            submittedBy: user.id,
+            submittedAt: new Date().toISOString(),
+            teacherName: `${user.firstName || ''} ${user.lastName || ''}`.trim()
+          }
+        })
+        .returning();
+      
+      console.log(`[TEACHER_BULLETIN] 💾 Bulletin saved to database with ID: ${savedBulletin?.id}`);
+      
       // Create notification for director
       await storage.createNotification({
-        userId: 1, // In production, get actual director userId
+        userId: directorId,
         title: `📝 Bulletin soumis - ${bulletinData.studentName}`,
         message: `L'enseignant ${user.firstName} ${user.lastName} a soumis le bulletin de ${bulletinData.studentName} (${bulletinData.className}) pour le ${bulletinData.term}. Moyenne: ${bulletinData.average}. En attente de votre validation.`,
         type: 'bulletin_submission',
+        priority: 'normal',
         isRead: false,
-        metadata: JSON.stringify({
+        metadata: {
+          bulletinId: savedBulletin?.id,
           teacherId: user.id,
           teacherName: `${user.firstName} ${user.lastName}`,
           studentId: bulletinData.studentId,
@@ -8296,7 +8351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           academicYear: bulletinData.academicYear,
           average: bulletinData.average,
           status: 'pending_review'
-        })
+        }
       });
       
       console.log('[TEACHER_BULLETIN] ✅ Bulletin submitted successfully for director review');
@@ -8305,6 +8360,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         message: 'Bulletin soumis avec succès. Le directeur va le valider.',
         data: {
+          bulletinId: savedBulletin?.id,
           teacherId: user.id,
           studentName: bulletinData.studentName,
           status: 'pending_review'

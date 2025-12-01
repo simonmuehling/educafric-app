@@ -652,11 +652,12 @@ export class ModularStorage {
       
       const notificationData = {
         userId: data.userId,
-        title: data.title,
-        content: data.message, // Map 'message' to 'content' for database schema
-        type: data.type || 'info'
-        // Note: Database schema only supports userId, title, content, type, isRead, createdAt
-        // Other fields (category, data, actionRequired, actionUrl, expiresAt) are stored in memory fallback
+        title: data.title || 'Notification',
+        message: data.message || data.content || 'No message provided', // Use 'message' column (correct database schema)
+        type: data.type || 'info',
+        priority: data.priority || 'normal',
+        isRead: data.isRead ?? false,
+        metadata: data.metadata ? (typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata)) : null
       };
       
       const [newNotification] = await db.insert(notifications)
