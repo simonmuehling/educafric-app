@@ -8258,7 +8258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===== TEACHER BULLETIN SUBMISSION - Simple workflow without signature =====
-  app.post("/api/teacher/submit-bulletin", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+  app.post("/api/teacher/submit-bulletin", requireAuth, requireAnyRole(['Teacher', 'Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       const bulletinData = req.body;
