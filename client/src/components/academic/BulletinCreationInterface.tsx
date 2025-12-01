@@ -524,10 +524,17 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       }
       
       setAutoLoadingSubjects(true);
-      console.log('[BULLETIN] 📚 Auto-loading subjects for class:', selectedClassId);
+      console.log('[BULLETIN] 📚 Auto-loading subjects for class:', selectedClassId, 'Role:', effectiveRole);
       
       try {
-        const response = await fetch(`/api/bulletin/class-subjects/${selectedClassId}?lang=${language}`, {
+        // For teachers, use teacher-specific endpoint that only shows their assigned subjects
+        const endpoint = effectiveRole === 'teacher'
+          ? `/api/teacher/bulletin/class-subjects/${selectedClassId}?lang=${language}`
+          : `/api/bulletin/class-subjects/${selectedClassId}?lang=${language}`;
+        
+        console.log('[BULLETIN] 📡 Using endpoint:', endpoint);
+        
+        const response = await fetch(endpoint, {
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -587,7 +594,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     };
     
     loadClassSubjects();
-  }, [selectedClassId, language]);
+  }, [selectedClassId, language, effectiveRole]);
   
   const [student, setStudent] = useState<StudentInfo>({
     name: '',

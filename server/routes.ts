@@ -2145,22 +2145,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get full subject details from subjects table, filtered by what teacher teaches
       let teacherSubjects: any[] = [];
       
-      if (teacherSubjectIds.length > 0) {
-        // First try to match by subject ID
-        const subjectsByIds = await db.select()
+      // Only query if teacher has assignments for this class
+      if (teacherTimetables.length > 0 && (teacherSubjectIds.length > 0 || teacherSubjectNames.length > 0)) {
+        // Get all subjects for the class from subjects table
+        const allClassSubjects = await db.select()
           .from(subjects)
           .where(and(
             eq(subjects.classId, classId),
             eq(subjects.schoolId, schoolId)
           ));
         
-        // Filter to only subjects the teacher teaches (by ID or by name match)
-        teacherSubjects = subjectsByIds.filter((s: any) => {
+        // STRICTLY filter to only subjects the teacher teaches (by ID or by name match)
+        teacherSubjects = allClassSubjects.filter((s: any) => {
           const matchById = teacherSubjectIds.includes(s.id);
           const matchByNameFr = teacherSubjectNames.includes(s.nameFr?.toLowerCase());
           const matchByNameEn = teacherSubjectNames.includes(s.nameEn?.toLowerCase());
           return matchById || matchByNameFr || matchByNameEn;
         });
+        
+        console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔒 Filtered ${allClassSubjects.length} class subjects → ${teacherSubjects.length} teacher-assigned`);
       }
       
       // If no subjects found in subjects table, create from timetable data
