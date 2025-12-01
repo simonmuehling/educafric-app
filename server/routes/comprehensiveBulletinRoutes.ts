@@ -1232,8 +1232,10 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
       eq(teacherGradeSubmissions.term, term as string),
       eq(teacherGradeSubmissions.academicYear, academicYear as string),
       eq(teacherGradeSubmissions.schoolId, schoolId),
-      eq(teacherGradeSubmissions.isSubmitted, true)
+      eq(teacherGradeSubmissions.reviewStatus, 'approved')
     ));
+    
+    console.log('[COMPREHENSIVE_BULLETIN] 📊 Found approved grades:', approvedGrades.length);
 
     // Get unique students with their info
     const uniqueStudentIds = Array.from(new Set(approvedGrades.map(g => g.studentId)));

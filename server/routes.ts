@@ -10210,23 +10210,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If approved, auto-populate the grades into teacherGradeSubmissions
       if (reviewStatus === 'approved' && bulletin.subjects && Array.isArray(bulletin.subjects)) {
         console.log('[DIRECTOR_BULLETINS] 📊 Auto-populating approved grades for student:', bulletin.studentId);
+        console.log('[DIRECTOR_BULLETINS] 📋 Subjects from bulletin:', JSON.stringify(bulletin.subjects, null, 2));
         
         const subjectsData = bulletin.subjects as any[];
         let gradesInserted = 0;
+        let gradesSkipped = 0;
         
         for (const subject of subjectsData) {
           try {
-            // Find subjectId from subjects table by name
-            const [subjectRecord] = await db.select({ id: subjects.id })
-              .from(subjects)
-              .where(eq(subjects.name, subject.name))
-              .limit(1);
+            // PRIORITY 1: Use subjectId directly from bulletin data if available
+            let subjectId = subject.subjectId || subject.id || 0;
             
-            const subjectId = subjectRecord?.id || subject.id || 0;
+            // PRIORITY 2: If no direct ID, try case-insensitive name lookup (supports nameFr and nameEn columns)
+            if (!subjectId && subject.name) {
+              const subjectNameLower = subject.name.toLowerCase().trim();
+              const [subjectRecord] = await db.select({ id: subjects.id, nameFr: subjects.nameFr, nameEn: subjects.nameEn })
+                .from(subjects)
+                .where(sql`LOWER(${subjects.nameFr}) = ${subjectNameLower} OR LOWER(${subjects.nameEn}) = ${subjectNameLower}`)
+                .limit(1);
+              
+              if (subjectRecord) {
+                subjectId = subjectRecord.id;
+                console.log(`[DIRECTOR_BULLETINS] ✅ Found subject by name: "${subject.name}" → ID ${subjectId}`);
+              }
+            }
+            
+            // PRIORITY 3: Create subject if it doesn't exist (for school-specific subjects)
+            if (!subjectId && subject.name) {
+              console.log(`[DIRECTOR_BULLETINS] 🆕 Creating new subject: "${subject.name}"`);
+              const [newSubject] = await db.insert(subjects)
+                .values({
+                  nameFr: subject.name,
+                  nameEn: subject.name,
+                  code: subject.code || subject.name.substring(0, 3).toUpperCase(),
+                  schoolId: bulletin.schoolId
+                })
+                .returning({ id: subjects.id });
+              
+              if (newSubject) {
+                subjectId = newSubject.id;
+                console.log(`[DIRECTOR_BULLETINS] ✅ Created subject "${subject.name}" with ID ${subjectId}`);
+              }
+            }
+            
             if (!subjectId) {
               console.log(`[DIRECTOR_BULLETINS] ⚠️ Skipping subject without ID: ${subject.name}`);
+              gradesSkipped++;
               continue;
             }
+            
+            console.log(`[DIRECTOR_BULLETINS] 📝 Processing subject: ${subject.name} (ID: ${subjectId})`);
+
             
             // Check if grade already exists for this student/subject/term
             const existingGrade = await db.select()
@@ -10279,7 +10313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        console.log(`[DIRECTOR_BULLETINS] ✅ Auto-populated ${gradesInserted} grades for student ${bulletin.studentId}`);
+        console.log(`[DIRECTOR_BULLETINS] ✅ Auto-populated ${gradesInserted} grades for student ${bulletin.studentId} (${gradesSkipped} skipped)`);
       }
       
       console.log('[DIRECTOR_BULLETINS] ✅ Bulletin reviewed successfully');
@@ -10287,11 +10321,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         success: true,
         message: 'Bulletin reviewed successfully',
-        gradesPopulated: reviewStatus === 'approved'
+        gradesPopulated: reviewStatus === 'approved',
+        gradesInserted: reviewStatus === 'approved' ? subjectsData?.length || 0 : 0
       });
     } catch (error) {
       console.error('[DIRECTOR_BULLETINS] Error reviewing bulletin:', error);
       res.status(500).json({ success: false, message: 'Failed to review bulletin' });
+    }
+  });
+
+  // Sync grades from all approved bulletins (backfill for bulletins approved before fix)
+  app.post('/api/director/sync-approved-bulletin-grades', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as { schoolId: number; id: number };
+      const schoolId = user.schoolId;
+      
+      console.log('[GRADE_SYNC] 🔄 Starting grade sync for school:', schoolId);
+      
+      // Get all approved bulletins for this school that might not have synced grades
+      const approvedBulletins = await db.select()
+        .from(teacherBulletins)
+        .where(and(
+          eq(teacherBulletins.schoolId, schoolId),
+          eq(teacherBulletins.reviewStatus, 'approved')
+        ));
+      
+      console.log(`[GRADE_SYNC] 📋 Found ${approvedBulletins.length} approved bulletins to sync`);
+      
+      let totalGradesInserted = 0;
+      let totalGradesSkipped = 0;
+      let bulletinsProcessed = 0;
+      
+      for (const bulletin of approvedBulletins) {
+        if (!bulletin.subjects || !Array.isArray(bulletin.subjects)) {
+          console.log(`[GRADE_SYNC] ⚠️ Skipping bulletin ${bulletin.id} - no subjects data`);
+          continue;
+        }
+        
+        const subjectsData = bulletin.subjects as any[];
+        
+        for (const subject of subjectsData) {
+          try {
+            // PRIORITY 1: Use subjectId directly from bulletin data
+            let subjectId = subject.subjectId || subject.id || 0;
+            
+            // PRIORITY 2: Try case-insensitive name lookup
+            if (!subjectId && subject.name) {
+              const subjectNameLower = subject.name.toLowerCase().trim();
+              const [subjectRecord] = await db.select({ id: subjects.id })
+                .from(subjects)
+                .where(sql`LOWER(${subjects.nameFr}) = ${subjectNameLower} OR LOWER(${subjects.nameEn}) = ${subjectNameLower}`)
+                .limit(1);
+              
+              if (subjectRecord) {
+                subjectId = subjectRecord.id;
+              }
+            }
+            
+            // PRIORITY 3: Create subject if it doesn't exist
+            if (!subjectId && subject.name) {
+              const [newSubject] = await db.insert(subjects)
+                .values({
+                  nameFr: subject.name,
+                  nameEn: subject.name,
+                  code: subject.code || subject.name.substring(0, 3).toUpperCase(),
+                  schoolId: bulletin.schoolId
+                })
+                .returning({ id: subjects.id });
+              
+              if (newSubject) {
+                subjectId = newSubject.id;
+              }
+            }
+            
+            if (!subjectId) {
+              totalGradesSkipped++;
+              continue;
+            }
+            
+            // Check if grade already exists
+            const existingGrade = await db.select()
+              .from(teacherGradeSubmissions)
+              .where(and(
+                eq(teacherGradeSubmissions.studentId, bulletin.studentId),
+                eq(teacherGradeSubmissions.subjectId, subjectId),
+                eq(teacherGradeSubmissions.term, bulletin.term),
+                eq(teacherGradeSubmissions.academicYear, bulletin.academicYear),
+                eq(teacherGradeSubmissions.schoolId, bulletin.schoolId)
+              ))
+              .limit(1);
+            
+            const grade = parseFloat(subject.moyenneFinale) || parseFloat(subject.grade) || parseFloat(subject.note1) || 0;
+            const gradeData = {
+              teacherId: bulletin.teacherId,
+              schoolId: bulletin.schoolId,
+              studentId: bulletin.studentId,
+              classId: bulletin.classId,
+              subjectId: subjectId,
+              term: bulletin.term,
+              academicYear: bulletin.academicYear,
+              firstEvaluation: String(parseFloat(subject.note1) || grade),
+              secondEvaluation: String(parseFloat(subject.note2) || 0),
+              thirdEvaluation: String(parseFloat(subject.note3) || 0),
+              coefficient: parseInt(subject.coefficient) || 1,
+              termAverage: String(grade),
+              subjectComments: subject.appreciation || subject.remark || '',
+              isSubmitted: true,
+              submittedAt: new Date(),
+              reviewStatus: 'approved',
+              reviewedBy: user.id,
+              reviewedAt: new Date(),
+              reviewFeedback: `Synced from approved bulletin #${bulletin.id}`
+            };
+            
+            if (existingGrade.length > 0) {
+              await db.update(teacherGradeSubmissions)
+                .set(gradeData)
+                .where(eq(teacherGradeSubmissions.id, existingGrade[0].id));
+            } else {
+              await db.insert(teacherGradeSubmissions).values(gradeData);
+            }
+            totalGradesInserted++;
+          } catch (gradeError) {
+            console.error('[GRADE_SYNC] Error syncing grade:', gradeError);
+            totalGradesSkipped++;
+          }
+        }
+        bulletinsProcessed++;
+      }
+      
+      console.log(`[GRADE_SYNC] ✅ Sync complete: ${totalGradesInserted} grades inserted, ${totalGradesSkipped} skipped from ${bulletinsProcessed} bulletins`);
+      
+      res.json({
+        success: true,
+        message: `Synced ${totalGradesInserted} grades from ${bulletinsProcessed} approved bulletins`,
+        gradesInserted: totalGradesInserted,
+        gradesSkipped: totalGradesSkipped,
+        bulletinsProcessed
+      });
+    } catch (error) {
+      console.error('[GRADE_SYNC] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to sync grades' });
     }
   });
 

@@ -19,7 +19,8 @@ import {
   Eye,
   ThumbsUp,
   ThumbsDown,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
@@ -91,7 +92,11 @@ const TeacherSubmittedBulletins: React.FC = () => {
       loading: 'Chargement...',
       noData: 'Aucune donnée disponible',
       close: 'Fermer',
-      backToList: 'Retour à la liste'
+      backToList: 'Retour à la liste',
+      syncGrades: 'Synchroniser Notes',
+      syncGradesDesc: 'Synchroniser les notes des bulletins approuvés vers le système de notes',
+      syncSuccess: 'Notes synchronisées avec succès',
+      syncing: 'Synchronisation en cours...'
     },
     en: {
       title: 'Teacher-Submitted Bulletins',
@@ -129,11 +134,38 @@ const TeacherSubmittedBulletins: React.FC = () => {
       loading: 'Loading...',
       noData: 'No data available',
       close: 'Close',
-      backToList: 'Back to list'
+      backToList: 'Back to list',
+      syncGrades: 'Sync Grades',
+      syncGradesDesc: 'Sync grades from approved bulletins to the grades system',
+      syncSuccess: 'Grades synced successfully',
+      syncing: 'Syncing grades...'
     }
   };
 
   const t = text[language as keyof typeof text];
+
+  // Sync grades mutation
+  const syncGradesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/director/sync-approved-bulletin-grades');
+      if (!response.ok) throw new Error('Sync failed');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: t.syncSuccess,
+        description: `${data.gradesInserted} ${language === 'fr' ? 'notes synchronisées' : 'grades synced'}`
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/teacher-bulletins'] });
+      queryClient.invalidateQueries({ queryKey: ['approved-grades-students'] });
+    },
+    onError: () => {
+      toast({
+        title: t.error,
+        variant: 'destructive'
+      });
+    }
+  });
 
   // Fetch teacher bulletins
   const { data: bulletinsData, isLoading } = useQuery({
@@ -444,8 +476,24 @@ const TeacherSubmittedBulletins: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl font-bold" data-testid="title-teacher-bulletins">{t.title}</CardTitle>
-        <p className="text-sm text-gray-600" data-testid="subtitle-teacher-bulletins">{t.subtitle}</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-xl font-bold" data-testid="title-teacher-bulletins">{t.title}</CardTitle>
+            <p className="text-sm text-gray-600" data-testid="subtitle-teacher-bulletins">{t.subtitle}</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => syncGradesMutation.mutate()}
+            disabled={syncGradesMutation.isPending}
+            className="flex items-center gap-2"
+            data-testid="button-sync-grades"
+            title={t.syncGradesDesc}
+          >
+            <RefreshCw className={`w-4 h-4 ${syncGradesMutation.isPending ? 'animate-spin' : ''}`} />
+            {syncGradesMutation.isPending ? t.syncing : t.syncGrades}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
