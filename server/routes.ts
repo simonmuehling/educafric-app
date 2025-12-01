@@ -10167,7 +10167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update bulletin review status
+  // Update bulletin review status with auto-populate approved grades
   app.post('/api/director/teacher-bulletins/:id/review', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
     try {
       const user = req.user as { schoolId: number; id: number; role: string };
@@ -10199,11 +10199,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .where(eq(teacherBulletins.id, bulletinId));
       
+      // If approved, auto-populate the grades into teacherGradeSubmissions
+      if (reviewStatus === 'approved' && bulletin.subjects && Array.isArray(bulletin.subjects)) {
+        console.log('[DIRECTOR_BULLETINS] 📊 Auto-populating approved grades for student:', bulletin.studentId);
+        
+        const subjectsData = bulletin.subjects as any[];
+        let gradesInserted = 0;
+        
+        for (const subject of subjectsData) {
+          try {
+            // Find subjectId from subjects table by name
+            const [subjectRecord] = await db.select({ id: subjects.id })
+              .from(subjects)
+              .where(eq(subjects.name, subject.name))
+              .limit(1);
+            
+            const subjectId = subjectRecord?.id || subject.id || 0;
+            if (!subjectId) {
+              console.log(`[DIRECTOR_BULLETINS] ⚠️ Skipping subject without ID: ${subject.name}`);
+              continue;
+            }
+            
+            // Check if grade already exists for this student/subject/term
+            const existingGrade = await db.select()
+              .from(teacherGradeSubmissions)
+              .where(and(
+                eq(teacherGradeSubmissions.studentId, bulletin.studentId),
+                eq(teacherGradeSubmissions.subjectId, subjectId),
+                eq(teacherGradeSubmissions.term, bulletin.term),
+                eq(teacherGradeSubmissions.academicYear, bulletin.academicYear),
+                eq(teacherGradeSubmissions.schoolId, bulletin.schoolId)
+              ))
+              .limit(1);
+            
+            // Map bulletin data to teacherGradeSubmissions schema columns
+            const grade = parseFloat(subject.moyenneFinale) || parseFloat(subject.grade) || parseFloat(subject.note1) || 0;
+            const gradeData = {
+              teacherId: bulletin.teacherId,
+              schoolId: bulletin.schoolId,
+              studentId: bulletin.studentId,
+              classId: bulletin.classId,
+              subjectId: subjectId,
+              term: bulletin.term,
+              academicYear: bulletin.academicYear,
+              firstEvaluation: String(parseFloat(subject.note1) || grade),
+              secondEvaluation: String(parseFloat(subject.note2) || 0),
+              thirdEvaluation: String(parseFloat(subject.note3) || 0),
+              coefficient: parseInt(subject.coefficient) || 1,
+              termAverage: String(grade),
+              subjectComments: subject.appreciation || subject.remark || '',
+              isSubmitted: true,
+              submittedAt: new Date(),
+              reviewStatus: 'approved',
+              reviewedBy: user.id,
+              reviewedAt: new Date(),
+              reviewFeedback: `Approved from bulletin #${bulletinId}`
+            };
+            
+            if (existingGrade.length > 0) {
+              // Update existing grade
+              await db.update(teacherGradeSubmissions)
+                .set(gradeData)
+                .where(eq(teacherGradeSubmissions.id, existingGrade[0].id));
+            } else {
+              // Insert new grade
+              await db.insert(teacherGradeSubmissions).values(gradeData);
+            }
+            gradesInserted++;
+          } catch (gradeError) {
+            console.error('[DIRECTOR_BULLETINS] Error inserting grade for subject:', subject.name, gradeError);
+          }
+        }
+        
+        console.log(`[DIRECTOR_BULLETINS] ✅ Auto-populated ${gradesInserted} grades for student ${bulletin.studentId}`);
+      }
+      
       console.log('[DIRECTOR_BULLETINS] ✅ Bulletin reviewed successfully');
       
       res.json({
         success: true,
-        message: 'Bulletin reviewed successfully'
+        message: 'Bulletin reviewed successfully',
+        gradesPopulated: reviewStatus === 'approved'
       });
     } catch (error) {
       console.error('[DIRECTOR_BULLETINS] Error reviewing bulletin:', error);
@@ -13829,24 +13905,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sql`SELECT * FROM notifications WHERE user_id = ${userIdNum} ORDER BY created_at DESC LIMIT 50`
       );
       
-      // Format notifications for frontend
+      // Format notifications for frontend with bilingual support
       const formattedNotifications = dbNotifications.rows.map((n: any) => {
         const metadata = n.metadata || {};
+        const title = n.title || '';
+        const message = n.message || '';
+        
         return {
           id: n.id,
-          title: n.title,
-          message: n.message,
+          userId: n.user_id,
+          userRole: metadata.userRole || 'User',
+          title: title,
+          titleFr: metadata.titleFr || title,
+          titleEn: metadata.titleEn || title,
+          message: message,
+          messageFr: metadata.messageFr || message,
+          messageEn: metadata.messageEn || message,
           type: n.type || 'info',
           priority: n.priority || 'medium',
           category: metadata.category || n.type || 'general',
           isRead: n.is_read || false,
           readAt: n.read_at || null,
-          actionRequired: metadata.actionRequired || false,
+          actionRequired: metadata.actionRequired || n.type === 'bulletin_submission',
+          actionType: metadata.actionType || null,
+          actionEntityId: metadata.bulletinId || metadata.entityId || null,
           actionUrl: metadata.actionUrl || null,
-          actionText: metadata.actionText || null,
+          actionText: metadata.actionText || (n.type === 'bulletin_submission' ? 'Voir' : null),
+          actionIsExternal: metadata.actionIsExternal || false,
+          actionExternalUrl: metadata.actionExternalUrl || null,
+          actionTargetRole: metadata.actionTargetRole || null,
           createdAt: n.created_at,
-          senderRole: metadata.senderRole || null,
-          relatedEntityType: metadata.relatedEntityType || null
+          senderRole: metadata.senderRole || metadata.teacherName || null,
+          senderId: metadata.senderId || metadata.teacherId || null,
+          relatedEntityType: metadata.relatedEntityType || n.type || null,
+          relatedEntityId: metadata.relatedEntityId || metadata.bulletinId || null,
+          metadata: metadata
         };
       });
 

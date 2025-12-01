@@ -1018,7 +1018,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
       }, 0);
       const average = totalCoef > 0 ? (totalPoints / totalCoef).toFixed(2) : '0.00';
 
-      // Send to API
+      // Send to API with bulletinType for proper marks handling
       const response = await fetch('/api/teacher/submit-bulletin', {
         method: 'POST',
         credentials: 'include',
@@ -1030,11 +1030,19 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
           className: student.classLabel,
           term: trimester,
           academicYear: year,
+          bulletinType: isTechnicalSchool ? 'technical' : (language === 'en' ? 'general-en' : 'general-fr'),
+          language: language,
           subjects: subjects.map(s => ({
+            id: s.id,
             name: s.name,
             coefficient: s.coefficient,
-            grade: isTechnicalSchool ? s.moyenneFinale : (s.note1 || s.grade),
-            remark: s.remark || ''
+            grade: isTechnicalSchool ? s.moyenneFinale : (s.note1 || s.grade || 0),
+            note1: s.note1 || 0,
+            note2: (s as any).note2 || 0,
+            note3: (s as any).note3 || 0,
+            moyenneFinale: s.moyenneFinale || s.note1 || s.grade || 0,
+            remark: s.remark || '',
+            appreciation: (s as any).appreciation || ''
           })),
           average,
           discipline,
