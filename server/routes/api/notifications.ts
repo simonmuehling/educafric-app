@@ -32,12 +32,34 @@ router.get('/', async (req: Request, res: Response) => {
 router.post('/:id/mark-read', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const notificationId = parseInt(id, 10);
     
-    await storage.markNotificationAsRead(parseInt(id));
-    res.json({ message: 'Notification marked as read' });
+    if (!notificationId || isNaN(notificationId)) {
+      return res.status(400).json({ success: false, message: 'Invalid notification ID' });
+    }
+    
+    console.log(`[NOTIFICATIONS_API] 📝 Marking notification ${notificationId} as read...`);
+    
+    // Use direct database update with Drizzle ORM
+    const { db } = await import('../../db');
+    const { notifications } = await import('../../../shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const result = await db.update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, notificationId))
+      .returning();
+    
+    if (result.length === 0) {
+      console.log(`[NOTIFICATIONS_API] ⚠️ Notification ${notificationId} not found`);
+      return res.status(404).json({ success: false, message: 'Notification not found' });
+    }
+    
+    console.log(`[NOTIFICATIONS_API] ✅ Notification ${notificationId} marked as read`);
+    res.json({ success: true, message: 'Notification marked as read' });
   } catch (error: any) {
-    console.error('[NOTIFICATIONS_API] Mark notification as read error:', error);
-    res.status(500).json({ message: 'Failed to mark notification as read' });
+    console.error('[NOTIFICATIONS_API] ❌ Mark notification as read error:', error);
+    res.status(500).json({ success: false, message: 'Failed to mark notification as read' });
   }
 });
 
@@ -47,14 +69,30 @@ router.post('/mark-all-read', async (req: Request, res: Response) => {
     const { userId } = req.body;
     
     if (!userId) {
-      return res.status(400).json({ message: 'User ID required' });
+      return res.status(400).json({ success: false, message: 'User ID required' });
     }
 
-    await storage.markAllNotificationsAsRead(parseInt(userId));
-    res.json({ message: 'All notifications marked as read' });
+    const userIdNum = parseInt(userId, 10);
+    console.log(`[NOTIFICATIONS_API] 📝 Marking all notifications as read for user ${userIdNum}...`);
+    
+    // Use direct database update with Drizzle ORM
+    const { db } = await import('../../db');
+    const { notifications } = await import('../../../shared/schema');
+    const { eq, and } = await import('drizzle-orm');
+    
+    const result = await db.update(notifications)
+      .set({ isRead: true })
+      .where(and(
+        eq(notifications.userId, userIdNum),
+        eq(notifications.isRead, false)
+      ))
+      .returning();
+    
+    console.log(`[NOTIFICATIONS_API] ✅ ${result.length} notifications marked as read for user ${userIdNum}`);
+    res.json({ success: true, message: 'All notifications marked as read', count: result.length });
   } catch (error: any) {
-    console.error('[NOTIFICATIONS_API] Mark all notifications as read error:', error);
-    res.status(500).json({ message: 'Failed to mark all notifications as read' });
+    console.error('[NOTIFICATIONS_API] ❌ Mark all notifications as read error:', error);
+    res.status(500).json({ success: false, message: 'Failed to mark all notifications as read' });
   }
 });
 
@@ -62,12 +100,33 @@ router.post('/mark-all-read', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const notificationId = parseInt(id, 10);
     
-    await storage.deleteNotification(parseInt(id));
-    res.json({ message: 'Notification deleted' });
+    if (!notificationId || isNaN(notificationId)) {
+      return res.status(400).json({ success: false, message: 'Invalid notification ID' });
+    }
+    
+    console.log(`[NOTIFICATIONS_API] 🗑️ Deleting notification ${notificationId}...`);
+    
+    // Use direct database delete with Drizzle ORM
+    const { db } = await import('../../db');
+    const { notifications } = await import('../../../shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const result = await db.delete(notifications)
+      .where(eq(notifications.id, notificationId))
+      .returning();
+    
+    if (result.length === 0) {
+      console.log(`[NOTIFICATIONS_API] ⚠️ Notification ${notificationId} not found`);
+      return res.status(404).json({ success: false, message: 'Notification not found' });
+    }
+    
+    console.log(`[NOTIFICATIONS_API] ✅ Notification ${notificationId} deleted successfully`);
+    res.json({ success: true, message: 'Notification deleted' });
   } catch (error: any) {
-    console.error('[NOTIFICATIONS_API] Delete notification error:', error);
-    res.status(500).json({ message: 'Failed to delete notification' });
+    console.error('[NOTIFICATIONS_API] ❌ Delete notification error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete notification' });
   }
 });
 
