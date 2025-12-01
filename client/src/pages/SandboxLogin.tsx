@@ -140,7 +140,6 @@ const SandboxLogin = () => {
             Parent: '/parent',
             Student: '/student',
             Teacher: '/teacher',
-            Freelancer: '/freelancer',
             Admin: '/admin',
             Director: '/director',
             SiteAdmin: '/admin'
@@ -175,7 +174,6 @@ const SandboxLogin = () => {
           Parent: '/parent',
           Student: '/student',
           Teacher: '/teacher',
-          Freelancer: '/freelancer',
           Admin: '/admin',
           Director: '/director',
           SiteAdmin: '/admin'
@@ -215,7 +213,6 @@ const SandboxLogin = () => {
               Parent: '/parent',
               Student: '/student',
               Teacher: '/teacher',
-              Freelancer: '/freelancer',
               Admin: '/admin',
               Director: '/director',
               SiteAdmin: '/admin'

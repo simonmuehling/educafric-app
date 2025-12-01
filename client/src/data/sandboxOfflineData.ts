@@ -64,17 +64,6 @@ export const SANDBOX_OFFLINE_DATA = {
       phone: '+237 677 333 333',
       profession: 'Infirmière',
       children: [3]
-    },
-    {
-      id: 5,
-      email: 'sandbox.freelancer@educafric.demo',
-      name: 'Ibrahim Touré',
-      role: 'Freelancer',
-      sandboxMode: true,
-      avatar: '/assets/avatars/freelancer.png',
-      phone: '+237 677 444 444',
-      subjects: ['Anglais', 'Français'],
-      hourlyRate: 5000
     }
   ],
 
@@ -353,12 +342,6 @@ export const SANDBOX_SESSIONS = {
     role: 'Parent',
     token: 'offline-sandbox-token-parent',
     expiresAt: Date.now() + (365 * 24 * 60 * 60 * 1000)
-  },
-  'sandbox.freelancer@educafric.demo': {
-    userId: 5,
-    role: 'Freelancer',
-    token: 'offline-sandbox-token-freelancer',
-    expiresAt: Date.now() + (365 * 24 * 60 * 60 * 1000)
   }
 };
 
@@ -370,6 +353,5 @@ export const SANDBOX_CREDENTIALS = {
   'sandbox.director@educafric.demo': 'sandbox123',
   'sandbox.teacher@educafric.demo': 'sandbox123',
   'sandbox.student@educafric.demo': 'sandbox123',
-  'sandbox.parent@educafric.demo': 'sandbox123',
-  'sandbox.freelancer@educafric.demo': 'sandbox123'
+  'sandbox.parent@educafric.demo': 'sandbox123'
 };

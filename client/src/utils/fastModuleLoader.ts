@@ -409,9 +409,6 @@ class FastModuleLoader {
       // Teacher modules - UPDATED FOR UNIFIED BULLETIN WORKFLOW
       'teacher-classes', 'teacher-timetable', 'teacher-attendance', 'teacher-assignments', 'teacher-content', 'teacher-bulletins', 'teacher-communications', 'teacher-absence-declaration', 'absence-declaration',
       
-      // Freelancer modules
-      'freelancer-students', 'sessions', 'schedule', 'resources', 'freelancer-communications',
-      
       // Commercial modules
       'DocumentsContracts', 'CommercialStatistics', 'communications'
     ];

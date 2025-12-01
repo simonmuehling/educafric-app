@@ -43,18 +43,18 @@ const ConsolidatedNavbar: React.FC<ConsolidatedNavbarProps> = ({
         Teacher: 'Enseignant',
         Student: 'Élève',
         Parent: 'Parent',
-        Freelancer: 'Répétiteur',
         Commercial: 'Commercial',
-        Admin: 'Administrateur'
+        Admin: 'Administrateur',
+        SiteAdmin: 'Admin Site'
       },
       en: {
         Director: 'Director',
         Teacher: 'Teacher',
         Student: 'Student',
         Parent: 'Parent',
-        Freelancer: 'Freelancer',
         Commercial: 'Commercial',
-        Admin: 'Administrator'
+        Admin: 'Administrator',
+        SiteAdmin: 'Site Admin'
       }
     };
     return roleNames[language]?.[role as keyof typeof roleNames.fr] || role;

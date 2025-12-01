@@ -76,11 +76,6 @@ export const LazyCommercialDashboard = createLazyComponent(
   'CommercialDashboard'
 );
 
-export const LazyFreelancerDashboard = createLazyComponent(
-  () => import('@/pages/FreelancerPage'),
-  'FreelancerDashboard'
-);
-
 export const LazyAdminDashboard = createLazyComponent(
   () => import('@/pages/AdminPage'),
   'AdminDashboard'
