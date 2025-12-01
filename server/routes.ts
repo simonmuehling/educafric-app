@@ -2105,6 +2105,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ NEW: Get ONLY teacher's assigned subjects for a class (Teacher Bulletin Interface)
+  // Teachers should only see subjects they teach, not all class subjects
+  app.get("/api/teacher/bulletin/class-subjects/:classId", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const classId = parseInt(req.params.classId);
+      const userLanguage = (req.query.lang as string) || 'fr';
+      
+      if (isNaN(classId)) {
+        return res.status(400).json({ success: false, message: 'Invalid class ID' });
+      }
+      
+      console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔍 Fetching teacher ${user.id}'s subjects for class ${classId}`);
+      
+      // Get teacher's assigned subjects for this class from timetables
+      const teacherTimetables = await db
+        .select({
+          subjectName: timetables.subjectName,
+          subjectId: timetables.subjectId,
+          classId: timetables.classId,
+          schoolId: timetables.schoolId
+        })
+        .from(timetables)
+        .where(and(
+          eq(timetables.teacherId, user.id),
+          eq(timetables.classId, classId),
+          eq(timetables.isActive, true)
+        ))
+        .groupBy(timetables.subjectName, timetables.subjectId, timetables.classId, timetables.schoolId);
+      
+      console.log(`[TEACHER_BULLETIN_SUBJECTS] 📚 Teacher has ${teacherTimetables.length} subject assignments for class ${classId}`);
+      
+      // Get unique subject names that teacher teaches
+      const teacherSubjectNames = [...new Set(teacherTimetables.map(t => t.subjectName?.toLowerCase()).filter(Boolean))];
+      const teacherSubjectIds = [...new Set(teacherTimetables.map(t => t.subjectId).filter(Boolean))];
+      const schoolId = teacherTimetables[0]?.schoolId || user.schoolId;
+      
+      // Get full subject details from subjects table, filtered by what teacher teaches
+      let teacherSubjects: any[] = [];
+      
+      if (teacherSubjectIds.length > 0) {
+        // First try to match by subject ID
+        const subjectsByIds = await db.select()
+          .from(subjects)
+          .where(and(
+            eq(subjects.classId, classId),
+            eq(subjects.schoolId, schoolId)
+          ));
+        
+        // Filter to only subjects the teacher teaches (by ID or by name match)
+        teacherSubjects = subjectsByIds.filter((s: any) => {
+          const matchById = teacherSubjectIds.includes(s.id);
+          const matchByNameFr = teacherSubjectNames.includes(s.nameFr?.toLowerCase());
+          const matchByNameEn = teacherSubjectNames.includes(s.nameEn?.toLowerCase());
+          return matchById || matchByNameFr || matchByNameEn;
+        });
+      }
+      
+      // If no subjects found in subjects table, create from timetable data
+      if (teacherSubjects.length === 0 && teacherTimetables.length > 0) {
+        teacherSubjects = teacherTimetables.map((t: any, index: number) => ({
+          id: t.subjectId || `timetable-${index}`,
+          nameFr: t.subjectName,
+          nameEn: t.subjectName,
+          coefficient: 2,
+          subjectType: 'general',
+          bulletinSection: 'general'
+        }));
+      }
+      
+      // Build the response with teacher info
+      const teacherFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+      const subjectsWithTeacher = teacherSubjects.map((subject: any, index: number) => {
+        const subjectName = userLanguage === 'en' 
+          ? (subject.nameEn || subject.nameFr || '') 
+          : (subject.nameFr || subject.nameEn || '');
+        
+        return {
+          id: `subject-${subject.id || index}`,
+          name: subjectName,
+          nameFr: subject.nameFr || '',
+          nameEn: subject.nameEn || '',
+          teacher: teacherFullName,
+          coefficient: parseFloat(subject.coefficient) || 2,
+          subjectType: subject.subjectType || 'general',
+          bulletinSection: subject.bulletinSection || subject.subjectType || 'general',
+          grade: 0,
+          note1: 0,
+          moyenneFinale: 0,
+          competence1: '',
+          competence2: '',
+          competence3: '',
+          totalPondere: 0,
+          cote: '',
+          remark: '',
+          comments: []
+        };
+      });
+      
+      console.log(`[TEACHER_BULLETIN_SUBJECTS] ✅ Returning ${subjectsWithTeacher.length} teacher-assigned subjects`);
+      
+      res.json({ 
+        success: true, 
+        subjects: subjectsWithTeacher,
+        teacherName: teacherFullName,
+        message: subjectsWithTeacher.length > 0 
+          ? (userLanguage === 'fr' ? 'Vos matières chargées' : 'Your subjects loaded')
+          : (userLanguage === 'fr' ? 'Aucune matière assignée pour cette classe' : 'No subjects assigned for this class')
+      });
+      
+    } catch (error) {
+      console.error('[TEACHER_BULLETIN_SUBJECTS] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher subjects' });
+    }
+  });
+
   // Helper function to get default coefficient based on subject name
   function getDefaultCoefficient(subjectName: string): number {
     const name = subjectName.toLowerCase();
