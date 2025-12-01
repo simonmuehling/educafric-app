@@ -1,6 +1,6 @@
 'use client';
 import React, { useRef, useState, useEffect } from 'react';
-import { Printer, Download, Smartphone, FileDown, Loader2 } from "lucide-react";
+import { Printer, Smartphone, FileDown, Loader2 } from "lucide-react";
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
@@ -161,39 +161,28 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
               ) : (
                 <FileDown className="h-5 w-5" />
               )}
-              <span>{isGenerating ? progress : 'Télécharger PDF'}</span>
+              <span>{isGenerating ? progress : 'Télécharger PDF / Download PDF'}</span>
             </button>
           ) : (
-            <>
-              <button
-                onClick={handleDesktopPrint}
-                disabled={isGenerating}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm disabled:opacity-50"
-                data-testid="button-print-pdf"
-              >
-                {isGenerating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Printer className="h-4 w-4" />
-                )}
-                <span>{isGenerating ? 'Préparation...' : 'Imprimer'}</span>
-              </button>
-              <button
-                onClick={generatePDF}
-                disabled={isGenerating}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm disabled:opacity-50"
-                data-testid="button-download-pdf"
-              >
-                <Download className="h-4 w-4" />
-                <span>Télécharger PDF</span>
-              </button>
-            </>
+            <button
+              onClick={handleDesktopPrint}
+              disabled={isGenerating}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm disabled:opacity-50"
+              data-testid="button-print-pdf"
+            >
+              {isGenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Printer className="h-4 w-4" />
+              )}
+              <span>{isGenerating ? 'Préparation... / Preparing...' : 'Imprimer / Print'}</span>
+            </button>
           )}
           
           {isMobile && (
             <div className="flex items-center gap-1 text-blue-600 text-sm bg-blue-50 px-2 py-1 rounded">
               <Smartphone className="h-4 w-4" />
-              <span>Mode mobile</span>
+              <span>Mode mobile / Mobile mode</span>
             </div>
           )}
         </div>
