@@ -287,7 +287,7 @@ interface ReportCardProps {
   language?: 'fr' | 'en'; // NEW: Language support
   isThirdTrimester?: boolean;
   isTechnicalSchool?: boolean; // DEPRECATED: Use bulletinType instead
-  bulletinType?: 'general-fr' | 'general-en' | 'technical-fr' | 'technical-en'; // NEW: Explicit bulletin type selection
+  bulletinType?: 'general-fr' | 'general-en' | 'literary-fr' | 'scientific-fr' | 'professional-fr' | 'technical-en'; // Bulletin types for different series
   registrationNumber?: string; // School registration number (EDUCAFRIC or government)
   // selectedTeacherComments removed - now using per-subject comments in SubjectLine
   annualSummary?: {
@@ -319,22 +319,35 @@ export default function ReportCardPreview({
   annualSummary = null,
 }: ReportCardProps) {
   // Determine effective bulletin type
-  const effectiveBulletinType = bulletinType || (isTechnicalSchool ? 'technical-fr' : 'general-fr');
+  const effectiveBulletinType = bulletinType || (isTechnicalSchool ? 'professional-fr' : 'general-fr');
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
   
-  // Determine if this is a technical bulletin (shows 5 sections: General, Literary, Scientific, Professional, Other)
-  const isTechnicalBulletin = effectiveBulletinType === 'technical-fr' || effectiveBulletinType === 'technical-en';
-  
-  // Determine if we show 2 columns (only for general-en)
+  // Determine bulletin characteristics
+  const isSectionedBulletin = ['literary-fr', 'scientific-fr', 'professional-fr', 'technical-en'].includes(effectiveBulletinType);
   const showTwoColumns = effectiveBulletinType === 'general-en';
   
-  // Group subjects by type for technical schools (5 distinct sections)
+  // Determine which sections to show based on bulletin type
+  const bulletinSections = useMemo(() => {
+    switch (effectiveBulletinType) {
+      case 'literary-fr':
+        return { primary: 'literary', sections: ['general', 'literary', 'other'] };
+      case 'scientific-fr':
+        return { primary: 'scientific', sections: ['general', 'scientific', 'other'] };
+      case 'professional-fr':
+      case 'technical-en':
+        return { primary: 'professional', sections: ['general', 'professional', 'other'] };
+      default:
+        return { primary: null, sections: [] };
+    }
+  }, [effectiveBulletinType]);
+  
+  // Group subjects by type for sectioned bulletins (3 sections each)
   const groupedEntries = useMemo(() => {
-    if (!isTechnicalBulletin) {
+    if (!isSectionedBulletin) {
       return { all: entries };
     }
     
-    // Technical bulletins: 5 distinct sections based on bulletinSection/subjectType
+    // Group by section based on bulletinSection/subjectType
     const general = entries.filter(e => {
       const section = e.bulletinSection || e.subjectType;
       return section === 'general';
@@ -357,7 +370,7 @@ export default function ReportCardPreview({
     });
     
     return { general, literary, scientific, professional, other };
-  }, [entries, isTechnicalBulletin]);
+  }, [entries, isSectionedBulletin]);
   
   const totalCoef = entries.reduce((s, x) => s + (x.coef || 0), 0);
   const totalMxCoef = entries.reduce((s, x) => s + (Number(x.m20) || 0) * (x.coef || 0), 0);
@@ -470,18 +483,23 @@ export default function ReportCardPreview({
 
           {/* TYPE INDICATOR - Visible only on screen, not in print */}
           <div className="mb-2 print:hidden flex items-center gap-2">
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium ${isTechnicalBulletin ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-900 border border-blue-300'}`}>
+            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium ${isSectionedBulletin ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-blue-100 text-blue-900 border border-blue-300'}`}>
               <span className="font-bold">
-                {isTechnicalBulletin ? '🔧' : '📚'}
+                {isSectionedBulletin ? '🔧' : '📚'}
               </span>
               <span>
-                {isTechnicalBulletin 
-                  ? (language === 'fr' ? 'École TECHNIQUE - 5 sections' : 'TECHNICAL School - 5 sections')
-                  : (showTwoColumns 
-                    ? (language === 'fr' ? 'École GÉNÉRALE - Deux colonnes N/20 et M/20' : 'GENERAL School - Two columns N/20 and M/20')
-                    : (language === 'fr' ? 'École GÉNÉRALE - Une colonne Note/20' : 'GENERAL School - Single Note/20 column')
-                  )
-                }
+                {(() => {
+                  const bulletinLabels: Record<string, { fr: string; en: string }> = {
+                    'general-fr': { fr: 'Bulletin GÉNÉRAL', en: 'GENERAL Report Card' },
+                    'general-en': { fr: 'Bulletin GÉNÉRAL (Anglophone)', en: 'GENERAL Report Card (Anglophone)' },
+                    'literary-fr': { fr: 'Bulletin LITTÉRAIRE (Série A) - 3 sections', en: 'LITERARY Report Card (Series A) - 3 sections' },
+                    'scientific-fr': { fr: 'Bulletin SCIENTIFIQUE (Séries C/D/E) - 3 sections', en: 'SCIENTIFIC Report Card (Series C/D/E) - 3 sections' },
+                    'professional-fr': { fr: 'Bulletin TECHNIQUE (STT/TI/TAG) - 3 sections', en: 'TECHNICAL Report Card (STT/TI/TAG) - 3 sections' },
+                    'technical-en': { fr: 'Bulletin TECHNIQUE (Anglophone) - 3 sections', en: 'TECHNICAL Report Card (Anglophone) - 3 sections' },
+                  };
+                  const label = bulletinLabels[effectiveBulletinType] || bulletinLabels['general-fr'];
+                  return label[language];
+                })()}
               </span>
             </div>
           </div>
@@ -659,99 +677,44 @@ export default function ReportCardPreview({
                     );
                   };
 
-                  // For technical bulletins, render 5 separate sections with subtotals
-                  if (isTechnicalBulletin) {
-                    const sectionTitles = {
-                      general: language === 'fr' ? 'Matières Générales' : 'General Subjects',
-                      literary: language === 'fr' ? 'Matières Littéraires' : 'Literary Subjects',
-                      scientific: language === 'fr' ? 'Matières Scientifiques' : 'Scientific Subjects',
-                      professional: language === 'fr' ? 'Matières Professionnelles' : 'Professional Subjects',
-                      other: language === 'fr' ? 'Autres Matières' : 'Other Subjects'
+                  // For sectioned bulletins (literary, scientific, professional/technical), render 3 sections
+                  if (isSectionedBulletin) {
+                    const sectionTitles: Record<string, { fr: string; en: string; color: string; textColor: string }> = {
+                      general: { fr: 'Matières Générales', en: 'General Subjects', color: 'bg-green-100', textColor: 'text-green-800' },
+                      literary: { fr: 'Matières Littéraires', en: 'Literary Subjects', color: 'bg-purple-100', textColor: 'text-purple-800' },
+                      scientific: { fr: 'Matières Scientifiques', en: 'Scientific Subjects', color: 'bg-blue-100', textColor: 'text-blue-800' },
+                      professional: { fr: 'Matières Professionnelles', en: 'Professional Subjects', color: 'bg-orange-100', textColor: 'text-orange-800' },
+                      other: { fr: 'Autres Matières', en: 'Other Subjects', color: 'bg-pink-100', textColor: 'text-pink-800' }
                     };
 
                     let globalIndex = 0;
+                    
+                    // Only render sections that are in bulletinSections.sections
+                    const sectionsToRender = bulletinSections.sections;
 
                     return (
                       <>
-                        {/* General Subjects Section */}
-                        {groupedEntries.general && groupedEntries.general.length > 0 && (
-                          <>
-                            <tr className="bg-green-100" key="section-general-header">
-                              <td colSpan={9} className="border border-black px-1 py-0.5 font-bold text-[9px] text-green-800">
-                                {sectionTitles.general}
-                              </td>
-                            </tr>
-                            {groupedEntries.general.map((r, idx) => {
-                              const uniqueKey = `general-${globalIndex++}`;
-                              return renderSubjectRow(r, uniqueKey);
-                            })}
-                            {renderSectionSubtotal(sectionTitles.general, groupedEntries.general)}
-                          </>
-                        )}
-
-                        {/* Literary Subjects Section */}
-                        {groupedEntries.literary && groupedEntries.literary.length > 0 && (
-                          <>
-                            <tr className="bg-purple-100" key="section-literary-header">
-                              <td colSpan={9} className="border border-black px-1 py-0.5 font-bold text-[9px] text-purple-800">
-                                {sectionTitles.literary}
-                              </td>
-                            </tr>
-                            {groupedEntries.literary.map((r, idx) => {
-                              const uniqueKey = `literary-${globalIndex++}`;
-                              return renderSubjectRow(r, uniqueKey);
-                            })}
-                            {renderSectionSubtotal(sectionTitles.literary, groupedEntries.literary)}
-                          </>
-                        )}
-
-                        {/* Scientific Subjects Section */}
-                        {groupedEntries.scientific && groupedEntries.scientific.length > 0 && (
-                          <>
-                            <tr className="bg-blue-100" key="section-scientific-header">
-                              <td colSpan={9} className="border border-black px-1 py-0.5 font-bold text-[9px] text-blue-800">
-                                {sectionTitles.scientific}
-                              </td>
-                            </tr>
-                            {groupedEntries.scientific.map((r, idx) => {
-                              const uniqueKey = `scientific-${globalIndex++}`;
-                              return renderSubjectRow(r, uniqueKey);
-                            })}
-                            {renderSectionSubtotal(sectionTitles.scientific, groupedEntries.scientific)}
-                          </>
-                        )}
-
-                        {/* Professional Subjects Section */}
-                        {groupedEntries.professional && groupedEntries.professional.length > 0 && (
-                          <>
-                            <tr className="bg-orange-100" key="section-professional-header">
-                              <td colSpan={9} className="border border-black px-1 py-0.5 font-bold text-[9px] text-orange-800">
-                                {sectionTitles.professional}
-                              </td>
-                            </tr>
-                            {groupedEntries.professional.map((r, idx) => {
-                              const uniqueKey = `professional-${globalIndex++}`;
-                              return renderSubjectRow(r, uniqueKey);
-                            })}
-                            {renderSectionSubtotal(sectionTitles.professional, groupedEntries.professional)}
-                          </>
-                        )}
-
-                        {/* Other Subjects Section */}
-                        {groupedEntries.other && groupedEntries.other.length > 0 && (
-                          <>
-                            <tr className="bg-pink-100" key="section-other-header">
-                              <td colSpan={9} className="border border-black px-1 py-0.5 font-bold text-[9px] text-pink-800">
-                                {sectionTitles.other}
-                              </td>
-                            </tr>
-                            {groupedEntries.other.map((r, idx) => {
-                              const uniqueKey = `other-${globalIndex++}`;
-                              return renderSubjectRow(r, uniqueKey);
-                            })}
-                            {renderSectionSubtotal(sectionTitles.other, groupedEntries.other)}
-                          </>
-                        )}
+                        {sectionsToRender.map(sectionKey => {
+                          const sectionData = groupedEntries[sectionKey as keyof typeof groupedEntries];
+                          const sectionInfo = sectionTitles[sectionKey];
+                          
+                          if (!sectionData || !Array.isArray(sectionData) || sectionData.length === 0) return null;
+                          
+                          return (
+                            <React.Fragment key={`section-${sectionKey}`}>
+                              <tr className={sectionInfo.color} key={`section-${sectionKey}-header`}>
+                                <td colSpan={9} className={`border border-black px-1 py-0.5 font-bold text-[9px] ${sectionInfo.textColor}`}>
+                                  {language === 'fr' ? sectionInfo.fr : sectionInfo.en}
+                                </td>
+                              </tr>
+                              {sectionData.map((r, idx) => {
+                                const uniqueKey = `${sectionKey}-${globalIndex++}`;
+                                return renderSubjectRow(r, uniqueKey);
+                              })}
+                              {renderSectionSubtotal(language === 'fr' ? sectionInfo.fr : sectionInfo.en, sectionData)}
+                            </React.Fragment>
+                          );
+                        })}
                       </>
                     );
                   }
@@ -989,7 +952,7 @@ export default function ReportCardPreview({
           <div className="bulletin-footer-section">
           {/* Third Trimester Annual Summary - Compact for Print */}
           {isThirdTrimester && annualSummary && (
-            <div className={`${isTechnicalBulletin ? "mt-2" : "mt-3"} border border-orange-300 rounded p-2 bg-orange-50 print:hidden`}>
+            <div className={`${isSectionedBulletin ? "mt-2" : "mt-3"} border border-orange-300 rounded p-2 bg-orange-50 print:hidden`}>
               <h3 className="text-lg font-semibold text-orange-800 mb-3">
                 {language === 'fr' ? 'Résumé Annuel' : 'Annual Summary'}
               </h3>
@@ -1067,7 +1030,7 @@ export default function ReportCardPreview({
 
           {/* Verification Code - Compact */}
           {(student as any).verificationCode && (
-            <div className={`${isTechnicalBulletin ? "mt-1" : "mt-2"} flex justify-center print:mt-1`}>
+            <div className={`${isSectionedBulletin ? "mt-1" : "mt-2"} flex justify-center print:mt-1`}>
               <div className="rounded border border-blue-200 bg-blue-50 p-1 w-48 print:w-40">
                 <div className="text-[8px] text-blue-700 text-center font-medium print:text-[6pt]">{language === 'fr' ? 'Code Vérification' : 'Verification Code'}</div>
                 <div className="text-sm font-bold text-blue-800 text-center print:text-[8pt]">{(student as any).verificationCode}</div>
