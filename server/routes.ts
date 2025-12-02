@@ -46,7 +46,7 @@ import {
   competencyEvaluationSystems, 
   competencyTemplates 
 } from "../shared/schemas/predefinedAppreciationsSchema";
-import { eq, and, or, asc, desc, sql, inArray, count } from "drizzle-orm";
+import { eq, and, or, asc, desc, sql, inArray, count, isNotNull } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { 
   ArchiveFilter, 
@@ -4816,117 +4816,256 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ✅ DATABASE-ONLY: TEACHER API ROUTES - Complete implementation
+  // ✅ DATABASE-ONLY: TEACHER API ROUTES - Complete implementation with multi-school support
   app.get("/api/teacher/classes", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      const userSchoolId = user.schoolId || user.school_id;
-      
-      if (!userSchoolId) {
-        return res.status(400).json({ success: false, message: 'School ID required', schoolsWithClasses: [] });
-      }
+      const primarySchoolId = user.schoolId || user.school_id;
       
       console.log('[TEACHER_API] 📊 Fetching classes from DATABASE for teacher:', user.id);
       
-      // Get school information first
-      const schoolId = userSchoolId;
-      let schoolInfo = null;
+      // Step 1: Get all schools this teacher is affiliated with (multi-school support)
+      const affiliatedSchoolIds: number[] = [];
       
-      if (schoolId) {
-        const [school] = await db.select({
-          id: schools.id,
-          name: schools.name,
-          address: schools.address,
-          phone: schools.phone,
-          email: schools.email,
-          logoUrl: schools.logoUrl
-        })
-        .from(schools)
-        .where(eq(schools.id, schoolId))
-        .limit(1);
-        schoolInfo = school;
+      // Add primary school (if valid)
+      if (primarySchoolId && typeof primarySchoolId === 'number' && primarySchoolId > 0) {
+        affiliatedSchoolIds.push(primarySchoolId);
       }
       
-      console.log(`[TEACHER_API] 🏫 School info: ${schoolInfo?.name || 'Not found'}`);
-      
-      // Get ONLY classes assigned to this teacher from TIMETABLES (source of truth)
-      let assignedClasses: any[] = [];
+      // Check roleAffiliations for additional Teacher roles at other schools
       try {
-        assignedClasses = await db
-          .select({
-            classId: timetables.classId,
-            className: classes.name,
-            classLevel: classes.level,
-            subjectName: timetables.subjectName,
-            schoolId: timetables.schoolId,
-            room: timetables.room
-          })
-          .from(timetables)
-          .innerJoin(classes, eq(timetables.classId, classes.id))
-          .where(
-            and(
-              eq(timetables.teacherId, user.id),
-              eq(timetables.schoolId, user.schoolId),
-              eq(timetables.isActive, true)
-            )
-          );
-        console.log(`[TEACHER_API] 📚 Found ${assignedClasses.length} class assignments from timetables`);
-      } catch (e) {
-        console.log('[TEACHER_API] Error fetching from timetables:', e);
-      }
-
-      // Group classes with their subjects
-      const classMap = new Map<number, any>();
-      for (const curr of assignedClasses) {
-        const existing = classMap.get(curr.classId);
-        if (existing) {
-          if (!existing.subjects.includes(curr.subjectName)) {
-            existing.subjects.push(curr.subjectName);
+        const affiliations = await db.select({
+          schoolId: roleAffiliations.schoolId
+        })
+        .from(roleAffiliations)
+        .where(
+          and(
+            eq(roleAffiliations.userId, user.id),
+            eq(roleAffiliations.role, 'Teacher')
+          )
+        );
+        
+        for (const aff of affiliations) {
+          // Runtime null/invalid check to ensure we only add valid school IDs
+          if (aff.schoolId != null && typeof aff.schoolId === 'number' && aff.schoolId > 0 && !affiliatedSchoolIds.includes(aff.schoolId)) {
+            affiliatedSchoolIds.push(aff.schoolId);
           }
-        } else {
-          classMap.set(curr.classId, {
-            id: curr.classId,
-            name: curr.className,
-            level: curr.classLevel,
-            section: '',
-            studentCount: 0,
-            subject: curr.subjectName,
-            subjects: [curr.subjectName].filter(Boolean),
-            room: curr.room || '',
-            schedule: '',
-            schoolId: curr.schoolId
-          });
         }
+        console.log(`[TEACHER_API] 🏫 Teacher affiliated with ${affiliatedSchoolIds.length} school(s):`, affiliatedSchoolIds);
+      } catch (e) {
+        console.log('[TEACHER_API] Error checking roleAffiliations:', e);
       }
       
-      const uniqueClasses = Array.from(classMap.values());
-
-      console.log(`[TEACHER_API] ✅ Found ${uniqueClasses.length} assigned classes for teacher ${user.id}`);
-      
-      // Teachers should ONLY see classes they are assigned to via timetables
-      // No fallback - if no timetable entries, show empty list with message
-      if (uniqueClasses.length === 0) {
-        console.log(`[TEACHER_API] ⚠️ No timetable entries found for teacher ${user.id} - they need to be assigned by director`);
+      // If no valid schools, return empty
+      if (affiliatedSchoolIds.length === 0) {
+        return res.json({ 
+          success: true, 
+          schoolsWithClasses: [], 
+          classes: [],
+          message: 'No school assignment found. Please contact your administrator.'
+        });
       }
       
-      // Return in expected format with REAL school info
-      const schoolsWithClasses = schoolInfo ? [
-        {
+      // Step 2: Get school information for all affiliated schools
+      const schoolInfoList = await db.select({
+        id: schools.id,
+        name: schools.name,
+        address: schools.address,
+        phone: schools.phone,
+        email: schools.email,
+        logoUrl: schools.logoUrl
+      })
+      .from(schools)
+      .where(inArray(schools.id, affiliatedSchoolIds));
+      
+      // Create a map for quick school lookup
+      const schoolMap = new Map(schoolInfoList.map(s => [s.id, s]));
+      
+      console.log(`[TEACHER_API] 🏫 Found ${schoolInfoList.length} school(s) info`);
+      
+      // Step 3: For each school, get classes from multiple sources
+      const schoolsWithClasses: any[] = [];
+      let allClasses: any[] = [];
+      
+      for (const schoolId of affiliatedSchoolIds) {
+        const schoolInfo = schoolMap.get(schoolId);
+        if (!schoolInfo) {
+          console.log(`[TEACHER_API] ⚠️ School ${schoolId} not found in database, skipping`);
+          continue;
+        }
+        
+        const classMap = new Map<number, any>();
+        
+        // Source 1: Timetables (primary source of truth for subjects)
+        try {
+          const timetableClasses = await db
+            .select({
+              classId: timetables.classId,
+              className: classes.name,
+              classLevel: classes.level,
+              classSection: classes.section,
+              subjectName: timetables.subjectName,
+              room: timetables.room
+            })
+            .from(timetables)
+            .innerJoin(classes, eq(timetables.classId, classes.id))
+            .where(
+              and(
+                eq(timetables.teacherId, user.id),
+                eq(timetables.schoolId, schoolId),
+                eq(timetables.isActive, true)
+              )
+            );
+          
+          for (const curr of timetableClasses) {
+            const existing = classMap.get(curr.classId);
+            if (existing) {
+              // Add subject if not already present
+              if (curr.subjectName && !existing.subjects.includes(curr.subjectName)) {
+                existing.subjects.push(curr.subjectName);
+              }
+              // Update room if we have one
+              if (curr.room && !existing.room) {
+                existing.room = curr.room;
+              }
+            } else {
+              classMap.set(curr.classId, {
+                id: curr.classId,
+                name: curr.className,
+                level: curr.classLevel || '',
+                section: curr.classSection || '',
+                studentCount: 0,
+                subject: curr.subjectName || '',
+                subjects: [curr.subjectName].filter(Boolean),
+                room: curr.room || '',
+                schedule: '',
+                schoolId: schoolId,
+                source: 'timetable'
+              });
+            }
+          }
+          console.log(`[TEACHER_API] 📚 School ${schoolId}: Found ${timetableClasses.length} timetable entries`);
+        } catch (e) {
+          console.log('[TEACHER_API] Error fetching from timetables:', e);
+        }
+        
+        // Source 2: Classes where teacher is assigned directly (classes.teacherId)
+        // Only add if not already found from timetables
+        try {
+          const directClasses = await db
+            .select({
+              id: classes.id,
+              name: classes.name,
+              level: classes.level,
+              section: classes.section
+            })
+            .from(classes)
+            .where(
+              and(
+                eq(classes.teacherId, user.id),
+                eq(classes.schoolId, schoolId),
+                eq(classes.isActive, true)
+              )
+            );
+          
+          for (const cls of directClasses) {
+            if (!classMap.has(cls.id)) {
+              // New class not from timetable - try to get subjects from teacherSubjectAssignments
+              classMap.set(cls.id, {
+                id: cls.id,
+                name: cls.name,
+                level: cls.level || '',
+                section: cls.section || '',
+                studentCount: 0,
+                subject: '',
+                subjects: [],
+                room: '',
+                schedule: '',
+                schoolId: schoolId,
+                source: 'direct'
+              });
+            }
+          }
+          console.log(`[TEACHER_API] 📚 School ${schoolId}: Found ${directClasses.length} direct class assignments`);
+        } catch (e) {
+          console.log('[TEACHER_API] Error fetching direct classes:', e);
+        }
+        
+        // Source 3: teacherSubjectAssignments table - enriches existing classes with subjects
+        try {
+          const subjectAssignments = await db
+            .select({
+              classId: teacherSubjectAssignments.classId,
+              subjectId: teacherSubjectAssignments.subjectId,
+              className: classes.name,
+              classLevel: classes.level,
+              classSection: classes.section,
+              subjectName: subjects.name
+            })
+            .from(teacherSubjectAssignments)
+            .innerJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
+            .leftJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+            .where(
+              and(
+                eq(teacherSubjectAssignments.teacherId, user.id),
+                eq(teacherSubjectAssignments.schoolId, schoolId)
+              )
+            );
+          
+          for (const assign of subjectAssignments) {
+            const existing = classMap.get(assign.classId);
+            if (existing) {
+              // Enrich existing class with subject info (don't overwrite timetable subjects)
+              if (assign.subjectName && !existing.subjects.includes(assign.subjectName)) {
+                existing.subjects.push(assign.subjectName);
+                // Update primary subject if empty
+                if (!existing.subject) {
+                  existing.subject = assign.subjectName;
+                }
+              }
+            } else {
+              // New class not from other sources
+              classMap.set(assign.classId, {
+                id: assign.classId,
+                name: assign.className,
+                level: assign.classLevel || '',
+                section: assign.classSection || '',
+                studentCount: 0,
+                subject: assign.subjectName || '',
+                subjects: [assign.subjectName].filter(Boolean),
+                room: '',
+                schedule: '',
+                schoolId: schoolId,
+                source: 'subjectAssignment'
+              });
+            }
+          }
+          console.log(`[TEACHER_API] 📚 School ${schoolId}: Found ${subjectAssignments.length} subject assignments`);
+        } catch (e) {
+          console.log('[TEACHER_API] Error fetching teacherSubjectAssignments:', e);
+        }
+        
+        const schoolClasses = Array.from(classMap.values());
+        allClasses = [...allClasses, ...schoolClasses];
+        
+        schoolsWithClasses.push({
           schoolId: schoolInfo.id,
           schoolName: schoolInfo.name,
           schoolAddress: schoolInfo.address || '',
           schoolPhone: schoolInfo.phone || '',
           isConnected: true,
           assignmentDate: new Date().toISOString().split('T')[0],
-          classes: uniqueClasses
-        }
-      ] : [];
+          classes: schoolClasses
+        });
+      }
+
+      console.log(`[TEACHER_API] ✅ Total: ${allClasses.length} classes across ${schoolsWithClasses.length} school(s) for teacher ${user.id}`);
       
       res.json({ 
         success: true, 
         schoolsWithClasses, 
-        classes: uniqueClasses,
-        message: uniqueClasses.length === 0 ? 'No classes assigned. Please ask your school director to create your timetable.' : null
+        classes: allClasses,
+        message: allClasses.length === 0 ? 'No classes assigned. Please ask your school director to create your timetable or assign you to classes.' : null
       });
     } catch (error) {
       console.error('[TEACHER_API] Error fetching classes:', error);
