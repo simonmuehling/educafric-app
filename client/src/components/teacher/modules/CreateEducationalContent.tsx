@@ -179,75 +179,109 @@ const CreateEducationalContent = () => {
     { id: 'presentation', name: t.presentation, icon: FileText, color: 'red' }
   ];
 
-  const recentContent = [
-    {
-      id: 1,
-      title: 'Équations du premier degré',
-      type: 'lesson',
-      subject: 'Mathématiques',
-      level: '4ème',
-      duration: 60,
-      lastModified: '2025-01-26',
-      status: 'published'
+  // Fetch teacher's own content from database
+  const { data: myContent = [], isLoading: contentLoading, refetch: refetchContent } = useQuery<any[]>({
+    queryKey: ['/api/educational-content', 'my-content'],
+    queryFn: async () => {
+      const response = await fetch('/api/educational-content', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.content || [];
     },
-    {
-      id: 2,
-      title: 'Exercices sur les fractions',
-      type: 'exercise',
-      subject: 'Mathématiques',
-      level: '5ème',
-      duration: 45,
-      lastModified: '2025-01-25',
-      status: 'draft'
-    },
-    {
-      id: 3,
-      title: 'La Révolution française',
-      type: 'presentation',
-      subject: 'Histoire',
-      level: '4ème',
-      duration: 90,
-      lastModified: '2025-01-24',
-      status: 'published'
-    },
-    {
-      id: 4,
-      title: 'Contrôle de grammaire',
-      type: 'assessment',
-      subject: 'Français',
-      level: '6ème',
-      duration: 30,
-      lastModified: '2025-01-23',
-      status: 'published'
-    }
-  ];
+    enabled: !!user
+  });
 
-  const popularTemplates = [
+  // Fetch shared content from colleagues
+  const { data: sharedContent = [], isLoading: sharedLoading } = useQuery<any[]>({
+    queryKey: ['/api/educational-content/shared'],
+    queryFn: async () => {
+      const response = await fetch('/api/educational-content/shared', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.content || [];
+    },
+    enabled: !!user
+  });
+
+  // Fetch templates
+  const { data: templates = [], isLoading: templatesLoading } = useQuery<any[]>({
+    queryKey: ['/api/educational-content/templates'],
+    queryFn: async () => {
+      const response = await fetch('/api/educational-content/templates', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.templates || [];
+    },
+    enabled: !!user
+  });
+
+  // Format content for display
+  const recentContent = myContent.map((item: any) => ({
+    id: item.id,
+    title: item.title || 'Sans titre',
+    type: item.type || 'lesson',
+    subject: item.subjectName || item.subject || 'Général',
+    level: item.level || 'Non spécifié',
+    duration: item.duration || 60,
+    lastModified: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('fr-FR') : 'N/A',
+    status: item.status || 'draft',
+    teacherName: item.teacherName || 'Enseignant'
+  }));
+
+  // Format templates for display
+  const popularTemplates = templates.length > 0 ? templates.map((item: any) => ({
+    id: item.id,
+    title: item.title || 'Modèle',
+    description: item.description || 'Template éducatif',
+    type: item.type || 'lesson',
+    downloads: item.downloadCount || 0,
+    rating: item.rating || 4.5
+  })) : [
     {
-      id: 1,
-      title: 'Modèle de leçon interactive',
-      description: 'Structure standard pour créer des leçons engageantes',
+      id: 'tpl-1',
+      title: language === 'fr' ? 'Modèle de leçon interactive' : 'Interactive Lesson Template',
+      description: language === 'fr' ? 'Structure standard pour créer des leçons engageantes' : 'Standard structure for creating engaging lessons',
       type: 'lesson',
-      downloads: 245,
+      downloads: 0,
       rating: 4.8
     },
     {
-      id: 2,
-      title: 'Fiche d\'exercices pratiques',
-      description: 'Template pour créer des exercices structurés',
+      id: 'tpl-2',
+      title: language === 'fr' ? 'Fiche d\'exercices pratiques' : 'Practical Exercise Sheet',
+      description: language === 'fr' ? 'Template pour créer des exercices structurés' : 'Template for creating structured exercises',
       type: 'exercise',
-      downloads: 189,
+      downloads: 0,
       rating: 4.6
     },
     {
-      id: 3,
-      title: 'Grille d\'évaluation',
-      description: 'Modèle pour évaluer les compétences des élèves',
+      id: 'tpl-3',
+      title: language === 'fr' ? 'Grille d\'évaluation' : 'Assessment Grid',
+      description: language === 'fr' ? 'Modèle pour évaluer les compétences des élèves' : 'Template for assessing student skills',
       type: 'assessment',
-      downloads: 167,
+      downloads: 0,
       rating: 4.7
     }
   ];
+
+  // Content statistics from real data
+  const contentStats = {
+    lessons: myContent.filter((c: any) => c.type === 'lesson').length,
+    exercises: myContent.filter((c: any) => c.type === 'exercise').length,
+    assessments: myContent.filter((c: any) => c.type === 'assessment').length,
+    resources: myContent.length
+  };
 
   const tabs = [
     { id: 'lessons', name: t.lessons, icon: BookOpen },
@@ -416,7 +450,7 @@ const CreateEducationalContent = () => {
                 <h3 className="text-lg font-semibold">{t.recentContent}</h3>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Rechercher..."
+                    placeholder={language === 'fr' ? 'Rechercher...' : 'Search...'}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e?.target?.value)}
                     className="w-64"
@@ -428,6 +462,34 @@ const CreateEducationalContent = () => {
                 </div>
               </div>
               
+              {/* Loading state */}
+              {contentLoading && (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-gray-500 mt-2">{language === 'fr' ? 'Chargement de vos contenus...' : 'Loading your content...'}</p>
+                </div>
+              )}
+              
+              {/* Empty state */}
+              {!contentLoading && filteredContent.length === 0 && (
+                <div className="text-center py-8">
+                  <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <h4 className="font-medium text-gray-700 mb-2">
+                    {language === 'fr' ? 'Aucun contenu créé' : 'No Content Created'}
+                  </h4>
+                  <p className="text-sm text-gray-500 mb-4">
+                    {language === 'fr' 
+                      ? 'Vous n\'avez pas encore créé de contenu pédagogique. Commencez maintenant!' 
+                      : 'You haven\'t created any educational content yet. Start now!'}
+                  </p>
+                  <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t.createNew}
+                  </Button>
+                </div>
+              )}
+              
+              {!contentLoading && filteredContent.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {(Array.isArray(filteredContent) ? filteredContent : []).map(content => {
                   const Icon = getContentTypeIcon(content.type);
@@ -493,6 +555,7 @@ const CreateEducationalContent = () => {
                   );
                 })}
               </div>
+              )}
             </ModernCard>
           </div>
         );
@@ -605,101 +668,79 @@ const CreateEducationalContent = () => {
                 {language === 'fr' ? 'Contenu Partagé par les Collègues' : 'Content Shared by Colleagues'}
               </h3>
               
-              {/* Contenu partagé par les collègues */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[
-                  {
-                    id: 1,
-                    title: "Leçon sur les probabilités",
-                    author: "Marie Dubois",
-                    subject: "Mathématiques",
-                    level: "3ème",
-                    type: "lesson",
-                    downloads: 45,
-                    rating: 4.5,
-                    sharedAt: "2025-09-20"
-                  },
-                  {
-                    id: 2,
-                    title: "Exercices d'orthographe",
-                    author: "Jean Martin",
-                    subject: "Français",
-                    level: "5ème",
-                    type: "exercise",
-                    downloads: 32,
-                    rating: 4.7,
-                    sharedAt: "2025-09-18"
-                  },
-                  {
-                    id: 3,
-                    title: "Évaluation Sciences Physiques",
-                    author: "Sophie Laurent",
-                    subject: "Physique",
-                    level: "4ème",
-                    type: "assessment",
-                    downloads: 28,
-                    rating: 4.3,
-                    sharedAt: "2025-09-15"
-                  }
-                ].map(content => {
-                  const Icon = getContentTypeIcon(content.type);
-                  const colorClass = getContentTypeColor(content.type);
-                  
-                  return (
-                    <div key={content.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Icon className={`w-5 h-5 text-${colorClass}-600`} />
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                          <span className="text-sm font-medium">{content.rating}</span>
+              {/* Loading state */}
+              {sharedLoading && (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-gray-500 mt-2">{language === 'fr' ? 'Chargement...' : 'Loading...'}</p>
+                </div>
+              )}
+              
+              {/* Contenu partagé par les collègues - données réelles */}
+              {!sharedLoading && sharedContent.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {sharedContent.map((content: any) => {
+                    const Icon = getContentTypeIcon(content.type || 'lesson');
+                    const colorClass = getContentTypeColor(content.type || 'lesson');
+                    
+                    return (
+                      <div key={content.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Icon className={`w-5 h-5 text-${colorClass}-600`} />
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                            <span className="text-sm font-medium">{content.rating || 4.5}</span>
+                          </div>
+                          <Badge variant="outline" className="ml-auto text-xs">
+                            {content.type === 'lesson' ? 'Leçon' : 
+                             content.type === 'exercise' ? 'Exercice' : 'Évaluation'}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="ml-auto text-xs">
-                          {content.type === 'lesson' ? 'Leçon' : 
-                           content.type === 'exercise' ? 'Exercice' : 'Évaluation'}
-                        </Badge>
+                        
+                        <h4 className="font-semibold mb-2 text-sm sm:text-base line-clamp-2">{content.title || 'Sans titre'}</h4>
+                        
+                        <div className="text-xs sm:text-sm text-gray-600 space-y-1 mb-3">
+                          <p><strong>{language === 'fr' ? 'Auteur' : 'Author'}:</strong> {content.teacherName || 'Enseignant'}</p>
+                          <p><strong>{language === 'fr' ? 'Matière' : 'Subject'}:</strong> {content.subjectName || content.subject || 'Général'} - {content.level || 'N/A'}</p>
+                          <p><strong>{language === 'fr' ? 'Partagé le' : 'Shared on'}:</strong> {content.createdAt ? new Date(content.createdAt).toLocaleDateString('fr-FR') : 'N/A'}</p>
+                          <p className="flex items-center gap-1">
+                            <Download className="w-3 h-3" />
+                            {content.downloadCount || 0} {language === 'fr' ? 'téléchargements' : 'downloads'}
+                          </p>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="flex-1 text-xs sm:text-sm">
+                            <Eye className="w-3 h-3 mr-1" />
+                            <span className="hidden sm:inline">{t.preview}</span>
+                            <span className="sm:hidden">{language === 'fr' ? 'Voir' : 'View'}</span>
+                          </Button>
+                          <Button size="sm" className="flex-1 text-xs sm:text-sm bg-green-600 hover:bg-green-700">
+                            <Download className="w-3 h-3 mr-1" />
+                            <span className="hidden sm:inline">{language === 'fr' ? 'Télécharger' : 'Download'}</span>
+                            <span className="sm:hidden">DL</span>
+                          </Button>
+                        </div>
                       </div>
-                      
-                      <h4 className="font-semibold mb-2 text-sm sm:text-base line-clamp-2">{content.title}</h4>
-                      
-                      <div className="text-xs sm:text-sm text-gray-600 space-y-1 mb-3">
-                        <p><strong>Auteur:</strong> {content.author}</p>
-                        <p><strong>Matière:</strong> {content.subject} - {content.level}</p>
-                        <p><strong>Partagé le:</strong> {new Date(content.sharedAt).toLocaleDateString('fr-FR')}</p>
-                        <p className="flex items-center gap-1">
-                          <Download className="w-3 h-3" />
-                          {content.downloads} téléchargements
-                        </p>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="flex-1 text-xs sm:text-sm">
-                          <Eye className="w-3 h-3 mr-1" />
-                          <span className="hidden sm:inline">{t.preview}</span>
-                          <span className="sm:hidden">Voir</span>
-                        </Button>
-                        <Button size="sm" className="flex-1 text-xs sm:text-sm bg-green-600 hover:bg-green-700">
-                          <Download className="w-3 h-3 mr-1" />
-                          <span className="hidden sm:inline">Télécharger</span>
-                          <span className="sm:hidden">DL</span>
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
               
               {/* Message si aucun contenu partagé */}
-              <div className="text-center py-8 text-gray-500">
-                <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <h4 className="font-medium mb-2">
-                  {language === 'fr' ? 'Espace de Collaboration' : 'Collaboration Space'}
-                </h4>
-                <p className="text-sm">
-                  {language === 'fr' 
-                    ? 'Découvrez et téléchargez le contenu partagé par vos collègues enseignants.' 
-                    : 'Discover and download content shared by your fellow teachers.'}
-                </p>
-              </div>
+              {!sharedLoading && sharedContent.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <h4 className="font-medium mb-2">
+                    {language === 'fr' ? 'Aucun contenu partagé' : 'No Shared Content'}
+                  </h4>
+                  <p className="text-sm">
+                    {language === 'fr' 
+                      ? 'Aucun collègue n\'a encore partagé de contenu. Soyez le premier à partager vos ressources pédagogiques!' 
+                      : 'No colleagues have shared content yet. Be the first to share your educational resources!'}
+                  </p>
+                </div>
+              )}
             </ModernCard>
           </div>
         );
@@ -723,23 +764,23 @@ const CreateEducationalContent = () => {
         </Button>
       </div>
 
-      {/* Statistiques - Responsive amélioré */}
+      {/* Statistiques - Données réelles */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         <ModernCard className="p-3 sm:p-4 text-center activity-card-blue">
-          <div className="text-xl sm:text-2xl font-bold text-gray-800">24</div>
-          <div className="text-xs sm:text-sm text-gray-600 leading-tight">Leçons créées</div>
+          <div className="text-xl sm:text-2xl font-bold text-gray-800">{contentStats.lessons}</div>
+          <div className="text-xs sm:text-sm text-gray-600 leading-tight">{language === 'fr' ? 'Leçons créées' : 'Lessons Created'}</div>
         </ModernCard>
         <ModernCard className="p-3 sm:p-4 text-center activity-card-green">
-          <div className="text-xl sm:text-2xl font-bold text-gray-800">18</div>
-          <div className="text-xs sm:text-sm text-gray-600 leading-tight">Exercices</div>
+          <div className="text-xl sm:text-2xl font-bold text-gray-800">{contentStats.exercises}</div>
+          <div className="text-xs sm:text-sm text-gray-600 leading-tight">{language === 'fr' ? 'Exercices' : 'Exercises'}</div>
         </ModernCard>
         <ModernCard className="p-3 sm:p-4 text-center activity-card-purple">
-          <div className="text-xl sm:text-2xl font-bold text-gray-800">12</div>
-          <div className="text-xs sm:text-sm text-gray-600 leading-tight">Évaluations</div>
+          <div className="text-xl sm:text-2xl font-bold text-gray-800">{contentStats.assessments}</div>
+          <div className="text-xs sm:text-sm text-gray-600 leading-tight">{language === 'fr' ? 'Évaluations' : 'Assessments'}</div>
         </ModernCard>
         <ModernCard className="p-3 sm:p-4 text-center activity-card-orange">
-          <div className="text-xl sm:text-2xl font-bold text-gray-800">156</div>
-          <div className="text-xs sm:text-sm text-gray-600 leading-tight">Ressources</div>
+          <div className="text-xl sm:text-2xl font-bold text-gray-800">{contentStats.resources}</div>
+          <div className="text-xs sm:text-sm text-gray-600 leading-tight">{language === 'fr' ? 'Total Ressources' : 'Total Resources'}</div>
         </ModernCard>
       </div>
 

@@ -215,6 +215,121 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
+// Get shared educational content from colleagues
+router.get('/shared', requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+
+    console.log('[EDUCATIONAL_CONTENT] Fetching shared content for school:', user.schoolId);
+
+    // Query database for content shared within the school (not by current user)
+    const sharedContentQuery = await db
+      .select({
+        id: educationalContent.id,
+        title: educationalContent.title,
+        description: educationalContent.description,
+        type: educationalContent.type,
+        subjectId: educationalContent.subjectId,
+        level: educationalContent.level,
+        duration: educationalContent.duration,
+        objectives: educationalContent.objectives,
+        teacherId: educationalContent.teacherId,
+        schoolId: educationalContent.schoolId,
+        files: educationalContent.files,
+        status: educationalContent.status,
+        visibility: educationalContent.visibility,
+        downloadCount: educationalContent.downloadCount,
+        rating: educationalContent.rating,
+        createdAt: educationalContent.createdAt,
+        teacherFirstName: users.firstName,
+        teacherLastName: users.lastName,
+        subjectName: subjects.nameFr
+      })
+      .from(educationalContent)
+      .leftJoin(users, eq(educationalContent.teacherId, users.id))
+      .leftJoin(subjects, eq(educationalContent.subjectId, subjects.id))
+      .where(
+        and(
+          eq(educationalContent.schoolId, user.schoolId),
+          sql`${educationalContent.teacherId} != ${user.id}`,
+          or(
+            eq(educationalContent.visibility, 'school'),
+            eq(educationalContent.visibility, 'public')
+          )
+        )
+      )
+      .orderBy(desc(educationalContent.createdAt));
+
+    const formattedContent = sharedContentQuery.map(c => ({
+      ...c,
+      teacherName: c.teacherFirstName && c.teacherLastName 
+        ? `${c.teacherFirstName} ${c.teacherLastName}` 
+        : 'Enseignant',
+      subject: c.subjectName || 'Général'
+    }));
+
+    console.log('[EDUCATIONAL_CONTENT] ✅ Found', formattedContent.length, 'shared content items');
+
+    res.json({
+      success: true,
+      content: formattedContent,
+      total: formattedContent.length
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Shared content fetch error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch shared content',
+      content: []
+    });
+  }
+});
+
+// Get templates
+router.get('/templates', requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+
+    console.log('[EDUCATIONAL_CONTENT] Fetching templates');
+
+    // Query for content marked as templates (high download count or marked as template)
+    const templatesQuery = await db
+      .select({
+        id: educationalContent.id,
+        title: educationalContent.title,
+        description: educationalContent.description,
+        type: educationalContent.type,
+        downloadCount: educationalContent.downloadCount,
+        rating: educationalContent.rating
+      })
+      .from(educationalContent)
+      .where(
+        or(
+          eq(educationalContent.visibility, 'public'),
+          sql`${educationalContent.downloadCount} >= 10`
+        )
+      )
+      .orderBy(desc(educationalContent.downloadCount))
+      .limit(10);
+
+    console.log('[EDUCATIONAL_CONTENT] ✅ Found', templatesQuery.length, 'templates');
+
+    res.json({
+      success: true,
+      templates: templatesQuery
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Templates fetch error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch templates',
+      templates: []
+    });
+  }
+});
+
 // Get specific educational content
 router.get('/:id', requireAuth, async (req, res) => {
   try {
