@@ -8454,16 +8454,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= TEACHER ABSENCE DECLARATION API =============
 
-  // Declare teacher absence - POST route for functional button
+  // Declare teacher absence - POST route for functional button - DATABASE-ONLY
   app.post("/api/teacher/absence/declare", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       const absenceData = req.body;
       console.log('[TEACHER_ABSENCE] POST /api/teacher/absence/declare for user:', user.id, 'data:', absenceData);
-
-      // Initialize notification arrays at function scope
-      let affectedStudents: Array<{id: number, name: string, phone?: string, parentPhone?: string, parentEmail?: string}> = [];
-      let parentNotifications: Array<{type: string, to?: string, message: string, student: string, subject?: string}> = [];
 
       // Validate required fields
       if (!absenceData.reason || !absenceData.startDate || !absenceData.endDate || !absenceData.classesAffected || absenceData.classesAffected.length === 0) {
@@ -8482,234 +8478,261 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Create absence record
-      const newAbsence = {
-        id: Math.floor(Math.random() * 10000) + 1000,
-        teacherId: user.id,
-        teacherName: absenceData.teacherName || `${user.firstName} ${user.lastName}`,
-        subject: absenceData.subject || user.subject || 'Matière non spécifiée',
-        reason: absenceData.reason,
-        startDate: absenceData.startDate,
-        endDate: absenceData.endDate,
-        contactPhone: absenceData.contactPhone,
-        contactEmail: absenceData.contactEmail,
-        details: absenceData.details,
-        classesAffected: absenceData.classesAffected,
-        urgency: absenceData.urgency || 'medium',
-        status: 'pending',
-        substitute: 'En recherche',
-        submittedAt: new Date().toISOString(),
-        schoolId
-      };
-
-      // ============= AUTOMATIC NOTIFICATIONS SYSTEM =============
+      const teacherName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Enseignant';
       
-      try {
-        // 1. NOTIFY SCHOOL/ADMINISTRATION
-        console.log('[TEACHER_ABSENCE] 📢 Sending notifications to administration...');
-        
-        // 2. NOTIFY AFFECTED STUDENTS
-        console.log('[TEACHER_ABSENCE] 📱 Sending notifications to students in classes:', absenceData.classesAffected);
-        
-        // Get affected students (mock data for now - would be database query in production)
-        affectedStudents = [
-          { id: 1, name: 'Marie Kamdem', phone: '+237657001111', parentPhone: '+237657002222', parentEmail: 'parent1@test.com' },
-          { id: 2, name: 'Paul Mbang', phone: '+237657003333', parentPhone: '+237657004444', parentEmail: 'parent2@test.com' },
-          { id: 3, name: 'Sarah Ngozi', phone: '+237657005555', parentPhone: '+237657006666', parentEmail: 'parent3@test.com' }
-        ];
-        
-        // 3. NOTIFY PARENTS VIA SMS + EMAIL + PUSH
-        console.log('[TEACHER_ABSENCE] 👨‍👩‍👧‍👦 Sending notifications to', affectedStudents.length, 'parents...');
-        for (const student of affectedStudents) {
-          // SMS to parents
-          const smsMessage = `École Saint-Joseph: Le cours de ${absenceData.subject || 'Mathématiques'} de ${student.name} prévu le ${absenceData.startDate} sera modifié. Remplaçant en cours d'assignation. Plus d'infos sur l'app Educafric.`;
-          
-          parentNotifications.push({
-            type: 'SMS',
-            to: student.parentPhone,
-            message: smsMessage,
-            student: student.name
-          });
-          
-          // Email to parents
-          parentNotifications.push({
-            type: 'EMAIL',
-            to: student.parentEmail,
-            subject: `Modification cours ${absenceData.subject || 'Mathématiques'} - ${student.name}`,
-            message: `Cher parent,\n\nNous vous informons que le cours de ${absenceData.subject || 'Mathématiques'} de ${student.name} prévu le ${absenceData.startDate} sera modifié en raison de l'absence de l'enseignant(e) ${absenceData.teacherName}.\n\nMotif: ${absenceData.reason}\nUn remplaçant sera assigné dans les plus brefs délais.\n\nCordialement,\nÉcole Saint-Joseph`,
-            student: student.name
-          });
-        }
-        
-        // 4. SEND NOTIFICATIONS (Real-time implementation)
+      // ============= INSERT INTO DATABASE =============
+      console.log('[TEACHER_ABSENCE] 💾 Inserting absence into database...');
+      
+      const [insertedAbsence] = await db.insert(teacherAbsences).values({
+        teacherId: user.id,
+        schoolId: schoolId,
+        classId: 0,
+        subjectId: 0,
+        absenceDate: absenceData.startDate,
+        startTime: '08:00',
+        endTime: '17:00',
+        reason: absenceData.reason,
+        status: 'pending',
+        notes: absenceData.details || '',
+        notificationsSent: false,
+        createdBy: user.id,
+        urgency: absenceData.urgency || 'medium',
+        contactPhone: absenceData.contactPhone || user.phone || '',
+        contactEmail: absenceData.contactEmail || user.email || '',
+        details: absenceData.details || '',
+        classesAffected: absenceData.classesAffected,
+        endDate: absenceData.endDate
+      } as any).returning();
+      
+      console.log('[TEACHER_ABSENCE] ✅ Absence saved to database with ID:', insertedAbsence?.id);
+
+      // ============= SEND NOTIFICATIONS TO DIRECTORS =============
+      console.log('[TEACHER_ABSENCE] 📢 Sending notifications to school directors...');
+      
+      // Get school directors
+      const directors = await db
+        .select({ id: users.id, firstName: users.firstName, lastName: users.lastName, email: users.email })
+        .from(users)
+        .where(
+          and(
+            eq(users.schoolId, schoolId),
+            eq(users.role, 'Director')
+          )
+        );
+      
+      console.log('[TEACHER_ABSENCE] Found', directors.length, 'director(s) for school', schoolId);
+      
+      // Send notification to each director
+      for (const director of directors) {
         try {
-          // Dynamic import to avoid circular dependency issues
-          const { NotificationService } = await import('./services/notificationService');
-          const notificationService = new NotificationService();
-          
-          // Send SMS notifications
-          for (const notification of parentNotifications.filter(n => n.type === 'SMS')) {
-            try {
-              await notificationService.sendSMS('TEACHER_ABSENCE', { 
-                message: notification.message,
-                studentName: notification.student,
-                phone: notification.to
-              }, 'fr');
-              console.log(`[TEACHER_ABSENCE] ✅ SMS sent to parent of ${notification.student}`);
-            } catch (smsError) {
-              console.error(`[TEACHER_ABSENCE] ❌ SMS failed for ${notification.student}:`, smsError);
+          await db.insert(notifications).values({
+            userId: director.id,
+            title: '⚠️ Déclaration d\'absence enseignant',
+            message: `${teacherName} a déclaré une absence du ${absenceData.startDate} au ${absenceData.endDate}. Motif: ${absenceData.reason}. Classes concernées: ${absenceData.classesAffected.join(', ')}`,
+            type: 'teacher_absence',
+            priority: absenceData.urgency === 'high' ? 'high' : 'normal',
+            isRead: false,
+            metadata: {
+              absenceId: insertedAbsence?.id,
+              teacherId: user.id,
+              teacherName,
+              reason: absenceData.reason,
+              startDate: absenceData.startDate,
+              endDate: absenceData.endDate,
+              classesAffected: absenceData.classesAffected,
+              urgency: absenceData.urgency
             }
-          }
-          
-          console.log('[TEACHER_ABSENCE] 📧 Email notifications prepared for', parentNotifications.filter(n => n.type === 'EMAIL').length, 'parents');
-          
-          // 🔔 PWA PUSH NOTIFICATIONS - Send to students AND parents
-          console.log('[TEACHER_ABSENCE] 🔔 Sending PWA notifications to students and parents...');
-          
-          // PWA notifications for students
-          for (const student of affectedStudents) {
-            try {
-              const studentNotification = {
-                userId: student.id, // In real app, would be student's user ID
-                title: '⚠️ Modification de cours',
-                message: `Votre cours de ${absenceData.subject || 'Mathématiques'} du ${absenceData.startDate} est modifié. Remplaçant en cours d'assignation.`,
-                type: 'teacher_absence',
-                priority: 'high',
-                actionUrl: '/student/timetable',
-                metadata: {
-                  absenceId: newAbsence.id,
-                  teacherName: absenceData.teacherName,
-                  subject: absenceData.subject,
-                  date: absenceData.startDate,
-                  reason: absenceData.reason
-                }
-              };
-              
-              await storage.createNotification(studentNotification);
-              console.log(`[TEACHER_ABSENCE] ✅ PWA notification sent to student: ${student.name}`);
-            } catch (pwaError) {
-              console.error(`[TEACHER_ABSENCE] ❌ PWA notification failed for student ${student.name}:`, pwaError);
-            }
-          }
-          
-          // PWA notifications for parents
-          for (const student of affectedStudents) {
-            try {
-              // In real app, would query parent's user ID from database
-              const parentUserId = student.id + 1000; // Mock parent user ID
-              
-              const parentNotification = {
-                userId: parentUserId,
-                title: `🏫 Absence enseignant - ${student.name}`,
-                message: `Le cours de ${absenceData.subject || 'Mathématiques'} de ${student.name} du ${absenceData.startDate} est modifié. Détails dans l'app.`,
-                type: 'teacher_absence_parent',
-                priority: 'high',
-                actionUrl: '/parent/children/timetable',
-                metadata: {
-                  absenceId: newAbsence.id,
-                  studentName: student.name,
-                  teacherName: absenceData.teacherName,
-                  subject: absenceData.subject,
-                  date: absenceData.startDate,
-                  reason: absenceData.reason,
-                  childId: student.id
-                }
-              };
-              
-              await storage.createNotification(parentNotification);
-              console.log(`[TEACHER_ABSENCE] ✅ PWA notification sent to parent of: ${student.name}`);
-            } catch (pwaError) {
-              console.error(`[TEACHER_ABSENCE] ❌ PWA notification failed for parent of ${student.name}:`, pwaError);
-            }
-          }
-          
-        } catch (notificationError) {
-          console.error('[TEACHER_ABSENCE] ⚠️ Notification service error:', notificationError);
+          } as any);
+          console.log(`[TEACHER_ABSENCE] ✅ Notification sent to director: ${director.firstName} ${director.lastName}`);
+        } catch (err) {
+          console.warn('[TEACHER_ABSENCE] Failed to notify director:', director.id, err);
         }
-        
-        // 5. LOG NOTIFICATION SUMMARY
-        console.log(`[TEACHER_ABSENCE] 🎯 NOTIFICATION SUMMARY:
-        - Administration: ✅ Notified
-        - Students PWA: ${affectedStudents.length} PWA notifications sent
-        - Students App: ${affectedStudents.length} notified via app
-        - Parents SMS: ${parentNotifications.filter(n => n.type === 'SMS').length} sent
-        - Parents Email: ${parentNotifications.filter(n => n.type === 'EMAIL').length} prepared
-        - Parents PWA: ${affectedStudents.length} PWA notifications sent
-        - Classes affected: ${absenceData.classesAffected.join(', ')}`);
-        
-      } catch (notificationError) {
-        console.error('[TEACHER_ABSENCE] ⚠️ Notification system error:', notificationError);
-        // Don't fail the absence declaration if notifications fail
       }
 
-      console.log('[TEACHER_ABSENCE] ✅ Absence declared successfully:', newAbsence.id);
+      // ============= GET AFFECTED STUDENTS FROM DATABASE =============
+      console.log('[TEACHER_ABSENCE] 📱 Getting affected students from classes:', absenceData.classesAffected);
+      
+      let affectedStudentsCount = 0;
+      let parentsNotifiedCount = 0;
+      
+      // Get class IDs from class names
+      const classRecords = await db
+        .select({ id: classes.id, name: classes.name })
+        .from(classes)
+        .where(
+          and(
+            eq(classes.schoolId, schoolId),
+            inArray(classes.name, absenceData.classesAffected)
+          )
+        );
+      
+      const classIds = classRecords.map(c => c.id);
+      console.log('[TEACHER_ABSENCE] Found class IDs:', classIds);
+      
+      if (classIds.length > 0) {
+        // Get enrolled students
+        const enrolledStudents = await db
+          .select({
+            studentId: enrollments.studentId,
+            classId: enrollments.classId
+          })
+          .from(enrollments)
+          .where(
+            and(
+              inArray(enrollments.classId, classIds),
+              eq(enrollments.status, 'active')
+            )
+          );
+        
+        const studentIds = enrolledStudents.map(e => e.studentId);
+        affectedStudentsCount = studentIds.length;
+        
+        if (studentIds.length > 0) {
+          // Get student details with parent info
+          const studentDetails = await db
+            .select({
+              id: users.id,
+              firstName: users.firstName,
+              lastName: users.lastName,
+              parentId: users.parentId
+            })
+            .from(users)
+            .where(inArray(users.id, studentIds));
+          
+          // Send notifications to students
+          for (const student of studentDetails) {
+            try {
+              await db.insert(notifications).values({
+                userId: student.id,
+                title: '📚 Modification de cours',
+                message: `Le cours prévu le ${absenceData.startDate} est modifié. ${teacherName} sera absent(e). Motif: ${absenceData.reason}`,
+                type: 'course_change',
+                priority: 'normal',
+                isRead: false,
+                metadata: {
+                  absenceId: insertedAbsence?.id,
+                  teacherName,
+                  startDate: absenceData.startDate
+                }
+              } as any);
+            } catch (err) {
+              console.warn('[TEACHER_ABSENCE] Student notification failed:', student.id);
+            }
+          }
+          
+          // Send notifications to parents
+          const parentIds = studentDetails.filter(s => s.parentId).map(s => s.parentId as number);
+          parentsNotifiedCount = parentIds.length;
+          
+          for (const parentId of parentIds) {
+            try {
+              await db.insert(notifications).values({
+                userId: parentId,
+                title: '🏫 Absence enseignant',
+                message: `${teacherName} sera absent(e) du ${absenceData.startDate} au ${absenceData.endDate}. Votre enfant est concerné. Un remplaçant sera assigné.`,
+                type: 'teacher_absence_parent',
+                priority: 'normal',
+                isRead: false,
+                metadata: {
+                  absenceId: insertedAbsence?.id,
+                  teacherName,
+                  startDate: absenceData.startDate,
+                  endDate: absenceData.endDate,
+                  reason: absenceData.reason
+                }
+              } as any);
+            } catch (err) {
+              console.warn('[TEACHER_ABSENCE] Parent notification failed:', parentId);
+            }
+          }
+        }
+      }
+
+      // Update notifications_sent flag
+      if (insertedAbsence?.id) {
+        await db.update(teacherAbsences)
+          .set({ notificationsSent: true } as any)
+          .where(eq(teacherAbsences.id, insertedAbsence.id));
+      }
+
+      console.log(`[TEACHER_ABSENCE] 🎯 NOTIFICATION SUMMARY:
+        - Directors: ${directors.length} notified
+        - Students: ${affectedStudentsCount} notified
+        - Parents: ${parentsNotifiedCount} notified
+        - Classes affected: ${absenceData.classesAffected.join(', ')}`);
+
       res.json({ 
         success: true, 
-        absence: newAbsence,
-        message: 'Absence déclarée avec succès. La direction et les parents ont été informés automatiquement via SMS, Email et notifications PWA.',
+        absence: {
+          id: insertedAbsence?.id,
+          teacherId: user.id,
+          teacherName,
+          reason: absenceData.reason,
+          startDate: absenceData.startDate,
+          endDate: absenceData.endDate,
+          classesAffected: absenceData.classesAffected,
+          urgency: absenceData.urgency || 'medium',
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        },
+        message: 'Absence déclarée avec succès. La direction et les parents ont été informés.',
         notificationsSent: {
-          administration: true,
-          students: affectedStudents.length,
-          studentsPWA: affectedStudents.length,
-          parents: parentNotifications.filter(n => n.type === 'SMS').length,
-          parentsPWA: affectedStudents.length,
-          parentEmailsPrepared: parentNotifications.filter(n => n.type === 'EMAIL').length
+          directors: directors.length,
+          students: affectedStudentsCount,
+          parents: parentsNotifiedCount
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('[TEACHER_ABSENCE] Error declaring absence:', error);
       res.status(500).json({ 
         success: false, 
-        message: 'Erreur lors de la déclaration d\'absence' 
+        message: 'Erreur lors de la déclaration d\'absence: ' + (error.message || 'Unknown error')
       });
     }
   });
 
-  // Get teacher absences history - GET route for functional button
+  // Get teacher absences history - GET route for functional button - DATABASE-ONLY
   app.get("/api/teacher/absences", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       console.log('[TEACHER_ABSENCE] GET /api/teacher/absences for user:', user.id);
 
-      // Mock absences data for demonstration - would come from database in production
-      const absences = [
-        {
-          id: 1,
-          teacherId: user.id,
-          teacherName: `${user.firstName} ${user.lastName}`,
-          subject: user.subject || 'Mathématiques',
-          reason: 'Rendez-vous médical',
-          startDate: '2025-08-10',
-          endDate: '2025-08-10',
-          status: 'approved',
-          substitute: 'Paul Martin',
-          submittedAt: '2025-08-09T15:30:00Z',
-          urgency: 'medium',
-          classesAffected: ['6ème A', '5ème B']
-        },
-        {
-          id: 2,
-          teacherId: user.id,
-          teacherName: `${user.firstName} ${user.lastName}`,
-          subject: user.subject || 'Mathématiques',
-          reason: 'Formation pédagogique',
-          startDate: '2025-08-15',
-          endDate: '2025-08-16',
-          status: 'pending',
-          substitute: 'En recherche',
-          submittedAt: '2025-08-14T09:15:00Z',
-          urgency: 'low',
-          classesAffected: ['4ème C', 'Terminale A']
-        }
-      ];
+      // Query absences from database
+      const absencesFromDb = await db
+        .select()
+        .from(teacherAbsences)
+        .where(eq(teacherAbsences.teacherId, user.id))
+        .orderBy(desc(teacherAbsences.createdAt));
 
-      console.log('[TEACHER_ABSENCE] ✅ Absences retrieved:', absences.length);
-      res.json({ success: true, absences });
-    } catch (error) {
+      console.log('[TEACHER_ABSENCE] ✅ Found', absencesFromDb.length, 'absences in database');
+
+      // Format for frontend
+      const formattedAbsences = absencesFromDb.map((absence: any) => ({
+        id: absence.id,
+        teacherId: absence.teacherId,
+        teacherName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        reason: absence.reason,
+        startDate: absence.absenceDate || absence.absence_date,
+        endDate: absence.endDate || absence.end_date || absence.absenceDate || absence.absence_date,
+        status: absence.status || 'pending',
+        substitute: absence.replacementTeacherId ? 'Assigné' : 'En recherche',
+        submittedAt: absence.createdAt || absence.created_at,
+        createdAt: absence.createdAt || absence.created_at,
+        urgency: absence.urgency || 'medium',
+        classesAffected: absence.classesAffected || absence.classes_affected || [],
+        contactPhone: absence.contactPhone || absence.contact_phone,
+        contactEmail: absence.contactEmail || absence.contact_email,
+        details: absence.details || absence.notes
+      }));
+
+      console.log('[TEACHER_ABSENCE] ✅ Absences formatted:', formattedAbsences.length);
+      res.json({ success: true, absences: formattedAbsences });
+    } catch (error: any) {
       console.error('[TEACHER_ABSENCE] Error fetching absences:', error);
       res.status(500).json({ 
         success: false, 
-        message: 'Erreur lors de la récupération des absences' 
+        message: 'Erreur lors de la récupération des absences: ' + (error.message || 'Unknown error'),
+        absences: []
       });
     }
   });

@@ -42,7 +42,7 @@ const TeacherAbsenceDeclaration: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<'declare' | 'history'>('declare');
 
   // Fetch absences history from API
-  const { data: absencesData, isLoading: absencesLoading, error: absencesError } = useQuery({
+  const { data: absencesData, isLoading: absencesLoading, error: absencesError } = useQuery<{ success: boolean, absences: any[] }>({
     queryKey: ['/api/teacher/absences'],
     enabled: selectedTab === 'history'
   });
@@ -50,7 +50,7 @@ const TeacherAbsenceDeclaration: React.FC = () => {
   const myAbsences = absencesData?.success ? absencesData.absences : [];
 
   // Fetch teacher classes from API
-  const { data: classesData, isLoading: classesLoading, error: classesError } = useQuery({
+  const { data: classesData, isLoading: classesLoading, error: classesError } = useQuery<{ success: boolean, classes: any[] }>({
     queryKey: ['/api/teacher/classes']
   });
 
