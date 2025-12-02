@@ -75,6 +75,11 @@ export const homework = pgTable("homework", {
   archivedAt: timestamp("archived_at"), // When archived
   archivedBy: integer("archived_by"), // Who archived
   notifyChannels: jsonb("notify_channels"), // {email: true, sms: false, whatsapp: true}
+  reminderEnabled: boolean("reminder_enabled").default(true), // Automatic reminders enabled
+  reminderDays: integer("reminder_days").default(1), // Days before due date for reminder (1-7)
+  reminderSentAt: timestamp("reminder_sent_at"), // When reminder was sent
+  notifyStudents: boolean("notify_students").default(true), // Notify students
+  notifyParents: boolean("notify_parents").default(true), // Notify parents
   isActive: boolean("is_active").default(true), // Keep for compatibility
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()

@@ -299,6 +299,10 @@ app.use((req, res, next) => {
   
   console.log('[DAILY_CONNECTIONS] ✅ Daily connection reports scheduled at 8:00 AM (Africa/Douala) → simonpmuehling@gmail.com');
 
+  // Initialize homework reminder service
+  const { initHomeworkReminderService } = await import('./services/homeworkReminderService');
+  initHomeworkReminderService();
+
   // Enhanced error handler middleware with critical alerting
   app.use(async (err: any, req: Request, res: Response, next: NextFunction) => {
     // Send critical alert for server errors
