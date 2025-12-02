@@ -34,7 +34,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations } from "../shared/schema";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations } from "../shared/schema";
 import { attendance } from "../shared/schemas/academicSchema";
 import bcrypt from 'bcryptjs';
 
@@ -9954,6 +9954,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         message: 'Impossible de créer le compte parent' 
       });
+    }
+  });
+
+  // ============= PARENT CHILDREN API =============
+  // GET /api/parent/children - Get all children for the parent
+  app.get("/api/parent/children", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const parentId = user.id;
+      
+      console.log(`[PARENT_CHILDREN] 📊 Fetching children for parent ${parentId}`);
+      
+      // Check if sandbox/demo parent - return mock data
+      const isSandbox = user.email?.includes('@test.educafric.com') || 
+                        user.email?.includes('sandbox@') || 
+                        user.email?.includes('demo@') ||
+                        user.email?.includes('.sandbox@') ||
+                        user.email?.includes('.demo@') ||
+                        user.email?.includes('.test@');
+      
+      if (isSandbox) {
+        console.log(`[PARENT_CHILDREN] 🧪 Sandbox parent detected, returning demo children`);
+        const demoChildren = [
+          {
+            id: 9001,
+            firstName: 'Emma',
+            lastName: 'Tall',
+            class: 'CM2 A',
+            level: 'Primaire',
+            averageGrade: 16.5,
+            attendanceRate: 98,
+            totalAbsences: 2,
+            homeworkCompleted: 28,
+            totalHomework: 30,
+            nextExam: 'Mathématiques - 15 Décembre',
+            teacher: 'Mme Fouda',
+            status: 'excellent' as const,
+            profilePicture: null
+          },
+          {
+            id: 9002,
+            firstName: 'Paul',
+            lastName: 'Tall',
+            class: '6ème B',
+            level: 'Collège',
+            averageGrade: 14.2,
+            attendanceRate: 95,
+            totalAbsences: 4,
+            homeworkCompleted: 22,
+            totalHomework: 28,
+            nextExam: 'SVT - 18 Décembre',
+            teacher: 'M. Mbarga',
+            status: 'good' as const,
+            profilePicture: null
+          }
+        ];
+        
+        return res.json(demoChildren);
+      }
+      
+      // Real parent: fetch from database
+      // Get children linked to this parent via parent_student_relations
+      // Note: studentId in parent_student_relations refers to users.id for Student role users
+      const childRelations = await db
+        .select({
+          studentId: parentStudentRelations.studentId,
+          relationship: parentStudentRelations.relationship
+        })
+        .from(parentStudentRelations)
+        .where(eq(parentStudentRelations.parentId, parentId));
+      
+      if (childRelations.length === 0) {
+        console.log(`[PARENT_CHILDREN] No children found for parent ${parentId}`);
+        return res.json([]);
+      }
+      
+      const childIds = childRelations.map(r => r.studentId);
+      
+      // Get student (user) details with their class enrollment
+      const studentsData = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          classId: enrollments.classId,
+          className: classes.name,
+          classLevel: classes.level
+        })
+        .from(users)
+        .leftJoin(enrollments, eq(enrollments.studentId, users.id))
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
+        .where(
+          and(
+            inArray(users.id, childIds),
+            eq(users.role, 'Student')
+          )
+        );
+      
+      // Build response with student stats
+      const childrenData = studentsData.map(student => ({
+        id: student.id,
+        firstName: student.firstName || '',
+        lastName: student.lastName || '',
+        class: student.className || 'Non assigné',
+        level: student.classLevel || '',
+        averageGrade: 0, // Would need to calculate from grades
+        attendanceRate: 0, // Would need to calculate from attendance
+        totalAbsences: 0,
+        homeworkCompleted: 0,
+        totalHomework: 0,
+        nextExam: null,
+        teacher: 'N/A',
+        status: 'average' as const,
+        profilePicture: null
+      }));
+      
+      console.log(`[PARENT_CHILDREN] ✅ Found ${childrenData.length} children for parent ${parentId}`);
+      res.json(childrenData);
+      
+    } catch (error) {
+      console.error('[PARENT_CHILDREN] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch children data' });
     }
   });
 
