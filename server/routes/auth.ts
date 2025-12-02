@@ -255,7 +255,49 @@ router.get('/me', async (req, res) => {
       return res.status(401).json({ message: 'Authentication required' });
     }
     
-    res.json({ user: req.user });
+    const user = req.user as any;
+    
+    // Fetch role affiliations for multi-role support
+    let roleAffiliations: any[] = [];
+    let secondaryRoles: string[] = [];
+    
+    try {
+      if (user && user.id && !user.sandboxMode) {
+        // Fetch roleAffiliations from database
+        const affiliations = await storage.getUserRoleAffiliations(user.id);
+        
+        if (affiliations && affiliations.length > 0) {
+          roleAffiliations = affiliations.map(a => ({
+            id: a.id,
+            role: a.role,
+            schoolId: a.schoolId,
+            description: a.description,
+            status: a.status,
+            metadata: a.metadata
+          }));
+          
+          // Extract unique secondary roles (excluding primary role)
+          secondaryRoles = [...new Set(
+            affiliations
+              .filter(a => a.role !== user.role && a.status === 'active')
+              .map(a => a.role)
+          )];
+          
+          console.log(`[AUTH_ME] User ${user.id} has ${roleAffiliations.length} role affiliations, ${secondaryRoles.length} secondary roles`);
+        }
+      }
+    } catch (affError) {
+      console.error('[AUTH_ME] Error fetching role affiliations:', affError);
+    }
+    
+    // Return user with role affiliations
+    res.json({ 
+      user: {
+        ...user,
+        roleAffiliations,
+        secondaryRoles: secondaryRoles.length > 0 ? secondaryRoles : (user.secondaryRoles || [])
+      }
+    });
   } catch (error) {
     console.error('[AUTH_ERROR] Error processing authentication:', error);
     res.status(500).json({ message: 'Authentication error' });
@@ -675,8 +717,44 @@ router.post('/login', (req, res, next) => {
           // Don't fail login if sync fails
         }
         
+        // Fetch role affiliations for multi-role support
+        let roleAffiliations: any[] = [];
+        let secondaryRoles: string[] = [];
+        
+        try {
+          const affiliations = await storage.getUserRoleAffiliations(user.id);
+          
+          if (affiliations && affiliations.length > 0) {
+            roleAffiliations = affiliations.map((a: any) => ({
+              id: a.id,
+              role: a.role,
+              schoolId: a.schoolId,
+              description: a.description,
+              status: a.status,
+              metadata: a.metadata
+            }));
+            
+            // Extract unique secondary roles (excluding primary role)
+            secondaryRoles = [...new Set(
+              affiliations
+                .filter((a: any) => a.role !== user.role && a.status === 'active')
+                .map((a: any) => a.role)
+            )] as string[];
+            
+            console.log(`[AUTH_LOGIN] User ${user.id} has ${roleAffiliations.length} role affiliations, ${secondaryRoles.length} secondary roles`);
+          }
+        } catch (affError) {
+          console.error('[AUTH_LOGIN] Error fetching role affiliations:', affError);
+        }
+        
         // Successfully authenticated and session created
-        res.json({ user: user });
+        res.json({ 
+          user: {
+            ...user,
+            roleAffiliations,
+            secondaryRoles: secondaryRoles.length > 0 ? secondaryRoles : (user.secondaryRoles || [])
+          }
+        });
       });
     });
   })(req, res, next);
@@ -729,6 +807,33 @@ router.post('/verify-2fa-login', async (req, res) => {
         
         console.log(`[AUTH_2FA] ✅ 2FA verification successful for: ${user.email}`);
         
+        // Fetch role affiliations for multi-role support
+        let roleAffiliations: any[] = [];
+        let secondaryRoles: string[] = [];
+        
+        try {
+          const affiliations = await storage.getUserRoleAffiliations(user.id);
+          
+          if (affiliations && affiliations.length > 0) {
+            roleAffiliations = affiliations.map((a: any) => ({
+              id: a.id,
+              role: a.role,
+              schoolId: a.schoolId,
+              description: a.description,
+              status: a.status,
+              metadata: a.metadata
+            }));
+            
+            secondaryRoles = [...new Set(
+              affiliations
+                .filter((a: any) => a.role !== user.role && a.status === 'active')
+                .map((a: any) => a.role)
+            )] as string[];
+          }
+        } catch (affError) {
+          console.error('[AUTH_2FA] Error fetching role affiliations:', affError);
+        }
+        
         req.session.save((saveErr) => {
           if (saveErr) {
             console.error('[AUTH_2FA] Session save error:', saveErr);
@@ -742,7 +847,9 @@ router.post('/verify-2fa-login', async (req, res) => {
               email: user.email,
               role: user.role,
               firstName: user.firstName,
-              lastName: user.lastName
+              lastName: user.lastName,
+              roleAffiliations,
+              secondaryRoles: secondaryRoles.length > 0 ? secondaryRoles : (user.secondaryRoles || [])
             },
             message: '2FA verification successful' 
           });
