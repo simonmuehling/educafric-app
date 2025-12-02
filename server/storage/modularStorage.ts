@@ -17,6 +17,9 @@ import { EducafricNumberStorage } from "./educafricNumberStorage";
 import { CanteenStorage } from "./canteenStorage";
 import { BusStorage } from "./busStorage";
 import { ClassStorage } from "./classStorage";
+import { db } from "../db";
+import { users, classes, schools, parentStudentRelations, enrollments } from "../../shared/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import type { NotificationPreferences, InsertNotificationPreferences } from "../../shared/schema";
 import type { ArchiveFilter, ArchiveResponse, NewArchivedDocument, NewArchiveAccessLog } from "../../shared/schemas/archiveSchema";
 
@@ -558,8 +561,60 @@ export class ModularStorage {
   // === FALLBACK METHODS FOR COMPATIBILITY ===
   // Simplified implementations to prevent crashes
   async getTrackingDevices(schoolId?: number) { return []; }
-  async getChildrenByParent(parentId: number) { return []; }
-  async getParentChildren(parentId: number) { return []; }
+  async getChildrenByParent(parentId: number) { return this.getParentChildren(parentId); }
+  
+  async getParentChildren(parentId: number) {
+    try {
+      console.log(`[STORAGE] Getting children for parent ${parentId}`);
+      
+      // Get children linked to this parent via parent_student_relations
+      const childRelations = await db
+        .select({
+          studentId: parentStudentRelations.studentId,
+          relationship: parentStudentRelations.relationship
+        })
+        .from(parentStudentRelations)
+        .where(eq(parentStudentRelations.parentId, parentId));
+      
+      if (childRelations.length === 0) {
+        console.log(`[STORAGE] No children found for parent ${parentId}`);
+        return [];
+      }
+      
+      const childIds = childRelations.map(r => r.studentId);
+      
+      // Get student details with their class and school info
+      const studentsData = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          classId: enrollments.classId,
+          className: classes.name,
+          classLevel: classes.level,
+          schoolId: classes.schoolId,
+          schoolName: schools.name
+        })
+        .from(users)
+        .leftJoin(enrollments, eq(enrollments.studentId, users.id))
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
+        .leftJoin(schools, eq(classes.schoolId, schools.id))
+        .where(
+          and(
+            inArray(users.id, childIds),
+            eq(users.role, 'Student')
+          )
+        );
+      
+      console.log(`[STORAGE] ✅ Found ${studentsData.length} children for parent ${parentId}`);
+      return studentsData;
+    } catch (error) {
+      console.error('[STORAGE] Error getting parent children:', error);
+      return [];
+    }
+  }
+  
   async getParentChildrenGrades(parentId: number) { return []; }
   async getParentChildrenAttendance(parentId: number) { return []; }
   async getFamilyConnections(parentId: number) { return []; }

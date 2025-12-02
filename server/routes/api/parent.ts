@@ -378,10 +378,126 @@ router.get('/attendance', requireAuth, async (req: AuthenticatedRequest, res: Re
     }
     
     const parentId = req.user.id;
+    const userEmail = req.user.email || '';
     
-    // Return placeholder attendance data for now
+    console.log(`[PARENT_ATTENDANCE] Fetching attendance for parent ${parentId}`);
+    
+    // Check if sandbox/demo parent
+    const isSandbox = userEmail.includes('@test.educafric.com') || 
+                      userEmail.includes('sandbox@') || 
+                      userEmail.includes('demo@') ||
+                      userEmail.includes('.sandbox@') ||
+                      userEmail.includes('.demo@') ||
+                      userEmail.includes('.test@');
+    
+    if (isSandbox) {
+      console.log(`[PARENT_ATTENDANCE] 🧪 Sandbox parent detected, returning demo attendance`);
+      const demoAttendance = [
+        {
+          id: 1,
+          childId: 9001,
+          childName: 'Emma Tall',
+          schoolName: 'École Primaire Les Bambis',
+          className: 'CM2 A',
+          date: new Date().toISOString().split('T')[0],
+          status: 'present',
+          arrivalTime: '07:45',
+          departureTime: '15:30',
+          notes: ''
+        },
+        {
+          id: 2,
+          childId: 9001,
+          childName: 'Emma Tall',
+          schoolName: 'École Primaire Les Bambis',
+          className: 'CM2 A',
+          date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+          status: 'present',
+          arrivalTime: '07:50',
+          departureTime: '15:30',
+          notes: ''
+        },
+        {
+          id: 3,
+          childId: 9001,
+          childName: 'Emma Tall',
+          schoolName: 'École Primaire Les Bambis',
+          className: 'CM2 A',
+          date: new Date(Date.now() - 2*86400000).toISOString().split('T')[0],
+          status: 'late',
+          arrivalTime: '08:15',
+          departureTime: '15:30',
+          notes: 'Retard de 15 minutes'
+        },
+        {
+          id: 4,
+          childId: 9002,
+          childName: 'Paul Tall',
+          schoolName: 'Collège La Réussite',
+          className: '6ème B',
+          date: new Date().toISOString().split('T')[0],
+          status: 'present',
+          arrivalTime: '07:30',
+          departureTime: '16:00',
+          notes: ''
+        },
+        {
+          id: 5,
+          childId: 9002,
+          childName: 'Paul Tall',
+          schoolName: 'Collège La Réussite',
+          className: '6ème B',
+          date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+          status: 'absent',
+          arrivalTime: null,
+          departureTime: null,
+          notes: 'Absence justifiée - Maladie'
+        },
+        {
+          id: 6,
+          childId: 9002,
+          childName: 'Paul Tall',
+          schoolName: 'Collège La Réussite',
+          className: '6ème B',
+          date: new Date(Date.now() - 2*86400000).toISOString().split('T')[0],
+          status: 'present',
+          arrivalTime: '07:35',
+          departureTime: '16:00',
+          notes: ''
+        }
+      ];
+      
+      return res.json(demoAttendance);
+    }
+    
+    // Real parent: fetch from database
+    // Get children linked to this parent
+    const childrenData = await storage.getParentChildren(parentId);
+    
+    if (!childrenData || childrenData.length === 0) {
+      console.log(`[PARENT_ATTENDANCE] No children found for parent ${parentId}`);
+      return res.json([]);
+    }
+    
+    // Get attendance for all children
     const attendanceData: any[] = [];
     
+    for (const child of childrenData) {
+      const childAttendance = await storage.getStudentAttendance(child.id);
+      
+      if (childAttendance && childAttendance.length > 0) {
+        const enrichedAttendance = childAttendance.map((record: any) => ({
+          ...record,
+          childId: child.id,
+          childName: `${child.firstName} ${child.lastName}`,
+          schoolName: child.schoolName || 'École non définie',
+          className: child.className || 'Classe non assignée'
+        }));
+        attendanceData.push(...enrichedAttendance);
+      }
+    }
+    
+    console.log(`[PARENT_ATTENDANCE] ✅ Found ${attendanceData.length} attendance records for parent ${parentId}`);
     res.json(attendanceData);
   } catch (error: any) {
     console.error('[PARENT_API] Error fetching attendance:', error);
