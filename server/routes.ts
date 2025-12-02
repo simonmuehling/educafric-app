@@ -9983,6 +9983,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastName: 'Tall',
             class: 'CM2 A',
             level: 'Primaire',
+            schoolName: 'École Primaire Les Bambis',
+            schoolId: 1,
             averageGrade: 16.5,
             attendanceRate: 98,
             totalAbsences: 2,
@@ -9999,6 +10001,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastName: 'Tall',
             class: '6ème B',
             level: 'Collège',
+            schoolName: 'Collège La Réussite',
+            schoolId: 2,
             averageGrade: 14.2,
             attendanceRate: 95,
             totalAbsences: 4,
@@ -10032,7 +10036,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const childIds = childRelations.map(r => r.studentId);
       
-      // Get student (user) details with their class enrollment
+      // Get student (user) details with their class enrollment and school
       const studentsData = await db
         .select({
           id: users.id,
@@ -10041,11 +10045,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: users.email,
           classId: enrollments.classId,
           className: classes.name,
-          classLevel: classes.level
+          classLevel: classes.level,
+          schoolId: classes.schoolId,
+          schoolName: schools.name
         })
         .from(users)
         .leftJoin(enrollments, eq(enrollments.studentId, users.id))
         .leftJoin(classes, eq(enrollments.classId, classes.id))
+        .leftJoin(schools, eq(classes.schoolId, schools.id))
         .where(
           and(
             inArray(users.id, childIds),
@@ -10060,6 +10067,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: student.lastName || '',
         class: student.className || 'Non assigné',
         level: student.classLevel || '',
+        schoolName: student.schoolName || 'École non définie',
+        schoolId: student.schoolId || null,
         averageGrade: 0, // Would need to calculate from grades
         attendanceRate: 0, // Would need to calculate from attendance
         totalAbsences: 0,

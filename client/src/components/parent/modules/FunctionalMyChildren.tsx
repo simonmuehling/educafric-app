@@ -21,6 +21,8 @@ interface ChildData {
   lastName: string;
   class: string;
   level: string;
+  schoolName?: string;
+  schoolId?: number;
   averageGrade: number;
   attendanceRate: number;
   totalAbsences: number;
@@ -54,6 +56,8 @@ const FunctionalMyChildren: React.FC = () => {
       homework: 'Devoirs',
       nextExam: 'Prochain examen',
       teacher: 'Enseignant principal',
+      school: 'École',
+      class: 'Classe',
       viewDetails: 'Voir détails',
       settings: 'Paramètres',
       notifications: 'Notifications',
@@ -80,6 +84,8 @@ const FunctionalMyChildren: React.FC = () => {
       homework: 'Homework',
       nextExam: 'Next exam',
       teacher: 'Main teacher',
+      school: 'School',
+      class: 'Class',
       viewDetails: 'View details',
       settings: 'Settings',
       notifications: 'Notifications',
@@ -211,7 +217,17 @@ const FunctionalMyChildren: React.FC = () => {
                       <h3 className="font-semibold text-lg">
                         {child.firstName || ''} {child.lastName || ''}
                       </h3>
-                      <p className="text-sm text-gray-600">{child.class} - {child.level}</p>
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <BookOpen className="h-3.5 w-3.5" />
+                        <span>{child.class}</span>
+                        {child.level && <span className="text-gray-400">({child.level})</span>}
+                      </div>
+                      {child.schoolName && (
+                        <div className="flex items-center gap-1 text-sm text-blue-600 mt-0.5">
+                          <MapPin className="h-3.5 w-3.5" />
+                          <span>{child.schoolName}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <Badge className={getStatusColor(child.status)}>
