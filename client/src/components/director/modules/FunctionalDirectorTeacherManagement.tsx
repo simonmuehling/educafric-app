@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -73,6 +73,15 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   const [selectedTeachers, setSelectedTeachers] = useState<Set<number>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   
+  // Photo capture states
+  const [showCamera, setShowCamera] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  
   const [teacherForm, setTeacherForm] = useState({
     name: '',
     email: '',
@@ -84,6 +93,85 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     schedule: '',
     selectedClasses: [] as string[]
   });
+
+  // Camera initialization effect
+  useEffect(() => {
+    if (showCamera) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+        .then(stream => {
+          streamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            setCameraStream(stream);
+            setIsCameraReady(true);
+          }
+        })
+        .catch(err => {
+          console.error('Camera access error:', err);
+          toast({
+            title: language === 'fr' ? '❌ Erreur caméra' : '❌ Camera Error',
+            description: language === 'fr' ? 
+              'Impossible d\'accéder à la caméra. Vérifiez les permissions.' : 
+              'Cannot access camera. Check permissions.',
+            variant: 'destructive'
+          });
+          setShowCamera(false);
+        });
+    } else {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      setCameraStream(null);
+      setIsCameraReady(false);
+    }
+    
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      setCameraStream(null);
+      setIsCameraReady(false);
+    };
+  }, [showCamera]);
+
+  // Helper function to convert data URL to Blob
+  const dataURLtoBlob = (dataURL: string): Blob => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  };
+
+  // Capture photo from camera
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(videoRef.current, 0, 0);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      setCapturedPhoto(dataUrl);
+      setPhotoFile(null);
+      setShowCamera(false);
+    }
+  };
+
+  // Reset photo state
+  const resetPhotoState = () => {
+    setCapturedPhoto(null);
+    setPhotoFile(null);
+    setShowCamera(false);
+  };
 
   // Fetch classes data for dropdown
   const { data: classesResponse = {}, isLoading: isLoadingClasses } = useQuery({
@@ -195,7 +283,30 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       
       return data;
     },
-    onSuccess: (newTeacher) => {
+    onSuccess: async (newTeacher) => {
+      // Upload photo if exists
+      const newTeacherId = newTeacher?.id || newTeacher?.teacher?.id;
+      if (newTeacherId && (capturedPhoto || photoFile)) {
+        try {
+          const photoFormData = new FormData();
+          if (capturedPhoto) {
+            const blob = dataURLtoBlob(capturedPhoto);
+            photoFormData.append('photo', blob, 'photo.jpg');
+          } else if (photoFile) {
+            photoFormData.append('photo', photoFile);
+          }
+          
+          await fetch(`/api/teachers/${newTeacherId}/photo`, {
+            method: 'POST',
+            body: photoFormData,
+            credentials: 'include'
+          });
+          console.log('[TEACHER_PHOTO] ✅ Photo uploaded for teacher:', newTeacherId);
+        } catch (error) {
+          console.error('[TEACHER_PHOTO] ❌ Photo upload failed:', error);
+        }
+      }
+      
       // ✅ IMMEDIATE VISUAL FEEDBACK - User sees the new teacher
       queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
       queryClient.refetchQueries({ queryKey: ['/api/director/teachers'] });
@@ -203,6 +314,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       setIsAddTeacherOpen(false);
       const teacherName = teacherForm.name || 'Le nouvel enseignant';
       setTeacherForm({ name: '', email: '', phone: '', gender: '', matricule: '', teachingSubjects: '', classes: '', schedule: '', selectedClasses: [] });
+      resetPhotoState();
       
       toast({
         title: language === 'fr' ? '✅ Enseignant ajouté avec succès' : '✅ Teacher Added Successfully',
@@ -727,7 +839,11 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
             {language === 'fr' ? 'Importer' : 'Import'}
           </Button>
           <Button 
-            onClick={() => setIsAddTeacherOpen(true)}
+            onClick={() => {
+              resetPhotoState();
+              setTeacherForm({ name: '', email: '', phone: '', gender: '', matricule: '', teachingSubjects: '', classes: '', schedule: '', selectedClasses: [] });
+              setIsAddTeacherOpen(true);
+            }}
             className="bg-blue-600 hover:bg-blue-700"
             data-testid="button-add-teacher"
           >
@@ -892,6 +1008,66 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
               </Button>
             </div>
             <div className="space-y-4">
+              {/* Photo Upload Section */}
+              <div>
+                <Label className="text-sm font-medium">
+                  {language === 'fr' ? '📷 Photo (optionnelle)' : '📷 Photo (optional)'}
+                </Label>
+                <div className="mt-2 space-y-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setPhotoFile(file);
+                        setCapturedPhoto(null);
+                      }}
+                      className="hidden"
+                      id="add-teacher-photo-upload"
+                    />
+                    <label
+                      htmlFor="add-teacher-photo-upload"
+                      className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer border text-sm"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {language === 'fr' ? 'Choisir une photo' : 'Choose Photo'}
+                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCamera(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Camera className="w-4 h-4" />
+                      {language === 'fr' ? 'Prendre une photo' : 'Take Photo'}
+                    </Button>
+                  </div>
+                  {(photoFile || capturedPhoto) && (
+                    <div className="flex items-center gap-3">
+                      {capturedPhoto ? (
+                        <img src={capturedPhoto} alt="Preview" className="w-16 h-16 object-cover rounded-full border-2 border-blue-300" />
+                      ) : photoFile && (
+                        <img src={URL.createObjectURL(photoFile)} alt="Preview" className="w-16 h-16 object-cover rounded-full border-2 border-blue-300" />
+                      )}
+                      <span className="text-sm text-green-600">
+                        ✓ {photoFile ? photoFile.name : (language === 'fr' ? 'Photo capturée' : 'Photo captured')}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetPhotoState}
+                        className="text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
               <div>
                 <Label className="text-sm font-medium">{(text.form.name || '')}</Label>
                 <Input
@@ -1646,6 +1822,52 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
         confirmText={language === 'fr' ? 'Retirer tout' : 'Remove All'}
         cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
       />
+
+      {/* Camera Modal */}
+      {showCamera && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">
+                {language === 'fr' ? '📷 Prendre une photo' : '📷 Take a Photo'}
+              </h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowCamera(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="relative aspect-square bg-black rounded-lg overflow-hidden mb-4">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+              {!isCameraReady && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-white">
+                  <div className="text-center">
+                    <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <p>{language === 'fr' ? 'Chargement de la caméra...' : 'Loading camera...'}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1" onClick={() => setShowCamera(false)}>
+                {language === 'fr' ? 'Annuler' : 'Cancel'}
+              </Button>
+              <Button 
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                onClick={capturePhoto}
+                disabled={!isCameraReady}
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Capturer' : 'Capture'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

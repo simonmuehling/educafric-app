@@ -25,7 +25,7 @@ class UnifiedModuleLoader {
     // School Dashboard - Highest priority
     { component: () => import('@/components/director/modules/FunctionalDirectorOverview'), strategy: 'instant', priority: 1 },
     { component: () => import('@/components/director/modules/FunctionalDirectorProfile'), strategy: 'instant', priority: 1 },
-    { component: () => import('@/components/director/modules/TeacherManagement'), strategy: 'instant', priority: 1 },
+    { component: () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'), strategy: 'instant', priority: 1 },
     { component: () => import('@/components/director/modules/AdministratorManagementFunctional'), strategy: 'instant', priority: 1 },
     { component: () => import('@/components/director/modules/TimetableConfiguration'), strategy: 'instant', priority: 1 },
     
