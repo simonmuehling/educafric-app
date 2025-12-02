@@ -1674,8 +1674,39 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
             
             <div className="p-6">
               <div className="flex items-start gap-6 mb-6">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <GraduationCap className="w-10 h-10 text-blue-600" />
+                {/* Profile Photo Display */}
+                {(() => {
+                  const photoUrl = (viewingTeacher as any).profilePictureUrl || 
+                                   (viewingTeacher as any).profileImage || 
+                                   (viewingTeacher as any).photoUrl || 
+                                   (viewingTeacher as any).photo;
+                  
+                  if (photoUrl) {
+                    const photoSrc = photoUrl.startsWith('data:') ? photoUrl : 
+                                     photoUrl.startsWith('/') ? photoUrl : 
+                                     `/uploads/${photoUrl}`;
+                    return (
+                      <img 
+                        src={photoSrc} 
+                        alt={viewingTeacher.name}
+                        className="w-24 h-24 rounded-full object-cover border-4 border-blue-200 shadow-lg flex-shrink-0"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          const fallback = (e.target as HTMLImageElement).nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                    );
+                  }
+                  return null;
+                })()}
+                <div 
+                  className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
+                  style={{ display: (viewingTeacher as any).profilePictureUrl || (viewingTeacher as any).profileImage || (viewingTeacher as any).photoUrl || (viewingTeacher as any).photo ? 'none' : 'flex' }}
+                >
+                  <span className="text-3xl font-bold text-white">
+                    {viewingTeacher.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'T'}
+                  </span>
                 </div>
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
