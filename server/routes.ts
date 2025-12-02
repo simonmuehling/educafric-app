@@ -8038,27 +8038,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Add a new book to the library (admin function for teachers)
+  // Add a new book to the library with class/student assignment and notifications
   app.post("/api/teacher/library/books", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      const bookData = req.body;
+      const { 
+        title, author, description, linkUrl, subjectIds, departmentIds,
+        classId, assignToAll, studentIds, notifyRecipients 
+      } = req.body;
       
-      console.log('[TEACHER_LIBRARY] POST /api/teacher/library/books for user:', user.id);
+      console.log('[TEACHER_LIBRARY] POST /api/teacher/library/books for user:', user.id, { classId, assignToAll, notifyRecipients });
       
-      if (!bookData.title?.fr || !bookData.title?.en || !bookData.author) {
+      if (!title?.fr || !author) {
         return res.status(400).json({ 
           success: false, 
-          message: 'Missing required fields: title (French and English) and author' 
+          message: 'Missing required fields: title and author' 
+        });
+      }
+
+      if (!classId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required field: classId' 
         });
       }
       
-      const book = await storage.createBook(bookData);
+      // Create the book entry
+      const book = await storage.createBook({
+        title,
+        author,
+        description,
+        linkUrl,
+        subjectIds: subjectIds || [],
+        departmentIds: departmentIds || [],
+        teacherId: user.id,
+        schoolId: user.schoolId
+      });
+
+      // Get students to assign the book to
+      let targetStudentIds: number[] = [];
+      
+      if (assignToAll) {
+        // Get all students in the class from enrollments
+        const classStudents = await db
+          .select({ studentId: enrollments.studentId })
+          .from(enrollments)
+          .where(and(
+            eq(enrollments.classId, classId),
+            eq(enrollments.status, 'active')
+          ));
+        targetStudentIds = classStudents.map(s => s.studentId).filter(Boolean) as number[];
+        console.log('[TEACHER_LIBRARY] Assigning to all students in class:', targetStudentIds.length);
+      } else {
+        targetStudentIds = studentIds || [];
+        console.log('[TEACHER_LIBRARY] Assigning to specific students:', targetStudentIds.length);
+      }
+
+      // Create book recommendation/assignment for each student
+      for (const studentId of targetStudentIds) {
+        try {
+          await db.insert(libraryRecommendations).values({
+            bookId: book.id,
+            teacherId: user.id,
+            audienceType: 'student',
+            audienceIds: [studentId],
+            createdAt: new Date(),
+            recommendedAt: new Date()
+          } as any);
+        } catch (err) {
+          console.warn('[TEACHER_LIBRARY] Could not create recommendation for student:', studentId);
+        }
+      }
+
+      // Send notifications if enabled
+      if (notifyRecipients && targetStudentIds.length > 0) {
+        console.log('[TEACHER_LIBRARY] Sending notifications to students and parents...');
+        
+        for (const studentId of targetStudentIds) {
+          try {
+            // Notify the student
+            await db.insert(notifications).values({
+              userId: studentId,
+              title: '📚 Nouveau livre recommandé',
+              message: `Votre enseignant vous recommande le livre "${title.fr}" par ${author}. Consultez la bibliothèque pour plus de détails.`,
+              type: 'library_recommendation',
+              priority: 'normal',
+              isRead: false,
+              metadata: {
+                bookId: book.id,
+                bookTitle: title.fr,
+                bookAuthor: author,
+                teacherId: user.id,
+                classId
+              }
+            } as any);
+
+            // Get student's parent(s) and notify them
+            const [student] = await db
+              .select({ parentId: students.parentId })
+              .from(students)
+              .where(eq(students.userId, studentId))
+              .limit(1);
+            
+            if (student?.parentId) {
+              await db.insert(notifications).values({
+                userId: student.parentId,
+                title: '📚 Livre recommandé pour votre enfant',
+                message: `L'enseignant a recommandé le livre "${title.fr}" par ${author} pour votre enfant. Consultez la bibliothèque pour plus de détails.`,
+                type: 'library_recommendation',
+                priority: 'normal',
+                isRead: false,
+                metadata: {
+                  bookId: book.id,
+                  bookTitle: title.fr,
+                  bookAuthor: author,
+                  teacherId: user.id,
+                  studentId,
+                  classId
+                }
+              } as any);
+            }
+          } catch (notifErr) {
+            console.warn('[TEACHER_LIBRARY] Could not send notification for student:', studentId);
+          }
+        }
+        
+        console.log('[TEACHER_LIBRARY] ✅ Notifications sent to', targetStudentIds.length, 'students');
+      }
       
       res.json({ 
         success: true, 
         book,
-        message: 'Book added to library successfully' 
+        assignedTo: targetStudentIds.length,
+        notificationsSent: notifyRecipients && targetStudentIds.length > 0,
+        message: `Livre ajouté et assigné à ${targetStudentIds.length} élève(s)` 
       });
     } catch (error) {
       console.error('[TEACHER_LIBRARY] Error adding book:', error);

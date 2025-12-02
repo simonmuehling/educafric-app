@@ -72,10 +72,12 @@ const LibraryRelatedBooks: React.FC = () => {
     descriptionFr: '',
     descriptionEn: '',
     linkUrl: '',
-    coverUrl: '',
-    recommendedLevel: '',
     subjectIds: [] as number[],
-    departmentIds: [] as number[]
+    departmentIds: [] as number[],
+    selectedClassId: '' as string,
+    assignToAll: true,
+    selectedStudentIds: [] as number[],
+    notifyRecipients: true
   });
 
   const [selectedBookLanguage, setSelectedBookLanguage] = useState<'fr' | 'en'>('fr');
@@ -111,8 +113,11 @@ const LibraryRelatedBooks: React.FC = () => {
       descriptionFr: { fr: 'Description (Français)', en: 'Description (French)' },
       descriptionEn: { fr: 'Description (Anglais)', en: 'Description (English)' },
       linkUrl: { fr: 'Lien vers le livre', en: 'Book Link' },
-      coverUrl: { fr: 'Lien image de couverture', en: 'Cover Image URL' },
-      recommendedLevel: { fr: 'Niveau recommandé', en: 'Recommended Level' },
+      selectClass: { fr: 'Sélectionner une classe', en: 'Select a Class' },
+      assignTo: { fr: 'Attribuer à', en: 'Assign To' },
+      allStudentsInClass: { fr: 'Tous les élèves de la classe', en: 'All students in the class' },
+      specificStudents: { fr: 'Élèves spécifiques', en: 'Specific students' },
+      sendNotifications: { fr: 'Envoyer notifications aux élèves et parents', en: 'Send notifications to students and parents' },
       audienceType: { fr: 'Type d\'audience', en: 'Audience Type' },
       note: { fr: 'Note (optionnelle)', en: 'Note (optional)' },
       selectAudience: { fr: 'Sélectionner l\'audience', en: 'Select Audience' },
@@ -257,14 +262,15 @@ const LibraryRelatedBooks: React.FC = () => {
       setIsAddBookDialogOpen(false);
       setBookForm({
         titleFr: '', titleEn: '', author: '', descriptionFr: '', descriptionEn: '',
-        linkUrl: '', coverUrl: '', recommendedLevel: '', subjectIds: [], departmentIds: []
+        linkUrl: '', subjectIds: [], departmentIds: [],
+        selectedClassId: '', assignToAll: true, selectedStudentIds: [], notifyRecipients: true
       });
       setSelectedBookLanguage('fr');
       toast({
         title: t.messages.bookAdded[language],
         description: language === 'fr' 
-          ? 'Le livre a été ajouté à la bibliothèque' 
-          : 'The book has been added to the library'
+          ? 'Le livre a été ajouté et les notifications envoyées' 
+          : 'The book has been added and notifications sent'
       });
     },
     onError: (error: any) => {
@@ -328,11 +334,33 @@ const LibraryRelatedBooks: React.FC = () => {
       return;
     }
 
+    if (!bookForm.selectedClassId) {
+      toast({
+        title: language === 'fr' ? 'Classe requise' : 'Class Required',
+        description: language === 'fr' 
+          ? 'Veuillez sélectionner une classe' 
+          : 'Please select a class',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!bookForm.assignToAll && bookForm.selectedStudentIds.length === 0) {
+      toast({
+        title: language === 'fr' ? 'Élèves requis' : 'Students Required',
+        description: language === 'fr' 
+          ? 'Veuillez sélectionner au moins un élève' 
+          : 'Please select at least one student',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     const descriptionField = selectedBookLanguage === 'fr' ? bookForm.descriptionFr : bookForm.descriptionEn;
 
     const bookData = {
       title: selectedBookLanguage === 'fr' 
-        ? { fr: bookForm.titleFr, en: bookForm.titleFr } // Use same title for both if only one language
+        ? { fr: bookForm.titleFr, en: bookForm.titleFr }
         : { fr: bookForm.titleEn, en: bookForm.titleEn },
       author: bookForm.author,
       description: descriptionField 
@@ -341,10 +369,12 @@ const LibraryRelatedBooks: React.FC = () => {
             : { fr: bookForm.descriptionEn, en: bookForm.descriptionEn })
         : undefined,
       linkUrl: bookForm.linkUrl || undefined,
-      coverUrl: bookForm.coverUrl || undefined,
-      recommendedLevel: bookForm.recommendedLevel || undefined,
       subjectIds: bookForm.subjectIds,
-      departmentIds: bookForm.departmentIds
+      departmentIds: bookForm.departmentIds,
+      classId: parseInt(bookForm.selectedClassId),
+      assignToAll: bookForm.assignToAll,
+      studentIds: bookForm.assignToAll ? [] : bookForm.selectedStudentIds,
+      notifyRecipients: bookForm.notifyRecipients
     };
 
     createBookMutation.mutate(bookData);
@@ -412,22 +442,6 @@ const LibraryRelatedBooks: React.FC = () => {
       {/* Browse Books Tab */}
       {activeTab === 'browse' && (
         <div className="space-y-4">
-          {/* Filters */}
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center space-x-2">
-              <Label htmlFor="level-filter">{t.form.recommendedLevel[language]}:</Label>
-              <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                <SelectTrigger className="w-48" data-testid="select-level-filter">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t.levels.all[language]}</SelectItem>
-                  <SelectItem value="primary">{t.levels.primary[language]}</SelectItem>
-                  <SelectItem value="secondary">{t.levels.secondary[language]}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
           {/* Books Grid */}
           {booksLoading ? (
@@ -641,28 +655,102 @@ const LibraryRelatedBooks: React.FC = () => {
               />
             </div>
             
+            {/* Class Selection */}
             <div>
-              <Label htmlFor="coverUrl">{t.form.coverUrl[language]}</Label>
-              <Input
-                id="coverUrl"
-                type="url"
-                value={bookForm.coverUrl}
-                onChange={(e) => setBookForm({ ...bookForm, coverUrl: e.target.value })}
-                data-testid="input-cover-url"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="recommendedLevel">{t.form.recommendedLevel[language]}</Label>
-              <Select value={bookForm.recommendedLevel} onValueChange={(value) => setBookForm({ ...bookForm, recommendedLevel: value })}>
-                <SelectTrigger data-testid="select-recommended-level">
-                  <SelectValue placeholder={language === 'fr' ? 'Sélectionner un niveau' : 'Select a level'} />
+              <Label htmlFor="selectClass">{t.form.selectClass[language]} *</Label>
+              <Select 
+                value={bookForm.selectedClassId} 
+                onValueChange={(value) => setBookForm({ 
+                  ...bookForm, 
+                  selectedClassId: value, 
+                  selectedStudentIds: [],
+                  assignToAll: true 
+                })}
+              >
+                <SelectTrigger data-testid="select-class-for-book">
+                  <SelectValue placeholder={language === 'fr' ? 'Choisir une classe' : 'Choose a class'} />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="primary">{t.levels.primary[language]}</SelectItem>
-                  <SelectItem value="secondary">{t.levels.secondary[language]}</SelectItem>
+                <SelectContent className="bg-white">
+                  {classes.map((cls: any) => (
+                    <SelectItem key={cls.id} value={cls.id.toString()}>
+                      {cls.name} {cls.schoolName && `(${cls.schoolName})`}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Assignment Type */}
+            {bookForm.selectedClassId && (
+              <div className="space-y-3">
+                <Label>{t.form.assignTo[language]} *</Label>
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="assignType"
+                      checked={bookForm.assignToAll}
+                      onChange={() => setBookForm({ ...bookForm, assignToAll: true, selectedStudentIds: [] })}
+                      data-testid="radio-all-students"
+                    />
+                    <span className="text-sm">{t.form.allStudentsInClass[language]}</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="assignType"
+                      checked={!bookForm.assignToAll}
+                      onChange={() => setBookForm({ ...bookForm, assignToAll: false })}
+                      data-testid="radio-specific-students"
+                    />
+                    <span className="text-sm">{t.form.specificStudents[language]}</span>
+                  </label>
+                </div>
+
+                {/* Student Selection (when specific students mode) */}
+                {!bookForm.assignToAll && (
+                  <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2 mt-2 bg-gray-50">
+                    {students
+                      .filter((s: any) => s.classId === parseInt(bookForm.selectedClassId))
+                      .map((student: any) => (
+                        <label key={student.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={bookForm.selectedStudentIds.includes(student.id)}
+                            onChange={(e) => {
+                              const newIds = e.target.checked
+                                ? [...bookForm.selectedStudentIds, student.id]
+                                : bookForm.selectedStudentIds.filter(id => id !== student.id);
+                              setBookForm({ ...bookForm, selectedStudentIds: newIds });
+                            }}
+                            data-testid={`checkbox-book-student-${student.id}`}
+                          />
+                          <User className="w-3 h-3 text-gray-500" />
+                          <span className="text-sm">{student.name}</span>
+                        </label>
+                      ))}
+                    {students.filter((s: any) => s.classId === parseInt(bookForm.selectedClassId)).length === 0 && (
+                      <p className="text-sm text-gray-500 italic">
+                        {language === 'fr' ? 'Aucun élève dans cette classe' : 'No students in this class'}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Notification Toggle */}
+            <div className="flex items-center gap-2 pt-2 border-t">
+              <input
+                type="checkbox"
+                id="notifyRecipients"
+                checked={bookForm.notifyRecipients}
+                onChange={(e) => setBookForm({ ...bookForm, notifyRecipients: e.target.checked })}
+                data-testid="checkbox-notify-recipients"
+              />
+              <Label htmlFor="notifyRecipients" className="text-sm cursor-pointer">
+                {t.form.sendNotifications[language]}
+              </Label>
             </div>
           </div>
           
