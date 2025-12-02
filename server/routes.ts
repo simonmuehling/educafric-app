@@ -5121,10 +5121,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'School ID required', subjects: [] });
       }
       
-      // Get subjects from timetables (unique subjects teacher teaches)
+      const subjectMap = new Map<string, any>();
+      
+      // Step 1: Get subjects from timetables (unique subjects teacher teaches)
       const teacherSubjectsFromTimetables = await db
         .selectDistinct({
-          subjectName: timetables.subjectName
+          subjectName: timetables.subjectName,
+          classId: timetables.classId
         })
         .from(timetables)
         .where(
@@ -5135,48 +5138,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         );
       
-      // Also get from subjects table if we have subject IDs in timetables
-      const assignedSubjects = await db
-        .selectDistinct({
-          id: subjects.id,
-          name: subjects.name,
-          nameFr: subjects.nameFr,
-          nameEn: subjects.nameEn,
-          code: subjects.code,
-          coefficient: subjects.coefficient,
-          category: subjects.category
-        })
-        .from(subjects)
-        .innerJoin(timetables, sql`${subjects.name} = ${timetables.subjectName} OR ${subjects.nameFr} = ${timetables.subjectName}`)
-        .where(
-          and(
-            eq(timetables.teacherId, user.id),
-            eq(timetables.schoolId, schoolId),
-            eq(timetables.isActive, true)
-          )
-        );
+      console.log(`[TEACHER_API] Found ${teacherSubjectsFromTimetables.length} subject entries from timetables`);
       
-      // Merge results, prioritizing subjects table data
-      const subjectMap = new Map<string, any>();
+      // Get unique subject names
+      const subjectNames = [...new Set(teacherSubjectsFromTimetables.map(t => t.subjectName).filter(Boolean))];
       
-      // Add from subjects table first
-      for (const subj of assignedSubjects) {
-        subjectMap.set(subj.name || subj.nameFr || '', {
-          id: subj.id,
-          name: subj.name || subj.nameFr || subj.nameEn || '',
-          nameFr: subj.nameFr || subj.name || '',
-          nameEn: subj.nameEn || subj.name || '',
-          code: subj.code || '',
-          coefficient: subj.coefficient || 1,
-          category: subj.category || 'General'
-        });
+      // Step 2: Try to find matching subjects in subjects table
+      if (subjectNames.length > 0) {
+        try {
+          const matchingSubjects = await db
+            .select({
+              id: subjects.id,
+              name: subjects.name,
+              nameFr: subjects.nameFr,
+              nameEn: subjects.nameEn,
+              code: subjects.code,
+              coefficient: subjects.coefficient,
+              category: subjects.category
+            })
+            .from(subjects)
+            .where(eq(subjects.schoolId, schoolId));
+          
+          // Match by name (case-insensitive)
+          for (const subj of matchingSubjects) {
+            const subjNameLower = (subj.name || subj.nameFr || '').toLowerCase();
+            for (const ttSubjectName of subjectNames) {
+              if (ttSubjectName && ttSubjectName.toLowerCase() === subjNameLower) {
+                subjectMap.set(ttSubjectName, {
+                  id: subj.id,
+                  name: subj.name || subj.nameFr || subj.nameEn || ttSubjectName,
+                  nameFr: subj.nameFr || subj.name || ttSubjectName,
+                  nameEn: subj.nameEn || subj.name || ttSubjectName,
+                  code: subj.code || ttSubjectName?.substring(0, 4).toUpperCase() || 'SUBJ',
+                  coefficient: subj.coefficient || 1,
+                  category: subj.category || 'General'
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.log('[TEACHER_API] Could not fetch from subjects table:', e);
+        }
       }
       
-      // Add any remaining from timetables (in case subject not in subjects table)
+      // Step 3: Add subjects from timetables that weren't found in subjects table
       for (const tt of teacherSubjectsFromTimetables) {
         if (tt.subjectName && !subjectMap.has(tt.subjectName)) {
           subjectMap.set(tt.subjectName, {
-            id: subjectMap.size + 1000, // Temporary ID
+            id: subjectMap.size + 1000, // Temporary ID for subjects not in table
             name: tt.subjectName,
             nameFr: tt.subjectName,
             nameEn: tt.subjectName,
@@ -6772,7 +6781,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subjectId,
         dueDate,
         priority,
-        notifyChannels
+        notifyChannels,
+        reminderEnabled,
+        reminderDate,
+        reminderDays,
+        notifyParents,
+        notifyStudents
       } = req.body;
       
       // Validation
@@ -6784,8 +6798,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log('[HOMEWORK_API] 📝 Creating homework for teacher:', teacherId);
+      console.log('[HOMEWORK_API] 📅 Reminder settings:', { reminderEnabled, reminderDate, reminderDays });
       
-      // Create homework in PostgreSQL
+      // Create homework in PostgreSQL with reminder settings
       const [newHomework] = await db
         .insert(homework)
         .values({
@@ -6799,7 +6814,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           priority: priority || 'medium',
           dueDate: new Date(dueDate),
           status: 'active',
-          notifyChannels: notifyChannels || { email: true, sms: false, whatsapp: true }
+          notifyChannels: {
+            email: true, 
+            sms: false, 
+            whatsapp: true,
+            reminderEnabled: reminderEnabled !== false,
+            reminderDate: reminderDate || null,
+            reminderDays: reminderDays || 1,
+            notifyParents: notifyParents !== false,
+            notifyStudents: notifyStudents !== false,
+            reminderSent: false
+          }
         })
         .returning();
         
@@ -6822,7 +6847,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: users.id,
           firstName: users.firstName,
           lastName: users.lastName,
-          email: users.email
+          email: users.email,
+          phone: users.phone
         })
         .from(users)
         .where(and(
@@ -6830,37 +6856,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sql`${users.id} IN (SELECT student_id FROM class_enrollment WHERE class_id = ${parseInt(classId)})`
         ));
         
-      console.log('[HOMEWORK_API] 🔔 Notifying', studentsInClass.length, 'students');
+      console.log('[HOMEWORK_API] 🔔 Found', studentsInClass.length, 'students in class');
       
-      // Send real-time notifications to students and parents
-      if (studentsInClass.length > 0) {
+      const formattedDueDate = new Date(dueDate).toLocaleDateString('fr-FR', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+      });
+      
+      // Send notifications to students
+      if (notifyStudents !== false && studentsInClass.length > 0) {
         for (const student of studentsInClass) {
-          // Notification to student
+          // Real-time notification to student
           await realTimeService.broadcastTimetableNotification({
             notificationId: newHomework.id,
             type: 'created',
-            message: `Nouveau devoir: ${title} - ${subjectInfo?.name || 'Matière'} (À rendre le ${new Date(dueDate).toLocaleDateString('fr-FR')})`,
+            message: `📚 Nouveau devoir: ${title} - ${subjectInfo?.name || 'Matière'}\n📅 À rendre le ${formattedDueDate}`,
             teacherId: teacherId,
             teacherName: `${user.firstName} ${user.lastName}`,
             schoolId: schoolId,
             classId: parseInt(classId),
             className: classInfo?.name,
             subject: subjectInfo?.name,
-            priority: 'normal',
+            priority: priority === 'high' ? 'high' : 'normal',
             actionRequired: true
           });
-          
-          // TODO: Send notification to parents via unified messaging system
         }
+        console.log('[HOMEWORK_API] ✅ Student notifications sent');
+      }
+      
+      // Send notifications to parents
+      if (notifyParents !== false && studentsInClass.length > 0) {
+        // Get parents of students in the class
+        const studentIds = studentsInClass.map(s => s.id);
+        const parentsOfStudents = await db
+          .select({
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            phone: users.phone,
+            studentId: sql`(SELECT id FROM users u2 WHERE u2.parent_id = ${users.id} LIMIT 1)`
+          })
+          .from(users)
+          .where(and(
+            eq(users.role, 'Parent'),
+            sql`${users.id} IN (SELECT parent_id FROM users WHERE id = ANY(${studentIds}) AND parent_id IS NOT NULL)`
+          ));
+        
+        console.log('[HOMEWORK_API] 👨‍👩‍👧 Found', parentsOfStudents.length, 'parents to notify');
+        
+        for (const parent of parentsOfStudents) {
+          // Real-time notification to parent
+          await realTimeService.broadcastTimetableNotification({
+            notificationId: newHomework.id,
+            type: 'created',
+            message: `📚 Nouveau devoir pour votre enfant: ${title}\n📖 Matière: ${subjectInfo?.name || 'Non spécifiée'}\n📅 À rendre le ${formattedDueDate}`,
+            teacherId: teacherId,
+            teacherName: `${user.firstName} ${user.lastName}`,
+            schoolId: schoolId,
+            classId: parseInt(classId),
+            className: classInfo?.name,
+            subject: subjectInfo?.name,
+            priority: priority === 'high' ? 'high' : 'normal',
+            actionRequired: false
+          });
+        }
+        console.log('[HOMEWORK_API] ✅ Parent notifications sent');
       }
       
       console.log('[HOMEWORK_API] ✅ Homework created:', newHomework.id);
-      console.log('[HOMEWORK_API] 📡 Real-time notifications sent to students');
       
       res.json({
         success: true,
         homework: newHomework,
-        message: 'Devoir créé avec succès'
+        message: 'Devoir créé avec succès',
+        notifications: {
+          students: notifyStudents !== false ? studentsInClass.length : 0,
+          reminder: reminderEnabled ? `Rappel programmé ${reminderDays} jour(s) avant l'échéance` : null
+        }
       });
       
     } catch (error) {

@@ -71,7 +71,11 @@ const FunctionalTeacherAssignments: React.FC = () => {
     subjectId: '',
     dueDate: '',
     priority: 'medium',
-    instructions: ''
+    instructions: '',
+    reminderEnabled: true,
+    reminderDays: '1',
+    notifyParents: true,
+    notifyStudents: true
   });
 
   // Fetch teacher assignments data from PostgreSQL API
@@ -245,12 +249,25 @@ const FunctionalTeacherAssignments: React.FC = () => {
       subjectId: '', 
       dueDate: '', 
       priority: 'medium', 
-      instructions: '' 
+      instructions: '',
+      reminderEnabled: true,
+      reminderDays: '1',
+      notifyParents: true,
+      notifyStudents: true
     });
   };
 
   const handleCreateHomework = async () => {
     if (homeworkForm.title && homeworkForm.description && homeworkForm.classId && homeworkForm.dueDate) {
+      // Calculate reminder date based on due date
+      let reminderDate = null;
+      if (homeworkForm.reminderEnabled && homeworkForm.dueDate) {
+        const dueDate = new Date(homeworkForm.dueDate);
+        const reminderDays = parseInt(homeworkForm.reminderDays);
+        reminderDate = new Date(dueDate);
+        reminderDate.setDate(reminderDate.getDate() - reminderDays);
+      }
+      
       const homeworkData = {
         title: homeworkForm.title,
         description: homeworkForm.description,
@@ -258,7 +275,12 @@ const FunctionalTeacherAssignments: React.FC = () => {
         subjectId: parseInt(homeworkForm.subjectId) || 1,
         dueDate: homeworkForm.dueDate,
         priority: homeworkForm.priority,
-        instructions: homeworkForm.instructions
+        instructions: homeworkForm.instructions,
+        reminderEnabled: homeworkForm.reminderEnabled,
+        reminderDate: reminderDate?.toISOString(),
+        reminderDays: parseInt(homeworkForm.reminderDays),
+        notifyParents: homeworkForm.notifyParents,
+        notifyStudents: homeworkForm.notifyStudents
       };
 
       // If offline, queue for later sync
@@ -897,9 +919,70 @@ const FunctionalTeacherAssignments: React.FC = () => {
                   type="date"
                   value={homeworkForm.dueDate}
                   onChange={(e) => setHomeworkForm(prev => ({ ...prev, dueDate: e.target.value }))}
+                  min={new Date().toISOString().split('T')[0]}
                   className="w-full border rounded-md px-3 py-2"
                 />
               </div>
+              
+              {/* Reminder Settings */}
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Timer className="w-4 h-4 text-blue-600" />
+                    Rappel Automatique
+                  </label>
+                  <input
+                    type="checkbox"
+                    checked={homeworkForm.reminderEnabled}
+                    onChange={(e) => setHomeworkForm(prev => ({ ...prev, reminderEnabled: e.target.checked }))}
+                    className="w-4 h-4 accent-blue-600"
+                  />
+                </div>
+                {homeworkForm.reminderEnabled && (
+                  <div className="mt-2">
+                    <label className="text-xs text-gray-600">Envoyer rappel</label>
+                    <select
+                      value={homeworkForm.reminderDays}
+                      onChange={(e) => setHomeworkForm(prev => ({ ...prev, reminderDays: e.target.value }))}
+                      className="w-full border rounded-md px-2 py-1 text-sm mt-1"
+                    >
+                      <option value="1">1 jour avant l'échéance</option>
+                      <option value="2">2 jours avant l'échéance</option>
+                      <option value="3">3 jours avant l'échéance</option>
+                      <option value="7">1 semaine avant l'échéance</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+              
+              {/* Notification Settings */}
+              <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                <label className="text-sm font-medium flex items-center gap-2 mb-2">
+                  <MessageCircle className="w-4 h-4 text-green-600" />
+                  Notifications
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={homeworkForm.notifyStudents}
+                      onChange={(e) => setHomeworkForm(prev => ({ ...prev, notifyStudents: e.target.checked }))}
+                      className="w-4 h-4 accent-green-600"
+                    />
+                    Notifier les élèves
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={homeworkForm.notifyParents}
+                      onChange={(e) => setHomeworkForm(prev => ({ ...prev, notifyParents: e.target.checked }))}
+                      className="w-4 h-4 accent-green-600"
+                    />
+                    Notifier les parents
+                  </label>
+                </div>
+              </div>
+              
               <div>
                 <label className="text-sm font-medium">Priorité</label>
                 <select
