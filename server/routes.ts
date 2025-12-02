@@ -4823,31 +4823,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/teacher/messages", requireAuth, async (req, res) => {
     try {
-      const { to, toRole, subject, message, priority = 'normal' } = req.body;
+      const user = req.user as any;
+      const { to, toRole, subject, message, priority = 'normal', type, schoolId, parentId, sendNotifications = true } = req.body;
       
-      if (!to || !subject || !message) {
-        return res.status(400).json({ message: 'Recipient, subject, and message are required' });
+      if (!subject || !message) {
+        return res.status(400).json({ message: 'Subject and message are required' });
+      }
+      
+      const teacherName = user.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Enseignant';
+      
+      console.log('[TEACHER_MESSAGES] Sending message:', { type, to, schoolId, parentId, sendNotifications });
+      
+      // Handle different message types with notifications
+      let recipientIds: number[] = [];
+      let recipientType = toRole || 'Unknown';
+      
+      // For director reports, find the school director(s) and send notifications
+      if (type === 'director-report' && schoolId) {
+        console.log('[TEACHER_MESSAGES] Processing director report for school:', schoolId);
+        
+        // Get school directors
+        const directors = await db
+          .select({ id: users.id, email: users.email, firstName: users.firstName, lastName: users.lastName })
+          .from(users)
+          .where(
+            and(
+              eq(users.schoolId, parseInt(schoolId)),
+              eq(users.role, 'Director')
+            )
+          );
+        
+        recipientIds = directors.map(d => d.id);
+        recipientType = 'Director';
+        
+        if (sendNotifications && recipientIds.length > 0) {
+          for (const directorId of recipientIds) {
+            try {
+              await db.insert(notifications).values({
+                userId: directorId,
+                title: '📋 Rapport d\'enseignant',
+                message: `${teacherName} vous a envoyé un rapport: "${subject}"`,
+                type: 'teacher_report',
+                priority: priority === 'urgent' ? 'high' : 'normal',
+                isRead: false,
+                metadata: {
+                  teacherId: user.id,
+                  teacherName,
+                  subject,
+                  messageType: 'director-report',
+                  schoolId: parseInt(schoolId)
+                }
+              } as any);
+            } catch (err) {
+              console.warn('[TEACHER_MESSAGES] Failed to send notification to director:', directorId);
+            }
+          }
+          console.log('[TEACHER_MESSAGES] ✅ Notifications sent to', recipientIds.length, 'director(s)');
+        }
+      }
+      
+      // For parent messages, send notifications to parent
+      if (type === 'parent-message' && parentId) {
+        console.log('[TEACHER_MESSAGES] Processing parent message for parent:', parentId);
+        
+        recipientIds = [parseInt(parentId)];
+        recipientType = 'Parent';
+        
+        if (sendNotifications) {
+          try {
+            await db.insert(notifications).values({
+              userId: parseInt(parentId),
+              title: '✉️ Message de l\'enseignant',
+              message: `${teacherName} vous a envoyé un message: "${subject}"`,
+              type: 'teacher_message',
+              priority: priority === 'urgent' ? 'high' : 'normal',
+              isRead: false,
+              metadata: {
+                teacherId: user.id,
+                teacherName,
+                subject,
+                messageType: 'parent-message'
+              }
+            } as any);
+            console.log('[TEACHER_MESSAGES] ✅ Notification sent to parent:', parentId);
+          } catch (err) {
+            console.warn('[TEACHER_MESSAGES] Failed to send notification to parent:', parentId);
+          }
+        }
       }
       
       const newMessage = {
         id: Date.now(),
-        from: req.user?.firstName ? `${req.user.firstName} ${req.user.lastName || ''}` : 'Enseignant',
+        from: teacherName,
         fromRole: 'Teacher',
-        to,
-        toRole,
+        to: to || 'Destinataire',
+        toRole: recipientType,
         subject,
         message,
         priority,
         date: new Date().toISOString(),
-        status: 'sent'
+        status: 'sent',
+        type,
+        notificationsSent: recipientIds.length
       };
       
-      console.log('[TEACHER_MESSAGES] Message sent:', newMessage);
-      res.json({ success: true, message: 'Message sent successfully', data: newMessage });
+      console.log('[TEACHER_MESSAGES] ✅ Message sent successfully, notifications:', recipientIds.length);
+      res.json({ success: true, message: 'Message sent successfully', data: newMessage, notificationsSent: recipientIds.length });
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[TEACHER_MESSAGES] Error sending message:', error);
-      }
+      console.error('[TEACHER_MESSAGES] Error sending message:', error);
       res.status(500).json({ success: false, message: 'Failed to send message' });
     }
   });

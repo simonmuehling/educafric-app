@@ -147,7 +147,10 @@ const FunctionalTeacherCommunications: React.FC = () => {
           subject: messageData.subject,
           message: messageData.message,
           type: messageData.type || 'general',
-          priority: messageData.priority || 'normal'
+          priority: messageData.priority || 'normal',
+          schoolId: messageData.schoolId,
+          parentId: messageData.parentId,
+          sendNotifications: messageData.sendNotifications !== false
         })
       });
       
@@ -811,10 +814,19 @@ const FunctionalTeacherCommunications: React.FC = () => {
                   <Button
                     onClick={() => {
                       // Validation before sending
-                      if (!composeData.to) {
+                      if (composeData.type === 'parent-message' && !selectedParent) {
                         toast({
                           title: language === 'fr' ? 'Erreur' : 'Error',
-                          description: language === 'fr' ? 'Veuillez sélectionner un destinataire' : 'Please select a recipient',
+                          description: language === 'fr' ? 'Veuillez sélectionner un parent' : 'Please select a parent',
+                          variant: 'destructive'
+                        });
+                        return;
+                      }
+                      
+                      if (composeData.type === 'director-report' && !selectedSchool) {
+                        toast({
+                          title: language === 'fr' ? 'Erreur' : 'Error',
+                          description: language === 'fr' ? 'Veuillez sélectionner une école' : 'Please select a school',
                           variant: 'destructive'
                         });
                         return;
@@ -826,7 +838,9 @@ const FunctionalTeacherCommunications: React.FC = () => {
                         message: composeData.message,
                         type: composeData.type || 'message',
                         priority: 'medium',
-                        sendNotifications: true
+                        sendNotifications: true,
+                        schoolId: composeData.type === 'director-report' ? selectedSchool : undefined,
+                        parentId: composeData.type === 'parent-message' ? selectedParent : undefined
                       });
                     }}
                     disabled={sendMessageMutation.isPending || !composeData.to || !composeData.subject.trim()}
