@@ -874,7 +874,7 @@ const TeacherManagement: React.FC = () => {
         )}
 
         {/* View Teacher Modal */}
-        {showViewModal && typeof showViewModal === "object" && selectedTeacher && (
+        {showViewModal && selectedTeacher && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
             <div className="bg-white rounded-lg max-w-[95vw] sm:max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
               <div className="p-4 sm:p-6">
@@ -893,11 +893,47 @@ const TeacherManagement: React.FC = () => {
 
                 <div className="space-y-6">
                   <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                      {selectedTeacher?.name ? selectedTeacher?.name?.split(' ').map((n: string) => n[0]).join('') : 'T'}
-                    </div>
+                    {(() => {
+                      const photoUrl = selectedTeacher.profilePictureUrl || selectedTeacher.profileImage || selectedTeacher.photoUrl || selectedTeacher.photo;
+                      
+                      let photoSrc: string | null = null;
+                      if (photoUrl) {
+                        if (photoUrl.startsWith('http') || photoUrl.startsWith('data:') || photoUrl.startsWith('/')) {
+                          photoSrc = photoUrl;
+                        } else {
+                          photoSrc = `/uploads/teachers/${photoUrl}`;
+                        }
+                      }
+                      
+                      if (photoSrc) {
+                        return (
+                          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-blue-200 shadow-lg">
+                            <img 
+                              src={photoSrc}
+                              alt={`${selectedTeacher.firstName || ''} ${selectedTeacher.lastName || ''}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `<div class="w-full h-full bg-blue-600 flex items-center justify-center text-white font-bold text-xl">${(selectedTeacher.firstName?.[0] || '') + (selectedTeacher.lastName?.[0] || 'T')}</div>`;
+                                }
+                              }}
+                            />
+                          </div>
+                        );
+                      }
+                      
+                      const initials = (selectedTeacher.firstName?.[0] || '') + (selectedTeacher.lastName?.[0] || '');
+                      return (
+                        <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-blue-200 shadow-lg">
+                          {initials || 'T'}
+                        </div>
+                      );
+                    })()}
                     <div>
-                      <h3 className="text-xl font-semibold">{String(selectedTeacher?.name) || "N/A"}</h3>
+                      <h3 className="text-xl font-semibold">{selectedTeacher.firstName} {selectedTeacher.lastName}</h3>
                       <Badge className={getStatusColor(selectedTeacher.status)}>
                         {String(selectedTeacher?.status) || "N/A"}
                       </Badge>
