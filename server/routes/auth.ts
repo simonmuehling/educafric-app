@@ -560,17 +560,26 @@ router.post('/login', (req, res, next) => {
       });
     }
     
-    // Manually log in the user to establish session
-    req.logIn(user, (loginErr) => {
-      if (loginErr) {
-        console.error('[AUTH_ERROR] Session creation error:', loginErr);
-        return res.status(500).json({ message: 'Failed to create session' });
+    // CRITICAL FIX: Regenerate session to prevent session fixation and ensure fresh cookie
+    req.session.regenerate((regenErr) => {
+      if (regenErr) {
+        console.error('[AUTH_ERROR] Session regeneration error:', regenErr);
+        return res.status(500).json({ message: 'Failed to regenerate session' });
       }
       
-      // Session creation successful
+      console.log('[AUTH_SESSION] ✅ Session regenerated, new ID:', req.sessionID);
       
-      // Force session save
-      req.session.save(async (saveErr) => {
+      // Manually log in the user to establish session
+      req.logIn(user, (loginErr) => {
+        if (loginErr) {
+          console.error('[AUTH_ERROR] Session creation error:', loginErr);
+          return res.status(500).json({ message: 'Failed to create session' });
+        }
+        
+        // Session creation successful
+        
+        // Force session save
+        req.session.save(async (saveErr) => {
         if (saveErr) {
           console.error('[AUTH_ERROR] Session save error:', saveErr);
           return res.status(500).json({ message: 'Failed to save session' });
@@ -755,8 +764,9 @@ router.post('/login', (req, res, next) => {
             secondaryRoles: secondaryRoles.length > 0 ? secondaryRoles : (user.secondaryRoles || [])
           }
         });
+        });
       });
-    });
+    }); // End of session.regenerate callback
   })(req, res, next);
 });
 
