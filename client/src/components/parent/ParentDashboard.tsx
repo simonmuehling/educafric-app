@@ -5,7 +5,7 @@ import {
   Calendar, FileText, Bell,
   MapPin, Users, User, GraduationCap,
   CheckCircle2, Star, CreditCard, HelpCircle,
-  Heart, BarChart3, Video, UtensilsCrossed, Bus
+  Heart, Video, UtensilsCrossed, Bus
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 
@@ -84,12 +84,6 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.communications,
       icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-500'
-    },
-    {
-      id: 'parent-bulletins',
-      label: t.results,
-      icon: <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />,
-      color: 'bg-green-500'
     },
     {
       id: 'parent-library',
