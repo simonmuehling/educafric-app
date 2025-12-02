@@ -147,14 +147,14 @@ const SchoolAdministration: React.FC = () => {
     }
   });
 
-  // Delete teacher mutation
+  // Remove teacher from school mutation (preserves account)
   const deleteTeacherMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await fetch(`/api/administration/teachers/${id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to delete teacher');
+      if (!response.ok) throw new Error('Failed to remove teacher');
       return response.json();
     },
     onSuccess: () => {
@@ -162,7 +162,7 @@ const SchoolAdministration: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/administration/stats'] });
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
-        description: language === 'fr' ? 'Enseignant supprimé' : 'Teacher deleted successfully'
+        description: language === 'fr' ? 'Enseignant retiré de l\'école' : 'Teacher removed from school successfully'
       });
     }
   });
@@ -646,14 +646,14 @@ const SchoolAdministration: React.FC = () => {
                             size="sm" 
                             className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() => {
-                              if (confirm(language === 'fr' ? `Êtes-vous sûr de vouloir supprimer ${teacher?.firstName} ${teacher?.lastName} ?` : `Are you sure you want to delete ${teacher?.firstName} ${teacher?.lastName}?`)) {
+                              if (confirm(language === 'fr' ? `Êtes-vous sûr de vouloir retirer ${teacher?.firstName} ${teacher?.lastName} de l'école ? Son compte restera actif.` : `Are you sure you want to remove ${teacher?.firstName} ${teacher?.lastName} from school? Their account will remain active.`)) {
                                 deleteTeacherMutation.mutate(Number(teacher?.id));
                               }
                             }}
-                            data-testid={`button-delete-teacher-${teacher?.id}`}
+                            data-testid={`button-remove-teacher-${teacher?.id}`}
                           >
                             <Trash2 className="w-4 h-4" />
-                            <span className="hidden sm:inline">{String(currentLang?.delete) || "Supprimer"}</span>
+                            <span className="hidden sm:inline">{language === 'fr' ? 'Retirer' : 'Remove'}</span>
                           </Button>
                         </div>
                       </div>

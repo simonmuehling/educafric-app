@@ -136,13 +136,13 @@ router.put('/:id', requireAuth, async (req, res) => {
   }
 });
 
-// Delete teacher
+// Remove teacher from school (unassigns school, preserves account)
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
     const teacherId = parseInt(req.params.id);
     const user = req.user as any;
     
-    // Only admins and directors can delete teachers
+    // Only admins and directors can remove teachers from school
     if (!['Admin', 'Director'].includes(user.role)) {
       return res.status(403).json({
         success: false,
@@ -150,17 +150,18 @@ router.delete('/:id', requireAuth, async (req, res) => {
       });
     }
 
-    await storage.deleteTeacher(teacherId);
+    // Use removeTeacherFromSchool to just unassign the school, not delete the account
+    await storage.removeTeacherFromSchool(teacherId);
     
     res.json({
       success: true,
-      message: 'Teacher deleted successfully'
+      message: 'Teacher removed from school successfully'
     });
   } catch (error) {
-    console.error('[TEACHERS_API] Error deleting teacher:', error);
+    console.error('[TEACHERS_API] Error removing teacher from school:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete teacher'
+      message: 'Failed to remove teacher from school'
     });
   }
 });

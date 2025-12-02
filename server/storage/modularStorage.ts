@@ -570,7 +570,15 @@ export class ModularStorage {
   async getAdministrationParents(schoolId: number) { return []; }
   async createTeacher(data: any) { return this.createUser({ ...data, role: 'teacher' }); }
   async updateTeacher(id: number, data: any) { return this.updateUser(id, data); }
-  async deleteTeacher(id: number) { return this.deleteUser(id); }
+  async deleteTeacher(id: number) { 
+    // Full account deletion - used by admin when completely removing a user
+    return this.deleteUser(id); 
+  }
+  async removeTeacherFromSchool(id: number) { 
+    // Just unassigns the teacher from school - preserves their account
+    // Used by directors when removing a teacher from their school
+    return this.updateUser(id, { schoolId: null }); 
+  }
   async createStudent(data: any) { return this.createUser({ ...data, role: 'student' }); }
   async updateStudent(id: number, data: any) { return this.updateUser(id, data); }
   async deleteStudent(id: number) { return this.deleteUser(id); }

@@ -131,7 +131,7 @@ const TeacherManagement: React.FC = () => {
     }
   });
 
-  // Mutation pour supprimer un enseignant
+  // Mutation pour retirer un enseignant de l'école (ne supprime pas le compte)
   const deleteTeacherMutation = useMutation({
     mutationFn: async (id: number) => {
       return apiRequest(`/api/teachers/${id}`, 'DELETE');
@@ -141,7 +141,7 @@ const TeacherManagement: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
-        description: language === 'fr' ? 'Enseignant supprimé avec succès' : 'Teacher deleted successfully'
+        description: language === 'fr' ? 'Enseignant retiré de l\'école avec succès' : 'Teacher removed from school successfully'
       });
     }
   });
@@ -476,15 +476,15 @@ const TeacherManagement: React.FC = () => {
                         size="sm" 
                         className="text-red-600 hover:text-red-700"
                         onClick={() => {
-                          if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cet enseignant ?' : 'Are you sure you want to delete this teacher?')) {
+                          if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir retirer cet enseignant de l\'école ? Son compte restera actif.' : 'Are you sure you want to remove this teacher from school? Their account will remain active.')) {
                             deleteTeacherMutation.mutate(teacher.id);
                           }
                         }}
                         disabled={deleteTeacherMutation?.isPending}
-                        data-testid={`button-delete-teacher-${teacher.id}`}
+                        data-testid={`button-remove-teacher-${teacher.id}`}
                       >
                         <Trash2 className="w-4 h-4 mr-1" />
-                        {language === 'fr' ? 'Supprimer' : 'Delete'}
+                        {language === 'fr' ? 'Retirer' : 'Remove'}
                       </Button>
                     </div>
                   </div>

@@ -3466,7 +3466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete a teacher
+  // Remove a teacher from school (preserves their account, just unassigns school)
   app.delete("/api/administration/teachers/:teacherId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
@@ -3482,7 +3482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'Invalid teacher ID' });
       }
       
-      console.log('[DELETE_TEACHER] Deleting teacher:', teacherId);
+      console.log('[REMOVE_TEACHER] Removing teacher from school:', teacherId);
       
       // Verify teacher belongs to user's school
       const [existingTeacher] = await db.select().from(users)
@@ -3509,22 +3509,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (classCount > 0) {
         return res.status(400).json({ 
           success: false, 
-          message: `Cannot delete teacher assigned to ${classCount} class(es). Please reassign classes first.` 
+          message: `Cannot remove teacher assigned to ${classCount} class(es). Please reassign classes first.` 
         });
       }
       
-      // Delete teacher from database
-      await db.delete(users).where(and(
-        eq(users.id, teacherId),
-        eq(users.role, 'Teacher'),
-        eq(users.schoolId, userSchoolId)
-      ));
+      // Remove teacher from school by setting schoolId to null (preserves the account)
+      await db.update(users)
+        .set({ schoolId: null })
+        .where(and(
+          eq(users.id, teacherId),
+          eq(users.role, 'Teacher'),
+          eq(users.schoolId, userSchoolId)
+        ));
       
-      console.log('[DELETE_TEACHER] ✅ Teacher deleted successfully');
-      res.json({ success: true, message: 'Teacher deleted successfully' });
+      console.log('[REMOVE_TEACHER] ✅ Teacher removed from school successfully');
+      res.json({ success: true, message: 'Teacher removed from school successfully' });
     } catch (error) {
-      console.error('[DELETE_TEACHER] Error:', error);
-      res.status(500).json({ success: false, message: 'Failed to delete teacher' });
+      console.error('[REMOVE_TEACHER] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to remove teacher from school' });
     }
   });
 

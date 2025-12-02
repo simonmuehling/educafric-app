@@ -677,7 +677,7 @@ router.put('/teachers/:id', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// Delete teacher (director)
+// Remove teacher from school (director) - preserves account, just unassigns school
 router.delete('/teachers/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const teacherId = parseInt(req.params.id);
@@ -685,17 +685,18 @@ router.delete('/teachers/:id', requireAuth, requireAdmin, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid teacher ID' });
     }
 
-    await storage.deleteTeacher(teacherId);
+    // Use removeTeacherFromSchool to just unassign the school, not delete the account
+    await storage.removeTeacherFromSchool(teacherId);
     
     res.json({
       success: true,
-      message: 'Teacher deleted successfully'
+      message: 'Teacher removed from school successfully'
     });
   } catch (error) {
-    console.error('[DIRECTOR_DELETE_TEACHER] Error:', error);
+    console.error('[DIRECTOR_REMOVE_TEACHER] Error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete teacher'
+      message: 'Failed to remove teacher from school'
     });
   }
 });

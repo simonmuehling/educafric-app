@@ -290,7 +290,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     }
   });
 
-  // Delete teacher mutation
+  // Remove teacher from school mutation (preserves account)
   const deleteTeacherMutation = useMutation({
     mutationFn: async (teacherId: number) => {
       const response = await apiRequest('DELETE', `/api/director/teachers/${teacherId}`);
@@ -299,20 +299,20 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
       toast({
-        title: language === 'fr' ? 'Enseignant supprimé' : 'Teacher Deleted',
-        description: language === 'fr' ? 'L\'enseignant a été supprimé avec succès.' : 'Teacher deleted successfully.'
+        title: language === 'fr' ? 'Enseignant retiré' : 'Teacher Removed',
+        description: language === 'fr' ? 'L\'enseignant a été retiré de l\'école avec succès.' : 'Teacher removed from school successfully.'
       });
     },
     onError: () => {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Impossible de supprimer l\'enseignant.' : 'Unable to delete teacher.',
+        description: language === 'fr' ? 'Impossible de retirer l\'enseignant.' : 'Unable to remove teacher.',
         variant: 'destructive'
       });
     }
   });
 
-  // Bulk delete mutation
+  // Bulk remove teachers from school mutation (preserves accounts)
   const bulkDeleteTeachersMutation = useMutation({
     mutationFn: async (teacherIds: number[]) => {
       const responses = await Promise.all(
@@ -321,7 +321,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
             method: 'DELETE',
             credentials: 'include'
           }).then(res => {
-            if (!res.ok) throw new Error(`Failed to delete teacher ${id}`);
+            if (!res.ok) throw new Error(`Failed to remove teacher ${id}`);
             return res.json();
           })
         )
@@ -336,18 +336,18 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       setBulkDeleteDialogOpen(false);
       
       toast({
-        title: language === 'fr' ? '✅ Suppression réussie' : '✅ Deletion Successful',
+        title: language === 'fr' ? '✅ Retrait réussi' : '✅ Removal Successful',
         description: language === 'fr' 
-          ? `${teacherIds.length} enseignant(s) supprimé(s) avec succès` 
-          : `${teacherIds.length} teacher(s) deleted successfully`
+          ? `${teacherIds.length} enseignant(s) retiré(s) de l'école avec succès` 
+          : `${teacherIds.length} teacher(s) removed from school successfully`
       });
     },
     onError: () => {
       toast({
         title: language === 'fr' ? '❌ Erreur' : '❌ Error',
         description: language === 'fr' 
-          ? 'Impossible de supprimer les enseignants sélectionnés' 
-          : 'Failed to delete selected teachers',
+          ? 'Impossible de retirer les enseignants sélectionnés' 
+          : 'Failed to remove selected teachers',
         variant: 'destructive'
       });
     }
@@ -715,7 +715,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
               data-testid="button-bulk-delete-teachers"
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              {language === 'fr' ? `Supprimer (${selectedTeachers.size})` : `Delete (${selectedTeachers.size})`}
+              {language === 'fr' ? `Retirer (${selectedTeachers.size})` : `Remove (${selectedTeachers.size})`}
             </Button>
           )}
           <Button 
@@ -1621,29 +1621,29 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Remove Teacher Confirmation Dialog */}
       <DeleteConfirmationDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDeleteTeacher}
-        title={language === 'fr' ? 'Supprimer l\'enseignant' : 'Delete Teacher'}
+        title={language === 'fr' ? 'Retirer l\'enseignant' : 'Remove Teacher'}
         description={language === 'fr' 
-          ? `Êtes-vous sûr de vouloir supprimer l'enseignant "${teacherToDelete?.name}" ? Cette action est irréversible et supprimera toutes les données associées.`
-          : `Are you sure you want to delete the teacher "${teacherToDelete?.name}"? This action cannot be undone and will remove all associated data.`}
-        confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
+          ? `Êtes-vous sûr de vouloir retirer l'enseignant "${teacherToDelete?.name}" de l'école ? Son compte restera actif et il pourra être réassigné ultérieurement.`
+          : `Are you sure you want to remove the teacher "${teacherToDelete?.name}" from school? Their account will remain active and they can be reassigned later.`}
+        confirmText={language === 'fr' ? 'Retirer' : 'Remove'}
         cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
       />
 
-      {/* Bulk Delete Confirmation Dialog */}
+      {/* Bulk Remove Confirmation Dialog */}
       <DeleteConfirmationDialog
         open={bulkDeleteDialogOpen}
         onOpenChange={setBulkDeleteDialogOpen}
         onConfirm={confirmBulkDelete}
-        title={language === 'fr' ? 'Suppression groupée' : 'Bulk Delete'}
+        title={language === 'fr' ? 'Retrait groupé' : 'Bulk Remove'}
         description={language === 'fr' 
-          ? `Êtes-vous sûr de vouloir supprimer ${selectedTeachers.size} enseignant(s) sélectionné(s) ? Cette action est irréversible et supprimera toutes les données associées.`
-          : `Are you sure you want to delete ${selectedTeachers.size} selected teacher(s)? This action cannot be undone and will remove all associated data.`}
-        confirmText={language === 'fr' ? 'Supprimer tout' : 'Delete All'}
+          ? `Êtes-vous sûr de vouloir retirer ${selectedTeachers.size} enseignant(s) sélectionné(s) de l'école ? Leurs comptes resteront actifs.`
+          : `Are you sure you want to remove ${selectedTeachers.size} selected teacher(s) from school? Their accounts will remain active.`}
+        confirmText={language === 'fr' ? 'Retirer tout' : 'Remove All'}
         cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
       />
     </div>
