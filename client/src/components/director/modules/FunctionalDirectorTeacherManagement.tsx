@@ -377,8 +377,32 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       console.log('[TEACHER_UPDATE] Response data:', data);
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log('[TEACHER_UPDATE] ✅ Success:', data);
+      
+      // Upload photo if new photo was captured or selected
+      const teacherId = selectedTeacher?.id;
+      if (teacherId && (capturedPhoto || photoFile)) {
+        try {
+          const photoFormData = new FormData();
+          if (capturedPhoto) {
+            const blob = dataURLtoBlob(capturedPhoto);
+            photoFormData.append('photo', blob, 'photo.jpg');
+          } else if (photoFile) {
+            photoFormData.append('photo', photoFile);
+          }
+          
+          await fetch(`/api/teachers/${teacherId}/photo`, {
+            method: 'POST',
+            body: photoFormData,
+            credentials: 'include'
+          });
+          console.log('[TEACHER_PHOTO] ✅ Photo updated for teacher:', teacherId);
+        } catch (error) {
+          console.error('[TEACHER_PHOTO] ❌ Photo upload failed:', error);
+        }
+      }
+      
       // ✅ IMMEDIATE VISUAL FEEDBACK - User sees updated teacher
       queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
       queryClient.refetchQueries({ queryKey: ['/api/director/teachers'] });
@@ -386,6 +410,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       setIsEditTeacherOpen(false);
       const editedTeacherName = selectedTeacher ? selectedTeacher.name : 'L\'enseignant';
       setSelectedTeacher(null);
+      resetPhotoState();
       
       toast({
         title: language === 'fr' ? 'Enseignant modifié' : 'Teacher Updated',
@@ -1269,6 +1294,74 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
               </Button>
             </div>
             <div className="space-y-4">
+              {/* Photo Upload Section for Edit */}
+              <div>
+                <Label className="text-sm font-medium">
+                  {language === 'fr' ? '📷 Photo de profil' : '📷 Profile Photo'}
+                </Label>
+                <div className="mt-2 space-y-3">
+                  {/* Current Photo Preview */}
+                  {(capturedPhoto || photoFile || (selectedTeacher as any)?.profilePictureUrl || (selectedTeacher as any)?.profileImage) && (
+                    <div className="flex items-center gap-3 mb-2">
+                      <img 
+                        src={capturedPhoto || (photoFile ? URL.createObjectURL(photoFile) : ((selectedTeacher as any)?.profilePictureUrl || (selectedTeacher as any)?.profileImage))}
+                        alt="Preview" 
+                        className="w-16 h-16 object-cover rounded-full border-2 border-blue-300"
+                      />
+                      <span className="text-sm text-gray-600">
+                        {language === 'fr' ? 'Photo actuelle' : 'Current photo'}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setPhotoFile(file);
+                        setCapturedPhoto(null);
+                      }}
+                      className="hidden"
+                      id="edit-teacher-photo-upload"
+                    />
+                    <label
+                      htmlFor="edit-teacher-photo-upload"
+                      className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer border text-sm"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {language === 'fr' ? 'Changer la photo' : 'Change Photo'}
+                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCamera(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Camera className="w-4 h-4" />
+                      {language === 'fr' ? 'Prendre une photo' : 'Take Photo'}
+                    </Button>
+                  </div>
+                  {(photoFile || capturedPhoto) && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-green-600">
+                        ✓ {photoFile ? photoFile.name : (language === 'fr' ? 'Nouvelle photo capturée' : 'New photo captured')}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetPhotoState}
+                        className="text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
               <div>
                 <Label className="text-sm font-medium">{(text.form.name || '')}</Label>
                 <Input
