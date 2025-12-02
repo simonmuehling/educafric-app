@@ -41,8 +41,8 @@ const FunctionalTeacherAttendance: React.FC = () => {
     notes: ''
   });
 
-  // Fetch teacher's assigned classes for selection
-  const { data: teacherClasses = [], isLoading: classesLoading } = useQuery<any[]>({
+  // Fetch teacher's assigned classes for selection (with school grouping)
+  const { data: teacherClassesData = { schoolsWithClasses: [], classes: [] }, isLoading: classesLoading } = useQuery<any>({
     queryKey: ['/api/teacher/classes'],
     queryFn: async () => {
       const response = await fetch('/api/teacher/classes', {
@@ -50,11 +50,21 @@ const FunctionalTeacherAttendance: React.FC = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch teacher classes');
       const result = await response.json();
-      // Handle both array and object response structures
-      return Array.isArray(result) ? result : (result?.schoolsWithClasses?.flatMap((school: any) => school.classes) || []);
+      // Return full response with school grouping
+      if (Array.isArray(result)) {
+        return { schoolsWithClasses: [], classes: result };
+      }
+      return {
+        schoolsWithClasses: result?.schoolsWithClasses || [],
+        classes: result?.classes || result?.schoolsWithClasses?.flatMap((school: any) => school.classes) || []
+      };
     },
     enabled: !!user
   });
+  
+  // Extract flat list of classes for backward compatibility
+  const teacherClasses = teacherClassesData.classes || [];
+  const schoolsWithClasses = teacherClassesData.schoolsWithClasses || [];
 
   // Fetch teacher profile to get assigned subjects from school interface
   const { data: teacherProfile = {}, isLoading: profileLoading } = useQuery<any>({
@@ -528,10 +538,18 @@ const FunctionalTeacherAttendance: React.FC = () => {
                 <h3 className="text-lg font-semibold mb-4">Marquer les Présences</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">Classe Assignée</label>
+                    <label className="text-sm font-medium">
+                      {language === 'fr' ? 'Classe Assignée par École' : 'Assigned Class by School'}
+                    </label>
                     {classesLoading ? (
                       <div className="w-full border rounded-md px-3 py-2 bg-gray-50">
-                        Chargement des classes...
+                        {language === 'fr' ? 'Chargement des classes...' : 'Loading classes...'}
+                      </div>
+                    ) : schoolsWithClasses.length === 0 && teacherClasses.length === 0 ? (
+                      <div className="w-full border rounded-md px-3 py-2 bg-yellow-50 text-yellow-800 text-sm">
+                        {language === 'fr' 
+                          ? '⚠️ Aucune classe assignée. Demandez à votre directeur de créer votre emploi du temps.' 
+                          : '⚠️ No classes assigned. Ask your director to create your timetable.'}
                       </div>
                     ) : (
                       <select
@@ -540,13 +558,36 @@ const FunctionalTeacherAttendance: React.FC = () => {
                         className="w-full border rounded-md px-3 py-2"
                         data-testid="select-assigned-class"
                       >
-                        <option value="">Sélectionner une classe</option>
-                        {Array.isArray(teacherClasses) && teacherClasses.map((classe) => (
-                          <option key={classe.id} value={classe.id}>
-                            {classe.name || classe.className || ''} - {classe.subject || 'Matière'} ({classe.studentCount || classe.students || 0} élèves)
-                          </option>
-                        ))}
+                        <option value="">{language === 'fr' ? 'Sélectionner une classe' : 'Select a class'}</option>
+                        {schoolsWithClasses.length > 0 ? (
+                          // Group classes by school
+                          schoolsWithClasses.map((school: any) => (
+                            <optgroup key={school.schoolId} label={`🏫 ${school.schoolName}`}>
+                              {(school.classes || []).map((classe: any) => (
+                                <option key={classe.id} value={classe.id}>
+                                  {classe.name || classe.className || ''} 
+                                  {classe.subject ? ` - ${classe.subject}` : ''} 
+                                  {classe.subjects?.length > 1 ? ` (+${classe.subjects.length - 1})` : ''}
+                                </option>
+                              ))}
+                            </optgroup>
+                          ))
+                        ) : (
+                          // Fallback to flat list if no school grouping
+                          Array.isArray(teacherClasses) && teacherClasses.map((classe: any) => (
+                            <option key={classe.id} value={classe.id}>
+                              {classe.name || classe.className || ''} - {classe.subject || 'Matière'}
+                            </option>
+                          ))
+                        )}
                       </select>
+                    )}
+                    {schoolsWithClasses.length > 0 && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {language === 'fr' 
+                          ? `📊 ${teacherClasses.length} classe(s) dans ${schoolsWithClasses.length} école(s)` 
+                          : `📊 ${teacherClasses.length} class(es) in ${schoolsWithClasses.length} school(s)`}
+                      </div>
                     )}
                   </div>
                   <div>
