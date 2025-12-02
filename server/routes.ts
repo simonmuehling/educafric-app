@@ -1882,11 +1882,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete a class
+  // Delete a class (supports force deletion with student unenrollment)
   app.delete("/api/classes/:classId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       const classId = parseInt(req.params.classId);
+      const forceDelete = req.query.force === 'true';
       
       const userSchoolId = user.schoolId || user.school_id;
       
@@ -1898,7 +1899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'Invalid class ID' });
       }
       
-      console.log('[DELETE_CLASS] Deleting class:', classId);
+      console.log('[DELETE_CLASS] Deleting class:', classId, forceDelete ? '(FORCE DELETE)' : '');
       
       // Verify class belongs to user's school
       const [existingClass] = await db.select().from(classes).where(eq(classes.id, classId)).limit(1);
@@ -1912,25 +1913,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if class has students (via enrollments table)
       const studentsInClass = await db.execute(
-        sql`SELECT COUNT(*) as count FROM enrollments WHERE class_id = ${classId}`
+        sql`SELECT e.id, e.student_id, u.first_name, u.last_name 
+            FROM enrollments e 
+            LEFT JOIN users u ON e.student_id = u.id 
+            WHERE e.class_id = ${classId}`
       );
       
-      const studentCount = Number(studentsInClass.rows[0]?.count) || 0;
-      if (studentCount > 0) {
+      const studentCount = studentsInClass.rows.length;
+      
+      if (studentCount > 0 && !forceDelete) {
+        // Return list of students that need to be reassigned
+        const studentNames = studentsInClass.rows.map((s: any) => `${s.first_name || ''} ${s.last_name || ''}`.trim()).join(', ');
         return res.status(400).json({ 
           success: false, 
-          message: `Cannot delete class with ${studentCount} student(s). Please reassign students first.` 
+          hasStudents: true,
+          studentCount,
+          studentNames,
+          message: `Cannot delete class "${existingClass.name}" with ${studentCount} student(s): ${studentNames}. Use force delete to unenroll students and delete the class.`,
+          messageFr: `Impossible de supprimer la classe "${existingClass.name}" avec ${studentCount} élève(s): ${studentNames}. Utilisez la suppression forcée pour désinscrire les élèves et supprimer la classe.`
         });
       }
       
-      // Delete associated subjects first
+      // Force delete: unenroll students first
+      if (studentCount > 0 && forceDelete) {
+        console.log(`[DELETE_CLASS] Force deleting - unenrolling ${studentCount} student(s) from class ${classId}`);
+        
+        // Delete enrollments for this class
+        await db.execute(sql`DELETE FROM enrollments WHERE class_id = ${classId}`);
+        
+        // Also update students table if they have class_id set
+        await db.execute(sql`UPDATE students SET class_id = NULL WHERE class_id = ${classId}`);
+        
+        console.log(`[DELETE_CLASS] ✅ Unenrolled ${studentCount} student(s)`);
+      }
+      
+      // Delete related timetables
+      await db.execute(sql`DELETE FROM timetables WHERE class_id = ${classId} AND school_id = ${userSchoolId}`);
+      
+      // Delete teacher subject assignments for this class
+      await db.execute(sql`DELETE FROM teacher_subject_assignments WHERE class_id = ${classId} AND school_id = ${userSchoolId}`);
+      
+      // Delete associated subjects
       await db.delete(subjects).where(and(eq(subjects.classId, classId), eq(subjects.schoolId, userSchoolId)));
       
       // Delete class from database
       await db.delete(classes).where(and(eq(classes.id, classId), eq(classes.schoolId, userSchoolId)));
       
       console.log('[DELETE_CLASS] ✅ Class deleted successfully');
-      res.json({ success: true, message: 'Class deleted successfully' });
+      res.json({ 
+        success: true, 
+        message: forceDelete && studentCount > 0 
+          ? `Class deleted successfully. ${studentCount} student(s) have been unenrolled.`
+          : 'Class deleted successfully',
+        unenrolledStudents: forceDelete ? studentCount : 0
+      });
     } catch (error) {
       console.error('[DELETE_CLASS] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to delete class' });

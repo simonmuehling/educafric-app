@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp, Building, GraduationCap, Star, WifiOff } from 'lucide-react';
+import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp, Building, GraduationCap, Star, WifiOff, AlertTriangle } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
@@ -68,6 +68,8 @@ const ClassManagement: React.FC = () => {
   const [isImportingRooms, setIsImportingRooms] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<{id: number, name: string} | null>(null);
+  const [forceDeleteDialogOpen, setForceDeleteDialogOpen] = useState(false);
+  const [forceDeleteInfo, setForceDeleteInfo] = useState<{id: number, name: string, studentCount: number, studentNames: string} | null>(null);
   
   // Bulk selection states
   const [selectedClasses, setSelectedClasses] = useState<Set<number>>(new Set());
@@ -499,43 +501,88 @@ const ClassManagement: React.FC = () => {
     }
   });
 
-  // Delete class mutation
+  // Delete class mutation (supports force delete)
   const deleteClassMutation = useMutation({
-    mutationFn: async (classId: number) => {
-      const response = await fetch(`/api/classes/${classId}`, {
+    mutationFn: async ({ classId, force = false }: { classId: number, force?: boolean }) => {
+      const url = force ? `/api/classes/${classId}?force=true` : `/api/classes/${classId}`;
+      const response = await fetch(url, {
         method: 'DELETE',
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to delete class');
-      return response.json();
+      const data = await response.json();
+      if (!response.ok) {
+        throw { ...data, status: response.status };
+      }
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/classes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
+      setDeleteDialogOpen(false);
+      setForceDeleteDialogOpen(false);
+      setForceDeleteInfo(null);
       toast({
         title: language === 'fr' ? 'Classe supprimée' : 'Class deleted',
-        description: language === 'fr' ? 'La classe a été supprimée avec succès.' : 'Class has been deleted successfully.'
+        description: data.unenrolledStudents > 0 
+          ? (language === 'fr' 
+              ? `La classe a été supprimée. ${data.unenrolledStudents} élève(s) ont été désinscrits.` 
+              : `Class has been deleted. ${data.unenrolledStudents} student(s) have been unenrolled.`)
+          : (language === 'fr' ? 'La classe a été supprimée avec succès.' : 'Class has been deleted successfully.')
       });
+    },
+    onError: (error: any) => {
+      if (error.hasStudents) {
+        setDeleteDialogOpen(false);
+        setForceDeleteInfo({
+          id: classToDelete?.id || 0,
+          name: classToDelete?.name || '',
+          studentCount: error.studentCount,
+          studentNames: error.studentNames
+        });
+        setForceDeleteDialogOpen(true);
+      } else {
+        toast({
+          title: language === 'fr' ? 'Erreur' : 'Error',
+          description: error.message || (language === 'fr' ? 'Impossible de supprimer la classe' : 'Failed to delete class'),
+          variant: 'destructive'
+        });
+      }
     }
   });
 
-  // Bulk delete mutation
+  // Bulk delete mutation (supports force delete)
   const bulkDeleteClassesMutation = useMutation({
-    mutationFn: async (classIds: number[]) => {
-      const responses = await Promise.all(
-        classIds.map(id => 
-          fetch(`/api/classes/${id}`, {
+    mutationFn: async ({ classIds, force = false }: { classIds: number[], force?: boolean }) => {
+      const results = await Promise.all(
+        classIds.map(async (id) => {
+          const url = force ? `/api/classes/${id}?force=true` : `/api/classes/${id}`;
+          const res = await fetch(url, {
             method: 'DELETE',
             credentials: 'include'
-          }).then(res => {
-            if (!res.ok) throw new Error(`Failed to delete class ${id}`);
-            return res.json();
-          })
-        )
+          });
+          const data = await res.json();
+          return { id, success: res.ok, data };
+        })
       );
-      return responses;
+      
+      const failed = results.filter(r => !r.success);
+      const succeeded = results.filter(r => r.success);
+      
+      if (failed.length > 0 && !force) {
+        const hasStudents = failed.some(f => f.data?.hasStudents);
+        if (hasStudents) {
+          throw { 
+            hasStudents: true, 
+            failedCount: failed.length,
+            succeededCount: succeeded.length,
+            failedClasses: failed.map(f => ({ id: f.id, ...f.data }))
+          };
+        }
+      }
+      
+      return { succeeded: succeeded.length, failed: failed.length };
     },
-    onSuccess: (_, classIds) => {
+    onSuccess: (data, { classIds }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/classes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
       
@@ -545,18 +592,40 @@ const ClassManagement: React.FC = () => {
       toast({
         title: language === 'fr' ? '✅ Suppression réussie' : '✅ Deletion Successful',
         description: language === 'fr' 
-          ? `${classIds.length} classe(s) supprimée(s) avec succès` 
-          : `${classIds.length} class(es) deleted successfully`
+          ? `${data.succeeded} classe(s) supprimée(s) avec succès${data.failed > 0 ? `, ${data.failed} échec(s)` : ''}` 
+          : `${data.succeeded} class(es) deleted successfully${data.failed > 0 ? `, ${data.failed} failed` : ''}`
       });
     },
-    onError: () => {
-      toast({
-        title: language === 'fr' ? '❌ Erreur' : '❌ Error',
-        description: language === 'fr' 
-          ? 'Impossible de supprimer les classes sélectionnées' 
-          : 'Failed to delete selected classes',
-        variant: 'destructive'
-      });
+    onError: (error: any) => {
+      if (error.hasStudents) {
+        toast({
+          title: language === 'fr' ? '⚠️ Classes avec élèves' : '⚠️ Classes with students',
+          description: language === 'fr' 
+            ? `${error.failedCount} classe(s) ont des élèves inscrits. Utilisez la suppression forcée pour les supprimer.`
+            : `${error.failedCount} class(es) have enrolled students. Use force delete to remove them.`,
+          variant: 'destructive',
+          action: (
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={() => {
+                const classIds = Array.from(selectedClasses);
+                bulkDeleteClassesMutation.mutate({ classIds, force: true });
+              }}
+            >
+              {language === 'fr' ? 'Forcer' : 'Force'}
+            </Button>
+          )
+        });
+      } else {
+        toast({
+          title: language === 'fr' ? '❌ Erreur' : '❌ Error',
+          description: language === 'fr' 
+            ? 'Impossible de supprimer les classes sélectionnées' 
+            : 'Failed to delete selected classes',
+          variant: 'destructive'
+        });
+      }
     }
   });
 
@@ -828,8 +897,13 @@ const ClassManagement: React.FC = () => {
 
   const confirmDeleteClass = () => {
     if (classToDelete) {
-      deleteClassMutation.mutate(classToDelete.id);
-      setClassToDelete(null);
+      deleteClassMutation.mutate({ classId: classToDelete.id, force: false });
+    }
+  };
+  
+  const confirmForceDeleteClass = () => {
+    if (forceDeleteInfo) {
+      deleteClassMutation.mutate({ classId: forceDeleteInfo.id, force: true });
     }
   };
 
@@ -931,7 +1005,11 @@ const ClassManagement: React.FC = () => {
   };
 
   const confirmBulkDelete = () => {
-    bulkDeleteClassesMutation.mutate(Array.from(selectedClasses));
+    bulkDeleteClassesMutation.mutate({ classIds: Array.from(selectedClasses), force: false });
+  };
+  
+  const confirmBulkForceDelete = () => {
+    bulkDeleteClassesMutation.mutate({ classIds: Array.from(selectedClasses), force: true });
   };
 
   // Loading state
@@ -2309,6 +2387,55 @@ const ClassManagement: React.FC = () => {
           confirmText={language === 'fr' ? 'Supprimer' : 'Delete'}
           cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
         />
+
+        {/* Force Delete Confirmation Dialog - for classes with enrolled students */}
+        <Dialog open={forceDeleteDialogOpen} onOpenChange={setForceDeleteDialogOpen}>
+          <DialogContent className="bg-white max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-600">
+                <AlertTriangle className="w-5 h-5" />
+                {language === 'fr' ? 'Classe avec élèves inscrits' : 'Class with enrolled students'}
+              </DialogTitle>
+              <DialogDescription className="text-left">
+                {language === 'fr' 
+                  ? `La classe "${forceDeleteInfo?.name}" contient ${forceDeleteInfo?.studentCount} élève(s) inscrit(s):`
+                  : `The class "${forceDeleteInfo?.name}" has ${forceDeleteInfo?.studentCount} enrolled student(s):`}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-gray-600 mb-4 font-medium">
+                {forceDeleteInfo?.studentNames}
+              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-sm text-amber-800">
+                  {language === 'fr' 
+                    ? '⚠️ La suppression forcée va désinscrire tous ces élèves de la classe. Ils devront être réassignés à une autre classe.'
+                    : '⚠️ Force delete will unenroll all these students from the class. They will need to be reassigned to another class.'}
+                </p>
+              </div>
+            </div>
+            <DialogFooter className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setForceDeleteDialogOpen(false);
+                  setForceDeleteInfo(null);
+                }}
+              >
+                {language === 'fr' ? 'Annuler' : 'Cancel'}
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={confirmForceDeleteClass}
+                disabled={deleteClassMutation.isPending}
+              >
+                {deleteClassMutation.isPending 
+                  ? (language === 'fr' ? 'Suppression...' : 'Deleting...') 
+                  : (language === 'fr' ? 'Supprimer quand même' : 'Delete anyway')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
