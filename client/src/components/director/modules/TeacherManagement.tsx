@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, Users, Search, Plus, Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, X, TrendingUp, UserPlus, Download, Filter, Check, WifiOff } from 'lucide-react';
+import { ArrowLeft, Users, Search, Plus, Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, X, TrendingUp, UserPlus, Download, Filter, Check, WifiOff, Camera, Upload } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import DashboardNavbar from '@/components/shared/DashboardNavbar';
 import { Card } from '@/components/ui/card';
@@ -48,8 +48,64 @@ const TeacherManagement: React.FC = () => {
     subjects: [] as string[],
     classes: '',
     experience: '',
-    qualification: ''
+    qualification: '',
+    photo: null as File | null
   });
+
+  // Camera state for photo capture
+  const [showCamera, setShowCamera] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Store stream in ref for reliable cleanup
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // Initialize camera when showCamera becomes true
+  useEffect(() => {
+    if (showCamera) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+        .then(stream => {
+          streamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            setCameraStream(stream);
+            setIsCameraReady(true);
+          }
+        })
+        .catch(err => {
+          console.error('Camera access error:', err);
+          toast({
+            title: language === 'fr' ? '❌ Erreur caméra' : '❌ Camera Error',
+            description: language === 'fr' ? 
+              'Impossible d\'accéder à la caméra. Vérifiez les permissions.' : 
+              'Cannot access camera. Check permissions.',
+            variant: 'destructive'
+          });
+          setShowCamera(false);
+        });
+    } else {
+      // Stop camera when showCamera becomes false
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      setCameraStream(null);
+      setIsCameraReady(false);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      setCameraStream(null);
+      setIsCameraReady(false);
+    };
+  }, [showCamera]);
 
   // Récupération des enseignants via l'API
   const { data: teachersResponse, isLoading, error } = useQuery({
@@ -92,15 +148,64 @@ const TeacherManagement: React.FC = () => {
   // Use offline data when not connected, otherwise use server data
   const teachers = !isOnline ? offlineTeachers : (serverTeachers.length > 0 ? serverTeachers : offlineTeachers);
 
+  // Helper function to convert data URL to Blob
+  const dataURLtoBlob = (dataURL: string): Blob => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  };
+
   // Mutation pour créer un enseignant
   const createTeacherMutation = useMutation({
     mutationFn: async (teacherData: any) => {
-      return apiRequest('/api/teachers', 'POST', teacherData);
+      const response = await fetch('/api/teachers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(teacherData),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to create teacher');
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      // Handle both response formats: data.id or data.teacher.id
+      const newTeacherId = data.id || data.teacher?.id;
+      
+      // Upload photo if captured or file selected
+      if (newTeacherId && (capturedPhoto || formData.photo)) {
+        try {
+          const photoFormData = new FormData();
+          if (capturedPhoto) {
+            const blob = dataURLtoBlob(capturedPhoto);
+            photoFormData.append('photo', blob, 'photo.jpg');
+          } else if (formData.photo) {
+            photoFormData.append('photo', formData.photo);
+          }
+          
+          const photoResponse = await fetch(`/api/teachers/${newTeacherId}/photo`, {
+            method: 'POST',
+            body: photoFormData,
+            credentials: 'include'
+          });
+          if (!photoResponse.ok) {
+            console.error('Photo upload failed:', await photoResponse.text());
+          }
+        } catch (error) {
+          console.error('Photo upload failed:', error);
+        }
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
       queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
       setShowAddModal(false);
+      setCapturedPhoto(null);
+      setFormData({...formData, photo: null});
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr' ? 'Enseignant créé avec succès' : 'Teacher created successfully'
@@ -117,13 +222,48 @@ const TeacherManagement: React.FC = () => {
 
   // Mutation pour modifier un enseignant
   const updateTeacherMutation = useMutation({
-    mutationFn: async ({ id, ...data }: any) => {
-      return apiRequest(`/api/teachers/${id}`, 'PUT', data);
+    mutationFn: async ({ id, capturedPhotoData, photoFile, ...data }: any) => {
+      const response = await fetch(`/api/teachers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to update teacher');
+      return { teacherId: id, capturedPhotoData, photoFile };
     },
-    onSuccess: () => {
+    onSuccess: async ({ teacherId, capturedPhotoData, photoFile }) => {
+      // Upload photo if captured or file selected
+      const hasNewPhoto = (capturedPhotoData && capturedPhotoData.startsWith('data:')) || photoFile;
+      
+      if (hasNewPhoto) {
+        try {
+          const photoFormData = new FormData();
+          if (capturedPhotoData && capturedPhotoData.startsWith('data:')) {
+            const blob = dataURLtoBlob(capturedPhotoData);
+            photoFormData.append('photo', blob, 'photo.jpg');
+          } else if (photoFile) {
+            photoFormData.append('photo', photoFile);
+          }
+          
+          const photoResponse = await fetch(`/api/teachers/${teacherId}/photo`, {
+            method: 'POST',
+            body: photoFormData,
+            credentials: 'include'
+          });
+          if (!photoResponse.ok) {
+            console.error('Photo upload failed:', await photoResponse.text());
+          }
+        } catch (error) {
+          console.error('Photo upload failed:', error);
+        }
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
       queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
       setShowEditModal(false);
+      setCapturedPhoto(null);
+      setFormData({...formData, photo: null});
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr' ? 'Enseignant modifié avec succès' : 'Teacher updated successfully'
@@ -145,6 +285,68 @@ const TeacherManagement: React.FC = () => {
       });
     }
   });
+
+  // Mutation for uploading teacher photo
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async ({ teacherId, formData }: { teacherId: number, formData: FormData }) => {
+      const response = await fetch(`/api/teachers/${teacherId}/photo`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      return response.json();
+    },
+    onSuccess: () => {
+      setUploadingPhoto(null);
+      toast({
+        title: language === 'fr' ? '📷 Photo uploadée !' : '📷 Photo Uploaded!',
+        description: language === 'fr' ? 'Photo de profil mise à jour avec succès' : 'Profile photo updated successfully'
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/teachers'] });
+    },
+    onError: () => {
+      setUploadingPhoto(null);
+      toast({
+        title: language === 'fr' ? '❌ Erreur d\'upload' : '❌ Upload Error',
+        description: language === 'fr' ? 'Impossible d\'uploader la photo' : 'Failed to upload photo',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Handle photo upload for existing teacher
+  const handlePhotoUpload = (teacher: any) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            title: language === 'fr' ? '❌ Fichier trop lourd' : '❌ File Too Large',
+            description: language === 'fr' ? 'La photo doit faire moins de 5MB' : 'Photo must be less than 5MB',
+            variant: 'destructive'
+          });
+          return;
+        }
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: language === 'fr' ? '❌ Format invalide' : '❌ Invalid Format',
+            description: language === 'fr' ? 'Seules les images sont acceptées' : 'Only images are accepted',
+            variant: 'destructive'
+          });
+          return;
+        }
+        const formData = new FormData();
+        formData.append('photo', file);
+        setUploadingPhoto(teacher.id);
+        uploadPhotoMutation.mutate({ teacherId: teacher.id, formData });
+      }
+    };
+    input.click();
+  };
 
   const filteredTeachers = (Array.isArray(teachers) ? teachers : []).filter((teacher: any) => {
     if (!teacher) return false;
@@ -197,8 +399,10 @@ const TeacherManagement: React.FC = () => {
                   subjects: [],
                   classes: '',
                   experience: '',
-                  qualification: ''
+                  qualification: '',
+                  photo: null
                 });
+                setCapturedPhoto(null);
                 setShowAddModal(true);
               }}
             >
@@ -282,8 +486,10 @@ const TeacherManagement: React.FC = () => {
                     subjects: [],
                     classes: '',
                     experience: '',
-                    qualification: ''
+                    qualification: '',
+                    photo: null
                   });
+                  setCapturedPhoto(null);
                   setShowAddModal(true);
                 },
                 color: 'bg-blue-600 hover:bg-blue-700'
@@ -462,8 +668,10 @@ const TeacherManagement: React.FC = () => {
                             subjects: Array.isArray(teacher.subjects) ? teacher.subjects : [],
                             classes: teacher.classes || '',
                             experience: teacher.experience || '',
-                            qualification: teacher.qualification || ''
+                            qualification: teacher.qualification || '',
+                            photo: null
                           });
+                          setCapturedPhoto(teacher.profilePictureUrl || teacher.profileImage || null);
                           setShowEditModal(true);
                         }}
                         data-testid={`button-edit-teacher-${teacher.id}`}
@@ -504,7 +712,7 @@ const TeacherManagement: React.FC = () => {
         </Card>
 
         {/* Add Teacher Modal */}
-        {showAddModal && typeof showAddModal === "object" && (
+        {showAddModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
             <div className="bg-white rounded-lg max-w-[95vw] sm:max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
               <div className="p-4 sm:p-6">
@@ -515,13 +723,80 @@ const TeacherManagement: React.FC = () => {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => setShowAddModal(false)}
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setCapturedPhoto(null);
+                      setFormData({...formData, photo: null});
+                    }}
                   >
                     <X className="w-5 h-5" />
                   </Button>
                 </div>
 
                 <div className="space-y-4">
+                  {/* Photo Upload Section */}
+                  <div>
+                    <Label className="text-sm font-medium">
+                      {language === 'fr' ? 'Photo de l\'enseignant (optionnelle)' : 'Teacher Photo (optional)'}
+                    </Label>
+                    <div className="mt-2 space-y-3">
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            setFormData({...formData, photo: file});
+                            setCapturedPhoto(null);
+                          }}
+                          className="hidden"
+                          id="teacher-photo-upload"
+                        />
+                        <label
+                          htmlFor="teacher-photo-upload"
+                          className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer border"
+                        >
+                          <Upload className="w-4 h-4" />
+                          {language === 'fr' ? 'Choisir une photo' : 'Choose Photo'}
+                        </label>
+                        {formData.photo && (
+                          <span className="text-sm text-green-600">
+                            ✓ {formData.photo.name}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            setShowCamera(true);
+                            setFormData({...formData, photo: null});
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 border"
+                          variant="outline"
+                        >
+                          <Camera className="w-4 h-4" />
+                          {language === 'fr' ? 'Prendre une photo' : 'Take Photo'}
+                        </Button>
+                        {capturedPhoto && (
+                          <span className="text-sm text-green-600">
+                            ✓ {language === 'fr' ? 'Photo capturée' : 'Photo captured'}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {capturedPhoto && (
+                        <div className="mt-3">
+                          <img
+                            src={capturedPhoto}
+                            alt="Preview"
+                            className="w-24 h-24 object-cover rounded-full border-4 border-blue-200 shadow-lg"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="firstName">{language === 'fr' ? 'Prénom' : 'First Name'}</Label>
@@ -692,9 +967,11 @@ const TeacherManagement: React.FC = () => {
                             description: language === 'fr' ? 'Sera synchronisé à la reconnexion' : 'Will sync when reconnected'
                           });
                           setShowAddModal(false);
+                          setCapturedPhoto(null);
                           setFormData({
                             firstName: '', lastName: '', email: '', phone: '',
-                            subjects: [], classes: '', experience: '', qualification: ''
+                            subjects: [], classes: '', experience: '', qualification: '',
+                            photo: null
                           });
                         } catch (error) {
                           console.error('[TEACHER_MANAGEMENT] ❌ Offline create error:', error);
@@ -723,7 +1000,7 @@ const TeacherManagement: React.FC = () => {
         )}
 
         {/* Edit Teacher Modal */}
-        {showEditModal && typeof showEditModal === "object" && selectedTeacher && (
+        {showEditModal && selectedTeacher && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
             <div className="bg-white rounded-lg max-w-[95vw] sm:max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
               <div className="p-4 sm:p-6">
@@ -734,13 +1011,66 @@ const TeacherManagement: React.FC = () => {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => setShowEditModal(false)}
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setCapturedPhoto(null);
+                    }}
                   >
                     <X className="w-5 h-5" />
                   </Button>
                 </div>
 
                 <div className="space-y-4">
+                  {/* Photo Upload/Update Section */}
+                  <div>
+                    <Label className="text-sm font-medium">
+                      {language === 'fr' ? 'Photo de profil' : 'Profile Photo'}
+                    </Label>
+                    <div className="mt-2 flex items-center gap-4">
+                      {(() => {
+                        const photoUrl = capturedPhoto || selectedTeacher.profilePictureUrl || selectedTeacher.profileImage;
+                        if (photoUrl) {
+                          return (
+                            <img
+                              src={photoUrl}
+                              alt="Profile"
+                              className="w-20 h-20 object-cover rounded-full border-4 border-blue-200 shadow-lg"
+                            />
+                          );
+                        }
+                        return (
+                          <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl border-4 border-blue-200">
+                            {(selectedTeacher.firstName?.[0] || '') + (selectedTeacher.lastName?.[0] || 'T')}
+                          </div>
+                        );
+                      })()}
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePhotoUpload(selectedTeacher)}
+                          disabled={uploadingPhoto === selectedTeacher.id}
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          {uploadingPhoto === selectedTeacher.id ? 
+                            (language === 'fr' ? 'Upload...' : 'Uploading...') : 
+                            (language === 'fr' ? 'Choisir une photo' : 'Choose Photo')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowCamera(true)}
+                          className="text-blue-600"
+                        >
+                          <Camera className="w-4 h-4 mr-2" />
+                          {language === 'fr' ? 'Prendre une photo' : 'Take Photo'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="edit-firstName">{language === 'fr' ? 'Prénom' : 'First Name'}</Label>
@@ -860,7 +1190,12 @@ const TeacherManagement: React.FC = () => {
                         experience: formData.experience,
                         qualification: formData.qualification
                       };
-                      updateTeacherMutation.mutate({ id: selectedTeacher.id, ...updateData });
+                      updateTeacherMutation.mutate({ 
+                        id: selectedTeacher.id, 
+                        capturedPhotoData: capturedPhoto,
+                        photoFile: formData.photo,
+                        ...updateData 
+                      });
                     }}
                     disabled={updateTeacherMutation.isPending}
                     className="flex-1 bg-green-600 hover:bg-green-700"
@@ -996,6 +1331,108 @@ const TeacherManagement: React.FC = () => {
                     onClick={() => setShowViewModal(false)}
                   >
                     {language === 'fr' ? 'Fermer' : 'Close'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Camera Modal for Photo Capture */}
+        {showCamera && (
+          <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white p-4 sm:p-6 rounded-lg w-full max-w-[95vw] sm:max-w-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Camera className="w-5 h-5" />
+                  {language === 'fr' ? 'Prendre une photo de l\'enseignant' : 'Take Teacher Photo'}
+                </h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    if (cameraStream) {
+                      cameraStream.getTracks().forEach(track => track.stop());
+                    }
+                    setCameraStream(null);
+                    setIsCameraReady(false);
+                    setShowCamera(false);
+                  }}
+                  data-testid="button-close-camera"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="space-y-4">
+                {/* Camera Preview Area */}
+                <div className="bg-gray-100 rounded-lg overflow-hidden relative" style={{ height: '400px' }}>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                  />
+                  {!isCameraReady && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                      <div className="text-center">
+                        <Camera className="w-16 h-16 mx-auto text-gray-400 mb-4 animate-pulse" />
+                        <p className="text-gray-600">
+                          {language === 'fr' ? 'Initialisation de la caméra...' : 'Initializing camera...'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Camera Controls */}
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => {
+                      if (videoRef.current && isCameraReady) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = videoRef.current.videoWidth;
+                        canvas.height = videoRef.current.videoHeight;
+                        const ctx = canvas.getContext('2d');
+                        if (ctx) {
+                          ctx.drawImage(videoRef.current, 0, 0);
+                          const photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                          setCapturedPhoto(photoDataUrl);
+                          
+                          if (cameraStream) {
+                            cameraStream.getTracks().forEach(track => track.stop());
+                          }
+                          setCameraStream(null);
+                          setIsCameraReady(false);
+                          setShowCamera(false);
+                          
+                          toast({
+                            title: language === 'fr' ? '📸 Photo capturée!' : '📸 Photo captured!',
+                            description: language === 'fr' ? 'Photo enregistrée avec succès' : 'Photo saved successfully'
+                          });
+                        }
+                      }
+                    }}
+                    disabled={!isCameraReady}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    data-testid="button-capture-photo"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Capturer la photo' : 'Capture Photo'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (cameraStream) {
+                        cameraStream.getTracks().forEach(track => track.stop());
+                      }
+                      setCameraStream(null);
+                      setIsCameraReady(false);
+                      setShowCamera(false);
+                    }}
+                    data-testid="button-cancel-camera"
+                  >
+                    {language === 'fr' ? 'Annuler' : 'Cancel'}
                   </Button>
                 </div>
               </div>

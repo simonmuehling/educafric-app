@@ -2,6 +2,41 @@ import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
 import { requireAuth } from '../../middleware/auth';
 import bcrypt from 'bcryptjs';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+
+// Create uploads directory for teacher photos if it doesn't exist
+const teacherPhotosDir = path.join(process.cwd(), 'public', 'uploads', 'teachers');
+if (!fs.existsSync(teacherPhotosDir)) {
+  fs.mkdirSync(teacherPhotosDir, { recursive: true });
+}
+
+// Configure multer for teacher photo uploads
+const photoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, teacherPhotosDir);
+  },
+  filename: (req, file, cb) => {
+    const teacherId = req.params.id;
+    const timestamp = Date.now();
+    const extension = path.extname(file.originalname);
+    const filename = `teacher-${teacherId}-${timestamp}${extension}`;
+    cb(null, filename);
+  }
+});
+
+const photoUpload = multer({
+  storage: photoStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 const router = Router();
 
@@ -19,7 +54,7 @@ router.get('/', requireAuth, async (req: any, res: Response) => {
 
     const teachers = await storage.getTeachersBySchool(user.schoolId);
     
-    // Return teachers with all fields
+    // Return teachers with all fields including profile picture
     const teachersData = teachers.map(teacher => ({
       id: teacher.id,
       firstName: teacher.firstName,
@@ -28,7 +63,9 @@ router.get('/', requireAuth, async (req: any, res: Response) => {
       phone: teacher.phone,
       role: teacher.role,
       schoolId: teacher.schoolId,
-      status: 'active'
+      status: 'active',
+      profilePictureUrl: teacher.profilePictureUrl,
+      profileImage: teacher.profileImage
     }));
 
     res.json(teachersData);
@@ -162,6 +199,38 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('[TEACHERS_API] Error creating teacher:', error);
     res.status(500).json({ message: 'Failed to create teacher' });
+  }
+});
+
+// Upload teacher photo
+router.post('/:id/photo', requireAuth, photoUpload.single('photo'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const file = req.file;
+    
+    if (!file) {
+      return res.status(400).json({ success: false, message: 'No photo provided' });
+    }
+    
+    // Generate the URL for the uploaded photo
+    const photoUrl = `/uploads/teachers/${file.filename}`;
+    
+    // Update the user's profile picture URL in the database
+    await storage.updateUser(parseInt(id), { 
+      profilePictureUrl: photoUrl,
+      profileImage: photoUrl
+    });
+    
+    console.log(`[TEACHERS_API] Photo uploaded for teacher ${id}: ${photoUrl}`);
+    
+    res.json({ 
+      success: true, 
+      message: 'Photo uploaded successfully',
+      photoUrl: photoUrl
+    });
+  } catch (error: any) {
+    console.error('[TEACHERS_API] Error uploading teacher photo:', error);
+    res.status(500).json({ success: false, message: 'Failed to upload photo' });
   }
 });
 
