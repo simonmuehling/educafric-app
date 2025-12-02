@@ -307,7 +307,7 @@ const UnifiedSchoolSettings: React.FC = () => {
   // Update mutations - use director API
   const updateProfileMutation = useMutation({
     mutationFn: async (data: Partial<SchoolProfile>) => {
-      const response = await apiRequest('/api/director/school-settings', 'POST', data);
+      const response = await apiRequest('POST', '/api/director/school-settings', data);
       return response;
     },
     onSuccess: () => {
