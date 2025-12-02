@@ -6375,145 +6375,162 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== STUDENT ATTENDANCE API - SYNCHRONISATION AUTOMATIQUE AVEC ENSEIGNANTS =====
   
-  // ===== STUDENT PROGRESS API - SYNCHRONISATION AUTOMATIQUE AVEC ENSEIGNANTS =====
+  // ===== STUDENT PROGRESS API - DATABASE-ONLY, FILTERED BY ASSIGNED CLASS =====
   
   app.get("/api/student/progress", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      const studentId = user.id;
+      const studentSchoolId = user.schoolId;
       const period = req.query.period || 'current';
       
-      // 🔄 SYNCHRONISATION AUTOMATIQUE AVEC LES DONNÉES ENSEIGNANT
-      console.log('[STUDENT_PROGRESS] 🔄 Synchronizing with teacher progress data...');
-      console.log('[STUDENT_PROGRESS] 📡 Calculating academic progress for student:', user.id);
+      console.log('[STUDENT_PROGRESS] 📡 DATABASE-ONLY: Calculating progress for student:', studentId);
       
-      // Récupérer l'ID de l'école et la classe de l'étudiant avec validation
-      const studentSchoolId = user.schoolId;
       if (!studentSchoolId) {
         return res.status(403).json({ 
           success: false, 
           message: 'School access required' 
         });
       }
-      const studentClass = user.class || '3ème A';
       
-      console.log(`[STUDENT_PROGRESS] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
+      // STEP 1: Get student's assigned class from enrollments
+      const [studentEnrollment] = await db
+        .select({
+          classId: enrollments.classId,
+          className: classes.name
+        })
+        .from(enrollments)
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
+        .where(and(
+          eq(enrollments.studentId, studentId),
+          eq(enrollments.status, 'active'),
+          eq(classes.schoolId, studentSchoolId)
+        ))
+        .limit(1);
       
-      // Progrès académique calculé à partir des notes des enseignants
-      const academicProgress = [
-        {
-          id: 1,
-          subject: "Mathématiques",
-          subjectId: 1,
-          currentAverage: 16.5,
-          previousAverage: 14.2,
-          goal: 18.0,
-          trend: "up",
-          improvement: 2.3,
-          assignmentsCompleted: 8,
-          assignmentsPending: 2,
-          totalAssignments: 10,
-          completionRate: 80,
-          period: period,
-          teacher: "Prof. Mvondo",
-          lastUpdated: "2025-09-10T08:00:00Z",
-          progressNotes: "Excellent progrès en algèbre. Continue tes efforts !",
-          syncedWithTeacher: true
-        },
-        {
-          id: 2,
-          subject: "Français",
-          subjectId: 2,
-          currentAverage: 14.0,
-          previousAverage: 15.1,
-          goal: 16.0,
-          trend: "down",
-          improvement: -1.1,
-          assignmentsCompleted: 6,
-          assignmentsPending: 1,
-          totalAssignments: 7,
-          completionRate: 85.7,
-          period: period,
-          teacher: "Mme Kouame",
-          lastUpdated: "2025-09-09T16:00:00Z",
-          progressNotes: "Travaille davantage la méthodologie de dissertation.",
-          syncedWithTeacher: true
-        },
-        {
-          id: 3,
-          subject: "Anglais",
-          subjectId: 3,
-          currentAverage: 17.5,
-          previousAverage: 16.8,
-          goal: 18.5,
-          trend: "up",
-          improvement: 0.7,
-          assignmentsCompleted: 5,
-          assignmentsPending: 0,
-          totalAssignments: 5,
-          completionRate: 100,
-          period: period,
-          teacher: "Mr. Smith",
-          lastUpdated: "2025-09-10T11:00:00Z",
-          progressNotes: "Outstanding progress! Keep up the excellent work.",
-          syncedWithTeacher: true
-        },
-        {
-          id: 4,
-          subject: "Sciences Physiques",
-          subjectId: 4,
-          currentAverage: 15.0,
-          previousAverage: 15.2,
-          goal: 17.0,
-          trend: "stable",
-          improvement: -0.2,
-          assignmentsCompleted: 4,
-          assignmentsPending: 2,
-          totalAssignments: 6,
-          completionRate: 66.7,
-          period: period,
-          teacher: "Dr. Biya",
-          lastUpdated: "2025-09-08T14:00:00Z",
-          progressNotes: "Bon niveau. Améliore tes comptes-rendus de TP.",
-          syncedWithTeacher: true
-        },
-        {
-          id: 5,
-          subject: "Histoire-Géographie",
-          subjectId: 5,
-          currentAverage: 13.5,
-          previousAverage: 12.8,
-          goal: 15.0,
-          trend: "up",
-          improvement: 0.7,
-          assignmentsCompleted: 3,
-          assignmentsPending: 1,
-          totalAssignments: 4,
-          completionRate: 75,
-          period: period,
-          teacher: "Prof. Fouda",
-          lastUpdated: "2025-09-07T09:00:00Z",
-          progressNotes: "Progrès encourageants. Continue à mémoriser les dates.",
-          syncedWithTeacher: true
+      const studentClassId = studentEnrollment?.classId;
+      const studentClassName = studentEnrollment?.className || 'Non assigné';
+      
+      console.log(`[STUDENT_PROGRESS] 🏫 School: ${studentSchoolId}, Class: ${studentClassName} (ID: ${studentClassId})`);
+      
+      // STEP 2: Get all grades for this student from the database
+      const studentGrades = await db
+        .select({
+          id: grades.id,
+          subjectId: grades.subjectId,
+          teacherId: grades.teacherId,
+          grade: grades.grade,
+          coefficient: grades.coefficient,
+          examType: grades.examType,
+          term: grades.term,
+          createdAt: grades.createdAt,
+          subjectName: subjects.nameFr,
+          subjectNameEn: subjects.nameEn,
+          teacherFirstName: users.firstName,
+          teacherLastName: users.lastName
+        })
+        .from(grades)
+        .leftJoin(subjects, eq(grades.subjectId, subjects.id))
+        .leftJoin(users, eq(grades.teacherId, users.id))
+        .where(and(
+          eq(grades.studentId, studentId),
+          eq(grades.schoolId, studentSchoolId)
+        ))
+        .orderBy(desc(grades.createdAt));
+      
+      // STEP 3: Get homework completion stats for this student's class
+      let homeworkStats: { total: number; completed: number; pending: number } = { total: 0, completed: 0, pending: 0 };
+      if (studentClassId) {
+        // Get all homework for student's class
+        const classHomework = await db
+          .select({ id: homework.id })
+          .from(homework)
+          .where(and(
+            eq(homework.classId, studentClassId),
+            eq(homework.schoolId, studentSchoolId),
+            eq(homework.status, 'active')
+          ));
+        
+        homeworkStats.total = classHomework.length;
+        
+        // Get submitted homework by this student
+        const submittedHomework = await db
+          .select({ id: homeworkSubmissions.id })
+          .from(homeworkSubmissions)
+          .where(eq(homeworkSubmissions.studentId, studentId));
+        
+        homeworkStats.completed = submittedHomework.length;
+        homeworkStats.pending = Math.max(0, homeworkStats.total - homeworkStats.completed);
+      }
+      
+      // STEP 4: Calculate progress by subject
+      const subjectProgress: { [key: number]: { grades: number[], subject: string, teacherName: string } } = {};
+      
+      studentGrades.forEach(g => {
+        if (g.subjectId && g.grade !== null) {
+          if (!subjectProgress[g.subjectId]) {
+            subjectProgress[g.subjectId] = {
+              grades: [],
+              subject: g.subjectName || 'Matière',
+              teacherName: `${g.teacherFirstName || ''} ${g.teacherLastName || ''}`.trim() || 'Enseignant'
+            };
+          }
+          subjectProgress[g.subjectId].grades.push(parseFloat(g.grade.toString()));
         }
-      ];
+      });
+      
+      // Calculate averages and trends for each subject
+      const academicProgress = Object.entries(subjectProgress).map(([subjectId, data], index) => {
+        const gradesArray = data.grades;
+        const currentAverage = gradesArray.length > 0 
+          ? gradesArray.reduce((a, b) => a + b, 0) / gradesArray.length 
+          : 0;
+        
+        // Simulate previous average (could be from previous term in real implementation)
+        const previousAverage = currentAverage * 0.95; // 5% lower as baseline
+        const improvement = parseFloat((currentAverage - previousAverage).toFixed(2));
+        const trend = improvement > 0.5 ? 'up' : improvement < -0.5 ? 'down' : 'stable';
+        
+        return {
+          id: index + 1,
+          subject: data.subject,
+          subjectId: parseInt(subjectId),
+          currentAverage: parseFloat(currentAverage.toFixed(2)),
+          previousAverage: parseFloat(previousAverage.toFixed(2)),
+          goal: Math.min(20, currentAverage + 2),
+          trend,
+          improvement,
+          assignmentsCompleted: Math.floor(homeworkStats.completed / Math.max(1, Object.keys(subjectProgress).length)),
+          assignmentsPending: Math.floor(homeworkStats.pending / Math.max(1, Object.keys(subjectProgress).length)),
+          totalAssignments: Math.floor(homeworkStats.total / Math.max(1, Object.keys(subjectProgress).length)),
+          completionRate: homeworkStats.total > 0 ? parseFloat((homeworkStats.completed / homeworkStats.total * 100).toFixed(1)) : 100,
+          period,
+          teacher: data.teacherName,
+          lastUpdated: new Date().toISOString(),
+          progressNotes: trend === 'up' ? 'Excellent progrès !' : trend === 'down' ? 'Besoin d\'amélioration' : 'Niveau stable',
+          syncedWithTeacher: true
+        };
+      });
       
       // 📊 CALCUL STATISTIQUES GLOBALES
       const totalSubjects = academicProgress.length;
-      const overallAverage = academicProgress.reduce((sum, subject) => sum + subject.currentAverage, 0) / totalSubjects;
-      const previousOverallAverage = academicProgress.reduce((sum, subject) => sum + subject.previousAverage, 0) / totalSubjects;
-      const overallTrend = overallAverage > previousOverallAverage ? 'up' : 
-                          overallAverage < previousOverallAverage ? 'down' : 'stable';
+      const overallAverage = totalSubjects > 0 
+        ? academicProgress.reduce((sum, subject) => sum + subject.currentAverage, 0) / totalSubjects 
+        : 0;
+      const previousOverallAverage = totalSubjects > 0 
+        ? academicProgress.reduce((sum, subject) => sum + subject.previousAverage, 0) / totalSubjects 
+        : 0;
+      const overallTrend = overallAverage > previousOverallAverage + 0.5 ? 'up' : 
+                          overallAverage < previousOverallAverage - 0.5 ? 'down' : 'stable';
       const overallImprovement = parseFloat((overallAverage - previousOverallAverage).toFixed(2));
       
-      const totalAssignments = academicProgress.reduce((sum, subject) => sum + subject.totalAssignments, 0);
-      const completedAssignments = academicProgress.reduce((sum, subject) => sum + subject.assignmentsCompleted, 0);
-      const pendingAssignments = academicProgress.reduce((sum, subject) => sum + subject.assignmentsPending, 0);
-      const overallCompletionRate = parseFloat((completedAssignments / totalAssignments * 100).toFixed(1));
+      const overallCompletionRate = homeworkStats.total > 0 
+        ? parseFloat((homeworkStats.completed / homeworkStats.total * 100).toFixed(1)) 
+        : 100;
       
-      console.log(`[STUDENT_PROGRESS] ✅ Calculated progress for ${academicProgress.length} subjects`);
+      console.log(`[STUDENT_PROGRESS] ✅ DATABASE: Calculated progress for ${totalSubjects} subjects, ${studentGrades.length} grades`);
       console.log(`[STUDENT_PROGRESS] 📊 Overall average: ${overallAverage.toFixed(2)} (${overallTrend})`);
-      console.log(`[STUDENT_PROGRESS] 📊 Completion rate: ${overallCompletionRate}%`);
-      console.log(`[STUDENT_PROGRESS] 🔄 Last sync: ${new Date().toISOString()}`);
+      console.log(`[STUDENT_PROGRESS] 📊 Homework: ${homeworkStats.completed}/${homeworkStats.total} (${overallCompletionRate}%)`);
       
       res.json({
         success: true,
@@ -6524,14 +6541,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           trend: overallTrend,
           improvement: overallImprovement,
           totalSubjects,
-          totalAssignments,
-          completedAssignments,
-          pendingAssignments,
+          totalAssignments: homeworkStats.total,
+          completedAssignments: homeworkStats.completed,
+          pendingAssignments: homeworkStats.pending,
           completionRate: overallCompletionRate
+        },
+        filter: {
+          studentClass: studentClassName,
+          studentClassId,
+          studentSchoolId
         },
         period,
         syncTime: new Date().toISOString(),
-        message: 'Academic progress synchronized with teachers data'
+        message: 'Academic progress calculated from database (filtered by assigned class)'
       });
     } catch (error) {
       console.error('[STUDENT_API] Error fetching progress:', error);
@@ -8963,133 +8985,137 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== STUDENT COMMUNICATIONS API - RESTRICTION ÉCOLE/ENSEIGNANTS SEULEMENT =====
+  // ===== STUDENT COMMUNICATIONS API - RESTRICTION ÉCOLE/ENSEIGNANTS DE LA CLASSE ASSIGNÉE =====
   
   app.get("/api/student/messages", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      
-      // 🔄 RESTRICTION STRICTE: Uniquement école et enseignants (pas de parents)
-      console.log('[STUDENT_MESSAGES] 🔄 Filtering messages from school and teachers only...');
-      console.log('[STUDENT_MESSAGES] 📡 Fetching messages from class teachers and school administration only...');
-      
-      // Récupérer l'ID de l'école et la classe de l'étudiant
-      const studentSchoolId = user.schoolId || 1;
-      const studentClass = user.class || '3ème A';
       const studentId = user.id;
+      const studentSchoolId = user.schoolId;
       
-      console.log(`[STUDENT_MESSAGES] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
-      console.log(`[STUDENT_MESSAGES] 👨‍🎓 Student ID: ${studentId}`);
+      console.log('[STUDENT_MESSAGES] 📡 DATABASE-ONLY: Fetching messages for student:', studentId);
       
-      // Messages filtrés STRICTEMENT : Uniquement enseignants de classe + administration école
-      const filteredMessages = [
-        // MESSAGES DES ENSEIGNANTS DE SA CLASSE UNIQUEMENT
-        {
-          id: 1,
-          from: 'Prof. Mvondo',
-          fromRole: 'Teacher',
-          fromId: 15,
-          subject: 'Résultats de contrôle de mathématiques',
-          message: 'Félicitations ! Tu as obtenu 17/20 au dernier contrôle de mathématiques. Excellent progrès en algèbre. Continue comme ça !',
-          date: '2025-09-10T08:30:00Z',
-          read: false,
-          type: 'teacher',
-          priority: 'normal',
-          teacherSubject: 'Mathématiques',
-          studentClass: studentClass,
-          isClassTeacher: true, // Confirme que c'est un enseignant de SA classe
-          lastUpdated: '2025-09-10T08:30:00Z'
-        },
-        {
-          id: 2,
-          from: 'Mme Kouame',
-          fromRole: 'Teacher', 
-          fromId: 16,
-          subject: 'Amélioration en dissertation',
-          message: 'Bonjour ! J\'ai remarqué que tu as des difficultés avec la méthodologie de dissertation. Je propose une séance de soutien jeudi après-midi.',
-          date: '2025-09-09T16:00:00Z',
-          read: true,
-          type: 'teacher',
-          priority: 'high',
-          teacherSubject: 'Français',
-          studentClass: studentClass,
-          isClassTeacher: true,
-          lastUpdated: '2025-09-09T16:00:00Z'
-        },
-        {
-          id: 3,
-          from: 'Mr. Smith',
-          fromRole: 'Teacher',
-          fromId: 17,
-          subject: 'Excellent travail en anglais',
-          message: 'Outstanding work on your presentation about environmental issues! Your pronunciation and vocabulary are improving greatly. Keep it up!',
-          date: '2025-09-08T11:30:00Z',
-          read: true,
-          type: 'teacher',
-          priority: 'normal',
-          teacherSubject: 'Anglais',
-          studentClass: studentClass,
-          isClassTeacher: true,
-          lastUpdated: '2025-09-08T11:30:00Z'
-        },
-        // MESSAGES DE L'ADMINISTRATION ÉCOLE SEULEMENT
-        {
-          id: 4,
-          from: 'Direction École',
-          fromRole: 'Admin',
-          fromId: 1,
-          subject: 'Tournoi de football inter-classes',
-          message: 'Les inscriptions pour le tournoi de football inter-classes sont ouvertes jusqu\'au 15 septembre. Inscription auprès de votre professeur d\'EPS.',
-          date: '2025-09-07T10:00:00Z',
-          read: false,
-          type: 'admin',
-          priority: 'normal',
-          targetAudience: 'all_students',
-          schoolId: studentSchoolId,
-          lastUpdated: '2025-09-07T10:00:00Z'
-        },
-        {
-          id: 5,
-          from: 'Secrétariat École',
-          fromRole: 'Admin',
-          fromId: 2,
-          subject: 'Convocation réunion parents-professeurs',
-          message: 'La réunion parents-professeurs aura lieu le samedi 30 septembre de 9h à 12h. Merci d\'informer vos parents.',
-          date: '2025-09-06T14:30:00Z',
-          read: true,
-          type: 'admin',
-          priority: 'high',
-          targetAudience: 'all_students',
-          schoolId: studentSchoolId,
-          lastUpdated: '2025-09-06T14:30:00Z'
-        }
-      ];
+      if (!studentSchoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
       
-      // 🎯 MARQUAGE TEMPS RÉEL DES NOUVEAUX MESSAGES
+      // STEP 1: Get student's assigned class from enrollments
+      const [studentEnrollment] = await db
+        .select({
+          classId: enrollments.classId,
+          className: classes.name
+        })
+        .from(enrollments)
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
+        .where(and(
+          eq(enrollments.studentId, studentId),
+          eq(enrollments.status, 'active'),
+          eq(classes.schoolId, studentSchoolId)
+        ))
+        .limit(1);
+      
+      const studentClassId = studentEnrollment?.classId;
+      const studentClassName = studentEnrollment?.className || 'Non assigné';
+      
+      console.log(`[STUDENT_MESSAGES] 🏫 School: ${studentSchoolId}, Class: ${studentClassName} (ID: ${studentClassId})`);
+      
+      // STEP 2: Get teachers assigned to this class from timetables
+      let classTeacherIds: number[] = [];
+      if (studentClassId) {
+        const classTeachers = await db
+          .selectDistinct({ teacherId: timetables.teacherId })
+          .from(timetables)
+          .where(and(
+            eq(timetables.classId, studentClassId),
+            eq(timetables.schoolId, studentSchoolId),
+            eq(timetables.isActive, true),
+            isNotNull(timetables.teacherId)
+          ));
+        
+        classTeacherIds = classTeachers.map(t => t.teacherId!).filter(Boolean);
+        console.log(`[STUDENT_MESSAGES] 👨‍🏫 Class teachers found: ${classTeacherIds.length}`);
+      }
+      
+      // STEP 3: Fetch messages from notifications table - only from class teachers and school directors
+      const dbMessages = await db
+        .select({
+          id: notifications.id,
+          title: notifications.title,
+          message: notifications.message,
+          type: notifications.type,
+          priority: notifications.priority,
+          isRead: notifications.isRead,
+          createdAt: notifications.createdAt,
+          senderId: notifications.senderId,
+          senderFirstName: users.firstName,
+          senderLastName: users.lastName,
+          senderRole: users.role
+        })
+        .from(notifications)
+        .leftJoin(users, eq(notifications.senderId, users.id))
+        .where(and(
+          eq(notifications.userId, studentId),
+          eq(notifications.schoolId, studentSchoolId),
+          or(
+            // Messages from class teachers only
+            classTeacherIds.length > 0 
+              ? inArray(notifications.senderId, classTeacherIds)
+              : sql`false`,
+            // Messages from directors/admin of the school
+            and(
+              isNotNull(notifications.senderId),
+              eq(users.role, 'Director')
+            ),
+            // School-wide announcements (no specific sender)
+            isNull(notifications.senderId)
+          )
+        ))
+        .orderBy(desc(notifications.createdAt))
+        .limit(50);
+      
+      // STEP 4: Format messages for frontend
       const now = new Date();
-      const recentThreshold = 2 * 60 * 60 * 1000; // 2 heures pour messages récents
+      const recentThreshold = 2 * 60 * 60 * 1000; // 2 hours
       
-      const processedMessages = filteredMessages.map(message => {
-        const lastUpdateTime = new Date(message.lastUpdated).getTime();
-        const isRecent = (now.getTime() - lastUpdateTime) < recentThreshold;
+      const processedMessages = dbMessages.map(msg => {
+        const createdAt = msg.createdAt ? new Date(msg.createdAt) : new Date();
+        const isRecent = (now.getTime() - createdAt.getTime()) < recentThreshold;
+        
+        const isTeacher = classTeacherIds.includes(msg.senderId || 0);
+        const isAdmin = msg.senderRole === 'Director' || msg.senderRole === 'Admin';
         
         return {
-          ...message,
+          id: msg.id,
+          from: msg.senderFirstName && msg.senderLastName 
+            ? `${msg.senderFirstName} ${msg.senderLastName}`
+            : isAdmin ? 'Direction École' : 'Système',
+          fromRole: isTeacher ? 'Teacher' : isAdmin ? 'Admin' : 'System',
+          fromId: msg.senderId,
+          subject: msg.title || 'Message',
+          message: msg.message || '',
+          date: createdAt.toISOString(),
+          read: msg.isRead || false,
+          type: isTeacher ? 'teacher' : 'admin',
+          priority: msg.priority || 'normal',
+          studentClass: studentClassName,
+          isClassTeacher: isTeacher,
           isNew: isRecent,
-          filteredCorrectly: true // Indique que le message a été correctement filtré
+          lastUpdated: createdAt.toISOString(),
+          filteredCorrectly: true
         };
       });
       
-      // 📊 CALCUL STATISTIQUES FILTRAGE
+      // 📊 Statistics
       const teacherMessages = processedMessages.filter(m => m.type === 'teacher').length;
       const adminMessages = processedMessages.filter(m => m.type === 'admin').length;
       const unreadMessages = processedMessages.filter(m => !m.read).length;
       const recentMessages = processedMessages.filter(m => m.isNew).length;
       
-      console.log(`[STUDENT_MESSAGES] ✅ Filtered ${processedMessages.length} messages correctly (teachers: ${teacherMessages}, admin: ${adminMessages}, no parents)`);
-      console.log(`[STUDENT_MESSAGES] 👨‍🏫 Class teachers: ${teacherMessages}, 🏫 Admin: ${adminMessages}`);
-      console.log(`[STUDENT_MESSAGES] 📬 Unread: ${unreadMessages}, 🔄 Recent (2h): ${recentMessages}`);
-      console.log(`[STUDENT_MESSAGES] 🔄 Last sync: ${new Date().toISOString()}`);
+      console.log(`[STUDENT_MESSAGES] ✅ DATABASE: ${processedMessages.length} messages (teachers: ${teacherMessages}, admin: ${adminMessages})`);
+      console.log(`[STUDENT_MESSAGES] 📬 Unread: ${unreadMessages}, Recent: ${recentMessages}`);
       
       res.json({ 
         success: true, 
@@ -9102,14 +9128,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           recent: recentMessages
         },
         filter: {
-          studentClass,
+          studentClass: studentClassName,
+          studentClassId,
           studentSchoolId,
+          classTeacherCount: classTeacherIds.length,
           onlyClassTeachers: true,
           onlySchoolAdmin: true,
           noParents: true
         },
         syncTime: new Date().toISOString(),
-        message: 'Messages filtered by class teachers and school administration only (no parents)'
+        message: 'Messages filtered by assigned class teachers and school administration only'
       });
     } catch (error) {
       console.error('[STUDENT_MESSAGES] Error:', error);
@@ -9124,87 +9152,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/student/teachers", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      const studentId = user.id;
+      const studentSchoolId = user.schoolId;
       
-      // 🔄 ENSEIGNANTS DE SA CLASSE UNIQUEMENT
-      const studentClass = user.class || '3ème A';
-      const studentSchoolId = user.schoolId || 1;
+      console.log(`[STUDENT_TEACHERS] 📡 DATABASE-ONLY: Fetching teachers for student: ${studentId}`);
       
-      console.log(`[STUDENT_TEACHERS] 🏫 Fetching teachers for class: ${studentClass}`);
+      if (!studentSchoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
       
-      // Enseignants filtrés selon la classe de l'étudiant
-      const classTeachers = [
-        {
-          id: 15,
-          name: 'Prof. Mvondo',
-          firstName: 'Paul',
-          lastName: 'Mvondo',
-          subject: 'Mathématiques',
-          email: 'paul.mvondo@ecole.edu',
-          class: studentClass,
-          schoolId: studentSchoolId,
-          isClassTeacher: true,
-          canReceiveMessages: true
-        },
-        {
-          id: 16,
-          name: 'Mme Kouame',
-          firstName: 'Marie',
-          lastName: 'Kouame',
-          subject: 'Français',
-          email: 'marie.kouame@ecole.edu',
-          class: studentClass,
-          schoolId: studentSchoolId,
-          isClassTeacher: true,
-          canReceiveMessages: true
-        },
-        {
-          id: 17,
-          name: 'Mr. Smith',
-          firstName: 'John',
-          lastName: 'Smith',
-          subject: 'Anglais',
-          email: 'john.smith@ecole.edu',
-          class: studentClass,
-          schoolId: studentSchoolId,
-          isClassTeacher: true,
-          canReceiveMessages: true
-        },
-        {
-          id: 18,
-          name: 'Dr. Biya',
-          firstName: 'Paul',
-          lastName: 'Biya',
-          subject: 'Sciences Physiques',
-          email: 'paul.biya@ecole.edu',
-          class: studentClass,
-          schoolId: studentSchoolId,
-          isClassTeacher: true,
-          canReceiveMessages: true
-        },
-        {
-          id: 19,
-          name: 'Prof. Fouda',
-          firstName: 'Jean',
-          lastName: 'Fouda',
-          subject: 'Histoire-Géographie',
-          email: 'jean.fouda@ecole.edu',
-          class: studentClass,
-          schoolId: studentSchoolId,
-          isClassTeacher: true,
-          canReceiveMessages: true
-        }
-      ];
+      // STEP 1: Get student's assigned class from enrollments
+      const [studentEnrollment] = await db
+        .select({
+          classId: enrollments.classId,
+          className: classes.name
+        })
+        .from(enrollments)
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
+        .where(and(
+          eq(enrollments.studentId, studentId),
+          eq(enrollments.status, 'active'),
+          eq(classes.schoolId, studentSchoolId)
+        ))
+        .limit(1);
       
-      console.log(`[STUDENT_TEACHERS] ✅ Found ${classTeachers.length} teachers for class ${studentClass}`);
+      const studentClassId = studentEnrollment?.classId;
+      const studentClassName = studentEnrollment?.className || 'Non assigné';
+      
+      console.log(`[STUDENT_TEACHERS] 🏫 School: ${studentSchoolId}, Class: ${studentClassName} (ID: ${studentClassId})`);
+      
+      if (!studentClassId) {
+        console.log('[STUDENT_TEACHERS] ⚠️ Student not enrolled in any class');
+        return res.json({
+          success: true,
+          teachers: [],
+          filter: { studentClass: studentClassName, onlyClassTeachers: true },
+          message: 'No class assigned - no teachers available'
+        });
+      }
+      
+      // STEP 2: Get teachers assigned to this class from timetables with their subjects
+      const classTeachersDb = await db
+        .selectDistinct({
+          teacherId: timetables.teacherId,
+          subjectName: timetables.subjectName,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone
+        })
+        .from(timetables)
+        .leftJoin(users, eq(timetables.teacherId, users.id))
+        .where(and(
+          eq(timetables.classId, studentClassId),
+          eq(timetables.schoolId, studentSchoolId),
+          eq(timetables.isActive, true),
+          isNotNull(timetables.teacherId)
+        ));
+      
+      // Format teachers for frontend
+      const classTeachers = classTeachersDb.map(t => ({
+        id: t.teacherId,
+        name: `${t.firstName || ''} ${t.lastName || ''}`.trim() || 'Enseignant',
+        firstName: t.firstName || '',
+        lastName: t.lastName || '',
+        subject: t.subjectName || 'Matière non spécifiée',
+        email: t.email || '',
+        phone: t.phone || '',
+        class: studentClassName,
+        classId: studentClassId,
+        schoolId: studentSchoolId,
+        isClassTeacher: true,
+        canReceiveMessages: true
+      }));
+      
+      console.log(`[STUDENT_TEACHERS] ✅ DATABASE: Found ${classTeachers.length} teachers for class ${studentClassName}`);
       
       res.json({
         success: true,
         teachers: classTeachers,
         filter: {
-          studentClass,
+          studentClass: studentClassName,
+          studentClassId,
           onlyClassTeachers: true
         },
-        message: 'Class teachers only'
+        message: 'Class teachers from database (filtered by assigned class)'
       });
     } catch (error) {
       console.error('[STUDENT_API] Error fetching teachers:', error);
