@@ -5978,6 +5978,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== STUDENT MY SCHOOL API - DATABASE-ONLY =====
+  
+  app.get("/api/student/my-school", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[STUDENT_MY_SCHOOL] 📡 Fetching school info for student:', user.id);
+      
+      const studentSchoolId = user.schoolId;
+      
+      // Get school information
+      let schoolInfo = null;
+      if (studentSchoolId) {
+        const [school] = await db
+          .select({
+            id: schools.id,
+            name: schools.name,
+            address: schools.address,
+            phone: schools.phone,
+            email: schools.email,
+            city: schools.city,
+            logoUrl: schools.logoUrl,
+            educafricNumber: schools.educafricNumber
+          })
+          .from(schools)
+          .where(eq(schools.id, studentSchoolId))
+          .limit(1);
+        
+        schoolInfo = school || null;
+      }
+      
+      // Get class information from enrollment
+      let classInfo = null;
+      let enrollmentInfo = null;
+      
+      if (studentSchoolId) {
+        const [enrollment] = await db
+          .select({
+            classId: enrollments.classId,
+            className: classes.name,
+            classLevel: classes.level,
+            classSection: classes.section,
+            enrollmentDate: enrollments.enrollmentDate,
+            enrollmentStatus: enrollments.status,
+            academicYear: enrollments.academicYear
+          })
+          .from(enrollments)
+          .leftJoin(classes, eq(enrollments.classId, classes.id))
+          .where(and(
+            eq(enrollments.studentId, user.id),
+            eq(enrollments.status, 'active')
+          ))
+          .limit(1);
+        
+        if (enrollment && enrollment.classId) {
+          // Count students in the same class
+          const [studentCount] = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(enrollments)
+            .where(and(
+              eq(enrollments.classId, enrollment.classId),
+              eq(enrollments.status, 'active')
+            ));
+          
+          classInfo = {
+            id: enrollment.classId,
+            name: enrollment.className || 'Classe non spécifiée',
+            level: enrollment.classLevel,
+            section: enrollment.classSection,
+            academicYear: enrollment.academicYear || '2024-2025',
+            studentCount: studentCount?.count || 0
+          };
+          
+          enrollmentInfo = {
+            enrollmentDate: enrollment.enrollmentDate?.toISOString(),
+            status: enrollment.enrollmentStatus || 'active',
+            academicYear: enrollment.academicYear || '2024-2025'
+          };
+        }
+      }
+      
+      console.log('[STUDENT_MY_SCHOOL] ✅ School:', schoolInfo?.name, 'Class:', classInfo?.name);
+      
+      res.json({
+        success: true,
+        school: schoolInfo,
+        class: classInfo,
+        enrollment: enrollmentInfo
+      });
+    } catch (error: any) {
+      console.error('[STUDENT_MY_SCHOOL] Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération des informations école',
+        school: null,
+        class: null,
+        enrollment: null
+      });
+    }
+  });
+
   // ===== STUDENT TIMETABLE API - DATABASE-ONLY =====
   
   app.get("/api/student/timetable", requireAuth, async (req, res) => {

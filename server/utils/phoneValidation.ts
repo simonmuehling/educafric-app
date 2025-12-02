@@ -116,8 +116,9 @@ export async function checkPhoneUniqueness(
 
 /**
  * Validate international phone number format (supports all countries)
+ * Accepts formats with or without + prefix (e.g., 237697445870 or +237697445870)
  */
-export function validatePhoneFormat(phone: string): { isValid: boolean; message?: string } {
+export function validatePhoneFormat(phone: string): { isValid: boolean; message?: string; normalizedPhone?: string } {
   if (!phone || phone.trim() === '') {
     return { isValid: true }; // Optional field
   }
@@ -130,10 +131,22 @@ export function validatePhoneFormat(phone: string): { isValid: boolean; message?
   // +44XXXXXXXXXX (UK), +41XXXXXXXXX (Switzerland), +49XXXXXXXXXX (Germany), etc.
   const internationalPhoneRegex = /^\+[1-9]\d{1,3}\d{4,15}$/;
   
+  // Also accept format without + prefix for convenience (e.g., 237697445870)
+  const withoutPlusRegex = /^[1-9]\d{1,3}\d{4,15}$/;
+  
   if (!internationalPhoneRegex.test(normalized)) {
-    return {
-      isValid: false,
-      message: 'Invalid international phone number format. Should start with + followed by country code and phone number (e.g., +237657001234, +33123456789, +1555123456)'
+    // Try without + prefix
+    const digitsOnly = normalized.replace(/\D/g, '');
+    if (!withoutPlusRegex.test(digitsOnly)) {
+      return {
+        isValid: false,
+        message: 'Format de numéro invalide. Utilisez le format: +237697445870 ou 237697445870'
+      };
+    }
+    // Valid format without +, return the normalized version with +
+    return { 
+      isValid: true, 
+      normalizedPhone: '+' + digitsOnly 
     };
   }
 
@@ -142,11 +155,11 @@ export function validatePhoneFormat(phone: string): { isValid: boolean; message?
   if (digitsOnly.length < 6 || digitsOnly.length > 19) {
     return {
       isValid: false,
-      message: 'Phone number should be between 6 and 19 digits total'
+      message: 'Le numéro de téléphone doit contenir entre 6 et 19 chiffres'
     };
   }
 
-  return { isValid: true };
+  return { isValid: true, normalizedPhone: normalized };
 }
 
 /**

@@ -229,6 +229,8 @@ class FastModuleLoader {
       'library': () => import('@/components/teacher/modules/LibraryRelatedBooks'), // Teacher library by default
       'teacher-library': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
       'student-library': () => import('@/components/student/modules/LibraryRelatedBooks'),
+      'student-my-school': () => import('@/components/student/modules/StudentMySchool'),
+      'my-school': () => import('@/components/student/modules/StudentMySchool'),
       'parent-library': () => import('@/components/parent/modules/LibraryRelatedBooks'),
       
       // =============================================

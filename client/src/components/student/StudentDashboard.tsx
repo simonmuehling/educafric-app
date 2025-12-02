@@ -143,6 +143,12 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
 
   const modules = [
     {
+      id: 'student-my-school',
+      label: language === 'fr' ? 'Mon École' : 'My School',
+      icon: <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" />,
+      color: 'bg-red-600'
+    },
+    {
       id: 'timetable',
       label: t.timetable,
       icon: <Clock className="w-5 h-5 sm:w-6 sm:h-6" />,
