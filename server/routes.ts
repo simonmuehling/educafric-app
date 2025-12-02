@@ -4774,52 +4774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Teacher Messages
-  app.get("/api/teacher/messages", requireAuth, async (req, res) => {
-    try {
-      const messages = [
-        {
-          id: 1,
-          from: 'Marie Kamga',
-          fromRole: 'Parent',
-          subject: 'Question sur les devoirs de Junior',
-          message: 'Bonjour M. Mvondo, pourriez-vous m\'expliquer l\'exercice 12 de mathématiques ? Junior a des difficultés.',
-          date: '2025-08-24',
-          read: false,
-          type: 'parent',
-          priority: 'normal'
-        },
-        {
-          id: 2,
-          from: 'Direction',
-          fromRole: 'Admin',
-          subject: 'Réunion pédagogique',
-          message: 'Réunion obligatoire mardi 27 août à 14h30 en salle des professeurs.',
-          date: '2025-08-23',
-          read: true,
-          type: 'admin',
-          priority: 'high'
-        },
-        {
-          id: 3,
-          from: 'Dr. Nguetsop',
-          fromRole: 'Director',
-          subject: 'Nouveau programme scolaire',
-          message: 'Les nouveaux programmes de sciences physiques sont disponibles au secrétariat.',
-          date: '2025-08-22',
-          read: true,
-          type: 'admin',
-          priority: 'normal'
-        }
-      ];
-      res.json({ success: true, messages });
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[TEACHER_MESSAGES] Error:', error);
-      }
-      res.status(500).json({ success: false, message: 'Failed to fetch teacher messages' });
-    }
-  });
+  // Teacher Messages - MOCK ROUTE REMOVED - Use database-only route at line ~7838
 
   app.post("/api/teacher/messages", requireAuth, async (req, res) => {
     try {
