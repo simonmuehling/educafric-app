@@ -17,30 +17,26 @@ router.get('/principal', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
     
-    // Get the signature for the school's director
-    const signature = await db
-      .select()
-      .from(signatures)
-      .where(
-        and(
-          eq(signatures.userId, user.id),
-          eq(signatures.userRole, 'director'),
-          eq(signatures.isActive, true)
-        )
-      )
-      .limit(1);
+    // Use raw SQL for maximum compatibility
+    const result = await db.execute(`
+      SELECT id, signature_data, signature_type, created_at, updated_at
+      FROM signatures
+      WHERE user_id = $1 AND user_role = 'director' AND is_active = true
+      LIMIT 1
+    `, [user.id]);
     
-    if (!signature.length) {
+    if (!result.rows || result.rows.length === 0) {
       return res.json({ signatureData: null });
     }
     
+    const row = result.rows[0] as any;
     res.json({
-      id: signature[0].id,
-      signatureData: signature[0].signatureData,
+      id: row.id,
+      signatureData: row.signature_data,
       signatureName: user.name || 'Directeur',
       signatureFunction: 'Directeur',
-      createdAt: signature[0].createdAt,
-      updatedAt: signature[0].updatedAt
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
     });
   } catch (error) {
     console.error('[SIGNATURE] Error getting principal signature:', error);
@@ -60,50 +56,36 @@ router.post('/', requireAuth, async (req, res) => {
     
     const userRole = signatureFor || 'director';
     
-    // Check if signature already exists
-    const existing = await db
-      .select()
-      .from(signatures)
-      .where(
-        and(
-          eq(signatures.userId, user.id),
-          eq(signatures.userRole, userRole)
-        )
-      )
-      .limit(1);
+    // Check if signature already exists using raw SQL
+    const existing = await db.execute(`
+      SELECT id FROM signatures 
+      WHERE user_id = $1 AND user_role = $2
+      LIMIT 1
+    `, [user.id, userRole]);
     
     let result;
-    if (existing.length) {
+    if (existing.rows && existing.rows.length > 0) {
       // Update existing
-      result = await db
-        .update(signatures)
-        .set({
-          signatureData,
-          signatureType: 'drawn',
-          isActive: true,
-          updatedAt: new Date()
-        })
-        .where(eq(signatures.id, existing[0].id))
-        .returning();
+      result = await db.execute(`
+        UPDATE signatures 
+        SET signature_data = $1, signature_type = 'drawn', is_active = true, updated_at = NOW()
+        WHERE id = $2
+        RETURNING id, signature_data, created_at, updated_at
+      `, [signatureData, (existing.rows[0] as any).id]);
     } else {
       // Create new
-      result = await db
-        .insert(signatures)
-        .values({
-          userId: user.id,
-          userRole,
-          signatureData,
-          signatureType: 'drawn',
-          isActive: true
-        })
-        .returning();
+      result = await db.execute(`
+        INSERT INTO signatures (user_id, user_role, signature_data, signature_type, is_active, created_at, updated_at)
+        VALUES ($1, $2, $3, 'drawn', true, NOW(), NOW())
+        RETURNING id, signature_data, created_at, updated_at
+      `, [user.id, userRole, signatureData]);
     }
     
     console.log('[SIGNATURE] ✅ Signature saved for user:', user.id, 'role:', userRole);
     
     res.json({
       success: true,
-      id: result[0].id,
+      id: (result.rows[0] as any).id,
       signatureName: signatureName || user.name,
       signatureFunction: signatureFunction || 'Directeur'
     });
@@ -118,15 +100,11 @@ router.delete('/principal', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
     
-    await db
-      .update(signatures)
-      .set({ isActive: false })
-      .where(
-        and(
-          eq(signatures.userId, user.id),
-          eq(signatures.userRole, 'director')
-        )
-      );
+    await db.execute(`
+      UPDATE signatures 
+      SET is_active = false, updated_at = NOW()
+      WHERE user_id = $1 AND user_role = 'director'
+    `, [user.id]);
     
     console.log('[SIGNATURE] 🗑️ Signature deleted for user:', user.id);
     
@@ -157,9 +135,10 @@ router.get('/school/:schoolId', async (req, res) => {
       return res.json({ signatureData: null });
     }
     
+    const row = result.rows[0] as any;
     res.json({
-      signatureData: result.rows[0].signature_data,
-      signatoryName: result.rows[0].signatory_name
+      signatureData: row.signature_data,
+      signatoryName: row.signatory_name
     });
   } catch (error) {
     console.error('[SIGNATURE] Error getting school signature:', error);

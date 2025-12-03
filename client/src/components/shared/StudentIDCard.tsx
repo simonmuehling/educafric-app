@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -41,15 +42,25 @@ interface StudentIDCardProps {
   isOpen: boolean;
   onClose: () => void;
   validUntil?: string;
+  schoolId?: number;
 }
 
-export function StudentIDCard({ student, school, isOpen, onClose, validUntil }: StudentIDCardProps) {
+export function StudentIDCard({ student, school, isOpen, onClose, validUntil, schoolId }: StudentIDCardProps) {
   const { language } = useLanguage();
   const qrCanvasFrontRef = useRef<HTMLCanvasElement>(null);
   const qrCanvasBackRef = useRef<HTMLCanvasElement>(null);
   const barcodeRef = useRef<HTMLCanvasElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const [showBack, setShowBack] = useState(false);
+  
+  // Fetch principal's digital signature for the school
+  const { data: signatureData } = useQuery<{ signatureData: string | null; signatoryName?: string }>({
+    queryKey: ['/api/signatures/principal'],
+    enabled: isOpen
+  });
+  
+  // Use stored signature or prop
+  const principalSignature = signatureData?.signatureData || school.principalSignature;
   
   const fullName = `${student.firstName} ${student.lastName}`;
   const studentId = student.matricule || student.educafricNumber || `STD-${String(student.id).padStart(6, '0')}`;
@@ -887,7 +898,17 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil }: 
                 {/* Signature Section */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '1.5mm', borderTop: '0.2mm solid #e5e7eb' }}>
                   <div style={{ textAlign: 'center', width: '25mm' }}>
-                    <div style={{ borderBottom: '0.3mm solid #94a3b8', height: '4mm', marginBottom: '0.5mm' }}></div>
+                    {principalSignature ? (
+                      <div style={{ height: '4mm', marginBottom: '0.5mm', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                        <img 
+                          src={principalSignature} 
+                          alt="Signature" 
+                          style={{ maxHeight: '4mm', maxWidth: '20mm', objectFit: 'contain' }}
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ borderBottom: '0.3mm solid #94a3b8', height: '4mm', marginBottom: '0.5mm' }}></div>
+                    )}
                     <span style={{ fontSize: '1.5mm', color: '#64748b', fontWeight: 500 }}>{text.principalSignature}</span>
                   </div>
                   <div style={{ textAlign: 'center', width: '25mm' }}>
