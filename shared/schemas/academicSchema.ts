@@ -48,14 +48,18 @@ export const attendance = pgTable("attendance", {
   id: serial("id").primaryKey(),
   studentId: integer("student_id").notNull(),
   classId: integer("class_id").notNull(),
-  schoolId: integer("school_id").notNull(),
   date: timestamp("date").notNull(),
   status: text("status").notNull(), // present, absent, late, excused
+  teacherId: integer("teacher_id").notNull(), // Teacher who marked attendance
+  parentNotified: boolean("parent_notified").default(false),
+  notificationSentAt: timestamp("notification_sent_at"),
+  reason: text("reason"),
+  createdAt: timestamp("created_at").defaultNow(),
+  schoolId: integer("school_id"),
   timeIn: timestamp("time_in"),
   timeOut: timestamp("time_out"),
   notes: text("notes"),
-  markedBy: integer("marked_by"), // Teacher who marked attendance
-  createdAt: timestamp("created_at").defaultNow(),
+  markedBy: integer("marked_by"), // Deprecated - use teacherId
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
