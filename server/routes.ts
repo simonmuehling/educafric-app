@@ -13632,6 +13632,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/school', schoolInfoRoutes);
   app.use('/api/signatures', digitalSignatureRoutes);
   
+  // ✅ ID CARD VERIFICATION API (PUBLIC)
+  app.get('/api/students/verify-card', async (req: Request, res: Response) => {
+    try {
+      const { cardId, language = 'fr' } = req.query;
+      
+      if (!cardId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Card ID is required',
+          messageFr: 'Le numéro de carte est requis'
+        });
+      }
+      
+      console.log(`[VERIFY_CARD] 🔍 Verifying card: ${cardId}`);
+      
+      // Parse card ID format: EDU-YEAR-STUDENTID
+      const cardIdStr = String(cardId);
+      let studentId: number | null = null;
+      
+      if (cardIdStr.startsWith('EDU-')) {
+        const parts = cardIdStr.split('-');
+        if (parts.length >= 3) {
+          studentId = parseInt(parts[2], 10);
+        }
+      } else {
+        studentId = parseInt(cardIdStr, 10);
+      }
+      
+      if (!studentId || isNaN(studentId)) {
+        return res.json({
+          success: false,
+          message: 'Invalid card format',
+          messageFr: 'Format de carte invalide'
+        });
+      }
+      
+      // Query student from database
+      const studentResult = await db.execute(`
+        SELECT 
+          s.id,
+          s.first_name,
+          s.last_name,
+          s.matricule,
+          s.photo,
+          s.school_id,
+          c.name as class_name,
+          sc.name as school_name
+        FROM students s
+        LEFT JOIN classes c ON s.class_id = c.id
+        LEFT JOIN schools sc ON s.school_id = sc.id
+        WHERE s.id = $1
+        LIMIT 1
+      `, [studentId]);
+      
+      if (!studentResult.rows || studentResult.rows.length === 0) {
+        return res.json({
+          success: false,
+          message: 'Student not found',
+          messageFr: 'Élève non trouvé'
+        });
+      }
+      
+      const student = studentResult.rows[0] as any;
+      const currentYear = new Date().getFullYear();
+      const validUntil = `Sept ${currentYear + 1}`;
+      const isActive = true; // Could add expiration check logic
+      
+      console.log(`[VERIFY_CARD] ✅ Card verified for student: ${student.first_name} ${student.last_name}`);
+      
+      res.json({
+        success: true,
+        data: {
+          studentName: `${student.first_name} ${student.last_name}`,
+          studentId: student.id,
+          matricule: student.matricule || `STD-${String(student.id).padStart(6, '0')}`,
+          cardId: cardIdStr,
+          className: student.class_name || 'N/A',
+          schoolName: student.school_name || 'EDUCAFRIC',
+          validUntil,
+          issuedAt: new Date().toISOString(),
+          photoUrl: student.photo ? `/uploads/students/${student.photo}` : null,
+          isActive
+        }
+      });
+    } catch (error) {
+      console.error('[VERIFY_CARD] ❌ Error verifying card:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Verification failed',
+        messageFr: 'Échec de la vérification'
+      });
+    }
+  });
+  
   // ✅ ROUTE NOUVEAU GÉNÉRATEUR OPTIMISÉ - ESPACE INTELLIGENT ET ZÉRO CHEVAUCHEMENT
   app.post('/api/optimized-bulletins/sample', async (req, res) => {
     try {
