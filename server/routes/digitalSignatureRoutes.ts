@@ -2,10 +2,174 @@ import express from 'express';
 import { requireAuth, requireRole } from '../middleware/auth';
 import { db } from '../db';
 import { digitalSignatures, bulletinSignatures } from '../../shared/schemas/digitalSignatureSchema';
+import { signatures } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
 
 const router = express.Router();
+
+// ============================================
+// PRINCIPAL SIGNATURE MANAGEMENT (for ID cards, bulletins, documents)
+// ============================================
+
+// Get principal/director signature for the school
+router.get('/principal', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Get the signature for the school's director
+    const signature = await db
+      .select()
+      .from(signatures)
+      .where(
+        and(
+          eq(signatures.userId, user.id),
+          eq(signatures.userRole, 'director'),
+          eq(signatures.isActive, true)
+        )
+      )
+      .limit(1);
+    
+    if (!signature.length) {
+      return res.json({ signatureData: null });
+    }
+    
+    res.json({
+      id: signature[0].id,
+      signatureData: signature[0].signatureData,
+      signatureName: user.name || 'Directeur',
+      signatureFunction: 'Directeur',
+      createdAt: signature[0].createdAt,
+      updatedAt: signature[0].updatedAt
+    });
+  } catch (error) {
+    console.error('[SIGNATURE] Error getting principal signature:', error);
+    res.status(500).json({ error: 'Failed to get signature' });
+  }
+});
+
+// Save or update principal signature
+router.post('/', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { signatureData, signatureName, signatureFunction, signatureFor } = req.body;
+    
+    if (!signatureData) {
+      return res.status(400).json({ error: 'Signature data is required' });
+    }
+    
+    const userRole = signatureFor || 'director';
+    
+    // Check if signature already exists
+    const existing = await db
+      .select()
+      .from(signatures)
+      .where(
+        and(
+          eq(signatures.userId, user.id),
+          eq(signatures.userRole, userRole)
+        )
+      )
+      .limit(1);
+    
+    let result;
+    if (existing.length) {
+      // Update existing
+      result = await db
+        .update(signatures)
+        .set({
+          signatureData,
+          signatureType: 'drawn',
+          isActive: true,
+          updatedAt: new Date()
+        })
+        .where(eq(signatures.id, existing[0].id))
+        .returning();
+    } else {
+      // Create new
+      result = await db
+        .insert(signatures)
+        .values({
+          userId: user.id,
+          userRole,
+          signatureData,
+          signatureType: 'drawn',
+          isActive: true
+        })
+        .returning();
+    }
+    
+    console.log('[SIGNATURE] ✅ Signature saved for user:', user.id, 'role:', userRole);
+    
+    res.json({
+      success: true,
+      id: result[0].id,
+      signatureName: signatureName || user.name,
+      signatureFunction: signatureFunction || 'Directeur'
+    });
+  } catch (error) {
+    console.error('[SIGNATURE] Error saving signature:', error);
+    res.status(500).json({ error: 'Failed to save signature' });
+  }
+});
+
+// Delete principal signature
+router.delete('/principal', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    await db
+      .update(signatures)
+      .set({ isActive: false })
+      .where(
+        and(
+          eq(signatures.userId, user.id),
+          eq(signatures.userRole, 'director')
+        )
+      );
+    
+    console.log('[SIGNATURE] 🗑️ Signature deleted for user:', user.id);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[SIGNATURE] Error deleting signature:', error);
+    res.status(500).json({ error: 'Failed to delete signature' });
+  }
+});
+
+// Get signature by school ID (for ID cards, bulletins - public endpoint)
+router.get('/school/:schoolId', async (req, res) => {
+  try {
+    const { schoolId } = req.params;
+    
+    // Find director of this school and get their signature
+    const result = await db.execute(`
+      SELECT s.signature_data, u.name as signatory_name
+      FROM signatures s
+      JOIN users u ON s.user_id = u.id
+      WHERE u.school_id = $1 
+        AND s.user_role = 'director' 
+        AND s.is_active = true
+      LIMIT 1
+    `, [schoolId]);
+    
+    if (!result.rows || result.rows.length === 0) {
+      return res.json({ signatureData: null });
+    }
+    
+    res.json({
+      signatureData: result.rows[0].signature_data,
+      signatoryName: result.rows[0].signatory_name
+    });
+  } catch (error) {
+    console.error('[SIGNATURE] Error getting school signature:', error);
+    res.status(500).json({ error: 'Failed to get signature' });
+  }
+});
+
+// ============================================
+// BULLETIN DIGITAL SIGNATURES (existing)
+// ============================================
 
 // Sign a bulletin digitally (Chef d'établissement only)
 router.post('/bulletins/:bulletinId/sign', requireAuth, requireRole('Director'), async (req, res) => {

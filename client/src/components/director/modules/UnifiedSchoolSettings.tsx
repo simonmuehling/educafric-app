@@ -23,12 +23,13 @@ import {
   Settings, School, Bell, MapPin, Clock, Users, 
   GraduationCap, Palette, Globe, Database,
   Eye, EyeOff, Save, Mail, Phone, Upload, Image, Flag,
-  WifiOff, Download, CheckCircle2, RefreshCw, AlertTriangle, MessageSquare
+  WifiOff, Download, CheckCircle2, RefreshCw, AlertTriangle, MessageSquare, Pen, Trash2
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
+import { SignaturePadCapture } from '@/components/shared/SignaturePadCapture';
 
 interface SchoolProfile {
   id: number;
@@ -80,6 +81,7 @@ const UnifiedSchoolSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [signaturePadOpen, setSignaturePadOpen] = useState(false);
   
   // Offline Premium Mode
   const { 
@@ -160,7 +162,24 @@ const UnifiedSchoolSettings: React.FC = () => {
       weekly: 'Hebdomadaire',
       monthly: 'Mensuelle',
       successUpdate: 'Paramètres mis à jour avec succès',
-      errorUpdate: 'Erreur lors de la mise à jour'
+      errorUpdate: 'Erreur lors de la mise à jour',
+      signatureTab: 'Signature Officielle',
+      signatureTitle: 'Signature Numérique du Directeur',
+      signatureDescription: 'Cette signature sera utilisée sur tous les documents officiels : bulletins, cartes d\'identité, certificats, etc.',
+      captureSignature: 'Capturer ma Signature',
+      updateSignature: 'Modifier ma Signature',
+      deleteSignature: 'Supprimer la Signature',
+      noSignature: 'Aucune signature enregistrée',
+      noSignatureDescription: 'Cliquez sur le bouton ci-dessous pour capturer votre signature numérique officielle.',
+      signaturePreview: 'Aperçu de la Signature',
+      signatureInfo: 'Informations de la Signature',
+      signatureSavedBy: 'Enregistrée par',
+      signatureSavedAt: 'Date d\'enregistrement',
+      signatureUsedFor: 'Utilisée pour',
+      signatureUsageList: 'Bulletins scolaires, Cartes d\'identité, Certificats, Lettres officielles',
+      signatureSecurityNote: 'Cette signature est cryptée et ne peut être utilisée que par votre établissement.',
+      signatureDeleted: 'Signature supprimée avec succès',
+      signatureDeleteError: 'Erreur lors de la suppression'
     },
     en: {
       title: 'School Settings',
@@ -227,7 +246,24 @@ const UnifiedSchoolSettings: React.FC = () => {
       weekly: 'Weekly',
       monthly: 'Monthly',
       successUpdate: 'Settings updated successfully',
-      errorUpdate: 'Error updating settings'
+      errorUpdate: 'Error updating settings',
+      signatureTab: 'Official Signature',
+      signatureTitle: 'Principal Digital Signature',
+      signatureDescription: 'This signature will be used on all official documents: bulletins, ID cards, certificates, etc.',
+      captureSignature: 'Capture my Signature',
+      updateSignature: 'Update my Signature',
+      deleteSignature: 'Delete Signature',
+      noSignature: 'No signature registered',
+      noSignatureDescription: 'Click the button below to capture your official digital signature.',
+      signaturePreview: 'Signature Preview',
+      signatureInfo: 'Signature Information',
+      signatureSavedBy: 'Saved by',
+      signatureSavedAt: 'Registration date',
+      signatureUsedFor: 'Used for',
+      signatureUsageList: 'Report cards, ID cards, Certificates, Official letters',
+      signatureSecurityNote: 'This signature is encrypted and can only be used by your institution.',
+      signatureDeleted: 'Signature deleted successfully',
+      signatureDeleteError: 'Error deleting signature'
     }
   };
 
@@ -303,6 +339,41 @@ const UnifiedSchoolSettings: React.FC = () => {
     emergencyAlerts: true
   };
   const notificationsLoading = false;
+
+  // Fetch principal signature
+  interface SignatureData {
+    id?: number;
+    signatureData?: string;
+    signatureName?: string;
+    signatureFunction?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  }
+  
+  const { data: signatureData, isLoading: signatureLoading } = useQuery<SignatureData>({
+    queryKey: ['/api/signatures', 'principal']
+  });
+
+  // Delete signature mutation
+  const deleteSignatureMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('DELETE', '/api/signatures/principal');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/signatures'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: t.signatureDeleted
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: t.signatureDeleteError,
+        variant: 'destructive'
+      });
+    }
+  });
 
   // Update mutations - use director API
   const updateProfileMutation = useMutation({
@@ -420,6 +491,7 @@ const UnifiedSchoolSettings: React.FC = () => {
   const tabs = [
     { id: 'profile', label: t.profileTab, icon: School },
     { id: 'official', label: t.officialTab, icon: Flag },
+    { id: 'signature', label: t.signatureTab, icon: Pen },
     { id: 'configuration', label: t.configTab, icon: Settings },
     { id: 'notifications', label: t.notificationsTab, icon: Bell }
   ];
@@ -814,6 +886,116 @@ const UnifiedSchoolSettings: React.FC = () => {
                     onClick={() => setIsEditing(false)}
                   >
                     {t.cancel}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Signature Tab */}
+        <TabsContent value="signature" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Pen className="w-5 h-5 text-blue-600" />
+                {t.signatureTitle}
+              </CardTitle>
+              <CardDescription>
+                {t.signatureDescription}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {signatureLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+                </div>
+              ) : signatureData?.signatureData ? (
+                <div className="space-y-6">
+                  <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-6">
+                    <h3 className="text-sm font-medium text-gray-500 mb-3">{t.signaturePreview}</h3>
+                    <div className="flex justify-center bg-white rounded-lg p-4 border">
+                      <img 
+                        src={signatureData.signatureData} 
+                        alt="Signature" 
+                        className="max-h-32 object-contain"
+                        data-testid="img-signature-preview"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <h4 className="font-medium text-blue-900 mb-2">{t.signatureInfo}</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-blue-600">{t.signatureSavedBy}:</span>
+                          <span className="font-medium text-blue-900">{signatureData.signatureName || schoolProfile?.principalName || 'Directeur'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-blue-600">{t.signatureSavedAt}:</span>
+                          <span className="font-medium text-blue-900">
+                            {signatureData.createdAt 
+                              ? new Date(signatureData.createdAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')
+                              : '-'
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-green-50 rounded-lg p-4">
+                      <h4 className="font-medium text-green-900 mb-2">{t.signatureUsedFor}</h4>
+                      <p className="text-sm text-green-700">{t.signatureUsageList}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Pen className="w-4 h-4 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-amber-800">{t.signatureSecurityNote}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setSignaturePadOpen(true)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      data-testid="button-update-signature"
+                    >
+                      <Pen className="w-4 h-4 mr-2" />
+                      {t.updateSignature}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="text-red-600 border-red-300 hover:bg-red-50"
+                      onClick={() => deleteSignatureMutation.mutate()}
+                      disabled={deleteSignatureMutation.isPending}
+                      data-testid="button-delete-signature"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {t.deleteSignature}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Pen className="w-10 h-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noSignature}</h3>
+                  <p className="text-gray-500 mb-6 max-w-md mx-auto">{t.noSignatureDescription}</p>
+                  <Button
+                    onClick={() => setSignaturePadOpen(true)}
+                    className="bg-green-600 hover:bg-green-700"
+                    data-testid="button-capture-signature"
+                  >
+                    <Pen className="w-4 h-4 mr-2" />
+                    {t.captureSignature}
                   </Button>
                 </div>
               )}
@@ -1246,6 +1428,14 @@ const UnifiedSchoolSettings: React.FC = () => {
         </TabsContent>
 
       </Tabs>
+      
+      {/* Signature Pad Dialog */}
+      <SignaturePadCapture
+        isOpen={signaturePadOpen}
+        onClose={() => setSignaturePadOpen(false)}
+        signatureFor="principal"
+        title={language === 'fr' ? 'Signature du Directeur' : 'Principal Signature'}
+      />
     </div>
   );
 };
