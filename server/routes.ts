@@ -2166,8 +2166,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔍 Fetching teacher ${user.id}'s subjects for class ${classId}`);
       
-      // Get teacher's assigned subjects for this class from timetables
-      // Note: timetables table only has subjectName, not subjectId
+      const schoolId = user.schoolId;
+      const seenSubjectNames = new Set<string>();
+      let teacherSubjects: any[] = [];
+      
+      // ===== SOURCE 1: Get subjects from timetables =====
       const allTeacherTimetables = await db
         .select({
           subjectName: timetables.subjectName,
@@ -2178,30 +2181,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(and(
           eq(timetables.teacherId, user.id),
           eq(timetables.classId, classId),
+          eq(timetables.schoolId, schoolId),
           eq(timetables.isActive, true)
         ));
       
-      // De-duplicate by subject name (since we don't have subjectId)
-      const seenSubjects = new Set<string>();
+      // De-duplicate by subject name
       const teacherTimetables = allTeacherTimetables.filter(t => {
         const key = t.subjectName?.toLowerCase() || '';
-        if (seenSubjects.has(key) || !key) return false;
-        seenSubjects.add(key);
+        if (seenSubjectNames.has(key) || !key) return false;
+        seenSubjectNames.add(key);
         return true;
       });
       
-      console.log(`[TEACHER_BULLETIN_SUBJECTS] 📚 Teacher has ${teacherTimetables.length} subject assignments for class ${classId}`);
+      console.log(`[TEACHER_BULLETIN_SUBJECTS] 📚 Source 1 (timetables): ${teacherTimetables.length} subjects`);
       
-      // Get unique subject names that teacher teaches
+      // Get subject names from timetables
       const teacherSubjectNames = [...new Set(teacherTimetables.map(t => t.subjectName?.toLowerCase()).filter(Boolean))];
-      const schoolId = teacherTimetables[0]?.schoolId || user.schoolId;
       
-      // Get full subject details from subjects table, filtered by what teacher teaches
-      let teacherSubjects: any[] = [];
+      // ===== SOURCE 2: Get subjects from teacherSubjectAssignments (for teachers created via form) =====
+      const assignedSubjects = await db
+        .select({
+          subjectId: teacherSubjectAssignments.subjectId,
+          subjectName: subjects.nameFr,
+          subjectNameEn: subjects.nameEn,
+          coefficient: subjects.coefficient,
+          subjectType: subjects.subjectType
+        })
+        .from(teacherSubjectAssignments)
+        .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+        .where(and(
+          eq(teacherSubjectAssignments.teacherId, user.id),
+          eq(teacherSubjectAssignments.schoolId, schoolId)
+        ));
       
-      // Only query if teacher has assignments for this class
-      if (teacherTimetables.length > 0 && teacherSubjectNames.length > 0) {
-        // Get all subjects for the class from subjects table
+      console.log(`[TEACHER_BULLETIN_SUBJECTS] 📚 Source 2 (teacherSubjectAssignments): ${assignedSubjects.length} subjects`);
+      
+      // Add assigned subjects not already seen
+      for (const subj of assignedSubjects) {
+        const key = (subj.subjectName || subj.subjectNameEn || '').toLowerCase();
+        if (key && !seenSubjectNames.has(key)) {
+          seenSubjectNames.add(key);
+          teacherSubjectNames.push(key);
+        }
+      }
+      
+      // ===== BUILD FINAL SUBJECTS LIST =====
+      // Try to get full subject details from subjects table
+      if (teacherSubjectNames.length > 0) {
         const allClassSubjects = await db.select()
           .from(subjects)
           .where(and(
@@ -2219,17 +2245,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔒 Filtered ${allClassSubjects.length} class subjects → ${teacherSubjects.length} teacher-assigned`);
       }
       
-      // If no subjects found in subjects table, create from timetable data directly
-      if (teacherSubjects.length === 0 && teacherTimetables.length > 0) {
-        console.log(`[TEACHER_BULLETIN_SUBJECTS] 📝 Creating subjects from timetable data (${teacherTimetables.length} entries)`);
-        teacherSubjects = teacherTimetables.map((t: any, index: number) => ({
-          id: `timetable-${index}`,
-          nameFr: t.subjectName,
-          nameEn: t.subjectName,
-          coefficient: 2,
-          subjectType: 'general',
-          bulletinSection: 'general'
-        }));
+      // If no subjects in subjects table, use data from timetables or assignments
+      if (teacherSubjects.length === 0) {
+        // First try timetables
+        if (teacherTimetables.length > 0) {
+          console.log(`[TEACHER_BULLETIN_SUBJECTS] 📝 Creating subjects from timetable data (${teacherTimetables.length} entries)`);
+          teacherSubjects = teacherTimetables.map((t: any, index: number) => ({
+            id: `timetable-${index}`,
+            nameFr: t.subjectName,
+            nameEn: t.subjectName,
+            coefficient: 2,
+            subjectType: 'general',
+            bulletinSection: 'general'
+          }));
+        } 
+        // Then try assigned subjects
+        else if (assignedSubjects.length > 0) {
+          console.log(`[TEACHER_BULLETIN_SUBJECTS] 📝 Creating subjects from teacherSubjectAssignments (${assignedSubjects.length} entries)`);
+          teacherSubjects = assignedSubjects.map((s: any, index: number) => ({
+            id: `assigned-${s.subjectId || index}`,
+            nameFr: s.subjectName || '',
+            nameEn: s.subjectNameEn || s.subjectName || '',
+            coefficient: s.coefficient || 2,
+            subjectType: s.subjectType || 'general',
+            bulletinSection: s.subjectType || 'general'
+          }));
+        }
       }
       
       // Build the response with teacher info
