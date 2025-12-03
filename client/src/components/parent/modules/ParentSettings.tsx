@@ -665,12 +665,12 @@ const ParentSettings = () => {
                 <Switch id="emailNotifs" defaultChecked />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="smsNotifs">{t.smsNotifications}</Label>
-                <Switch id="smsNotifs" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
                 <Label htmlFor="whatsappNotifs">{t.whatsappNotifications}</Label>
                 <Switch id="whatsappNotifs" defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="pushNotifs">{t.pushNotifications || 'Notifications Push'}</Label>
+                <Switch id="pushNotifs" defaultChecked />
               </div>
               <Button className="bg-blue-600 hover:bg-blue-700">
                 <Bell className="w-4 h-4 mr-2" />

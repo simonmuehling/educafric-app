@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, User, Bell, Shield, UserCheck, AlertTriangle, School, Loader2, Save, MessageCircle, Mail, Smartphone } from 'lucide-react';
+import { Settings, User, Bell, Shield, UserCheck, AlertTriangle, School, Loader2, Save, MessageCircle, Mail } from 'lucide-react';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -41,7 +41,6 @@ interface TeacherSettings {
     language: string;
     notifications: {
       email: boolean;
-      sms: boolean;
       push: boolean;
       whatsapp: boolean;
     };
@@ -71,7 +70,6 @@ const TeacherSettingsSimple = () => {
   
   const [notifications, setNotifications] = useState({
     email: true,
-    sms: true,
     push: true,
     whatsapp: true
   });
@@ -320,26 +318,6 @@ const TeacherSettingsSimple = () => {
                   checked={notifications.email}
                   onCheckedChange={(checked) => setNotifications({...notifications, email: checked})}
                   data-testid="switch-email-notifications"
-                />
-              </div>
-              
-              {/* SMS Notifications */}
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Smartphone className="w-5 h-5 text-green-600" />
-                  <div>
-                    <h4 className="font-medium">
-                      {language === 'fr' ? 'Notifications SMS' : 'SMS notifications'}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {language === 'fr' ? 'Recevoir des notifications par SMS' : 'Receive SMS notifications'}
-                    </p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={notifications.sms}
-                  onCheckedChange={(checked) => setNotifications({...notifications, sms: checked})}
-                  data-testid="switch-sms-notifications"
                 />
               </div>
               

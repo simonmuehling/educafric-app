@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Settings, User, Bell, Shield, Smartphone, Globe, Save } from 'lucide-react';
+import { Settings, User, Bell, Shield, MessageCircle, Globe, Save } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const SettingsManager = () => {
@@ -21,7 +21,7 @@ const SettingsManager = () => {
     
     // Notification settings
     emailNotifications: true,
-    smsNotifications: true,
+    whatsappNotifications: true,
     pushNotifications: true,
     gradeAlerts: true,
     attendanceAlerts: true,
@@ -57,7 +57,7 @@ const SettingsManager = () => {
       
       // Notifications
       emailNotifications: 'Notifications par email',
-      smsNotifications: 'Notifications SMS',
+      whatsappNotifications: 'Notifications WhatsApp',
       pushNotifications: 'Notifications push',
       gradeAlerts: 'Alertes de notes',
       attendanceAlerts: 'Alertes de présence',
@@ -100,7 +100,7 @@ const SettingsManager = () => {
       
       // Notifications
       emailNotifications: 'Email notifications',
-      smsNotifications: 'SMS notifications',
+      whatsappNotifications: 'WhatsApp notifications',
       pushNotifications: 'Push notifications',
       gradeAlerts: 'Grade alerts',
       attendanceAlerts: 'Attendance alerts',
@@ -134,11 +134,11 @@ const SettingsManager = () => {
       // Save notification settings
       const notificationSettings = [
         { notificationType: 'email', enabled: settings.emailNotifications, emailEnabled: settings.emailNotifications, smsEnabled: false, pushEnabled: false, whatsappEnabled: false, priority: 'medium' },
-        { notificationType: 'sms', enabled: settings.smsNotifications, emailEnabled: false, smsEnabled: settings.smsNotifications, pushEnabled: false, whatsappEnabled: false, priority: 'medium' },
+        { notificationType: 'whatsapp', enabled: settings.whatsappNotifications, emailEnabled: false, smsEnabled: false, pushEnabled: false, whatsappEnabled: settings.whatsappNotifications, priority: 'medium' },
         { notificationType: 'push', enabled: settings.pushNotifications, emailEnabled: false, smsEnabled: false, pushEnabled: settings.pushNotifications, whatsappEnabled: false, priority: 'medium' },
-        { notificationType: 'grade', enabled: settings.gradeAlerts, emailEnabled: settings.emailNotifications, smsEnabled: settings.smsNotifications, pushEnabled: settings.pushNotifications, whatsappEnabled: false, priority: 'high' },
-        { notificationType: 'attendance', enabled: settings.attendanceAlerts, emailEnabled: settings.emailNotifications, smsEnabled: settings.smsNotifications, pushEnabled: settings.pushNotifications, whatsappEnabled: false, priority: 'high' },
-        { notificationType: 'assignment', enabled: settings.assignmentReminders, emailEnabled: settings.emailNotifications, smsEnabled: false, pushEnabled: settings.pushNotifications, whatsappEnabled: false, priority: 'medium' }
+        { notificationType: 'grade', enabled: settings.gradeAlerts, emailEnabled: settings.emailNotifications, smsEnabled: false, pushEnabled: settings.pushNotifications, whatsappEnabled: settings.whatsappNotifications, priority: 'high' },
+        { notificationType: 'attendance', enabled: settings.attendanceAlerts, emailEnabled: settings.emailNotifications, smsEnabled: false, pushEnabled: settings.pushNotifications, whatsappEnabled: settings.whatsappNotifications, priority: 'high' },
+        { notificationType: 'assignment', enabled: settings.assignmentReminders, emailEnabled: settings.emailNotifications, smsEnabled: false, pushEnabled: settings.pushNotifications, whatsappEnabled: settings.whatsappNotifications, priority: 'medium' }
       ];
 
       const response = await fetch('/api/notification-settings', {
@@ -254,11 +254,11 @@ const SettingsManager = () => {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="smsNotifications">{t.smsNotifications}</Label>
+              <Label htmlFor="whatsappNotifications">{t.whatsappNotifications}</Label>
               <Switch
-                id="smsNotifications"
-                checked={settings.smsNotifications}
-                onCheckedChange={(checked) => handleInputChange('smsNotifications', checked)}
+                id="whatsappNotifications"
+                checked={settings.whatsappNotifications}
+                onCheckedChange={(checked) => handleInputChange('whatsappNotifications', checked)}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -345,7 +345,7 @@ const SettingsManager = () => {
       <Card>
         <CardHeader>
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-blue-500" />
+            <Globe className="w-5 h-5 text-blue-500" />
             {t.app}
           </h3>
         </CardHeader>

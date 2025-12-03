@@ -22,8 +22,8 @@ import {
 import { 
   Settings, School, Bell, MapPin, Clock, Users, 
   GraduationCap, Palette, Globe, Database,
-  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image, Flag,
-  WifiOff, Download, CheckCircle2, RefreshCw, AlertTriangle
+  Eye, EyeOff, Save, Mail, Phone, Upload, Image, Flag,
+  WifiOff, Download, CheckCircle2, RefreshCw, AlertTriangle, MessageSquare
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
@@ -65,7 +65,7 @@ interface SchoolConfiguration {
 
 interface NotificationSettings {
   emailNotifications: boolean;
-  smsNotifications: boolean;
+  whatsappNotifications: boolean;
   pushNotifications: boolean;
   parentUpdates: boolean;
   teacherAlerts: boolean;
@@ -139,7 +139,7 @@ const UnifiedSchoolSettings: React.FC = () => {
       parentNotifications: 'Notifications Parents',
       geolocationEnabled: 'Géolocalisation Activée',
       emailNotifications: 'Notifications Email',
-      smsNotifications: 'Notifications SMS',
+      whatsappNotifications: 'Notifications WhatsApp',
       pushNotifications: 'Notifications Push',
       parentUpdates: 'Mises à jour Parents',
       teacherAlerts: 'Alertes Enseignants',
@@ -206,7 +206,7 @@ const UnifiedSchoolSettings: React.FC = () => {
       parentNotifications: 'Parent Notifications',
       geolocationEnabled: 'Geolocation Enabled',
       emailNotifications: 'Email Notifications',
-      smsNotifications: 'SMS Notifications',
+      whatsappNotifications: 'WhatsApp Notifications',
       pushNotifications: 'Push Notifications',
       parentUpdates: 'Parent Updates',
       teacherAlerts: 'Teacher Alerts',
@@ -1156,18 +1156,18 @@ const UnifiedSchoolSettings: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors">
                   <div className="flex items-center gap-3">
-                    <Smartphone className="w-5 h-5 text-green-600" />
+                    <MessageSquare className="w-5 h-5 text-green-600" />
                     <div>
-                      <p className="font-medium text-gray-800">{t.smsNotifications}</p>
-                      <p className="text-sm text-gray-600">Notifications SMS</p>
+                      <p className="font-medium text-gray-800">{t.whatsappNotifications}</p>
+                      <p className="text-sm text-gray-600">Notifications WhatsApp</p>
                     </div>
                   </div>
                   <Switch 
-                    checked={notificationSettings?.smsNotifications || false}
+                    checked={notificationSettings?.whatsappNotifications || false}
                     onCheckedChange={(checked) => {
-                      updateNotificationsMutation.mutate({ smsNotifications: checked });
+                      updateNotificationsMutation.mutate({ whatsappNotifications: checked });
                     }}
-                    data-testid="switch-sms-notifications"
+                    data-testid="switch-whatsapp-notifications"
                   />
                 </div>
                 <div className="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors">
