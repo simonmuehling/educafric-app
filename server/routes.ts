@@ -1035,6 +1035,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: schoolInfo?.phone || '',
           email: schoolInfo?.email || '',
           logoUrl: schoolInfo?.logoUrl || '',
+          slogan: schoolInfo?.slogan || '',
           academicYear: '2024-2025',
           currentTerm: 'Premier Trimestre',
           communicationsEnabled: schoolInfo?.communicationsEnabled ?? true,
@@ -1071,6 +1072,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: dbUser?.phone,
           dateOfBirth: dbUser?.dateOfBirth,
           schoolName: schoolInfo?.name || 'École',
+          slogan: schoolInfo?.slogan || '',
+          logoUrl: schoolInfo?.logoUrl || '',
+          address: schoolInfo?.address || '',
+          principalName: schoolInfo?.principalName || '',
           position: dbUser?.position,
           qualifications: dbUser?.qualifications ? JSON.parse(dbUser.qualifications as string) : [],
           experience: dbUser?.experience || 0,
@@ -1142,13 +1147,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[DIRECTOR_SETTINGS] No valid fields to update');
       }
       
-      // If schoolName is being updated and user has a schoolId, update the school table
-      if (profileUpdates.schoolName && user.schoolId) {
-        await db.update(schools)
-          .set({ name: profileUpdates.schoolName })
-          .where(eq(schools.id, user.schoolId));
+      // If school fields are being updated and user has a schoolId, update the school table
+      if (user.schoolId && (profileUpdates.schoolName || profileUpdates.slogan !== undefined)) {
+        const schoolUpdates: any = {};
+        if (profileUpdates.schoolName) schoolUpdates.name = profileUpdates.schoolName;
+        if (profileUpdates.slogan !== undefined) schoolUpdates.slogan = profileUpdates.slogan;
         
-        console.log('[DIRECTOR_SETTINGS] ✅ School name updated to:', profileUpdates.schoolName, 'for school:', user.schoolId);
+        if (Object.keys(schoolUpdates).length > 0) {
+          await db.update(schools)
+            .set(schoolUpdates)
+            .where(eq(schools.id, user.schoolId));
+          
+          console.log('[DIRECTOR_SETTINGS] ✅ School updated:', schoolUpdates, 'for school:', user.schoolId);
+        }
       }
       
       res.json({ 

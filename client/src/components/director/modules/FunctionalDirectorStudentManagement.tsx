@@ -217,11 +217,14 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   });
   
   const schoolData = {
-    name: schoolSettings?.settings?.profile?.schoolName || schoolSettings?.settings?.profile?.name || 'Educafric School',
-    tagline: schoolSettings?.settings?.profile?.slogan || 'Excellence • Discipline • Intégrité',
-    logoUrl: schoolSettings?.settings?.profile?.logoUrl || null,
-    phone: schoolSettings?.settings?.profile?.phone || '',
-    address: schoolSettings?.settings?.profile?.address || ''
+    name: schoolSettings?.settings?.profile?.schoolName || schoolSettings?.settings?.school?.name || 'Educafric School',
+    tagline: schoolSettings?.settings?.profile?.slogan || schoolSettings?.settings?.school?.slogan || 'Excellence • Discipline • Intégrité',
+    slogan: schoolSettings?.settings?.profile?.slogan || schoolSettings?.settings?.school?.slogan || '',
+    logoUrl: schoolSettings?.settings?.profile?.logoUrl || schoolSettings?.settings?.school?.logoUrl || null,
+    phone: schoolSettings?.settings?.profile?.phone || schoolSettings?.settings?.school?.phone || '',
+    address: schoolSettings?.settings?.profile?.address || schoolSettings?.settings?.school?.address || '',
+    email: schoolSettings?.settings?.profile?.email || schoolSettings?.settings?.school?.email || '',
+    principalName: schoolSettings?.settings?.profile?.principalName || schoolSettings?.settings?.school?.principalName || ''
   };
 
   // Export function - uses filteredStudents to respect class filter selection
