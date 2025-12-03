@@ -31,6 +31,7 @@ interface StudentData {
 interface SchoolData {
   name: string;
   tagline?: string;
+  slogan?: string;
   logoUrl?: string;
   phone?: string;
   address?: string;
@@ -789,7 +790,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                   )}
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '2.8mm', fontWeight: 700, color: 'white', lineHeight: 1.1, textShadow: '0 0.5mm 1mm rgba(0,0,0,0.2)' }}>{school.name}</div>
-                    <div style={{ fontSize: '1.6mm', color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>{school.tagline || 'Excellence • Discipline • Intégrité'}</div>
+                    <div style={{ fontSize: '1.6mm', color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontStyle: 'italic' }}>{school.slogan || school.tagline || 'Excellence • Discipline • Intégrité'}</div>
                   </div>
                   <div style={{
                     background: 'rgba(255,255,255,0.95)',
@@ -1072,7 +1073,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                     )}
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '2.8mm', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{school.name}</div>
-                      <div style={{ fontSize: '1.6mm', color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>{school.tagline || 'Excellence • Discipline • Intégrité'}</div>
+                      <div style={{ fontSize: '1.6mm', color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontStyle: 'italic' }}>{school.slogan || school.tagline || 'Excellence • Discipline • Intégrité'}</div>
                     </div>
                     <div style={{ background: 'rgba(255,255,255,0.95)', color: '#059669', fontSize: '1.8mm', fontWeight: 700, padding: '1mm 2mm', borderRadius: '1mm', textTransform: 'uppercase' }}>{text.studentCard}</div>
                   </div>
