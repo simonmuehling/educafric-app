@@ -423,15 +423,6 @@ const FunctionalMyClasses: React.FC = () => {
                             <span className="text-xs">{classItem.schedule}</span>
                           </div>
                         )}
-                        {classItem.level && (
-                          <div className="flex items-center justify-between">
-                            <span className="flex items-center gap-1">
-                              <GraduationCap className="w-3 h-3" />
-                              {language === 'fr' ? 'Niveau' : 'Level'}:
-                            </span>
-                            <span className="font-medium">{classItem.level}</span>
-                          </div>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
