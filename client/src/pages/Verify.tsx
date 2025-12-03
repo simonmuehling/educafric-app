@@ -37,6 +37,9 @@ interface IDCardResult {
     cardId: string;
     className: string;
     schoolName: string;
+    schoolLogo?: string;
+    birthDate?: string;
+    birthPlace?: string;
     validUntil: string;
     issuedAt: string;
     photoUrl?: string;
@@ -172,6 +175,7 @@ export default function Verify() {
       studentId: 'Matricule',
       cardId: 'N° Carte',
       birthDate: 'Date de naissance',
+      birthPlace: 'Lieu de naissance',
       gender: 'Sexe',
       class: 'Classe',
       school: 'Établissement',
@@ -212,6 +216,7 @@ export default function Verify() {
       studentId: 'Student ID',
       cardId: 'Card No.',
       birthDate: 'Birth date',
+      birthPlace: 'Place of birth',
       gender: 'Gender',
       class: 'Class',
       school: 'School',
@@ -530,6 +535,22 @@ export default function Verify() {
                             {cardResult.data.matricule}
                           </div>
                         </div>
+                        {cardResult.data.birthDate && (
+                          <div className="bg-amber-50 p-3 rounded-lg">
+                            <Label className="text-xs text-gray-500">{labels.birthDate}</Label>
+                            <div className="font-medium" data-testid="text-card-birthdate">
+                              {cardResult.data.birthDate}
+                            </div>
+                          </div>
+                        )}
+                        {cardResult.data.birthPlace && (
+                          <div className="bg-amber-50 p-3 rounded-lg">
+                            <Label className="text-xs text-gray-500">{labels.birthPlace}</Label>
+                            <div className="font-medium" data-testid="text-card-birthplace">
+                              {cardResult.data.birthPlace}
+                            </div>
+                          </div>
+                        )}
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <Label className="text-xs text-gray-500">{labels.cardId}</Label>
                           <div className="font-mono font-medium" data-testid="text-card-id">

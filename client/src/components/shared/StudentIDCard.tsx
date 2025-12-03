@@ -20,6 +20,9 @@ interface StudentData {
   parentName?: string;
   parentPhone?: string;
   dateOfBirth?: string;
+  birthDate?: string;
+  birthPlace?: string;
+  placeOfBirth?: string;
   educafricNumber?: string;
   gender?: string;
   bloodType?: string;
@@ -320,13 +323,32 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
             
             .info-grid {
               display: grid;
-              gap: 1mm;
+              gap: 0.8mm;
             }
             
             .info-row {
               display: flex;
               align-items: baseline;
               gap: 1mm;
+            }
+            
+            .birth-info {
+              display: flex;
+              align-items: baseline;
+              gap: 1mm;
+              flex-wrap: wrap;
+            }
+            
+            .birth-label {
+              font-size: 1.8mm;
+              color: #6b7280;
+              font-weight: 600;
+            }
+            
+            .birth-value {
+              font-size: 2mm;
+              color: #1f2937;
+              font-weight: 600;
             }
             
             .info-label {
@@ -592,6 +614,26 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
     }, 500);
   };
 
+  // Format birth date
+  const formatBirthDate = (dateStr?: string) => {
+    if (!dateStr) return null;
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric' 
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+  
+  const birthDateValue = student.birthDate || student.dateOfBirth;
+  const birthPlaceValue = student.birthPlace || student.placeOfBirth;
+  const formattedBirthDate = formatBirthDate(birthDateValue);
+  
   const text = language === 'fr' ? {
     title: "Carte d'Identité Scolaire",
     printCard: "Imprimer la carte",
@@ -600,6 +642,8 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
     studentId: "N° Matricule",
     class: "Classe",
     academicYear: "Année",
+    birthDate: "Né(e) le",
+    birthPlace: "à",
     validThru: "Validité",
     cardNumber: "N° Carte",
     issuedOn: "Émis le",
@@ -621,6 +665,8 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
     studentId: "Student ID",
     class: "Class",
     academicYear: "Year",
+    birthDate: "Born on",
+    birthPlace: "at",
     validThru: "Valid Thru",
     cardNumber: "Card No.",
     issuedOn: "Issued on",
@@ -771,11 +817,27 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div style={{ fontSize: '4mm', fontWeight: 800, color: '#111827', lineHeight: 1.1, marginBottom: '1.5mm', textTransform: 'uppercase' }}>{fullName}</div>
                     
-                    <div style={{ display: 'grid', gap: '1mm' }}>
+                    <div style={{ display: 'grid', gap: '0.8mm' }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
                         <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600, minWidth: '12mm' }}>{text.studentId}:</span>
                         <span style={{ fontSize: '2.2mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span>
                       </div>
+                      {(formattedBirthDate || birthPlaceValue) && (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm', flexWrap: 'wrap' }}>
+                          {formattedBirthDate && (
+                            <>
+                              <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600 }}>{text.birthDate}</span>
+                              <span style={{ fontSize: '2mm', color: '#1f2937', fontWeight: 600 }}>{formattedBirthDate}</span>
+                            </>
+                          )}
+                          {birthPlaceValue && (
+                            <>
+                              <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600 }}>{text.birthPlace}</span>
+                              <span style={{ fontSize: '2mm', color: '#1f2937', fontWeight: 600 }}>{birthPlaceValue}</span>
+                            </>
+                          )}
+                        </div>
+                      )}
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
                         <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600, minWidth: '12mm' }}>{text.class}:</span>
                         <span style={{ fontSize: '2.2mm', color: '#1f2937', fontWeight: 700 }}>{student.className}</span>

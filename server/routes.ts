@@ -13677,8 +13677,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           s.matricule,
           s.photo,
           s.school_id,
+          s.date_of_birth,
+          s.birth_place,
           c.name as class_name,
-          sc.name as school_name
+          sc.name as school_name,
+          sc.logo as school_logo
         FROM students s
         LEFT JOIN classes c ON s.class_id = c.id
         LEFT JOIN schools sc ON s.school_id = sc.id
@@ -13699,6 +13702,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validUntil = `Sept ${currentYear + 1}`;
       const isActive = true; // Could add expiration check logic
       
+      // Format birth date
+      let formattedBirthDate = null;
+      if (student.date_of_birth) {
+        try {
+          const birthDate = new Date(student.date_of_birth);
+          formattedBirthDate = birthDate.toLocaleDateString('fr-FR', { 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric' 
+          });
+        } catch {
+          formattedBirthDate = student.date_of_birth;
+        }
+      }
+      
       console.log(`[VERIFY_CARD] ✅ Card verified for student: ${student.first_name} ${student.last_name}`);
       
       res.json({
@@ -13710,6 +13728,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cardId: cardIdStr,
           className: student.class_name || 'N/A',
           schoolName: student.school_name || 'EDUCAFRIC',
+          schoolLogo: student.school_logo || null,
+          birthDate: formattedBirthDate,
+          birthPlace: student.birth_place || null,
           validUntil,
           issuedAt: new Date().toISOString(),
           photoUrl: student.photo ? `/uploads/students/${student.photo}` : null,
