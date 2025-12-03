@@ -455,6 +455,259 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Update educational content
+router.put('/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = (req as any).user;
+    const contentId = parseInt(id);
+    const updateData = req.body;
+
+    if (isNaN(contentId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content ID'
+      });
+    }
+
+    console.log('[EDUCATIONAL_CONTENT] Updating content:', contentId, 'by user:', user.id);
+
+    // Verify user owns this content
+    const [existingContent] = await db
+      .select({ teacherId: educationalContent.teacherId, schoolId: educationalContent.schoolId })
+      .from(educationalContent)
+      .where(eq(educationalContent.id, contentId))
+      .limit(1);
+
+    if (!existingContent) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    // Only owner or director can update
+    if (existingContent.teacherId !== user.id && user.role !== 'Director') {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to update this content'
+      });
+    }
+
+    // Update the content
+    const [updatedContent] = await db
+      .update(educationalContent)
+      .set({
+        title: updateData.title,
+        description: updateData.description,
+        type: updateData.type,
+        level: updateData.level,
+        duration: updateData.duration,
+        objectives: updateData.objectives,
+        prerequisites: updateData.prerequisites,
+        updatedAt: new Date()
+      })
+      .where(eq(educationalContent.id, contentId))
+      .returning();
+
+    console.log('[EDUCATIONAL_CONTENT] ✅ Content updated successfully:', contentId);
+
+    res.json({
+      success: true,
+      message: 'Content updated successfully',
+      content: updatedContent
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update educational content'
+    });
+  }
+});
+
+// Download educational content as PDF
+router.get('/:id/download', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = (req as any).user;
+    const contentId = parseInt(id);
+
+    if (isNaN(contentId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content ID'
+      });
+    }
+
+    console.log('[EDUCATIONAL_CONTENT] Downloading content:', contentId);
+
+    // Get the content
+    const [content] = await db
+      .select({
+        id: educationalContent.id,
+        title: educationalContent.title,
+        description: educationalContent.description,
+        type: educationalContent.type,
+        level: educationalContent.level,
+        duration: educationalContent.duration,
+        objectives: educationalContent.objectives,
+        prerequisites: educationalContent.prerequisites,
+        files: educationalContent.files,
+        schoolId: educationalContent.schoolId,
+        downloadCount: educationalContent.downloadCount,
+        teacherFirstName: users.firstName,
+        teacherLastName: users.lastName,
+        subjectName: subjects.nameFr
+      })
+      .from(educationalContent)
+      .leftJoin(users, eq(educationalContent.teacherId, users.id))
+      .leftJoin(subjects, eq(educationalContent.subjectId, subjects.id))
+      .where(eq(educationalContent.id, contentId))
+      .limit(1);
+
+    if (!content) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    // Increment download count
+    await db
+      .update(educationalContent)
+      .set({ downloadCount: (content.downloadCount || 0) + 1 })
+      .where(eq(educationalContent.id, contentId));
+
+    // Generate simple HTML content for download
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>${content.title}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+    h1 { color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
+    h2 { color: #374151; margin-top: 30px; }
+    .meta { background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; }
+    .meta p { margin: 5px 0; }
+    .content { margin-top: 30px; }
+    .footer { margin-top: 50px; border-top: 1px solid #e5e7eb; padding-top: 20px; font-size: 12px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <h1>${content.title}</h1>
+  
+  <div class="meta">
+    <p><strong>Type:</strong> ${content.type === 'lesson' ? 'Leçon' : content.type === 'exercise' ? 'Exercice' : 'Évaluation'}</p>
+    <p><strong>Matière:</strong> ${content.subjectName || 'Général'}</p>
+    <p><strong>Niveau:</strong> ${content.level || 'Non spécifié'}</p>
+    <p><strong>Durée:</strong> ${content.duration || 60} minutes</p>
+    <p><strong>Auteur:</strong> ${content.teacherFirstName} ${content.teacherLastName}</p>
+  </div>
+
+  <div class="content">
+    <h2>Description</h2>
+    <p>${content.description || 'Aucune description'}</p>
+
+    ${content.objectives ? `<h2>Objectifs Pédagogiques</h2><p>${content.objectives}</p>` : ''}
+    ${content.prerequisites ? `<h2>Prérequis</h2><p>${content.prerequisites}</p>` : ''}
+  </div>
+
+  <div class="footer">
+    <p>Document généré par Educafric - ${new Date().toLocaleDateString('fr-FR')}</p>
+  </div>
+</body>
+</html>
+    `;
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${content.title.replace(/[^a-zA-Z0-9]/g, '_')}.html"`);
+    res.send(htmlContent);
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Download error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download educational content'
+    });
+  }
+});
+
+// Copy shared content to own library
+router.post('/:id/copy', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = (req as any).user;
+    const contentId = parseInt(id);
+
+    if (isNaN(contentId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content ID'
+      });
+    }
+
+    console.log('[EDUCATIONAL_CONTENT] Copying content:', contentId, 'for user:', user.id);
+
+    // Get the original content
+    const [originalContent] = await db
+      .select()
+      .from(educationalContent)
+      .where(eq(educationalContent.id, contentId))
+      .limit(1);
+
+    if (!originalContent) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found'
+      });
+    }
+
+    // Create a copy for the user
+    const [newContent] = await db.insert(educationalContent).values({
+      title: `${originalContent.title} (Copie)`,
+      description: originalContent.description,
+      type: originalContent.type,
+      subjectId: originalContent.subjectId,
+      level: originalContent.level,
+      duration: originalContent.duration,
+      objectives: originalContent.objectives,
+      prerequisites: originalContent.prerequisites,
+      teacherId: user.id,
+      schoolId: user.schoolId,
+      files: originalContent.files,
+      status: 'draft',
+      visibility: 'private',
+      downloadCount: 0,
+      tags: originalContent.tags
+    }).returning();
+
+    // Increment original download count
+    await db
+      .update(educationalContent)
+      .set({ downloadCount: (originalContent.downloadCount || 0) + 1 })
+      .where(eq(educationalContent.id, contentId));
+
+    console.log('[EDUCATIONAL_CONTENT] ✅ Content copied successfully:', newContent.id);
+
+    res.json({
+      success: true,
+      message: 'Content copied to your library',
+      content: newContent
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Copy error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to copy educational content'
+    });
+  }
+});
+
 // Share educational content with other teachers
 router.post('/:id/share', requireAuth, async (req, res) => {
   try {

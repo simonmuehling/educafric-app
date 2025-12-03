@@ -19,9 +19,13 @@ const CreateEducationalContent = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('lessons');
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<any>(null);
   const [currentContent, setCurrentContent] = useState({
     title: '',
     description: '',
@@ -31,6 +35,17 @@ const CreateEducationalContent = () => {
     duration: 60,
     objectives: '',
     materials: [],
+    prerequisites: ''
+  });
+  const [editContent, setEditContent] = useState({
+    id: 0,
+    title: '',
+    description: '',
+    type: 'lesson',
+    subject: 'mathematiques',
+    level: '6eme',
+    duration: 60,
+    objectives: '',
     prerequisites: ''
   });
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -345,12 +360,148 @@ const CreateEducationalContent = () => {
           description: language === 'fr' ? "Le contenu a été soumis au directeur pour validation" : "Content has been submitted to the director for approval",
           variant: "default"
         });
+        refetchContent();
       }
     } catch (error) {
       toast({
         title: language === 'fr' ? "Erreur" : "Error",
         description: language === 'fr' ? "Impossible de soumettre le contenu" : "Failed to submit content",
         variant: "destructive"
+      });
+    }
+  };
+
+  const handlePreview = (content: any) => {
+    setSelectedContent(content);
+    setIsPreviewDialogOpen(true);
+  };
+
+  const handleEdit = (content: any) => {
+    setEditContent({
+      id: content.id,
+      title: content.title || '',
+      description: content.description || '',
+      type: content.type || 'lesson',
+      subject: content.subject || 'mathematiques',
+      level: content.level || '6eme',
+      duration: content.duration || 60,
+      objectives: content.objectives || '',
+      prerequisites: content.prerequisites || ''
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateContent = async () => {
+    if (!editContent.title || !editContent.description) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill in all required fields',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/educational-content/${editContent.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editContent)
+      });
+
+      if (!response.ok) throw new Error('Failed to update content');
+
+      toast({
+        title: language === 'fr' ? 'Contenu modifié' : 'Content updated',
+        description: language === 'fr' ? 'Le contenu a été mis à jour avec succès' : 'Content has been updated successfully'
+      });
+
+      setIsEditDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/educational-content'] });
+      refetchContent();
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de modifier le contenu' : 'Failed to update content',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDownloadContent = async (content: any) => {
+    try {
+      const response = await fetch(`/api/educational-content/${content.id}/download`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!response.ok) throw new Error('Failed to download');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${content.title || 'contenu'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: language === 'fr' ? 'Téléchargement réussi' : 'Download successful',
+        description: language === 'fr' ? 'Le contenu a été téléchargé' : 'Content has been downloaded'
+      });
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de télécharger le contenu' : 'Failed to download content',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleUseTemplate = async (template: any) => {
+    setCurrentContent({
+      title: `${template.title} - ${language === 'fr' ? 'Copie' : 'Copy'}`,
+      description: template.description || '',
+      type: template.type || 'lesson',
+      subject: template.subject || 'mathematiques',
+      level: template.level || '6eme',
+      duration: template.duration || 60,
+      objectives: template.objectives || '',
+      materials: [],
+      prerequisites: template.prerequisites || ''
+    });
+    setIsCreateDialogOpen(true);
+    toast({
+      title: language === 'fr' ? 'Modèle chargé' : 'Template loaded',
+      description: language === 'fr' ? 'Vous pouvez maintenant personnaliser ce modèle' : 'You can now customize this template'
+    });
+  };
+
+  const handleCopySharedContent = async (content: any) => {
+    try {
+      const response = await fetch(`/api/educational-content/${content.id}/copy`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        toast({
+          title: language === 'fr' ? 'Contenu copié' : 'Content copied',
+          description: language === 'fr' ? 'Le contenu a été ajouté à votre bibliothèque' : 'Content has been added to your library'
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/educational-content'] });
+        refetchContent();
+      } else {
+        throw new Error('Failed to copy');
+      }
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de copier le contenu' : 'Failed to copy content',
+        variant: 'destructive'
       });
     }
   };
@@ -520,11 +671,23 @@ const CreateEducationalContent = () => {
                       <div className="space-y-2">
                         {/* Première ligne d'actions */}
                         <div className="flex gap-1 sm:gap-2">
-                          <Button size="sm" variant="outline" className="flex-1 text-xs sm:text-sm px-2 sm:px-3">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1 text-xs sm:text-sm px-2 sm:px-3"
+                            onClick={() => handlePreview(content)}
+                            data-testid={`button-preview-${content.id}`}
+                          >
                             <Eye className="w-3 h-3 sm:mr-1" />
                             <span className="hidden sm:inline">{t.preview}</span>
                           </Button>
-                          <Button size="sm" variant="outline" className="flex-1 text-xs sm:text-sm px-2 sm:px-3">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1 text-xs sm:text-sm px-2 sm:px-3"
+                            onClick={() => handleEdit(content)}
+                            data-testid={`button-edit-${content.id}`}
+                          >
                             <Edit className="w-3 h-3 sm:mr-1" />
                             <span className="hidden sm:inline">{t.edit}</span>
                           </Button>
@@ -645,11 +808,22 @@ const CreateEducationalContent = () => {
                     </div>
                     
                     <div className="flex gap-1 sm:gap-2">
-                      <Button size="sm" variant="outline" className="flex-1 text-xs sm:text-sm px-2 sm:px-3">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1 text-xs sm:text-sm px-2 sm:px-3"
+                        onClick={() => handlePreview(template)}
+                        data-testid={`button-preview-template-${template.id}`}
+                      >
                         <Eye className="w-3 h-3 sm:mr-1" />
                         <span className="hidden sm:inline">Aperçu</span>
                       </Button>
-                      <Button size="sm" className="flex-1 text-xs sm:text-sm px-2 sm:px-3 bg-blue-600 hover:bg-blue-700">
+                      <Button 
+                        size="sm" 
+                        className="flex-1 text-xs sm:text-sm px-2 sm:px-3 bg-blue-600 hover:bg-blue-700"
+                        onClick={() => handleUseTemplate(template)}
+                        data-testid={`button-use-template-${template.id}`}
+                      >
                         <Download className="w-3 h-3 sm:mr-1" />
                         <span className="hidden sm:inline">Utiliser</span>
                       </Button>
@@ -711,15 +885,26 @@ const CreateEducationalContent = () => {
                         </div>
                         
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="flex-1 text-xs sm:text-sm">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1 text-xs sm:text-sm"
+                            onClick={() => handlePreview(content)}
+                            data-testid={`button-preview-shared-${content.id}`}
+                          >
                             <Eye className="w-3 h-3 mr-1" />
                             <span className="hidden sm:inline">{t.preview}</span>
                             <span className="sm:hidden">{language === 'fr' ? 'Voir' : 'View'}</span>
                           </Button>
-                          <Button size="sm" className="flex-1 text-xs sm:text-sm bg-green-600 hover:bg-green-700">
+                          <Button 
+                            size="sm" 
+                            className="flex-1 text-xs sm:text-sm bg-green-600 hover:bg-green-700"
+                            onClick={() => handleCopySharedContent(content)}
+                            data-testid={`button-copy-shared-${content.id}`}
+                          >
                             <Download className="w-3 h-3 mr-1" />
-                            <span className="hidden sm:inline">{language === 'fr' ? 'Télécharger' : 'Download'}</span>
-                            <span className="sm:hidden">DL</span>
+                            <span className="hidden sm:inline">{language === 'fr' ? 'Copier' : 'Copy'}</span>
+                            <span className="sm:hidden">+</span>
                           </Button>
                         </div>
                       </div>
@@ -931,6 +1116,208 @@ const CreateEducationalContent = () => {
               <Button onClick={handleSaveContent} className="bg-blue-600 hover:bg-blue-700">
                 <Save className="w-4 h-4 mr-2" />
                 {t.save}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Aperçu */}
+      <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-blue-600" />
+              {language === 'fr' ? 'Aperçu du contenu' : 'Content Preview'}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedContent && (
+            <div className="space-y-4">
+              <div className="border-b pb-4">
+                <h3 className="text-xl font-bold text-gray-900">{selectedContent.title || 'Sans titre'}</h3>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Badge variant="outline">{selectedContent.type || 'lesson'}</Badge>
+                  <Badge variant="secondary">{selectedContent.subject || 'Général'}</Badge>
+                  <Badge>{selectedContent.level || 'N/A'}</Badge>
+                  {selectedContent.status && (
+                    <Badge className={`${
+                      selectedContent.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      selectedContent.status === 'pending_approval' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedContent.status}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-gray-700 mb-2">
+                  {language === 'fr' ? 'Description' : 'Description'}
+                </h4>
+                <p className="text-gray-600">{selectedContent.description || 'Aucune description'}</p>
+              </div>
+
+              {selectedContent.objectives && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">
+                    {language === 'fr' ? 'Objectifs pédagogiques' : 'Learning Objectives'}
+                  </h4>
+                  <p className="text-gray-600">{selectedContent.objectives}</p>
+                </div>
+              )}
+
+              {selectedContent.prerequisites && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-2">
+                    {language === 'fr' ? 'Prérequis' : 'Prerequisites'}
+                  </h4>
+                  <p className="text-gray-600">{selectedContent.prerequisites}</p>
+                </div>
+              )}
+
+              <div className="flex items-center gap-4 text-sm text-gray-500">
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  <span>{selectedContent.duration || 60} min</span>
+                </div>
+                {selectedContent.teacherName && (
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    <span>{selectedContent.teacherName}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 justify-end pt-4 border-t">
+                <Button variant="outline" onClick={() => setIsPreviewDialogOpen(false)}>
+                  {language === 'fr' ? 'Fermer' : 'Close'}
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setIsPreviewDialogOpen(false);
+                    handleDownloadContent(selectedContent);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Télécharger' : 'Download'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Modifier */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5 text-orange-600" />
+              {language === 'fr' ? 'Modifier le contenu' : 'Edit Content'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">{t.contentTitle}</label>
+                <Input
+                  value={editContent.title || ''}
+                  onChange={(e) => setEditContent(prev => ({ ...prev, title: e?.target?.value }))}
+                  placeholder="Titre du contenu..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Type</label>
+                <select
+                  value={editContent.type}
+                  onChange={(e) => setEditContent(prev => ({ ...prev, type: e?.target?.value }))}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {(Array.isArray(contentTypes) ? contentTypes : []).map(type => (
+                    <option key={type.id} value={type.id}>{type.name || ''}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">{t.description || ''}</label>
+              <Textarea
+                value={editContent.description || ''}
+                onChange={(e) => setEditContent(prev => ({ ...prev, description: e?.target?.value }))}
+                placeholder="Description du contenu..."
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">{t.subject}</label>
+                <select
+                  value={editContent.subject}
+                  onChange={(e) => setEditContent(prev => ({ ...prev, subject: e?.target?.value }))}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {(Array.isArray(subjects) ? subjects : []).map(subject => (
+                    <option key={subject.id} value={subject.id}>{subject.name || ''}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">{t.level}</label>
+                <select
+                  value={editContent.level}
+                  onChange={(e) => setEditContent(prev => ({ ...prev, level: e?.target?.value }))}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {(Array.isArray(levels) ? levels : []).map(level => (
+                    <option key={level.id} value={level.id}>{level.name || ''}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">{t.duration}</label>
+                <Input
+                  type="number"
+                  value={editContent.duration}
+                  onChange={(e) => setEditContent(prev => ({ ...prev, duration: parseInt(e?.target?.value) || 60 }))}
+                  placeholder="60"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">{t.objectives}</label>
+              <Textarea
+                value={editContent.objectives}
+                onChange={(e) => setEditContent(prev => ({ ...prev, objectives: e?.target?.value }))}
+                placeholder="Objectifs pédagogiques..."
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">{t.prerequisites}</label>
+              <Textarea
+                value={editContent.prerequisites}
+                onChange={(e) => setEditContent(prev => ({ ...prev, prerequisites: e?.target?.value }))}
+                placeholder="Prérequis nécessaires..."
+                rows={2}
+              />
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                {t.cancel}
+              </Button>
+              <Button onClick={handleUpdateContent} className="bg-orange-600 hover:bg-orange-700">
+                <Save className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Mettre à jour' : 'Update'}
               </Button>
             </div>
           </div>
