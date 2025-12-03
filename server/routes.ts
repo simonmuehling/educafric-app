@@ -2167,45 +2167,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔍 Fetching teacher ${user.id}'s subjects for class ${classId}`);
       
       const schoolId = user.schoolId;
-      const seenSubjectNames = new Set<string>();
       let teacherSubjects: any[] = [];
       
-      // ===== SOURCE 1: Get subjects from timetables =====
-      const allTeacherTimetables = await db
-        .select({
-          subjectName: timetables.subjectName,
-          classId: timetables.classId,
-          schoolId: timetables.schoolId
-        })
-        .from(timetables)
-        .where(and(
-          eq(timetables.teacherId, user.id),
-          eq(timetables.classId, classId),
-          eq(timetables.schoolId, schoolId),
-          eq(timetables.isActive, true)
-        ));
-      
-      // De-duplicate by subject name
-      const teacherTimetables = allTeacherTimetables.filter(t => {
-        const key = t.subjectName?.toLowerCase() || '';
-        if (seenSubjectNames.has(key) || !key) return false;
-        seenSubjectNames.add(key);
-        return true;
-      });
-      
-      console.log(`[TEACHER_BULLETIN_SUBJECTS] 📚 Source 1 (timetables): ${teacherTimetables.length} subjects`);
-      
-      // Get subject names from timetables
-      const teacherSubjectNames = [...new Set(teacherTimetables.map(t => t.subjectName?.toLowerCase()).filter(Boolean))];
-      
-      // ===== SOURCE 2: Get subjects from teacherSubjectAssignments (for teachers created via form) =====
+      // ===== UNIQUE SOURCE: teacherSubjectAssignments (module "Mes Classes") =====
+      // Ne plus utiliser timetables - récupérer depuis teacherSubjectAssignments uniquement
       const assignedSubjects = await db
         .select({
           subjectId: teacherSubjectAssignments.subjectId,
+          classId: teacherSubjectAssignments.classId,
           subjectName: subjects.nameFr,
           subjectNameEn: subjects.nameEn,
           coefficient: subjects.coefficient,
-          subjectType: subjects.subjectType
+          subjectType: subjects.subjectType,
+          subjectCode: subjects.code
         })
         .from(teacherSubjectAssignments)
         .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
@@ -2214,63 +2188,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(teacherSubjectAssignments.schoolId, schoolId)
         ));
       
-      console.log(`[TEACHER_BULLETIN_SUBJECTS] 📚 Source 2 (teacherSubjectAssignments): ${assignedSubjects.length} subjects`);
+      console.log(`[TEACHER_BULLETIN_SUBJECTS] 📚 Source (teacherSubjectAssignments): ${assignedSubjects.length} subjects for teacher ${user.id}`);
       
-      // Add assigned subjects not already seen
-      for (const subj of assignedSubjects) {
-        const key = (subj.subjectName || subj.subjectNameEn || '').toLowerCase();
-        if (key && !seenSubjectNames.has(key)) {
-          seenSubjectNames.add(key);
-          teacherSubjectNames.push(key);
-        }
-      }
-      
-      // ===== BUILD FINAL SUBJECTS LIST =====
-      // Try to get full subject details from subjects table
-      if (teacherSubjectNames.length > 0) {
-        const allClassSubjects = await db.select()
-          .from(subjects)
-          .where(and(
-            eq(subjects.classId, classId),
-            eq(subjects.schoolId, schoolId)
-          ));
-        
-        // Filter to only subjects the teacher teaches (by name match)
-        teacherSubjects = allClassSubjects.filter((s: any) => {
-          const matchByNameFr = teacherSubjectNames.includes(s.nameFr?.toLowerCase());
-          const matchByNameEn = teacherSubjectNames.includes(s.nameEn?.toLowerCase());
-          return matchByNameFr || matchByNameEn;
-        });
-        
-        console.log(`[TEACHER_BULLETIN_SUBJECTS] 🔒 Filtered ${allClassSubjects.length} class subjects → ${teacherSubjects.length} teacher-assigned`);
-      }
-      
-      // If no subjects in subjects table, use data from timetables or assignments
-      if (teacherSubjects.length === 0) {
-        // First try timetables
-        if (teacherTimetables.length > 0) {
-          console.log(`[TEACHER_BULLETIN_SUBJECTS] 📝 Creating subjects from timetable data (${teacherTimetables.length} entries)`);
-          teacherSubjects = teacherTimetables.map((t: any, index: number) => ({
-            id: `timetable-${index}`,
-            nameFr: t.subjectName,
-            nameEn: t.subjectName,
-            coefficient: 2,
-            subjectType: 'general',
-            bulletinSection: 'general'
-          }));
-        } 
-        // Then try assigned subjects
-        else if (assignedSubjects.length > 0) {
-          console.log(`[TEACHER_BULLETIN_SUBJECTS] 📝 Creating subjects from teacherSubjectAssignments (${assignedSubjects.length} entries)`);
-          teacherSubjects = assignedSubjects.map((s: any, index: number) => ({
-            id: `assigned-${s.subjectId || index}`,
-            nameFr: s.subjectName || '',
-            nameEn: s.subjectNameEn || s.subjectName || '',
-            coefficient: s.coefficient || 2,
-            subjectType: s.subjectType || 'general',
-            bulletinSection: s.subjectType || 'general'
-          }));
-        }
+      // Build subjects list from teacherSubjectAssignments
+      if (assignedSubjects.length > 0) {
+        teacherSubjects = assignedSubjects.map((s: any, index: number) => ({
+          id: s.subjectId || `assigned-${index}`,
+          nameFr: s.subjectName || '',
+          nameEn: s.subjectNameEn || s.subjectName || '',
+          code: s.subjectCode || '',
+          coefficient: s.coefficient || 2,
+          subjectType: s.subjectType || 'general',
+          bulletinSection: s.subjectType || 'general'
+        }));
+        console.log(`[TEACHER_BULLETIN_SUBJECTS] ✅ Created ${teacherSubjects.length} subjects from teacherSubjectAssignments`);
+      } else {
+        console.log(`[TEACHER_BULLETIN_SUBJECTS] ⚠️ No subjects found in teacherSubjectAssignments for teacher ${user.id}`);
       }
       
       // Build the response with teacher info
