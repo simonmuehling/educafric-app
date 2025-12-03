@@ -81,7 +81,11 @@ router.post('/', requireAuth, upload.array('files', 10), async (req, res) => {
       url: `/uploads/educational-content/${file.filename}`
     })) : [];
 
-    // Insert into database
+    // Insert into database - ensure tags is properly formatted for PostgreSQL
+    const tagsArray = Array.isArray(contentData.tags) && contentData.tags.length > 0 
+      ? contentData.tags 
+      : null;
+    
     const insertData: typeof educationalContent.$inferInsert = {
       title: contentData.title,
       description: contentData.description || null,
@@ -93,11 +97,11 @@ router.post('/', requireAuth, upload.array('files', 10), async (req, res) => {
       prerequisites: contentData.prerequisites || null,
       teacherId: user.id,
       schoolId: user.schoolId,
-      files: fileUrls,
+      files: fileUrls.length > 0 ? fileUrls : null,
       status: 'draft',
       visibility: 'school',
       downloadCount: 0,
-      tags: contentData.tags || []
+      tags: tagsArray
     };
 
     const [newContent] = await db.insert(educationalContent).values(insertData).returning();
