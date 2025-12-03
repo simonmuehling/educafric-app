@@ -7120,7 +7120,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schoolId = user.schoolId;
       const { status, classId, subject } = req.query;
       
-      console.log('[HOMEWORK_API] 📚 Fetching assignments for teacher:', teacherId);
+      console.log('[HOMEWORK_API] 📚 Fetching assignments for teacher:', teacherId, 'status:', status);
+      
+      const now = new Date();
+      const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
+      
+      // Auto-archive: Mark completed/overdue assignments as archived after 10 days
+      await db
+        .update(homework)
+        .set({ 
+          status: 'archived',
+          archivedAt: now
+        })
+        .where(and(
+          eq(homework.teacherId, teacherId),
+          eq(homework.schoolId, schoolId),
+          or(
+            eq(homework.status, 'completed'),
+            eq(homework.status, 'overdue')
+          ),
+          sql`${homework.updatedAt} < ${tenDaysAgo}`,
+          sql`${homework.archivedAt} IS NULL`
+        ));
+      
+      // Auto-mark overdue: Update active assignments past due date
+      await db
+        .update(homework)
+        .set({ status: 'overdue' })
+        .where(and(
+          eq(homework.teacherId, teacherId),
+          eq(homework.schoolId, schoolId),
+          eq(homework.status, 'active'),
+          sql`${homework.dueDate} < ${now}`
+        ));
+      
+      // Build status filter based on tab
+      let statusFilter;
+      if (status === 'active') {
+        statusFilter = eq(homework.status, 'active');
+      } else if (status === 'completed') {
+        statusFilter = eq(homework.status, 'completed');
+      } else if (status === 'overdue') {
+        statusFilter = eq(homework.status, 'overdue');
+      } else if (status === 'archived') {
+        // Archives are handled by separate endpoint
+        statusFilter = eq(homework.status, 'archived');
+      } else {
+        // 'all' or undefined - exclude archived
+        statusFilter = sql`${homework.status} != 'archived'`;
+      }
       
       // Get assignments from PostgreSQL
       const assignmentsQuery = db
@@ -7147,10 +7195,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(and(
           eq(homework.teacherId, teacherId),
           eq(homework.schoolId, schoolId),
-          status ? eq(homework.status, status as string) : undefined,
+          statusFilter,
           classId ? eq(homework.classId, parseInt(classId as string)) : undefined
         ))
-        .orderBy(homework.createdAt);
+        .orderBy(desc(homework.createdAt));
 
       const assignments = await assignmentsQuery;
       
