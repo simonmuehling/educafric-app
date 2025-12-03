@@ -342,12 +342,18 @@ const TeacherTimetable = () => {
     return Array.from(slots).sort();
   };
 
-  const classes = [
-    { id: '6eme-a', name: '6ème A', students: 32 },
-    { id: '6eme-b', name: '6ème B', students: 28 },
-    { id: '5eme-a', name: '5ème A', students: 30 },
-    { id: '4eme-a', name: '4ème A', students: 27 }
-  ];
+  // Use real assigned classes from API (from teacherSubjectAssignments module "Mes Classes")
+  const assignedClasses = (timetableData as any)?.assignedClasses || [];
+  const assignedSubjects = (timetableData as any)?.assignedSubjects || [];
+  
+  // Build classes list from real data
+  const classes = assignedClasses.map((ac: any) => ({
+    id: `class-${ac.classId}`,
+    name: ac.className || '',
+    subject: ac.subject || '',
+    classId: ac.classId,
+    subjectId: ac.subjectId
+  }));
 
 
   const getClassColor = (className: string) => {
@@ -422,39 +428,19 @@ const TeacherTimetable = () => {
     });
   };
 
-  // Use real data if available, otherwise fall back to mock data
+  // Use ONLY real data from API - NO mock data fallback
   const schedule = (timetableData as any)?.timetable?.schedule || {
-    monday: [
-      { time: '08:00-09:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
-      { time: '09:00-10:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
-      { time: '11:00-12:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' },
-      { time: '14:00-15:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' }
-    ],
-    tuesday: [
-      { time: '08:00-09:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' },
-      { time: '10:00-11:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
-      { time: '15:00-16:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' }
-    ],
-    wednesday: [
-      { time: '09:00-10:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' },
-      { time: '11:00-12:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' },
-      { time: '14:00-15:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' }
-    ],
-    thursday: [
-      { time: '08:00-09:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' },
-      { time: '10:00-11:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' },
-      { time: '16:00-17:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' }
-    ],
-    friday: [
-      { time: '09:00-10:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' },
-      { time: '11:00-12:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' },
-      { time: '15:00-16:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' }
-    ],
-    saturday: [
-      { time: '08:00-09:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
-      { time: '10:00-11:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' }
-    ]
+    monday: [],
+    tuesday: [],
+    wednesday: [],
+    thursday: [],
+    friday: [],
+    saturday: []
   };
+  
+  // Check if timetable has any entries
+  const hasScheduleEntries = Object.values(schedule).some((daySlots: any) => daySlots && daySlots.length > 0);
+  const hasAssignedClasses = assignedClasses.length > 0;
 
   const changeRequests = (changeRequestsData as any)?.changeRequests || [];
   const adminResponses = (adminResponsesData as any)?.responses || [];
@@ -603,143 +589,194 @@ const TeacherTimetable = () => {
           {/* Statistiques */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <ModernCard className="p-4 text-center activity-card-blue">
-          <div className="text-2xl font-bold text-gray-800">{getTotalHours()}</div>
-          <div className="text-sm text-gray-600">{t.totalHours}</div>
-        </ModernCard>
-        <ModernCard className="p-4 text-center activity-card-green">
-          <div className="text-2xl font-bold text-gray-800">4</div>
-          <div className="text-sm text-gray-600">{t.classesLabel}</div>
-        </ModernCard>
-        <ModernCard className="p-4 text-center activity-card-purple">
-          <div className="text-2xl font-bold text-gray-800">{40 - getTotalHours()}</div>
-          <div className="text-sm text-gray-600">{t.freeSlots}</div>
-        </ModernCard>
-        <ModernCard className="p-4 text-center activity-card-orange">
-          <div className="text-2xl font-bold text-gray-800">{getConflicts()}</div>
-          <div className="text-sm text-gray-600">{t.conflicts}</div>
-        </ModernCard>
-      </div>
+              <div className="text-2xl font-bold text-gray-800">{getTotalHours()}</div>
+              <div className="text-sm text-gray-600">{t.totalHours}</div>
+            </ModernCard>
+            <ModernCard className="p-4 text-center activity-card-green">
+              <div className="text-2xl font-bold text-gray-800">{classes.length}</div>
+              <div className="text-sm text-gray-600">{t.classesLabel}</div>
+            </ModernCard>
+            <ModernCard className="p-4 text-center activity-card-purple">
+              <div className="text-2xl font-bold text-gray-800">{assignedSubjects.length}</div>
+              <div className="text-sm text-gray-600">{language === 'fr' ? 'Matières' : 'Subjects'}</div>
+            </ModernCard>
+            <ModernCard className="p-4 text-center activity-card-orange">
+              <div className="text-2xl font-bold text-gray-800">{getConflicts()}</div>
+              <div className="text-sm text-gray-600">{t.conflicts}</div>
+            </ModernCard>
+          </div>
 
-      {/* Contrôles */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-2">{t.week}</label>
-          <select 
-            value={selectedWeek}
-            onChange={(e) => setSelectedWeek(e?.target?.value)}
-            className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="current">{t.currentWeek}</option>
-            <option value="next">{t.nextWeek}</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-2">{t.class}</label>
-          <select 
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e?.target?.value)}
-            className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">{t.allClasses}</option>
-            {(Array.isArray(classes) ? classes : []).map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name || ''}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Grille emploi du temps */}
-      <ModernCard className="p-4">
-        <div className="overflow-x-auto">
-          <div className="min-w-full">
-            {/* Version Mobile */}
-            <div className="block md:hidden space-y-4">
-              {(Array.isArray(daysOfWeek) ? daysOfWeek : []).map(day => (
-                <div key={day.id} className="border rounded-lg p-3">
-                  <h3 className="font-semibold text-lg mb-3 text-center">{day.name || ''}</h3>
-                  <div className="space-y-2">
-                    {(schedule as any)[day.id]?.map((slot: any, index: number) => (
-                      <div 
-                        key={index}
-                        className={`p-3 rounded-lg cursor-pointer hover:opacity-80 ${getClassColor(slot.class)}`}
-                        onClick={() => handleSlotClick(day.id, slot)}
-                      >
-                        <div className="font-medium text-gray-800">{slot.time}</div>
-                        <div className="text-sm text-gray-700">{slot.subject}</div>
-                        <div className="text-sm text-gray-600">{slot.class} - {slot.room}</div>
-                      </div>
-                    )) || (
-                      <div className="text-center text-gray-500 py-4">
-                        {t.noCourses}
-                      </div>
-                    )}
+          {/* Assigned Classes from "Mes Classes" module */}
+          {hasAssignedClasses && (
+            <ModernCard className="p-4 border-l-4 border-l-blue-500">
+              <h3 className="font-medium mb-3 flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-600" />
+                {language === 'fr' ? 'Vos classes et matières assignées (depuis "Mes Classes")' : 'Your assigned classes and subjects (from "My Classes")'}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {assignedClasses.map((ac: any, index: number) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                    <Badge className="bg-blue-100 text-blue-800">{ac.className}</Badge>
+                    <span className="text-sm text-gray-600">→</span>
+                    <Badge variant="outline">{ac.subject}</Badge>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ModernCard>
+          )}
 
-            {/* Version Desktop */}
-            <div className="hidden md:block">
-              <table className="min-w-full">
-                <thead>
-                  <tr>
-                    <th className="w-24 p-3 text-left font-medium text-gray-700">{t.time}</th>
-                    {(Array.isArray(daysOfWeek) ? daysOfWeek : []).map(day => (
-                      <th key={day.id} className="p-3 text-center font-medium text-gray-700">
-                        {day.name || ''}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {timeSlots().map(timeSlot => (
-                    <tr key={timeSlot} className="border-t">
-                      <td className="p-3 text-sm font-medium text-gray-600 bg-gray-50">
-                        {timeSlot}
-                      </td>
-                      {(Array.isArray(daysOfWeek) ? daysOfWeek : []).map(day => {
-                        const slot = (schedule as any)[day.id]?.find((s: any) => s.time === timeSlot);
-                        return (
-                          <td key={day.id} className="p-1 border-l">
-                            {slot ? (
+          {/* Message when no timetable exists */}
+          {!hasScheduleEntries && (
+            <ModernCard className="p-6 border-l-4 border-l-orange-400 bg-orange-50">
+              <div className="flex items-start gap-4">
+                <AlertTriangle className="w-6 h-6 text-orange-500 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-2">
+                    {language === 'fr' ? 'Aucun emploi du temps défini' : 'No timetable defined'}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-2">
+                    {language === 'fr' 
+                      ? 'Votre directeur d\'école n\'a pas encore créé votre emploi du temps. Les horaires de cours seront affichés ici une fois créés par l\'administration.'
+                      : 'Your school director has not yet created your timetable. Class schedules will appear here once created by administration.'}
+                  </p>
+                  {hasAssignedClasses && (
+                    <p className="text-sm text-blue-600">
+                      {language === 'fr'
+                        ? `Vous êtes assigné à ${classes.length} classe(s) dans le module "Mes Classes".`
+                        : `You are assigned to ${classes.length} class(es) in the "My Classes" module.`}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </ModernCard>
+          )}
+
+          {/* Contrôles - only show if there are schedule entries */}
+          {hasScheduleEntries && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">{t.week}</label>
+                <select 
+                  value={selectedWeek}
+                  onChange={(e) => setSelectedWeek(e?.target?.value)}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="current">{t.currentWeek}</option>
+                  <option value="next">{t.nextWeek}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">{t.class}</label>
+                <select 
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e?.target?.value)}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">{t.allClasses}</option>
+                  {(Array.isArray(classes) ? classes : []).map(cls => (
+                    <option key={cls.id} value={cls.id}>{cls.name || ''}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Grille emploi du temps - only show if there are entries */}
+          {hasScheduleEntries && (
+            <>
+              <ModernCard className="p-4">
+                <div className="overflow-x-auto">
+                  <div className="min-w-full">
+                    {/* Version Mobile */}
+                    <div className="block md:hidden space-y-4">
+                      {(Array.isArray(daysOfWeek) ? daysOfWeek : []).map(day => (
+                        <div key={day.id} className="border rounded-lg p-3">
+                          <h3 className="font-semibold text-lg mb-3 text-center">{day.name || ''}</h3>
+                          <div className="space-y-2">
+                            {(schedule as any)[day.id]?.map((slot: any, index: number) => (
                               <div 
-                                className={`p-2 rounded cursor-pointer hover:opacity-80 ${getClassColor(slot.class)} text-center`}
+                                key={index}
+                                className={`p-3 rounded-lg cursor-pointer hover:opacity-80 ${getClassColor(slot.class)}`}
                                 onClick={() => handleSlotClick(day.id, slot)}
                               >
-                                <div className="font-medium text-sm text-gray-800">{slot.subject}</div>
-                                <div className="text-xs text-gray-700">{slot.class}</div>
-                                <div className="text-xs text-gray-600">{slot.room}</div>
+                                <div className="font-medium text-gray-800">{slot.time}</div>
+                                <div className="text-sm text-gray-700">{slot.subject}</div>
+                                <div className="text-sm text-gray-600">{slot.class} - {slot.room}</div>
                               </div>
-                            ) : (
-                              <div className="h-16 flex items-center justify-center text-gray-400 hover:bg-gray-50 rounded cursor-pointer">
-                                <Plus className="w-4 h-4" />
+                            )) || (
+                              <div className="text-center text-gray-500 py-4">
+                                {t.noCourses}
                               </div>
                             )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </ModernCard>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
 
-      {/* Legend */}
-      <ModernCard className="p-4">
-        <h3 className="font-medium mb-3">{t.classLegend}</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {(Array.isArray(classes) ? classes : []).map(cls => (
-            <div key={cls.id} className="flex items-center gap-2">
-              <div className={`w-4 h-4 rounded ${getClassColor(cls.name)}`}></div>
-              <span className="text-sm font-medium">{cls.name || ''}</span>
-              <Badge variant="outline" className="text-xs">{cls.students}</Badge>
-            </div>
-          ))}
-        </div>
-      </ModernCard>
+                    {/* Version Desktop */}
+                    <div className="hidden md:block">
+                      <table className="min-w-full">
+                        <thead>
+                          <tr>
+                            <th className="w-24 p-3 text-left font-medium text-gray-700">{t.time}</th>
+                            {(Array.isArray(daysOfWeek) ? daysOfWeek : []).map(day => (
+                              <th key={day.id} className="p-3 text-center font-medium text-gray-700">
+                                {day.name || ''}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {timeSlots().map(timeSlot => (
+                            <tr key={timeSlot} className="border-t">
+                              <td className="p-3 text-sm font-medium text-gray-600 bg-gray-50">
+                                {timeSlot}
+                              </td>
+                              {(Array.isArray(daysOfWeek) ? daysOfWeek : []).map(day => {
+                                const slot = (schedule as any)[day.id]?.find((s: any) => s.time === timeSlot);
+                                return (
+                                  <td key={day.id} className="p-1 border-l">
+                                    {slot ? (
+                                      <div 
+                                        className={`p-2 rounded cursor-pointer hover:opacity-80 ${getClassColor(slot.class)} text-center`}
+                                        onClick={() => handleSlotClick(day.id, slot)}
+                                      >
+                                        <div className="font-medium text-sm text-gray-800">{slot.subject}</div>
+                                        <div className="text-xs text-gray-700">{slot.class}</div>
+                                        <div className="text-xs text-gray-600">{slot.room}</div>
+                                      </div>
+                                    ) : (
+                                      <div className="h-16 flex items-center justify-center text-gray-400 hover:bg-gray-50 rounded cursor-pointer">
+                                        <Plus className="w-4 h-4" />
+                                      </div>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </ModernCard>
+
+              {/* Legend */}
+              <ModernCard className="p-4">
+                <h3 className="font-medium mb-3">{t.classLegend}</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {(Array.isArray(classes) ? classes : []).map((cls: any) => (
+                    <div key={cls.id} className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded ${getClassColor(cls.name)}`}></div>
+                      <span className="text-sm font-medium">{cls.name || ''}</span>
+                      {cls.subject && <Badge variant="outline" className="text-xs">{cls.subject}</Badge>}
+                    </div>
+                  ))}
+                </div>
+              </ModernCard>
+            </>
+          )}
         </>
       )}
 
