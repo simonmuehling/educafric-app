@@ -26,10 +26,7 @@ const TeacherTimetable = () => {
   const [selectedWeek, setSelectedWeek] = useState('current');
   const [selectedClass, setSelectedClass] = useState('all');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isChangeRequestOpen, setIsChangeRequestOpen] = useState(false);
-  const [isAdminResponsesOpen, setIsAdminResponsesOpen] = useState(false);
   const [currentSlot, setCurrentSlot] = useState<any>(null);
-  const [selectedTab, setSelectedTab] = useState<'schedule' | 'changes' | 'responses'>('schedule');
   
   const [formData, setFormData] = useState({
     subject: '',
@@ -40,15 +37,6 @@ const TeacherTimetable = () => {
     timeSlot: ''
   });
 
-  const [changeRequestData, setChangeRequestData] = useState({
-    changeType: '',
-    slotId: null,
-    newTime: '',
-    newRoom: '',
-    reason: '',
-    urgency: 'normal',
-    affectedClasses: []
-  });
 
   // Fetch teacher timetable from API
   const { data: timetableData, isLoading: timetableLoading, refetch: refetchTimetable } = useQuery({
@@ -92,70 +80,6 @@ const TeacherTimetable = () => {
     retryDelay: 500
   });
 
-  // Fetch timetable change requests
-  const { data: changeRequestsData, isLoading: changesLoading } = useQuery({
-    queryKey: ['/api/teacher/timetable/changes'],
-    enabled: !!user && selectedTab === 'changes'
-  });
-
-  // Fetch admin responses
-  const { data: adminResponsesData, isLoading: responsesLoading } = useQuery({
-    queryKey: ['/api/teacher/admin-responses'],
-    enabled: !!user && selectedTab === 'responses'
-  });
-
-  // Submit timetable change request
-  const submitChangeRequestMutation = useMutation({
-    mutationFn: async (requestData: any) => {
-      const response = await fetch('/api/teacher/timetable/change', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData),
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to submit change request');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/teacher/timetable/changes'] });
-      setIsChangeRequestOpen(false);
-      setChangeRequestData({
-        changeType: '',
-        slotId: null,
-        newTime: '',
-        newRoom: '',
-        reason: '',
-        urgency: 'normal',
-        affectedClasses: []
-      });
-      toast({
-        title: t.requestSent,
-        description: t.requestSentDesc
-      });
-    },
-    onError: () => {
-      toast({
-        title: t.error,
-        description: t.requestError,
-        variant: 'destructive'
-      });
-    }
-  });
-
-  // Mark admin response as read
-  const markResponseReadMutation = useMutation({
-    mutationFn: async (responseId: number) => {
-      const response = await fetch(`/api/teacher/admin-responses/${responseId}/read`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to mark response as read');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/teacher/admin-responses'] });
-    }
-  });
 
   const text = {
     fr: {
@@ -442,48 +366,6 @@ const TeacherTimetable = () => {
   const hasScheduleEntries = Object.values(schedule).some((daySlots: any) => daySlots && daySlots.length > 0);
   const hasAssignedClasses = assignedClasses.length > 0;
 
-  const changeRequests = (changeRequestsData as any)?.changeRequests || [];
-  const adminResponses = (adminResponsesData as any)?.responses || [];
-  const unreadResponsesCount = (adminResponsesData as any)?.unreadCount || 0;
-
-  const handleSubmitChangeRequest = () => {
-    if (!changeRequestData.changeType || !changeRequestData.reason) {
-      toast({
-        title: t.missingInfo,
-        description: t.missingInfoDesc,
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    submitChangeRequestMutation.mutate(changeRequestData);
-  };
-
-  const handleMarkResponseRead = (responseId: number) => {
-    markResponseReadMutation.mutate(responseId);
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
-      revision_requested: 'bg-orange-100 text-orange-800'
-    };
-
-    const statusText: Record<string, string> = {
-      pending: t.pending,
-      approved: t.approved,
-      rejected: t.rejected,
-      revision_requested: t.revisionRequested
-    };
-
-    return (
-      <Badge className={variants[status] || 'bg-gray-100 text-gray-800'}>
-        {statusText[status] || status}
-      </Badge>
-    );
-  };
 
   return (
     <div className="space-y-6">
@@ -528,10 +410,6 @@ const TeacherTimetable = () => {
             <Download className="w-4 h-4 mr-2" />
             {t.exportPdf}
           </Button>
-          <Button onClick={() => setIsChangeRequestOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-            <Send className="w-4 h-4 mr-2" />
-            {t.requestChange}
-          </Button>
           <Button onClick={() => setIsEditDialogOpen(true)} variant="outline">
             <Plus className="w-4 h-4 mr-2" />
             {t.addSlot}
@@ -539,52 +417,9 @@ const TeacherTimetable = () => {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-        <Button
-          variant={selectedTab === 'schedule' ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setSelectedTab('schedule')}
-          className="flex-1"
-          data-testid="tab-schedule"
-        >
-          <Calendar className="w-4 h-4 mr-2" />
-          {t.scheduleTab}
-        </Button>
-        <Button
-          variant={selectedTab === 'changes' ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setSelectedTab('changes')}
-          className="flex-1"
-          data-testid="tab-changes"
-        >
-          <Edit className="w-4 h-4 mr-2" />
-          {t.requestsTab}
-          {changeRequests.filter((req: any) => req.status === 'pending').length > 0 && (
-            <Badge variant="secondary" className="ml-2 text-xs">
-              {changeRequests.filter((req: any) => req.status === 'pending').length}
-            </Badge>
-          )}
-        </Button>
-        <Button
-          variant={selectedTab === 'responses' ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setSelectedTab('responses')}
-          className="flex-1"
-          data-testid="tab-responses"
-        >
-          <MessageSquare className="w-4 h-4 mr-2" />
-          {t.adminResponsesTab}
-          {unreadResponsesCount > 0 && (
-            <Badge variant="destructive" className="ml-2 text-xs">
-              {unreadResponsesCount}
-            </Badge>
-          )}
-        </Button>
-      </div>
 
-      {/* Tab Content */}
-      {selectedTab === 'schedule' && (
+      {/* Schedule Content */}
+      {(
         <>
           {/* Statistiques */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
