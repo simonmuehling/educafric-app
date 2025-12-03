@@ -5601,8 +5601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastName: users.lastName,
             email: users.email,
             phone: users.phone,
-            classId: enrollments.classId,
-            parentId: users.parentId
+            classId: enrollments.classId
           })
           .from(users)
           .innerJoin(enrollments, eq(enrollments.studentId, users.id))
@@ -5625,8 +5624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             firstName: users.firstName,
             lastName: users.lastName,
             email: users.email,
-            phone: users.phone,
-            parentId: users.parentId
+            phone: users.phone
           })
           .from(users)
           .where(
@@ -5644,30 +5642,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }));
       }
       
-      // Get parent IDs for these students
-      const parentIds = [...new Set(studentsInClasses.filter(s => s.parentId).map(s => s.parentId))];
+      // Get parents for these students using parent_student_relations table
+      const studentIds = studentsInClasses.map(s => s.studentId).filter(Boolean);
       
-      // Fetch parent details if any
-      let parentsMap = new Map<number, any>();
-      if (parentIds.length > 0) {
-        const parents = await db
+      // Build student-to-parents mapping using parent_student_relations
+      let studentParentsMap = new Map<number, any[]>();
+      
+      if (studentIds.length > 0) {
+        // Get parent relations from parent_student_relations table
+        const parentRelations = await db
           .select({
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            email: users.email,
-            phone: users.phone
+            studentId: parentStudentRelations.studentId,
+            parentId: parentStudentRelations.parentId,
+            relationship: parentStudentRelations.relationship,
+            isPrimary: parentStudentRelations.isPrimary,
+            parentFirstName: users.firstName,
+            parentLastName: users.lastName,
+            parentEmail: users.email,
+            parentPhone: users.phone
           })
-          .from(users)
-          .where(
-            and(
-              eq(users.role, 'Parent'),
-              inArray(users.id, parentIds as number[])
-            )
-          );
+          .from(parentStudentRelations)
+          .innerJoin(users, eq(parentStudentRelations.parentId, users.id))
+          .where(inArray(parentStudentRelations.studentId, studentIds));
         
-        for (const parent of parents) {
-          parentsMap.set(parent.id, parent);
+        console.log(`[TEACHER_API] Found ${parentRelations.length} parent-student relations`);
+        
+        // Group parents by student
+        for (const relation of parentRelations) {
+          if (!studentParentsMap.has(relation.studentId)) {
+            studentParentsMap.set(relation.studentId, []);
+          }
+          studentParentsMap.get(relation.studentId)!.push({
+            id: relation.parentId,
+            name: `${relation.parentFirstName || ''} ${relation.parentLastName || ''}`.trim(),
+            firstName: relation.parentFirstName,
+            lastName: relation.parentLastName,
+            email: relation.parentEmail,
+            phone: relation.parentPhone,
+            relationship: relation.relationship,
+            isPrimary: relation.isPrimary
+          });
         }
       }
       
@@ -5676,7 +5690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const classStudents = studentsInClasses
           .filter(s => s.classId === classItem.classId)
           .map(student => {
-            const parent = student.parentId ? parentsMap.get(student.parentId) : null;
+            const parents = studentParentsMap.get(student.studentId) || [];
             return {
               id: student.studentId,
               name: `${student.firstName || ''} ${student.lastName || ''}`.trim(),
@@ -5684,14 +5698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               lastName: student.lastName,
               email: student.email,
               phone: student.phone,
-              parents: parent ? [{
-                id: parent.id,
-                name: `${parent.firstName || ''} ${parent.lastName || ''}`.trim(),
-                firstName: parent.firstName,
-                lastName: parent.lastName,
-                email: parent.email,
-                phone: parent.phone
-              }] : []
+              parents: parents
             };
           });
         
@@ -5704,7 +5711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      console.log(`[TEACHER_API] ✅ Found ${classesWithParents.length} classes with ${studentsInClasses.length} students and ${parentsMap.size} parents`);
+      console.log(`[TEACHER_API] ✅ Found ${classesWithParents.length} classes with ${studentsInClasses.length} students and ${studentParentsMap.size} parents`);
       
       res.json({ success: true, classes: classesWithParents });
     } catch (error) {
