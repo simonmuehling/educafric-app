@@ -9105,12 +9105,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ============= INSERT INTO DATABASE =============
       console.log('[TEACHER_ABSENCE] 💾 Inserting absence into database...');
       
+      // Convert string dates to Date objects
+      const startDateParsed = new Date(absenceData.startDate);
+      const endDateParsed = new Date(absenceData.endDate);
+      
       const [insertedAbsence] = await db.insert(teacherAbsences).values({
         teacherId: user.id,
         schoolId: schoolId,
         classId: 0,
         subjectId: 0,
-        absenceDate: absenceData.startDate,
+        absenceDate: startDateParsed,
         startTime: '08:00',
         endTime: '17:00',
         reason: absenceData.reason,
@@ -9123,7 +9127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contactEmail: absenceData.contactEmail || user.email || '',
         details: absenceData.details || '',
         classesAffected: absenceData.classesAffected,
-        endDate: absenceData.endDate
+        endDate: endDateParsed
       } as any).returning();
       
       console.log('[TEACHER_ABSENCE] ✅ Absence saved to database with ID:', insertedAbsence?.id);
