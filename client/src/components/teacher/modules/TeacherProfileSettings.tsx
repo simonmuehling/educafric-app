@@ -123,8 +123,36 @@ const TeacherProfileSettings = () => {
 
   // Extract subjects and classes from API response
   const teacherSubjects = subjectsData?.subjects || [];
-  const teacherClasses = classesData?.classes || [];
   const schoolsWithClasses = classesData?.schoolsWithClasses || [];
+  
+  // ✅ FIX: Extract classes from schoolsWithClasses structure
+  const teacherClasses = React.useMemo(() => {
+    if (!classesData) return [];
+    
+    // If API returns schoolsWithClasses structure, flatten it
+    if (classesData.schoolsWithClasses && Array.isArray(classesData.schoolsWithClasses)) {
+      const allClasses: any[] = [];
+      for (const school of classesData.schoolsWithClasses) {
+        if (school.classes && Array.isArray(school.classes)) {
+          for (const cls of school.classes) {
+            allClasses.push({
+              ...cls,
+              schoolName: school.schoolName
+            });
+          }
+        }
+      }
+      return allClasses;
+    }
+    
+    // If API returns flat classes array
+    if (classesData.classes && Array.isArray(classesData.classes)) {
+      return classesData.classes;
+    }
+    
+    return [];
+  }, [classesData]);
+  
   const availableClasses = availableClassesData?.classes || [];
   const availableSubjects = availableSubjectsData?.subjects || [];
   

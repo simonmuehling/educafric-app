@@ -50,13 +50,36 @@ const TeacherAbsenceDeclaration: React.FC = () => {
   const myAbsences = absencesData?.success ? absencesData.absences : [];
 
   // Fetch teacher classes from API
-  const { data: classesData, isLoading: classesLoading, error: classesError } = useQuery<{ success: boolean, classes: any[] }>({
+  const { data: classesData, isLoading: classesLoading, error: classesError } = useQuery<any>({
     queryKey: ['/api/teacher/classes']
   });
 
-  const teacherClasses = (classesData?.success && classesData.classes) 
-    ? classesData.classes.map((cls: any) => cls.name) 
-    : [];
+  // ✅ FIX: Extract classes from schoolsWithClasses structure OR flat classes array
+  const teacherClasses = React.useMemo(() => {
+    if (!classesData) return [];
+    
+    // If API returns schoolsWithClasses structure, flatten it
+    if (classesData.schoolsWithClasses && Array.isArray(classesData.schoolsWithClasses)) {
+      const allClasses: string[] = [];
+      for (const school of classesData.schoolsWithClasses) {
+        if (school.classes && Array.isArray(school.classes)) {
+          for (const cls of school.classes) {
+            if (cls.name && !allClasses.includes(cls.name)) {
+              allClasses.push(cls.name);
+            }
+          }
+        }
+      }
+      return allClasses;
+    }
+    
+    // If API returns flat classes array
+    if (classesData.classes && Array.isArray(classesData.classes)) {
+      return classesData.classes.map((cls: any) => cls.name).filter(Boolean);
+    }
+    
+    return [];
+  }, [classesData]);
 
   // Submit absence declaration
   const declareAbsenceMutation = useMutation({
