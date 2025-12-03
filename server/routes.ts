@@ -9305,13 +9305,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         affectedStudentsCount = studentIds.length;
         
         if (studentIds.length > 0) {
-          // Get student details with parent info
+          // Get student details
           const studentDetails = await db
             .select({
               id: users.id,
               firstName: users.firstName,
-              lastName: users.lastName,
-              parentId: users.parentId
+              lastName: users.lastName
             })
             .from(users)
             .where(inArray(users.id, studentIds));
@@ -9337,8 +9336,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           
-          // Send notifications to parents
-          const parentIds = studentDetails.filter(s => s.parentId).map(s => s.parentId as number);
+          // Get parents using parent_student_relations table
+          const parentRelations = await db
+            .select({ parentId: parentStudentRelations.parentId })
+            .from(parentStudentRelations)
+            .where(inArray(parentStudentRelations.studentId, studentIds));
+          
+          const parentIds = [...new Set(parentRelations.map(r => r.parentId))];
           parentsNotifiedCount = parentIds.length;
           
           for (const parentId of parentIds) {

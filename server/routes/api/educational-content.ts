@@ -588,7 +588,56 @@ router.post('/:id/submit-for-approval', requireAuth, async (req, res) => {
 
     console.log(`[EDUCATIONAL_CONTENT] Teacher ${user.id} submitting content ${id} for approval`);
 
-    // Mock approval submission - in production, update content status and notify directors
+    // Update content status to pending_approval in database
+    const [updatedContent] = await db.update(educationalContent)
+      .set({ 
+        status: 'pending_approval',
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(educationalContent.id, parseInt(id)),
+          eq(educationalContent.teacherId, user.id)
+        )
+      )
+      .returning();
+    
+    if (!updatedContent) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found or you do not have permission to submit it'
+      });
+    }
+
+    // Notify directors about the submission
+    const directors = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+      .from(users)
+      .where(
+        and(
+          eq(users.schoolId, user.schoolId),
+          eq(users.role, 'Director')
+        )
+      );
+    
+    for (const director of directors) {
+      await db.insert(notifications).values({
+        userId: director.id,
+        title: '📚 Nouveau contenu à approuver',
+        message: `${user.firstName} ${user.lastName} a soumis "${updatedContent.title}" pour approbation`,
+        type: 'educational_content',
+        priority: 'normal',
+        isRead: false,
+        metadata: {
+          contentId: updatedContent.id,
+          teacherId: user.id,
+          teacherName: `${user.firstName} ${user.lastName}`,
+          contentTitle: updatedContent.title
+        }
+      } as any);
+    }
+    
+    console.log(`[EDUCATIONAL_CONTENT] ✅ Content ${id} submitted for approval, notified ${directors.length} director(s)`);
+
     const submissionRecord = {
       contentId: parseInt(id),
       teacherId: user.id,
@@ -625,47 +674,63 @@ router.get('/pending-approval', requireAuth, async (req, res) => {
       });
     }
 
-    // Mock pending content - in production, query database for content awaiting approval
-    const pendingContent = [
-      {
-        id: 5,
-        title: "Introduction à la Chimie",
-        description: "Premiers concepts de chimie pour élèves de seconde",
-        type: "lesson",
-        subject: "physique",
-        level: "2nde",
-        duration: 60,
-        objectives: "Comprendre les concepts de base de la chimie",
-        teacherId: 123,
-        teacherName: "Sophie Bernard",
-        schoolId: user.schoolId,
-        files: [
-          { filename: "chimie-intro.pdf", originalName: "Introduction Chimie.pdf" }
-        ],
-        status: "pending_approval",
-        submittedAt: "2025-09-04T10:15:00Z",
-        visibility: "school",
-        tags: ["chimie", "sciences", "2nde"]
-      },
-      {
-        id: 6,
-        title: "Exercices de Géométrie",
-        description: "Série d'exercices sur les triangles et parallélogrammes",
-        type: "exercise",
-        subject: "mathematiques",
-        level: "5eme",
-        duration: 40,
-        objectives: "Maîtriser les propriétés des figures géométriques",
-        teacherId: 124,
-        teacherName: "Paul Legrand",
-        schoolId: user.schoolId,
-        files: [],
-        status: "pending_approval",
-        submittedAt: "2025-09-04T15:30:00Z",
-        visibility: "school",
-        tags: ["geometrie", "mathematiques", "5eme"]
+    console.log(`[EDUCATIONAL_CONTENT] Director ${user.id} fetching pending content for school ${user.schoolId}`);
+
+    // Query database for content awaiting approval from school's teachers
+    const pendingContentQuery = await db
+      .select({
+        id: educationalContent.id,
+        title: educationalContent.title,
+        description: educationalContent.description,
+        type: educationalContent.type,
+        level: educationalContent.level,
+        duration: educationalContent.duration,
+        objectives: educationalContent.objectives,
+        teacherId: educationalContent.teacherId,
+        schoolId: educationalContent.schoolId,
+        files: educationalContent.files,
+        status: educationalContent.status,
+        visibility: educationalContent.visibility,
+        tags: educationalContent.tags,
+        createdAt: educationalContent.createdAt,
+        updatedAt: educationalContent.updatedAt,
+        teacherFirstName: users.firstName,
+        teacherLastName: users.lastName,
+        subjectId: educationalContent.subjectId
+      })
+      .from(educationalContent)
+      .leftJoin(users, eq(educationalContent.teacherId, users.id))
+      .where(
+        and(
+          eq(educationalContent.schoolId, user.schoolId),
+          eq(educationalContent.status, 'pending_approval')
+        )
+      )
+      .orderBy(desc(educationalContent.updatedAt));
+
+    // Get subject names
+    const subjectIds = pendingContentQuery.filter(c => c.subjectId).map(c => c.subjectId as number);
+    let subjectsMap = new Map<number, string>();
+    
+    if (subjectIds.length > 0) {
+      const subjectList = await db
+        .select({ id: subjects.id, name: subjects.name })
+        .from(subjects)
+        .where(sql`${subjects.id} IN ${subjectIds}`);
+      
+      for (const s of subjectList) {
+        subjectsMap.set(s.id, s.name);
       }
-    ];
+    }
+
+    const pendingContent = pendingContentQuery.map(content => ({
+      ...content,
+      teacherName: `${content.teacherFirstName || ''} ${content.teacherLastName || ''}`.trim() || 'Enseignant',
+      subject: content.subjectId ? subjectsMap.get(content.subjectId) || 'General' : 'General',
+      submittedAt: content.updatedAt?.toISOString() || content.createdAt?.toISOString()
+    }));
+
+    console.log(`[EDUCATIONAL_CONTENT] ✅ Found ${pendingContent.length} pending content items for school ${user.schoolId}`);
 
     res.json({
       success: true,
@@ -698,7 +763,52 @@ router.post('/:id/approve', requireAuth, async (req, res) => {
 
     console.log(`[EDUCATIONAL_CONTENT] Director ${user.id} ${approved ? 'approving' : 'rejecting'} content ${id}`);
 
-    // Mock approval logic - in production, update content status and notify teacher
+    const newStatus = approved ? 'approved' : 'rejected';
+    
+    // Update content status in database
+    const [updatedContent] = await db.update(educationalContent)
+      .set({ 
+        status: newStatus,
+        approvedBy: user.id,
+        approvedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(educationalContent.id, parseInt(id)),
+          eq(educationalContent.schoolId, user.schoolId)
+        )
+      )
+      .returning();
+    
+    if (!updatedContent) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found or you do not have permission to review it'
+      });
+    }
+
+    // Notify the teacher about the decision
+    await db.insert(notifications).values({
+      userId: updatedContent.teacherId,
+      title: approved ? '✅ Contenu approuvé' : '❌ Contenu non approuvé',
+      message: approved 
+        ? `Votre contenu "${updatedContent.title}" a été approuvé par le directeur${comment ? `. Commentaire: ${comment}` : ''}`
+        : `Votre contenu "${updatedContent.title}" n'a pas été approuvé${comment ? `. Raison: ${comment}` : ''}`,
+      type: 'educational_content',
+      priority: 'normal',
+      isRead: false,
+      metadata: {
+        contentId: updatedContent.id,
+        approved,
+        comment: comment || '',
+        directorId: user.id,
+        directorName: `${user.firstName} ${user.lastName}`
+      }
+    } as any);
+
+    console.log(`[EDUCATIONAL_CONTENT] ✅ Content ${id} ${newStatus} by director ${user.id}`);
+
     const approvalRecord = {
       contentId: parseInt(id),
       directorId: user.id,
@@ -706,7 +816,7 @@ router.post('/:id/approve', requireAuth, async (req, res) => {
       approved: approved,
       comment: comment || '',
       reviewedAt: new Date().toISOString(),
-      newStatus: approved ? 'approved' : 'rejected',
+      newStatus: newStatus,
       schoolId: user.schoolId
     };
 
