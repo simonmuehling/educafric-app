@@ -81,26 +81,29 @@ export const schoolLevels = pgTable("school_levels", {
 export const classes = pgTable("classes", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  level: text("level"), // Made nullable - schools can use custom naming schemes
+  level: text("level"),
   section: text("section"),
-  maxStudents: integer("max_students"), // Alignement avec la vraie structure DB
+  room: text("room"),
+  maxStudents: integer("max_students"),
   schoolId: integer("school_id").notNull(),
   teacherId: integer("teacher_id"),
-  academicYearId: integer("academic_year_id").notNull(), // Alignement avec DB réelle
+  academicYearId: integer("academic_year_id").notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow()
 });
 
 export const subjects = pgTable("subjects", {
   id: serial("id").primaryKey(),
+  name: text("name"),
   nameFr: text("name_fr").notNull(),
   nameEn: text("name_en").notNull(),
   code: text("code"),
   coefficient: decimal("coefficient"),
+  category: text("category").default('general'),
   schoolId: integer("school_id").notNull(),
   classId: integer("class_id"),
-  subjectType: text("subject_type").default('general'), // 'general', 'scientific', 'literary', 'professional', or 'other' for technical schools (5 sections for bulletin)
-  bulletinSection: text("bulletin_section") // For technical schools: manual mapping to 3 bulletin sections ('general', 'scientific', 'professional') - overrides subjectType for bulletin grouping
+  subjectType: text("subject_type").default('general'),
+  bulletinSection: text("bulletin_section")
 });
 
 export const educationalContent = pgTable("educational_content", {
