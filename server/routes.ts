@@ -2588,9 +2588,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[CREATE_STUDENT] ✅ Student created:', { id: newStudent.id, name: `${fName} ${lName}` });
       
+      // ✅ CRITICAL FIX: Create enrollment entry if classId is provided
+      let enrollmentCreated = false;
+      if (resolvedClassId) {
+        try {
+          await db.insert(enrollments).values({
+            studentId: newStudent.id,
+            classId: resolvedClassId,
+            enrollmentDate: new Date().toISOString().split('T')[0],
+            status: 'active'
+          });
+          enrollmentCreated = true;
+          console.log('[CREATE_STUDENT] ✅ Enrollment created for student:', newStudent.id, 'in class:', resolvedClassId);
+        } catch (enrollmentError) {
+          console.error('[CREATE_STUDENT] ⚠️ Enrollment creation failed:', enrollmentError);
+          // Don't fail the request, student was created successfully
+        }
+      }
+      
+      // Get class info for response
+      let classInfo = null;
+      if (resolvedClassId) {
+        const [classData] = await db.select().from(classes).where(eq(classes.id, resolvedClassId)).limit(1);
+        classInfo = classData ? { className: classData.name, level: classData.level } : null;
+      }
+      
       res.json({ 
         success: true, 
-        student: newStudent,
+        student: {
+          ...newStudent,
+          className: classInfo?.className || null,
+          level: classInfo?.level || null
+        },
+        enrollmentCreated,
         message: `Student ${fName} ${lName} created successfully. Default password: ${defaultPassword}`
       });
     } catch (error) {
@@ -3127,7 +3157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/director/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      let { firstName, lastName, name, email, phone, subjects: teacherSubjects } = req.body;
+      let { firstName, lastName, name, email, phone, subjects: teacherSubjects, teachingSubjects, classes: assignedClasses, gender, matricule } = req.body;
       
       // Handle name field - split into firstName and lastName if needed
       if (name && (!firstName || !lastName)) {
@@ -3150,7 +3180,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'At least email or phone is required' });
       }
       
-      console.log('[CREATE_TEACHER_DIRECTOR] Creating teacher:', { firstName, lastName, email, phone, schoolId: userSchoolId });
+      // Merge subjects from different field names
+      const allSubjects = teachingSubjects || teacherSubjects || [];
+      
+      console.log('[CREATE_TEACHER_DIRECTOR] Creating teacher:', { firstName, lastName, email, phone, schoolId: userSchoolId, subjects: allSubjects, classes: assignedClasses });
       
       // Generate default password (should be changed on first login)
       const defaultPassword = `${lastName.toLowerCase()}${new Date().getFullYear()}`;
@@ -3164,14 +3197,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phone: phone || null,
         password: hashedPassword,
         schoolId: userSchoolId,
-        email: email || null
+        email: email || null,
+        gender: gender || null,
+        educafricNumber: matricule || null
       }).returning();
       
       console.log('[CREATE_TEACHER_DIRECTOR] ✅ Teacher created:', { id: newTeacher.id, name: `${firstName} ${lastName}` });
       
+      // ✅ CRITICAL FIX: Create teacher-subject-class assignments if provided
+      let assignmentsCreated = 0;
+      if (Array.isArray(assignedClasses) && assignedClasses.length > 0 && Array.isArray(allSubjects) && allSubjects.length > 0) {
+        console.log('[CREATE_TEACHER_DIRECTOR] 📚 Creating assignments for classes:', assignedClasses, 'subjects:', allSubjects);
+        
+        for (const className of assignedClasses) {
+          // Find the class ID
+          const [classData] = await db.select()
+            .from(classes)
+            .where(and(
+              eq(classes.name, className),
+              eq(classes.schoolId, userSchoolId)
+            ))
+            .limit(1);
+          
+          if (!classData) {
+            console.log('[CREATE_TEACHER_DIRECTOR] ⚠️ Class not found:', className);
+            continue;
+          }
+          
+          // For each subject, create an assignment
+          for (const subjectName of allSubjects) {
+            // Find the subject ID
+            const [subjectData] = await db.select()
+              .from(subjects)
+              .where(eq(subjects.nameFr, subjectName))
+              .limit(1);
+            
+            if (!subjectData) {
+              console.log('[CREATE_TEACHER_DIRECTOR] ⚠️ Subject not found:', subjectName);
+              continue;
+            }
+            
+            // Create the assignment
+            try {
+              await db.insert(teacherSubjectAssignments).values({
+                teacherId: newTeacher.id,
+                classId: classData.id,
+                subjectId: subjectData.id,
+                schoolId: userSchoolId,
+                academicYear: '2024-2025',
+                active: true
+              });
+              assignmentsCreated++;
+              console.log('[CREATE_TEACHER_DIRECTOR] ✅ Assignment created:', subjectName, 'in', className);
+            } catch (assignmentError) {
+              console.error('[CREATE_TEACHER_DIRECTOR] ⚠️ Assignment creation failed:', assignmentError);
+            }
+          }
+        }
+        console.log('[CREATE_TEACHER_DIRECTOR] ✅ Created', assignmentsCreated, 'assignments');
+      }
+      
       res.json({ 
         success: true, 
-        teacher: newTeacher,
+        teacher: {
+          ...newTeacher,
+          classes: assignedClasses || [],
+          teachingSubjects: allSubjects || []
+        },
+        assignmentsCreated,
         message: `Teacher ${firstName} ${lastName} created successfully. Default password: ${defaultPassword}`
       });
     } catch (error) {
