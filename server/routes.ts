@@ -8034,6 +8034,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST /api/teacher/attendance - Mark attendance for students (présent, retard, absent)
+  app.post("/api/teacher/attendance", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      
+      console.log('[TEACHER_ATTENDANCE] 📝 Marking attendance for teacher:', teacherId);
+      
+      if (!schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      const { classId, date, subject, students, notes } = req.body;
+      
+      if (!classId || !date || !students || !Array.isArray(students)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'classId, date, and students array are required' 
+        });
+      }
+      
+      // Insert attendance records for each student
+      const attendanceRecords = [];
+      for (const student of students) {
+        // Status can be: present, absent, late (retard)
+        const validStatuses = ['present', 'absent', 'late'];
+        const status = validStatuses.includes(student.status) ? student.status : 'present';
+        
+        const [record] = await db.insert(attendance).values({
+          studentId: student.id,
+          classId: parseInt(classId),
+          schoolId: schoolId,
+          date: new Date(date),
+          status: status,
+          reason: notes || null,
+          markedBy: teacherId,
+          createdAt: new Date()
+        } as any).returning();
+        
+        attendanceRecords.push(record);
+      }
+      
+      console.log('[TEACHER_ATTENDANCE] ✅ Marked attendance for', attendanceRecords.length, 'students');
+      
+      res.json({ 
+        success: true, 
+        message: `Attendance marked for ${attendanceRecords.length} students`,
+        records: attendanceRecords
+      });
+    } catch (error) {
+      console.error('[TEACHER_ATTENDANCE] ❌ Error marking attendance:', error);
+      res.status(500).json({ success: false, message: 'Failed to mark attendance' });
+    }
+  });
+
+  // GET /api/teacher/profile - Get teacher profile with assigned subjects
+  app.get("/api/teacher/profile", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      
+      console.log('[TEACHER_PROFILE] 📋 Fetching profile for teacher:', teacherId);
+      
+      // Get teacher's assigned subjects from teacherSubjectAssignments
+      const teacherAssignments = await db
+        .select({
+          subjectId: teacherSubjectAssignments.subjectId,
+          classId: teacherSubjectAssignments.classId,
+          subjectNameFr: subjects.nameFr,
+          subjectNameEn: subjects.nameEn,
+          className: classes.name
+        })
+        .from(teacherSubjectAssignments)
+        .leftJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+        .leftJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
+        .where(
+          and(
+            eq(teacherSubjectAssignments.teacherId, teacherId),
+            schoolId ? eq(teacherSubjectAssignments.schoolId, schoolId) : undefined
+          )
+        );
+      
+      // Also get subjects from timetables as backup
+      const timetableAssignments = await db
+        .select({
+          subjectId: timetables.subjectId,
+          classId: timetables.classId,
+          subjectNameFr: subjects.nameFr,
+          subjectNameEn: subjects.nameEn,
+          className: classes.name
+        })
+        .from(timetables)
+        .leftJoin(subjects, eq(timetables.subjectId, subjects.id))
+        .leftJoin(classes, eq(timetables.classId, classes.id))
+        .where(
+          and(
+            eq(timetables.teacherId, teacherId),
+            eq(timetables.isActive, true),
+            schoolId ? eq(timetables.schoolId, schoolId) : undefined
+          )
+        );
+      
+      // Combine and deduplicate subjects
+      const allSubjects = [...teacherAssignments, ...timetableAssignments];
+      const uniqueSubjects = Array.from(new Set(allSubjects.map(a => a.subjectNameFr).filter(Boolean)));
+      
+      console.log('[TEACHER_PROFILE] ✅ Found', uniqueSubjects.length, 'assigned subjects');
+      
+      res.json({
+        success: true,
+        id: teacherId,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        schoolId: schoolId,
+        teachingSubjects: uniqueSubjects,
+        assignments: allSubjects.map(a => ({
+          subjectId: a.subjectId,
+          subjectName: a.subjectNameFr || a.subjectNameEn,
+          classId: a.classId,
+          className: a.className
+        }))
+      });
+    } catch (error) {
+      console.error('[TEACHER_PROFILE] ❌ Error fetching profile:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher profile' });
+    }
+  });
+
   // ===== TEACHER COMMUNICATIONS/MESSAGES - REAL DATABASE WITH SCHOOL ISOLATION =====
   
   app.get("/api/teacher/communications", requireAuth, async (req, res) => {

@@ -198,13 +198,26 @@ const FunctionalTeacherAttendance: React.FC = () => {
     }
   }, [classStudentsKey]);
 
+  // Cycle through 3 statuses: present -> late -> absent -> present
   const toggleStudentStatus = (studentId: number) => {
     setAttendanceForm(prev => ({
       ...prev,
+      students: prev.students.map(student => {
+        if (student.id !== studentId) return student;
+        // Cycle: present -> late -> absent -> present
+        const nextStatus = student.status === 'present' ? 'late' : 
+                          student.status === 'late' ? 'absent' : 'present';
+        return { ...student, status: nextStatus };
+      })
+    }));
+  };
+
+  // Set specific status for a student
+  const setStudentStatus = (studentId: number, status: 'present' | 'late' | 'absent') => {
+    setAttendanceForm(prev => ({
+      ...prev,
       students: prev.students.map(student => 
-        student.id === studentId 
-          ? { ...student, status: student.status === 'present' ? 'absent' : 'present' }
-          : student
+        student.id === studentId ? { ...student, status } : student
       )
     }));
   };
@@ -645,30 +658,54 @@ const FunctionalTeacherAttendance: React.FC = () => {
                       </div>
                       
                       {attendanceForm.students.length > 0 ? (
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
                           {attendanceForm.students.map((student) => (
                             <div 
                               key={student.id}
-                              className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${
-                                student.status === 'present' 
-                                  ? 'bg-green-50 border-green-200' 
-                                  : 'bg-red-50 border-red-200'
+                              className={`flex items-center justify-between p-2 rounded border transition-colors ${
+                                student.status === 'present' ? 'bg-green-50 border-green-200' : 
+                                student.status === 'late' ? 'bg-orange-50 border-orange-200' : 
+                                'bg-red-50 border-red-200'
                               }`}
-                              onClick={() => toggleStudentStatus(student.id)}
                             >
-                              <span className="text-sm font-medium">{student.name}</span>
-                              <div className="flex items-center">
-                                {student.status === 'present' ? (
-                                  <div className="flex items-center text-green-600">
-                                    <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-                                    <span className="text-xs">Présent</span>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center text-red-600">
-                                    <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-                                    <span className="text-xs">Absent</span>
-                                  </div>
-                                )}
+                              <span className="text-sm font-medium flex-1">{student.name}</span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setStudentStatus(student.id, 'present')}
+                                  className={`p-1.5 rounded transition-colors ${
+                                    student.status === 'present' 
+                                      ? 'bg-green-500 text-white' 
+                                      : 'bg-gray-100 text-gray-500 hover:bg-green-100'
+                                  }`}
+                                  title="Présent"
+                                >
+                                  <CheckCircle className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setStudentStatus(student.id, 'late')}
+                                  className={`p-1.5 rounded transition-colors ${
+                                    student.status === 'late' 
+                                      ? 'bg-orange-500 text-white' 
+                                      : 'bg-gray-100 text-gray-500 hover:bg-orange-100'
+                                  }`}
+                                  title="Retard"
+                                >
+                                  <Clock className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setStudentStatus(student.id, 'absent')}
+                                  className={`p-1.5 rounded transition-colors ${
+                                    student.status === 'absent' 
+                                      ? 'bg-red-500 text-white' 
+                                      : 'bg-gray-100 text-gray-500 hover:bg-red-100'
+                                  }`}
+                                  title="Absent"
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </button>
                               </div>
                             </div>
                           ))}
@@ -682,8 +719,9 @@ const FunctionalTeacherAttendance: React.FC = () => {
                       {attendanceForm.students.length > 0 && (
                         <div className="mt-3 pt-2 border-t border-gray-200">
                           <div className="flex justify-between text-xs text-gray-600">
-                            <span>Présents: {attendanceForm.students.filter(s => s.status === 'present').length}</span>
-                            <span>Absents: {attendanceForm.students.filter(s => s.status === 'absent').length}</span>
+                            <span className="text-green-600">Présents: {attendanceForm.students.filter(s => s.status === 'present').length}</span>
+                            <span className="text-orange-600">Retards: {attendanceForm.students.filter(s => s.status === 'late').length}</span>
+                            <span className="text-red-600">Absents: {attendanceForm.students.filter(s => s.status === 'absent').length}</span>
                             <span>Total: {attendanceForm.students.length}</span>
                           </div>
                         </div>
