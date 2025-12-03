@@ -14,8 +14,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { 
   Users, UserPlus, Search, Download, Filter, MoreHorizontal, 
   BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, 
-  Eye, X, Mail, Phone, GraduationCap, Upload, Camera, WifiOff, User
+  Eye, X, Mail, Phone, GraduationCap, Upload, Camera, WifiOff, User, CreditCard
 } from 'lucide-react';
+import { StudentIDCard } from '@/components/shared/StudentIDCard';
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
@@ -96,6 +97,11 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Bulk selection states
   const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  
+  // Student ID Card printing state
+  const [idCardStudent, setIdCardStudent] = useState<Student | null>(null);
+  const [isIdCardOpen, setIsIdCardOpen] = useState(false);
+  
   const [studentForm, setStudentForm] = useState({
     name: '', // Single name field for simplicity 
     email: '',
@@ -196,6 +202,27 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Use offline data when not connected, otherwise use server data
   const serverStudents = studentsData?.students || studentsData || [];
   const students = !isOnline ? offlineStudents : (serverStudents.length > 0 ? serverStudents : offlineStudents);
+
+  // Fetch school settings for ID card printing
+  const { data: schoolSettings } = useQuery({
+    queryKey: ['/api/director/settings'],
+    queryFn: async () => {
+      const response = await fetch('/api/director/settings', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch school settings');
+      return response.json();
+    },
+    enabled: !!user
+  });
+  
+  const schoolData = {
+    name: schoolSettings?.settings?.profile?.schoolName || schoolSettings?.settings?.profile?.name || 'Educafric School',
+    tagline: schoolSettings?.settings?.profile?.slogan || 'Excellence • Discipline • Intégrité',
+    logoUrl: schoolSettings?.settings?.profile?.logoUrl || null,
+    phone: schoolSettings?.settings?.profile?.phone || '',
+    address: schoolSettings?.settings?.profile?.address || ''
+  };
 
   // Export function - uses filteredStudents to respect class filter selection
   const handleExportStudents = (studentsToExport: Student[]) => {
@@ -2058,6 +2085,19 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                           <Trash2 className="w-4 h-4" />
                           <span className="hidden sm:inline">{text.buttons.delete}</span>
                         </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setIdCardStudent(student);
+                            setIsIdCardOpen(true);
+                          }}
+                          className="flex items-center gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                          data-testid={`button-print-id-card-${student.id}`}
+                        >
+                          <CreditCard className="w-4 h-4" />
+                          <span className="hidden sm:inline">{language === 'fr' ? 'Carte ID' : 'ID Card'}</span>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -2351,6 +2391,19 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         confirmText={language === 'fr' ? 'Supprimer tout' : 'Delete All'}
         cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
       />
+
+      {/* Student ID Card Print Dialog */}
+      {idCardStudent && (
+        <StudentIDCard
+          student={idCardStudent}
+          school={schoolData}
+          isOpen={isIdCardOpen}
+          onClose={() => {
+            setIsIdCardOpen(false);
+            setIdCardStudent(null);
+          }}
+        />
+      )}
     </div>
   );
 };
