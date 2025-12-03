@@ -741,28 +741,152 @@ const FunctionalTeacherAssignments: React.FC = () => {
 
         {/* Completed Assignments Tab */}
         <TabsContent value="completed">
-          <Card>
-            <CardContent className="p-8">
-              <div className="text-center">
-                <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Devoirs Terminés</h3>
-                <p className="text-gray-600">Les devoirs terminés apparaîtront ici.</p>
+          {assignments.length === 0 ? (
+            <Card>
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun devoir terminé</h3>
+                  <p className="text-gray-600">Les devoirs terminés apparaîtront ici pendant 10 jours avant d'être archivés automatiquement.</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                  <div>
+                    <h4 className="font-medium text-green-900">{language === 'fr' ? 'Devoirs Terminés' : 'Completed Assignments'}</h4>
+                    <p className="text-sm text-green-700">
+                      {assignments.length} {language === 'fr' ? 'devoirs • Archivage automatique après 10 jours' : 'assignments • Auto-archive after 10 days'}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+              {assignments.map((assignment) => (
+                <Card key={assignment.id} className="border border-green-200 bg-green-50/30 hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                          <h4 className="text-lg font-semibold text-gray-900">{assignment.title}</h4>
+                          {getStatusBadge(assignment.status)}
+                          {getPriorityBadge(assignment.priority)}
+                        </div>
+                        <p className="text-gray-600 mb-2">{assignment.description}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                          <div>
+                            <p className="text-sm text-gray-600">{t.table.class}</p>
+                            <p className="font-semibold">{assignment.className}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">{t.table.subject}</p>
+                            <p className="font-semibold">{assignment.subjectName}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">{t.table.dueDate}</p>
+                            <p className="font-semibold">{formatDate(assignment.dueDate)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">{t.table.progress}</p>
+                            <div className="flex items-center">
+                              <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
+                                <div className="bg-green-600 h-2 rounded-full" style={{width: `${assignment.completionRate}%`}}></div>
+                              </div>
+                              <span className="text-sm font-medium text-green-600">{assignment.completionRate}%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-2 ml-4">
+                        <Button variant="outline" size="sm" onClick={() => handleArchive(assignment)}>
+                          <Archive className="w-4 h-4 mr-1" />
+                          {language === 'fr' ? 'Archiver' : 'Archive'}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         {/* Overdue Assignments Tab */}
         <TabsContent value="overdue">
-          <Card>
-            <CardContent className="p-8">
-              <div className="text-center">
-                <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 text-red-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Devoirs en Retard</h3>
-                <p className="text-gray-600">Les devoirs en retard apparaîtront ici.</p>
+          {assignments.length === 0 ? (
+            <Card>
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 text-red-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun devoir en retard</h3>
+                  <p className="text-gray-600">Les devoirs en retard apparaîtront ici pendant 10 jours avant d'être archivés automatiquement.</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                <div className="flex items-center">
+                  <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+                  <div>
+                    <h4 className="font-medium text-red-900">{language === 'fr' ? 'Devoirs en Retard' : 'Overdue Assignments'}</h4>
+                    <p className="text-sm text-red-700">
+                      {assignments.length} {language === 'fr' ? 'devoirs • Archivage automatique après 10 jours' : 'assignments • Auto-archive after 10 days'}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+              {assignments.map((assignment) => (
+                <Card key={assignment.id} className="border border-red-200 bg-red-50/30 hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                          <h4 className="text-lg font-semibold text-gray-900">{assignment.title}</h4>
+                          {getStatusBadge(assignment.status)}
+                          {getPriorityBadge(assignment.priority)}
+                        </div>
+                        <p className="text-gray-600 mb-2">{assignment.description}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                          <div>
+                            <p className="text-sm text-gray-600">{t.table.class}</p>
+                            <p className="font-semibold">{assignment.className}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">{t.table.subject}</p>
+                            <p className="font-semibold">{assignment.subjectName}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">{t.table.dueDate}</p>
+                            <p className="font-semibold text-red-600">{formatDate(assignment.dueDate)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">{t.table.progress}</p>
+                            <div className="flex items-center">
+                              <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
+                                <div className="bg-red-600 h-2 rounded-full" style={{width: `${assignment.completionRate}%`}}></div>
+                              </div>
+                              <span className="text-sm font-medium text-red-600">{assignment.completionRate}%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-2 ml-4">
+                        <Button variant="outline" size="sm" onClick={() => handleArchive(assignment)}>
+                          <Archive className="w-4 h-4 mr-1" />
+                          {language === 'fr' ? 'Archiver' : 'Archive'}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         {/* Archives Tab */}
