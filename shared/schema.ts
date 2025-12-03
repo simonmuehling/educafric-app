@@ -201,6 +201,26 @@ export const timetableNotifications = pgTable("timetable_notifications", {
   createdBy: integer("created_by").notNull() // Director/Admin who made the change
 });
 
+// Timetable change requests from teachers (Demandes / Requests tab)
+export const timetableChangeRequests = pgTable("timetable_change_requests", {
+  id: serial("id").primaryKey(),
+  teacherId: integer("teacher_id").notNull(),
+  schoolId: integer("school_id").notNull(),
+  timetableId: integer("timetable_id"), // Optional: specific slot being changed
+  changeType: text("change_type").notNull(), // 'time_change', 'room_change', 'cancel', 'swap', 'other'
+  currentDetails: jsonb("current_details"), // Current slot details
+  requestedDetails: jsonb("requested_details"), // Requested changes
+  reason: text("reason").notNull(),
+  urgency: text("urgency").default("normal"), // 'low', 'normal', 'high', 'urgent'
+  status: text("status").default("pending"), // 'pending', 'approved', 'rejected', 'revision_requested'
+  adminResponse: text("admin_response"), // Director's response message
+  respondedBy: integer("responded_by"), // Director who responded
+  respondedAt: timestamp("responded_at"),
+  isReadByTeacher: boolean("is_read_by_teacher").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 export const schoolPartnershipAgreements = pgTable("school_partnership_agreements", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").notNull(),

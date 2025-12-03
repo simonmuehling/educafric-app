@@ -34,7 +34,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages } from "../shared/schema";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, timetableChangeRequests, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages } from "../shared/schema";
 import { attendance } from "../shared/schemas/academicSchema";
 import bcrypt from 'bcryptjs';
 
@@ -8146,6 +8146,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[TEACHER_PROFILE] ❌ Error fetching profile:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch teacher profile' });
+    }
+  });
+
+  // ===== TIMETABLE CHANGE REQUESTS - Demandes/Réponses Admin tabs =====
+  
+  // GET /api/teacher/timetable/changes - Get teacher's change requests (Demandes tab)
+  app.get("/api/teacher/timetable/changes", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      
+      console.log('[TIMETABLE_CHANGES] 📋 Fetching change requests for teacher:', teacherId);
+      
+      const requests = await db.select()
+        .from(timetableChangeRequests)
+        .where(eq(timetableChangeRequests.teacherId, teacherId))
+        .orderBy(desc(timetableChangeRequests.createdAt));
+      
+      console.log('[TIMETABLE_CHANGES] ✅ Found', requests.length, 'change requests');
+      
+      res.json({ 
+        success: true, 
+        changeRequests: requests.map(r => ({
+          id: r.id,
+          changeType: r.changeType,
+          currentDetails: r.currentDetails,
+          requestedDetails: r.requestedDetails,
+          reason: r.reason,
+          urgency: r.urgency,
+          status: r.status,
+          adminResponse: r.adminResponse,
+          createdAt: r.createdAt,
+          respondedAt: r.respondedAt
+        }))
+      });
+    } catch (error) {
+      console.error('[TIMETABLE_CHANGES] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch change requests' });
+    }
+  });
+
+  // POST /api/teacher/timetable/change - Submit new change request
+  app.post("/api/teacher/timetable/change", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const schoolId = user.schoolId;
+      
+      const { changeType, slotId, currentDetails, requestedDetails, reason, urgency } = req.body;
+      
+      console.log('[TIMETABLE_CHANGE] 📝 New change request from teacher:', teacherId);
+      
+      if (!changeType || !reason) {
+        return res.status(400).json({ success: false, message: 'changeType and reason are required' });
+      }
+      
+      const [newRequest] = await db.insert(timetableChangeRequests).values({
+        teacherId,
+        schoolId: schoolId || 0,
+        timetableId: slotId || null,
+        changeType,
+        currentDetails: currentDetails || null,
+        requestedDetails: requestedDetails || null,
+        reason,
+        urgency: urgency || 'normal',
+        status: 'pending'
+      }).returning();
+      
+      console.log('[TIMETABLE_CHANGE] ✅ Request created with ID:', newRequest.id);
+      
+      res.json({ success: true, request: newRequest });
+    } catch (error) {
+      console.error('[TIMETABLE_CHANGE] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to submit change request' });
+    }
+  });
+
+  // GET /api/teacher/admin-responses - Get admin responses (Réponses Admin tab)
+  app.get("/api/teacher/admin-responses", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      
+      console.log('[ADMIN_RESPONSES] 📨 Fetching admin responses for teacher:', teacherId);
+      
+      const responses = await db.select()
+        .from(timetableChangeRequests)
+        .where(and(
+          eq(timetableChangeRequests.teacherId, teacherId),
+          isNotNull(timetableChangeRequests.respondedAt)
+        ))
+        .orderBy(desc(timetableChangeRequests.respondedAt));
+      
+      const unreadCount = responses.filter(r => !r.isReadByTeacher).length;
+      
+      console.log('[ADMIN_RESPONSES] ✅ Found', responses.length, 'responses,', unreadCount, 'unread');
+      
+      res.json({ 
+        success: true, 
+        responses: responses.map(r => ({
+          id: r.id,
+          changeType: r.changeType,
+          currentDetails: r.currentDetails,
+          requestedDetails: r.requestedDetails,
+          reason: r.reason,
+          status: r.status,
+          adminResponse: r.adminResponse,
+          createdAt: r.createdAt,
+          respondedAt: r.respondedAt,
+          isRead: r.isReadByTeacher
+        })),
+        unreadCount 
+      });
+    } catch (error) {
+      console.error('[ADMIN_RESPONSES] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch admin responses' });
+    }
+  });
+
+  // POST /api/teacher/admin-responses/:id/read - Mark response as read
+  app.post("/api/teacher/admin-responses/:id/read", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const teacherId = user.id;
+      const responseId = parseInt(req.params.id);
+      
+      console.log('[ADMIN_RESPONSE_READ] ✓ Marking response', responseId, 'as read');
+      
+      await db.update(timetableChangeRequests)
+        .set({ isReadByTeacher: true })
+        .where(and(
+          eq(timetableChangeRequests.id, responseId),
+          eq(timetableChangeRequests.teacherId, teacherId)
+        ));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('[ADMIN_RESPONSE_READ] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to mark as read' });
     }
   });
 
