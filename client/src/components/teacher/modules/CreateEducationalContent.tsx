@@ -48,7 +48,7 @@ const CreateEducationalContent = () => {
       contentTitle: 'Titre du contenu',
       description: 'Description',
       subject: 'Matière',
-      level: 'Niveau',
+      level: 'Classe',
       duration: 'Durée (minutes)',
       objectives: 'Objectifs pédagogiques',
       materials: 'Matériel nécessaire',
@@ -81,7 +81,7 @@ const CreateEducationalContent = () => {
       contentTitle: 'Content title',
       description: 'Description',
       subject: 'Subject',
-      level: 'Level',
+      level: 'Class',
       duration: 'Duration (minutes)',
       objectives: 'Learning objectives',
       materials: 'Required materials',
@@ -156,11 +156,12 @@ const CreateEducationalContent = () => {
         { id: 'education', name: 'Éducation Civique' }
       ];
 
-  // Build levels from teacher's assigned classes
+  // Build class list from teacher's assigned classes (full names)
   const levels = teacherClasses.length > 0
-    ? [...new Set(teacherClasses.map((cls: any) => cls.level || cls.name?.split(' ')[0]))]
-        .filter(Boolean)
-        .map(level => ({ id: level, name: level }))
+    ? teacherClasses.map((cls: any) => ({ 
+        id: cls.id?.toString() || cls.name, 
+        name: cls.name || cls.level || 'Classe' 
+      }))
     : [
         { id: '6eme', name: '6ème' },
         { id: '5eme', name: '5ème' },

@@ -4,7 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
 import { db } from '../../db';
-import { educationalContent, users, subjects } from '@shared/schema';
+import { educationalContent, users, subjects, notifications } from '@shared/schema';
 import { eq, and, desc, or, sql } from 'drizzle-orm';
 
 const router = Router();
@@ -109,6 +109,46 @@ router.post('/', requireAuth, upload.array('files', 10), async (req, res) => {
       schoolId: newContent.schoolId,
       filesCount: fileUrls.length
     });
+
+    // Send notification to school director
+    try {
+      // Find directors of the school
+      const directors = await db
+        .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+        .from(users)
+        .where(and(
+          eq(users.schoolId, user.schoolId),
+          eq(users.role, 'Director')
+        ));
+
+      const teacherName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Un enseignant';
+      const contentTypeFr = contentData.type === 'lesson' ? 'une leçon' : 
+                            contentData.type === 'exercise' ? 'un exercice' : 
+                            contentData.type === 'assessment' ? 'une évaluation' : 'un contenu';
+
+      // Create notification for each director
+      for (const director of directors) {
+        await db.insert(notifications).values({
+          userId: director.id,
+          title: 'Nouveau contenu pédagogique créé',
+          message: `${teacherName} a créé ${contentTypeFr}: "${contentData.title}"`,
+          type: 'educational_content',
+          priority: 'medium',
+          metadata: {
+            contentId: newContent.id,
+            contentType: contentData.type,
+            teacherId: user.id,
+            teacherName: teacherName
+          },
+          isRead: false
+        } as any);
+      }
+
+      console.log('[EDUCATIONAL_CONTENT] 🔔 Notification sent to', directors.length, 'director(s)');
+    } catch (notifError) {
+      console.error('[EDUCATIONAL_CONTENT] ⚠️ Failed to send notification:', notifError);
+      // Don't fail the request if notification fails
+    }
 
     res.json({
       success: true,
