@@ -14290,6 +14290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Teacher: Get assigned timetable (synchronized with school)
+  // ✅ UPDATED: Also fetches classes/subjects from teacherSubjectAssignments (module "Mes Classes")
   app.get("/api/teacher/timetable", requireAuth, requireAnyRole(['Teacher']), async (req, res) => {
     try {
       const user = req.user as any;
@@ -14309,7 +14310,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phone: schools.phone
       }).from(schools).where(eq(schools.id, schoolId)).limit(1);
       
-      // Get teacher's assigned timetable from PostgreSQL with class names
+      // ===== SOURCE 1: Get timetable from timetables table =====
       const teacherTimetable = await db
         .select({
           id: timetables.id,
@@ -14336,6 +14337,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ))
         .orderBy(timetables.dayOfWeek, timetables.startTime);
       
+      console.log('[TIMETABLES_API] 📚 Source 1 (timetables): Found', teacherTimetable.length, 'slots');
+      
+      // ===== SOURCE 2: Get classes/subjects from teacherSubjectAssignments (module "Mes Classes") =====
+      const assignedClassesSubjects = await db
+        .select({
+          classId: teacherSubjectAssignments.classId,
+          className: classes.name,
+          classLevel: classes.level,
+          subjectId: teacherSubjectAssignments.subjectId,
+          subjectName: subjects.nameFr,
+          subjectNameEn: subjects.nameEn
+        })
+        .from(teacherSubjectAssignments)
+        .innerJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
+        .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+        .where(and(
+          eq(teacherSubjectAssignments.teacherId, teacherId),
+          eq(teacherSubjectAssignments.schoolId, schoolId)
+        ));
+      
+      console.log('[TIMETABLES_API] 📚 Source 2 (teacherSubjectAssignments): Found', assignedClassesSubjects.length, 'assignments');
+      
       // Format for frontend compatibility (convert to schedule object)
       const schedule = {
         monday: [],
@@ -14348,6 +14371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const dayNames = ['', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
       
+      // Add timetable slots from timetables table
       teacherTimetable.forEach(slot => {
         const dayName = dayNames[slot.dayOfWeek];
         if (dayName && schedule[dayName as keyof typeof schedule]) {
@@ -14359,12 +14383,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
             classId: slot.classId,
             classLevel: slot.classLevel,
             room: slot.room,
-            color: 'blue'
+            color: 'blue',
+            source: 'timetable'
           });
         }
       });
       
-      console.log('[TIMETABLES_API] ✅ Teacher timetable synchronized:', teacherTimetable.length, 'slots for school:', schoolInfo?.name);
+      // Build list of assigned classes/subjects for reference (from module "Mes Classes")
+      const assignedClasses = assignedClassesSubjects.map(a => ({
+        classId: a.classId,
+        className: a.className,
+        classLevel: a.classLevel,
+        subjectId: a.subjectId,
+        subject: a.subjectName || a.subjectNameEn || ''
+      }));
+      
+      // Remove duplicates
+      const uniqueAssignedClasses = Array.from(
+        new Map(assignedClasses.map(c => [`${c.classId}-${c.subjectId}`, c])).values()
+      );
+      
+      console.log('[TIMETABLES_API] ✅ Teacher timetable synchronized:', teacherTimetable.length, 'slots,', uniqueAssignedClasses.length, 'class-subject assignments for school:', schoolInfo?.name);
       
       res.json({
         success: true,
@@ -14374,7 +14413,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           schedule,
           lastSync: new Date().toISOString(),
           source: 'school_database'
-        }
+        },
+        assignedClasses: uniqueAssignedClasses,
+        assignedSubjects: [...new Set(assignedClassesSubjects.map(a => a.subjectName || a.subjectNameEn).filter(Boolean))]
       });
       
     } catch (error) {
