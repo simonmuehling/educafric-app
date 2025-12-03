@@ -7157,7 +7157,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get submission statistics for each assignment
       const assignmentsWithStats = await Promise.all(assignments.map(async (assignment) => {
         const submissions = await db
-          .select()
+          .select({
+            id: homeworkSubmissions.id,
+            homeworkId: homeworkSubmissions.homeworkId,
+            studentId: homeworkSubmissions.studentId,
+            status: homeworkSubmissions.status,
+            submittedAt: homeworkSubmissions.submittedAt
+          })
           .from(homeworkSubmissions)
           .where(eq(homeworkSubmissions.homeworkId, assignment.id));
           
