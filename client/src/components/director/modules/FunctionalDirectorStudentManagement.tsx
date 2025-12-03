@@ -216,6 +216,11 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     enabled: !!user
   });
   
+  // Debug: Log school settings to trace logo/slogan issues
+  console.log('[ID_CARD_DEBUG] schoolSettings:', JSON.stringify(schoolSettings?.settings, null, 2));
+  console.log('[ID_CARD_DEBUG] profile.logoUrl:', schoolSettings?.settings?.profile?.logoUrl);
+  console.log('[ID_CARD_DEBUG] school.logoUrl:', schoolSettings?.settings?.school?.logoUrl);
+  
   const schoolData = {
     name: schoolSettings?.settings?.profile?.schoolName || schoolSettings?.settings?.school?.name || 'Educafric School',
     tagline: schoolSettings?.settings?.profile?.slogan || schoolSettings?.settings?.school?.slogan || 'Excellence • Discipline • Intégrité',
@@ -226,6 +231,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     email: schoolSettings?.settings?.profile?.email || schoolSettings?.settings?.school?.email || '',
     principalName: schoolSettings?.settings?.profile?.principalName || schoolSettings?.settings?.school?.principalName || ''
   };
+  
+  console.log('[ID_CARD_DEBUG] Final schoolData:', schoolData);
 
   // Export function - uses filteredStudents to respect class filter selection
   const handleExportStudents = (studentsToExport: Student[]) => {

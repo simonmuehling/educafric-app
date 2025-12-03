@@ -70,8 +70,16 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
   const studentId = student.matricule || student.educafricNumber || `STD-${String(student.id).padStart(6, '0')}`;
   const cardId = `EDU-${new Date().getFullYear()}-${String(student.id).padStart(6, '0')}`;
   const issueDate = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-  const validityDate = validUntil || `Sept ${new Date().getFullYear() + 1}`;
-  const academicYear = `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+  
+  // Academic year calculation - Valid until end of August of academic year
+  const currentMonth = new Date().getMonth(); // 0-11
+  const currentYear = new Date().getFullYear();
+  // If we're between September-December, academic year is currentYear-nextYear
+  // If we're between January-August, academic year is previousYear-currentYear
+  const academicYearStart = currentMonth >= 8 ? currentYear : currentYear - 1; // September is month 8
+  const academicYearEnd = academicYearStart + 1;
+  const academicYear = `${academicYearStart}-${academicYearEnd}`;
+  const validityDate = validUntil || `31 Août ${academicYearEnd}`;
   
   const photoUrl = student.photo || student.photoFilename || student.profilePictureUrl || student.photoURL || student.profilePicture;
   let photoSrc: string | null = null;
@@ -85,34 +93,35 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
 
   useEffect(() => {
     const generateQRCodes = async () => {
+      // Wait for DOM to be fully rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('[ID_CARD] Generating QR codes, isOpen:', isOpen);
+      console.log('[ID_CARD] Front canvas ref:', qrCanvasFrontRef.current);
+      console.log('[ID_CARD] Back canvas ref:', qrCanvasBackRef.current);
+      
       if (isOpen && qrCanvasFrontRef.current) {
         try {
-          const qrData = JSON.stringify({
-            type: 'EDUCAFRIC_STUDENT',
-            id: student.id,
-            matricule: studentId,
-            cardId: cardId,
-            school: school.name,
-            valid: validityDate
-          });
-          await QRCode.toCanvas(qrCanvasFrontRef.current, qrData, {
+          // Verification URL for scanning - leads to verify page
+          const verificationUrl = `${window.location.origin}/verify?type=student&id=${student.id}&code=${cardId}&year=${academicYear}`;
+          await QRCode.toCanvas(qrCanvasFrontRef.current, verificationUrl, {
             width: 120,
-            margin: 2,
-            color: { dark: '#1a365d', light: '#ffffff' },
+            margin: 1,
+            color: { dark: '#059669', light: '#ffffff' },
             errorCorrectionLevel: 'M'
           });
-          console.log('[ID_CARD] ✅ Front QR code generated');
+          console.log('[ID_CARD] ✅ Front QR code generated with URL:', verificationUrl);
         } catch (err) {
           console.error('[ID_CARD] ❌ Error generating front QR:', err);
         }
       }
       if (isOpen && qrCanvasBackRef.current) {
         try {
-          const verificationUrl = `${window.location.origin}/verify?type=student&code=${cardId}`;
+          const verificationUrl = `${window.location.origin}/verify?type=student&id=${student.id}&code=${cardId}&year=${academicYear}`;
           await QRCode.toCanvas(qrCanvasBackRef.current, verificationUrl, {
             width: 150,
-            margin: 2,
-            color: { dark: '#1a365d', light: '#ffffff' },
+            margin: 1,
+            color: { dark: '#1e40af', light: '#ffffff' },
             errorCorrectionLevel: 'M'
           });
           console.log('[ID_CARD] ✅ Back QR code generated');
@@ -122,8 +131,10 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
       }
     };
     
-    generateQRCodes();
-  }, [isOpen, studentId, student.id, cardId, school.name, validityDate]);
+    if (isOpen) {
+      generateQRCodes();
+    }
+  }, [isOpen, studentId, student.id, cardId, school.name, validityDate, academicYear]);
 
   const handlePrint = () => {
     const printContent = printRef.current;
@@ -782,12 +793,26 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                   gap: '2mm'
                 }}>
                   {school.logoUrl ? (
-                    <img src={school.logoUrl} alt="Logo" style={{ width: '6mm', height: '6mm', borderRadius: '1mm', objectFit: 'contain', background: 'white', padding: '0.3mm' }} />
-                  ) : (
-                    <div style={{ width: '6mm', height: '6mm', background: 'white', borderRadius: '1mm', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3.5mm', fontWeight: 800, color: '#059669' }}>
-                      E
-                    </div>
-                  )}
+                    <img 
+                      src={school.logoUrl} 
+                      alt="Logo" 
+                      style={{ width: '6mm', height: '6mm', borderRadius: '1mm', objectFit: 'contain', background: 'white', padding: '0.3mm' }}
+                      onError={(e) => {
+                        console.error('[ID_CARD] Logo failed to load:', school.logoUrl);
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div style={{ 
+                    width: '6mm', height: '6mm', background: 'white', borderRadius: '1mm', 
+                    display: school.logoUrl ? 'none' : 'flex', 
+                    alignItems: 'center', justifyContent: 'center', 
+                    fontSize: '3.5mm', fontWeight: 800, color: '#059669' 
+                  }}>
+                    E
+                  </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '2.8mm', fontWeight: 700, color: 'white', lineHeight: 1.1, textShadow: '0 0.5mm 1mm rgba(0,0,0,0.2)' }}>{school.name}</div>
                     <div style={{ fontSize: '1.6mm', color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontStyle: 'italic' }}>{school.slogan || school.tagline || 'Excellence • Discipline • Intégrité'}</div>

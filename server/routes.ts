@@ -1098,6 +1098,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       console.log('[DIRECTOR_SETTINGS] ✅ Loaded real data for user:', user.id, 'Achievements:', achievements.length);
+      console.log('[DIRECTOR_SETTINGS] School info logoUrl:', schoolInfo?.logoUrl, 'slogan:', schoolInfo?.slogan);
       res.json({ success: true, settings });
     } catch (error) {
       console.error('[DIRECTOR_SETTINGS] Error:', error);
