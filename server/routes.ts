@@ -5172,7 +5172,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               className: classes.name,
               classLevel: classes.level,
               classSection: classes.section,
-              subjectName: subjects.name
+              subjectNameFr: subjects.nameFr,
+              subjectNameEn: subjects.nameEn
             })
             .from(teacherSubjectAssignments)
             .innerJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
@@ -5185,14 +5186,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
           
           for (const assign of subjectAssignments) {
+            const subjectName = assign.subjectNameFr || assign.subjectNameEn || '';
             const existing = classMap.get(assign.classId);
             if (existing) {
               // Enrich existing class with subject info (don't overwrite timetable subjects)
-              if (assign.subjectName && !existing.subjects.includes(assign.subjectName)) {
-                existing.subjects.push(assign.subjectName);
+              if (subjectName && !existing.subjects.includes(subjectName)) {
+                existing.subjects.push(subjectName);
                 // Update primary subject if empty
                 if (!existing.subject) {
-                  existing.subject = assign.subjectName;
+                  existing.subject = subjectName;
                 }
               }
             } else {
@@ -5203,8 +5205,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 level: assign.classLevel || '',
                 section: assign.classSection || '',
                 studentCount: 0,
-                subject: assign.subjectName || '',
-                subjects: [assign.subjectName].filter(Boolean),
+                subject: subjectName,
+                subjects: [subjectName].filter(Boolean),
                 room: '',
                 schedule: '',
                 schoolId: schoolId,
