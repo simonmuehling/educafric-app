@@ -2637,7 +2637,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ✅ FIX: Include matricule, guardian, parentEmail, parentPhone, isRepeater, redoublant
       const { 
         firstName, lastName, email, phone, classId, gender, dateOfBirth, placeOfBirth,
-        matricule, guardian, parentName, parentEmail, parentPhone, isRepeater, redoublant
+        matricule, guardian, parentName, parentEmail, parentPhone, isRepeater, redoublant, photo
       } = req.body;
       
       const userSchoolId = user.schoolId || user.school_id;
@@ -2686,6 +2686,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (parentPhone !== undefined) updateData.parentPhone = parentPhone && parentPhone.trim() ? parentPhone.trim() : null;
       if (isRepeater !== undefined) updateData.isRepeater = isRepeater === true || isRepeater === 'true';
       if (redoublant !== undefined) updateData.isRepeater = redoublant === true || redoublant === 'true';
+      // ✅ NEW: Save profile picture URL (base64 or URL)
+      if (photo !== undefined && photo) {
+        updateData.profilePictureUrl = photo;
+        console.log('[UPDATE_STUDENT] 📷 Photo updated, length:', photo?.length || 0);
+      }
       
       const [updatedStudent] = await db.update(users)
         .set(updateData)

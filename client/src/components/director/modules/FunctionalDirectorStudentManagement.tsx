@@ -520,7 +520,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     }
   };
 
-  const handleUpdateStudent = () => {
+  const handleUpdateStudent = async () => {
     if (selectedStudent) {
       // ✅ CRITICAL FIX: Convert className to classId for backend
       let classId = selectedStudent.classId;
@@ -538,6 +538,23 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       const firstName = nameParts[0] || selectedStudent.firstName;
       const lastName = nameParts.slice(1).join(' ') || selectedStudent.lastName;
       
+      // ✅ Convert photo to base64 if provided
+      let photoData: string | null = null;
+      if (capturedPhoto && capturedPhoto.startsWith('data:')) {
+        photoData = capturedPhoto;
+      } else if (studentForm.photo instanceof File) {
+        try {
+          photoData = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(studentForm.photo as File);
+          });
+        } catch (err) {
+          console.error('[STUDENT_UPDATE] Failed to convert photo:', err);
+        }
+      }
+      
       const updateData = {
         id: selectedStudent.id,
         firstName,
@@ -552,10 +569,11 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         parentName: studentForm.parentName || null,
         parentEmail: studentForm.parentEmail || null,
         parentPhone: studentForm.parentPhone || null,
-        redoublant: studentForm.redoublant
+        redoublant: studentForm.redoublant,
+        photo: photoData // ✅ Include photo in update
       };
       
-      console.log('[STUDENT_UPDATE] Prepared update data:', updateData);
+      console.log('[STUDENT_UPDATE] Prepared update data:', { ...updateData, photo: photoData ? 'base64...' : null });
       updateStudentMutation.mutate(updateData);
     }
   };
@@ -1729,22 +1747,91 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                 </Select>
               </div>
               
-              {/* Photo existante */}
-              {capturedPhoto && (
-                <div>
-                  <Label className="text-sm font-medium">{language === 'fr' ? 'Photo actuelle' : 'Current Photo'}</Label>
-                  <div className="mt-2 flex items-center gap-3">
+              {/* Photo Upload Section for Edit Modal */}
+              <div className="border rounded-lg p-3 bg-gray-50">
+                <Label className="text-sm font-medium flex items-center gap-2 mb-3">
+                  <Camera className="w-4 h-4" />
+                  {language === 'fr' ? 'Photo de l\'élève' : 'Student Photo'}
+                </Label>
+                
+                {/* Photo actuelle */}
+                {capturedPhoto && (
+                  <div className="mb-3 flex items-center gap-3">
                     <img 
                       src={capturedPhoto} 
                       alt="Student" 
-                      className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                      className="w-16 h-16 rounded-full object-cover border-2 border-green-200"
                     />
-                    <span className="text-xs text-gray-500">
-                      {language === 'fr' ? 'Photo actuelle de l\'élève' : 'Current student photo'}
-                    </span>
+                    <div>
+                      <span className="text-xs text-gray-500 block">
+                        {language === 'fr' ? 'Photo actuelle' : 'Current photo'}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-500 hover:text-red-700 p-0 h-auto text-xs"
+                        onClick={() => {
+                          setCapturedPhoto(null);
+                          setStudentForm(prev => ({ ...prev, photo: null }));
+                        }}
+                        data-testid="button-remove-photo-edit"
+                      >
+                        {language === 'fr' ? 'Supprimer' : 'Remove'}
+                      </Button>
+                    </div>
                   </div>
+                )}
+                
+                <div className="flex flex-wrap gap-2">
+                  {/* Option 1: Télécharger une photo */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setStudentForm(prev => ({ ...prev, photo: file }));
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            setCapturedPhoto(ev.target?.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      id="edit-student-photo-upload"
+                      className="hidden"
+                    />
+                    <label 
+                      htmlFor="edit-student-photo-upload" 
+                      className="cursor-pointer text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {language === 'fr' ? 'Choisir une photo' : 'Choose Photo'}
+                    </label>
+                  </div>
+                  
+                  {/* Option 2: Prendre une photo avec caméra */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCamera(true)}
+                    className="flex items-center gap-1"
+                    data-testid="button-open-camera-edit"
+                  >
+                    <Camera className="w-4 h-4" />
+                    {language === 'fr' ? 'Prendre une photo' : 'Take Photo'}
+                  </Button>
                 </div>
-              )}
+                
+                {studentForm.photo && studentForm.photo instanceof File && (
+                  <p className="text-xs text-green-600 mt-2">
+                    ✓ {studentForm.photo.name}
+                  </p>
+                )}
+              </div>
               
               {/* Boutons */}
               <div className="flex gap-2 pt-4 border-t">
@@ -1960,17 +2047,6 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                         >
                           <Edit className="w-4 h-4" />
                           <span className="hidden sm:inline">{text.buttons.edit}</span>
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handlePhotoUpload(student)}
-                          disabled={uploadingPhoto === student.id}
-                          className="flex items-center gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                          data-testid={`button-photo-student-${student.id}`}
-                        >
-                          <Camera className="w-4 h-4" />
-                          <span className="hidden sm:inline">Photo</span>
                         </Button>
                         <Button 
                           variant="outline" 
