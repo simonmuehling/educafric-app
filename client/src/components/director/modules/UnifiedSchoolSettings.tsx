@@ -295,7 +295,7 @@ const UnifiedSchoolSettings: React.FC = () => {
   // Use dummy data for notifications for now
   const notificationSettings = {
     emailNotifications: true,
-    smsNotifications: true,
+    whatsappNotifications: true,
     pushNotifications: true,
     parentUpdates: true,
     teacherAlerts: true,
