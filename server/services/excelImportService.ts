@@ -3,8 +3,8 @@ import * as bcrypt from 'bcryptjs';
 import { storage } from '../storage';
 import { nanoid } from 'nanoid';
 import { db } from '../db';
-import { eq, and, or } from 'drizzle-orm';
-import { users, classes, subjects, timetables, rooms, schools, teacherSubjectAssignments, classEnrollments, schoolLevels } from '../../shared/schema';
+import { eq, and, or, sql } from 'drizzle-orm';
+import { users, classes, subjects, timetables, rooms, schools, teacherSubjectAssignments, classEnrollments, schoolLevels, parentStudentRelations } from '../../shared/schema';
 
 interface TeacherImportData {
   firstName: string;
@@ -610,10 +610,66 @@ export class ExcelImportService {
         } as any).returning();
         
         result.created++;
-        result.warnings.push({
-          row: row._row || index + 2,
-          message: `Parent créé avec succès. Note: Les liaisons parent-enfant doivent être créées manuellement.`
-        });
+        
+        // Auto-link parent to children using matricules
+        if (parentData.childrenMatricules) {
+          const matricules = parentData.childrenMatricules.split(';').map((m: string) => m.trim()).filter(Boolean);
+          let linkedCount = 0;
+          
+          for (const matricule of matricules) {
+            // Find student by matricule in the same school
+            const [student] = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+              .from(users)
+              .where(
+                and(
+                  eq(users.schoolId, schoolId),
+                  eq(users.role, 'Student'),
+                  or(
+                    eq(users.educafricNumber, matricule),
+                    sql`${users.email} LIKE ${`%${matricule}%`}`
+                  )
+                )
+              )
+              .limit(1);
+            
+            if (student) {
+              // Create parent-student relation
+              const relationship = parentData.relation || (lang === 'fr' ? 'Parent' : 'Parent');
+              await db.insert(parentStudentRelations).values({
+                parentId: newParent.id,
+                studentId: student.id,
+                relationship: relationship,
+                isPrimary: linkedCount === 0
+              } as any).onConflictDoNothing();
+              
+              linkedCount++;
+              console.log(`[IMPORT_PARENTS] ✅ Linked parent ${newParent.id} to student ${student.id} (${student.firstName} ${student.lastName})`);
+            } else {
+              result.warnings.push({
+                row: row._row || index + 2,
+                message: lang === 'fr' 
+                  ? `Matricule enfant non trouvé: ${matricule}` 
+                  : `Child matricule not found: ${matricule}`
+              });
+            }
+          }
+          
+          if (linkedCount > 0) {
+            result.warnings.push({
+              row: row._row || index + 2,
+              message: lang === 'fr'
+                ? `Parent créé et lié à ${linkedCount} enfant(s)`
+                : `Parent created and linked to ${linkedCount} child(ren)`
+            });
+          }
+        } else {
+          result.warnings.push({
+            row: row._row || index + 2,
+            message: lang === 'fr'
+              ? `Parent créé. Ajoutez les matricules des enfants pour créer les liaisons automatiquement.`
+              : `Parent created. Add children matricules to create links automatically.`
+          });
+        }
         
       } catch (error) {
         result.errors.push({
@@ -1233,7 +1289,17 @@ export class ExcelImportService {
         
       case 'parents':
         headers = [t.fields.firstName, t.fields.lastName, t.fields.email, t.fields.phone, t.fields.gender, t.fields.relation, t.fields.profession, t.fields.address, t.fields.childrenMatricules];
-        sampleData = [];
+        sampleData = lang === 'fr' ? [
+          ['Ibrahim', 'Bello', 'ibrahim.bello@gmail.com', '+237677234567', 'Masculin', 'Père', 'Ingénieur', 'Yaoundé, Bastos', 'STU-2025-001;STU-2025-003'],
+          ['Grace', 'Ndi', 'grace.ndi@yahoo.fr', '+237655345678', 'Féminin', 'Mère', 'Médecin', 'Douala, Bonanjo', 'STU-2025-002'],
+          ['Joseph', 'Kamga', 'joseph.kamga@outlook.com', '+237678456789', 'Masculin', 'Père', 'Commerçant', 'Bamenda, Commercial Avenue', 'STU-2025-003'],
+          ['Marie-Claire', 'Njoya', 'mc.njoya@educafric.cm', '+237699567890', 'Féminin', 'Mère', 'Enseignante', 'Bafoussam, Centre', 'STU-2025-004']
+        ] : [
+          ['Ibrahim', 'Bello', 'ibrahim.bello@gmail.com', '+237677234567', 'Male', 'Father', 'Engineer', 'Yaounde, Bastos', 'STU-2025-001;STU-2025-003'],
+          ['Grace', 'Ndi', 'grace.ndi@yahoo.fr', '+237655345678', 'Female', 'Mother', 'Doctor', 'Douala, Bonanjo', 'STU-2025-002'],
+          ['Joseph', 'Kamga', 'joseph.kamga@outlook.com', '+237678456789', 'Male', 'Father', 'Merchant', 'Bamenda, Commercial Avenue', 'STU-2025-003'],
+          ['Marie-Claire', 'Njoya', 'mc.njoya@educafric.cm', '+237699567890', 'Female', 'Mother', 'Teacher', 'Bafoussam, Center', 'STU-2025-004']
+        ];
         break;
         
       case 'classes':
