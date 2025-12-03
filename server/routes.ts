@@ -5732,7 +5732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             phone: schools.phone,
             email: schools.email,
             logoUrl: schools.logoUrl,
-            city: schools.city,
+            arrondissement: schools.arrondissement,
             educafricNumber: schools.educafricNumber
           })
           .from(schools)
@@ -5772,7 +5772,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             phone: schools.phone,
             email: schools.email,
             logoUrl: schools.logoUrl,
-            city: schools.city,
+            arrondissement: schools.arrondissement,
             educafricNumber: schools.educafricNumber
           })
           .from(schools)
@@ -7187,6 +7187,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[HOMEWORK_API] ❌ Error fetching assignments:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch assignments', assignments: [] });
+    }
+  });
+
+  // ===== GET /api/teacher/class/:id/students - Get students in a class for library book assignment =====
+  app.get("/api/teacher/class/:id/students", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const classId = parseInt(req.params.id);
+      const schoolId = user.schoolId;
+      
+      console.log(`[TEACHER_API] GET /api/teacher/class/${classId}/students for teacher ${user.id}`);
+      
+      if (!schoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required', students: [] });
+      }
+      
+      // Get students enrolled in this class from enrollments table
+      let studentsInClass = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone
+        })
+        .from(users)
+        .innerJoin(enrollments, eq(enrollments.studentId, users.id))
+        .where(
+          and(
+            eq(users.role, 'Student'),
+            eq(users.schoolId, schoolId),
+            eq(enrollments.classId, classId),
+            eq(enrollments.status, 'active')
+          )
+        );
+      
+      // Fallback: If no enrollments, get students directly from students table
+      if (studentsInClass.length === 0) {
+        const directStudents = await db
+          .select({
+            id: students.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            phone: users.phone
+          })
+          .from(students)
+          .innerJoin(users, eq(students.userId, users.id))
+          .where(
+            and(
+              eq(students.classId, classId),
+              eq(students.schoolId, schoolId)
+            )
+          );
+        
+        studentsInClass = directStudents.map(s => ({
+          id: s.id,
+          firstName: s.firstName,
+          lastName: s.lastName,
+          email: s.email,
+          phone: s.phone
+        }));
+      }
+      
+      // Format response
+      const formattedStudents = studentsInClass.map(student => ({
+        id: student.id,
+        name: `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'Élève',
+        firstName: student.firstName,
+        lastName: student.lastName,
+        email: student.email,
+        phone: student.phone
+      }));
+      
+      console.log(`[TEACHER_API] ✅ Found ${formattedStudents.length} students in class ${classId}`);
+      
+      res.json({ success: true, students: formattedStudents });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching students in class:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch students', students: [] });
     }
   });
 
@@ -9105,16 +9185,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ============= INSERT INTO DATABASE =============
       console.log('[TEACHER_ABSENCE] 💾 Inserting absence into database...');
       
-      // Convert string dates to Date objects
-      const startDateParsed = new Date(absenceData.startDate);
-      const endDateParsed = new Date(absenceData.endDate);
-      
+      // Store dates as strings (text columns in DB)
       const [insertedAbsence] = await db.insert(teacherAbsences).values({
         teacherId: user.id,
         schoolId: schoolId,
         classId: 0,
         subjectId: 0,
-        absenceDate: startDateParsed,
+        absenceDate: absenceData.startDate,
         startTime: '08:00',
         endTime: '17:00',
         reason: absenceData.reason,
@@ -9127,7 +9204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contactEmail: absenceData.contactEmail || user.email || '',
         details: absenceData.details || '',
         classesAffected: absenceData.classesAffected,
-        endDate: endDateParsed
+        endDate: absenceData.endDate
       } as any).returning();
       
       console.log('[TEACHER_ABSENCE] ✅ Absence saved to database with ID:', insertedAbsence?.id);

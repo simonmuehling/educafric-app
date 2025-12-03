@@ -99,10 +99,26 @@ export const attendanceAutomation = pgTable("attendance_automation", {
 export const teacherAbsences = pgTable("teacher_absences", {
   id: serial("id").primaryKey(),
   teacherId: integer("teacher_id").notNull(),
-  startDate: timestamp("start_date").notNull(),
-  endDate: timestamp("end_date"),
+  schoolId: integer("school_id"),
+  classId: integer("class_id"),
+  subjectId: integer("subject_id"),
+  absenceDate: text("absence_date"),
+  startTime: text("start_time"),
+  endTime: text("end_time"),
   reason: text("reason"),
-  createdAt: timestamp("created_at").defaultNow()
+  status: text("status").default("pending"),
+  replacementTeacherId: integer("replacement_teacher_id"),
+  notes: text("notes"),
+  notificationsSent: boolean("notifications_sent").default(false),
+  createdBy: integer("created_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at"),
+  urgency: text("urgency"),
+  contactPhone: text("contact_phone"),
+  contactEmail: text("contact_email"),
+  details: text("details"),
+  classesAffected: text("classes_affected").array(),
+  endDate: text("end_date")
 });
 
 export const parentRequests = pgTable("parent_requests", {
@@ -424,8 +440,16 @@ export const payments = pgTable("payments", {
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
   senderId: integer("sender_id").notNull(),
+  senderName: text("sender_name"),
+  senderRole: text("sender_role"),
   recipientId: integer("recipient_id").notNull(),
+  recipientName: text("recipient_name"),
+  recipientRole: text("recipient_role"),
+  schoolId: integer("school_id"),
+  subject: text("subject"),
   content: text("content").notNull(),
+  messageType: text("message_type"),
+  isRead: boolean("is_read").default(false),
   status: text("status").default("sent"),
   createdAt: timestamp("created_at").defaultNow()
 });
