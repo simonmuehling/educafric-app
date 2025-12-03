@@ -5213,6 +5213,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         const schoolClasses = Array.from(classMap.values());
+        
+        // ✅ CRITICAL FIX: Get REAL student counts from enrollments table for each class
+        for (const cls of schoolClasses) {
+          try {
+            const studentCountResult = await db
+              .select({ count: sql<number>`count(*)::int` })
+              .from(enrollments)
+              .where(
+                and(
+                  eq(enrollments.classId, cls.id),
+                  eq(enrollments.status, 'active')
+                )
+              );
+            cls.studentCount = studentCountResult[0]?.count || 0;
+            console.log(`[TEACHER_API] 👥 Class ${cls.name} (ID: ${cls.id}): ${cls.studentCount} students`);
+          } catch (e) {
+            console.log(`[TEACHER_API] ⚠️ Could not get student count for class ${cls.id}:`, e);
+            cls.studentCount = 0;
+          }
+        }
+        
         allClasses = [...allClasses, ...schoolClasses];
         
         schoolsWithClasses.push({

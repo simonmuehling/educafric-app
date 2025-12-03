@@ -39,7 +39,7 @@ const FunctionalTeacherClasses: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
 
   // Fetch teacher classes data from PostgreSQL API
-  const { data: classes = [], isLoading } = useQuery<TeacherClass[]>({
+  const { data: apiResponse, isLoading } = useQuery<any>({
     queryKey: ['/api/teacher/classes', selectedSchoolId],
     queryFn: async () => {
       const response = await fetch(`/api/teacher/classes?schoolId=${selectedSchoolId}`, {
@@ -50,6 +50,44 @@ const FunctionalTeacherClasses: React.FC = () => {
     },
     enabled: !!user
   });
+  
+  // ✅ FIX: Extract classes array from API response and add schoolName
+  const classes: TeacherClass[] = React.useMemo(() => {
+    if (!apiResponse) return [];
+    
+    // If API returns schoolsWithClasses structure, flatten it
+    if (apiResponse.schoolsWithClasses && Array.isArray(apiResponse.schoolsWithClasses)) {
+      const allClasses: TeacherClass[] = [];
+      for (const school of apiResponse.schoolsWithClasses) {
+        if (school.classes && Array.isArray(school.classes)) {
+          for (const cls of school.classes) {
+            allClasses.push({
+              ...cls,
+              schoolName: school.schoolName || cls.schoolName || 'Unknown School',
+              academicYear: cls.academicYear || '2024-2025',
+              capacity: cls.capacity || 40,
+              teacherId: cls.teacherId || 0,
+              schedule: cls.schedule || '',
+              nextClass: cls.nextClass || ''
+            });
+          }
+        }
+      }
+      return allClasses;
+    }
+    
+    // If API returns flat classes array
+    if (apiResponse.classes && Array.isArray(apiResponse.classes)) {
+      return apiResponse.classes;
+    }
+    
+    // If API returns array directly
+    if (Array.isArray(apiResponse)) {
+      return apiResponse;
+    }
+    
+    return [];
+  }, [apiResponse]);
 
   const text = {
     fr: {
