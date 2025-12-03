@@ -853,3 +853,230 @@ export const gradeValidationSchema = z.object({
 });
 
 export type GradeValidation = z.infer<typeof gradeValidationSchema>;
+
+// ===== FEES MANAGEMENT MODULE =====
+
+// Fee Structures - Templates for different fee types per school/class
+export const feeStructures = pgTable("fee_structures", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  name: text("name").notNull(), // e.g., "Frais de scolarité T1", "Inscription", "Transport"
+  nameFr: text("name_fr"), // French name
+  nameEn: text("name_en"), // English name
+  description: text("description"),
+  feeType: text("fee_type").notNull(), // 'tuition', 'registration', 'exam', 'transport', 'pta', 'boarding', 'custom'
+  amount: integer("amount").notNull(), // Amount in XAF (stored as integer for precision)
+  currency: text("currency").default("XAF"),
+  classId: integer("class_id"), // NULL = applies to all classes
+  gradeLevel: text("grade_level"), // Alternative to classId: 'maternelle', 'primaire', 'secondaire'
+  frequency: text("frequency").notNull().default("term"), // 'monthly', 'term', 'yearly', 'once'
+  termId: integer("term_id"), // Specific term (1, 2, 3) or NULL for all
+  academicYearId: integer("academic_year_id"),
+  dueDate: timestamp("due_date"), // Default due date
+  dueDayOfMonth: integer("due_day_of_month"), // For monthly fees: day of month (1-31)
+  // Discount rules
+  earlyPaymentDiscount: integer("early_payment_discount").default(0), // Percentage discount
+  earlyPaymentDays: integer("early_payment_days").default(0), // Days before due date for early discount
+  siblingDiscount: integer("sibling_discount").default(0), // Percentage discount for siblings
+  scholarshipEligible: boolean("scholarship_eligible").default(true),
+  // Status
+  isActive: boolean("is_active").default(true),
+  isMandatory: boolean("is_mandatory").default(true),
+  // Metadata
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Assigned Fees - Individual fee assignments to students
+export const assignedFees = pgTable("assigned_fees", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  studentId: integer("student_id").notNull(),
+  feeStructureId: integer("fee_structure_id").notNull(),
+  // Amounts
+  originalAmount: integer("original_amount").notNull(), // Original fee amount
+  discountAmount: integer("discount_amount").default(0), // Total discounts applied
+  discountReason: text("discount_reason"), // 'sibling', 'early_payment', 'scholarship', 'custom'
+  finalAmount: integer("final_amount").notNull(), // Amount after discounts
+  paidAmount: integer("paid_amount").default(0), // Amount paid so far
+  balanceAmount: integer("balance_amount").notNull(), // Remaining balance
+  // Status
+  status: text("status").default("pending"), // 'pending', 'partial', 'paid', 'overdue', 'waived', 'cancelled'
+  // Dates
+  dueDate: timestamp("due_date").notNull(),
+  paidDate: timestamp("paid_date"), // Full payment date
+  lastPaymentDate: timestamp("last_payment_date"),
+  // Term/Year info
+  termId: integer("term_id"),
+  academicYearId: integer("academic_year_id"),
+  // Notifications tracking
+  reminderSent: boolean("reminder_sent").default(false),
+  reminderSentAt: timestamp("reminder_sent_at"),
+  overdueNoticeSent: boolean("overdue_notice_sent").default(false),
+  overdueNoticeSentAt: timestamp("overdue_notice_sent_at"),
+  // Metadata
+  notes: text("notes"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Payment Items - Line-level allocations linking payments to assigned fees
+export const paymentItems = pgTable("payment_items", {
+  id: serial("id").primaryKey(),
+  paymentId: integer("payment_id").notNull(), // Links to payments table
+  assignedFeeId: integer("assigned_fee_id").notNull(), // Links to assigned_fees
+  amount: integer("amount").notNull(), // Amount allocated to this fee
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Fee Audit Logs - Complete audit trail for all fee-related actions
+export const feeAuditLogs = pgTable("fee_audit_logs", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  actorId: integer("actor_id").notNull(), // User who performed the action
+  actorRole: text("actor_role"), // 'Director', 'Admin', 'Parent', 'System'
+  action: text("action").notNull(), // 'create_structure', 'assign_fee', 'record_payment', 'apply_discount', 'waive_fee', 'refund'
+  entityType: text("entity_type").notNull(), // 'fee_structure', 'assigned_fee', 'payment'
+  entityId: integer("entity_id").notNull(),
+  // Before/After state
+  previousValue: jsonb("previous_value"),
+  newValue: jsonb("new_value"),
+  // Financial tracking
+  amountBefore: integer("amount_before"),
+  amountAfter: integer("amount_after"),
+  // Context
+  description: text("description"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Fee Payment Receipts - Generated receipts for payments
+export const feeReceipts = pgTable("fee_receipts", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  paymentId: integer("payment_id").notNull(),
+  studentId: integer("student_id").notNull(),
+  receiptNumber: text("receipt_number").notNull().unique(), // Unique receipt number
+  // Receipt details
+  totalAmount: integer("total_amount").notNull(),
+  paymentMethod: text("payment_method"), // 'cash', 'bank', 'mtn_momo', 'orange_money', 'stripe'
+  transactionRef: text("transaction_ref"),
+  // PDF storage
+  pdfUrl: text("pdf_url"),
+  // Status
+  status: text("status").default("generated"), // 'generated', 'sent', 'viewed', 'printed'
+  sentAt: timestamp("sent_at"),
+  viewedAt: timestamp("viewed_at"),
+  // Metadata
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Fee Notification Queue - Track pending fee notifications
+export const feeNotificationQueue = pgTable("fee_notification_queue", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  assignedFeeId: integer("assigned_fee_id"),
+  studentId: integer("student_id").notNull(),
+  parentId: integer("parent_id"),
+  // Notification type
+  notificationType: text("notification_type").notNull(), // 'reminder', 'overdue', 'receipt', 'balance_alert'
+  // Content
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  // Channels and status
+  channels: text("channels").array(), // ['email', 'whatsapp', 'pwa']
+  emailSent: boolean("email_sent").default(false),
+  whatsappSent: boolean("whatsapp_sent").default(false),
+  pwaSent: boolean("pwa_sent").default(false),
+  // Scheduling
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  status: text("status").default("pending"), // 'pending', 'sent', 'failed', 'cancelled'
+  errorMessage: text("error_message"),
+  // Metadata
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// ===== FEE SCHEMAS AND TYPES =====
+
+export const insertFeeStructureSchema = createInsertSchema(feeStructures).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertAssignedFeeSchema = createInsertSchema(assignedFees).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertPaymentItemSchema = createInsertSchema(paymentItems).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertFeeAuditLogSchema = createInsertSchema(feeAuditLogs).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertFeeReceiptSchema = createInsertSchema(feeReceipts).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertFeeNotificationQueueSchema = createInsertSchema(feeNotificationQueue).omit({
+  id: true,
+  createdAt: true
+});
+
+// Insert types
+export type InsertFeeStructure = z.infer<typeof insertFeeStructureSchema>;
+export type InsertAssignedFee = z.infer<typeof insertAssignedFeeSchema>;
+export type InsertPaymentItem = z.infer<typeof insertPaymentItemSchema>;
+export type InsertFeeAuditLog = z.infer<typeof insertFeeAuditLogSchema>;
+export type InsertFeeReceipt = z.infer<typeof insertFeeReceiptSchema>;
+export type InsertFeeNotificationQueue = z.infer<typeof insertFeeNotificationQueueSchema>;
+
+// Select types
+export type FeeStructure = typeof feeStructures.$inferSelect;
+export type AssignedFee = typeof assignedFees.$inferSelect;
+export type PaymentItem = typeof paymentItems.$inferSelect;
+export type FeeAuditLog = typeof feeAuditLogs.$inferSelect;
+export type FeeReceipt = typeof feeReceipts.$inferSelect;
+export type FeeNotificationQueue = typeof feeNotificationQueue.$inferSelect;
+
+// ===== FEE UTILITY SCHEMAS =====
+
+// Schema for bulk fee assignment
+export const bulkFeeAssignmentSchema = z.object({
+  schoolId: z.number(),
+  feeStructureId: z.number(),
+  classId: z.number().optional(),
+  studentIds: z.array(z.number()).optional(), // If empty, assign to all students in class
+  dueDate: z.string(),
+  termId: z.number().optional(),
+  academicYearId: z.number().optional()
+});
+
+export type BulkFeeAssignment = z.infer<typeof bulkFeeAssignmentSchema>;
+
+// Schema for recording a payment
+export const recordPaymentSchema = z.object({
+  schoolId: z.number(),
+  studentId: z.number(),
+  amount: z.number().positive(),
+  paymentMethod: z.enum(['cash', 'bank', 'mtn_momo', 'orange_money', 'stripe', 'other']),
+  transactionRef: z.string().optional(),
+  assignedFeeIds: z.array(z.number()).optional(), // Specific fees to apply payment to
+  notes: z.string().optional()
+});
+
+export type RecordPayment = z.infer<typeof recordPaymentSchema>;

@@ -303,6 +303,11 @@ app.use((req, res, next) => {
   const { initHomeworkReminderService } = await import('./services/homeworkReminderService');
   initHomeworkReminderService();
 
+  // Initialize fee notification service
+  const { feeNotificationService } = await import('./services/feeNotificationService');
+  feeNotificationService.initialize();
+  console.log('[FEE_NOTIFICATIONS] ✅ Fee notification service started');
+
   // Enhanced error handler middleware with critical alerting
   app.use(async (err: any, req: Request, res: Response, next: NextFunction) => {
     // Send critical alert for server errors
