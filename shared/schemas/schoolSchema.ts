@@ -13,6 +13,7 @@ export const schools = pgTable("schools", {
   phone: text("phone"),
   email: text("email"),
   logoUrl: text("logo_url"),
+  slogan: text("slogan"), // School slogan/motto displayed on ID cards and documents
   academicYear: text("academic_year"),
   currentTerm: text("current_term"),
   termStartDate: timestamp("term_start_date"),
