@@ -8043,7 +8043,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           schoolId: schoolId,
           date: new Date(date),
           status: status,
-          reason: notes || null,
+          notes: notes || null,
           markedBy: teacherId,
           createdAt: new Date()
         } as any).returning();
