@@ -34,7 +34,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences } from "../shared/schema";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages } from "../shared/schema";
 import { attendance } from "../shared/schemas/academicSchema";
 import bcrypt from 'bcryptjs';
 
@@ -5730,7 +5730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const otherSchoolIds = additionalSchoolIds
         .map(s => s.schoolId)
-        .filter(id => id && id !== user.schoolId);
+        .filter((id): id is number => typeof id === 'number' && id !== user.schoolId);
       
       if (otherSchoolIds.length > 0) {
         const additionalSchools = await db
@@ -5745,7 +5745,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             educafricNumber: schools.educafricNumber
           })
           .from(schools)
-          .where(inArray(schools.id, otherSchoolIds));
+          .where(inArray(schools.id, otherSchoolIds as number[]));
         
         for (const school of additionalSchools) {
           assignedSchools.push({
