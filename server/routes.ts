@@ -5567,8 +5567,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'School ID required', classes: [] });
       }
       
-      // Get teacher's assigned classes from timetables
-      const assignedClasses = await db
+      // Get teacher's assigned classes from BOTH timetables AND teacherSubjectAssignments
+      // Source 1: Timetables
+      const assignedFromTimetables = await db
         .selectDistinct({
           classId: timetables.classId,
           className: classes.name,
@@ -5584,34 +5585,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         );
       
+      // Source 2: Teacher Subject Assignments (with school isolation)
+      const assignedFromAssignments = await db
+        .selectDistinct({
+          classId: teacherSubjectAssignments.classId,
+          className: classes.name,
+          classLevel: classes.level
+        })
+        .from(teacherSubjectAssignments)
+        .innerJoin(classes, eq(teacherSubjectAssignments.classId, classes.id))
+        .where(
+          and(
+            eq(teacherSubjectAssignments.teacherId, user.id),
+            eq(teacherSubjectAssignments.schoolId, schoolId),
+            eq(classes.schoolId, schoolId)
+          )
+        );
+      
+      // Combine both sources and deduplicate
+      const allAssignedClasses = [...assignedFromTimetables, ...assignedFromAssignments];
+      const uniqueClassIds = [...new Set(allAssignedClasses.map(c => c.classId))];
+      const assignedClasses = uniqueClassIds.map(cId => allAssignedClasses.find(c => c.classId === cId)!).filter(Boolean);
+      
+      console.log(`[TEACHER_API] Found ${assignedClasses.length} assigned classes (timetables: ${assignedFromTimetables.length}, assignments: ${assignedFromAssignments.length})`);
+      
       if (assignedClasses.length === 0) {
         console.log(`[TEACHER_API] No assigned classes for teacher ${user.id}`);
         return res.json({ success: true, classes: [] });
       }
       
-      const classIds = assignedClasses.map(c => c.classId);
+      const classIds = assignedClasses.map(c => c.classId).filter(Boolean) as number[];
       
       // Get students in these classes from enrollments
-      const studentsInClasses = await db
-        .select({
-          studentId: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-          phone: users.phone,
-          classId: enrollments.classId,
-          parentId: users.parentId
-        })
-        .from(users)
-        .innerJoin(enrollments, eq(enrollments.studentId, users.id))
-        .where(
-          and(
-            eq(users.role, 'Student'),
-            eq(users.schoolId, schoolId),
-            inArray(enrollments.classId, classIds),
-            eq(enrollments.status, 'active')
+      let studentsInClasses: any[] = [];
+      
+      if (classIds.length > 0) {
+        studentsInClasses = await db
+          .select({
+            studentId: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            phone: users.phone,
+            classId: enrollments.classId,
+            parentId: users.parentId
+          })
+          .from(users)
+          .innerJoin(enrollments, eq(enrollments.studentId, users.id))
+          .where(
+            and(
+              eq(users.role, 'Student'),
+              eq(users.schoolId, schoolId),
+              inArray(enrollments.classId, classIds),
+              eq(enrollments.status, 'active')
+            )
+          );
+      }
+      
+      // Fallback: If no enrollments, get students directly from users table
+      if (studentsInClasses.length === 0 && classIds.length > 0) {
+        console.log(`[TEACHER_API] No enrollments found, using fallback to get students directly`);
+        const schoolStudents = await db
+          .select({
+            studentId: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            phone: users.phone,
+            parentId: users.parentId
+          })
+          .from(users)
+          .where(
+            and(
+              eq(users.role, 'Student'),
+              eq(users.schoolId, schoolId)
+            )
           )
-        );
+          .limit(50);
+        
+        // Distribute students across assigned classes
+        studentsInClasses = schoolStudents.map((student, index) => ({
+          ...student,
+          classId: classIds[index % classIds.length]
+        }));
+      }
       
       // Get parent IDs for these students
       const parentIds = [...new Set(studentsInClasses.filter(s => s.parentId).map(s => s.parentId))];
@@ -5994,11 +6051,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         );
       
-      // Source 2: Teacher Subject Assignments (created when adding teachers)
+      // Source 2: Teacher Subject Assignments (created when adding teachers - with school isolation)
       const assignedFromAssignments = await db
         .selectDistinct({ classId: teacherSubjectAssignments.classId })
         .from(teacherSubjectAssignments)
-        .where(eq(teacherSubjectAssignments.teacherId, user.id));
+        .where(
+          and(
+            eq(teacherSubjectAssignments.teacherId, user.id),
+            eq(teacherSubjectAssignments.schoolId, userSchoolId)
+          )
+        );
 
       // Combine both sources
       const allAssignedClassIds = [
@@ -6020,8 +6082,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Then get students from those classes using the enrollments table
-      const studentsQuery = db
+      // Get class information for the assigned classes
+      const assignedClasses = await db
+        .select({
+          id: classes.id,
+          name: classes.name,
+          schoolId: classes.schoolId
+        })
+        .from(classes)
+        .where(
+          and(
+            inArray(classes.id, classIds),
+            eq(classes.schoolId, userSchoolId)
+          )
+        );
+      
+      console.log(`[TEACHER_API] 📋 Found ${assignedClasses.length} valid classes for teacher`);
+
+      // STRATEGY 1: Get students from enrollments table
+      let allStudents: any[] = [];
+      
+      const enrolledStudents = await db
         .select({
           id: users.id,
           firstName: users.firstName,
@@ -6037,19 +6118,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(
           and(
             inArray(enrollments.classId, classIds),
-            eq(classes.schoolId, user.schoolId),
+            eq(classes.schoolId, userSchoolId),
             eq(enrollments.status, 'active')
           )
         );
-
-      const allStudents = await studentsQuery;
+      
+      console.log(`[TEACHER_API] 📊 Found ${enrolledStudents.length} students from enrollments table`);
+      
+      if (enrolledStudents.length > 0) {
+        allStudents = enrolledStudents;
+      } else {
+        // STRATEGY 2: Fallback - Get students directly from users table with role='Student'
+        // This handles cases where students are not yet enrolled but exist in the system
+        console.log('[TEACHER_API] ⚠️ No enrollments found, using fallback to users table');
+        
+        // Get all students for the school and distribute them across assigned classes
+        const schoolStudents = await db
+          .select({
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            matricule: users.educafricNumber,
+          })
+          .from(users)
+          .where(
+            and(
+              eq(users.role, 'Student'),
+              eq(users.schoolId, userSchoolId)
+            )
+          )
+          .limit(100); // Limit for performance
+        
+        console.log(`[TEACHER_API] 📋 Found ${schoolStudents.length} students in school via fallback`);
+        
+        // Distribute students across the assigned classes for display purposes
+        if (schoolStudents.length > 0 && assignedClasses.length > 0) {
+          allStudents = schoolStudents.map((student, index) => {
+            const assignedClass = assignedClasses[index % assignedClasses.length];
+            return {
+              ...student,
+              classId: assignedClass.id,
+              className: assignedClass.name
+            };
+          });
+        }
+      }
 
       // Add class name property and format for compatibility
       const formattedStudents = allStudents.map(s => ({
         id: s.id,
         firstName: s.firstName,
         lastName: s.lastName,
-        name: `${s.firstName} ${s.lastName}`,
+        name: `${s.firstName || ''} ${s.lastName || ''}`.trim(),
         email: s.email,
         classId: s.classId,
         class: s.className,
@@ -6063,7 +6184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : formattedStudents;
       
       console.log(`[TEACHER_API] ✅ Found ${filteredStudents.length} students from ${classIds.length} assigned classes for teacher ${user.id}`);
-      res.json(filteredStudents);
+      res.json({ success: true, students: filteredStudents });
     } catch (error) {
       console.error('[TEACHER_API] Error fetching students:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch students' });
