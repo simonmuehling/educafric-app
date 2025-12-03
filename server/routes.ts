@@ -7159,7 +7159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(users)
           .where(and(
             eq(users.role, 'Student'),
-            sql`${users.id} IN (SELECT student_id FROM class_enrollment WHERE class_id = ${assignment.classId})`
+            sql`${users.id} IN (SELECT student_id FROM enrollments WHERE class_id = ${assignment.classId})`
           ));
           
         const submittedCount = submissions.length;
@@ -7357,7 +7357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(users)
         .where(and(
           eq(users.role, 'Student'),
-          sql`${users.id} IN (SELECT student_id FROM class_enrollment WHERE class_id = ${parseInt(classId)})`
+          sql`${users.id} IN (SELECT student_id FROM enrollments WHERE class_id = ${parseInt(classId)})`
         ));
         
       console.log('[HOMEWORK_API] 🔔 Found', studentsInClass.length, 'students in class');
@@ -7391,22 +7391,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Send notifications to parents
       if (notifyParents !== false && studentsInClass.length > 0) {
-        // Get parents of students in the class
+        // Get parents of students in the class via parent_student_relations table
         const studentIds = studentsInClass.map(s => s.id);
-        const parentsOfStudents = await db
+        const studentIdsList = studentIds.join(',');
+        const parentsOfStudents = studentIdsList ? await db
           .select({
             id: users.id,
             firstName: users.firstName,
             lastName: users.lastName,
             email: users.email,
-            phone: users.phone,
-            studentId: sql`(SELECT id FROM users u2 WHERE u2.parent_id = ${users.id} LIMIT 1)`
+            phone: users.phone
           })
           .from(users)
           .where(and(
             eq(users.role, 'Parent'),
-            sql`${users.id} IN (SELECT parent_id FROM users WHERE id = ANY(${studentIds}) AND parent_id IS NOT NULL)`
-          ));
+            sql`${users.id} IN (SELECT parent_id FROM parent_student_relations WHERE student_id IN (${sql.raw(studentIdsList)}))`
+          )) : [];
         
         console.log('[HOMEWORK_API] 👨‍👩‍👧 Found', parentsOfStudents.length, 'parents to notify');
         
@@ -7709,7 +7709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get student's class enrollments
       const studentClasses = await db
         .select({ classId: sql<number>`class_id` })
-        .from(sql`class_enrollment`)
+        .from(sql`enrollments`)
         .where(sql`student_id = ${studentId}`);
       
       const classIds = studentClasses.map(sc => sc.classId);
@@ -7841,7 +7841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if student is enrolled in the class
       const [classEnrollment] = await db
         .select()
-        .from(sql`class_enrollment`)
+        .from(sql`enrollments`)
         .where(and(
           sql`student_id = ${studentId}`,
           sql`class_id = ${assignedHomework.classId}`
@@ -8117,8 +8117,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validStatuses = ['present', 'absent', 'late'];
         const status = validStatuses.includes(student.status) ? student.status : 'present';
         
+        // Accept both student.id and student.studentId
+        const studentIdValue = student.id || student.studentId;
+        if (!studentIdValue) {
+          console.log('[TEACHER_ATTENDANCE] ⚠️ Skipping student without ID:', student);
+          continue;
+        }
+        
         const [record] = await db.insert(attendance).values({
-          studentId: student.id,
+          studentId: studentIdValue,
           classId: parseInt(classId),
           schoolId: schoolId,
           date: new Date(date),
