@@ -8092,17 +8092,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         );
       
-      // Also get subjects from timetables as backup
+      // Also get subjects from timetables as backup (uses subjectName, not subjectId)
       const timetableAssignments = await db
         .select({
-          subjectId: timetables.subjectId,
           classId: timetables.classId,
-          subjectNameFr: subjects.nameFr,
-          subjectNameEn: subjects.nameEn,
+          subjectName: timetables.subjectName,
           className: classes.name
         })
         .from(timetables)
-        .leftJoin(subjects, eq(timetables.subjectId, subjects.id))
         .leftJoin(classes, eq(timetables.classId, classes.id))
         .where(
           and(
@@ -8112,9 +8109,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         );
       
-      // Combine and deduplicate subjects
-      const allSubjects = [...teacherAssignments, ...timetableAssignments];
-      const uniqueSubjects = Array.from(new Set(allSubjects.map(a => a.subjectNameFr).filter(Boolean)));
+      // Combine subjects from both sources
+      const subjectsFromAssignments = teacherAssignments.map(a => a.subjectNameFr || a.subjectNameEn).filter(Boolean);
+      const subjectsFromTimetable = timetableAssignments.map(a => a.subjectName).filter(Boolean);
+      const uniqueSubjects = Array.from(new Set([...subjectsFromAssignments, ...subjectsFromTimetable]));
+      
+      // Build combined assignments list
+      const allAssignments = [
+        ...teacherAssignments.map(a => ({
+          subjectId: a.subjectId,
+          subjectName: a.subjectNameFr || a.subjectNameEn || '',
+          classId: a.classId,
+          className: a.className || ''
+        })),
+        ...timetableAssignments.map(a => ({
+          subjectId: null,
+          subjectName: a.subjectName || '',
+          classId: a.classId,
+          className: a.className || ''
+        }))
+      ];
       
       console.log('[TEACHER_PROFILE] ✅ Found', uniqueSubjects.length, 'assigned subjects');
       
@@ -8127,12 +8141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phone: user.phone,
         schoolId: schoolId,
         teachingSubjects: uniqueSubjects,
-        assignments: allSubjects.map(a => ({
-          subjectId: a.subjectId,
-          subjectName: a.subjectNameFr || a.subjectNameEn,
-          classId: a.classId,
-          className: a.className
-        }))
+        assignments: allAssignments
       });
     } catch (error) {
       console.error('[TEACHER_PROFILE] ❌ Error fetching profile:', error);
