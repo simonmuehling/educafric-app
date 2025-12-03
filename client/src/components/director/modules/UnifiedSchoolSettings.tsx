@@ -41,6 +41,7 @@ interface SchoolProfile {
   website?: string;
   logo?: string;
   logoUrl?: string;
+  slogan?: string; // School slogan/motto
   description: string;
   establishedYear: number;
   principalName: string;
@@ -109,6 +110,9 @@ const UnifiedSchoolSettings: React.FC = () => {
       edit: 'Modifier',
       loading: 'Chargement...',
       schoolName: 'Nom de l\'École',
+      slogan: 'Slogan / Devise',
+      sloganPlaceholder: 'Ex: Excellence et Discipline',
+      sloganHint: 'Apparaît sous le logo sur les bulletins et sous le nom sur les cartes d\'identité',
       schoolType: 'Type d\'Établissement',
       typePublic: 'Public',
       typePrivate: 'Privé', 
@@ -193,6 +197,9 @@ const UnifiedSchoolSettings: React.FC = () => {
       edit: 'Edit',
       loading: 'Loading...',
       schoolName: 'School Name',
+      slogan: 'Slogan / Motto',
+      sloganPlaceholder: 'Ex: Excellence and Discipline',
+      sloganHint: 'Appears below the logo on bulletins and below the name on ID cards',
       schoolType: 'Institution Type',
       typePublic: 'Public',
       typePrivate: 'Private',
@@ -296,6 +303,7 @@ const UnifiedSchoolSettings: React.FC = () => {
         phone: schoolProfile.phone,
         email: schoolProfile.email,
         website: schoolProfile.website,
+        slogan: schoolProfile.slogan,
         description: schoolProfile.description,
         establishedYear: schoolProfile.establishedYear,
         principalName: schoolProfile.principalName,
@@ -641,6 +649,19 @@ const UnifiedSchoolSettings: React.FC = () => {
                   />
                 </div>
               </div>
+              {/* School Slogan/Motto */}
+              <div className="space-y-2">
+                <Label htmlFor="slogan">{t.slogan}</Label>
+                <Input
+                  id="slogan"
+                  value={formData.slogan || ''}
+                  onChange={(e) => handleFieldChange('slogan', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder={t.sloganPlaceholder}
+                />
+                <p className="text-xs text-muted-foreground">{t.sloganHint}</p>
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="address">{t.address}</Label>
                 <Textarea
