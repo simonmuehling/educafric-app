@@ -253,7 +253,8 @@ const CreateEducationalContent = () => {
     duration: item.duration || 60,
     lastModified: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('fr-FR') : 'N/A',
     status: item.status || 'draft',
-    teacherName: item.teacherName || 'Enseignant'
+    teacherName: item.teacherName || 'Enseignant',
+    visibility: item.visibility || 'private'
   }));
 
   // Format templates for display
@@ -331,15 +332,45 @@ const CreateEducationalContent = () => {
 
       if (response.ok) {
         toast({
-          title: language === 'fr' ? "Contenu partagé" : "Content shared",
-          description: language === 'fr' ? "Le contenu a été partagé avec votre école" : "Content has been shared with your school",
+          title: language === 'fr' ? "✅ Contenu partagé avec succès !" : "✅ Content shared successfully!",
+          description: language === 'fr' 
+            ? "Votre contenu est maintenant visible par tous les enseignants de votre école dans l'onglet 'Contenu Partagé'. Ils peuvent le prévisualiser et le copier." 
+            : "Your content is now visible to all teachers in your school under 'Shared Content' tab. They can preview and copy it.",
           variant: "default"
         });
+        refetchContent();
       }
     } catch (error) {
       toast({
         title: language === 'fr' ? "Erreur" : "Error",
         description: language === 'fr' ? "Impossible de partager le contenu" : "Failed to share content",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const unshareContent = async (contentId: number) => {
+    try {
+      const response = await fetch(`/api/educational-content/${contentId}/unshare`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        toast({
+          title: language === 'fr' ? "🔒 Partage arrêté" : "🔒 Sharing stopped",
+          description: language === 'fr' 
+            ? "Ce contenu n'est plus visible par vos collègues. Il reste dans votre bibliothèque personnelle." 
+            : "This content is no longer visible to your colleagues. It remains in your personal library.",
+          variant: "default"
+        });
+        refetchContent();
+      }
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible d'arrêter le partage" : "Failed to stop sharing",
         variant: "destructive"
       });
     }
@@ -694,15 +725,27 @@ const CreateEducationalContent = () => {
                         
                         {/* Deuxième ligne d'actions */}
                         <div className="flex gap-1 sm:gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => shareContent(content.id)}
-                            className="flex-1 text-xs sm:text-sm px-2 sm:px-3 text-blue-600 hover:text-blue-700"
-                          >
-                            <Share2 className="w-3 h-3 sm:mr-1" />
-                            <span className="hidden sm:inline">{language === 'fr' ? 'Partager' : 'Share'}</span>
-                          </Button>
+                          {content.visibility === 'school' || content.visibility === 'public' ? (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => unshareContent(content.id)}
+                              className="flex-1 text-xs sm:text-sm px-2 sm:px-3 text-orange-600 hover:text-orange-700 border-orange-300"
+                            >
+                              <X className="w-3 h-3 sm:mr-1" />
+                              <span className="hidden sm:inline">{language === 'fr' ? 'Arrêter partage' : 'Stop sharing'}</span>
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => shareContent(content.id)}
+                              className="flex-1 text-xs sm:text-sm px-2 sm:px-3 text-blue-600 hover:text-blue-700"
+                            >
+                              <Share2 className="w-3 h-3 sm:mr-1" />
+                              <span className="hidden sm:inline">{language === 'fr' ? 'Partager' : 'Share'}</span>
+                            </Button>
+                          )}
                           <Button 
                             size="sm" 
                             variant="outline"

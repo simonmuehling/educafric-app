@@ -712,7 +712,7 @@ router.post('/:id/copy', requireAuth, async (req, res) => {
 router.post('/:id/share', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { targetTeachers, shareWithSchool } = req.body;
+    const { shareWithSchool } = req.body;
     const user = (req as any).user;
 
     // Verify user owns this content or has permission to share
@@ -723,23 +723,39 @@ router.post('/:id/share', requireAuth, async (req, res) => {
       });
     }
 
+    const contentId = parseInt(id);
+
+    // Verify content belongs to user
+    const [existingContent] = await db
+      .select()
+      .from(educationalContent)
+      .where(and(
+        eq(educationalContent.id, contentId),
+        eq(educationalContent.teacherId, user.id)
+      ))
+      .limit(1);
+
+    if (!existingContent) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found or you do not have permission to share it'
+      });
+    }
+
     console.log(`[EDUCATIONAL_CONTENT] Sharing content ${id} by ${user.firstName} ${user.lastName}`);
 
-    // Mock sharing logic - in production, update database sharing permissions
-    const sharingRecord = {
-      contentId: parseInt(id),
-      sharedBy: user.id,
-      sharedByName: `${user.firstName} ${user.lastName}`,
-      targetTeachers: targetTeachers || [],
-      shareWithSchool: shareWithSchool || false,
-      sharedAt: new Date().toISOString(),
-      schoolId: user.schoolId
-    };
+    // Update visibility to 'school' to share with colleagues
+    await db
+      .update(educationalContent)
+      .set({ 
+        visibility: 'school',
+        updatedAt: new Date()
+      })
+      .where(eq(educationalContent.id, contentId));
 
     res.json({
       success: true,
-      message: 'Content shared successfully',
-      sharing: sharingRecord
+      message: 'Content shared successfully with your school'
     });
 
   } catch (error) {
@@ -747,6 +763,64 @@ router.post('/:id/share', requireAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to share educational content'
+    });
+  }
+});
+
+// Unshare educational content - stop sharing with colleagues
+router.post('/:id/unshare', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = (req as any).user;
+
+    // Verify user owns this content
+    if (user.role !== 'Teacher' && user.role !== 'Director') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only teachers and directors can modify content sharing'
+      });
+    }
+
+    const contentId = parseInt(id);
+
+    // Verify content belongs to user
+    const [existingContent] = await db
+      .select()
+      .from(educationalContent)
+      .where(and(
+        eq(educationalContent.id, contentId),
+        eq(educationalContent.teacherId, user.id)
+      ))
+      .limit(1);
+
+    if (!existingContent) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found or you do not have permission to modify it'
+      });
+    }
+
+    console.log(`[EDUCATIONAL_CONTENT] Unsharing content ${id} by ${user.firstName} ${user.lastName}`);
+
+    // Update visibility to 'private' to stop sharing
+    await db
+      .update(educationalContent)
+      .set({ 
+        visibility: 'private',
+        updatedAt: new Date()
+      })
+      .where(eq(educationalContent.id, contentId));
+
+    res.json({
+      success: true,
+      message: 'Content is no longer shared with your school'
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Unshare error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to stop sharing educational content'
     });
   }
 });
