@@ -5355,6 +5355,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Step 4: Get subjects from teacherSubjectAssignments (for teachers created via form)
+      try {
+        const assignedSubjects = await db
+          .select({
+            subjectId: teacherSubjectAssignments.subjectId,
+            subjectName: subjects.nameFr,
+            subjectNameEn: subjects.nameEn,
+            subjectCode: subjects.code,
+            coefficient: subjects.coefficient,
+            category: subjects.category
+          })
+          .from(teacherSubjectAssignments)
+          .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+          .where(eq(teacherSubjectAssignments.teacherId, user.id));
+        
+        console.log(`[TEACHER_API] Found ${assignedSubjects.length} subjects from teacherSubjectAssignments`);
+        
+        for (const subj of assignedSubjects) {
+          const subjName = subj.subjectName || subj.subjectNameEn || '';
+          if (subjName && !subjectMap.has(subjName)) {
+            subjectMap.set(subjName, {
+              id: subj.subjectId,
+              name: subj.subjectName || subj.subjectNameEn || '',
+              nameFr: subj.subjectName || '',
+              nameEn: subj.subjectNameEn || '',
+              code: subj.subjectCode || subjName?.substring(0, 4).toUpperCase() || 'SUBJ',
+              coefficient: subj.coefficient || 1,
+              category: subj.category || 'General'
+            });
+          }
+        }
+      } catch (e) {
+        console.log('[TEACHER_API] Error fetching from teacherSubjectAssignments:', e);
+      }
+      
       const subjectsList = Array.from(subjectMap.values());
       console.log(`[TEACHER_API] ✅ Found ${subjectsList.length} subjects for teacher ${user.id}`);
       
@@ -5946,29 +5981,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[TEACHER_API] 📊 Fetching students from DATABASE for teacher:', user.id);
       
-      // Get ONLY students from classes assigned to this teacher via TIMETABLES
-      // First, get assigned class IDs from timetables (source of truth)
-      const assignedClassIds = await db
+      // Get assigned class IDs from BOTH timetables AND teacherSubjectAssignments
+      // Source 1: Timetables
+      const assignedFromTimetables = await db
         .selectDistinct({ classId: timetables.classId })
         .from(timetables)
         .where(
           and(
             eq(timetables.teacherId, user.id),
-            eq(timetables.schoolId, user.schoolId),
+            eq(timetables.schoolId, userSchoolId),
             eq(timetables.isActive, true)
           )
         );
-
-      const classIds = Array.from(new Set(assignedClassIds.map(a => a.classId).filter(Boolean))) as number[];
-      console.log(`[TEACHER_API] 📚 Teacher ${user.id} is assigned to classes from timetables:`, classIds);
       
-      // Teachers should ONLY see students from their assigned classes - no fallback
+      // Source 2: Teacher Subject Assignments (created when adding teachers)
+      const assignedFromAssignments = await db
+        .selectDistinct({ classId: teacherSubjectAssignments.classId })
+        .from(teacherSubjectAssignments)
+        .where(eq(teacherSubjectAssignments.teacherId, user.id));
+
+      // Combine both sources
+      const allAssignedClassIds = [
+        ...assignedFromTimetables.map(a => a.classId),
+        ...assignedFromAssignments.map(a => a.classId)
+      ];
+      
+      const classIds = Array.from(new Set(allAssignedClassIds.filter(Boolean))) as number[];
+      console.log(`[TEACHER_API] 📚 Teacher ${user.id} is assigned to classes:`, classIds, 
+        `(timetables: ${assignedFromTimetables.length}, assignments: ${assignedFromAssignments.length})`);
+      
+      // Teachers should ONLY see students from their assigned classes
       if (classIds.length === 0) {
-        console.log('[TEACHER_API] ⚠️ No timetable entries found for teacher:', user.id, '- they need to be assigned by director');
+        console.log('[TEACHER_API] ⚠️ No class assignments found for teacher:', user.id);
         return res.json({ 
           success: true, 
           students: [],
-          message: 'No classes assigned. Please ask your school director to create your timetable.'
+          message: 'No classes assigned. Please ask your school director to assign you to classes.'
         });
       }
 
