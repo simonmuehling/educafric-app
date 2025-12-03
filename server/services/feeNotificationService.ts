@@ -8,7 +8,7 @@ import {
 } from '@shared/schema';
 import { eq, and, lte, gte, sql, inArray, or } from 'drizzle-orm';
 import { hostingerMailService } from './hostingerMailService';
-import { whatsappDirectService } from './whatsappDirectService';
+import { whatsappDirectService } from './whatsappDirectNotificationService';
 
 class FeeNotificationService {
   private isInitialized = false;
@@ -243,7 +243,15 @@ class FeeNotificationService {
       
       if (channels.includes('whatsapp') && student.phone) {
         try {
-          await whatsappDirectService.sendMessage(student.phone, notification.message);
+          await whatsappDirectService.sendPaymentNotification({
+            recipientPhone: student.phone,
+            studentName: `${student.firstName} ${student.lastName}`,
+            amount: 0,
+            currency: 'XAF',
+            description: notification.message,
+            receiptNumber: '',
+            language: 'fr'
+          });
           whatsappSent = true;
           console.log(`[FEE_NOTIFICATIONS] WhatsApp sent to ${student.phone}`);
         } catch (error) {

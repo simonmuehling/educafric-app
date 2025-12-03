@@ -51,6 +51,8 @@ class FastModuleLoader {
       'bus': () => import('@/pages/BusTrackingPage'), // Student/Parent view
       'canteen-management': () => import('@/components/director/modules/CanteenManagement'), // Director management
       'bus-management': () => import('@/components/director/modules/BusManagement'), // Director management
+      'fees-management': () => import('@/components/director/modules/FeesManagement'), // Gestion des frais scolaires
+      'director-fees': () => import('@/components/director/modules/FeesManagement'), // Alias for fees management
       
       
       // =============================================

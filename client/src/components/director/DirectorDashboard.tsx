@@ -185,7 +185,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       onlineClasses: 'Classes en ligne',
       onlineClassScheduler: 'Planification Sessions en Ligne',
       canteen: 'Cantine',
-      bus: 'Transport Scolaire'
+      bus: 'Transport Scolaire',
+      feesManagement: 'Gestion des Frais'
     },
     en: {
       title: 'School Dashboard',
@@ -214,7 +215,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       onlineClasses: 'Online Classes',
       onlineClassScheduler: 'Online Class Scheduler',
       canteen: 'Canteen',
-      bus: 'School Bus'
+      bus: 'School Bus',
+      feesManagement: 'Fees Management'
     }
   };
 
@@ -340,6 +342,12 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.onlineClasses,
       icon: <Video className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-purple-500 to-pink-500'
+    },
+    {
+      id: 'fees-management',
+      label: t.feesManagement,
+      icon: <DollarSign className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-emerald-500 to-green-600'
     }
   ];
 
