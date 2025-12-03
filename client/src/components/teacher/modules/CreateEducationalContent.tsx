@@ -302,7 +302,6 @@ const CreateEducationalContent = () => {
   const tabs = [
     { id: 'lessons', name: t.lessons, icon: BookOpen },
     { id: 'exercises', name: t.exercises, icon: CheckSquare },
-    { id: 'resources', name: t.resources, icon: Upload },
     { id: 'templates', name: t.templates, icon: FileText },
     { id: 'shared', name: language === 'fr' ? 'Contenu Partagé' : 'Shared Content', icon: Users }
   ];
@@ -724,64 +723,6 @@ const CreateEducationalContent = () => {
           </div>
         );
 
-      case 'resources':
-        return (
-          <div className="space-y-6">
-            <ModernCard className="p-4">
-              <h3 className="text-lg font-semibold mb-4">{t.myLibrary}</h3>
-              
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <Upload className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
-                <h4 className="text-lg font-medium text-gray-700 mb-2">
-                  Téléchargez vos ressources pédagogiques
-                </h4>
-                <p className="text-gray-500 mb-4">
-                  Documents, images, vidéos, présentations...
-                </p>
-                <Button onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
-                  {t.addFiles}
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.mp4,.mp3"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-              </div>
-              
-              {(Array.isArray(uploadedFiles) ? uploadedFiles.length : 0) > 0 && (
-                <div className="mt-6">
-                  <h4 className="font-medium mb-3">Fichiers téléchargés</h4>
-                  <div className="space-y-2">
-                    {(Array.isArray(uploadedFiles) ? uploadedFiles : []).map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
-                          <span className="text-sm font-medium">{file.name || ''}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {(file.size / 1024 / 1024).toFixed(1)} MB
-                          </Badge>
-                        </div>
-                        <Button
-                          onClick={() => removeFile(index)}
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600"
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </ModernCard>
-          </div>
-        );
-
       case 'templates':
         return (
           <div className="space-y-6">
@@ -992,7 +933,6 @@ const CreateEducationalContent = () => {
                     <span className="block sm:hidden">
                       {tab.id === 'lessons' ? 'Leçons' :
                        tab.id === 'exercises' ? 'Exercices' :
-                       tab.id === 'resources' ? 'Ressources' :
                        tab.id === 'templates' ? 'Modèles' :
                        tab.id === 'shared' ? 'Partagé' : tab.name}
                     </span>
