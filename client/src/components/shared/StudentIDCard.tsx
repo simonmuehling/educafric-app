@@ -83,31 +83,45 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
   }
 
   useEffect(() => {
-    if (isOpen && qrCanvasFrontRef.current) {
-      const qrData = JSON.stringify({
-        type: 'EDUCAFRIC_STUDENT',
-        id: student.id,
-        matricule: studentId,
-        cardId: cardId,
-        school: school.name,
-        valid: validityDate
-      });
-      QRCode.toCanvas(qrCanvasFrontRef.current, qrData, {
-        width: 80,
-        margin: 1,
-        color: { dark: '#1a365d', light: '#ffffff' },
-        errorCorrectionLevel: 'H'
-      });
-    }
-    if (isOpen && qrCanvasBackRef.current) {
-      const verificationUrl = `https://verify.educafric.com/student/${cardId}`;
-      QRCode.toCanvas(qrCanvasBackRef.current, verificationUrl, {
-        width: 100,
-        margin: 1,
-        color: { dark: '#1a365d', light: '#ffffff' },
-        errorCorrectionLevel: 'H'
-      });
-    }
+    const generateQRCodes = async () => {
+      if (isOpen && qrCanvasFrontRef.current) {
+        try {
+          const qrData = JSON.stringify({
+            type: 'EDUCAFRIC_STUDENT',
+            id: student.id,
+            matricule: studentId,
+            cardId: cardId,
+            school: school.name,
+            valid: validityDate
+          });
+          await QRCode.toCanvas(qrCanvasFrontRef.current, qrData, {
+            width: 120,
+            margin: 2,
+            color: { dark: '#1a365d', light: '#ffffff' },
+            errorCorrectionLevel: 'M'
+          });
+          console.log('[ID_CARD] ✅ Front QR code generated');
+        } catch (err) {
+          console.error('[ID_CARD] ❌ Error generating front QR:', err);
+        }
+      }
+      if (isOpen && qrCanvasBackRef.current) {
+        try {
+          const verificationUrl = `${window.location.origin}/verify?type=student&code=${cardId}`;
+          await QRCode.toCanvas(qrCanvasBackRef.current, verificationUrl, {
+            width: 150,
+            margin: 2,
+            color: { dark: '#1a365d', light: '#ffffff' },
+            errorCorrectionLevel: 'M'
+          });
+          console.log('[ID_CARD] ✅ Back QR code generated');
+        } catch (err) {
+          console.error('[ID_CARD] ❌ Error generating back QR:', err);
+        }
+      }
+    };
+    
+    generateQRCodes();
   }, [isOpen, studentId, student.id, cardId, school.name, validityDate]);
 
   const handlePrint = () => {
@@ -865,17 +879,32 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                     </div>
                   </div>
                   
-                  {/* QR Code */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '1mm' }}>
-                    <canvas ref={qrCanvasFrontRef} style={{ width: '16mm', height: '16mm', border: '0.3mm solid #e5e7eb', borderRadius: '1mm', padding: '0.5mm', background: 'white' }} />
-                    <span style={{ fontSize: '1.5mm', color: '#9ca3af', marginTop: '0.5mm', fontWeight: 500 }}>SCAN</span>
+                  {/* QR Code & Signature Column */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', paddingTop: '1mm', minWidth: '20mm' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <canvas ref={qrCanvasFrontRef} style={{ width: '18mm', height: '18mm', border: '0.3mm solid #e5e7eb', borderRadius: '1mm', padding: '0.5mm', background: 'white' }} />
+                      <span style={{ fontSize: '1.3mm', color: '#9ca3af', marginTop: '0.3mm', fontWeight: 500 }}>SCAN</span>
+                    </div>
+                    {/* Principal Signature on Front */}
+                    <div style={{ textAlign: 'center', marginTop: '1mm' }}>
+                      {principalSignature ? (
+                        <img 
+                          src={principalSignature} 
+                          alt="Signature Directeur" 
+                          style={{ maxHeight: '6mm', maxWidth: '18mm', objectFit: 'contain' }}
+                        />
+                      ) : (
+                        <div style={{ width: '16mm', borderBottom: '0.3mm solid #94a3b8', height: '4mm' }}></div>
+                      )}
+                      <span style={{ fontSize: '1.2mm', color: '#6b7280', display: 'block' }}>Directeur</span>
+                    </div>
                   </div>
                 </div>
                 
                 {/* Footer Strip */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '1.5mm', borderTop: '0.2mm solid #e5e7eb' }}>
-                  <span style={{ fontSize: '1.6mm', color: '#9ca3af', fontFamily: "'Courier New', monospace", fontWeight: 600 }}>{text.cardNumber}: {cardId}</span>
-                  <span style={{ fontSize: '1.6mm', color: '#6b7280' }}>{text.issuedOn}: {issueDate}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '1mm', borderTop: '0.2mm solid #e5e7eb' }}>
+                  <span style={{ fontSize: '1.5mm', color: '#9ca3af', fontFamily: "'Courier New', monospace", fontWeight: 600 }}>{text.cardNumber}: {cardId}</span>
+                  <span style={{ fontSize: '1.5mm', color: '#6b7280' }}>{text.issuedOn}: {issueDate}</span>
                 </div>
               </div>
             </div>
