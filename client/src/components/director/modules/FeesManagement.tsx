@@ -443,6 +443,138 @@ export default function FeesManagement() {
     return `${amount?.toLocaleString() || 0} CFA`;
   };
 
+  const handlePrintStructure = (structure: any) => {
+    const printWindow = window.open('', '_blank', 'width=600,height=800');
+    if (!printWindow) {
+      toast({ title: language === 'fr' ? 'Veuillez autoriser les popups' : 'Please allow popups', variant: 'destructive' });
+      return;
+    }
+
+    const schoolName = school?.name || 'EDUCAFRIC';
+    const schoolLogo = school?.logoUrl || '';
+    const schoolSlogan = school?.slogan || (language === 'fr' ? 'Excellence et Innovation' : 'Excellence and Innovation');
+    const schoolAddress = school?.address || '';
+    const schoolPhone = school?.phone || '';
+    const schoolEmail = school?.email || '';
+
+    const feeTypeLabels: Record<string, string> = {
+      tuition: language === 'fr' ? 'Frais de scolarité' : 'Tuition',
+      registration: language === 'fr' ? 'Inscription' : 'Registration',
+      exam: language === 'fr' ? 'Examen' : 'Exam',
+      transport: language === 'fr' ? 'Transport' : 'Transport',
+      uniform: language === 'fr' ? 'Uniforme' : 'Uniform',
+      books: language === 'fr' ? 'Livres' : 'Books',
+      other: language === 'fr' ? 'Autre' : 'Other'
+    };
+
+    const frequencyLabels: Record<string, string> = {
+      once: language === 'fr' ? 'Une fois' : 'Once',
+      monthly: language === 'fr' ? 'Mensuel' : 'Monthly',
+      term: language === 'fr' ? 'Par trimestre' : 'Per term',
+      annual: language === 'fr' ? 'Annuel' : 'Annual'
+    };
+
+    const printHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>${language === 'fr' ? 'Structure de Frais' : 'Fee Structure'} - ${schoolName}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Times New Roman', serif; padding: 20px; max-width: 600px; margin: 0 auto; font-size: 14px; }
+          .official-header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+          .official-header .country { font-size: 12px; font-weight: bold; }
+          .official-header .motto { font-size: 11px; font-style: italic; }
+          .school-header { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 20px 0; padding: 15px 0; border-bottom: 2px solid #1a365d; }
+          .school-logo { width: 80px; height: 80px; object-fit: contain; }
+          .school-logo-placeholder { width: 80px; height: 80px; border: 2px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; text-align: center; }
+          .school-info { text-align: center; }
+          .school-name { font-size: 22px; font-weight: bold; color: #1a365d; text-transform: uppercase; }
+          .school-slogan { font-size: 12px; font-style: italic; color: #666; margin-top: 5px; }
+          .school-contact { font-size: 11px; color: #444; margin-top: 8px; }
+          .document-title { text-align: center; font-size: 18px; font-weight: bold; margin: 25px 0; padding: 12px; background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%); color: white; border-radius: 8px; }
+          .structure-details { margin: 20px 0; padding: 20px; border: 2px solid #e5e7eb; border-radius: 10px; background: #f9fafb; }
+          .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #d1d5db; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-label { color: #6b7280; font-weight: 500; }
+          .detail-value { font-weight: bold; color: #111827; }
+          .amount-highlight { text-align: center; margin: 25px 0; padding: 20px; border: 3px solid #16a34a; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; }
+          .amount-label { font-size: 14px; color: #166534; margin-bottom: 8px; }
+          .amount-value { font-size: 32px; font-weight: bold; color: #16a34a; }
+          .status-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+          .status-active { background: #dcfce7; color: #166534; }
+          .status-inactive { background: #f3f4f6; color: #6b7280; }
+          .footer { text-align: center; margin-top: 30px; padding-top: 15px; border-top: 2px dashed #d1d5db; font-size: 11px; color: #6b7280; }
+          .print-date { text-align: right; font-size: 10px; color: #9ca3af; margin-bottom: 10px; }
+          @media print { 
+            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .document-title { background: #1a365d !important; -webkit-print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-date">${language === 'fr' ? 'Imprimé le' : 'Printed on'}: ${new Date().toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+        
+        <div class="official-header">
+          <div class="country">RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON</div>
+          <div class="motto">Paix - Travail - Patrie / Peace - Work - Fatherland</div>
+        </div>
+        
+        <div class="school-header">
+          ${schoolLogo ? `<img src="${schoolLogo}" class="school-logo" alt="Logo">` : `<div class="school-logo-placeholder">${schoolName.substring(0, 3)}</div>`}
+          <div class="school-info">
+            <div class="school-name">${schoolName}</div>
+            <div class="school-slogan">${schoolSlogan}</div>
+            <div class="school-contact">${[schoolAddress, schoolPhone, schoolEmail].filter(Boolean).join(' | ')}</div>
+          </div>
+        </div>
+        
+        <div class="document-title">${language === 'fr' ? 'STRUCTURE DE FRAIS' : 'FEE STRUCTURE'}</div>
+        
+        <div class="structure-details">
+          <div class="detail-row">
+            <span class="detail-label">${language === 'fr' ? 'Nom de la structure' : 'Structure Name'}:</span>
+            <span class="detail-value">${structure.name}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">${language === 'fr' ? 'Type de frais' : 'Fee Type'}:</span>
+            <span class="detail-value">${feeTypeLabels[structure.feeType] || structure.feeType}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">${language === 'fr' ? 'Fréquence' : 'Frequency'}:</span>
+            <span class="detail-value">${frequencyLabels[structure.frequency] || structure.frequency}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">${language === 'fr' ? 'Date d\'échéance' : 'Due Date'}:</span>
+            <span class="detail-value">${structure.dueDate ? new Date(structure.dueDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US') : '-'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">${language === 'fr' ? 'Statut' : 'Status'}:</span>
+            <span class="detail-value"><span class="status-badge ${structure.isActive ? 'status-active' : 'status-inactive'}">${structure.isActive ? (language === 'fr' ? 'Actif' : 'Active') : (language === 'fr' ? 'Inactif' : 'Inactive')}</span></span>
+          </div>
+        </div>
+        
+        <div class="amount-highlight">
+          <div class="amount-label">${language === 'fr' ? 'MONTANT À PAYER' : 'AMOUNT TO PAY'}</div>
+          <div class="amount-value">${parseInt(structure.amount).toLocaleString()} CFA</div>
+        </div>
+        
+        <div class="footer">
+          <p>${language === 'fr' ? 'Document généré par' : 'Document generated by'} ${schoolName}</p>
+          <p style="margin-top: 5px;">Powered by EDUCAFRIC - ${language === 'fr' ? 'Plateforme de Gestion Scolaire' : 'School Management Platform'}</p>
+        </div>
+        
+        <script>window.onload = function() { window.print(); }</script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printHtml);
+    printWindow.document.close();
+    toast({ title: language === 'fr' ? 'Impression en cours...' : 'Printing...' });
+  };
+
   const handlePrintReceipt = async (payment: any) => {
     const receiptWindow = window.open('', '_blank', 'width=500,height=700');
     if (!receiptWindow) {
@@ -1024,11 +1156,20 @@ export default function FeesManagement() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="ghost" size="sm">
+                          <div className="flex gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handlePrintStructure(structure)}
+                              title={language === 'fr' ? 'Imprimer' : 'Print'}
+                              data-testid={`btn-print-structure-${structure.id}`}
+                            >
+                              <Printer className="w-4 h-4 text-blue-500" />
+                            </Button>
+                            <Button variant="ghost" size="sm" title={language === 'fr' ? 'Modifier' : 'Edit'}>
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" title={language === 'fr' ? 'Supprimer' : 'Delete'}>
                               <Trash2 className="w-4 h-4 text-red-500" />
                             </Button>
                           </div>
