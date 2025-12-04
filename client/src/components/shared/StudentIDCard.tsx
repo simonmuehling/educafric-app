@@ -151,6 +151,11 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
     // For mobile devices, use inline iframe approach which works better
     const isMobile = isMobileDevice();
     
+    // Get the HTML and fix display:none styles so both cards show when printing
+    let capturedHTML = printContent.innerHTML;
+    // Replace display:none and display: none with display:block to show both cards
+    capturedHTML = capturedHTML.replace(/display:\s*none/gi, 'display: block');
+    
     const printStyles = `
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
       
@@ -680,7 +685,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
           <style>${printStyles}</style>
         </head>
         <body>
-          ${printContent.innerHTML}
+          ${capturedHTML}
           <script>
             // Auto-print after images load
             window.onload = function() {

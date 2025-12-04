@@ -297,7 +297,7 @@ export default function FeesManagement() {
   const allStudents: Student[] = Array.isArray(studentsData) ? studentsData : ((studentsData as any)?.students || []);
   const school = (schoolSettings as any)?.settings?.school || (schoolSettings as any)?.school || {};
 
-  const filteredStudentsByClass = feeForm.classId 
+  const filteredStudentsByClass = feeForm.classId && feeForm.classId !== 'all'
     ? allStudents.filter(s => s.classId?.toString() === feeForm.classId)
     : allStudents;
 
@@ -418,7 +418,7 @@ export default function FeesManagement() {
       feeType: feeForm.feeType,
       frequency: feeForm.frequency,
       dueDate: feeForm.dueDate || null,
-      classId: feeForm.classId ? parseInt(feeForm.classId) : null,
+      classId: feeForm.classId && feeForm.classId !== 'all' ? parseInt(feeForm.classId) : null,
       studentIds: feeForm.assignType === 'students' ? feeForm.selectedStudentIds : null,
       isActive: feeForm.isActive
     };
@@ -897,7 +897,7 @@ export default function FeesManagement() {
                     <Select value={feeForm.classId} onValueChange={v => setFeeForm({...feeForm, classId: v, selectedStudentIds: []})}>
                       <SelectTrigger><SelectValue placeholder={t.selectClass} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">{t.all}</SelectItem>
+                        <SelectItem value="all">{t.all}</SelectItem>
                         {classes.map((c: any) => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -928,7 +928,7 @@ export default function FeesManagement() {
                           );
                         }) : (
                           <div className="text-center py-4 text-muted-foreground">
-                            {feeForm.classId ? t.noData : (language === 'fr' ? 'Sélectionnez une classe' : 'Select a class')}
+                            {(feeForm.classId && feeForm.classId !== 'all') ? t.noData : (language === 'fr' ? 'Sélectionnez une classe' : 'Select a class')}
                           </div>
                         )}
                       </ScrollArea>
