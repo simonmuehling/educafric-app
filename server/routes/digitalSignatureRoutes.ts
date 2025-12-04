@@ -57,6 +57,66 @@ router.get('/principal', requireAuth, async (req, res) => {
   }
 });
 
+// Save or update principal signature (alias routes for compatibility)
+router.post('/save', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const userId = user?.id;
+    const schoolId = user?.schoolId || user?.school_id || null;
+    const { signatureData, userRole: requestRole, signatureName, signatureFunction } = req.body;
+    
+    if (!signatureData) {
+      return res.status(400).json({ success: false, error: 'Signature data is required' });
+    }
+    
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'User not authenticated' });
+    }
+    
+    const sigName = signatureName || user.name || 'Directeur';
+    const sigFunction = signatureFunction || 'Directeur';
+    const signatureType = requestRole || 'principal';
+    
+    console.log('[SIGNATURE] /save - Saving signature for user:', userId, 'school:', schoolId, 'role:', signatureType);
+    
+    // Check if signature already exists
+    const existing = await db.execute(
+      sql`SELECT id FROM signatures WHERE user_id = ${userId} LIMIT 1`
+    );
+    
+    let result;
+    if (existing.rows && existing.rows.length > 0) {
+      const existingId = (existing.rows[0] as any).id;
+      result = await db.execute(
+        sql`UPDATE signatures 
+            SET signature_data = ${signatureData}, signature_type = ${signatureType}, 
+                signatory_name = ${sigName}, signatory_title = ${sigFunction}, 
+                is_active = true, updated_at = NOW()
+            WHERE id = ${existingId}
+            RETURNING id, signature_data, created_at, updated_at`
+      );
+    } else {
+      result = await db.execute(
+        sql`INSERT INTO signatures (user_id, school_id, user_role, signature_data, signature_type, signatory_name, signatory_title, is_active, created_at, updated_at)
+            VALUES (${userId}, ${schoolId}, ${signatureType}, ${signatureData}, ${signatureType}, ${sigName}, ${sigFunction}, true, NOW(), NOW())
+            RETURNING id, signature_data, created_at, updated_at`
+      );
+    }
+    
+    console.log('[SIGNATURE] ✅ /save - Signature saved for user:', userId);
+    
+    res.json({
+      success: true,
+      id: (result.rows[0] as any).id,
+      signatureName: sigName,
+      signatureFunction: sigFunction
+    });
+  } catch (error) {
+    console.error('[SIGNATURE] Error saving signature via /save:', error);
+    res.status(500).json({ success: false, error: 'Failed to save signature' });
+  }
+});
+
 // Save or update principal signature
 router.post('/', requireAuth, async (req, res) => {
   try {

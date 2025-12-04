@@ -3574,6 +3574,35 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   }
                 </p>
                 
+                {/* Director Signature Status Alert */}
+                {!principalSignature?.signatureData && (
+                  <div className="mb-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700 rounded-lg p-4">
+                    <div className="flex gap-3 items-start">
+                      <PenTool className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-1">
+                          {language === 'fr' ? 'Signature du Directeur non configurée' : 'Principal Signature not configured'}
+                        </h4>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          {language === 'fr' 
+                            ? 'Pour que votre signature apparaisse sur les bulletins, veuillez la configurer dans les Paramètres de l\'école → Signature Numérique.'
+                            : 'For your signature to appear on report cards, please configure it in School Settings → Digital Signature.'
+                          }
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.location.href = '/director?tab=settings'}
+                          className="border-orange-400 text-orange-700 hover:bg-orange-100 dark:text-orange-400 dark:hover:bg-orange-950"
+                        >
+                          <PenTool className="h-4 w-4 mr-2" />
+                          {language === 'fr' ? 'Configurer ma signature' : 'Configure my signature'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Director Action Buttons */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <Button
