@@ -352,7 +352,7 @@ export default function FeesManagement() {
 
   const createStructureMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/fees/structures', { method: 'POST', body: JSON.stringify(data) });
+      return apiRequest('POST', '/api/fees/structures', data);
     },
     onSuccess: () => {
       toast({ title: language === 'fr' ? 'Structure créée avec succès' : 'Structure created successfully' });
@@ -372,7 +372,7 @@ export default function FeesManagement() {
 
   const recordPaymentMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/fees/payments', { method: 'POST', body: JSON.stringify(data) });
+      return apiRequest('POST', '/api/fees/payments', data);
     },
     onSuccess: () => {
       toast({ title: 'Paiement enregistré avec succès' });
@@ -575,7 +575,7 @@ export default function FeesManagement() {
 
   const notifyParentMutation = useMutation({
     mutationFn: async (paymentId: number) => {
-      return apiRequest(`/api/fees/payments/${paymentId}/notify`, { method: 'POST' });
+      return apiRequest('POST', `/api/fees/payments/${paymentId}/notify`);
     },
     onSuccess: () => {
       toast({ title: t.notificationSent });
