@@ -33,6 +33,7 @@ interface TeacherBulletin {
   studentId: number;
   studentName?: string;
   classId: number;
+  className?: string;
   term: string;
   academicYear: string;
   studentInfo: any;
@@ -45,6 +46,11 @@ interface TeacherBulletin {
   reviewComments?: string;
   sentToSchoolAt?: string;
   reviewedAt?: string;
+}
+
+interface BulletinsResponse {
+  success: boolean;
+  bulletins: TeacherBulletin[];
 }
 
 const TeacherSubmittedBulletins: React.FC = () => {
@@ -178,7 +184,7 @@ const TeacherSubmittedBulletins: React.FC = () => {
   });
 
   // Fetch teacher bulletins
-  const { data: bulletinsData, isLoading } = useQuery({
+  const { data: bulletinsData, isLoading } = useQuery<BulletinsResponse>({
     queryKey: ['/api/director/teacher-bulletins'],
     refetchInterval: 30000 // Refresh every 30 seconds
   });
@@ -192,20 +198,30 @@ const TeacherSubmittedBulletins: React.FC = () => {
         reviewStatus,
         reviewComments: comments
       });
-      return response.json();
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(error.message || 'Failed to review bulletin');
+      }
+      const data = await response.json();
+      return { ...data, reviewStatus };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/director/teacher-bulletins'] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => query.queryKey[0] === '/api/director/teacher-grade-submissions' 
+      });
       toast({
-        title: t.approveSuccess,
+        title: data.reviewStatus === 'approved' ? t.approveSuccess : t.rejectSuccess,
         variant: 'default'
       });
       setSelectedBulletin(null);
       setReviewComments('');
     },
-    onError: () => {
+    onError: (error: Error) => {
+      console.error('[BULLETIN_REVIEW] Error:', error);
       toast({
         title: t.error,
+        description: error.message || (language === 'fr' ? 'Erreur lors de la révision' : 'Review failed'),
         variant: 'destructive'
       });
     }

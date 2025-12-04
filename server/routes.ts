@@ -11740,13 +11740,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Notify the teacher about bulletin review result
       try {
-        // Get student name for notification
-        const [student] = await db.select({ firstName: students.firstName, lastName: students.lastName })
-          .from(students)
-          .where(eq(students.id, bulletin.studentId))
-          .limit(1);
-        
-        const studentName = student ? `${student.firstName} ${student.lastName}` : `Élève #${bulletin.studentId}`;
+        // Get student name for notification (students is alias for users table)
+        let studentName = `Élève #${bulletin.studentId}`;
+        try {
+          const [student] = await db.select({ firstName: users.firstName, lastName: users.lastName })
+            .from(users)
+            .where(eq(users.id, bulletin.studentId))
+            .limit(1);
+          
+          if (student) {
+            studentName = `${student.firstName || ''} ${student.lastName || ''}`.trim() || studentName;
+          }
+        } catch (studentLookupError) {
+          console.log('[DIRECTOR_BULLETINS] Could not find student name, using ID:', bulletin.studentId);
+        }
         
         const isApproved = reviewStatus === 'approved';
         const notificationTitle = isApproved 
