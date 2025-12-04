@@ -298,6 +298,12 @@ export default function FeesManagement() {
     queryKey: ['/api/classes']
   });
 
+  const { data: schoolSettings } = useQuery({
+    queryKey: ['/api/director/settings']
+  });
+
+  const school = schoolSettings?.settings?.school || schoolSettings?.school || {};
+
   const createStructureMutation = useMutation({
     mutationFn: async (data: any) => {
       return apiRequest('/api/fees/structures', { method: 'POST', body: JSON.stringify(data) });
@@ -362,42 +368,87 @@ export default function FeesManagement() {
   };
 
   const handlePrintReceipt = async (payment: any) => {
-    const receiptWindow = window.open('', '_blank', 'width=400,height=600');
+    const receiptWindow = window.open('', '_blank', 'width=500,height=700');
     if (!receiptWindow) {
       toast({ title: language === 'fr' ? 'Veuillez autoriser les popups' : 'Please allow popups', variant: 'destructive' });
       return;
     }
+
+    const schoolName = school?.name || 'EDUCAFRIC';
+    const schoolLogo = school?.logoUrl || '';
+    const schoolSlogan = school?.slogan || (language === 'fr' ? 'Excellence et Innovation' : 'Excellence and Innovation');
+    const schoolAddress = school?.address || '';
+    const schoolPhone = school?.phone || '';
+    const schoolEmail = school?.email || '';
 
     const receiptHtml = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>${t.paymentReceipt}</title>
+        <title>${t.paymentReceipt} - ${schoolName}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: Arial, sans-serif; padding: 20px; max-width: 350px; margin: 0 auto; }
-          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 15px; }
-          .logo { font-size: 24px; font-weight: bold; color: #2563eb; }
-          .receipt-title { font-size: 18px; margin-top: 10px; font-weight: bold; }
-          .receipt-number { font-size: 12px; color: #666; margin-top: 5px; }
-          .section { margin: 15px 0; padding: 10px 0; border-bottom: 1px dashed #ccc; }
-          .row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
-          .label { color: #666; }
+          body { font-family: 'Times New Roman', serif; padding: 15px; max-width: 450px; margin: 0 auto; font-size: 12px; }
+          .official-header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+          .official-header .country { font-size: 11px; font-weight: bold; }
+          .official-header .motto { font-size: 10px; font-style: italic; }
+          .official-header .ministry { font-size: 10px; margin-top: 3px; }
+          .school-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 15px 0; padding: 10px 0; border-bottom: 2px solid #000; }
+          .school-logo { width: 70px; height: 70px; object-fit: contain; }
+          .school-logo-placeholder { width: 70px; height: 70px; border: 2px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; text-align: center; }
+          .school-info { text-align: center; }
+          .school-name { font-size: 18px; font-weight: bold; color: #1a365d; text-transform: uppercase; }
+          .school-slogan { font-size: 11px; font-style: italic; color: #666; margin-top: 3px; }
+          .school-contact { font-size: 10px; color: #444; margin-top: 5px; }
+          .receipt-title { text-align: center; font-size: 16px; font-weight: bold; margin: 15px 0; padding: 8px; background: #f0f0f0; border: 1px solid #ccc; }
+          .receipt-number { text-align: center; font-size: 11px; color: #666; margin-bottom: 15px; }
+          .section { margin: 12px 0; padding: 10px; border: 1px solid #ddd; background: #fafafa; }
+          .row { display: flex; justify-content: space-between; margin: 6px 0; font-size: 12px; }
+          .label { color: #555; }
           .value { font-weight: bold; }
-          .amount { font-size: 20px; color: #16a34a; text-align: center; margin: 20px 0; }
-          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
-          .signature { margin-top: 40px; border-top: 1px solid #000; width: 150px; margin-left: auto; margin-right: auto; padding-top: 5px; text-align: center; font-size: 12px; }
-          @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+          .amount-box { text-align: center; margin: 20px 0; padding: 15px; border: 2px solid #16a34a; background: #f0fdf4; }
+          .amount-label { font-size: 12px; color: #555; }
+          .amount-value { font-size: 24px; font-weight: bold; color: #16a34a; }
+          .signatures { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 10px; }
+          .signature-box { text-align: center; width: 45%; }
+          .signature-line { border-top: 1px solid #000; margin-top: 40px; padding-top: 5px; font-size: 11px; }
+          .footer { text-align: center; margin-top: 20px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 10px; color: #666; }
+          @media print { 
+            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } 
+            .amount-box { background: #f0fdf4 !important; -webkit-print-color-adjust: exact; }
+          }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="logo">EDUCAFRIC</div>
-          <div class="receipt-title">${t.paymentReceipt}</div>
-          <div class="receipt-number">${t.receiptNumber}: REC-${payment.id}-${Date.now().toString(36).toUpperCase()}</div>
+        <!-- En-tête officiel Cameroun -->
+        <div class="official-header">
+          <div class="country">${language === 'fr' ? 'RÉPUBLIQUE DU CAMEROUN' : 'REPUBLIC OF CAMEROON'}</div>
+          <div class="motto">${language === 'fr' ? 'Paix – Travail – Patrie' : 'Peace – Work – Fatherland'}</div>
+          <div class="ministry">${language === 'fr' ? 'MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES' : 'MINISTRY OF SECONDARY EDUCATION'}</div>
         </div>
         
+        <!-- En-tête École -->
+        <div class="school-header">
+          ${schoolLogo ? `<img src="${schoolLogo}" alt="Logo" class="school-logo" />` : `<div class="school-logo-placeholder">LOGO</div>`}
+          <div class="school-info">
+            <div class="school-name">${schoolName}</div>
+            <div class="school-slogan">"${schoolSlogan}"</div>
+            ${schoolAddress || schoolPhone || schoolEmail ? `
+              <div class="school-contact">
+                ${schoolAddress ? schoolAddress : ''}
+                ${schoolPhone ? ` | Tél: ${schoolPhone}` : ''}
+                ${schoolEmail ? ` | ${schoolEmail}` : ''}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+        
+        <!-- Titre du reçu -->
+        <div class="receipt-title">${t.paymentReceipt}</div>
+        <div class="receipt-number">${t.receiptNumber}: REC-${payment.id}-${Date.now().toString(36).toUpperCase()}</div>
+        
+        <!-- Détails du paiement -->
         <div class="section">
           <div class="row">
             <span class="label">${t.student}:</span>
@@ -414,16 +465,26 @@ export default function FeesManagement() {
           ${payment.transactionRef ? `<div class="row"><span class="label">${t.transactionRef}:</span><span class="value">${payment.transactionRef}</span></div>` : ''}
         </div>
         
-        <div class="amount">
-          <div style="font-size: 14px; color: #666;">${t.amount}</div>
-          <div>${parseInt(payment.amount).toLocaleString()} XAF</div>
+        <!-- Montant -->
+        <div class="amount-box">
+          <div class="amount-label">${t.amount}</div>
+          <div class="amount-value">${parseInt(payment.amount).toLocaleString()} XAF</div>
         </div>
         
-        <div class="signature">${t.receivedBy}</div>
+        <!-- Signatures -->
+        <div class="signatures">
+          <div class="signature-box">
+            <div class="signature-line">${t.paidBy}</div>
+          </div>
+          <div class="signature-box">
+            <div class="signature-line">${t.receivedBy}</div>
+          </div>
+        </div>
         
+        <!-- Pied de page -->
         <div class="footer">
           <p>${t.thankYou}</p>
-          <p style="margin-top: 10px;">EDUCAFRIC - ${language === 'fr' ? 'Plateforme Éducative' : 'Educational Platform'}</p>
+          <p style="margin-top: 5px;">${schoolName} - ${language === 'fr' ? 'Powered by EDUCAFRIC' : 'Powered by EDUCAFRIC'}</p>
         </div>
         
         <script>window.onload = function() { window.print(); }</script>
