@@ -1568,6 +1568,8 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
             <CardContent>
               <StudentSelector 
                 selectedClassId={selectedClassId}
+                selectedTerm={trimester}
+                language={language}
                 onStudentSelect={(selectedStudent: any) => {
                   console.log('[BULLETIN] onStudentSelect called with:', selectedStudent);
                   // Handle null - clear student information when class changes
@@ -1669,7 +1671,6 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   // Set student photo URL from profile (check all possible photo field names)
                   setStudentPhotoUrl(selectedStudent.photo || selectedStudent.photoUrl || selectedStudent.photoURL || selectedStudent.profilePictureUrl || '');
                 }}
-                language={language}
               />
             </CardContent>
           </Card>
@@ -3793,9 +3794,10 @@ interface StudentSelectorProps {
   onStudentSelect: (student: any) => void;
   language: 'fr' | 'en';
   selectedClassId?: string;
+  selectedTerm?: string;
 }
 
-function StudentSelector({ onStudentSelect, language, selectedClassId }: StudentSelectorProps) {
+function StudentSelector({ onStudentSelect, language, selectedClassId, selectedTerm }: StudentSelectorProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const { user } = useAuth();
   
@@ -3839,14 +3841,19 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
   
   // Fetch approved teacher grade submissions for pre-filling bulletin
   const { data: approvedGrades } = useQuery({
-    queryKey: ['/api/director/teacher-grade-submissions', selectedClassId, 'approved'],
+    queryKey: ['/api/director/teacher-grade-submissions', selectedClassId, selectedTerm, 'approved'],
     queryFn: async () => {
       if (!selectedClassId) {
         return { success: true, submissions: [] };
       }
       
       try {
-        const url = `/api/director/teacher-grade-submissions?classId=${selectedClassId}&reviewStatus=approved`;
+        let url = `/api/director/teacher-grade-submissions?classId=${selectedClassId}&reviewStatus=approved`;
+        // Include term filter if provided
+        if (selectedTerm) {
+          url += `&term=${encodeURIComponent(selectedTerm)}`;
+        }
+        console.log('[BULLETIN] Fetching approved grades with URL:', url);
         const response = await fetch(url, {
           credentials: 'include'
         });
@@ -3881,11 +3888,21 @@ function StudentSelector({ onStudentSelect, language, selectedClassId }: Student
     
     if (selectedStudent) {
       // Get approved grades for this student from teacher submissions
+      // Use loose comparison to handle string/number type mismatch
+      const studentIdNum = parseInt(selectedStudent.id?.toString() || '0', 10);
+      console.log('[STUDENT_SELECTOR] Looking for approved grades for student ID:', studentIdNum, 'Type:', typeof studentIdNum);
+      console.log('[STUDENT_SELECTOR] Available approved submissions:', approvedGrades?.submissions?.length || 0);
+      
       const studentGrades = approvedGrades?.submissions?.filter(
-        (submission: any) => submission.studentId === selectedStudent.id
+        (submission: any) => {
+          const submissionStudentId = parseInt(submission.studentId?.toString() || '0', 10);
+          const matches = submissionStudentId === studentIdNum;
+          console.log(`[STUDENT_SELECTOR] Comparing submission.studentId=${submission.studentId} (${typeof submission.studentId}) with studentId=${studentIdNum}: ${matches}`);
+          return matches;
+        }
       ) || [];
       
-      console.log('[STUDENT_SELECTOR] Found approved grades:', studentGrades);
+      console.log('[STUDENT_SELECTOR] Found approved grades:', studentGrades.length, studentGrades);
       
       // Transform approved grades into the format expected by bulletin
       const gradesForBulletin = studentGrades.map((submission: any) => ({
