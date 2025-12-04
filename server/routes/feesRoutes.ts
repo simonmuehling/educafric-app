@@ -253,18 +253,32 @@ router.post('/assign', requireAuth, requireDirectorRole, async (req: Request, re
     // Get students to assign fees to
     let targetStudentIds: number[] = studentIds || [];
     
-    if (targetStudentIds.length === 0 && classId) {
+    // Use provided classId, or fall back to structure's classId
+    const effectiveClassId = classId || structure.classId;
+    
+    if (targetStudentIds.length === 0 && effectiveClassId) {
       // Get all students in the class
       const enrolledStudents = await db
         .select({ studentId: enrollments.studentId })
         .from(enrollments)
-        .where(eq(enrollments.classId, classId));
+        .where(eq(enrollments.classId, effectiveClassId));
       
       targetStudentIds = enrolledStudents.map(e => e.studentId);
     }
     
+    // If still no students and no classId, get ALL students in the school from enrollments
     if (targetStudentIds.length === 0) {
-      return res.status(400).json({ success: false, message: 'No students to assign fees to' });
+      const allEnrollments = await db
+        .select({ studentId: enrollments.studentId })
+        .from(enrollments)
+        .innerJoin(classes, eq(enrollments.classId, classes.id))
+        .where(eq(classes.schoolId, schoolId));
+      
+      targetStudentIds = [...new Set(allEnrollments.map(e => e.studentId))];
+    }
+    
+    if (targetStudentIds.length === 0) {
+      return res.status(400).json({ success: false, message: 'No students found in the school to assign fees to' });
     }
     
     // Calculate sibling discounts
