@@ -289,6 +289,8 @@ interface ReportCardProps {
   isTechnicalSchool?: boolean; // DEPRECATED: Use bulletinType instead
   bulletinType?: 'general-fr' | 'general-en' | 'literary-fr' | 'scientific-fr' | 'professional-fr' | 'technical-en'; // Bulletin types for different series
   registrationNumber?: string; // School registration number (EDUCAFRIC or government)
+  principalSignatureUrl?: string; // Director/Principal digital signature image
+  principalSignatureName?: string; // Director name to display
   // selectedTeacherComments removed - now using per-subject comments in SubjectLine
   annualSummary?: {
     firstTrimesterAverage: number;
@@ -316,6 +318,8 @@ export default function ReportCardPreview({
   isTechnicalSchool = false, // DEPRECATED: Use bulletinType instead
   bulletinType, // NEW: Explicit bulletin type selection
   registrationNumber = "",
+  principalSignatureUrl = "",
+  principalSignatureName = "",
   annualSummary = null,
 }: ReportCardProps) {
   // Determine effective bulletin type
@@ -931,7 +935,21 @@ export default function ReportCardPreview({
                       {language === 'fr' ? 'Directeur:' : 'Principal:'}
                     </div>
                     <div className="text-[8px]">
-                      <div>________________</div>
+                      {principalSignatureUrl ? (
+                        <div className="flex flex-col items-center">
+                          <img 
+                            src={principalSignatureUrl} 
+                            alt="Signature" 
+                            className="h-6 max-w-[50px] object-contain"
+                            style={{ maxHeight: '24px' }}
+                          />
+                          {principalSignatureName && (
+                            <div className="text-[6px] mt-0.5 text-center">{principalSignatureName}</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div>________________</div>
+                      )}
                     </div>
                   </td>
                   <td colSpan={2} className="border border-black p-1 text-[8px] align-top">

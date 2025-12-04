@@ -395,6 +395,29 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     }
   });
 
+  // Fetch principal/director signature for bulletin
+  const { data: principalSignature } = useQuery({
+    queryKey: ['/api/signatures/principal'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/signatures/principal', {
+          credentials: 'include'
+        });
+        if (!response.ok) {
+          console.log('[SIGNATURE] No principal signature available');
+          return null;
+        }
+        const data = await response.json();
+        console.log('[SIGNATURE] Principal signature loaded:', data?.signatureName || 'No name');
+        return data;
+      } catch (error) {
+        console.error('[SIGNATURE] Error fetching principal signature:', error);
+        return null;
+      }
+    },
+    staleTime: 1000 * 60 * 10, // 10 minutes cache
+  });
+
   const [trimester, setTrimester] = useState(
     defaultTerm === 'T1' ? 'Premier' : 
     defaultTerm === 'T2' ? 'Deuxième' : 
@@ -1377,6 +1400,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     schoolLogoUrl: realSchoolLogoUrl,
     studentPhotoUrl,
     language,
+    // Principal/Director signature
+    principalSignatureUrl: principalSignature?.signatureData || '',
+    principalSignatureName: principalSignature?.signatureName || '',
     // Third trimester specific data
     isThirdTrimester,
     annualSummary: isThirdTrimester ? annualSummary : null,
