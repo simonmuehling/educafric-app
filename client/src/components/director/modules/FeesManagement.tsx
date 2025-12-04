@@ -351,9 +351,33 @@ export default function FeesManagement() {
   };
 
   const createFeeMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('POST', '/api/fees/structures', data),
+    mutationFn: async (data: any) => {
+      // Step 1: Create the fee structure
+      const response = await apiRequest('POST', '/api/fees/structures', data);
+      const result = await response.json();
+      
+      // Step 2: Automatically assign fee to students based on class or selected students
+      if (result.structure?.id) {
+        const assignData: any = { feeStructureId: result.structure.id };
+        
+        if (data.studentIds && data.studentIds.length > 0) {
+          // Assign to specific students
+          assignData.studentIds = data.studentIds;
+        } else if (data.classId) {
+          // Assign to all students in a class
+          assignData.classId = data.classId;
+        } else {
+          // Assign to all students (no class filter)
+          assignData.classId = null;
+        }
+        
+        await apiRequest('POST', '/api/fees/assign', assignData);
+      }
+      
+      return result;
+    },
     onSuccess: () => {
-      toast({ title: t.feeCreated });
+      toast({ title: t.feeCreated, description: language === 'fr' ? 'Frais créé et assigné aux élèves' : 'Fee created and assigned to students' });
       queryClient.invalidateQueries({ queryKey: ['/api/fees/structures'] });
       queryClient.invalidateQueries({ queryKey: ['/api/fees/assigned'] });
       queryClient.invalidateQueries({ queryKey: ['/api/fees/stats'] });
@@ -407,6 +431,25 @@ export default function FeesManagement() {
       toast({ title: selectedFeeIds.length > 1 ? t.remindersSent : t.reminderSent });
       setShowReminderDialog(false);
       setSelectedFeeIds([]);
+    },
+    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
+  });
+
+  const assignExistingFeeMutation = useMutation({
+    mutationFn: async (fee: FeeStructure) => {
+      const assignData: any = { feeStructureId: fee.id };
+      if (fee.classId) {
+        assignData.classId = fee.classId;
+      }
+      return apiRequest('POST', '/api/fees/assign', assignData);
+    },
+    onSuccess: () => {
+      toast({ 
+        title: language === 'fr' ? 'Frais assigné' : 'Fee assigned',
+        description: language === 'fr' ? 'Les frais ont été assignés aux élèves' : 'Fee has been assigned to students'
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/fees/assigned'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/fees/stats'] });
     },
     onError: () => toast({ title: 'Erreur', variant: 'destructive' })
   });
@@ -786,6 +829,15 @@ export default function FeesManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => assignExistingFeeMutation.mutate(fee)} 
+                            disabled={assignExistingFeeMutation.isPending}
+                            title={language === 'fr' ? 'Assigner aux élèves' : 'Assign to students'}
+                          >
+                            <Users className="w-4 h-4 text-green-600" />
+                          </Button>
                           <Button variant="ghost" size="sm" onClick={() => handlePrintFee(fee)} title={t.printFee}>
                             <Printer className="w-4 h-4 text-blue-600" />
                           </Button>
@@ -1068,7 +1120,22 @@ export default function FeesManagement() {
                       </TableCell>
                     </TableRow>
                   )) : (
-                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">{t.noData}</TableCell></TableRow>
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        <div className="text-muted-foreground">
+                          <p className="font-medium text-lg mb-2">{language === 'fr' ? 'Aucun frais assigné' : 'No fees assigned'}</p>
+                          <p className="text-sm mb-4">
+                            {language === 'fr' 
+                              ? 'Pour envoyer des rappels, créez d\'abord un frais dans "Grille Tarifaire". Les frais seront automatiquement assignés aux élèves.'
+                              : 'To send reminders, first create a fee in "Fee Grid". Fees will be automatically assigned to students.'}
+                          </p>
+                          <Button variant="outline" onClick={() => setActiveTab('feeGrid')}>
+                            <DollarSign className="w-4 h-4 mr-2" />
+                            {language === 'fr' ? 'Aller à Grille Tarifaire' : 'Go to Fee Grid'}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   )}
                 </TableBody>
               </Table>
