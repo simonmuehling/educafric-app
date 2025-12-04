@@ -294,7 +294,7 @@ export default function FeesManagement() {
     queryKey: ['/api/fees/payments']
   });
 
-  const { data: classes } = useQuery({
+  const { data: classesData } = useQuery({
     queryKey: ['/api/classes']
   });
 
@@ -302,6 +302,7 @@ export default function FeesManagement() {
     queryKey: ['/api/director/settings']
   });
 
+  const classes = Array.isArray(classesData) ? classesData : (classesData?.classes || []);
   const school = schoolSettings?.settings?.school || schoolSettings?.school || {};
 
   const createStructureMutation = useMutation({
