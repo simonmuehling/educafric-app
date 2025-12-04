@@ -617,6 +617,65 @@ router.get('/payments', requireAuth, requireDirectorRole, async (req: Request, r
   }
 });
 
+// POST /api/fees/payments/:id/notify - Send payment notification to parent
+router.post('/payments/:id/notify', requireAuth, requireDirectorRole, async (req: Request, res: Response) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    const paymentId = parseInt(req.params.id);
+    
+    if (!schoolId) {
+      return res.status(400).json({ success: false, message: 'School ID required' });
+    }
+    
+    // Get payment details
+    const [payment] = await db
+      .select({
+        id: payments.id,
+        studentId: payments.studentId,
+        amount: payments.amount,
+        paymentMethod: payments.paymentMethod,
+        createdAt: payments.createdAt,
+        studentFirstName: users.firstName,
+        studentLastName: users.lastName
+      })
+      .from(payments)
+      .leftJoin(users, eq(payments.studentId, users.id))
+      .where(eq(payments.id, paymentId))
+      .limit(1);
+    
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Payment not found' });
+    }
+    
+    // Queue notification to parent
+    await db.insert(feeNotificationQueue).values({
+      schoolId,
+      studentId: payment.studentId,
+      notificationType: 'receipt',
+      title: 'Confirmation de paiement / Payment Confirmation',
+      message: `Paiement de ${parseInt(payment.amount).toLocaleString()} XAF reçu pour ${payment.studentFirstName} ${payment.studentLastName}. Méthode: ${payment.paymentMethod || 'cash'}`,
+      channels: ['email', 'whatsapp', 'pwa'],
+      status: 'pending'
+    });
+    
+    // Also create in-app notification
+    await db.insert(notifications).values({
+      userId: payment.studentId,
+      title: 'Confirmation de paiement / Payment Confirmation',
+      message: `Paiement de ${parseInt(payment.amount).toLocaleString()} XAF reçu`,
+      type: 'payment',
+      isRead: false
+    });
+    
+    console.log(`[FEES] Notification queued for payment ${paymentId} to parent of student ${payment.studentId}`);
+    res.json({ success: true, message: 'Notification sent to parent' });
+  } catch (error) {
+    console.error('[FEES] Error sending payment notification:', error);
+    res.status(500).json({ success: false, message: 'Failed to send notification' });
+  }
+});
+
 // =============== FEE STATISTICS ===============
 
 // GET /api/fees/stats - Dashboard statistics

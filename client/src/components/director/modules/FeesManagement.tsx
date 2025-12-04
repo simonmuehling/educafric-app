@@ -34,7 +34,11 @@ import {
   RefreshCw,
   Calendar,
   Percent,
-  Filter
+  Filter,
+  Printer,
+  MessageSquare,
+  Wrench,
+  AlertCircle
 } from 'lucide-react';
 
 const translations = {
@@ -126,7 +130,21 @@ const translations = {
     thisYear: 'Cette Année',
     exportExcel: 'Exporter Excel',
     exportPdf: 'Exporter PDF',
-    noReminders: 'Aucun rappel à envoyer'
+    noReminders: 'Aucun rappel à envoyer',
+    printReceipt: 'Imprimer Reçu',
+    notifyParent: 'Notifier Parent',
+    maintenanceMode: 'Mode Maintenance',
+    onlinePaymentMaintenance: 'Les paiements en ligne (MTN MoMo, Orange Money, Carte) sont temporairement en maintenance.',
+    manualPaymentOnly: 'Seuls les paiements manuels (espèces, virement) sont disponibles.',
+    receiptPrinted: 'Reçu imprimé avec succès',
+    notificationSent: 'Notification envoyée au parent',
+    paymentReceipt: 'Reçu de Paiement',
+    schoolFees: 'Frais de Scolarité',
+    receiptNumber: 'N° Reçu',
+    paidBy: 'Payé par',
+    receivedBy: 'Reçu par',
+    signature: 'Signature',
+    thankYou: 'Merci pour votre paiement'
   },
   en: {
     title: 'Fees Management',
@@ -216,7 +234,21 @@ const translations = {
     thisYear: 'This Year',
     exportExcel: 'Export Excel',
     exportPdf: 'Export PDF',
-    noReminders: 'No reminders to send'
+    noReminders: 'No reminders to send',
+    printReceipt: 'Print Receipt',
+    notifyParent: 'Notify Parent',
+    maintenanceMode: 'Maintenance Mode',
+    onlinePaymentMaintenance: 'Online payments (MTN MoMo, Orange Money, Card) are temporarily under maintenance.',
+    manualPaymentOnly: 'Only manual payments (cash, bank transfer) are available.',
+    receiptPrinted: 'Receipt printed successfully',
+    notificationSent: 'Notification sent to parent',
+    paymentReceipt: 'Payment Receipt',
+    schoolFees: 'School Fees',
+    receiptNumber: 'Receipt No.',
+    paidBy: 'Paid by',
+    receivedBy: 'Received by',
+    signature: 'Signature',
+    thankYou: 'Thank you for your payment'
   }
 };
 
@@ -327,6 +359,97 @@ export default function FeesManagement() {
 
   const formatCurrency = (amount: number) => {
     return `${amount?.toLocaleString() || 0} ${t.xaf}`;
+  };
+
+  const handlePrintReceipt = async (payment: any) => {
+    const receiptWindow = window.open('', '_blank', 'width=400,height=600');
+    if (!receiptWindow) {
+      toast({ title: language === 'fr' ? 'Veuillez autoriser les popups' : 'Please allow popups', variant: 'destructive' });
+      return;
+    }
+
+    const receiptHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>${t.paymentReceipt}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; padding: 20px; max-width: 350px; margin: 0 auto; }
+          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 15px; }
+          .logo { font-size: 24px; font-weight: bold; color: #2563eb; }
+          .receipt-title { font-size: 18px; margin-top: 10px; font-weight: bold; }
+          .receipt-number { font-size: 12px; color: #666; margin-top: 5px; }
+          .section { margin: 15px 0; padding: 10px 0; border-bottom: 1px dashed #ccc; }
+          .row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
+          .label { color: #666; }
+          .value { font-weight: bold; }
+          .amount { font-size: 20px; color: #16a34a; text-align: center; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+          .signature { margin-top: 40px; border-top: 1px solid #000; width: 150px; margin-left: auto; margin-right: auto; padding-top: 5px; text-align: center; font-size: 12px; }
+          @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo">EDUCAFRIC</div>
+          <div class="receipt-title">${t.paymentReceipt}</div>
+          <div class="receipt-number">${t.receiptNumber}: REC-${payment.id}-${Date.now().toString(36).toUpperCase()}</div>
+        </div>
+        
+        <div class="section">
+          <div class="row">
+            <span class="label">${t.student}:</span>
+            <span class="value">${payment.studentFirstName} ${payment.studentLastName}</span>
+          </div>
+          <div class="row">
+            <span class="label">Date:</span>
+            <span class="value">${payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : new Date().toLocaleDateString()}</span>
+          </div>
+          <div class="row">
+            <span class="label">${t.paymentMethod}:</span>
+            <span class="value">${payment.paymentMethod || 'cash'}</span>
+          </div>
+          ${payment.transactionRef ? `<div class="row"><span class="label">${t.transactionRef}:</span><span class="value">${payment.transactionRef}</span></div>` : ''}
+        </div>
+        
+        <div class="amount">
+          <div style="font-size: 14px; color: #666;">${t.amount}</div>
+          <div>${parseInt(payment.amount).toLocaleString()} XAF</div>
+        </div>
+        
+        <div class="signature">${t.receivedBy}</div>
+        
+        <div class="footer">
+          <p>${t.thankYou}</p>
+          <p style="margin-top: 10px;">EDUCAFRIC - ${language === 'fr' ? 'Plateforme Éducative' : 'Educational Platform'}</p>
+        </div>
+        
+        <script>window.onload = function() { window.print(); }</script>
+      </body>
+      </html>
+    `;
+
+    receiptWindow.document.write(receiptHtml);
+    receiptWindow.document.close();
+    toast({ title: t.receiptPrinted });
+  };
+
+  const notifyParentMutation = useMutation({
+    mutationFn: async (paymentId: number) => {
+      return apiRequest(`/api/fees/payments/${paymentId}/notify`, { method: 'POST' });
+    },
+    onSuccess: () => {
+      toast({ title: t.notificationSent });
+    },
+    onError: () => {
+      toast({ title: language === 'fr' ? 'Erreur lors de l\'envoi' : 'Error sending notification', variant: 'destructive' });
+    }
+  });
+
+  const handleNotifyParent = (payment: any) => {
+    notifyParentMutation.mutate(payment.id);
   };
 
   return (
@@ -758,6 +881,23 @@ export default function FeesManagement() {
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-4">
+          {/* Maintenance Banner */}
+          <Card className="border-orange-300 bg-orange-50">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <Wrench className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-orange-800 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    {t.maintenanceMode}
+                  </h4>
+                  <p className="text-sm text-orange-700 mt-1">{t.onlinePaymentMaintenance}</p>
+                  <p className="text-sm text-orange-600">{t.manualPaymentOnly}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>{t.payments}</CardTitle>
@@ -798,9 +938,26 @@ export default function FeesManagement() {
                           {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : '-'}
                         </TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="sm">
-                            <Download className="w-4 h-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handlePrintReceipt(payment)}
+                              title={t.printReceipt}
+                              data-testid={`btn-print-${payment.id}`}
+                            >
+                              <Printer className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleNotifyParent(payment)}
+                              title={t.notifyParent}
+                              data-testid={`btn-notify-${payment.id}`}
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
