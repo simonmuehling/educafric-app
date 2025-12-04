@@ -1,21 +1,21 @@
 /**
- * PARENT NOTIFICATIONS MODULE
+ * STUDENT NOTIFICATIONS MODULE
  * Uses the UnifiedNotificationCenter to display all notifications
- * Includes fee reminders, attendance alerts, grade notifications, etc.
+ * Includes grade alerts, homework reminders, attendance notifications, etc.
  */
 
 import { useAuth } from '@/contexts/AuthContext';
 import UnifiedNotificationCenter from '@/components/shared/UnifiedNotificationCenter';
 
-export const ParentNotifications = () => {
+export const StudentNotifications = () => {
   const { user } = useAuth();
 
   return (
     <UnifiedNotificationCenter 
       userId={user?.id || 0} 
-      userRole={user?.role || 'Parent'} 
+      userRole={user?.role || 'Student'} 
     />
   );
 };
 
-export default ParentNotifications;
+export default StudentNotifications;
