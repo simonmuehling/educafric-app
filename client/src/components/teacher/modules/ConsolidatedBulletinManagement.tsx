@@ -14,7 +14,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import BulletinCreationInterface from '@/components/academic/BulletinCreationInterface';
-import TeacherGradeSubmission from '../TeacherGradeSubmission';
 import { 
   FileText, 
   Edit3, 
@@ -29,7 +28,6 @@ import {
   TrendingUp,
   CheckSquare,
   ClipboardEdit,
-  Send,
   ChevronRight,
   School,
   GraduationCap,
@@ -53,7 +51,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedTerm, setSelectedTerm] = useState<'T1' | 'T2' | 'T3'>('T1');
   const [academicYear, setAcademicYear] = useState('2024-2025');
-  const [activeTab, setActiveTab] = useState('submit-grades');
+  const [activeTab, setActiveTab] = useState('bulletin-interface');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -593,16 +591,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-4">
           {/* Mobile: Scrollable compact tabs */}
           <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:grid sm:grid-cols-3 h-auto p-1 gap-1">
-              <TabsTrigger 
-                value="submit-grades" 
-                className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800"
-                data-testid="tab-submit-grades"
-              >
-                <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="sm:hidden">{t.submitGrades}</span>
-                <span className="hidden sm:inline">{language === 'fr' ? 'Soumettre Notes' : 'Submit Grades'}</span>
-              </TabsTrigger>
+            <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:grid sm:grid-cols-2 h-auto p-1 gap-1">
               <TabsTrigger 
                 value="bulletin-interface" 
                 className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800"
@@ -623,11 +612,6 @@ const ConsolidatedBulletinManagement: React.FC = () => {
               </TabsTrigger>
             </TabsList>
           </div>
-
-          {/* Submit Grades Tab */}
-          <TabsContent value="submit-grades" className="space-y-3 sm:space-y-4 mt-0">
-            <TeacherGradeSubmission />
-          </TabsContent>
 
           {/* Overview Tab - Mobile Optimized Student Cards */}
           <TabsContent value="overview" className="space-y-3 sm:space-y-4 mt-0">
