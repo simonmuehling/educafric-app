@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Printer, RotateCcw } from 'lucide-react';
+import { Printer, RotateCcw, Smartphone, Download } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StudentData {
@@ -136,508 +136,621 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
     }
   }, [isOpen, studentId, student.id, cardId, school.name, validityDate, academicYear]);
 
+  const [isPrinting, setIsPrinting] = useState(false);
+  const printIframeRef = useRef<HTMLIFrameElement>(null);
+  
+  // Detect if mobile device
+  const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+  };
+
   const handlePrint = () => {
     const printContent = printRef.current;
     if (!printContent) return;
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    // For mobile devices, use inline iframe approach which works better
+    const isMobile = isMobileDevice();
+    
+    const printStyles = `
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      
+      html, body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: white !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 5mm;
+      }
+      
+      .print-container {
+        display: flex;
+        gap: 10mm;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .id-card {
+        width: 85.6mm;
+        height: 54mm;
+        border-radius: 3mm;
+        position: relative;
+        overflow: hidden;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      
+      /* FRONT CARD STYLES - FULL COLOR */
+      .front-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%) !important;
+        border: 0.5mm solid #e2e8f0 !important;
+      }
+      
+      .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-30deg);
+        font-size: 18mm;
+        font-weight: 800;
+        color: rgba(16, 185, 129, 0.03) !important;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 1;
+        letter-spacing: 2mm;
+      }
+      
+      .security-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+          repeating-linear-gradient(45deg, transparent, transparent 2mm, rgba(16, 185, 129, 0.02) 2mm, rgba(16, 185, 129, 0.02) 4mm),
+          repeating-linear-gradient(-45deg, transparent, transparent 2mm, rgba(16, 185, 129, 0.02) 2mm, rgba(16, 185, 129, 0.02) 4mm) !important;
+        pointer-events: none;
+        z-index: 0;
+      }
+      
+      .front-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 2.5mm;
+      }
+      
+      .header-strip {
+        background: linear-gradient(90deg, #059669 0%, #10b981 50%, #34d399 100%) !important;
+        height: 8mm;
+        margin: -2.5mm -2.5mm 2mm -2.5mm;
+        display: flex;
+        align-items: center;
+        padding: 0 3mm;
+        gap: 2mm;
+      }
+      
+      .school-logo {
+        width: 6mm;
+        height: 6mm;
+        border-radius: 1mm;
+        object-fit: contain;
+        background: white !important;
+        padding: 0.3mm;
+      }
+      
+      .logo-placeholder {
+        width: 6mm;
+        height: 6mm;
+        background: white !important;
+        border-radius: 1mm;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3.5mm;
+        font-weight: 800;
+        color: #059669 !important;
+      }
+      
+      .header-text {
+        flex: 1;
+      }
+      
+      .school-name {
+        font-size: 2.8mm;
+        font-weight: 700;
+        color: white !important;
+        line-height: 1.1;
+        text-shadow: 0 0.5mm 1mm rgba(0,0,0,0.2);
+      }
+      
+      .school-tagline {
+        font-size: 1.6mm;
+        color: rgba(255,255,255,0.9) !important;
+        font-weight: 500;
+      }
+      
+      .card-type-badge {
+        background: rgba(255,255,255,0.95) !important;
+        color: #059669 !important;
+        font-size: 1.8mm;
+        font-weight: 700;
+        padding: 1mm 2mm;
+        border-radius: 1mm;
+        text-transform: uppercase;
+        letter-spacing: 0.3mm;
+      }
+      
+      .main-content {
+        display: flex;
+        gap: 3mm;
+        flex: 1;
+      }
+      
+      .photo-container {
+        flex-shrink: 0;
+      }
+      
+      .student-photo {
+        width: 22mm;
+        height: 28mm;
+        border-radius: 2mm;
+        object-fit: cover;
+        border: 0.5mm solid #d1d5db !important;
+      }
+      
+      .photo-placeholder {
+        width: 22mm;
+        height: 28mm;
+        background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%) !important;
+        border-radius: 2mm;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 0.5mm solid #d1d5db !important;
+        gap: 1mm;
+      }
+      
+      .photo-placeholder svg {
+        width: 8mm;
+        height: 8mm;
+        color: #9ca3af !important;
+      }
+      
+      .photo-placeholder-text {
+        font-size: 1.5mm;
+        color: #9ca3af !important;
+        font-weight: 500;
+      }
+      
+      .info-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      
+      .student-name {
+        font-size: 4mm;
+        font-weight: 800;
+        color: #111827 !important;
+        line-height: 1.1;
+        margin-bottom: 1.5mm;
+        text-transform: uppercase;
+      }
+      
+      .info-grid {
+        display: grid;
+        gap: 0.8mm;
+      }
+      
+      .info-row {
+        display: flex;
+        align-items: baseline;
+        gap: 1mm;
+      }
+      
+      .birth-info {
+        display: flex;
+        align-items: baseline;
+        gap: 1mm;
+        flex-wrap: wrap;
+      }
+      
+      .birth-label {
+        font-size: 1.8mm;
+        color: #6b7280 !important;
+        font-weight: 600;
+      }
+      
+      .birth-value {
+        font-size: 2mm;
+        color: #1f2937 !important;
+        font-weight: 600;
+      }
+      
+      .info-label {
+        font-size: 1.8mm;
+        color: #6b7280 !important;
+        font-weight: 600;
+        min-width: 12mm;
+      }
+      
+      .info-value {
+        font-size: 2.2mm;
+        color: #1f2937 !important;
+        font-weight: 700;
+      }
+      
+      .validity-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5mm;
+        background: linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%) !important;
+        color: #166534 !important;
+        font-size: 1.8mm;
+        font-weight: 600;
+        padding: 0.8mm 1.5mm;
+        border-radius: 0.8mm;
+        border: 0.2mm solid #86efac !important;
+      }
+      
+      .qr-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 1mm;
+      }
+      
+      .qr-code {
+        width: 16mm;
+        height: 16mm;
+        border: 0.3mm solid #e5e7eb !important;
+        border-radius: 1mm;
+        padding: 0.5mm;
+        background: white !important;
+      }
+      
+      .qr-label {
+        font-size: 1.5mm;
+        color: #9ca3af !important;
+        margin-top: 0.5mm;
+        font-weight: 500;
+      }
+      
+      .footer-strip {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 1.5mm;
+        border-top: 0.2mm solid #e5e7eb !important;
+      }
+      
+      .card-id {
+        font-size: 1.6mm;
+        color: #9ca3af !important;
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+      }
+      
+      .issue-date {
+        font-size: 1.6mm;
+        color: #6b7280 !important;
+      }
+      
+      /* BACK CARD STYLES - FULL COLOR */
+      .back-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%) !important;
+        border: 0.5mm solid #e2e8f0 !important;
+      }
+      
+      .back-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 2.5mm;
+      }
+      
+      .back-header {
+        background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%) !important;
+        height: 6mm;
+        margin: -2.5mm -2.5mm 2mm -2.5mm;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .back-title {
+        font-size: 2.5mm;
+        font-weight: 700;
+        color: white !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5mm;
+      }
+      
+      .back-main {
+        display: flex;
+        gap: 3mm;
+        flex: 1;
+      }
+      
+      .verification-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1mm;
+      }
+      
+      .back-qr {
+        width: 20mm;
+        height: 20mm;
+        border: 0.3mm solid #e5e7eb !important;
+        border-radius: 1.5mm;
+        padding: 0.5mm;
+        background: white !important;
+      }
+      
+      .scan-instruction {
+        font-size: 1.8mm;
+        color: #6b7280 !important;
+        text-align: center;
+        font-weight: 500;
+      }
+      
+      .verification-url {
+        font-size: 1.4mm;
+        color: #3b82f6 !important;
+        font-family: 'Courier New', monospace;
+      }
+      
+      .info-panel-back {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        gap: 2mm;
+      }
+      
+      .emergency-box {
+        background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%) !important;
+        border: 0.3mm solid #f59e0b !important;
+        border-radius: 1.5mm;
+        padding: 2mm;
+      }
+      
+      .emergency-title {
+        font-size: 2mm;
+        font-weight: 700;
+        color: #92400e !important;
+        margin-bottom: 0.8mm;
+        display: flex;
+        align-items: center;
+        gap: 1mm;
+      }
+      
+      .emergency-icon {
+        width: 2.5mm;
+        height: 2.5mm;
+      }
+      
+      .emergency-info {
+        font-size: 1.8mm;
+        color: #78350f !important;
+        line-height: 1.3;
+      }
+      
+      .school-contact-box {
+        background: #f1f5f9 !important;
+        border-radius: 1.5mm;
+        padding: 1.5mm;
+        flex: 1;
+      }
+      
+      .contact-title {
+        font-size: 1.8mm;
+        font-weight: 700;
+        color: #475569 !important;
+        margin-bottom: 0.8mm;
+      }
+      
+      .contact-line {
+        font-size: 1.6mm;
+        color: #64748b !important;
+        line-height: 1.4;
+      }
+      
+      .signature-section {
+        display: flex;
+        justify-content: space-between;
+        margin-top: auto;
+        padding-top: 1.5mm;
+        border-top: 0.2mm solid #e5e7eb !important;
+      }
+      
+      .signature-box {
+        text-align: center;
+        width: 25mm;
+      }
+      
+      .signature-line {
+        border-bottom: 0.3mm solid #94a3b8 !important;
+        height: 4mm;
+        margin-bottom: 0.5mm;
+      }
+      
+      .signature-label {
+        font-size: 1.5mm;
+        color: #64748b !important;
+        font-weight: 500;
+      }
+      
+      .security-notice {
+        position: absolute;
+        bottom: 1mm;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.2mm;
+        color: #94a3b8 !important;
+        text-align: center;
+        font-style: italic;
+      }
+      
+      /* Mobile-specific print optimizations */
+      @media print {
+        @page {
+          size: auto;
+          margin: 5mm;
+        }
+        
+        html, body {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          background: white !important;
+        }
+        
+        body {
+          padding: 0;
+          margin: 0;
+        }
+        
+        .print-container {
+          gap: 5mm;
+        }
+        
+        .id-card {
+          box-shadow: none;
+          border: 0.3mm solid #d1d5db !important;
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+        
+        /* Force all backgrounds and colors to print */
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+        
+        img {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+      }
+      
+      /* Signature image styling */
+      .signature-img {
+        max-height: 6mm;
+        max-width: 20mm;
+        object-fit: contain;
+      }
+    `;
 
-    printWindow.document.write(`
+    const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Carte d'identité - ${fullName}</title>
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-            
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            
-            body {
-              font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-              background: #f0f0f0;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              min-height: 100vh;
-              padding: 10mm;
-            }
-            
-            .print-container {
-              display: flex;
-              gap: 15mm;
-              flex-wrap: wrap;
-              justify-content: center;
-            }
-            
-            .id-card {
-              width: 85.6mm;
-              height: 54mm;
-              border-radius: 3mm;
-              position: relative;
-              overflow: hidden;
-              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-              page-break-inside: avoid;
-            }
-            
-            /* FRONT CARD STYLES */
-            .front-card {
-              background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
-              border: 0.5mm solid #e2e8f0;
-            }
-            
-            .watermark {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%) rotate(-30deg);
-              font-size: 18mm;
-              font-weight: 800;
-              color: rgba(16, 185, 129, 0.03);
-              white-space: nowrap;
-              pointer-events: none;
-              z-index: 1;
-              letter-spacing: 2mm;
-            }
-            
-            .security-pattern {
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              bottom: 0;
-              background-image: 
-                repeating-linear-gradient(45deg, transparent, transparent 2mm, rgba(16, 185, 129, 0.02) 2mm, rgba(16, 185, 129, 0.02) 4mm),
-                repeating-linear-gradient(-45deg, transparent, transparent 2mm, rgba(16, 185, 129, 0.02) 2mm, rgba(16, 185, 129, 0.02) 4mm);
-              pointer-events: none;
-              z-index: 0;
-            }
-            
-            .front-content {
-              position: relative;
-              z-index: 2;
-              height: 100%;
-              display: flex;
-              flex-direction: column;
-              padding: 2.5mm;
-            }
-            
-            .header-strip {
-              background: linear-gradient(90deg, #059669 0%, #10b981 50%, #34d399 100%);
-              height: 8mm;
-              margin: -2.5mm -2.5mm 2mm -2.5mm;
-              display: flex;
-              align-items: center;
-              padding: 0 3mm;
-              gap: 2mm;
-            }
-            
-            .school-logo {
-              width: 6mm;
-              height: 6mm;
-              border-radius: 1mm;
-              object-fit: contain;
-              background: white;
-              padding: 0.3mm;
-            }
-            
-            .logo-placeholder {
-              width: 6mm;
-              height: 6mm;
-              background: white;
-              border-radius: 1mm;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 3.5mm;
-              font-weight: 800;
-              color: #059669;
-            }
-            
-            .header-text {
-              flex: 1;
-            }
-            
-            .school-name {
-              font-size: 2.8mm;
-              font-weight: 700;
-              color: white;
-              line-height: 1.1;
-              text-shadow: 0 0.5mm 1mm rgba(0,0,0,0.2);
-            }
-            
-            .school-tagline {
-              font-size: 1.6mm;
-              color: rgba(255,255,255,0.9);
-              font-weight: 500;
-            }
-            
-            .card-type-badge {
-              background: rgba(255,255,255,0.95);
-              color: #059669;
-              font-size: 1.8mm;
-              font-weight: 700;
-              padding: 1mm 2mm;
-              border-radius: 1mm;
-              text-transform: uppercase;
-              letter-spacing: 0.3mm;
-            }
-            
-            .main-content {
-              display: flex;
-              gap: 3mm;
-              flex: 1;
-            }
-            
-            .photo-container {
-              flex-shrink: 0;
-            }
-            
-            .student-photo {
-              width: 22mm;
-              height: 28mm;
-              border-radius: 2mm;
-              object-fit: cover;
-              border: 0.5mm solid #d1d5db;
-              box-shadow: 0 1mm 3mm rgba(0,0,0,0.1);
-            }
-            
-            .photo-placeholder {
-              width: 22mm;
-              height: 28mm;
-              background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
-              border-radius: 2mm;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              border: 0.5mm solid #d1d5db;
-              gap: 1mm;
-            }
-            
-            .photo-placeholder svg {
-              width: 8mm;
-              height: 8mm;
-              color: #9ca3af;
-            }
-            
-            .photo-placeholder-text {
-              font-size: 1.5mm;
-              color: #9ca3af;
-              font-weight: 500;
-            }
-            
-            .info-panel {
-              flex: 1;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-            }
-            
-            .student-name {
-              font-size: 4mm;
-              font-weight: 800;
-              color: #111827;
-              line-height: 1.1;
-              margin-bottom: 1.5mm;
-              text-transform: uppercase;
-            }
-            
-            .info-grid {
-              display: grid;
-              gap: 0.8mm;
-            }
-            
-            .info-row {
-              display: flex;
-              align-items: baseline;
-              gap: 1mm;
-            }
-            
-            .birth-info {
-              display: flex;
-              align-items: baseline;
-              gap: 1mm;
-              flex-wrap: wrap;
-            }
-            
-            .birth-label {
-              font-size: 1.8mm;
-              color: #6b7280;
-              font-weight: 600;
-            }
-            
-            .birth-value {
-              font-size: 2mm;
-              color: #1f2937;
-              font-weight: 600;
-            }
-            
-            .info-label {
-              font-size: 1.8mm;
-              color: #6b7280;
-              font-weight: 600;
-              min-width: 12mm;
-            }
-            
-            .info-value {
-              font-size: 2.2mm;
-              color: #1f2937;
-              font-weight: 700;
-            }
-            
-            .validity-badge {
-              display: inline-flex;
-              align-items: center;
-              gap: 0.5mm;
-              background: linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%);
-              color: #166534;
-              font-size: 1.8mm;
-              font-weight: 600;
-              padding: 0.8mm 1.5mm;
-              border-radius: 0.8mm;
-              border: 0.2mm solid #86efac;
-            }
-            
-            .qr-section {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: flex-start;
-              padding-top: 1mm;
-            }
-            
-            .qr-code {
-              width: 16mm;
-              height: 16mm;
-              border: 0.3mm solid #e5e7eb;
-              border-radius: 1mm;
-              padding: 0.5mm;
-              background: white;
-            }
-            
-            .qr-label {
-              font-size: 1.5mm;
-              color: #9ca3af;
-              margin-top: 0.5mm;
-              font-weight: 500;
-            }
-            
-            .footer-strip {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-top: auto;
-              padding-top: 1.5mm;
-              border-top: 0.2mm solid #e5e7eb;
-            }
-            
-            .card-id {
-              font-size: 1.6mm;
-              color: #9ca3af;
-              font-family: 'Courier New', monospace;
-              font-weight: 600;
-            }
-            
-            .issue-date {
-              font-size: 1.6mm;
-              color: #6b7280;
-            }
-            
-            /* BACK CARD STYLES */
-            .back-card {
-              background: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%);
-              border: 0.5mm solid #e2e8f0;
-            }
-            
-            .back-content {
-              position: relative;
-              z-index: 2;
-              height: 100%;
-              display: flex;
-              flex-direction: column;
-              padding: 2.5mm;
-            }
-            
-            .back-header {
-              background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%);
-              height: 6mm;
-              margin: -2.5mm -2.5mm 2mm -2.5mm;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            
-            .back-title {
-              font-size: 2.5mm;
-              font-weight: 700;
-              color: white;
-              text-transform: uppercase;
-              letter-spacing: 0.5mm;
-            }
-            
-            .back-main {
-              display: flex;
-              gap: 3mm;
-              flex: 1;
-            }
-            
-            .verification-panel {
-              flex: 1;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              gap: 1mm;
-            }
-            
-            .back-qr {
-              width: 20mm;
-              height: 20mm;
-              border: 0.3mm solid #e5e7eb;
-              border-radius: 1.5mm;
-              padding: 0.5mm;
-              background: white;
-            }
-            
-            .scan-instruction {
-              font-size: 1.8mm;
-              color: #6b7280;
-              text-align: center;
-              font-weight: 500;
-            }
-            
-            .verification-url {
-              font-size: 1.4mm;
-              color: #3b82f6;
-              font-family: 'Courier New', monospace;
-            }
-            
-            .info-panel-back {
-              flex: 1.2;
-              display: flex;
-              flex-direction: column;
-              gap: 2mm;
-            }
-            
-            .emergency-box {
-              background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%);
-              border: 0.3mm solid #f59e0b;
-              border-radius: 1.5mm;
-              padding: 2mm;
-            }
-            
-            .emergency-title {
-              font-size: 2mm;
-              font-weight: 700;
-              color: #92400e;
-              margin-bottom: 0.8mm;
-              display: flex;
-              align-items: center;
-              gap: 1mm;
-            }
-            
-            .emergency-icon {
-              width: 2.5mm;
-              height: 2.5mm;
-            }
-            
-            .emergency-info {
-              font-size: 1.8mm;
-              color: #78350f;
-              line-height: 1.3;
-            }
-            
-            .school-contact-box {
-              background: #f1f5f9;
-              border-radius: 1.5mm;
-              padding: 1.5mm;
-              flex: 1;
-            }
-            
-            .contact-title {
-              font-size: 1.8mm;
-              font-weight: 700;
-              color: #475569;
-              margin-bottom: 0.8mm;
-            }
-            
-            .contact-line {
-              font-size: 1.6mm;
-              color: #64748b;
-              line-height: 1.4;
-            }
-            
-            .signature-section {
-              display: flex;
-              justify-content: space-between;
-              margin-top: auto;
-              padding-top: 1.5mm;
-              border-top: 0.2mm solid #e5e7eb;
-            }
-            
-            .signature-box {
-              text-align: center;
-              width: 25mm;
-            }
-            
-            .signature-line {
-              border-bottom: 0.3mm solid #94a3b8;
-              height: 4mm;
-              margin-bottom: 0.5mm;
-            }
-            
-            .signature-label {
-              font-size: 1.5mm;
-              color: #64748b;
-              font-weight: 500;
-            }
-            
-            .security-notice {
-              position: absolute;
-              bottom: 1mm;
-              left: 50%;
-              transform: translateX(-50%);
-              font-size: 1.2mm;
-              color: #94a3b8;
-              text-align: center;
-              font-style: italic;
-            }
-            
-            @media print {
-              body {
-                background: white;
-                padding: 0;
-              }
-              .print-container {
-                gap: 5mm;
-              }
-              .id-card {
-                box-shadow: none;
-                border: 0.3mm solid #d1d5db;
-              }
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-          </style>
+          <style>${printStyles}</style>
         </head>
         <body>
           ${printContent.innerHTML}
+          <script>
+            // Auto-print after images load
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+                ${isMobile ? '' : 'window.close();'}
+              }, 800);
+            };
+          </script>
         </body>
       </html>
-    `);
-    
-    printWindow.document.close();
-    printWindow.focus();
-    
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 500);
+    `;
+
+    if (isMobile) {
+      // Mobile approach: Open new page (works better on mobile browsers)
+      setIsPrinting(true);
+      
+      // Create a blob URL for mobile
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      
+      // Open in new tab which works better on mobile
+      const newTab = window.open(url, '_blank');
+      
+      if (!newTab) {
+        // Fallback: create hidden iframe
+        let iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.style.zIndex = '99999';
+        iframe.style.background = 'white';
+        
+        document.body.appendChild(iframe);
+        iframe.contentWindow?.document.write(htmlContent);
+        iframe.contentWindow?.document.close();
+        
+        // Add close button for mobile
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✕ Fermer / Close';
+        closeBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:100000;padding:10px 20px;background:#ef4444;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3)';
+        closeBtn.onclick = () => {
+          document.body.removeChild(iframe);
+          document.body.removeChild(closeBtn);
+          setIsPrinting(false);
+        };
+        document.body.appendChild(closeBtn);
+      } else {
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          setIsPrinting(false);
+        }, 2000);
+      }
+    } else {
+      // Desktop: Use popup window (original approach)
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      if (!printWindow) {
+        alert(language === 'fr' 
+          ? 'Veuillez autoriser les popups pour imprimer la carte.' 
+          : 'Please allow popups to print the card.');
+        return;
+      }
+      
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      printWindow.focus();
+    }
   };
 
   // Format birth date
@@ -712,28 +825,41 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl bg-white max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <span className="text-xl font-bold text-gray-900">{text.title}</span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => setShowBack(!showBack)}
                 className="border-gray-300"
                 data-testid="button-flip-id-card"
               >
-                <RotateCcw className="w-4 h-4 mr-2" />
+                <RotateCcw className="w-4 h-4 mr-1" />
                 {text.flipCard}
               </Button>
               <Button
                 onClick={handlePrint}
+                size="sm"
                 className="bg-green-600 hover:bg-green-700 text-white"
                 data-testid="button-print-id-card"
               >
-                <Printer className="w-4 h-4 mr-2" />
-                {text.printCard}
+                <Printer className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">{text.printCard}</span>
+                <span className="sm:hidden">{language === 'fr' ? 'Imprimer' : 'Print'}</span>
               </Button>
             </div>
           </DialogTitle>
+          {isMobileDevice() && (
+            <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 p-2 rounded-md mt-2 border border-amber-200">
+              <Smartphone className="w-4 h-4 flex-shrink-0" />
+              <span>
+                {language === 'fr' 
+                  ? 'Mobile: Cliquez "Imprimer" puis "Enregistrer en PDF" pour imprimer en couleur depuis une imprimante.' 
+                  : 'Mobile: Click "Print" then "Save as PDF" to print in color from a printer.'}
+              </span>
+            </div>
+          )}
         </DialogHeader>
         
         <div className="flex flex-col items-center py-6 bg-gray-100 rounded-lg">
