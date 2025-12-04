@@ -1016,36 +1016,32 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                   
                   {/* Info Panel */}
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div style={{ fontSize: '4mm', fontWeight: 800, color: '#111827', lineHeight: 1.1, marginBottom: '1.5mm', textTransform: 'uppercase' }}>{fullName}</div>
+                    <div style={{ fontSize: '3.2mm', fontWeight: 800, color: '#111827', lineHeight: 1.15, marginBottom: '1mm', textTransform: 'uppercase', maxWidth: '30mm' }}>{fullName}</div>
                     
-                    <div style={{ display: 'grid', gap: '0.8mm' }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
-                        <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600, minWidth: '12mm' }}>{text.studentId}:</span>
-                        <span style={{ fontSize: '2.2mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span>
+                    <div style={{ display: 'grid', gap: '0.5mm' }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.studentId}:</span>
+                        <span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span>
                       </div>
-                      {(formattedBirthDate || birthPlaceValue) && (
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm', flexWrap: 'wrap' }}>
-                          {formattedBirthDate && (
-                            <>
-                              <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600 }}>{text.birthDate}</span>
-                              <span style={{ fontSize: '2mm', color: '#1f2937', fontWeight: 600 }}>{formattedBirthDate}</span>
-                            </>
-                          )}
-                          {birthPlaceValue && (
-                            <>
-                              <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600 }}>{text.birthPlace}</span>
-                              <span style={{ fontSize: '2mm', color: '#1f2937', fontWeight: 600 }}>{birthPlaceValue}</span>
-                            </>
-                          )}
+                      {formattedBirthDate && (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.birthDate}</span>
+                          <span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 600 }}>{formattedBirthDate}</span>
                         </div>
                       )}
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
-                        <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600, minWidth: '12mm' }}>{text.class}:</span>
-                        <span style={{ fontSize: '2.2mm', color: '#1f2937', fontWeight: 700 }}>{student.className}</span>
+                      {birthPlaceValue && (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.birthPlace}</span>
+                          <span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '20mm' }}>{birthPlaceValue}</span>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.class}:</span>
+                        <span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '22mm' }}>{student.className}</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
-                        <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600, minWidth: '12mm' }}>{text.academicYear}:</span>
-                        <span style={{ fontSize: '2.2mm', color: '#1f2937', fontWeight: 700 }}>{academicYear}</span>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.academicYear}:</span>
+                        <span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700 }}>{academicYear}</span>
                       </div>
                     </div>
                     
@@ -1055,12 +1051,13 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                       gap: '0.5mm',
                       background: 'linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%)',
                       color: '#166534',
-                      fontSize: '1.8mm',
+                      fontSize: '1.5mm',
                       fontWeight: 600,
-                      padding: '0.8mm 1.5mm',
+                      padding: '0.6mm 1.2mm',
                       borderRadius: '0.8mm',
                       border: '0.2mm solid #86efac',
-                      width: 'fit-content'
+                      width: 'fit-content',
+                      whiteSpace: 'nowrap'
                     }}>
                       ✓ {text.validThru}: {validityDate}
                     </div>
@@ -1277,13 +1274,13 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                     </div>
                     
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                      <div style={{ fontSize: '4mm', fontWeight: 800, color: '#111827', lineHeight: 1.1, marginBottom: '1.5mm', textTransform: 'uppercase' }}>{fullName}</div>
-                      <div style={{ display: 'grid', gap: '1mm' }}>
-                        <div style={{ display: 'flex', gap: '1mm' }}><span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600, minWidth: '12mm' }}>{text.studentId}:</span><span style={{ fontSize: '2.2mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span></div>
-                        <div style={{ display: 'flex', gap: '1mm' }}><span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600, minWidth: '12mm' }}>{text.class}:</span><span style={{ fontSize: '2.2mm', color: '#1f2937', fontWeight: 700 }}>{student.className}</span></div>
-                        <div style={{ display: 'flex', gap: '1mm' }}><span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600, minWidth: '12mm' }}>{text.academicYear}:</span><span style={{ fontSize: '2.2mm', color: '#1f2937', fontWeight: 700 }}>{academicYear}</span></div>
+                      <div style={{ fontSize: '3.2mm', fontWeight: 800, color: '#111827', lineHeight: 1.15, marginBottom: '1mm', textTransform: 'uppercase', maxWidth: '30mm' }}>{fullName}</div>
+                      <div style={{ display: 'grid', gap: '0.5mm' }}>
+                        <div style={{ display: 'flex', gap: '0.5mm', whiteSpace: 'nowrap' }}><span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.studentId}:</span><span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span></div>
+                        <div style={{ display: 'flex', gap: '0.5mm', whiteSpace: 'nowrap' }}><span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.class}:</span><span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700 }}>{student.className}</span></div>
+                        <div style={{ display: 'flex', gap: '0.5mm', whiteSpace: 'nowrap' }}><span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.academicYear}:</span><span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700 }}>{academicYear}</span></div>
                       </div>
-                      <div style={{ display: 'inline-flex', background: 'linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%)', color: '#166534', fontSize: '1.8mm', fontWeight: 600, padding: '0.8mm 1.5mm', borderRadius: '0.8mm', border: '0.2mm solid #86efac', width: 'fit-content' }}>✓ {text.validThru}: {validityDate}</div>
+                      <div style={{ display: 'inline-flex', background: 'linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%)', color: '#166534', fontSize: '1.5mm', fontWeight: 600, padding: '0.6mm 1.2mm', borderRadius: '0.8mm', border: '0.2mm solid #86efac', width: 'fit-content', whiteSpace: 'nowrap' }}>✓ {text.validThru}: {validityDate}</div>
                     </div>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '1mm' }}>
