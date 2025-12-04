@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Test Reçu de Paiement - Lycée Bilingue de Yaoundé</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Times New Roman', serif; padding: 15px; max-width: 450px; margin: 0 auto; font-size: 12px; }
+    .official-header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+    .official-header .country { font-size: 11px; font-weight: bold; }
+    .official-header .motto { font-size: 10px; font-style: italic; }
+    .official-header .ministry { font-size: 10px; margin-top: 3px; }
+    .school-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 15px 0; padding: 10px 0; border-bottom: 2px solid #000; }
+    .school-logo { width: 70px; height: 70px; object-fit: contain; }
+    .school-logo-placeholder { width: 70px; height: 70px; border: 2px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; text-align: center; }
+    .school-info { text-align: center; }
+    .school-name { font-size: 18px; font-weight: bold; color: #1a365d; text-transform: uppercase; }
+    .school-slogan { font-size: 11px; font-style: italic; color: #666; margin-top: 3px; }
+    .school-contact { font-size: 10px; color: #444; margin-top: 5px; }
+    .receipt-title { text-align: center; font-size: 16px; font-weight: bold; margin: 15px 0; padding: 8px; background: #f0f0f0; border: 1px solid #ccc; }
+    .receipt-number { text-align: center; font-size: 11px; color: #666; margin-bottom: 15px; }
+    .section { margin: 12px 0; padding: 10px; border: 1px solid #ddd; background: #fafafa; }
+    .row { display: flex; justify-content: space-between; margin: 6px 0; font-size: 12px; }
+    .label { color: #555; }
+    .value { font-weight: bold; }
+    .amount-box { text-align: center; margin: 20px 0; padding: 15px; border: 2px solid #16a34a; background: #f0fdf4; }
+    .amount-label { font-size: 12px; color: #555; }
+    .amount-value { font-size: 24px; font-weight: bold; color: #16a34a; }
+    .signatures { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 10px; }
+    .signature-box { text-align: center; width: 45%; }
+    .signature-line { border-top: 1px solid #000; margin-top: 40px; padding-top: 5px; font-size: 11px; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 10px; color: #666; }
+    @media print { 
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } 
+      .amount-box { background: #f0fdf4 !important; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <!-- En-tête officiel Cameroun -->
+  <div class="official-header">
+    <div class="country">RÉPUBLIQUE DU CAMEROUN</div>
+    <div class="motto">Paix – Travail – Patrie</div>
+    <div class="ministry">MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
+  </div>
+  
+  <!-- En-tête École -->
+  <div class="school-header">
+    <div class="school-logo-placeholder">LOGO</div>
+    <div class="school-info">
+      <div class="school-name">Lycée Bilingue de Yaoundé</div>
+      <div class="school-slogan">"Excellence et Innovation"</div>
+      <div class="school-contact">
+        Quartier Essos, Yaoundé | Tél: +237 222 20 34 56 | contact@lyceebilingueyaounde.cm
+      </div>
+    </div>
+  </div>
+  
+  <!-- Titre du reçu -->
+  <div class="receipt-title">REÇU DE PAIEMENT</div>
+  <div class="receipt-number">N° Reçu: REC-123-M5X7K9</div>
+  
+  <!-- Détails du paiement -->
+  <div class="section">
+    <div class="row">
+      <span class="label">Élève:</span>
+      <span class="value">Jean Pierre Kamdem</span>
+    </div>
+    <div class="row">
+      <span class="label">Date:</span>
+      <span class="value">04/12/2024</span>
+    </div>
+    <div class="row">
+      <span class="label">Mode de Paiement:</span>
+      <span class="value">Espèces</span>
+    </div>
+  </div>
+  
+  <!-- Montant -->
+  <div class="amount-box">
+    <div class="amount-label">Montant</div>
+    <div class="amount-value">150,000 XAF</div>
+  </div>
+  
+  <!-- Signatures -->
+  <div class="signatures">
+    <div class="signature-box">
+      <div class="signature-line">Payé par</div>
+    </div>
+    <div class="signature-box">
+      <div class="signature-line">Reçu par</div>
+    </div>
+  </div>
+  
+  <!-- Pied de page -->
+  <div class="footer">
+    <p>Merci pour votre paiement</p>
+    <p style="margin-top: 5px;">Lycée Bilingue de Yaoundé - Powered by EDUCAFRIC</p>
+  </div>
+</body>
+</html>
