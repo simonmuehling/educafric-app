@@ -2099,7 +2099,12 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                           variant="outline" 
                           size="sm"
                           onClick={() => {
-                            setIdCardStudent(student);
+                            // Ensure className has a value for ID card display
+                            const studentWithClass = {
+                              ...student,
+                              className: student.className || student.level || (language === 'fr' ? 'Non assigné' : 'Not Assigned')
+                            };
+                            setIdCardStudent(studentWithClass);
                             setIsIdCardOpen(true);
                           }}
                           className="flex items-center gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
