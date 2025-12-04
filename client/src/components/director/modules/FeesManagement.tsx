@@ -256,6 +256,32 @@ const feeTypes = ['tuition', 'registration', 'exam', 'transport', 'pta', 'boardi
 const frequencies = ['monthly', 'term', 'yearly', 'once'];
 const paymentMethods = ['cash', 'bank', 'mtn_momo', 'orange_money', 'stripe'];
 
+interface FeeStats {
+  stats?: {
+    totalExpected?: number;
+    totalCollected?: number;
+    outstanding?: number;
+    collectionRate?: number;
+    studentsInArrears?: number;
+    recentPaymentsCount?: number;
+    remindersSentToday?: number;
+    overdue?: number;
+    upcomingDue?: number;
+  };
+}
+
+interface Student {
+  id: number;
+  studentId?: number;
+  firstName?: string;
+  lastName?: string;
+  first_name?: string;
+  last_name?: string;
+  classId?: number;
+  parentName?: string;
+  parentPhone?: string;
+}
+
 export default function FeesManagement() {
   const { language } = useLanguage();
   const t = translations[language as keyof typeof translations] || translations.fr;
@@ -265,12 +291,18 @@ export default function FeesManagement() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [selectedClassId, setSelectedClassId] = useState<string>('');
+  const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
   const [newStructure, setNewStructure] = useState({
     name: '',
     amount: '',
     feeType: 'tuition',
     frequency: 'term',
-    dueDate: ''
+    dueDate: '',
+    classId: '',
+    enableReminders: true,
+    reminderDays: '7',
+    reminderChannels: ['email', 'whatsapp', 'pwa']
   });
   const [paymentData, setPaymentData] = useState({
     amount: '',
@@ -278,19 +310,19 @@ export default function FeesManagement() {
     transactionRef: ''
   });
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: statsData, isLoading: statsLoading } = useQuery<FeeStats>({
     queryKey: ['/api/fees/stats']
   });
 
-  const { data: structures, isLoading: structuresLoading } = useQuery({
+  const { data: structuresData, isLoading: structuresLoading } = useQuery({
     queryKey: ['/api/fees/structures']
   });
 
-  const { data: assignedFees, isLoading: assignedLoading } = useQuery({
+  const { data: assignedData, isLoading: assignedLoading } = useQuery({
     queryKey: ['/api/fees/assigned']
   });
 
-  const { data: payments, isLoading: paymentsLoading } = useQuery({
+  const { data: paymentsData, isLoading: paymentsLoading } = useQuery({
     queryKey: ['/api/fees/payments']
   });
 
@@ -298,25 +330,43 @@ export default function FeesManagement() {
     queryKey: ['/api/classes']
   });
 
+  const { data: studentsData } = useQuery({
+    queryKey: ['/api/director/students']
+  });
+
   const { data: schoolSettings } = useQuery({
     queryKey: ['/api/director/settings']
   });
 
-  const classes = Array.isArray(classesData) ? classesData : (classesData?.classes || []);
-  const school = schoolSettings?.settings?.school || schoolSettings?.school || {};
+  const classes = Array.isArray(classesData) ? classesData : ((classesData as any)?.classes || []);
+  const stats = (statsData as any)?.stats || statsData || {};
+  const structures = (structuresData as any)?.structures || [];
+  const assignedFees = (assignedData as any)?.fees || [];
+  const payments = (paymentsData as any)?.payments || [];
+  const allStudents: Student[] = Array.isArray(studentsData) ? studentsData : ((studentsData as any)?.students || []);
+  const school = (schoolSettings as any)?.settings?.school || (schoolSettings as any)?.school || {};
+  
+  const filteredStudents = selectedClassId && selectedClassId !== 'all' 
+    ? allStudents.filter((s: Student) => s.classId?.toString() === selectedClassId)
+    : allStudents;
 
   const createStructureMutation = useMutation({
     mutationFn: async (data: any) => {
       return apiRequest('/api/fees/structures', { method: 'POST', body: JSON.stringify(data) });
     },
     onSuccess: () => {
-      toast({ title: 'Structure créée avec succès' });
+      toast({ title: language === 'fr' ? 'Structure créée avec succès' : 'Structure created successfully' });
       queryClient.invalidateQueries({ queryKey: ['/api/fees/structures'] });
       setShowCreateDialog(false);
-      setNewStructure({ name: '', amount: '', feeType: 'tuition', frequency: 'term', dueDate: '' });
+      setSelectedClassId('');
+      setSelectedStudentIds([]);
+      setNewStructure({ 
+        name: '', amount: '', feeType: 'tuition', frequency: 'term', dueDate: '',
+        classId: '', enableReminders: true, reminderDays: '7', reminderChannels: ['email', 'whatsapp', 'pwa']
+      });
     },
     onError: () => {
-      toast({ title: 'Erreur lors de la création', variant: 'destructive' });
+      toast({ title: language === 'fr' ? 'Erreur lors de la création' : 'Error creating structure', variant: 'destructive' });
     }
   });
 
@@ -339,9 +389,34 @@ export default function FeesManagement() {
 
   const handleCreateStructure = () => {
     createStructureMutation.mutate({
-      ...newStructure,
-      amount: parseInt(newStructure.amount)
+      name: newStructure.name,
+      amount: parseInt(newStructure.amount),
+      feeType: newStructure.feeType,
+      frequency: newStructure.frequency,
+      dueDate: newStructure.dueDate,
+      classId: newStructure.classId ? parseInt(newStructure.classId) : null,
+      studentIds: selectedStudentIds.length > 0 ? selectedStudentIds : null,
+      enableReminders: newStructure.enableReminders,
+      reminderDaysBefore: parseInt(newStructure.reminderDays),
+      reminderChannels: newStructure.reminderChannels
     });
+  };
+  
+  const toggleStudentSelection = (studentId: number) => {
+    setSelectedStudentIds(prev => 
+      prev.includes(studentId) 
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+  
+  const selectAllStudents = () => {
+    const studentIds = filteredStudents.map((s: Student) => s.id || s.studentId || 0).filter(Boolean);
+    setSelectedStudentIds(studentIds as number[]);
+  };
+  
+  const deselectAllStudents = () => {
+    setSelectedStudentIds([]);
   };
 
   const handleRecordPayment = () => {
@@ -365,7 +440,7 @@ export default function FeesManagement() {
   };
 
   const formatCurrency = (amount: number) => {
-    return `${amount?.toLocaleString() || 0} ${t.xaf}`;
+    return `${amount?.toLocaleString() || 0} CFA`;
   };
 
   const handlePrintReceipt = async (payment: any) => {
@@ -685,64 +760,79 @@ export default function FeesManagement() {
                   {t.createStructure}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-white">
+              <DialogContent className="bg-white max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{t.createStructure}</DialogTitle>
+                  <DialogDescription>
+                    {language === 'fr' ? 'Créer une structure de frais et configurer les rappels automatiques' : 'Create a fee structure and configure automatic reminders'}
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div>
-                    <Label>{t.name}</Label>
-                    <Input
-                      value={newStructure.name}
-                      onChange={(e) => setNewStructure({ ...newStructure, name: e.target.value })}
-                      data-testid="input-structure-name"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>{t.name}</Label>
+                      <Input
+                        value={newStructure.name}
+                        onChange={(e) => setNewStructure({ ...newStructure, name: e.target.value })}
+                        placeholder={language === 'fr' ? 'Ex: Frais de scolarité T1' : 'Ex: Tuition fees T1'}
+                        data-testid="input-structure-name"
+                      />
+                    </div>
+                    <div>
+                      <Label>{language === 'fr' ? 'Montant (CFA)' : 'Amount (CFA)'}</Label>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          value={newStructure.amount}
+                          onChange={(e) => setNewStructure({ ...newStructure, amount: e.target.value })}
+                          placeholder="150000"
+                          className="pr-16"
+                          data-testid="input-structure-amount"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">CFA</span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label>{t.amount}</Label>
-                    <Input
-                      type="number"
-                      value={newStructure.amount}
-                      onChange={(e) => setNewStructure({ ...newStructure, amount: e.target.value })}
-                      data-testid="input-structure-amount"
-                    />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>{t.feeType}</Label>
+                      <Select
+                        value={newStructure.feeType}
+                        onValueChange={(v) => setNewStructure({ ...newStructure, feeType: v })}
+                      >
+                        <SelectTrigger data-testid="select-fee-type">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {feeTypes.map(type => (
+                            <SelectItem key={type} value={type}>
+                              {t[type as keyof typeof t] || type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>{t.frequency}</Label>
+                      <Select
+                        value={newStructure.frequency}
+                        onValueChange={(v) => setNewStructure({ ...newStructure, frequency: v })}
+                      >
+                        <SelectTrigger data-testid="select-frequency">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {frequencies.map(freq => (
+                            <SelectItem key={freq} value={freq}>
+                              {t[freq as keyof typeof t] || freq}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div>
-                    <Label>{t.feeType}</Label>
-                    <Select
-                      value={newStructure.feeType}
-                      onValueChange={(v) => setNewStructure({ ...newStructure, feeType: v })}
-                    >
-                      <SelectTrigger data-testid="select-fee-type">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {feeTypes.map(type => (
-                          <SelectItem key={type} value={type}>
-                            {t[type as keyof typeof t] || type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>{t.frequency}</Label>
-                    <Select
-                      value={newStructure.frequency}
-                      onValueChange={(v) => setNewStructure({ ...newStructure, frequency: v })}
-                    >
-                      <SelectTrigger data-testid="select-frequency">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {frequencies.map(freq => (
-                          <SelectItem key={freq} value={freq}>
-                            {t[freq as keyof typeof t] || freq}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+
                   <div>
                     <Label>{t.dueDate}</Label>
                     <Input
@@ -752,10 +842,158 @@ export default function FeesManagement() {
                       data-testid="input-due-date"
                     />
                   </div>
+
+                  <div className="border-t pt-4">
+                    <Label className="text-base font-semibold flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      {language === 'fr' ? 'Assignation (Classe / Élèves)' : 'Assignment (Class / Students)'}
+                    </Label>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {language === 'fr' ? 'Sélectionnez une classe ou des élèves spécifiques' : 'Select a class or specific students'}
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <Label>{t.selectClass}</Label>
+                        <Select
+                          value={newStructure.classId}
+                          onValueChange={(v) => {
+                            setNewStructure({ ...newStructure, classId: v });
+                            setSelectedClassId(v);
+                            setSelectedStudentIds([]);
+                          }}
+                        >
+                          <SelectTrigger data-testid="select-class">
+                            <SelectValue placeholder={language === 'fr' ? 'Toutes les classes' : 'All classes'} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">{language === 'fr' ? 'Toutes les classes' : 'All classes'}</SelectItem>
+                            {classes.map((cls: any) => (
+                              <SelectItem key={cls.id} value={cls.id.toString()}>{cls.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {filteredStudents.length > 0 && (
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <Label>{language === 'fr' ? 'Élèves' : 'Students'} ({selectedStudentIds.length}/{filteredStudents.length})</Label>
+                            <div className="flex gap-2">
+                              <Button type="button" variant="outline" size="sm" onClick={selectAllStudents}>
+                                {language === 'fr' ? 'Tout sélectionner' : 'Select all'}
+                              </Button>
+                              <Button type="button" variant="outline" size="sm" onClick={deselectAllStudents}>
+                                {language === 'fr' ? 'Désélectionner' : 'Deselect all'}
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="border rounded-md max-h-40 overflow-y-auto p-2 space-y-1">
+                            {filteredStudents.map((student: Student) => {
+                              const studentId = student.id || student.studentId || 0;
+                              const studentName = `${student.firstName || student.first_name || ''} ${student.lastName || student.last_name || ''}`.trim();
+                              const isSelected = selectedStudentIds.includes(studentId);
+                              return (
+                                <div 
+                                  key={studentId}
+                                  className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${isSelected ? 'bg-blue-50 border border-blue-200' : ''}`}
+                                  onClick={() => toggleStudentSelection(studentId)}
+                                  data-testid={`student-checkbox-${studentId}`}
+                                >
+                                  <input 
+                                    type="checkbox" 
+                                    checked={isSelected}
+                                    onChange={() => {}}
+                                    className="h-4 w-4 accent-blue-600"
+                                  />
+                                  <span className="text-sm">{studentName || `Élève #${studentId}`}</span>
+                                  {student.parentName && (
+                                    <span className="text-xs text-muted-foreground ml-auto">
+                                      {language === 'fr' ? 'Parent:' : 'Parent:'} {student.parentName}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-base font-semibold flex items-center gap-2">
+                        <Bell className="w-4 h-4" />
+                        {language === 'fr' ? 'Rappels Automatiques' : 'Automatic Reminders'}
+                      </Label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newStructure.enableReminders}
+                          onChange={(e) => setNewStructure({ ...newStructure, enableReminders: e.target.checked })}
+                          className="h-4 w-4 accent-green-600"
+                        />
+                        <span className="text-sm">{language === 'fr' ? 'Activer' : 'Enable'}</span>
+                      </label>
+                    </div>
+
+                    {newStructure.enableReminders && (
+                      <div className="space-y-3 bg-green-50 p-3 rounded-lg">
+                        <div>
+                          <Label>{language === 'fr' ? 'Jours avant échéance' : 'Days before due date'}</Label>
+                          <Select
+                            value={newStructure.reminderDays}
+                            onValueChange={(v) => setNewStructure({ ...newStructure, reminderDays: v })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="3">3 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
+                              <SelectItem value="7">7 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
+                              <SelectItem value="14">14 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
+                              <SelectItem value="30">30 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>{language === 'fr' ? 'Canaux de notification' : 'Notification channels'}</Label>
+                          <div className="flex flex-wrap gap-3 mt-2">
+                            {['email', 'whatsapp', 'pwa'].map(channel => (
+                              <label key={channel} className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={newStructure.reminderChannels.includes(channel)}
+                                  onChange={(e) => {
+                                    const channels = e.target.checked
+                                      ? [...newStructure.reminderChannels, channel]
+                                      : newStructure.reminderChannels.filter(c => c !== channel);
+                                    setNewStructure({ ...newStructure, reminderChannels: channels });
+                                  }}
+                                  className="h-4 w-4 accent-green-600"
+                                />
+                                <span className="text-sm capitalize">{channel === 'pwa' ? 'Push (PWA)' : channel}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <DialogFooter>
+                <DialogFooter className="gap-2">
                   <Button variant="outline" onClick={() => setShowCreateDialog(false)}>{t.cancel}</Button>
-                  <Button onClick={handleCreateStructure} disabled={createStructureMutation.isPending} data-testid="btn-save-structure">
+                  <Button 
+                    onClick={handleCreateStructure} 
+                    disabled={createStructureMutation.isPending || !newStructure.name || !newStructure.amount} 
+                    data-testid="btn-save-structure"
+                  >
+                    {createStructureMutation.isPending ? (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Plus className="w-4 h-4 mr-2" />
+                    )}
                     {t.save}
                   </Button>
                 </DialogFooter>
