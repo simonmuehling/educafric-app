@@ -142,6 +142,195 @@ const TeacherAbsenceManager: React.FC = () => {
   const queryClient = useQueryClient();
   const { language } = useLanguage();
 
+  const text = {
+    fr: {
+      title: 'Gestion des Absences Enseignants',
+      subtitle: 'Suivez et gérez les absences des enseignants',
+      currentAbsences: 'Absences en cours de traitement',
+      declareAbsence: 'Déclarer absence',
+      declareTeacherAbsence: 'Déclarer une absence enseignant',
+      urgentAbsences: 'absence(s) urgente(s)',
+      needsAttention: 'nécessitent une attention immédiate',
+      current: 'En cours',
+      resolved: 'Résolues',
+      analytics: 'Analyses',
+      reports: 'Rapports',
+      reported: 'Signalée',
+      notified: 'Notifiée',
+      substituteAssigned: 'Remplaçant assigné',
+      resolvedStatus: 'Résolue',
+      studentsAffected: 'élèves impactés',
+      affectedClasses: 'Classes concernées:',
+      teacherName: 'Nom de l\'enseignant',
+      selectTeacher: 'Sélectionner un enseignant',
+      loadingTeachers: 'Chargement des enseignants...',
+      noTeachersFound: 'Aucun enseignant trouvé',
+      notSpecified: 'Non spécifié',
+      absenceDate: 'Date d\'absence',
+      priority: 'Priorité',
+      low: 'Faible',
+      medium: 'Moyenne',
+      high: 'Élevée',
+      urgent: 'Urgente',
+      startTime: 'Heure début',
+      endTime: 'Heure fin',
+      reasonCategory: 'Catégorie du motif',
+      sick: 'Maladie',
+      personal: 'Personnel',
+      family: 'Famille',
+      training: 'Formation',
+      other: 'Autre',
+      reason: 'Motif détaillé',
+      describeSituation: 'Décrivez la situation...',
+      plannedAbsence: 'Absence planifiée',
+      cancel: 'Annuler',
+      submit: 'Déclarer',
+      requiredFields: 'Champs requis',
+      fillAllFields: 'Veuillez remplir tous les champs obligatoires.',
+      substituteAssignedSuccess: 'Remplaçant assigné avec succès',
+      substituteWillBeNotified: 'a été assigné et sera notifié.',
+      error: 'Erreur',
+      cannotAssignSubstitute: 'Impossible d\'assigner le remplaçant. Veuillez réessayer.',
+      actionPerformed: 'Action effectuée',
+      actionSuccess: 'L\'action a été réalisée avec succès.',
+      actionFailed: 'Échec de l\'action',
+      noCurrentAbsences: 'Aucune absence en cours',
+      allAbsencesResolved: 'Toutes les absences ont été traitées.',
+      noResolvedAbsences: 'Aucune absence résolue',
+      noPastAbsences: 'Pas d\'absences passées à afficher.',
+      confirmAbsenceDeclaration: 'Confirmer la déclaration d\'absence',
+      confirmMessage: 'Êtes-vous sûr de vouloir déclarer cette absence ? Cette action enverra des notifications automatiques aux parents, élèves et administration.',
+      confirm: 'Confirmer',
+      findSubstitute: 'Trouver remplaçant',
+      notifyParents: 'Notifier parents',
+      notifyStudents: 'Notifier élèves',
+      markResolved: 'Marquer résolu',
+      viewDetails: 'Voir détails',
+      exportReport: 'Exporter rapport',
+      selectSubstitute: 'Sélectionner un remplaçant',
+      availableSubstitutes: 'Remplaçants disponibles',
+      noSubstitutesAvailable: 'Aucun remplaçant disponible',
+      loadingSubstitutes: 'Chargement des remplaçants...',
+      instructions: 'Instructions pour le remplaçant',
+      instructionsPlaceholder: 'Instructions spécifiques pour le cours...',
+      assignSubstitute: 'Assigner le remplaçant',
+      statsThisMonth: 'Ce mois',
+      statsLastMonth: 'Mois dernier',
+      statsTrend: 'Tendance',
+      statsAvgPerWeek: 'Moyenne/semaine',
+      totalAbsences: 'Total absences',
+      byCategory: 'Par catégorie',
+      byStatus: 'Par statut',
+      impactMetrics: 'Métriques d\'impact',
+      totalStudentsAffected: 'Total élèves affectés',
+      avgStudentsPerAbsence: 'Moy. élèves/absence',
+      totalNotifications: 'Total notifications',
+      substituteSuccessRate: 'Taux de remplacement',
+      performance: 'Performance',
+      avgResolutionTime: 'Temps résolution moy.',
+      notificationSpeed: 'Vitesse notification',
+      substituteSpeed: 'Vitesse remplacement',
+      generateReport: 'Générer rapport',
+      downloadPDF: 'Télécharger PDF',
+      downloadExcel: 'Télécharger Excel',
+      periodSelector: 'Sélectionner période'
+    },
+    en: {
+      title: 'Teacher Absence Management',
+      subtitle: 'Track and manage teacher absences',
+      currentAbsences: 'Absences being processed',
+      declareAbsence: 'Declare absence',
+      declareTeacherAbsence: 'Declare a teacher absence',
+      urgentAbsences: 'urgent absence(s)',
+      needsAttention: 'require immediate attention',
+      current: 'Current',
+      resolved: 'Resolved',
+      analytics: 'Analytics',
+      reports: 'Reports',
+      reported: 'Reported',
+      notified: 'Notified',
+      substituteAssigned: 'Substitute assigned',
+      resolvedStatus: 'Resolved',
+      studentsAffected: 'students affected',
+      affectedClasses: 'Affected classes:',
+      teacherName: 'Teacher name',
+      selectTeacher: 'Select a teacher',
+      loadingTeachers: 'Loading teachers...',
+      noTeachersFound: 'No teachers found',
+      notSpecified: 'Not specified',
+      absenceDate: 'Absence date',
+      priority: 'Priority',
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+      urgent: 'Urgent',
+      startTime: 'Start time',
+      endTime: 'End time',
+      reasonCategory: 'Reason category',
+      sick: 'Sick',
+      personal: 'Personal',
+      family: 'Family',
+      training: 'Training',
+      other: 'Other',
+      reason: 'Detailed reason',
+      describeSituation: 'Describe the situation...',
+      plannedAbsence: 'Planned absence',
+      cancel: 'Cancel',
+      submit: 'Submit',
+      requiredFields: 'Required fields',
+      fillAllFields: 'Please fill in all required fields.',
+      substituteAssignedSuccess: 'Substitute assigned successfully',
+      substituteWillBeNotified: 'has been assigned and will be notified.',
+      error: 'Error',
+      cannotAssignSubstitute: 'Unable to assign substitute. Please try again.',
+      actionPerformed: 'Action performed',
+      actionSuccess: 'The action was completed successfully.',
+      actionFailed: 'Action failed',
+      noCurrentAbsences: 'No current absences',
+      allAbsencesResolved: 'All absences have been processed.',
+      noResolvedAbsences: 'No resolved absences',
+      noPastAbsences: 'No past absences to display.',
+      confirmAbsenceDeclaration: 'Confirm absence declaration',
+      confirmMessage: 'Are you sure you want to declare this absence? This action will send automatic notifications to parents, students and administration.',
+      confirm: 'Confirm',
+      findSubstitute: 'Find substitute',
+      notifyParents: 'Notify parents',
+      notifyStudents: 'Notify students',
+      markResolved: 'Mark resolved',
+      viewDetails: 'View details',
+      exportReport: 'Export report',
+      selectSubstitute: 'Select a substitute',
+      availableSubstitutes: 'Available substitutes',
+      noSubstitutesAvailable: 'No substitutes available',
+      loadingSubstitutes: 'Loading substitutes...',
+      instructions: 'Instructions for substitute',
+      instructionsPlaceholder: 'Specific instructions for the class...',
+      assignSubstitute: 'Assign substitute',
+      statsThisMonth: 'This month',
+      statsLastMonth: 'Last month',
+      statsTrend: 'Trend',
+      statsAvgPerWeek: 'Avg/week',
+      totalAbsences: 'Total absences',
+      byCategory: 'By category',
+      byStatus: 'By status',
+      impactMetrics: 'Impact metrics',
+      totalStudentsAffected: 'Total students affected',
+      avgStudentsPerAbsence: 'Avg students/absence',
+      totalNotifications: 'Total notifications',
+      substituteSuccessRate: 'Substitute success rate',
+      performance: 'Performance',
+      avgResolutionTime: 'Avg resolution time',
+      notificationSpeed: 'Notification speed',
+      substituteSpeed: 'Substitute speed',
+      generateReport: 'Generate report',
+      downloadPDF: 'Download PDF',
+      downloadExcel: 'Download Excel',
+      periodSelector: 'Select period'
+    }
+  };
+
+  const t = text[language as keyof typeof text];
+
   // Fetch school teachers for dropdown selection
   const { data: schoolTeachersData = [], isLoading: teachersLoading } = useQuery<any[]>({
     queryKey: ['/api/school/teachers'],
@@ -231,14 +420,14 @@ const TeacherAbsenceManager: React.FC = () => {
       setSelectedSubstitute(null);
       setSubstituteInstructions('');
       toast({
-        title: 'Remplaçant assigné avec succès',
-        description: `${data.substitute.name} a été assigné et sera notifié.`
+        title: t.substituteAssignedSuccess,
+        description: `${data.substitute.name} ${t.substituteWillBeNotified}`
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Erreur',
-        description: 'Impossible d\'assigner le remplaçant. Veuillez réessayer.',
+        title: t.error,
+        description: t.cannotAssignSubstitute,
         variant: 'destructive'
       });
     }
@@ -271,14 +460,14 @@ const TeacherAbsenceManager: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/schools/teacher-absences-stats'] });
       setShowQuickActions(null);
       toast({
-        title: "Action effectuée",
-        description: "L'action a été réalisée avec succès.",
+        title: t.actionPerformed,
+        description: t.actionSuccess,
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erreur",
-        description: error.message || "Échec de l'action",
+        title: t.error,
+        description: error.message || t.actionFailed,
         variant: "destructive",
       });
     }
@@ -371,8 +560,8 @@ const TeacherAbsenceManager: React.FC = () => {
       // Validate required fields
       if (!formData.teacherId || !formData.absenceDate || !formData.startTime || !formData.endTime || !formData.reason) {
         toast({
-          title: "Champs requis",
-          description: "Veuillez remplir tous les champs obligatoires.",
+          title: t.requiredFields,
+          description: t.fillAllFields,
           variant: "destructive",
         });
         return;
@@ -401,16 +590,16 @@ const TeacherAbsenceManager: React.FC = () => {
       <Dialog open={showAbsenceForm} onOpenChange={setShowAbsenceForm}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Déclarer une absence enseignant</DialogTitle>
+            <DialogTitle>{t.declareTeacherAbsence}</DialogTitle>
           </DialogHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="teacherName">Nom de l'enseignant *</Label>
+              <Label htmlFor="teacherName">{t.teacherName} *</Label>
               <Select 
                 value={formData.teacherId} 
                 onValueChange={(value) => {
-                  const selectedTeacher = schoolTeachersData.find(t => t.id.toString() === value);
+                  const selectedTeacher = schoolTeachersData.find(teacher => teacher.id.toString() === value);
                   setFormData(prev => ({ 
                     ...prev, 
                     teacherId: value,
@@ -419,21 +608,21 @@ const TeacherAbsenceManager: React.FC = () => {
                 }}
               >
                 <SelectTrigger data-testid="select-teacher-name">
-                  <SelectValue placeholder="Sélectionner un enseignant" />
+                  <SelectValue placeholder={t.selectTeacher} />
                 </SelectTrigger>
                 <SelectContent>
                   {teachersLoading ? (
                     <SelectItem value="loading" disabled>
-                      Chargement des enseignants...
+                      {t.loadingTeachers}
                     </SelectItem>
                   ) : schoolTeachersData.length === 0 ? (
                     <SelectItem value="empty" disabled>
-                      Aucun enseignant trouvé
+                      {t.noTeachersFound}
                     </SelectItem>
                   ) : (
                     schoolTeachersData.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                        {teacher.firstName} {teacher.lastName} - {teacher.subject || 'Non spécifié'}
+                        {teacher.firstName} {teacher.lastName} - {teacher.subject || t.notSpecified}
                       </SelectItem>
                     ))
                   )}
@@ -443,7 +632,7 @@ const TeacherAbsenceManager: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="absenceDate">Date d'absence *</Label>
+                <Label htmlFor="absenceDate">{t.absenceDate} *</Label>
                 <Input
                   id="absenceDate"
                   type="date"
@@ -454,19 +643,19 @@ const TeacherAbsenceManager: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="priority">Priorité</Label>
+                <Label htmlFor="priority">{t.priority}</Label>
                 <Select 
                   value={formData.priority} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
                 >
                   <SelectTrigger data-testid="select-priority">
-                    <SelectValue placeholder="Priorité" />
+                    <SelectValue placeholder={t.priority} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Faible</SelectItem>
-                    <SelectItem value="medium">Moyenne</SelectItem>
-                    <SelectItem value="high">Élevée</SelectItem>
-                    <SelectItem value="urgent">Urgente</SelectItem>
+                    <SelectItem value="low">{t.low}</SelectItem>
+                    <SelectItem value="medium">{t.medium}</SelectItem>
+                    <SelectItem value="high">{t.high}</SelectItem>
+                    <SelectItem value="urgent">{t.urgent}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -474,7 +663,7 @@ const TeacherAbsenceManager: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="startTime">Heure début *</Label>
+                <Label htmlFor="startTime">{t.startTime} *</Label>
                 <Input
                   id="startTime"
                   type="time"
@@ -485,7 +674,7 @@ const TeacherAbsenceManager: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endTime">Heure fin *</Label>
+                <Label htmlFor="endTime">{t.endTime} *</Label>
                 <Input
                   id="endTime"
                   type="time"
@@ -498,32 +687,32 @@ const TeacherAbsenceManager: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reasonCategory">Catégorie de motif</Label>
+              <Label htmlFor="reasonCategory">{t.reasonCategory}</Label>
               <Select 
                 value={formData.reasonCategory} 
                 onValueChange={(value) => setFormData(prev => ({ ...prev, reasonCategory: value }))}
               >
                 <SelectTrigger data-testid="select-reason-category" className="bg-blue-50 border-blue-200 focus:border-blue-400">
-                  <SelectValue placeholder="Sélectionner une catégorie" />
+                  <SelectValue placeholder={t.reasonCategory} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="medical">Médical</SelectItem>
-                  <SelectItem value="personal">Personnel</SelectItem>
-                  <SelectItem value="official">Officiel</SelectItem>
-                  <SelectItem value="emergency">Urgence</SelectItem>
-                  <SelectItem value="training">Formation</SelectItem>
-                  <SelectItem value="other">Autre</SelectItem>
+                  <SelectItem value="medical">{t.sick}</SelectItem>
+                  <SelectItem value="personal">{t.personal}</SelectItem>
+                  <SelectItem value="official">{language === 'fr' ? 'Officiel' : 'Official'}</SelectItem>
+                  <SelectItem value="emergency">{t.urgent}</SelectItem>
+                  <SelectItem value="training">{t.training}</SelectItem>
+                  <SelectItem value="other">{t.other}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reason">Motif de l'absence *</Label>
+              <Label htmlFor="reason">{t.reason} *</Label>
               <Textarea
                 id="reason"
                 value={formData.reason}
                 onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
-                placeholder="Ex: Consultation médicale urgente"
+                placeholder={t.describeSituation}
                 required
                 data-testid="textarea-reason"
                 rows={3}
@@ -537,14 +726,14 @@ const TeacherAbsenceManager: React.FC = () => {
                 onClick={() => setShowAbsenceForm(false)}
                 data-testid="button-cancel-absence"
               >
-                Annuler
+                {t.cancel}
               </Button>
               <Button 
                 type="submit" 
                 disabled={createAbsenceMutation.isPending}
                 data-testid="button-submit-absence"
               >
-                {createAbsenceMutation.isPending ? 'Déclaration...' : 'Déclarer'}
+                {createAbsenceMutation.isPending ? (language === 'fr' ? 'Déclaration...' : 'Submitting...') : t.submit}
               </Button>
             </div>
           </form>
@@ -555,14 +744,14 @@ const TeacherAbsenceManager: React.FC = () => {
 
   const formatDateTime = (dateStr: string, timeStr?: string) => {
     const date = new Date(dateStr);
-    let formatted = date.toLocaleDateString('fr-FR', {
+    let formatted = date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
       weekday: 'short',
       day: 'numeric',
       month: 'short'
     });
     
     if (timeStr) {
-      formatted += ` à ${timeStr}`;
+      formatted += language === 'fr' ? ` à ${timeStr}` : ` at ${timeStr}`;
     }
     
     return formatted;
@@ -574,7 +763,7 @@ const TeacherAbsenceManager: React.FC = () => {
         <CardContent className="p-6">
           <div className="flex items-center justify-center space-x-2">
             <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
-            <span>Chargement des absences...</span>
+            <span>{language === 'fr' ? 'Chargement des absences...' : 'Loading absences...'}</span>
           </div>
         </CardContent>
       </Card>
@@ -659,7 +848,7 @@ const TeacherAbsenceManager: React.FC = () => {
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
-            <strong>{urgentAbsences.length} absence(s) urgente(s)</strong> nécessitent une attention immédiate.
+            <strong>{urgentAbsences.length} {t.urgentAbsences}</strong> {t.needsAttention}
           </AlertDescription>
         </Alert>
       )}
@@ -669,25 +858,25 @@ const TeacherAbsenceManager: React.FC = () => {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="current" className="flex items-center space-x-2">
             <AlertTriangle className="w-4 h-4" />
-            <span>En cours ({currentAbsences.length})</span>
+            <span>{t.current} ({currentAbsences.length})</span>
           </TabsTrigger>
           <TabsTrigger value="resolved" className="flex items-center space-x-2">
             <CheckCircle className="w-4 h-4" />
-            <span>Résolues ({resolvedAbsences.length})</span>
+            <span>{t.resolved} ({resolvedAbsences.length})</span>
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center space-x-2">
             <TrendingUp className="w-4 h-4" />
-            <span>Analyses</span>
+            <span>{t.analytics}</span>
           </TabsTrigger>
           <TabsTrigger value="reports" className="flex items-center space-x-2">
             <FileText className="w-4 h-4" />
-            <span>Rapports</span>
+            <span>{t.reports}</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="current" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Absences en cours de traitement</h3>
+            <h3 className="text-lg font-semibold">{t.currentAbsences}</h3>
             <Button 
               size="sm" 
               className="flex items-center space-x-2"
@@ -695,7 +884,7 @@ const TeacherAbsenceManager: React.FC = () => {
               data-testid="button-declare-absence"
             >
               <Plus className="w-4 h-4" />
-              <span>Déclarer absence</span>
+              <span>{t.declareAbsence}</span>
             </Button>
           </div>
 
@@ -713,10 +902,10 @@ const TeacherAbsenceManager: React.FC = () => {
                             {absence.priority ? absence.priority.toUpperCase() : 'NORMAL'}
                           </Badge>
                           <Badge className={getStatusColor(absence.status)}>
-                            {absence.status === 'reported' && 'Signalée'}
-                            {absence.status === 'notified' && 'Notifiée'}
-                            {absence.status === 'substitute_assigned' && 'Remplaçant assigné'}
-                            {absence.status === 'resolved' && 'Résolue'}
+                            {absence.status === 'reported' && t.reported}
+                            {absence.status === 'notified' && t.notified}
+                            {absence.status === 'substitute_assigned' && t.substituteAssigned}
+                            {absence.status === 'resolved' && t.resolvedStatus}
                           </Badge>
                         </div>
                         <Button
@@ -743,13 +932,13 @@ const TeacherAbsenceManager: React.FC = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Users className="w-4 h-4 text-gray-500" />
-                          <span>{absence.totalAffectedStudents} élèves impactés</span>
+                          <span>{absence.totalAffectedStudents} {t.studentsAffected}</span>
                         </div>
                       </div>
 
                       {/* Affected Classes */}
                       <div>
-                        <p className="text-sm font-medium text-gray-700 mb-2">Classes concernées:</p>
+                        <p className="text-sm font-medium text-gray-700 mb-2">{t.affectedClasses}</p>
                         <div className="flex flex-wrap gap-2">
                           {absence.affectedClasses.map((cls, index) => (
                             <Badge key={index} variant="outline" className="text-xs">
