@@ -41,7 +41,15 @@ const TeacherAbsences = () => {
       replacement: 'Remplaçant',
       originalTeacher: 'Enseignant titulaire',
       replacementFound: 'Remplaçant trouvé!',
-      notificationsSent: 'Notifications envoyées!'
+      notificationsSent: 'Notifications envoyées!',
+      teacherAbsencesList: 'Absences Enseignants',
+      loading: 'Chargement des absences...',
+      noAbsences: 'Aucune absence signalée',
+      hours: 'Heures',
+      absenceToCover: 'Absence à couvrir:',
+      availableTeachers: 'Enseignants disponibles de l\'école:',
+      noTeachersAvailable: 'Aucun enseignant disponible',
+      versatile: 'Polyvalent'
     },
     en: {
       title: 'Teacher Absences',
@@ -70,7 +78,15 @@ const TeacherAbsences = () => {
       replacement: 'Replacement',
       originalTeacher: 'Original Teacher',
       replacementFound: 'Replacement found!',
-      notificationsSent: 'Notifications sent!'
+      notificationsSent: 'Notifications sent!',
+      teacherAbsencesList: 'Teacher Absences',
+      loading: 'Loading absences...',
+      noAbsences: 'No absences reported',
+      hours: 'Hours',
+      absenceToCover: 'Absence to cover:',
+      availableTeachers: 'Available teachers from the school:',
+      noTeachersAvailable: 'No teachers available',
+      versatile: 'Versatile'
     }
   };
 
@@ -233,17 +249,17 @@ const TeacherAbsences = () => {
       {/* Absences List */}
       <ModernCard className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">Absences Enseignants</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t.teacherAbsencesList}</h3>
         </div>
 
         <div className="space-y-4">
           {isLoading ? (
             <div className="text-center py-8 text-gray-500">
-              Chargement des absences...
+              {t.loading}
             </div>
           ) : (Array.isArray(absences) ? absences.length : 0) === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              Aucune absence signalée
+              {t.noAbsences}
             </div>
           ) : (
             (Array.isArray(absences) ? absences : []).map((absence: any) => (
@@ -277,7 +293,7 @@ const TeacherAbsences = () => {
                     <span className="font-medium">{t.date}:</span> {absence.absenceDate}
                   </div>
                   <div>
-                    <span className="font-medium">Heures:</span> {absence.startTime} - {absence.endTime}
+                    <span className="font-medium">{t.hours}:</span> {absence.startTime} - {absence.endTime}
                   </div>
                   <div>
                     <span className="font-medium">{t.class}:</span> {absence.className}
@@ -346,7 +362,7 @@ const TeacherAbsences = () => {
           </div>
 
           <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">Absence à couvrir:</h4>
+            <h4 className="font-medium text-gray-900 mb-2">{t.absenceToCover}</h4>
             <p className="text-sm text-gray-600">
               <strong>{t.originalTeacher}:</strong> {selectedAbsence.teacherName}<br/>
               <strong>{t.subject}:</strong> {selectedAbsence.subjectName}<br/>
@@ -356,10 +372,10 @@ const TeacherAbsences = () => {
           </div>
 
           <div className="space-y-3">
-            <h4 className="font-medium text-gray-900">Enseignants disponibles de l'école:</h4>
+            <h4 className="font-medium text-gray-900">{t.availableTeachers}</h4>
             {(Array.isArray(replacementTeachers) ? replacementTeachers.length : 0) === 0 ? (
               <div className="text-center py-4 text-gray-500">
-                Aucun enseignant disponible
+                {t.noTeachersAvailable}
               </div>
             ) : (
               (Array.isArray(replacementTeachers) ? replacementTeachers : []).map((teacher: any) => (
@@ -373,7 +389,7 @@ const TeacherAbsences = () => {
                         {teacher.firstName || ''} {teacher.lastName || ''}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {teacher.subjects?.join(', ') || 'Polyvalent'}
+                        {teacher.subjects?.join(', ') || t.versatile}
                       </p>
                     </div>
                   </div>
