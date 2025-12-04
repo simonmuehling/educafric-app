@@ -151,10 +151,40 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
     // For mobile devices, use inline iframe approach which works better
     const isMobile = isMobileDevice();
     
-    // Get the HTML and fix display:none styles so both cards show when printing
-    let capturedHTML = printContent.innerHTML;
-    // Replace display:none and display: none with display:block to show both cards
-    capturedHTML = capturedHTML.replace(/display:\s*none/gi, 'display: block');
+    // Convert QR canvases to data URLs before cloning (canvas content is lost in innerHTML)
+    const frontQRDataUrl = qrCanvasFrontRef.current?.toDataURL('image/png') || '';
+    const backQRDataUrl = qrCanvasBackRef.current?.toDataURL('image/png') || '';
+    
+    // Clone the print content
+    const tempContainer = document.createElement('div');
+    tempContainer.innerHTML = printContent.innerHTML;
+    
+    // Find and show all front and back cards for printing
+    tempContainer.querySelectorAll('.front-card').forEach((el) => {
+      (el as HTMLElement).style.display = 'block';
+    });
+    tempContainer.querySelectorAll('.back-card').forEach((el) => {
+      (el as HTMLElement).style.display = 'block';
+    });
+    
+    // Hide the print-only-front section that has incomplete QR codes
+    tempContainer.querySelectorAll('.print-only-front').forEach((el) => {
+      (el as HTMLElement).style.display = 'none';
+    });
+    
+    // Replace canvas elements with img elements containing the QR code data
+    const canvases = tempContainer.querySelectorAll('canvas');
+    canvases.forEach((canvas, index) => {
+      const img = document.createElement('img');
+      // Alternate between front and back QR based on which one we're processing
+      img.src = index === 0 ? frontQRDataUrl : backQRDataUrl;
+      img.style.cssText = canvas.style.cssText;
+      img.setAttribute('width', canvas.style.width || '16mm');
+      img.setAttribute('height', canvas.style.height || '16mm');
+      canvas.parentNode?.replaceChild(img, canvas);
+    });
+    
+    const capturedHTML = tempContainer.innerHTML;
     
     const printStyles = `
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
