@@ -671,7 +671,7 @@ export default function FeesManagement() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold" data-testid="stat-expected">
-                      {formatCurrency(stats?.stats?.totalExpected || 0)}
+                      {formatCurrency(stats?.totalExpected || 0)}
                     </div>
                   </CardContent>
                 </Card>
@@ -683,7 +683,7 @@ export default function FeesManagement() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-green-600" data-testid="stat-collected">
-                      {formatCurrency(stats?.stats?.totalCollected || 0)}
+                      {formatCurrency(stats?.totalCollected || 0)}
                     </div>
                   </CardContent>
                 </Card>
@@ -695,7 +695,7 @@ export default function FeesManagement() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-orange-600" data-testid="stat-outstanding">
-                      {formatCurrency(stats?.stats?.totalOutstanding || 0)}
+                      {formatCurrency(stats?.totalOutstanding || stats?.outstanding || 0)}
                     </div>
                   </CardContent>
                 </Card>
@@ -707,9 +707,9 @@ export default function FeesManagement() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold" data-testid="stat-rate">
-                      {stats?.stats?.collectionRate || 0}%
+                      {stats?.collectionRate || 0}%
                     </div>
-                    <Progress value={stats?.stats?.collectionRate || 0} className="mt-2" />
+                    <Progress value={stats?.collectionRate || 0} className="mt-2" />
                   </CardContent>
                 </Card>
               </div>
@@ -724,7 +724,7 @@ export default function FeesManagement() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-3xl font-bold text-red-600" data-testid="stat-arrears">
-                      {stats?.stats?.studentsInArrears || 0}
+                      {stats?.studentsInArrears || 0}
                     </div>
                   </CardContent>
                 </Card>
@@ -738,10 +738,10 @@ export default function FeesManagement() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-3xl font-bold text-green-600" data-testid="stat-recent">
-                      {formatCurrency(stats?.stats?.recentPaymentsTotal || 0)}
+                      {formatCurrency(stats?.recentPaymentsTotal || 0)}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {stats?.stats?.recentPaymentsCount || 0} transactions
+                      {stats?.recentPaymentsCount || 0} transactions
                     </p>
                   </CardContent>
                 </Card>
@@ -1019,8 +1019,8 @@ export default function FeesManagement() {
                     <TableRow>
                       <TableCell colSpan={6} className="text-center">{t.loading}</TableCell>
                     </TableRow>
-                  ) : structures?.structures?.length > 0 ? (
-                    structures.structures.map((structure: any) => (
+                  ) : structures?.length > 0 ? (
+                    structures.map((structure: any) => (
                       <TableRow key={structure.id} data-testid={`structure-row-${structure.id}`}>
                         <TableCell className="font-medium">{structure.name}</TableCell>
                         <TableCell>{t[structure.feeType as keyof typeof t] || structure.feeType}</TableCell>
@@ -1079,8 +1079,8 @@ export default function FeesManagement() {
                     <TableRow>
                       <TableCell colSpan={7} className="text-center">{t.loading}</TableCell>
                     </TableRow>
-                  ) : assignedFees?.fees?.length > 0 ? (
-                    assignedFees.fees.map((fee: any) => (
+                  ) : assignedFees?.length > 0 ? (
+                    assignedFees.map((fee: any) => (
                       <TableRow key={fee.id} data-testid={`assigned-row-${fee.id}`}>
                         <TableCell className="font-medium">
                           {fee.studentFirstName} {fee.studentLastName}
@@ -1219,8 +1219,8 @@ export default function FeesManagement() {
                     <TableRow>
                       <TableCell colSpan={6} className="text-center">{t.loading}</TableCell>
                     </TableRow>
-                  ) : payments?.payments?.length > 0 ? (
-                    payments.payments.map((payment: any) => (
+                  ) : payments?.length > 0 ? (
+                    payments.map((payment: any) => (
                       <TableRow key={payment.id} data-testid={`payment-row-${payment.id}`}>
                         <TableCell className="font-medium">
                           {payment.studentFirstName} {payment.studentLastName}
@@ -1283,7 +1283,7 @@ export default function FeesManagement() {
                 <Calendar className="h-4 w-4 text-orange-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{stats?.stats?.upcomingDueCount || 0}</div>
+                <div className="text-2xl font-bold text-orange-600">{stats?.upcomingDueCount || stats?.upcomingDue || 0}</div>
                 <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Dans les 7 prochains jours' : 'In next 7 days'}</p>
               </CardContent>
             </Card>
@@ -1293,7 +1293,7 @@ export default function FeesManagement() {
                 <AlertTriangle className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">{stats?.stats?.studentsInArrears || 0}</div>
+                <div className="text-2xl font-bold text-red-600">{stats?.studentsInArrears || stats?.overdue || 0}</div>
                 <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Élèves en retard' : 'Students overdue'}</p>
               </CardContent>
             </Card>
@@ -1303,7 +1303,7 @@ export default function FeesManagement() {
                 <Send className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">{stats?.stats?.remindersSentToday || 0}</div>
+                <div className="text-2xl font-bold text-green-600">{stats?.remindersSentToday || 0}</div>
                 <p className="text-xs text-muted-foreground">{language === 'fr' ? "Aujourd'hui" : 'Today'}</p>
               </CardContent>
             </Card>
@@ -1456,14 +1456,14 @@ export default function FeesManagement() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>{t.totalExpected}</span>
-                    <span className="font-bold">{formatCurrency(stats?.stats?.totalExpected || 0)}</span>
+                    <span className="font-bold">{formatCurrency(stats?.totalExpected || 0)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>{t.totalCollected}</span>
-                    <span className="font-bold text-green-600">{formatCurrency(stats?.stats?.totalCollected || 0)}</span>
+                    <span className="font-bold text-green-600">{formatCurrency(stats?.totalCollected || 0)}</span>
                   </div>
-                  <Progress value={stats?.stats?.collectionRate || 0} className="mt-2" />
-                  <p className="text-xs text-center text-muted-foreground">{stats?.stats?.collectionRate || 0}% {language === 'fr' ? 'recouvré' : 'collected'}</p>
+                  <Progress value={stats?.collectionRate || 0} className="mt-2" />
+                  <p className="text-xs text-center text-muted-foreground">{stats?.collectionRate || 0}% {language === 'fr' ? 'recouvré' : 'collected'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -1482,11 +1482,11 @@ export default function FeesManagement() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>{t.studentsInArrears}</span>
-                    <span className="font-bold text-red-600">{stats?.stats?.studentsInArrears || 0}</span>
+                    <span className="font-bold text-red-600">{stats?.studentsInArrears || 0}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>{t.outstanding}</span>
-                    <span className="font-bold text-orange-600">{formatCurrency(stats?.stats?.totalOutstanding || 0)}</span>
+                    <span className="font-bold text-orange-600">{formatCurrency(stats?.totalOutstanding || stats?.outstanding || 0)}</span>
                   </div>
                   <Button variant="outline" className="w-full mt-2" data-testid="btn-view-defaulters">
                     <Download className="w-4 h-4 mr-2" />
