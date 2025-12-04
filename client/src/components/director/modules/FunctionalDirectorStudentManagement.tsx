@@ -804,6 +804,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   const text = language === 'fr' ? {
     title: 'Gestion des Élèves',
     subtitle: 'Gérez tous les élèves de votre établissement',
+    studentsList: 'Liste des Élèves',
     addStudent: 'Ajouter un Élève',
     editStudent: 'Modifier l\'Élève',
     search: 'Rechercher...',
@@ -882,6 +883,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   } : {
     title: 'Student Management',
     subtitle: 'Manage all students in your institution',
+    studentsList: 'Students List',
     addStudent: 'Add Student',
     editStudent: 'Edit Student',
     search: 'Search...',
@@ -1899,7 +1901,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       <Card>
         <CardHeader className="px-4 md:px-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <h3 className="text-lg font-semibold">Liste des Élèves</h3>
+            <h3 className="text-lg font-semibold">{text.studentsList}</h3>
             <div className="flex items-center space-x-2 w-full sm:w-auto">
               <Button 
                 variant="outline" 
