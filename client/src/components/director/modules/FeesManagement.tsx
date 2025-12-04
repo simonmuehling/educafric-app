@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,53 +16,31 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
-  DollarSign, 
-  Plus, 
-  Users, 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle,
-  Clock,
-  CreditCard,
-  Receipt,
-  Send,
-  Edit,
-  Trash2,
-  Download,
-  Bell,
-  FileText,
-  Settings,
-  FileBarChart,
-  RefreshCw,
-  Calendar,
-  Percent,
-  Filter,
-  Printer,
-  MessageSquare,
-  Wrench,
-  AlertCircle
+  DollarSign, Plus, Users, TrendingUp, AlertTriangle, CheckCircle,
+  CreditCard, Send, Edit, Trash2, Download, Bell, Settings, FileBarChart,
+  RefreshCw, Printer, MessageSquare, Mail, Phone, Smartphone
 } from 'lucide-react';
 
 const translations = {
   fr: {
     title: 'Gestion des Frais',
-    subtitle: 'Gérez les frais de scolarité et les paiements',
+    subtitle: 'Gérez les frais de scolarité, paiements et rappels',
     dashboard: 'Tableau de Bord',
-    structures: 'Structures de Frais',
-    assigned: 'Frais Assignés',
-    payments: 'Paiements',
+    structures: 'Structures',
+    assigned: 'Élèves & Rappels',
+    reports: 'Rapports',
+    settings: 'Paramètres',
     totalExpected: 'Total Attendu',
     totalCollected: 'Total Collecté',
     outstanding: 'Solde Restant',
-    collectionRate: 'Taux de Recouvrement',
+    collectionRate: 'Taux Recouvrement',
     studentsInArrears: 'Élèves en Retard',
-    recentPayments: 'Paiements Récents (30j)',
     createStructure: 'Créer Structure',
     name: 'Nom',
     amount: 'Montant',
-    feeType: 'Type de Frais',
+    feeType: 'Type',
     frequency: 'Fréquence',
-    dueDate: 'Date d\'échéance',
+    dueDate: 'Échéance',
     status: 'Statut',
     actions: 'Actions',
     tuition: 'Scolarité',
@@ -69,7 +49,7 @@ const translations = {
     transport: 'Transport',
     pta: 'APE',
     boarding: 'Internat',
-    custom: 'Personnalisé',
+    custom: 'Autre',
     monthly: 'Mensuel',
     term: 'Trimestriel',
     yearly: 'Annuel',
@@ -80,89 +60,60 @@ const translations = {
     overdue: 'En retard',
     student: 'Élève',
     balance: 'Solde',
-    recordPayment: 'Enregistrer Paiement',
-    paymentMethod: 'Mode de Paiement',
+    recordPayment: 'Paiement',
+    paymentMethod: 'Mode',
     cash: 'Espèces',
     bank: 'Virement',
     mtnMomo: 'MTN MoMo',
     orangeMoney: 'Orange Money',
-    card: 'Carte',
     transactionRef: 'Référence',
     save: 'Enregistrer',
     cancel: 'Annuler',
-    assignFees: 'Assigner Frais',
-    selectClass: 'Sélectionner Classe',
-    selectStructure: 'Sélectionner Structure',
-    assign: 'Assigner',
-    noData: 'Aucune donnée',
-    xaf: 'XAF',
-    loading: 'Chargement...',
-    reminders: 'Rappels',
-    reports: 'Rapports',
-    settings: 'Paramètres',
-    sendReminder: 'Envoyer Rappel',
-    remindersSent: 'Rappels Envoyés',
-    upcomingDue: 'Échéances à Venir',
-    overdueCount: 'En Retard',
-    lastReminderSent: 'Dernier Rappel',
-    autoReminders: 'Rappels Automatiques',
-    reminderDaysBefore: 'Jours avant échéance',
-    enableReminders: 'Activer les rappels',
-    exportReport: 'Exporter Rapport',
-    filterByClass: 'Filtrer par Classe',
-    filterByStatus: 'Filtrer par Statut',
-    dateRange: 'Période',
-    generateReport: 'Générer Rapport',
-    collectionReport: 'Rapport de Recouvrement',
-    defaultersReport: 'Liste des Défaillants',
-    paymentMethods: 'Modes de Paiement',
-    enableMtnMomo: 'Activer MTN MoMo',
-    enableOrangeMoney: 'Activer Orange Money',
-    enableStripe: 'Activer Stripe',
-    discountSettings: 'Remises',
-    siblingDiscount: 'Remise Fratrie',
-    scholarshipDiscount: 'Bourse',
-    latePaymentPenalty: 'Pénalité Retard',
-    penaltyPercent: 'Pourcentage Pénalité',
+    selectClass: 'Classe',
     all: 'Tous',
+    noData: 'Aucune donnée',
+    loading: 'Chargement...',
+    sendReminder: 'Envoyer Rappel',
+    printReminder: 'Imprimer Rappel',
+    printReceipt: 'Imprimer Reçu',
+    printStructure: 'Imprimer',
+    bulkReminder: 'Rappel Groupé',
+    selectAll: 'Tout sélectionner',
+    selectedCount: 'sélectionnés',
+    channels: 'Canaux',
+    email: 'Email',
+    whatsapp: 'WhatsApp',
+    pwa: 'Notification',
+    reminderSent: 'Rappel envoyé',
+    remindersSent: 'Rappels envoyés',
+    exportExcel: 'Excel',
+    exportPdf: 'PDF',
+    generateReport: 'Générer',
+    filterByClass: 'Par Classe',
+    filterByStatus: 'Par Statut',
     thisMonth: 'Ce Mois',
     lastMonth: 'Mois Dernier',
     thisYear: 'Cette Année',
-    exportExcel: 'Exporter Excel',
-    exportPdf: 'Exporter PDF',
-    noReminders: 'Aucun rappel à envoyer',
-    printReceipt: 'Imprimer Reçu',
-    notifyParent: 'Notifier Parent',
-    maintenanceMode: 'Mode Maintenance',
-    onlinePaymentMaintenance: 'Les paiements en ligne (MTN MoMo, Orange Money, Carte) sont temporairement en maintenance.',
-    manualPaymentOnly: 'Seuls les paiements manuels (espèces, virement) sont disponibles.',
-    receiptPrinted: 'Reçu imprimé avec succès',
-    notificationSent: 'Notification envoyée au parent',
-    paymentReceipt: 'Reçu de Paiement',
-    schoolFees: 'Frais de Scolarité',
-    receiptNumber: 'N° Reçu',
-    paidBy: 'Payé par',
-    receivedBy: 'Reçu par',
-    signature: 'Signature',
-    thankYou: 'Merci pour votre paiement'
+    parent: 'Parent',
+    phone: 'Téléphone'
   },
   en: {
     title: 'Fees Management',
-    subtitle: 'Manage school fees and payments',
+    subtitle: 'Manage school fees, payments and reminders',
     dashboard: 'Dashboard',
-    structures: 'Fee Structures',
-    assigned: 'Assigned Fees',
-    payments: 'Payments',
+    structures: 'Structures',
+    assigned: 'Students & Reminders',
+    reports: 'Reports',
+    settings: 'Settings',
     totalExpected: 'Total Expected',
     totalCollected: 'Total Collected',
     outstanding: 'Outstanding',
     collectionRate: 'Collection Rate',
     studentsInArrears: 'Students in Arrears',
-    recentPayments: 'Recent Payments (30d)',
     createStructure: 'Create Structure',
     name: 'Name',
     amount: 'Amount',
-    feeType: 'Fee Type',
+    feeType: 'Type',
     frequency: 'Frequency',
     dueDate: 'Due Date',
     status: 'Status',
@@ -173,7 +124,7 @@ const translations = {
     transport: 'Transport',
     pta: 'PTA',
     boarding: 'Boarding',
-    custom: 'Custom',
+    custom: 'Other',
     monthly: 'Monthly',
     term: 'Term',
     yearly: 'Yearly',
@@ -184,103 +135,47 @@ const translations = {
     overdue: 'Overdue',
     student: 'Student',
     balance: 'Balance',
-    recordPayment: 'Record Payment',
-    paymentMethod: 'Payment Method',
+    recordPayment: 'Payment',
+    paymentMethod: 'Method',
     cash: 'Cash',
-    bank: 'Bank Transfer',
+    bank: 'Transfer',
     mtnMomo: 'MTN MoMo',
     orangeMoney: 'Orange Money',
-    card: 'Card',
     transactionRef: 'Reference',
     save: 'Save',
     cancel: 'Cancel',
-    assignFees: 'Assign Fees',
-    selectClass: 'Select Class',
-    selectStructure: 'Select Structure',
-    assign: 'Assign',
-    noData: 'No data',
-    xaf: 'XAF',
-    loading: 'Loading...',
-    reminders: 'Reminders',
-    reports: 'Reports',
-    settings: 'Settings',
-    sendReminder: 'Send Reminder',
-    remindersSent: 'Reminders Sent',
-    upcomingDue: 'Upcoming Due',
-    overdueCount: 'Overdue',
-    lastReminderSent: 'Last Reminder',
-    autoReminders: 'Auto Reminders',
-    reminderDaysBefore: 'Days before due',
-    enableReminders: 'Enable reminders',
-    exportReport: 'Export Report',
-    filterByClass: 'Filter by Class',
-    filterByStatus: 'Filter by Status',
-    dateRange: 'Date Range',
-    generateReport: 'Generate Report',
-    collectionReport: 'Collection Report',
-    defaultersReport: 'Defaulters List',
-    paymentMethods: 'Payment Methods',
-    enableMtnMomo: 'Enable MTN MoMo',
-    enableOrangeMoney: 'Enable Orange Money',
-    enableStripe: 'Enable Stripe',
-    discountSettings: 'Discounts',
-    siblingDiscount: 'Sibling Discount',
-    scholarshipDiscount: 'Scholarship',
-    latePaymentPenalty: 'Late Penalty',
-    penaltyPercent: 'Penalty Percent',
+    selectClass: 'Class',
     all: 'All',
+    noData: 'No data',
+    loading: 'Loading...',
+    sendReminder: 'Send Reminder',
+    printReminder: 'Print Reminder',
+    printReceipt: 'Print Receipt',
+    printStructure: 'Print',
+    bulkReminder: 'Bulk Reminder',
+    selectAll: 'Select All',
+    selectedCount: 'selected',
+    channels: 'Channels',
+    email: 'Email',
+    whatsapp: 'WhatsApp',
+    pwa: 'Notification',
+    reminderSent: 'Reminder sent',
+    remindersSent: 'Reminders sent',
+    exportExcel: 'Excel',
+    exportPdf: 'PDF',
+    generateReport: 'Generate',
+    filterByClass: 'By Class',
+    filterByStatus: 'By Status',
     thisMonth: 'This Month',
     lastMonth: 'Last Month',
     thisYear: 'This Year',
-    exportExcel: 'Export Excel',
-    exportPdf: 'Export PDF',
-    noReminders: 'No reminders to send',
-    printReceipt: 'Print Receipt',
-    notifyParent: 'Notify Parent',
-    maintenanceMode: 'Maintenance Mode',
-    onlinePaymentMaintenance: 'Online payments (MTN MoMo, Orange Money, Card) are temporarily under maintenance.',
-    manualPaymentOnly: 'Only manual payments (cash, bank transfer) are available.',
-    receiptPrinted: 'Receipt printed successfully',
-    notificationSent: 'Notification sent to parent',
-    paymentReceipt: 'Payment Receipt',
-    schoolFees: 'School Fees',
-    receiptNumber: 'Receipt No.',
-    paidBy: 'Paid by',
-    receivedBy: 'Received by',
-    signature: 'Signature',
-    thankYou: 'Thank you for your payment'
+    parent: 'Parent',
+    phone: 'Phone'
   }
 };
 
 const feeTypes = ['tuition', 'registration', 'exam', 'transport', 'pta', 'boarding', 'custom'];
 const frequencies = ['monthly', 'term', 'yearly', 'once'];
-const paymentMethods = ['cash', 'bank', 'mtn_momo', 'orange_money', 'stripe'];
-
-interface FeeStats {
-  stats?: {
-    totalExpected?: number;
-    totalCollected?: number;
-    outstanding?: number;
-    collectionRate?: number;
-    studentsInArrears?: number;
-    recentPaymentsCount?: number;
-    remindersSentToday?: number;
-    overdue?: number;
-    upcomingDue?: number;
-  };
-}
-
-interface Student {
-  id: number;
-  studentId?: number;
-  firstName?: string;
-  lastName?: string;
-  first_name?: string;
-  last_name?: string;
-  classId?: number;
-  parentName?: string;
-  parentPhone?: string;
-}
 
 export default function FeesManagement() {
   const { language } = useLanguage();
@@ -290,835 +185,381 @@ export default function FeesManagement() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
-  const [selectedClassId, setSelectedClassId] = useState<string>('');
-  const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
+  const [showReminderDialog, setShowReminderDialog] = useState(false);
+  const [selectedFee, setSelectedFee] = useState<any>(null);
+  const [selectedFeeIds, setSelectedFeeIds] = useState<number[]>([]);
+  const [filterClass, setFilterClass] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [reminderChannels, setReminderChannels] = useState({ email: true, whatsapp: true, pwa: true });
+  
   const [newStructure, setNewStructure] = useState({
-    name: '',
-    amount: '',
-    feeType: 'tuition',
-    frequency: 'term',
-    dueDate: '',
-    classId: '',
-    enableReminders: true,
-    reminderDays: '7',
-    reminderChannels: ['email', 'whatsapp', 'pwa']
+    name: '', amount: '', feeType: 'tuition', frequency: 'term', dueDate: ''
   });
   const [paymentData, setPaymentData] = useState({
-    amount: '',
-    paymentMethod: 'cash',
-    transactionRef: ''
+    amount: '', paymentMethod: 'cash', transactionRef: ''
   });
 
-  const { data: statsData, isLoading: statsLoading } = useQuery<FeeStats>({
-    queryKey: ['/api/fees/stats']
-  });
-
-  const { data: structuresData, isLoading: structuresLoading } = useQuery({
-    queryKey: ['/api/fees/structures']
-  });
-
-  const { data: assignedData, isLoading: assignedLoading } = useQuery({
-    queryKey: ['/api/fees/assigned']
-  });
-
-  const { data: paymentsData, isLoading: paymentsLoading } = useQuery({
-    queryKey: ['/api/fees/payments']
-  });
-
-  const { data: classesData } = useQuery({
-    queryKey: ['/api/classes']
-  });
-
-  const { data: studentsData } = useQuery({
-    queryKey: ['/api/director/students']
-  });
-
-  const { data: schoolSettings } = useQuery({
-    queryKey: ['/api/director/settings']
-  });
+  const { data: statsData, isLoading: statsLoading } = useQuery({ queryKey: ['/api/fees/stats'] });
+  const { data: structuresData, isLoading: structuresLoading } = useQuery({ queryKey: ['/api/fees/structures'] });
+  const { data: assignedData, isLoading: assignedLoading } = useQuery({ queryKey: ['/api/fees/assigned'] });
+  const { data: classesData } = useQuery({ queryKey: ['/api/classes'] });
+  const { data: schoolSettings } = useQuery({ queryKey: ['/api/director/settings'] });
 
   const classes = Array.isArray(classesData) ? classesData : ((classesData as any)?.classes || []);
   const stats = (statsData as any)?.stats || statsData || {};
   const structures = (structuresData as any)?.structures || [];
   const assignedFees = (assignedData as any)?.fees || [];
-  const payments = (paymentsData as any)?.payments || [];
-  const allStudents: Student[] = Array.isArray(studentsData) ? studentsData : ((studentsData as any)?.students || []);
   const school = (schoolSettings as any)?.settings?.school || (schoolSettings as any)?.school || {};
-  
-  const filteredStudents = selectedClassId && selectedClassId !== 'all' 
-    ? allStudents.filter((s: Student) => s.classId?.toString() === selectedClassId)
-    : allStudents;
+
+  const filteredFees = assignedFees.filter((fee: any) => {
+    if (filterClass !== 'all' && fee.classId?.toString() !== filterClass) return false;
+    if (filterStatus !== 'all' && fee.status !== filterStatus) return false;
+    return true;
+  });
+
+  const formatCurrency = (amount: number) => `${(amount || 0).toLocaleString()} CFA`;
+
+  const getStatusBadge = (status: string) => {
+    const colors: Record<string, string> = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      partial: 'bg-blue-100 text-blue-800',
+      paid: 'bg-green-100 text-green-800',
+      overdue: 'bg-red-100 text-red-800'
+    };
+    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100'}`}>
+      {t[status as keyof typeof t] || status}
+    </span>;
+  };
 
   const createStructureMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest('POST', '/api/fees/structures', data);
-    },
+    mutationFn: (data: any) => apiRequest('POST', '/api/fees/structures', data),
     onSuccess: () => {
-      toast({ title: language === 'fr' ? 'Structure créée avec succès' : 'Structure created successfully' });
+      toast({ title: language === 'fr' ? 'Structure créée' : 'Structure created' });
       queryClient.invalidateQueries({ queryKey: ['/api/fees/structures'] });
       setShowCreateDialog(false);
-      setSelectedClassId('');
-      setSelectedStudentIds([]);
-      setNewStructure({ 
-        name: '', amount: '', feeType: 'tuition', frequency: 'term', dueDate: '',
-        classId: '', enableReminders: true, reminderDays: '7', reminderChannels: ['email', 'whatsapp', 'pwa']
-      });
+      setNewStructure({ name: '', amount: '', feeType: 'tuition', frequency: 'term', dueDate: '' });
     },
-    onError: () => {
-      toast({ title: language === 'fr' ? 'Erreur lors de la création' : 'Error creating structure', variant: 'destructive' });
-    }
+    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
   });
 
   const recordPaymentMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest('POST', '/api/fees/payments', data);
-    },
+    mutationFn: (data: any) => apiRequest('POST', '/api/fees/payments', data),
     onSuccess: () => {
-      toast({ title: 'Paiement enregistré avec succès' });
+      toast({ title: language === 'fr' ? 'Paiement enregistré' : 'Payment recorded' });
       queryClient.invalidateQueries({ queryKey: ['/api/fees/payments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/fees/assigned'] });
       queryClient.invalidateQueries({ queryKey: ['/api/fees/stats'] });
       setShowPaymentDialog(false);
       setPaymentData({ amount: '', paymentMethod: 'cash', transactionRef: '' });
     },
-    onError: () => {
-      toast({ title: 'Erreur lors de l\'enregistrement', variant: 'destructive' });
-    }
+    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
   });
 
-  const handleCreateStructure = () => {
-    createStructureMutation.mutate({
-      name: newStructure.name,
-      amount: parseInt(newStructure.amount),
-      feeType: newStructure.feeType,
-      frequency: newStructure.frequency,
-      dueDate: newStructure.dueDate,
-      classId: newStructure.classId ? parseInt(newStructure.classId) : null,
-      studentIds: selectedStudentIds.length > 0 ? selectedStudentIds : null,
-      enableReminders: newStructure.enableReminders,
-      reminderDaysBefore: parseInt(newStructure.reminderDays),
-      reminderChannels: newStructure.reminderChannels
-    });
-  };
-  
-  const toggleStudentSelection = (studentId: number) => {
-    setSelectedStudentIds(prev => 
-      prev.includes(studentId) 
-        ? prev.filter(id => id !== studentId)
-        : [...prev, studentId]
-    );
-  };
-  
-  const selectAllStudents = () => {
-    const studentIds = filteredStudents.map((s: Student) => s.id || s.studentId || 0).filter(Boolean);
-    setSelectedStudentIds(studentIds as number[]);
-  };
-  
-  const deselectAllStudents = () => {
-    setSelectedStudentIds([]);
-  };
-
-  const handleRecordPayment = () => {
-    if (!selectedStudent) return;
-    recordPaymentMutation.mutate({
-      studentId: selectedStudent.studentId,
-      amount: parseInt(paymentData.amount),
-      paymentMethod: paymentData.paymentMethod,
-      transactionRef: paymentData.transactionRef
-    });
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      pending: 'secondary',
-      partial: 'outline',
-      paid: 'default',
-      overdue: 'destructive'
-    };
-    return <Badge variant={variants[status] || 'secondary'}>{t[status as keyof typeof t] || status}</Badge>;
-  };
-
-  const formatCurrency = (amount: number) => {
-    return `${amount?.toLocaleString() || 0} CFA`;
-  };
+  const sendReminderMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('POST', '/api/fees/reminders', data),
+    onSuccess: () => {
+      toast({ title: selectedFeeIds.length > 1 ? t.remindersSent : t.reminderSent });
+      setShowReminderDialog(false);
+      setSelectedFeeIds([]);
+    },
+    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
+  });
 
   const handlePrintStructure = (structure: any) => {
-    const printWindow = window.open('', '_blank', 'width=600,height=800');
-    if (!printWindow) {
-      toast({ title: language === 'fr' ? 'Veuillez autoriser les popups' : 'Please allow popups', variant: 'destructive' });
-      return;
-    }
-
-    const schoolName = school?.name || 'EDUCAFRIC';
-    const schoolLogo = school?.logoUrl || '';
-    const schoolSlogan = school?.slogan || (language === 'fr' ? 'Excellence et Innovation' : 'Excellence and Innovation');
-    const schoolAddress = school?.address || '';
-    const schoolPhone = school?.phone || '';
-    const schoolEmail = school?.email || '';
-
-    const feeTypeLabels: Record<string, string> = {
-      tuition: language === 'fr' ? 'Frais de scolarité' : 'Tuition',
-      registration: language === 'fr' ? 'Inscription' : 'Registration',
-      exam: language === 'fr' ? 'Examen' : 'Exam',
-      transport: language === 'fr' ? 'Transport' : 'Transport',
-      uniform: language === 'fr' ? 'Uniforme' : 'Uniform',
-      books: language === 'fr' ? 'Livres' : 'Books',
-      other: language === 'fr' ? 'Autre' : 'Other'
-    };
-
-    const frequencyLabels: Record<string, string> = {
-      once: language === 'fr' ? 'Une fois' : 'Once',
-      monthly: language === 'fr' ? 'Mensuel' : 'Monthly',
-      term: language === 'fr' ? 'Par trimestre' : 'Per term',
-      annual: language === 'fr' ? 'Annuel' : 'Annual'
-    };
-
-    const printHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>${language === 'fr' ? 'Structure de Frais' : 'Fee Structure'} - ${schoolName}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Times New Roman', serif; padding: 20px; max-width: 600px; margin: 0 auto; font-size: 14px; }
-          .official-header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-          .official-header .country { font-size: 12px; font-weight: bold; }
-          .official-header .motto { font-size: 11px; font-style: italic; }
-          .school-header { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 20px 0; padding: 15px 0; border-bottom: 2px solid #1a365d; }
-          .school-logo { width: 80px; height: 80px; object-fit: contain; }
-          .school-logo-placeholder { width: 80px; height: 80px; border: 2px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; text-align: center; }
-          .school-info { text-align: center; }
-          .school-name { font-size: 22px; font-weight: bold; color: #1a365d; text-transform: uppercase; }
-          .school-slogan { font-size: 12px; font-style: italic; color: #666; margin-top: 5px; }
-          .school-contact { font-size: 11px; color: #444; margin-top: 8px; }
-          .document-title { text-align: center; font-size: 18px; font-weight: bold; margin: 25px 0; padding: 12px; background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%); color: white; border-radius: 8px; }
-          .structure-details { margin: 20px 0; padding: 20px; border: 2px solid #e5e7eb; border-radius: 10px; background: #f9fafb; }
-          .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #d1d5db; }
-          .detail-row:last-child { border-bottom: none; }
-          .detail-label { color: #6b7280; font-weight: 500; }
-          .detail-value { font-weight: bold; color: #111827; }
-          .amount-highlight { text-align: center; margin: 25px 0; padding: 20px; border: 3px solid #16a34a; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; }
-          .amount-label { font-size: 14px; color: #166534; margin-bottom: 8px; }
-          .amount-value { font-size: 32px; font-weight: bold; color: #16a34a; }
-          .status-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-          .status-active { background: #dcfce7; color: #166534; }
-          .status-inactive { background: #f3f4f6; color: #6b7280; }
-          .footer { text-align: center; margin-top: 30px; padding-top: 15px; border-top: 2px dashed #d1d5db; font-size: 11px; color: #6b7280; }
-          .print-date { text-align: right; font-size: 10px; color: #9ca3af; margin-bottom: 10px; }
-          @media print { 
-            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-            .document-title { background: #1a365d !important; -webkit-print-color-adjust: exact; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="print-date">${language === 'fr' ? 'Imprimé le' : 'Printed on'}: ${new Date().toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-        
-        <div class="official-header">
-          <div class="country">RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON</div>
-          <div class="motto">Paix - Travail - Patrie / Peace - Work - Fatherland</div>
-        </div>
-        
-        <div class="school-header">
-          ${schoolLogo ? `<img src="${schoolLogo}" class="school-logo" alt="Logo">` : `<div class="school-logo-placeholder">${schoolName.substring(0, 3)}</div>`}
-          <div class="school-info">
-            <div class="school-name">${schoolName}</div>
-            <div class="school-slogan">${schoolSlogan}</div>
-            <div class="school-contact">${[schoolAddress, schoolPhone, schoolEmail].filter(Boolean).join(' | ')}</div>
-          </div>
-        </div>
-        
-        <div class="document-title">${language === 'fr' ? 'STRUCTURE DE FRAIS' : 'FEE STRUCTURE'}</div>
-        
-        <div class="structure-details">
-          <div class="detail-row">
-            <span class="detail-label">${language === 'fr' ? 'Nom de la structure' : 'Structure Name'}:</span>
-            <span class="detail-value">${structure.name}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">${language === 'fr' ? 'Type de frais' : 'Fee Type'}:</span>
-            <span class="detail-value">${feeTypeLabels[structure.feeType] || structure.feeType}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">${language === 'fr' ? 'Fréquence' : 'Frequency'}:</span>
-            <span class="detail-value">${frequencyLabels[structure.frequency] || structure.frequency}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">${language === 'fr' ? 'Date d\'échéance' : 'Due Date'}:</span>
-            <span class="detail-value">${structure.dueDate ? new Date(structure.dueDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US') : '-'}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">${language === 'fr' ? 'Statut' : 'Status'}:</span>
-            <span class="detail-value"><span class="status-badge ${structure.isActive ? 'status-active' : 'status-inactive'}">${structure.isActive ? (language === 'fr' ? 'Actif' : 'Active') : (language === 'fr' ? 'Inactif' : 'Inactive')}</span></span>
-          </div>
-        </div>
-        
-        <div class="amount-highlight">
-          <div class="amount-label">${language === 'fr' ? 'MONTANT À PAYER' : 'AMOUNT TO PAY'}</div>
-          <div class="amount-value">${parseInt(structure.amount).toLocaleString()} CFA</div>
-        </div>
-        
-        <div class="footer">
-          <p>${language === 'fr' ? 'Document généré par' : 'Document generated by'} ${schoolName}</p>
-          <p style="margin-top: 5px;">Powered by EDUCAFRIC - ${language === 'fr' ? 'Plateforme de Gestion Scolaire' : 'School Management Platform'}</p>
-        </div>
-        
-        <script>window.onload = function() { window.print(); }</script>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.write(printHtml);
-    printWindow.document.close();
-    toast({ title: language === 'fr' ? 'Impression en cours...' : 'Printing...' });
+    const w = window.open('', '_blank', 'width=600,height=700');
+    if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
+    
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <title>Structure - ${structure.name}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 40px; max-width: 500px; margin: 0 auto; }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+        .school-name { font-size: 24px; font-weight: bold; color: #1a365d; }
+        .title { font-size: 18px; font-weight: bold; margin: 20px 0; padding: 10px; background: #1a365d; color: white; text-align: center; }
+        .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #ddd; }
+        .label { color: #666; }
+        .value { font-weight: bold; }
+        .amount { text-align: center; margin: 30px 0; padding: 20px; border: 3px solid #16a34a; background: #f0fdf4; }
+        .amount-value { font-size: 32px; font-weight: bold; color: #16a34a; }
+        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #888; }
+        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+      </style>
+    </head><body>
+      <div class="header">
+        <div class="school-name">${school?.name || 'EDUCAFRIC'}</div>
+        <div style="font-size:12px;margin-top:5px;">${school?.address || ''}</div>
+      </div>
+      <div class="title">${language === 'fr' ? 'STRUCTURE DE FRAIS' : 'FEE STRUCTURE'}</div>
+      <div class="row"><span class="label">${t.name}:</span><span class="value">${structure.name}</span></div>
+      <div class="row"><span class="label">${t.feeType}:</span><span class="value">${t[structure.feeType as keyof typeof t] || structure.feeType}</span></div>
+      <div class="row"><span class="label">${t.frequency}:</span><span class="value">${t[structure.frequency as keyof typeof t] || structure.frequency}</span></div>
+      <div class="row"><span class="label">${t.dueDate}:</span><span class="value">${structure.dueDate ? new Date(structure.dueDate).toLocaleDateString() : '-'}</span></div>
+      <div class="row"><span class="label">${t.status}:</span><span class="value">${structure.isActive ? 'Actif' : 'Inactif'}</span></div>
+      <div class="amount">
+        <div style="font-size:14px;color:#166534;margin-bottom:5px;">${language === 'fr' ? 'MONTANT' : 'AMOUNT'}</div>
+        <div class="amount-value">${parseInt(structure.amount).toLocaleString()} CFA</div>
+      </div>
+      <div class="footer">Powered by EDUCAFRIC</div>
+      <script>window.onload=function(){window.print();}</script>
+    </body></html>`;
+    w.document.write(html);
+    w.document.close();
   };
 
-  const handlePrintReceipt = async (payment: any) => {
-    const receiptWindow = window.open('', '_blank', 'width=500,height=700');
-    if (!receiptWindow) {
-      toast({ title: language === 'fr' ? 'Veuillez autoriser les popups' : 'Please allow popups', variant: 'destructive' });
-      return;
-    }
-
-    const schoolName = school?.name || 'EDUCAFRIC';
-    const schoolLogo = school?.logoUrl || '';
-    const schoolSlogan = school?.slogan || (language === 'fr' ? 'Excellence et Innovation' : 'Excellence and Innovation');
-    const schoolAddress = school?.address || '';
-    const schoolPhone = school?.phone || '';
-    const schoolEmail = school?.email || '';
-
-    const receiptHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>${t.paymentReceipt} - ${schoolName}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Times New Roman', serif; padding: 15px; max-width: 450px; margin: 0 auto; font-size: 12px; }
-          .official-header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-          .official-header .country { font-size: 11px; font-weight: bold; }
-          .official-header .motto { font-size: 10px; font-style: italic; }
-          .official-header .ministry { font-size: 10px; margin-top: 3px; }
-          .school-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 15px 0; padding: 10px 0; border-bottom: 2px solid #000; }
-          .school-logo { width: 70px; height: 70px; object-fit: contain; }
-          .school-logo-placeholder { width: 70px; height: 70px; border: 2px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; text-align: center; }
-          .school-info { text-align: center; }
-          .school-name { font-size: 18px; font-weight: bold; color: #1a365d; text-transform: uppercase; }
-          .school-slogan { font-size: 11px; font-style: italic; color: #666; margin-top: 3px; }
-          .school-contact { font-size: 10px; color: #444; margin-top: 5px; }
-          .receipt-title { text-align: center; font-size: 16px; font-weight: bold; margin: 15px 0; padding: 8px; background: #f0f0f0; border: 1px solid #ccc; }
-          .receipt-number { text-align: center; font-size: 11px; color: #666; margin-bottom: 15px; }
-          .section { margin: 12px 0; padding: 10px; border: 1px solid #ddd; background: #fafafa; }
-          .row { display: flex; justify-content: space-between; margin: 6px 0; font-size: 12px; }
-          .label { color: #555; }
-          .value { font-weight: bold; }
-          .amount-box { text-align: center; margin: 20px 0; padding: 15px; border: 2px solid #16a34a; background: #f0fdf4; }
-          .amount-label { font-size: 12px; color: #555; }
-          .amount-value { font-size: 24px; font-weight: bold; color: #16a34a; }
-          .signatures { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 10px; }
-          .signature-box { text-align: center; width: 45%; }
-          .signature-line { border-top: 1px solid #000; margin-top: 40px; padding-top: 5px; font-size: 11px; }
-          .footer { text-align: center; margin-top: 20px; padding-top: 10px; border-top: 1px dashed #ccc; font-size: 10px; color: #666; }
-          @media print { 
-            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } 
-            .amount-box { background: #f0fdf4 !important; -webkit-print-color-adjust: exact; }
-          }
-        </style>
-      </head>
-      <body>
-        <!-- En-tête officiel Cameroun -->
-        <div class="official-header">
-          <div class="country">${language === 'fr' ? 'RÉPUBLIQUE DU CAMEROUN' : 'REPUBLIC OF CAMEROON'}</div>
-          <div class="motto">${language === 'fr' ? 'Paix – Travail – Patrie' : 'Peace – Work – Fatherland'}</div>
-          <div class="ministry">${language === 'fr' ? 'MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES' : 'MINISTRY OF SECONDARY EDUCATION'}</div>
-        </div>
-        
-        <!-- En-tête École -->
-        <div class="school-header">
-          ${schoolLogo ? `<img src="${schoolLogo}" alt="Logo" class="school-logo" />` : `<div class="school-logo-placeholder">LOGO</div>`}
-          <div class="school-info">
-            <div class="school-name">${schoolName}</div>
-            <div class="school-slogan">"${schoolSlogan}"</div>
-            ${schoolAddress || schoolPhone || schoolEmail ? `
-              <div class="school-contact">
-                ${schoolAddress ? schoolAddress : ''}
-                ${schoolPhone ? ` | Tél: ${schoolPhone}` : ''}
-                ${schoolEmail ? ` | ${schoolEmail}` : ''}
-              </div>
-            ` : ''}
-          </div>
-        </div>
-        
-        <!-- Titre du reçu -->
-        <div class="receipt-title">${t.paymentReceipt}</div>
-        <div class="receipt-number">${t.receiptNumber}: REC-${payment.id}-${Date.now().toString(36).toUpperCase()}</div>
-        
-        <!-- Détails du paiement -->
-        <div class="section">
-          <div class="row">
-            <span class="label">${t.student}:</span>
-            <span class="value">${payment.studentFirstName} ${payment.studentLastName}</span>
-          </div>
-          <div class="row">
-            <span class="label">Date:</span>
-            <span class="value">${payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : new Date().toLocaleDateString()}</span>
-          </div>
-          <div class="row">
-            <span class="label">${t.paymentMethod}:</span>
-            <span class="value">${payment.paymentMethod || 'cash'}</span>
-          </div>
-          ${payment.transactionRef ? `<div class="row"><span class="label">${t.transactionRef}:</span><span class="value">${payment.transactionRef}</span></div>` : ''}
-        </div>
-        
-        <!-- Montant -->
-        <div class="amount-box">
-          <div class="amount-label">${t.amount}</div>
-          <div class="amount-value">${parseInt(payment.amount).toLocaleString()} XAF</div>
-        </div>
-        
-        <!-- Signatures -->
-        <div class="signatures">
-          <div class="signature-box">
-            <div class="signature-line">${t.paidBy}</div>
-          </div>
-          <div class="signature-box">
-            <div class="signature-line">${t.receivedBy}</div>
-          </div>
-        </div>
-        
-        <!-- Pied de page -->
-        <div class="footer">
-          <p>${t.thankYou}</p>
-          <p style="margin-top: 5px;">${schoolName} - ${language === 'fr' ? 'Powered by EDUCAFRIC' : 'Powered by EDUCAFRIC'}</p>
-        </div>
-        
-        <script>window.onload = function() { window.print(); }</script>
-      </body>
-      </html>
-    `;
-
-    receiptWindow.document.write(receiptHtml);
-    receiptWindow.document.close();
-    toast({ title: t.receiptPrinted });
+  const handlePrintReceipt = (fee: any) => {
+    const w = window.open('', '_blank', 'width=500,height=600');
+    if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
+    
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <title>Reçu - ${fee.studentFirstName} ${fee.studentLastName}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 30px; max-width: 400px; margin: 0 auto; }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
+        .school-name { font-size: 20px; font-weight: bold; }
+        .title { text-align: center; font-size: 16px; font-weight: bold; margin: 15px 0; padding: 8px; background: #f0f0f0; }
+        .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted #ccc; }
+        .amount { text-align: center; margin: 20px 0; padding: 15px; border: 2px solid #16a34a; background: #f0fdf4; }
+        .amount-value { font-size: 24px; font-weight: bold; color: #16a34a; }
+        .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #888; }
+        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+      </style>
+    </head><body>
+      <div class="header"><div class="school-name">${school?.name || 'EDUCAFRIC'}</div></div>
+      <div class="title">${language === 'fr' ? 'REÇU DE PAIEMENT' : 'PAYMENT RECEIPT'}</div>
+      <div class="row"><span>${t.student}:</span><span><b>${fee.studentFirstName} ${fee.studentLastName}</b></span></div>
+      <div class="row"><span>${t.name}:</span><span>${fee.structureName}</span></div>
+      <div class="row"><span>${t.status}:</span><span>${t[fee.status as keyof typeof t] || fee.status}</span></div>
+      <div class="row"><span>Date:</span><span>${new Date().toLocaleDateString()}</span></div>
+      <div class="amount">
+        <div style="font-size:12px;color:#166534;">${language === 'fr' ? 'MONTANT PAYÉ' : 'AMOUNT PAID'}</div>
+        <div class="amount-value">${(fee.finalAmount - fee.balanceAmount).toLocaleString()} CFA</div>
+      </div>
+      <div class="footer">Merci - ${school?.name || 'EDUCAFRIC'}</div>
+      <script>window.onload=function(){window.print();}</script>
+    </body></html>`;
+    w.document.write(html);
+    w.document.close();
   };
 
-  const notifyParentMutation = useMutation({
-    mutationFn: async (paymentId: number) => {
-      return apiRequest('POST', `/api/fees/payments/${paymentId}/notify`);
-    },
-    onSuccess: () => {
-      toast({ title: t.notificationSent });
-    },
-    onError: () => {
-      toast({ title: language === 'fr' ? 'Erreur lors de l\'envoi' : 'Error sending notification', variant: 'destructive' });
-    }
-  });
+  const handlePrintReminder = (fee: any) => {
+    const w = window.open('', '_blank', 'width=500,height=700');
+    if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
+    
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <title>Rappel - ${fee.studentFirstName} ${fee.studentLastName}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 40px; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+        .school-name { font-size: 22px; font-weight: bold; color: #1a365d; }
+        .title { font-size: 18px; font-weight: bold; margin: 25px 0; padding: 12px; background: #dc2626; color: white; text-align: center; }
+        .content { margin: 20px 0; }
+        .highlight { background: #fef2f2; border: 2px solid #dc2626; padding: 20px; margin: 20px 0; text-align: center; }
+        .amount { font-size: 28px; font-weight: bold; color: #dc2626; }
+        .footer { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px; }
+        .signature { margin-top: 50px; }
+        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+      </style>
+    </head><body>
+      <div class="header">
+        <div class="school-name">${school?.name || 'EDUCAFRIC'}</div>
+        <div style="margin-top:5px;">${school?.address || ''}</div>
+        <div style="margin-top:5px;">Tél: ${school?.phone || ''}</div>
+      </div>
+      <div class="title">${language === 'fr' ? 'RAPPEL DE PAIEMENT' : 'PAYMENT REMINDER'}</div>
+      <div class="content">
+        <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+        <p><strong>${language === 'fr' ? 'Cher Parent/Tuteur' : 'Dear Parent/Guardian'},</strong></p>
+        <p>${language === 'fr' 
+          ? `Nous vous rappelons que les frais de scolarité de votre enfant <strong>${fee.studentFirstName} ${fee.studentLastName}</strong> sont en attente de paiement.`
+          : `This is a reminder that the school fees for your child <strong>${fee.studentFirstName} ${fee.studentLastName}</strong> are pending payment.`
+        }</p>
+        <div class="highlight">
+          <div style="font-size:14px;margin-bottom:10px;">${language === 'fr' ? 'MONTANT DÛ' : 'AMOUNT DUE'}</div>
+          <div class="amount">${fee.balanceAmount?.toLocaleString()} CFA</div>
+          <div style="margin-top:10px;font-size:14px;">${fee.structureName}</div>
+        </div>
+        <p>${language === 'fr' 
+          ? 'Nous vous prions de bien vouloir régulariser cette situation dans les meilleurs délais.'
+          : 'Please settle this amount at your earliest convenience.'
+        }</p>
+      </div>
+      <div class="footer">
+        <p>${language === 'fr' ? 'Cordialement,' : 'Best regards,'}</p>
+        <div class="signature">
+          <p>_____________________________</p>
+          <p>${language === 'fr' ? 'La Direction' : 'The Administration'}</p>
+        </div>
+      </div>
+      <script>window.onload=function(){window.print();}</script>
+    </body></html>`;
+    w.document.write(html);
+    w.document.close();
+  };
 
-  const handleNotifyParent = (payment: any) => {
-    notifyParentMutation.mutate(payment.id);
+  const handleSendReminder = (fee: any) => {
+    setSelectedFee(fee);
+    setSelectedFeeIds([fee.id]);
+    setShowReminderDialog(true);
+  };
+
+  const handleBulkReminder = () => {
+    if (selectedFeeIds.length === 0) {
+      toast({ title: language === 'fr' ? 'Sélectionnez des élèves' : 'Select students', variant: 'destructive' });
+      return;
+    }
+    setShowReminderDialog(true);
+  };
+
+  const confirmSendReminders = () => {
+    const channels = Object.entries(reminderChannels).filter(([, v]) => v).map(([k]) => k);
+    sendReminderMutation.mutate({ feeIds: selectedFeeIds, channels });
+  };
+
+  const toggleFeeSelection = (feeId: number) => {
+    setSelectedFeeIds(prev => prev.includes(feeId) ? prev.filter(id => id !== feeId) : [...prev, feeId]);
+  };
+
+  const selectAllFees = () => {
+    if (selectedFeeIds.length === filteredFees.length) {
+      setSelectedFeeIds([]);
+    } else {
+      setSelectedFeeIds(filteredFees.map((f: any) => f.id));
+    }
   };
 
   return (
-    <div className="space-y-6 p-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-4 p-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>
-          <h1 className="text-2xl font-bold" data-testid="fees-title">{t.title}</h1>
-          <p className="text-muted-foreground">{t.subtitle}</p>
+          <h1 className="text-2xl font-bold">{t.title}</h1>
+          <p className="text-sm text-muted-foreground">{t.subtitle}</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex w-full overflow-x-auto scrollbar-hide bg-muted p-1 rounded-lg gap-1">
-          <TabsTrigger 
-            value="dashboard" 
-            data-testid="tab-dashboard"
-            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
-          >
-            <TrendingUp className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline">{t.dashboard}</span>
+        <TabsList className="grid w-full grid-cols-5 h-auto">
+          <TabsTrigger value="dashboard" className="text-xs sm:text-sm py-2">
+            <TrendingUp className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.dashboard}</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="structures" 
-            data-testid="tab-structures"
-            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
-          >
-            <DollarSign className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline">{t.structures}</span>
+          <TabsTrigger value="structures" className="text-xs sm:text-sm py-2">
+            <DollarSign className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.structures}</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="assigned" 
-            data-testid="tab-assigned"
-            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
-          >
-            <Users className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline">{t.assigned}</span>
+          <TabsTrigger value="assigned" className="text-xs sm:text-sm py-2">
+            <Users className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.assigned}</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="payments" 
-            data-testid="tab-payments"
-            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
-          >
-            <CreditCard className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline">{t.payments}</span>
+          <TabsTrigger value="reports" className="text-xs sm:text-sm py-2">
+            <FileBarChart className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.reports}</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="reports" 
-            data-testid="tab-reports"
-            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
-          >
-            <FileBarChart className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline">{t.reports}</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="settings" 
-            data-testid="tab-settings"
-            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
-          >
-            <Settings className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline">{t.settings}</span>
+          <TabsTrigger value="settings" className="text-xs sm:text-sm py-2">
+            <Settings className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.settings}</span>
           </TabsTrigger>
         </TabsList>
 
+        {/* DASHBOARD */}
         <TabsContent value="dashboard" className="space-y-4">
           {statsLoading ? (
             <div className="text-center py-8">{t.loading}</div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">{t.totalExpected}</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold" data-testid="stat-expected">
-                      {formatCurrency(stats?.totalExpected || 0)}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">{t.totalCollected}</CardTitle>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-600" data-testid="stat-collected">
-                      {formatCurrency(stats?.totalCollected || 0)}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">{t.outstanding}</CardTitle>
-                    <Clock className="h-4 w-4 text-orange-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-orange-600" data-testid="stat-outstanding">
-                      {formatCurrency(stats?.totalOutstanding || stats?.outstanding || 0)}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">{t.collectionRate}</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-blue-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold" data-testid="stat-rate">
-                      {stats?.collectionRate || 0}%
-                    </div>
-                    <Progress value={stats?.collectionRate || 0} className="mt-2" />
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-red-500" />
-                      {t.studentsInArrears}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-red-600" data-testid="stat-arrears">
-                      {stats?.studentsInArrears || 0}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Receipt className="h-5 w-5 text-green-500" />
-                      {t.recentPayments}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-green-600" data-testid="stat-recent">
-                      {formatCurrency(stats?.recentPaymentsTotal || 0)}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {stats?.recentPaymentsCount || 0} transactions
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">{t.totalExpected}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{formatCurrency(stats?.totalExpected || 0)}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">{t.totalCollected}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">{formatCurrency(stats?.totalCollected || 0)}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">{t.outstanding}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-600">{formatCurrency(stats?.outstanding || 0)}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">{t.studentsInArrears}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">{stats?.studentsInArrears || 0}</div>
+                </CardContent>
+              </Card>
+            </div>
           )}
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">{t.collectionRate}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Progress value={stats?.collectionRate || 0} className="h-4" />
+              <p className="text-center mt-2 font-bold">{stats?.collectionRate || 0}%</p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
+        {/* STRUCTURES */}
         <TabsContent value="structures" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">{t.structures}</h3>
+            <h3 className="font-semibold">{t.structures}</h3>
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
               <DialogTrigger asChild>
-                <Button data-testid="btn-create-structure">
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t.createStructure}
-                </Button>
+                <Button size="sm"><Plus className="w-4 h-4 mr-1" />{t.createStructure}</Button>
               </DialogTrigger>
-              <DialogContent className="bg-white max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="bg-white">
                 <DialogHeader>
                   <DialogTitle>{t.createStructure}</DialogTitle>
-                  <DialogDescription>
-                    {language === 'fr' ? 'Créer une structure de frais et configurer les rappels automatiques' : 'Create a fee structure and configure automatic reminders'}
-                  </DialogDescription>
+                  <DialogDescription>{language === 'fr' ? 'Créer une nouvelle structure de frais' : 'Create a new fee structure'}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>{t.name}</Label>
-                      <Input
-                        value={newStructure.name}
-                        onChange={(e) => setNewStructure({ ...newStructure, name: e.target.value })}
-                        placeholder={language === 'fr' ? 'Ex: Frais de scolarité T1' : 'Ex: Tuition fees T1'}
-                        data-testid="input-structure-name"
-                      />
+                      <Input value={newStructure.name} onChange={e => setNewStructure({...newStructure, name: e.target.value})} />
                     </div>
                     <div>
-                      <Label>{language === 'fr' ? 'Montant (CFA)' : 'Amount (CFA)'}</Label>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          value={newStructure.amount}
-                          onChange={(e) => setNewStructure({ ...newStructure, amount: e.target.value })}
-                          placeholder="150000"
-                          className="pr-16"
-                          data-testid="input-structure-amount"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">CFA</span>
-                      </div>
+                      <Label>{t.amount} (CFA)</Label>
+                      <Input type="number" value={newStructure.amount} onChange={e => setNewStructure({...newStructure, amount: e.target.value})} />
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>{t.feeType}</Label>
-                      <Select
-                        value={newStructure.feeType}
-                        onValueChange={(v) => setNewStructure({ ...newStructure, feeType: v })}
-                      >
-                        <SelectTrigger data-testid="select-fee-type">
-                          <SelectValue />
-                        </SelectTrigger>
+                      <Select value={newStructure.feeType} onValueChange={v => setNewStructure({...newStructure, feeType: v})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {feeTypes.map(type => (
-                            <SelectItem key={type} value={type}>
-                              {t[type as keyof typeof t] || type}
-                            </SelectItem>
-                          ))}
+                          {feeTypes.map(type => <SelectItem key={type} value={type}>{t[type as keyof typeof t] || type}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
                       <Label>{t.frequency}</Label>
-                      <Select
-                        value={newStructure.frequency}
-                        onValueChange={(v) => setNewStructure({ ...newStructure, frequency: v })}
-                      >
-                        <SelectTrigger data-testid="select-frequency">
-                          <SelectValue />
-                        </SelectTrigger>
+                      <Select value={newStructure.frequency} onValueChange={v => setNewStructure({...newStructure, frequency: v})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {frequencies.map(freq => (
-                            <SelectItem key={freq} value={freq}>
-                              {t[freq as keyof typeof t] || freq}
-                            </SelectItem>
-                          ))}
+                          {frequencies.map(freq => <SelectItem key={freq} value={freq}>{t[freq as keyof typeof t] || freq}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
-
                   <div>
                     <Label>{t.dueDate}</Label>
-                    <Input
-                      type="date"
-                      value={newStructure.dueDate}
-                      onChange={(e) => setNewStructure({ ...newStructure, dueDate: e.target.value })}
-                      data-testid="input-due-date"
-                    />
-                  </div>
-
-                  <div className="border-t pt-4">
-                    <Label className="text-base font-semibold flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      {language === 'fr' ? 'Assignation (Classe / Élèves)' : 'Assignment (Class / Students)'}
-                    </Label>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {language === 'fr' ? 'Sélectionnez une classe ou des élèves spécifiques' : 'Select a class or specific students'}
-                    </p>
-                    
-                    <div className="space-y-3">
-                      <div>
-                        <Label>{t.selectClass}</Label>
-                        <Select
-                          value={newStructure.classId}
-                          onValueChange={(v) => {
-                            setNewStructure({ ...newStructure, classId: v });
-                            setSelectedClassId(v);
-                            setSelectedStudentIds([]);
-                          }}
-                        >
-                          <SelectTrigger data-testid="select-class">
-                            <SelectValue placeholder={language === 'fr' ? 'Toutes les classes' : 'All classes'} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">{language === 'fr' ? 'Toutes les classes' : 'All classes'}</SelectItem>
-                            {classes.map((cls: any) => (
-                              <SelectItem key={cls.id} value={cls.id.toString()}>{cls.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {filteredStudents.length > 0 && (
-                        <div>
-                          <div className="flex justify-between items-center mb-2">
-                            <Label>{language === 'fr' ? 'Élèves' : 'Students'} ({selectedStudentIds.length}/{filteredStudents.length})</Label>
-                            <div className="flex gap-2">
-                              <Button type="button" variant="outline" size="sm" onClick={selectAllStudents}>
-                                {language === 'fr' ? 'Tout sélectionner' : 'Select all'}
-                              </Button>
-                              <Button type="button" variant="outline" size="sm" onClick={deselectAllStudents}>
-                                {language === 'fr' ? 'Désélectionner' : 'Deselect all'}
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="border rounded-md max-h-40 overflow-y-auto p-2 space-y-1">
-                            {filteredStudents.map((student: Student) => {
-                              const studentId = student.id || student.studentId || 0;
-                              const studentName = `${student.firstName || student.first_name || ''} ${student.lastName || student.last_name || ''}`.trim();
-                              const isSelected = selectedStudentIds.includes(studentId);
-                              return (
-                                <div 
-                                  key={studentId}
-                                  className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${isSelected ? 'bg-blue-50 border border-blue-200' : ''}`}
-                                  onClick={() => toggleStudentSelection(studentId)}
-                                  data-testid={`student-checkbox-${studentId}`}
-                                >
-                                  <input 
-                                    type="checkbox" 
-                                    checked={isSelected}
-                                    onChange={() => {}}
-                                    className="h-4 w-4 accent-blue-600"
-                                  />
-                                  <span className="text-sm">{studentName || `Élève #${studentId}`}</span>
-                                  {student.parentName && (
-                                    <span className="text-xs text-muted-foreground ml-auto">
-                                      {language === 'fr' ? 'Parent:' : 'Parent:'} {student.parentName}
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="border-t pt-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <Label className="text-base font-semibold flex items-center gap-2">
-                        <Bell className="w-4 h-4" />
-                        {language === 'fr' ? 'Rappels Automatiques' : 'Automatic Reminders'}
-                      </Label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={newStructure.enableReminders}
-                          onChange={(e) => setNewStructure({ ...newStructure, enableReminders: e.target.checked })}
-                          className="h-4 w-4 accent-green-600"
-                        />
-                        <span className="text-sm">{language === 'fr' ? 'Activer' : 'Enable'}</span>
-                      </label>
-                    </div>
-
-                    {newStructure.enableReminders && (
-                      <div className="space-y-3 bg-green-50 p-3 rounded-lg">
-                        <div>
-                          <Label>{language === 'fr' ? 'Jours avant échéance' : 'Days before due date'}</Label>
-                          <Select
-                            value={newStructure.reminderDays}
-                            onValueChange={(v) => setNewStructure({ ...newStructure, reminderDays: v })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="3">3 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
-                              <SelectItem value="7">7 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
-                              <SelectItem value="14">14 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
-                              <SelectItem value="30">30 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>{language === 'fr' ? 'Canaux de notification' : 'Notification channels'}</Label>
-                          <div className="flex flex-wrap gap-3 mt-2">
-                            {['email', 'whatsapp', 'pwa'].map(channel => (
-                              <label key={channel} className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={newStructure.reminderChannels.includes(channel)}
-                                  onChange={(e) => {
-                                    const channels = e.target.checked
-                                      ? [...newStructure.reminderChannels, channel]
-                                      : newStructure.reminderChannels.filter(c => c !== channel);
-                                    setNewStructure({ ...newStructure, reminderChannels: channels });
-                                  }}
-                                  className="h-4 w-4 accent-green-600"
-                                />
-                                <span className="text-sm capitalize">{channel === 'pwa' ? 'Push (PWA)' : channel}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <Input type="date" value={newStructure.dueDate} onChange={e => setNewStructure({...newStructure, dueDate: e.target.value})} />
                   </div>
                 </div>
-                <DialogFooter className="gap-2">
+                <DialogFooter>
                   <Button variant="outline" onClick={() => setShowCreateDialog(false)}>{t.cancel}</Button>
-                  <Button 
-                    onClick={handleCreateStructure} 
-                    disabled={createStructureMutation.isPending || !newStructure.name || !newStructure.amount} 
-                    data-testid="btn-save-structure"
-                  >
-                    {createStructureMutation.isPending ? (
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Plus className="w-4 h-4 mr-2" />
-                    )}
-                    {t.save}
+                  <Button onClick={() => createStructureMutation.mutate(newStructure)} disabled={createStructureMutation.isPending}>
+                    {createStructureMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin" /> : t.save}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -1140,48 +581,26 @@ export default function FeesManagement() {
                 </TableHeader>
                 <TableBody>
                   {structuresLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center">{t.loading}</TableCell>
-                    </TableRow>
-                  ) : structures?.length > 0 ? (
-                    structures.map((structure: any) => (
-                      <TableRow key={structure.id} data-testid={`structure-row-${structure.id}`}>
-                        <TableCell className="font-medium">{structure.name}</TableCell>
-                        <TableCell>{t[structure.feeType as keyof typeof t] || structure.feeType}</TableCell>
-                        <TableCell>{formatCurrency(structure.amount)}</TableCell>
-                        <TableCell>{t[structure.frequency as keyof typeof t] || structure.frequency}</TableCell>
-                        <TableCell>
-                          <Badge variant={structure.isActive ? 'default' : 'secondary'}>
-                            {structure.isActive ? 'Actif' : 'Inactif'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handlePrintStructure(structure)}
-                              title={language === 'fr' ? 'Imprimer' : 'Print'}
-                              data-testid={`btn-print-structure-${structure.id}`}
-                            >
-                              <Printer className="w-4 h-4 text-blue-500" />
-                            </Button>
-                            <Button variant="ghost" size="sm" title={language === 'fr' ? 'Modifier' : 'Edit'}>
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" title={language === 'fr' ? 'Supprimer' : 'Delete'}>
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
-                        {t.noData}
+                    <TableRow><TableCell colSpan={6} className="text-center">{t.loading}</TableCell></TableRow>
+                  ) : structures.length > 0 ? structures.map((s: any) => (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-medium">{s.name}</TableCell>
+                      <TableCell>{t[s.feeType as keyof typeof t] || s.feeType}</TableCell>
+                      <TableCell>{formatCurrency(s.amount)}</TableCell>
+                      <TableCell>{t[s.frequency as keyof typeof t] || s.frequency}</TableCell>
+                      <TableCell><Badge variant={s.isActive ? 'default' : 'secondary'}>{s.isActive ? 'Actif' : 'Inactif'}</Badge></TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handlePrintStructure(s)} title={t.printStructure}>
+                            <Printer className="w-4 h-4 text-blue-600" />
+                          </Button>
+                          <Button variant="ghost" size="sm"><Edit className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="sm"><Trash2 className="w-4 h-4 text-red-500" /></Button>
+                        </div>
                       </TableCell>
                     </TableRow>
+                  )) : (
+                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">{t.noData}</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -1189,502 +608,253 @@ export default function FeesManagement() {
           </Card>
         </TabsContent>
 
+        {/* ASSIGNED FEES - WITH REMINDERS */}
         <TabsContent value="assigned" className="space-y-4">
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <Select value={filterClass} onValueChange={setFilterClass}>
+                    <SelectTrigger className="w-[140px] bg-white"><SelectValue placeholder={t.filterByClass} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t.all}</SelectItem>
+                      {classes.map((c: any) => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-[140px] bg-white"><SelectValue placeholder={t.filterByStatus} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t.all}</SelectItem>
+                      <SelectItem value="pending">{t.pending}</SelectItem>
+                      <SelectItem value="partial">{t.partial}</SelectItem>
+                      <SelectItem value="overdue">{t.overdue}</SelectItem>
+                      <SelectItem value="paid">{t.paid}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm text-blue-700">{selectedFeeIds.length} {t.selectedCount}</span>
+                  <Button size="sm" variant="outline" onClick={selectAllFees} className="bg-white">
+                    <CheckCircle className="w-4 h-4 mr-1" />{t.selectAll}
+                  </Button>
+                  <Button size="sm" onClick={handleBulkReminder} disabled={selectedFeeIds.length === 0} className="bg-orange-500 hover:bg-orange-600 text-white">
+                    <Bell className="w-4 h-4 mr-1" />{t.bulkReminder}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
-            <CardHeader>
-              <CardTitle>{t.assigned}</CardTitle>
-            </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10"></TableHead>
                     <TableHead>{t.student}</TableHead>
                     <TableHead>{t.name}</TableHead>
                     <TableHead>{t.amount}</TableHead>
                     <TableHead>{t.balance}</TableHead>
-                    <TableHead>{t.dueDate}</TableHead>
                     <TableHead>{t.status}</TableHead>
                     <TableHead>{t.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {assignedLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center">{t.loading}</TableCell>
-                    </TableRow>
-                  ) : assignedFees?.length > 0 ? (
-                    assignedFees.map((fee: any) => (
-                      <TableRow key={fee.id} data-testid={`assigned-row-${fee.id}`}>
-                        <TableCell className="font-medium">
-                          {fee.studentFirstName} {fee.studentLastName}
-                        </TableCell>
-                        <TableCell>{fee.structureName}</TableCell>
-                        <TableCell>{formatCurrency(fee.finalAmount)}</TableCell>
-                        <TableCell className={fee.balanceAmount > 0 ? 'text-orange-600' : 'text-green-600'}>
-                          {formatCurrency(fee.balanceAmount)}
-                        </TableCell>
-                        <TableCell>
-                          {fee.dueDate ? new Date(fee.dueDate).toLocaleDateString() : '-'}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(fee.status)}</TableCell>
-                        <TableCell>
+                    <TableRow><TableCell colSpan={7} className="text-center">{t.loading}</TableCell></TableRow>
+                  ) : filteredFees.length > 0 ? filteredFees.map((fee: any) => (
+                    <TableRow key={fee.id} className={selectedFeeIds.includes(fee.id) ? 'bg-blue-50' : ''}>
+                      <TableCell>
+                        <Checkbox 
+                          checked={selectedFeeIds.includes(fee.id)} 
+                          onCheckedChange={() => toggleFeeSelection(fee.id)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{fee.studentFirstName} {fee.studentLastName}</div>
+                          {fee.parentPhone && <div className="text-xs text-muted-foreground">{fee.parentPhone}</div>}
+                        </div>
+                      </TableCell>
+                      <TableCell>{fee.structureName}</TableCell>
+                      <TableCell>{formatCurrency(fee.finalAmount)}</TableCell>
+                      <TableCell className={fee.balanceAmount > 0 ? 'text-red-600 font-bold' : 'text-green-600'}>
+                        {formatCurrency(fee.balanceAmount)}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(fee.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1 flex-wrap">
                           {fee.balanceAmount > 0 && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                setSelectedStudent(fee);
-                                setPaymentData({ ...paymentData, amount: fee.balanceAmount.toString() });
-                                setShowPaymentDialog(true);
-                              }}
-                              data-testid={`btn-pay-${fee.id}`}
-                            >
-                              <CreditCard className="w-4 h-4 mr-1" />
-                              {t.recordPayment}
+                            <Button variant="outline" size="sm" onClick={() => { setSelectedFee(fee); setPaymentData({...paymentData, amount: fee.balanceAmount.toString()}); setShowPaymentDialog(true); }} title={t.recordPayment}>
+                              <CreditCard className="w-4 h-4 text-green-600" />
                             </Button>
                           )}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground">
-                        {t.noData}
+                          <Button variant="outline" size="sm" onClick={() => handleSendReminder(fee)} title={t.sendReminder}>
+                            <Send className="w-4 h-4 text-orange-500" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handlePrintReminder(fee)} title={t.printReminder}>
+                            <Printer className="w-4 h-4 text-purple-600" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handlePrintReceipt(fee)} title={t.printReceipt}>
+                            <Printer className="w-4 h-4 text-blue-600" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
+                  )) : (
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">{t.noData}</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
 
+          {/* Payment Dialog */}
           <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
             <DialogContent className="bg-white">
               <DialogHeader>
                 <DialogTitle>{t.recordPayment}</DialogTitle>
-                <DialogDescription>
-                  {selectedStudent?.studentFirstName} {selectedStudent?.studentLastName} - {selectedStudent?.structureName}
-                </DialogDescription>
+                <DialogDescription>{selectedFee?.studentFirstName} {selectedFee?.studentLastName} - {selectedFee?.structureName}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>{t.amount}</Label>
-                  <Input
-                    type="number"
-                    value={paymentData.amount}
-                    onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
-                    data-testid="input-payment-amount"
-                  />
+                  <Label>{t.amount} (CFA)</Label>
+                  <Input type="number" value={paymentData.amount} onChange={e => setPaymentData({...paymentData, amount: e.target.value})} />
                 </div>
                 <div>
                   <Label>{t.paymentMethod}</Label>
-                  <Select
-                    value={paymentData.paymentMethod}
-                    onValueChange={(v) => setPaymentData({ ...paymentData, paymentMethod: v })}
-                  >
-                    <SelectTrigger data-testid="select-payment-method">
-                      <SelectValue />
-                    </SelectTrigger>
+                  <Select value={paymentData.paymentMethod} onValueChange={v => setPaymentData({...paymentData, paymentMethod: v})}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="cash">{t.cash}</SelectItem>
                       <SelectItem value="bank">{t.bank}</SelectItem>
                       <SelectItem value="mtn_momo">{t.mtnMomo}</SelectItem>
                       <SelectItem value="orange_money">{t.orangeMoney}</SelectItem>
-                      <SelectItem value="stripe">{t.card}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label>{t.transactionRef}</Label>
-                  <Input
-                    value={paymentData.transactionRef}
-                    onChange={(e) => setPaymentData({ ...paymentData, transactionRef: e.target.value })}
-                    data-testid="input-transaction-ref"
-                  />
+                  <Input value={paymentData.transactionRef} onChange={e => setPaymentData({...paymentData, transactionRef: e.target.value})} />
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>{t.cancel}</Button>
-                <Button onClick={handleRecordPayment} disabled={recordPaymentMutation.isPending} data-testid="btn-save-payment">
-                  {t.save}
+                <Button onClick={() => recordPaymentMutation.mutate({ ...paymentData, studentId: selectedFee?.studentId, assignedFeeId: selectedFee?.id })} disabled={recordPaymentMutation.isPending}>
+                  {recordPaymentMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin" /> : t.save}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Reminder Dialog */}
+          <Dialog open={showReminderDialog} onOpenChange={setShowReminderDialog}>
+            <DialogContent className="bg-white">
+              <DialogHeader>
+                <DialogTitle>{t.sendReminder}</DialogTitle>
+                <DialogDescription>
+                  {selectedFeeIds.length === 1 
+                    ? `${selectedFee?.studentFirstName} ${selectedFee?.studentLastName}`
+                    : `${selectedFeeIds.length} ${language === 'fr' ? 'élèves sélectionnés' : 'students selected'}`
+                  }
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Label>{t.channels}</Label>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <Switch checked={reminderChannels.email} onCheckedChange={v => setReminderChannels({...reminderChannels, email: v})} />
+                    <Mail className="w-4 h-4 text-blue-600" /><span>{t.email}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Switch checked={reminderChannels.whatsapp} onCheckedChange={v => setReminderChannels({...reminderChannels, whatsapp: v})} />
+                    <MessageSquare className="w-4 h-4 text-green-600" /><span>{t.whatsapp}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Switch checked={reminderChannels.pwa} onCheckedChange={v => setReminderChannels({...reminderChannels, pwa: v})} />
+                    <Smartphone className="w-4 h-4 text-purple-600" /><span>{t.pwa}</span>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowReminderDialog(false)}>{t.cancel}</Button>
+                <Button onClick={confirmSendReminders} disabled={sendReminderMutation.isPending} className="bg-orange-500 hover:bg-orange-600">
+                  {sendReminderMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4 mr-1" />{t.sendReminder}</>}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </TabsContent>
 
-        <TabsContent value="payments" className="space-y-4">
-          {/* Maintenance Banner */}
-          <Card className="border-orange-300 bg-orange-50">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Wrench className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-medium text-orange-800 flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4" />
-                    {t.maintenanceMode}
-                  </h4>
-                  <p className="text-sm text-orange-700 mt-1">{t.onlinePaymentMaintenance}</p>
-                  <p className="text-sm text-orange-600">{t.manualPaymentOnly}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.payments}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t.student}</TableHead>
-                    <TableHead>{t.amount}</TableHead>
-                    <TableHead>{t.paymentMethod}</TableHead>
-                    <TableHead>{t.status}</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>{t.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paymentsLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center">{t.loading}</TableCell>
-                    </TableRow>
-                  ) : payments?.length > 0 ? (
-                    payments.map((payment: any) => (
-                      <TableRow key={payment.id} data-testid={`payment-row-${payment.id}`}>
-                        <TableCell className="font-medium">
-                          {payment.studentFirstName} {payment.studentLastName}
-                        </TableCell>
-                        <TableCell>{formatCurrency(parseInt(payment.amount))}</TableCell>
-                        <TableCell>
-                          {t[payment.paymentMethod?.replace('_', '') as keyof typeof t] || payment.paymentMethod}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={payment.status === 'completed' ? 'default' : 'secondary'}>
-                            {payment.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : '-'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handlePrintReceipt(payment)}
-                              title={t.printReceipt}
-                              data-testid={`btn-print-${payment.id}`}
-                            >
-                              <Printer className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleNotifyParent(payment)}
-                              title={t.notifyParent}
-                              data-testid={`btn-notify-${payment.id}`}
-                            >
-                              <MessageSquare className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
-                        {t.noData}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* REPORTS TAB */}
+        {/* REPORTS */}
         <TabsContent value="reports" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileBarChart className="h-5 w-5" />
-                {t.generateReport}
-              </CardTitle>
-              <CardDescription>
-                {language === 'fr' ? 'Générer des rapports de recouvrement et de paiements' : 'Generate collection and payment reports'}
-              </CardDescription>
+              <CardTitle>{t.reports}</CardTitle>
+              <CardDescription>{language === 'fr' ? 'Générer et exporter des rapports' : 'Generate and export reports'}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <Label>{t.filterByClass}</Label>
-                  <Select defaultValue="all">
-                    <SelectTrigger data-testid="report-class-filter">
-                      <SelectValue placeholder={t.selectClass} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t.all}</SelectItem>
-                      {classes?.map((cls: any) => (
-                        <SelectItem key={cls.id} value={cls.id.toString()}>{cls.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>{t.filterByStatus}</Label>
-                  <Select defaultValue="all">
-                    <SelectTrigger data-testid="report-status-filter">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t.all}</SelectItem>
-                      <SelectItem value="paid">{t.paid}</SelectItem>
-                      <SelectItem value="pending">{t.pending}</SelectItem>
-                      <SelectItem value="overdue">{t.overdue}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>{t.dateRange}</Label>
-                  <Select defaultValue="thisMonth">
-                    <SelectTrigger data-testid="report-date-filter">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="thisMonth">{t.thisMonth}</SelectItem>
-                      <SelectItem value="lastMonth">{t.lastMonth}</SelectItem>
-                      <SelectItem value="thisYear">{t.thisYear}</SelectItem>
-                      <SelectItem value="all">{t.all}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-end gap-2">
-                  <Button variant="outline" className="flex-1" data-testid="btn-export-excel">
-                    <Download className="w-4 h-4 mr-2" />
-                    Excel
-                  </Button>
-                  <Button variant="outline" className="flex-1" data-testid="btn-export-pdf">
-                    <FileText className="w-4 h-4 mr-2" />
-                    PDF
-                  </Button>
-                </div>
+              <div className="flex flex-wrap gap-4">
+                <Select defaultValue="all">
+                  <SelectTrigger className="w-[150px]"><SelectValue placeholder={t.filterByClass} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t.all}</SelectItem>
+                    {classes.map((c: any) => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select defaultValue="thisMonth">
+                  <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="thisMonth">{t.thisMonth}</SelectItem>
+                    <SelectItem value="lastMonth">{t.lastMonth}</SelectItem>
+                    <SelectItem value="thisYear">{t.thisYear}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline"><Download className="w-4 h-4 mr-1" />{t.exportExcel}</Button>
+                <Button variant="outline"><Download className="w-4 h-4 mr-1" />{t.exportPdf}</Button>
               </div>
             </CardContent>
           </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="cursor-pointer hover:border-green-500 transition-colors" data-testid="card-collection-report">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-600">
-                  <TrendingUp className="h-5 w-5" />
-                  {t.collectionReport}
-                </CardTitle>
-                <CardDescription>
-                  {language === 'fr' ? 'Voir le taux de recouvrement par classe et par mois' : 'View collection rate by class and month'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>{t.totalExpected}</span>
-                    <span className="font-bold">{formatCurrency(stats?.totalExpected || 0)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>{t.totalCollected}</span>
-                    <span className="font-bold text-green-600">{formatCurrency(stats?.totalCollected || 0)}</span>
-                  </div>
-                  <Progress value={stats?.collectionRate || 0} className="mt-2" />
-                  <p className="text-xs text-center text-muted-foreground">{stats?.collectionRate || 0}% {language === 'fr' ? 'recouvré' : 'collected'}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="cursor-pointer hover:border-red-500 transition-colors" data-testid="card-defaulters-report">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-red-600">
-                  <AlertTriangle className="h-5 w-5" />
-                  {t.defaultersReport}
-                </CardTitle>
-                <CardDescription>
-                  {language === 'fr' ? 'Liste des élèves en retard de paiement' : 'List of students with overdue payments'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>{t.studentsInArrears}</span>
-                    <span className="font-bold text-red-600">{stats?.studentsInArrears || 0}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>{t.outstanding}</span>
-                    <span className="font-bold text-orange-600">{formatCurrency(stats?.totalOutstanding || stats?.outstanding || 0)}</span>
-                  </div>
-                  <Button variant="outline" className="w-full mt-2" data-testid="btn-view-defaulters">
-                    <Download className="w-4 h-4 mr-2" />
-                    {t.exportReport}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
-        {/* SETTINGS TAB */}
+        {/* SETTINGS */}
         <TabsContent value="settings" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  {t.paymentMethods}
-                </CardTitle>
-                <CardDescription>
-                  {language === 'fr' ? 'Configurer les modes de paiement acceptés' : 'Configure accepted payment methods'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                      <span className="text-yellow-600 font-bold text-xs">MTN</span>
-                    </div>
-                    <div>
-                      <p className="font-medium">MTN Mobile Money</p>
-                      <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Paiement mobile' : 'Mobile payment'}</p>
-                    </div>
-                  </div>
-                  <Badge variant="default" className="bg-green-600">{language === 'fr' ? 'Actif' : 'Active'}</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <span className="text-orange-600 font-bold text-xs">OM</span>
-                    </div>
-                    <div>
-                      <p className="font-medium">Orange Money</p>
-                      <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Paiement mobile' : 'Mobile payment'}</p>
-                    </div>
-                  </div>
-                  <Badge variant="default" className="bg-green-600">{language === 'fr' ? 'Actif' : 'Active'}</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <CreditCard className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Stripe</p>
-                      <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Carte bancaire' : 'Bank card'}</p>
-                    </div>
-                  </div>
-                  <Badge variant="secondary">{language === 'fr' ? 'Config requise' : 'Setup required'}</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <DollarSign className="w-5 h-5 text-gray-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{t.cash}</p>
-                      <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Paiement en espèces' : 'Cash payment'}</p>
-                    </div>
-                  </div>
-                  <Badge variant="default" className="bg-green-600">{language === 'fr' ? 'Actif' : 'Active'}</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Percent className="h-5 w-5" />
-                  {t.discountSettings}
-                </CardTitle>
-                <CardDescription>
-                  {language === 'fr' ? 'Configurer les remises et pénalités' : 'Configure discounts and penalties'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>{t.siblingDiscount}</Label>
-                  <div className="flex items-center gap-2">
-                    <Input type="number" defaultValue="10" className="w-20" data-testid="input-sibling-discount" />
-                    <span className="text-muted-foreground">%</span>
-                    <p className="text-xs text-muted-foreground flex-1">
-                      {language === 'fr' ? 'Appliqué au 2ème enfant et plus' : 'Applied to 2nd child and more'}
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>{t.scholarshipDiscount}</Label>
-                  <div className="flex items-center gap-2">
-                    <Input type="number" defaultValue="25" className="w-20" data-testid="input-scholarship-discount" />
-                    <span className="text-muted-foreground">%</span>
-                    <p className="text-xs text-muted-foreground flex-1">
-                      {language === 'fr' ? 'Pour les boursiers' : 'For scholarship students'}
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>{t.latePaymentPenalty}</Label>
-                  <div className="flex items-center gap-2">
-                    <Input type="number" defaultValue="5" className="w-20" data-testid="input-late-penalty" />
-                    <span className="text-muted-foreground">%</span>
-                    <p className="text-xs text-muted-foreground flex-1">
-                      {language === 'fr' ? 'Après 30 jours de retard' : 'After 30 days overdue'}
-                    </p>
-                  </div>
-                </div>
-                <Button className="w-full mt-4" data-testid="btn-save-settings">
-                  {t.save}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                {t.autoReminders}
-              </CardTitle>
-              <CardDescription>
-                {language === 'fr' ? 'Configurer les rappels automatiques' : 'Configure automatic reminders'}
-              </CardDescription>
+              <CardTitle>{t.settings}</CardTitle>
+              <CardDescription>{language === 'fr' ? 'Configuration des notifications et rappels automatiques' : 'Configure notifications and automatic reminders'}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 space-y-2">
-                  <Label>{t.reminderDaysBefore}</Label>
-                  <Select defaultValue="3">
-                    <SelectTrigger data-testid="select-reminder-days">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 {language === 'fr' ? 'jour' : 'day'}</SelectItem>
-                      <SelectItem value="3">3 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
-                      <SelectItem value="7">7 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
-                      <SelectItem value="14">14 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-blue-600" />
+                  <span>{language === 'fr' ? 'Rappels par Email' : 'Email Reminders'}</span>
                 </div>
-                <div className="flex items-end">
-                  <Badge variant="default" className="bg-green-600 py-2">
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    {language === 'fr' ? 'Rappels activés' : 'Reminders enabled'}
-                  </Badge>
-                </div>
+                <Switch defaultChecked />
               </div>
-              <p className="text-sm text-muted-foreground">
-                {language === 'fr' 
-                  ? 'Les rappels sont envoyés automatiquement par email et WhatsApp aux parents des élèves dont les frais arrivent à échéance.'
-                  : 'Reminders are automatically sent via email and WhatsApp to parents of students with fees due soon.'}
-              </p>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <MessageSquare className="w-5 h-5 text-green-600" />
+                  <span>{language === 'fr' ? 'Rappels WhatsApp' : 'WhatsApp Reminders'}</span>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Smartphone className="w-5 h-5 text-purple-600" />
+                  <span>{language === 'fr' ? 'Notifications Push' : 'Push Notifications'}</span>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-orange-600" />
+                  <span>{language === 'fr' ? 'Rappels automatiques (7 jours avant échéance)' : 'Auto reminders (7 days before due)'}</span>
+                </div>
+                <Switch defaultChecked />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
