@@ -8,10 +8,10 @@ import {
   feeReceipts,
   feeNotificationQueue,
   payments,
-  students,
   users,
   classes,
-  enrollments
+  enrollments,
+  notifications
 } from '@shared/schema';
 import { eq, and, desc, sql, gte, lte, inArray, isNull, or } from 'drizzle-orm';
 import { nanoid } from 'nanoid';

@@ -133,6 +133,7 @@ import canteenRoutes from "./routes/canteenRoutes";
 import busRoutes from "./routes/busRoutes";
 import schoolLevelsRoutes from "./routes/schoolLevelsRoutes";
 import syncRoutes from "./routes/sync";
+import feesRoutes from "./routes/feesRoutes";
 
 // Import new PDF generators routes
 import masterSheetsRouter from "./routes/api/master-sheets";
@@ -11435,6 +11436,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // School bus tracking (routes, stations, student enrollment)
   app.use('/api/bus', busRoutes);
+  
+  // School fees management (fee structures, assignments, payments)
+  app.use('/api/fees', feesRoutes);
   
   // Add missing API endpoints for payments and commercial leads
   app.get('/api/payments', (req, res) => {
