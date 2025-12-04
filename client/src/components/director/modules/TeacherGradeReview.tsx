@@ -278,6 +278,14 @@ export default function TeacherGradeReview() {
       return apiRequest('POST', `/api/director/teacher-grade-submissions/${id}/approve`, { feedback });
     },
     onSuccess: () => {
+      // ✅ FIX: Invalidate ALL teacher-grade-submissions queries to ensure approved grades refresh everywhere
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && key[0]?.toString().includes('teacher-grade-submissions');
+        }
+      });
+      // Also invalidate direct queries
       queryClient.invalidateQueries({ queryKey: ['/api/director/teacher-grade-submissions'] });
       toast({
         title: t.approvedSuccessfully,
@@ -325,6 +333,13 @@ export default function TeacherGradeReview() {
       return apiRequest('POST', '/api/director/teacher-grade-submissions/bulk-approve', { submissionIds });
     },
     onSuccess: (data: any) => {
+      // ✅ FIX: Invalidate ALL teacher-grade-submissions queries to ensure approved grades refresh everywhere
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && key[0]?.toString().includes('teacher-grade-submissions');
+        }
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/director/teacher-grade-submissions'] });
       const approvedCount = data.approvedCount || selectedSubmissions.size;
       toast({

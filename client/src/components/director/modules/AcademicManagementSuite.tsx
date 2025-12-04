@@ -1985,13 +1985,25 @@ export default function AcademicManagementSuite() {
     queryKey: ['/api/director/classes'],
   });
 
-  // Fetch students for transcript selection
+  // Fetch students for transcript selection - FILTER BY SELECTED CLASS
   const { data: studentsData } = useQuery({
-    queryKey: ['/api/director/students'],
+    queryKey: ['/api/director/students', selectedClass],
+    queryFn: () => {
+      const url = selectedClass 
+        ? `/api/director/students?classId=${selectedClass}`
+        : '/api/director/students';
+      return fetch(url, { credentials: 'include' }).then(res => res.json());
+    },
+    enabled: true
   });
 
   const classes = (classesData as any)?.classes || [];
   const students = (studentsData as any)?.students || [];
+  
+  // Reset selected student when class changes
+  React.useEffect(() => {
+    setSelectedStudentId('');
+  }, [selectedClass]);
   
   // Get the selected class name for display
   const selectedClassName = classes.find((c: any) => c.id.toString() === selectedClass)?.name || '';
