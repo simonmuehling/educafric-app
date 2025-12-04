@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, CheckCircle, XCircle, AlertCircle, FileText, CreditCard, User, School, Calendar } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Search, CheckCircle, XCircle, AlertCircle, FileText, CreditCard, User, School, Calendar, Camera, X, QrCode } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface VerificationResult {
   success: boolean;
@@ -58,6 +60,73 @@ export default function Verify() {
   const [language, setLanguage] = useState<'fr' | 'en'>('fr');
   const [activeTab, setActiveTab] = useState<'bulletin' | 'idcard'>('bulletin');
   
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scannerTarget, setScannerTarget] = useState<'bulletin' | 'idcard'>('bulletin');
+  const [scannerError, setScannerError] = useState<string | null>(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+  const scannerContainerRef = useRef<HTMLDivElement>(null);
+  
+  const startScanner = async (target: 'bulletin' | 'idcard') => {
+    setScannerTarget(target);
+    setScannerError(null);
+    setIsScannerOpen(true);
+    
+    setTimeout(async () => {
+      try {
+        if (!html5QrCodeRef.current) {
+          html5QrCodeRef.current = new Html5Qrcode('qr-reader');
+        }
+        
+        await html5QrCodeRef.current.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            console.log('[QR_SCAN] Scanned:', decodedText);
+            handleQRScanSuccess(decodedText, target);
+          },
+          (errorMessage) => {
+          }
+        );
+      } catch (err: any) {
+        console.error('[QR_SCAN] Error starting scanner:', err);
+        setScannerError(err?.message || 'Impossible d\'accéder à la caméra');
+      }
+    }, 300);
+  };
+  
+  const stopScanner = async () => {
+    try {
+      if (html5QrCodeRef.current) {
+        const isScanning = html5QrCodeRef.current.isScanning;
+        if (isScanning) {
+          await html5QrCodeRef.current.stop();
+        }
+      }
+    } catch (err) {
+      console.error('[QR_SCAN] Error stopping scanner:', err);
+    }
+    setIsScannerOpen(false);
+  };
+  
+  const handleQRScanSuccess = async (decodedText: string, target: 'bulletin' | 'idcard') => {
+    await stopScanner();
+    
+    if (target === 'bulletin') {
+      const params = new URLSearchParams(decodedText.split('?')[1] || '');
+      const code = params.get('code') || decodedText;
+      setVerificationCode(code);
+      setTimeout(() => searchBulletin(code), 300);
+    } else {
+      let code = decodedText;
+      if (decodedText.includes('?')) {
+        const params = new URLSearchParams(decodedText.split('?')[1]);
+        code = params.get('code') || params.get('id') || decodedText;
+      }
+      setCardCode(code);
+      setTimeout(() => verifyIDCard(code), 300);
+    }
+  };
+  
   // Check URL for type parameter
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -74,6 +143,12 @@ export default function Verify() {
       setVerificationCode(code);
       setTimeout(() => searchBulletin(code), 500);
     }
+    
+    return () => {
+      if (html5QrCodeRef.current?.isScanning) {
+        html5QrCodeRef.current.stop().catch(() => {});
+      }
+    };
   }, []);
 
   const searchBulletin = async (codeToSearch?: string) => {
@@ -193,7 +268,12 @@ export default function Verify() {
       female: 'Féminin',
       notProvided: 'Non renseigné',
       cardVerified: 'Carte Authentique',
-      cardNotFound: 'Carte non trouvée'
+      cardNotFound: 'Carte non trouvée',
+      scanQR: 'Scanner QR',
+      scannerTitle: 'Scanner le Code QR',
+      scannerHint: 'Placez le code QR dans le cadre',
+      closeScanner: 'Fermer',
+      cameraError: 'Erreur de caméra'
     },
     en: {
       pageTitle: 'EDUCAFRIC Verification',
@@ -234,7 +314,12 @@ export default function Verify() {
       female: 'Female',
       notProvided: 'Not provided',
       cardVerified: 'Authentic Card',
-      cardNotFound: 'Card not found'
+      cardNotFound: 'Card not found',
+      scanQR: 'Scan QR',
+      scannerTitle: 'Scan QR Code',
+      scannerHint: 'Position the QR code within the frame',
+      closeScanner: 'Close',
+      cameraError: 'Camera error'
     }
   };
 
@@ -296,26 +381,40 @@ export default function Verify() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-4 items-end">
-                  <div className="flex-1">
-                    <Label htmlFor="code">{labels.codeLabel}</Label>
-                    <Input
-                      id="code"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value)}
-                      placeholder={labels.codePlaceholder}
-                      onKeyPress={handleKeyPress}
-                      className="mt-1"
-                      data-testid="input-verification-code"
-                    />
+                <div className="flex flex-col gap-4">
+                  <div className="flex gap-4 items-end">
+                    <div className="flex-1">
+                      <Label htmlFor="code">{labels.codeLabel}</Label>
+                      <Input
+                        id="code"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        placeholder={labels.codePlaceholder}
+                        onKeyPress={handleKeyPress}
+                        className="mt-1"
+                        data-testid="input-verification-code"
+                      />
+                    </div>
+                    <Button 
+                      onClick={() => searchBulletin()}
+                      disabled={isSearching || !verificationCode.trim()}
+                      data-testid="button-verify"
+                    >
+                      {isSearching ? labels.searching : labels.searchButton}
+                    </Button>
                   </div>
-                  <Button 
-                    onClick={() => searchBulletin()}
-                    disabled={isSearching || !verificationCode.trim()}
-                    data-testid="button-verify"
-                  >
-                    {isSearching ? labels.searching : labels.searchButton}
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button 
+                      variant="outline"
+                      onClick={() => startScanner('bulletin')}
+                      className="flex items-center gap-2 border-blue-300 text-blue-600 hover:bg-blue-50"
+                      data-testid="button-scan-bulletin"
+                    >
+                      <Camera className="w-5 h-5" />
+                      <QrCode className="w-4 h-4" />
+                      {labels.scanQR}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -331,27 +430,41 @@ export default function Verify() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-4 items-end">
-                  <div className="flex-1">
-                    <Label htmlFor="cardCode">{labels.cardLabel}</Label>
-                    <Input
-                      id="cardCode"
-                      value={cardCode}
-                      onChange={(e) => setCardCode(e.target.value)}
-                      placeholder={labels.cardPlaceholder}
-                      onKeyPress={handleKeyPress}
-                      className="mt-1"
-                      data-testid="input-card-code"
-                    />
+                <div className="flex flex-col gap-4">
+                  <div className="flex gap-4 items-end">
+                    <div className="flex-1">
+                      <Label htmlFor="cardCode">{labels.cardLabel}</Label>
+                      <Input
+                        id="cardCode"
+                        value={cardCode}
+                        onChange={(e) => setCardCode(e.target.value)}
+                        placeholder={labels.cardPlaceholder}
+                        onKeyPress={handleKeyPress}
+                        className="mt-1"
+                        data-testid="input-card-code"
+                      />
+                    </div>
+                    <Button 
+                      onClick={() => verifyIDCard()}
+                      disabled={isSearching || !cardCode.trim()}
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                      data-testid="button-verify-card"
+                    >
+                      {isSearching ? labels.searching : labels.searchButton}
+                    </Button>
                   </div>
-                  <Button 
-                    onClick={() => verifyIDCard()}
-                    disabled={isSearching || !cardCode.trim()}
-                    className="bg-emerald-600 hover:bg-emerald-700"
-                    data-testid="button-verify-card"
-                  >
-                    {isSearching ? labels.searching : labels.searchButton}
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button 
+                      variant="outline"
+                      onClick={() => startScanner('idcard')}
+                      className="flex items-center gap-2 border-emerald-300 text-emerald-600 hover:bg-emerald-50"
+                      data-testid="button-scan-idcard"
+                    >
+                      <Camera className="w-5 h-5" />
+                      <QrCode className="w-4 h-4" />
+                      {labels.scanQR}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -630,6 +743,49 @@ export default function Verify() {
         </div>
 
       </div>
+      
+      {/* QR Scanner Dialog */}
+      <Dialog open={isScannerOpen} onOpenChange={(open) => !open && stopScanner()}>
+        <DialogContent className="sm:max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode className="w-5 h-5 text-emerald-600" />
+              {labels.scannerTitle}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex flex-col items-center gap-4">
+            <div 
+              id="qr-reader" 
+              ref={scannerContainerRef}
+              className="w-full max-w-sm rounded-lg overflow-hidden bg-gray-100"
+              style={{ minHeight: '300px' }}
+            />
+            
+            {scannerError ? (
+              <div className="text-center p-4 bg-red-50 rounded-lg w-full">
+                <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                <p className="text-red-600 font-medium">{labels.cameraError}</p>
+                <p className="text-sm text-red-500 mt-1">{scannerError}</p>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm text-center">
+                {labels.scannerHint}
+              </p>
+            )}
+            
+            <Button 
+              variant="outline" 
+              onClick={stopScanner}
+              className="w-full flex items-center justify-center gap-2"
+              data-testid="button-close-scanner"
+            >
+              <X className="w-4 h-4" />
+              {labels.closeScanner}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
