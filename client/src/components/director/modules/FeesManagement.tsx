@@ -296,6 +296,7 @@ export default function FeesManagement() {
   const payments = (paymentsData as any)?.payments || [];
   const allStudents: Student[] = Array.isArray(studentsData) ? studentsData : ((studentsData as any)?.students || []);
   const school = (schoolSettings as any)?.settings?.school || (schoolSettings as any)?.school || {};
+  const schoolLogoUrl = (schoolSettings as any)?.settings?.profile?.logoUrl || (schoolSettings as any)?.settings?.school?.logoUrl || school?.logoUrl || null;
 
   const filteredStudentsByClass = feeForm.classId && feeForm.classId !== 'all'
     ? allStudents.filter(s => s.classId?.toString() === feeForm.classId)
@@ -478,12 +479,14 @@ export default function FeesManagement() {
     if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
     
     const className = classes.find((c: any) => c.id === fee.classId)?.name || 'Toutes les classes';
+    const logoHtml = schoolLogoUrl ? `<img src="${schoolLogoUrl}" alt="Logo" style="width:80px;height:80px;object-fit:contain;margin-bottom:10px;">` : '';
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
       <title>Tarif - ${fee.name}</title>
       <style>
         body { font-family: Arial, sans-serif; padding: 40px; max-width: 500px; margin: 0 auto; }
         .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
         .header-official { font-size: 11px; margin-bottom: 10px; }
+        .school-logo { margin-bottom: 10px; }
         .school-name { font-size: 24px; font-weight: bold; color: #1a365d; }
         .title { font-size: 18px; font-weight: bold; margin: 20px 0; padding: 10px; background: #1a365d; color: white; text-align: center; }
         .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #ddd; }
@@ -497,8 +500,10 @@ export default function FeesManagement() {
     </head><body>
       <div class="header">
         <div class="header-official">RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON</div>
+        <div class="school-logo">${logoHtml}</div>
         <div class="school-name">${school?.name || 'EDUCAFRIC'}</div>
         <div style="font-size:12px;margin-top:5px;">${school?.address || ''}</div>
+        ${school?.phone ? `<div style="font-size:12px;">Tél: ${school.phone}</div>` : ''}
       </div>
       <div class="title">${language === 'fr' ? 'GRILLE TARIFAIRE' : 'FEE SCHEDULE'}</div>
       <div class="row"><span class="label">${t.name}:</span><span class="value">${fee.name}</span></div>
@@ -525,13 +530,16 @@ export default function FeesManagement() {
     const w = window.open('', '_blank', 'width=500,height=600');
     if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
     
+    const logoHtml = schoolLogoUrl ? `<img src="${schoolLogoUrl}" alt="Logo" style="width:60px;height:60px;object-fit:contain;margin-bottom:8px;">` : '';
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
       <title>Reçu - ${fee.studentFirstName} ${fee.studentLastName}</title>
       <style>
         body { font-family: Arial, sans-serif; padding: 30px; max-width: 400px; margin: 0 auto; }
         .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
-        .school-name { font-size: 20px; font-weight: bold; }
-        .title { text-align: center; font-size: 16px; font-weight: bold; margin: 15px 0; padding: 8px; background: #f0f0f0; }
+        .header-official { font-size: 10px; margin-bottom: 8px; }
+        .school-logo { margin-bottom: 8px; }
+        .school-name { font-size: 20px; font-weight: bold; color: #1a365d; }
+        .title { text-align: center; font-size: 16px; font-weight: bold; margin: 15px 0; padding: 8px; background: #16a34a; color: white; }
         .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted #ccc; }
         .amount { text-align: center; margin: 20px 0; padding: 15px; border: 2px solid #16a34a; background: #f0fdf4; }
         .amount-value { font-size: 24px; font-weight: bold; color: #16a34a; }
@@ -539,7 +547,13 @@ export default function FeesManagement() {
         @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
       </style>
     </head><body>
-      <div class="header"><div class="school-name">${school?.name || 'EDUCAFRIC'}</div></div>
+      <div class="header">
+        <div class="header-official">RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON</div>
+        <div class="school-logo">${logoHtml}</div>
+        <div class="school-name">${school?.name || 'EDUCAFRIC'}</div>
+        ${school?.address ? `<div style="font-size:11px;margin-top:5px;">${school.address}</div>` : ''}
+        ${school?.phone ? `<div style="font-size:11px;">Tél: ${school.phone}</div>` : ''}
+      </div>
       <div class="title">${language === 'fr' ? 'REÇU DE PAIEMENT' : 'PAYMENT RECEIPT'}</div>
       <div class="row"><span>${t.student}:</span><span><b>${fee.studentFirstName} ${fee.studentLastName}</b></span></div>
       <div class="row"><span>${t.name}:</span><span>${fee.structureName}</span></div>
@@ -560,11 +574,14 @@ export default function FeesManagement() {
     const w = window.open('', '_blank', 'width=500,height=700');
     if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
     
+    const logoHtml = schoolLogoUrl ? `<img src="${schoolLogoUrl}" alt="Logo" style="width:70px;height:70px;object-fit:contain;margin-bottom:10px;">` : '';
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
       <title>Rappel - ${fee.studentFirstName} ${fee.studentLastName}</title>
       <style>
         body { font-family: Arial, sans-serif; padding: 40px; max-width: 500px; margin: 0 auto; line-height: 1.6; }
         .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+        .header-official { font-size: 11px; margin-bottom: 10px; }
+        .school-logo { margin-bottom: 10px; }
         .school-name { font-size: 22px; font-weight: bold; color: #1a365d; }
         .title { font-size: 18px; font-weight: bold; margin: 25px 0; padding: 12px; background: #dc2626; color: white; text-align: center; }
         .content { margin: 20px 0; }
@@ -576,9 +593,11 @@ export default function FeesManagement() {
       </style>
     </head><body>
       <div class="header">
+        <div class="header-official">RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON</div>
+        <div class="school-logo">${logoHtml}</div>
         <div class="school-name">${school?.name || 'EDUCAFRIC'}</div>
-        <div style="margin-top:5px;">${school?.address || ''}</div>
-        <div style="margin-top:5px;">Tél: ${school?.phone || ''}</div>
+        <div style="margin-top:5px;font-size:12px;">${school?.address || ''}</div>
+        ${school?.phone ? `<div style="font-size:12px;">Tél: ${school.phone}</div>` : ''}
       </div>
       <div class="title">${language === 'fr' ? 'RAPPEL DE PAIEMENT' : 'PAYMENT REMINDER'}</div>
       <div class="content">
