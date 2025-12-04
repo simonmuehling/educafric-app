@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,15 +10,16 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
   DollarSign, Plus, Users, TrendingUp, AlertTriangle, CheckCircle,
   CreditCard, Send, Edit, Trash2, Download, Bell, Settings, FileBarChart,
-  RefreshCw, Printer, MessageSquare, Mail, Phone, Smartphone
+  RefreshCw, Printer, MessageSquare, Mail, Smartphone, UserCheck, School
 } from 'lucide-react';
 
 const translations = {
@@ -26,7 +27,7 @@ const translations = {
     title: 'Gestion des Frais',
     subtitle: 'Gérez les frais de scolarité, paiements et rappels',
     dashboard: 'Tableau de Bord',
-    structures: 'Structures',
+    feeGrid: 'Grille Tarifaire',
     assigned: 'Élèves & Rappels',
     reports: 'Rapports',
     settings: 'Paramètres',
@@ -35,12 +36,14 @@ const translations = {
     outstanding: 'Solde Restant',
     collectionRate: 'Taux Recouvrement',
     studentsInArrears: 'Élèves en Retard',
-    createStructure: 'Créer Structure',
-    name: 'Nom',
-    amount: 'Montant',
-    feeType: 'Type',
+    recentPayments: 'Paiements Récents',
+    createFee: 'Créer Tarif',
+    editFee: 'Modifier Tarif',
+    name: 'Nom du tarif',
+    amountCFA: 'Montant (CFA)',
+    feeType: 'Type de frais',
     frequency: 'Fréquence',
-    dueDate: 'Échéance',
+    dueDate: 'Date d\'échéance',
     status: 'Statut',
     actions: 'Actions',
     tuition: 'Scolarité',
@@ -69,39 +72,58 @@ const translations = {
     transactionRef: 'Référence',
     save: 'Enregistrer',
     cancel: 'Annuler',
-    selectClass: 'Classe',
+    selectClass: 'Sélectionner une classe',
+    selectStudents: 'Sélectionner des élèves',
+    allStudentsInClass: 'Tous les élèves de la classe',
+    specificStudents: 'Élèves spécifiques',
     all: 'Tous',
     noData: 'Aucune donnée',
     loading: 'Chargement...',
     sendReminder: 'Envoyer Rappel',
     printReminder: 'Imprimer Rappel',
     printReceipt: 'Imprimer Reçu',
-    printStructure: 'Imprimer',
+    printFee: 'Imprimer',
     bulkReminder: 'Rappel Groupé',
     selectAll: 'Tout sélectionner',
     selectedCount: 'sélectionnés',
-    channels: 'Canaux',
+    channels: 'Canaux de notification',
     email: 'Email',
     whatsapp: 'WhatsApp',
-    pwa: 'Notification',
-    reminderSent: 'Rappel envoyé',
-    remindersSent: 'Rappels envoyés',
-    exportExcel: 'Excel',
-    exportPdf: 'PDF',
-    generateReport: 'Générer',
+    pwa: 'Notification Push',
+    reminderSent: 'Rappel envoyé avec succès',
+    remindersSent: 'Rappels envoyés avec succès',
+    exportExcel: 'Exporter Excel',
+    exportPdf: 'Exporter PDF',
+    generateReport: 'Générer Rapport',
     filterByClass: 'Par Classe',
     filterByStatus: 'Par Statut',
     thisMonth: 'Ce Mois',
     lastMonth: 'Mois Dernier',
     thisYear: 'Cette Année',
     parent: 'Parent',
-    phone: 'Téléphone'
+    phone: 'Téléphone',
+    class: 'Classe',
+    target: 'Cible',
+    active: 'Actif',
+    inactive: 'Inactif',
+    feeCreated: 'Tarif créé avec succès',
+    feeUpdated: 'Tarif modifié avec succès',
+    feeDeleted: 'Tarif supprimé',
+    confirmDelete: 'Êtes-vous sûr de vouloir supprimer ce tarif ?',
+    noStudentsSelected: 'Veuillez sélectionner au moins une classe ou des élèves',
+    assignToClass: 'Assigner à une classe',
+    assignToStudents: 'Assigner à des élèves',
+    parentInfo: 'Info Parent',
+    collectionSummary: 'Résumé des Recouvrements',
+    overduePayments: 'Paiements en Retard',
+    upcomingDue: 'Échéances Prochaines',
+    todayReminders: 'Rappels Aujourd\'hui'
   },
   en: {
     title: 'Fees Management',
     subtitle: 'Manage school fees, payments and reminders',
     dashboard: 'Dashboard',
-    structures: 'Structures',
+    feeGrid: 'Fee Grid',
     assigned: 'Students & Reminders',
     reports: 'Reports',
     settings: 'Settings',
@@ -110,10 +132,12 @@ const translations = {
     outstanding: 'Outstanding',
     collectionRate: 'Collection Rate',
     studentsInArrears: 'Students in Arrears',
-    createStructure: 'Create Structure',
-    name: 'Name',
-    amount: 'Amount',
-    feeType: 'Type',
+    recentPayments: 'Recent Payments',
+    createFee: 'Create Fee',
+    editFee: 'Edit Fee',
+    name: 'Fee Name',
+    amountCFA: 'Amount (CFA)',
+    feeType: 'Fee Type',
     frequency: 'Frequency',
     dueDate: 'Due Date',
     status: 'Status',
@@ -144,38 +168,82 @@ const translations = {
     transactionRef: 'Reference',
     save: 'Save',
     cancel: 'Cancel',
-    selectClass: 'Class',
+    selectClass: 'Select a class',
+    selectStudents: 'Select students',
+    allStudentsInClass: 'All students in class',
+    specificStudents: 'Specific students',
     all: 'All',
     noData: 'No data',
     loading: 'Loading...',
     sendReminder: 'Send Reminder',
     printReminder: 'Print Reminder',
     printReceipt: 'Print Receipt',
-    printStructure: 'Print',
+    printFee: 'Print',
     bulkReminder: 'Bulk Reminder',
     selectAll: 'Select All',
     selectedCount: 'selected',
-    channels: 'Channels',
+    channels: 'Notification Channels',
     email: 'Email',
     whatsapp: 'WhatsApp',
-    pwa: 'Notification',
-    reminderSent: 'Reminder sent',
-    remindersSent: 'Reminders sent',
-    exportExcel: 'Excel',
-    exportPdf: 'PDF',
-    generateReport: 'Generate',
+    pwa: 'Push Notification',
+    reminderSent: 'Reminder sent successfully',
+    remindersSent: 'Reminders sent successfully',
+    exportExcel: 'Export Excel',
+    exportPdf: 'Export PDF',
+    generateReport: 'Generate Report',
     filterByClass: 'By Class',
     filterByStatus: 'By Status',
     thisMonth: 'This Month',
     lastMonth: 'Last Month',
     thisYear: 'This Year',
     parent: 'Parent',
-    phone: 'Phone'
+    phone: 'Phone',
+    class: 'Class',
+    target: 'Target',
+    active: 'Active',
+    inactive: 'Inactive',
+    feeCreated: 'Fee created successfully',
+    feeUpdated: 'Fee updated successfully',
+    feeDeleted: 'Fee deleted',
+    confirmDelete: 'Are you sure you want to delete this fee?',
+    noStudentsSelected: 'Please select at least one class or students',
+    assignToClass: 'Assign to class',
+    assignToStudents: 'Assign to students',
+    parentInfo: 'Parent Info',
+    collectionSummary: 'Collection Summary',
+    overduePayments: 'Overdue Payments',
+    upcomingDue: 'Upcoming Due',
+    todayReminders: 'Today\'s Reminders'
   }
 };
 
 const feeTypes = ['tuition', 'registration', 'exam', 'transport', 'pta', 'boarding', 'custom'];
 const frequencies = ['monthly', 'term', 'yearly', 'once'];
+
+interface Student {
+  id: number;
+  studentId?: number;
+  firstName?: string;
+  lastName?: string;
+  first_name?: string;
+  last_name?: string;
+  classId?: number;
+  parentName?: string;
+  parentPhone?: string;
+  parentEmail?: string;
+}
+
+interface FeeStructure {
+  id: number;
+  name: string;
+  amount: number;
+  feeType: string;
+  frequency: string;
+  dueDate?: string;
+  isActive: boolean;
+  classId?: number;
+  className?: string;
+}
 
 export default function FeesManagement() {
   const { language } = useLanguage();
@@ -183,18 +251,32 @@ export default function FeesManagement() {
   const { toast } = useToast();
   
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showFeeDialog, setShowFeeDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showReminderDialog, setShowReminderDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [editingFee, setEditingFee] = useState<FeeStructure | null>(null);
+  const [deletingFee, setDeletingFee] = useState<FeeStructure | null>(null);
   const [selectedFee, setSelectedFee] = useState<any>(null);
   const [selectedFeeIds, setSelectedFeeIds] = useState<number[]>([]);
   const [filterClass, setFilterClass] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [reportPeriod, setReportPeriod] = useState('thisMonth');
+  const [reportClass, setReportClass] = useState('all');
   const [reminderChannels, setReminderChannels] = useState({ email: true, whatsapp: true, pwa: true });
   
-  const [newStructure, setNewStructure] = useState({
-    name: '', amount: '', feeType: 'tuition', frequency: 'term', dueDate: ''
+  const [feeForm, setFeeForm] = useState({
+    name: '',
+    amount: '',
+    feeType: 'tuition',
+    frequency: 'term',
+    dueDate: '',
+    classId: '',
+    assignType: 'class',
+    selectedStudentIds: [] as number[],
+    isActive: true
   });
+  
   const [paymentData, setPaymentData] = useState({
     amount: '', paymentMethod: 'cash', transactionRef: ''
   });
@@ -202,14 +284,22 @@ export default function FeesManagement() {
   const { data: statsData, isLoading: statsLoading } = useQuery({ queryKey: ['/api/fees/stats'] });
   const { data: structuresData, isLoading: structuresLoading } = useQuery({ queryKey: ['/api/fees/structures'] });
   const { data: assignedData, isLoading: assignedLoading } = useQuery({ queryKey: ['/api/fees/assigned'] });
+  const { data: paymentsData } = useQuery({ queryKey: ['/api/fees/payments'] });
   const { data: classesData } = useQuery({ queryKey: ['/api/classes'] });
+  const { data: studentsData } = useQuery({ queryKey: ['/api/director/students'] });
   const { data: schoolSettings } = useQuery({ queryKey: ['/api/director/settings'] });
 
   const classes = Array.isArray(classesData) ? classesData : ((classesData as any)?.classes || []);
   const stats = (statsData as any)?.stats || statsData || {};
-  const structures = (structuresData as any)?.structures || [];
+  const structures: FeeStructure[] = (structuresData as any)?.structures || [];
   const assignedFees = (assignedData as any)?.fees || [];
+  const payments = (paymentsData as any)?.payments || [];
+  const allStudents: Student[] = Array.isArray(studentsData) ? studentsData : ((studentsData as any)?.students || []);
   const school = (schoolSettings as any)?.settings?.school || (schoolSettings as any)?.school || {};
+
+  const filteredStudentsByClass = feeForm.classId 
+    ? allStudents.filter(s => s.classId?.toString() === feeForm.classId)
+    : allStudents;
 
   const filteredFees = assignedFees.filter((fee: any) => {
     if (filterClass !== 'all' && fee.classId?.toString() !== filterClass) return false;
@@ -231,13 +321,69 @@ export default function FeesManagement() {
     </span>;
   };
 
-  const createStructureMutation = useMutation({
+  const resetFeeForm = () => {
+    setFeeForm({
+      name: '', amount: '', feeType: 'tuition', frequency: 'term', dueDate: '',
+      classId: '', assignType: 'class', selectedStudentIds: [], isActive: true
+    });
+    setEditingFee(null);
+  };
+
+  const openCreateDialog = () => {
+    resetFeeForm();
+    setShowFeeDialog(true);
+  };
+
+  const openEditDialog = (fee: FeeStructure) => {
+    setEditingFee(fee);
+    setFeeForm({
+      name: fee.name,
+      amount: fee.amount.toString(),
+      feeType: fee.feeType,
+      frequency: fee.frequency,
+      dueDate: fee.dueDate || '',
+      classId: fee.classId?.toString() || '',
+      assignType: 'class',
+      selectedStudentIds: [],
+      isActive: fee.isActive
+    });
+    setShowFeeDialog(true);
+  };
+
+  const createFeeMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/fees/structures', data),
     onSuccess: () => {
-      toast({ title: language === 'fr' ? 'Structure créée' : 'Structure created' });
+      toast({ title: t.feeCreated });
       queryClient.invalidateQueries({ queryKey: ['/api/fees/structures'] });
-      setShowCreateDialog(false);
-      setNewStructure({ name: '', amount: '', feeType: 'tuition', frequency: 'term', dueDate: '' });
+      queryClient.invalidateQueries({ queryKey: ['/api/fees/assigned'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/fees/stats'] });
+      setShowFeeDialog(false);
+      resetFeeForm();
+    },
+    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
+  });
+
+  const updateFeeMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('PATCH', `/api/fees/structures/${editingFee?.id}`, data),
+    onSuccess: () => {
+      toast({ title: t.feeUpdated });
+      queryClient.invalidateQueries({ queryKey: ['/api/fees/structures'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/fees/assigned'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/fees/stats'] });
+      setShowFeeDialog(false);
+      resetFeeForm();
+    },
+    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
+  });
+
+  const deleteFeeMutation = useMutation({
+    mutationFn: () => apiRequest('DELETE', `/api/fees/structures/${deletingFee?.id}`, {}),
+    onSuccess: () => {
+      toast({ title: t.feeDeleted });
+      queryClient.invalidateQueries({ queryKey: ['/api/fees/structures'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/fees/stats'] });
+      setShowDeleteDialog(false);
+      setDeletingFee(null);
     },
     onError: () => toast({ title: 'Erreur', variant: 'destructive' })
   });
@@ -265,15 +411,36 @@ export default function FeesManagement() {
     onError: () => toast({ title: 'Erreur', variant: 'destructive' })
   });
 
-  const handlePrintStructure = (structure: any) => {
+  const handleSaveFee = () => {
+    const data = {
+      name: feeForm.name,
+      amount: parseInt(feeForm.amount),
+      feeType: feeForm.feeType,
+      frequency: feeForm.frequency,
+      dueDate: feeForm.dueDate || null,
+      classId: feeForm.classId ? parseInt(feeForm.classId) : null,
+      studentIds: feeForm.assignType === 'students' ? feeForm.selectedStudentIds : null,
+      isActive: feeForm.isActive
+    };
+
+    if (editingFee) {
+      updateFeeMutation.mutate(data);
+    } else {
+      createFeeMutation.mutate(data);
+    }
+  };
+
+  const handlePrintFee = (fee: FeeStructure) => {
     const w = window.open('', '_blank', 'width=600,height=700');
     if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
     
+    const className = classes.find((c: any) => c.id === fee.classId)?.name || 'Toutes les classes';
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-      <title>Structure - ${structure.name}</title>
+      <title>Tarif - ${fee.name}</title>
       <style>
         body { font-family: Arial, sans-serif; padding: 40px; max-width: 500px; margin: 0 auto; }
         .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+        .header-official { font-size: 11px; margin-bottom: 10px; }
         .school-name { font-size: 24px; font-weight: bold; color: #1a365d; }
         .title { font-size: 18px; font-weight: bold; margin: 20px 0; padding: 10px; background: #1a365d; color: white; text-align: center; }
         .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #ddd; }
@@ -286,20 +453,25 @@ export default function FeesManagement() {
       </style>
     </head><body>
       <div class="header">
+        <div class="header-official">RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON</div>
         <div class="school-name">${school?.name || 'EDUCAFRIC'}</div>
         <div style="font-size:12px;margin-top:5px;">${school?.address || ''}</div>
       </div>
-      <div class="title">${language === 'fr' ? 'STRUCTURE DE FRAIS' : 'FEE STRUCTURE'}</div>
-      <div class="row"><span class="label">${t.name}:</span><span class="value">${structure.name}</span></div>
-      <div class="row"><span class="label">${t.feeType}:</span><span class="value">${t[structure.feeType as keyof typeof t] || structure.feeType}</span></div>
-      <div class="row"><span class="label">${t.frequency}:</span><span class="value">${t[structure.frequency as keyof typeof t] || structure.frequency}</span></div>
-      <div class="row"><span class="label">${t.dueDate}:</span><span class="value">${structure.dueDate ? new Date(structure.dueDate).toLocaleDateString() : '-'}</span></div>
-      <div class="row"><span class="label">${t.status}:</span><span class="value">${structure.isActive ? 'Actif' : 'Inactif'}</span></div>
+      <div class="title">${language === 'fr' ? 'GRILLE TARIFAIRE' : 'FEE SCHEDULE'}</div>
+      <div class="row"><span class="label">${t.name}:</span><span class="value">${fee.name}</span></div>
+      <div class="row"><span class="label">${t.feeType}:</span><span class="value">${t[fee.feeType as keyof typeof t] || fee.feeType}</span></div>
+      <div class="row"><span class="label">${t.frequency}:</span><span class="value">${t[fee.frequency as keyof typeof t] || fee.frequency}</span></div>
+      <div class="row"><span class="label">${t.class}:</span><span class="value">${className}</span></div>
+      <div class="row"><span class="label">${t.dueDate}:</span><span class="value">${fee.dueDate ? new Date(fee.dueDate).toLocaleDateString() : '-'}</span></div>
+      <div class="row"><span class="label">${t.status}:</span><span class="value">${fee.isActive ? t.active : t.inactive}</span></div>
       <div class="amount">
         <div style="font-size:14px;color:#166534;margin-bottom:5px;">${language === 'fr' ? 'MONTANT' : 'AMOUNT'}</div>
-        <div class="amount-value">${parseInt(structure.amount).toLocaleString()} CFA</div>
+        <div class="amount-value">${parseInt(fee.amount.toString()).toLocaleString()} CFA</div>
       </div>
-      <div class="footer">Powered by EDUCAFRIC</div>
+      <div class="footer">
+        <p>${new Date().toLocaleDateString()}</p>
+        <p>Powered by EDUCAFRIC</p>
+      </div>
       <script>window.onload=function(){window.print();}</script>
     </body></html>`;
     w.document.write(html);
@@ -332,7 +504,7 @@ export default function FeesManagement() {
       <div class="row"><span>Date:</span><span>${new Date().toLocaleDateString()}</span></div>
       <div class="amount">
         <div style="font-size:12px;color:#166534;">${language === 'fr' ? 'MONTANT PAYÉ' : 'AMOUNT PAID'}</div>
-        <div class="amount-value">${(fee.finalAmount - fee.balanceAmount).toLocaleString()} CFA</div>
+        <div class="amount-value">${((fee.finalAmount || 0) - (fee.balanceAmount || 0)).toLocaleString()} CFA</div>
       </div>
       <div class="footer">Merci - ${school?.name || 'EDUCAFRIC'}</div>
       <script>window.onload=function(){window.print();}</script>
@@ -375,7 +547,7 @@ export default function FeesManagement() {
         }</p>
         <div class="highlight">
           <div style="font-size:14px;margin-bottom:10px;">${language === 'fr' ? 'MONTANT DÛ' : 'AMOUNT DUE'}</div>
-          <div class="amount">${fee.balanceAmount?.toLocaleString()} CFA</div>
+          <div class="amount">${(fee.balanceAmount || 0).toLocaleString()} CFA</div>
           <div style="margin-top:10px;font-size:14px;">${fee.structureName}</div>
         </div>
         <p>${language === 'fr' 
@@ -404,7 +576,7 @@ export default function FeesManagement() {
 
   const handleBulkReminder = () => {
     if (selectedFeeIds.length === 0) {
-      toast({ title: language === 'fr' ? 'Sélectionnez des élèves' : 'Select students', variant: 'destructive' });
+      toast({ title: t.noStudentsSelected, variant: 'destructive' });
       return;
     }
     setShowReminderDialog(true);
@@ -427,6 +599,38 @@ export default function FeesManagement() {
     }
   };
 
+  const toggleStudentSelection = (studentId: number) => {
+    setFeeForm(prev => ({
+      ...prev,
+      selectedStudentIds: prev.selectedStudentIds.includes(studentId)
+        ? prev.selectedStudentIds.filter(id => id !== studentId)
+        : [...prev.selectedStudentIds, studentId]
+    }));
+  };
+
+  const handleExportReport = async (format: 'excel' | 'pdf') => {
+    try {
+      const response = await fetch(`/api/fees/reports/export?format=${format}&period=${reportPeriod}&classId=${reportClass}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rapport-frais-${reportPeriod}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        toast({ title: language === 'fr' ? 'Rapport téléchargé' : 'Report downloaded' });
+      } else {
+        toast({ title: language === 'fr' ? 'Erreur lors de l\'export' : 'Export error', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: language === 'fr' ? 'Erreur lors de l\'export' : 'Export error', variant: 'destructive' });
+    }
+  };
+
   return (
     <div className="space-y-4 p-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -441,8 +645,8 @@ export default function FeesManagement() {
           <TabsTrigger value="dashboard" className="text-xs sm:text-sm py-2">
             <TrendingUp className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.dashboard}</span>
           </TabsTrigger>
-          <TabsTrigger value="structures" className="text-xs sm:text-sm py-2">
-            <DollarSign className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.structures}</span>
+          <TabsTrigger value="feeGrid" className="text-xs sm:text-sm py-2">
+            <DollarSign className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.feeGrid}</span>
           </TabsTrigger>
           <TabsTrigger value="assigned" className="text-xs sm:text-sm py-2">
             <Users className="w-4 h-4 mr-1" /><span className="hidden sm:inline">{t.assigned}</span>
@@ -455,115 +659,100 @@ export default function FeesManagement() {
           </TabsTrigger>
         </TabsList>
 
-        {/* DASHBOARD */}
+        {/* DASHBOARD - Real data from /api/fees/stats */}
         <TabsContent value="dashboard" className="space-y-4">
           {statsLoading ? (
             <div className="text-center py-8">{t.loading}</div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">{t.totalExpected}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{formatCurrency(stats?.totalExpected || 0)}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">{t.totalCollected}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{formatCurrency(stats?.totalCollected || 0)}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">{t.outstanding}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-orange-600">{formatCurrency(stats?.outstanding || 0)}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">{t.studentsInArrears}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">{stats?.studentsInArrears || 0}</div>
-                </CardContent>
-              </Card>
-            </div>
+            <>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-blue-600" />
+                      {t.totalExpected}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{formatCurrency(stats?.totalExpected || 0)}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      {t.totalCollected}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">{formatCurrency(stats?.totalCollected || 0)}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-orange-600" />
+                      {t.outstanding}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-orange-600">{formatCurrency(stats?.outstanding || 0)}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Users className="w-4 h-4 text-red-600" />
+                      {t.studentsInArrears}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-600">{stats?.studentsInArrears || 0}</div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">{t.collectionRate}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Progress value={stats?.collectionRate || 0} className="h-4" />
+                    <p className="text-center mt-2 font-bold text-lg">{stats?.collectionRate || 0}%</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">{t.collectionSummary}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-red-600">{t.overduePayments}</span>
+                      <Badge variant="destructive">{stats?.overdue || 0}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-orange-600">{t.upcomingDue}</span>
+                      <Badge variant="outline">{stats?.upcomingDue || 0}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-blue-600">{t.todayReminders}</span>
+                      <Badge>{stats?.remindersSentToday || 0}</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
           )}
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">{t.collectionRate}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Progress value={stats?.collectionRate || 0} className="h-4" />
-              <p className="text-center mt-2 font-bold">{stats?.collectionRate || 0}%</p>
-            </CardContent>
-          </Card>
         </TabsContent>
 
-        {/* STRUCTURES */}
-        <TabsContent value="structures" className="space-y-4">
+        {/* FEE GRID - Create/Edit/Delete/Print */}
+        <TabsContent value="feeGrid" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold">{t.structures}</h3>
-            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-              <DialogTrigger asChild>
-                <Button size="sm"><Plus className="w-4 h-4 mr-1" />{t.createStructure}</Button>
-              </DialogTrigger>
-              <DialogContent className="bg-white">
-                <DialogHeader>
-                  <DialogTitle>{t.createStructure}</DialogTitle>
-                  <DialogDescription>{language === 'fr' ? 'Créer une nouvelle structure de frais' : 'Create a new fee structure'}</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>{t.name}</Label>
-                      <Input value={newStructure.name} onChange={e => setNewStructure({...newStructure, name: e.target.value})} />
-                    </div>
-                    <div>
-                      <Label>{t.amount} (CFA)</Label>
-                      <Input type="number" value={newStructure.amount} onChange={e => setNewStructure({...newStructure, amount: e.target.value})} />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>{t.feeType}</Label>
-                      <Select value={newStructure.feeType} onValueChange={v => setNewStructure({...newStructure, feeType: v})}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {feeTypes.map(type => <SelectItem key={type} value={type}>{t[type as keyof typeof t] || type}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>{t.frequency}</Label>
-                      <Select value={newStructure.frequency} onValueChange={v => setNewStructure({...newStructure, frequency: v})}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {frequencies.map(freq => <SelectItem key={freq} value={freq}>{t[freq as keyof typeof t] || freq}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div>
-                    <Label>{t.dueDate}</Label>
-                    <Input type="date" value={newStructure.dueDate} onChange={e => setNewStructure({...newStructure, dueDate: e.target.value})} />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setShowCreateDialog(false)}>{t.cancel}</Button>
-                  <Button onClick={() => createStructureMutation.mutate(newStructure)} disabled={createStructureMutation.isPending}>
-                    {createStructureMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin" /> : t.save}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <h3 className="font-semibold">{t.feeGrid}</h3>
+            <Button size="sm" onClick={openCreateDialog}>
+              <Plus className="w-4 h-4 mr-1" />{t.createFee}
+            </Button>
           </div>
 
           <Card>
@@ -573,39 +762,212 @@ export default function FeesManagement() {
                   <TableRow>
                     <TableHead>{t.name}</TableHead>
                     <TableHead>{t.feeType}</TableHead>
-                    <TableHead>{t.amount}</TableHead>
+                    <TableHead>{t.amountCFA}</TableHead>
                     <TableHead>{t.frequency}</TableHead>
+                    <TableHead>{t.class}</TableHead>
                     <TableHead>{t.status}</TableHead>
                     <TableHead>{t.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {structuresLoading ? (
-                    <TableRow><TableCell colSpan={6} className="text-center">{t.loading}</TableCell></TableRow>
-                  ) : structures.length > 0 ? structures.map((s: any) => (
-                    <TableRow key={s.id}>
-                      <TableCell className="font-medium">{s.name}</TableCell>
-                      <TableCell>{t[s.feeType as keyof typeof t] || s.feeType}</TableCell>
-                      <TableCell>{formatCurrency(s.amount)}</TableCell>
-                      <TableCell>{t[s.frequency as keyof typeof t] || s.frequency}</TableCell>
-                      <TableCell><Badge variant={s.isActive ? 'default' : 'secondary'}>{s.isActive ? 'Actif' : 'Inactif'}</Badge></TableCell>
+                    <TableRow><TableCell colSpan={7} className="text-center">{t.loading}</TableCell></TableRow>
+                  ) : structures.length > 0 ? structures.map((fee) => (
+                    <TableRow key={fee.id}>
+                      <TableCell className="font-medium">{fee.name}</TableCell>
+                      <TableCell>{t[fee.feeType as keyof typeof t] || fee.feeType}</TableCell>
+                      <TableCell className="font-bold">{formatCurrency(fee.amount)}</TableCell>
+                      <TableCell>{t[fee.frequency as keyof typeof t] || fee.frequency}</TableCell>
+                      <TableCell>{fee.className || classes.find((c: any) => c.id === fee.classId)?.name || '-'}</TableCell>
+                      <TableCell>
+                        <Badge variant={fee.isActive ? 'default' : 'secondary'}>
+                          {fee.isActive ? t.active : t.inactive}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => handlePrintStructure(s)} title={t.printStructure}>
+                          <Button variant="ghost" size="sm" onClick={() => handlePrintFee(fee)} title={t.printFee}>
                             <Printer className="w-4 h-4 text-blue-600" />
                           </Button>
-                          <Button variant="ghost" size="sm"><Edit className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="sm"><Trash2 className="w-4 h-4 text-red-500" /></Button>
+                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(fee)} title={t.editFee}>
+                            <Edit className="w-4 h-4 text-orange-600" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setDeletingFee(fee); setShowDeleteDialog(true); }}>
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                   )) : (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">{t.noData}</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">{t.noData}</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
+
+          {/* Create/Edit Fee Dialog */}
+          <Dialog open={showFeeDialog} onOpenChange={setShowFeeDialog}>
+            <DialogContent className="bg-white max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{editingFee ? t.editFee : t.createFee}</DialogTitle>
+                <DialogDescription>
+                  {language === 'fr' ? 'Configurez les détails du tarif et assignez-le à une classe ou des élèves' : 'Configure fee details and assign to a class or students'}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>{t.name} *</Label>
+                    <Input 
+                      placeholder={language === 'fr' ? 'Ex: Frais de scolarité T1' : 'Ex: Tuition Term 1'}
+                      value={feeForm.name} 
+                      onChange={e => setFeeForm({...feeForm, name: e.target.value})} 
+                    />
+                  </div>
+                  <div>
+                    <Label>{t.amountCFA} *</Label>
+                    <div className="relative">
+                      <Input 
+                        type="number" 
+                        placeholder="50000"
+                        value={feeForm.amount} 
+                        onChange={e => setFeeForm({...feeForm, amount: e.target.value})} 
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">CFA</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>{t.feeType}</Label>
+                    <Select value={feeForm.feeType} onValueChange={v => setFeeForm({...feeForm, feeType: v})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {feeTypes.map(type => <SelectItem key={type} value={type}>{t[type as keyof typeof t] || type}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>{t.frequency}</Label>
+                    <Select value={feeForm.frequency} onValueChange={v => setFeeForm({...feeForm, frequency: v})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {frequencies.map(freq => <SelectItem key={freq} value={freq}>{t[freq as keyof typeof t] || freq}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>{t.dueDate}</Label>
+                    <Input type="date" value={feeForm.dueDate} onChange={e => setFeeForm({...feeForm, dueDate: e.target.value})} />
+                  </div>
+                  <div className="flex items-center gap-2 pt-6">
+                    <Switch checked={feeForm.isActive} onCheckedChange={v => setFeeForm({...feeForm, isActive: v})} />
+                    <Label>{feeForm.isActive ? t.active : t.inactive}</Label>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <Label className="text-base font-semibold mb-2 block">{t.target}</Label>
+                  <div className="flex gap-4 mb-4">
+                    <Button 
+                      type="button"
+                      variant={feeForm.assignType === 'class' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => setFeeForm({...feeForm, assignType: 'class', selectedStudentIds: []})}
+                    >
+                      <School className="w-4 h-4 mr-1" />{t.assignToClass}
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant={feeForm.assignType === 'students' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => setFeeForm({...feeForm, assignType: 'students'})}
+                    >
+                      <UserCheck className="w-4 h-4 mr-1" />{t.assignToStudents}
+                    </Button>
+                  </div>
+
+                  <div>
+                    <Label>{t.selectClass}</Label>
+                    <Select value={feeForm.classId} onValueChange={v => setFeeForm({...feeForm, classId: v, selectedStudentIds: []})}>
+                      <SelectTrigger><SelectValue placeholder={t.selectClass} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{t.all}</SelectItem>
+                        {classes.map((c: any) => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {feeForm.assignType === 'students' && (
+                    <div className="mt-4">
+                      <Label className="mb-2 block">{t.selectStudents} ({feeForm.selectedStudentIds.length} {t.selectedCount})</Label>
+                      <ScrollArea className="h-48 border rounded-md p-2">
+                        {filteredStudentsByClass.length > 0 ? filteredStudentsByClass.map((student) => {
+                          const name = `${student.firstName || student.first_name || ''} ${student.lastName || student.last_name || ''}`.trim();
+                          return (
+                            <div key={student.id} className="flex items-center justify-between py-2 px-2 hover:bg-gray-50 rounded">
+                              <div className="flex items-center gap-2">
+                                <Checkbox 
+                                  checked={feeForm.selectedStudentIds.includes(student.id)}
+                                  onCheckedChange={() => toggleStudentSelection(student.id)}
+                                />
+                                <span className="font-medium">{name || `Élève #${student.id}`}</span>
+                              </div>
+                              {(student.parentName || student.parentPhone) && (
+                                <div className="text-xs text-muted-foreground">
+                                  <span className="text-blue-600">{student.parentName}</span>
+                                  {student.parentPhone && <span className="ml-2">{student.parentPhone}</span>}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }) : (
+                          <div className="text-center py-4 text-muted-foreground">
+                            {feeForm.classId ? t.noData : (language === 'fr' ? 'Sélectionnez une classe' : 'Select a class')}
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setShowFeeDialog(false); resetFeeForm(); }}>{t.cancel}</Button>
+                <Button 
+                  onClick={handleSaveFee} 
+                  disabled={createFeeMutation.isPending || updateFeeMutation.isPending || !feeForm.name || !feeForm.amount}
+                >
+                  {(createFeeMutation.isPending || updateFeeMutation.isPending) ? <RefreshCw className="w-4 h-4 animate-spin" /> : t.save}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <DialogContent className="bg-white">
+              <DialogHeader>
+                <DialogTitle>{language === 'fr' ? 'Confirmer la suppression' : 'Confirm Deletion'}</DialogTitle>
+                <DialogDescription>{t.confirmDelete}</DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <p className="font-medium">{deletingFee?.name}</p>
+                <p className="text-muted-foreground">{formatCurrency(deletingFee?.amount || 0)}</p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>{t.cancel}</Button>
+                <Button variant="destructive" onClick={() => deleteFeeMutation.mutate()} disabled={deleteFeeMutation.isPending}>
+                  {deleteFeeMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4 mr-1" />}
+                  {language === 'fr' ? 'Supprimer' : 'Delete'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* ASSIGNED FEES - WITH REMINDERS */}
@@ -633,7 +995,7 @@ export default function FeesManagement() {
                   </Select>
                 </div>
                 <div className="flex gap-2 items-center">
-                  <span className="text-sm text-blue-700">{selectedFeeIds.length} {t.selectedCount}</span>
+                  <span className="text-sm text-blue-700 font-medium">{selectedFeeIds.length} {t.selectedCount}</span>
                   <Button size="sm" variant="outline" onClick={selectAllFees} className="bg-white">
                     <CheckCircle className="w-4 h-4 mr-1" />{t.selectAll}
                   </Button>
@@ -652,8 +1014,9 @@ export default function FeesManagement() {
                   <TableRow>
                     <TableHead className="w-10"></TableHead>
                     <TableHead>{t.student}</TableHead>
+                    <TableHead>{t.parent}</TableHead>
                     <TableHead>{t.name}</TableHead>
-                    <TableHead>{t.amount}</TableHead>
+                    <TableHead>{t.amountCFA}</TableHead>
                     <TableHead>{t.balance}</TableHead>
                     <TableHead>{t.status}</TableHead>
                     <TableHead>{t.actions}</TableHead>
@@ -661,7 +1024,7 @@ export default function FeesManagement() {
                 </TableHeader>
                 <TableBody>
                   {assignedLoading ? (
-                    <TableRow><TableCell colSpan={7} className="text-center">{t.loading}</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center">{t.loading}</TableCell></TableRow>
                   ) : filteredFees.length > 0 ? filteredFees.map((fee: any) => (
                     <TableRow key={fee.id} className={selectedFeeIds.includes(fee.id) ? 'bg-blue-50' : ''}>
                       <TableCell>
@@ -671,14 +1034,17 @@ export default function FeesManagement() {
                         />
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <div className="font-medium">{fee.studentFirstName} {fee.studentLastName}</div>
-                          {fee.parentPhone && <div className="text-xs text-muted-foreground">{fee.parentPhone}</div>}
+                        <div className="font-medium">{fee.studentFirstName} {fee.studentLastName}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {fee.parentName && <div className="text-blue-600">{fee.parentName}</div>}
+                          {fee.parentPhone && <div className="text-muted-foreground">{fee.parentPhone}</div>}
                         </div>
                       </TableCell>
                       <TableCell>{fee.structureName}</TableCell>
-                      <TableCell>{formatCurrency(fee.finalAmount)}</TableCell>
-                      <TableCell className={fee.balanceAmount > 0 ? 'text-red-600 font-bold' : 'text-green-600'}>
+                      <TableCell className="font-medium">{formatCurrency(fee.finalAmount)}</TableCell>
+                      <TableCell className={fee.balanceAmount > 0 ? 'text-red-600 font-bold' : 'text-green-600 font-bold'}>
                         {formatCurrency(fee.balanceAmount)}
                       </TableCell>
                       <TableCell>{getStatusBadge(fee.status)}</TableCell>
@@ -702,7 +1068,7 @@ export default function FeesManagement() {
                       </TableCell>
                     </TableRow>
                   )) : (
-                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">{t.noData}</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">{t.noData}</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -718,8 +1084,11 @@ export default function FeesManagement() {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>{t.amount} (CFA)</Label>
-                  <Input type="number" value={paymentData.amount} onChange={e => setPaymentData({...paymentData, amount: e.target.value})} />
+                  <Label>{t.amountCFA}</Label>
+                  <div className="relative">
+                    <Input type="number" value={paymentData.amount} onChange={e => setPaymentData({...paymentData, amount: e.target.value})} />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">CFA</span>
+                  </div>
                 </div>
                 <div>
                   <Label>{t.paymentMethod}</Label>
@@ -762,17 +1131,17 @@ export default function FeesManagement() {
               <div className="space-y-4">
                 <Label>{t.channels}</Label>
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
                     <Switch checked={reminderChannels.email} onCheckedChange={v => setReminderChannels({...reminderChannels, email: v})} />
-                    <Mail className="w-4 h-4 text-blue-600" /><span>{t.email}</span>
+                    <Mail className="w-5 h-5 text-blue-600" /><span className="font-medium">{t.email}</span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
                     <Switch checked={reminderChannels.whatsapp} onCheckedChange={v => setReminderChannels({...reminderChannels, whatsapp: v})} />
-                    <MessageSquare className="w-4 h-4 text-green-600" /><span>{t.whatsapp}</span>
+                    <MessageSquare className="w-5 h-5 text-green-600" /><span className="font-medium">{t.whatsapp}</span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
                     <Switch checked={reminderChannels.pwa} onCheckedChange={v => setReminderChannels({...reminderChannels, pwa: v})} />
-                    <Smartphone className="w-4 h-4 text-purple-600" /><span>{t.pwa}</span>
+                    <Smartphone className="w-5 h-5 text-purple-600" /><span className="font-medium">{t.pwa}</span>
                   </div>
                 </div>
               </div>
@@ -786,34 +1155,70 @@ export default function FeesManagement() {
           </Dialog>
         </TabsContent>
 
-        {/* REPORTS */}
+        {/* REPORTS - Real data export */}
         <TabsContent value="reports" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>{t.reports}</CardTitle>
-              <CardDescription>{language === 'fr' ? 'Générer et exporter des rapports' : 'Generate and export reports'}</CardDescription>
+              <CardDescription>{language === 'fr' ? 'Générer et exporter des rapports de frais' : 'Generate and export fee reports'}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-4">
-                <Select defaultValue="all">
-                  <SelectTrigger className="w-[150px]"><SelectValue placeholder={t.filterByClass} /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t.all}</SelectItem>
-                    {classes.map((c: any) => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select defaultValue="thisMonth">
-                  <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="thisMonth">{t.thisMonth}</SelectItem>
-                    <SelectItem value="lastMonth">{t.lastMonth}</SelectItem>
-                    <SelectItem value="thisYear">{t.thisYear}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div>
+                  <Label className="mb-2 block">{t.filterByClass}</Label>
+                  <Select value={reportClass} onValueChange={setReportClass}>
+                    <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t.all}</SelectItem>
+                      {classes.map((c: any) => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="mb-2 block">{language === 'fr' ? 'Période' : 'Period'}</Label>
+                  <Select value={reportPeriod} onValueChange={setReportPeriod}>
+                    <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="thisMonth">{t.thisMonth}</SelectItem>
+                      <SelectItem value="lastMonth">{t.lastMonth}</SelectItem>
+                      <SelectItem value="thisYear">{t.thisYear}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline"><Download className="w-4 h-4 mr-1" />{t.exportExcel}</Button>
-                <Button variant="outline"><Download className="w-4 h-4 mr-1" />{t.exportPdf}</Button>
+              
+              <div className="border-t pt-4">
+                <Label className="mb-3 block font-semibold">{t.generateReport}</Label>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => handleExportReport('excel')} className="flex-1">
+                    <Download className="w-4 h-4 mr-2" />{t.exportExcel}
+                  </Button>
+                  <Button variant="outline" onClick={() => handleExportReport('pdf')} className="flex-1">
+                    <Download className="w-4 h-4 mr-2" />{t.exportPdf}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-3">{language === 'fr' ? 'Aperçu des données' : 'Data Preview'}</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="text-2xl font-bold">{structures.length}</div>
+                    <div className="text-sm text-muted-foreground">{language === 'fr' ? 'Tarifs' : 'Fees'}</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="text-2xl font-bold">{assignedFees.length}</div>
+                    <div className="text-sm text-muted-foreground">{language === 'fr' ? 'Assignations' : 'Assignments'}</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="text-2xl font-bold">{payments.length}</div>
+                    <div className="text-sm text-muted-foreground">{language === 'fr' ? 'Paiements' : 'Payments'}</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-green-600">{formatCurrency(stats?.totalCollected || 0)}</div>
+                    <div className="text-sm text-muted-foreground">{t.totalCollected}</div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -830,28 +1235,40 @@ export default function FeesManagement() {
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-blue-600" />
-                  <span>{language === 'fr' ? 'Rappels par Email' : 'Email Reminders'}</span>
+                  <div>
+                    <span className="font-medium">{language === 'fr' ? 'Rappels par Email' : 'Email Reminders'}</span>
+                    <p className="text-sm text-muted-foreground">{language === 'fr' ? 'Envoyer des rappels par email aux parents' : 'Send reminders via email to parents'}</p>
+                  </div>
                 </div>
                 <Switch defaultChecked />
               </div>
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <MessageSquare className="w-5 h-5 text-green-600" />
-                  <span>{language === 'fr' ? 'Rappels WhatsApp' : 'WhatsApp Reminders'}</span>
+                  <div>
+                    <span className="font-medium">{language === 'fr' ? 'Rappels WhatsApp' : 'WhatsApp Reminders'}</span>
+                    <p className="text-sm text-muted-foreground">{language === 'fr' ? 'Envoyer des rappels via WhatsApp' : 'Send reminders via WhatsApp'}</p>
+                  </div>
                 </div>
                 <Switch defaultChecked />
               </div>
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <Smartphone className="w-5 h-5 text-purple-600" />
-                  <span>{language === 'fr' ? 'Notifications Push' : 'Push Notifications'}</span>
+                  <div>
+                    <span className="font-medium">{language === 'fr' ? 'Notifications Push' : 'Push Notifications'}</span>
+                    <p className="text-sm text-muted-foreground">{language === 'fr' ? 'Envoyer des notifications push sur l\'app' : 'Send push notifications on the app'}</p>
+                  </div>
                 </div>
                 <Switch defaultChecked />
               </div>
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <Bell className="w-5 h-5 text-orange-600" />
-                  <span>{language === 'fr' ? 'Rappels automatiques (7 jours avant échéance)' : 'Auto reminders (7 days before due)'}</span>
+                  <div>
+                    <span className="font-medium">{language === 'fr' ? 'Rappels automatiques' : 'Auto reminders'}</span>
+                    <p className="text-sm text-muted-foreground">{language === 'fr' ? '7 jours avant l\'échéance' : '7 days before due date'}</p>
+                  </div>
                 </div>
                 <Switch defaultChecked />
               </div>
