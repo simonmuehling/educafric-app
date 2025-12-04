@@ -26,7 +26,15 @@ import {
   Send,
   Edit,
   Trash2,
-  Download
+  Download,
+  Bell,
+  FileText,
+  Settings,
+  FileBarChart,
+  RefreshCw,
+  Calendar,
+  Percent,
+  Filter
 } from 'lucide-react';
 
 const translations = {
@@ -84,7 +92,41 @@ const translations = {
     assign: 'Assigner',
     noData: 'Aucune donnée',
     xaf: 'XAF',
-    loading: 'Chargement...'
+    loading: 'Chargement...',
+    reminders: 'Rappels',
+    reports: 'Rapports',
+    settings: 'Paramètres',
+    sendReminder: 'Envoyer Rappel',
+    remindersSent: 'Rappels Envoyés',
+    upcomingDue: 'Échéances à Venir',
+    overdueCount: 'En Retard',
+    lastReminderSent: 'Dernier Rappel',
+    autoReminders: 'Rappels Automatiques',
+    reminderDaysBefore: 'Jours avant échéance',
+    enableReminders: 'Activer les rappels',
+    exportReport: 'Exporter Rapport',
+    filterByClass: 'Filtrer par Classe',
+    filterByStatus: 'Filtrer par Statut',
+    dateRange: 'Période',
+    generateReport: 'Générer Rapport',
+    collectionReport: 'Rapport de Recouvrement',
+    defaultersReport: 'Liste des Défaillants',
+    paymentMethods: 'Modes de Paiement',
+    enableMtnMomo: 'Activer MTN MoMo',
+    enableOrangeMoney: 'Activer Orange Money',
+    enableStripe: 'Activer Stripe',
+    discountSettings: 'Remises',
+    siblingDiscount: 'Remise Fratrie',
+    scholarshipDiscount: 'Bourse',
+    latePaymentPenalty: 'Pénalité Retard',
+    penaltyPercent: 'Pourcentage Pénalité',
+    all: 'Tous',
+    thisMonth: 'Ce Mois',
+    lastMonth: 'Mois Dernier',
+    thisYear: 'Cette Année',
+    exportExcel: 'Exporter Excel',
+    exportPdf: 'Exporter PDF',
+    noReminders: 'Aucun rappel à envoyer'
   },
   en: {
     title: 'Fees Management',
@@ -140,7 +182,41 @@ const translations = {
     assign: 'Assign',
     noData: 'No data',
     xaf: 'XAF',
-    loading: 'Loading...'
+    loading: 'Loading...',
+    reminders: 'Reminders',
+    reports: 'Reports',
+    settings: 'Settings',
+    sendReminder: 'Send Reminder',
+    remindersSent: 'Reminders Sent',
+    upcomingDue: 'Upcoming Due',
+    overdueCount: 'Overdue',
+    lastReminderSent: 'Last Reminder',
+    autoReminders: 'Auto Reminders',
+    reminderDaysBefore: 'Days before due',
+    enableReminders: 'Enable reminders',
+    exportReport: 'Export Report',
+    filterByClass: 'Filter by Class',
+    filterByStatus: 'Filter by Status',
+    dateRange: 'Date Range',
+    generateReport: 'Generate Report',
+    collectionReport: 'Collection Report',
+    defaultersReport: 'Defaulters List',
+    paymentMethods: 'Payment Methods',
+    enableMtnMomo: 'Enable MTN MoMo',
+    enableOrangeMoney: 'Enable Orange Money',
+    enableStripe: 'Enable Stripe',
+    discountSettings: 'Discounts',
+    siblingDiscount: 'Sibling Discount',
+    scholarshipDiscount: 'Scholarship',
+    latePaymentPenalty: 'Late Penalty',
+    penaltyPercent: 'Penalty Percent',
+    all: 'All',
+    thisMonth: 'This Month',
+    lastMonth: 'Last Month',
+    thisYear: 'This Year',
+    exportExcel: 'Export Excel',
+    exportPdf: 'Export PDF',
+    noReminders: 'No reminders to send'
   }
 };
 
@@ -263,22 +339,62 @@ export default function FeesManagement() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="dashboard" data-testid="tab-dashboard">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            {t.dashboard}
+        <TabsList className="flex w-full overflow-x-auto scrollbar-hide bg-muted p-1 rounded-lg gap-1">
+          <TabsTrigger 
+            value="dashboard" 
+            data-testid="tab-dashboard"
+            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
+          >
+            <TrendingUp className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{t.dashboard}</span>
           </TabsTrigger>
-          <TabsTrigger value="structures" data-testid="tab-structures">
-            <DollarSign className="w-4 h-4 mr-2" />
-            {t.structures}
+          <TabsTrigger 
+            value="structures" 
+            data-testid="tab-structures"
+            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
+          >
+            <DollarSign className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{t.structures}</span>
           </TabsTrigger>
-          <TabsTrigger value="assigned" data-testid="tab-assigned">
-            <Users className="w-4 h-4 mr-2" />
-            {t.assigned}
+          <TabsTrigger 
+            value="assigned" 
+            data-testid="tab-assigned"
+            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
+          >
+            <Users className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{t.assigned}</span>
           </TabsTrigger>
-          <TabsTrigger value="payments" data-testid="tab-payments">
-            <CreditCard className="w-4 h-4 mr-2" />
-            {t.payments}
+          <TabsTrigger 
+            value="payments" 
+            data-testid="tab-payments"
+            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
+          >
+            <CreditCard className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{t.payments}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="reminders" 
+            data-testid="tab-reminders"
+            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
+          >
+            <Bell className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{t.reminders}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="reports" 
+            data-testid="tab-reports"
+            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
+          >
+            <FileBarChart className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{t.reports}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="settings" 
+            data-testid="tab-settings"
+            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
+          >
+            <Settings className="w-4 h-4 flex-shrink-0" />
+            <span className="hidden sm:inline">{t.settings}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -697,6 +813,385 @@ export default function FeesManagement() {
                   )}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* REMINDERS TAB */}
+        <TabsContent value="reminders" className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">{t.upcomingDue}</CardTitle>
+                <Calendar className="h-4 w-4 text-orange-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">{stats?.stats?.upcomingDueCount || 0}</div>
+                <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Dans les 7 prochains jours' : 'In next 7 days'}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">{t.overdueCount}</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">{stats?.stats?.studentsInArrears || 0}</div>
+                <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Élèves en retard' : 'Students overdue'}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">{t.remindersSent}</CardTitle>
+                <Send className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">{stats?.stats?.remindersSentToday || 0}</div>
+                <p className="text-xs text-muted-foreground">{language === 'fr' ? "Aujourd'hui" : 'Today'}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">{t.autoReminders}</CardTitle>
+                <Bell className="h-4 w-4 text-blue-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  <CheckCircle className="h-6 w-6 inline" />
+                </div>
+                <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Activés' : 'Enabled'}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                {t.sendReminder}
+              </CardTitle>
+              <CardDescription>
+                {language === 'fr' ? 'Envoyer des rappels aux parents des élèves en retard de paiement' : 'Send reminders to parents of students with overdue payments'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Select defaultValue="all">
+                  <SelectTrigger className="w-full sm:w-[200px]" data-testid="select-reminder-class">
+                    <SelectValue placeholder={t.selectClass} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t.all}</SelectItem>
+                    {classes?.map((cls: any) => (
+                      <SelectItem key={cls.id} value={cls.id.toString()}>{cls.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select defaultValue="overdue">
+                  <SelectTrigger className="w-full sm:w-[200px]" data-testid="select-reminder-status">
+                    <SelectValue placeholder={t.filterByStatus} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="overdue">{t.overdue}</SelectItem>
+                    <SelectItem value="pending">{t.pending}</SelectItem>
+                    <SelectItem value="partial">{t.partial}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button className="bg-green-600 hover:bg-green-700" data-testid="btn-send-reminders">
+                  <Send className="w-4 h-4 mr-2" />
+                  {t.sendReminder}
+                </Button>
+              </div>
+              <div className="border rounded-lg p-4 bg-muted/50">
+                <h4 className="font-medium mb-2">{language === 'fr' ? 'Aperçu du message' : 'Message Preview'}</h4>
+                <p className="text-sm text-muted-foreground">
+                  {language === 'fr' 
+                    ? "Cher parent, nous vous rappelons que les frais de scolarité de votre enfant [NOM] sont en retard. Montant dû: [MONTANT] XAF. Veuillez régulariser dans les plus brefs délais."
+                    : "Dear parent, this is a reminder that the school fees for your child [NAME] are overdue. Amount due: [AMOUNT] XAF. Please settle at your earliest convenience."}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* REPORTS TAB */}
+        <TabsContent value="reports" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileBarChart className="h-5 w-5" />
+                {t.generateReport}
+              </CardTitle>
+              <CardDescription>
+                {language === 'fr' ? 'Générer des rapports de recouvrement et de paiements' : 'Generate collection and payment reports'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <Label>{t.filterByClass}</Label>
+                  <Select defaultValue="all">
+                    <SelectTrigger data-testid="report-class-filter">
+                      <SelectValue placeholder={t.selectClass} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t.all}</SelectItem>
+                      {classes?.map((cls: any) => (
+                        <SelectItem key={cls.id} value={cls.id.toString()}>{cls.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>{t.filterByStatus}</Label>
+                  <Select defaultValue="all">
+                    <SelectTrigger data-testid="report-status-filter">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t.all}</SelectItem>
+                      <SelectItem value="paid">{t.paid}</SelectItem>
+                      <SelectItem value="pending">{t.pending}</SelectItem>
+                      <SelectItem value="overdue">{t.overdue}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>{t.dateRange}</Label>
+                  <Select defaultValue="thisMonth">
+                    <SelectTrigger data-testid="report-date-filter">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="thisMonth">{t.thisMonth}</SelectItem>
+                      <SelectItem value="lastMonth">{t.lastMonth}</SelectItem>
+                      <SelectItem value="thisYear">{t.thisYear}</SelectItem>
+                      <SelectItem value="all">{t.all}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end gap-2">
+                  <Button variant="outline" className="flex-1" data-testid="btn-export-excel">
+                    <Download className="w-4 h-4 mr-2" />
+                    Excel
+                  </Button>
+                  <Button variant="outline" className="flex-1" data-testid="btn-export-pdf">
+                    <FileText className="w-4 h-4 mr-2" />
+                    PDF
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="cursor-pointer hover:border-green-500 transition-colors" data-testid="card-collection-report">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-600">
+                  <TrendingUp className="h-5 w-5" />
+                  {t.collectionReport}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'fr' ? 'Voir le taux de recouvrement par classe et par mois' : 'View collection rate by class and month'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>{t.totalExpected}</span>
+                    <span className="font-bold">{formatCurrency(stats?.stats?.totalExpected || 0)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>{t.totalCollected}</span>
+                    <span className="font-bold text-green-600">{formatCurrency(stats?.stats?.totalCollected || 0)}</span>
+                  </div>
+                  <Progress value={stats?.stats?.collectionRate || 0} className="mt-2" />
+                  <p className="text-xs text-center text-muted-foreground">{stats?.stats?.collectionRate || 0}% {language === 'fr' ? 'recouvré' : 'collected'}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:border-red-500 transition-colors" data-testid="card-defaulters-report">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-600">
+                  <AlertTriangle className="h-5 w-5" />
+                  {t.defaultersReport}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'fr' ? 'Liste des élèves en retard de paiement' : 'List of students with overdue payments'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>{t.studentsInArrears}</span>
+                    <span className="font-bold text-red-600">{stats?.stats?.studentsInArrears || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>{t.outstanding}</span>
+                    <span className="font-bold text-orange-600">{formatCurrency(stats?.stats?.totalOutstanding || 0)}</span>
+                  </div>
+                  <Button variant="outline" className="w-full mt-2" data-testid="btn-view-defaulters">
+                    <Download className="w-4 h-4 mr-2" />
+                    {t.exportReport}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* SETTINGS TAB */}
+        <TabsContent value="settings" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  {t.paymentMethods}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'fr' ? 'Configurer les modes de paiement acceptés' : 'Configure accepted payment methods'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                      <span className="text-yellow-600 font-bold text-xs">MTN</span>
+                    </div>
+                    <div>
+                      <p className="font-medium">MTN Mobile Money</p>
+                      <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Paiement mobile' : 'Mobile payment'}</p>
+                    </div>
+                  </div>
+                  <Badge variant="default" className="bg-green-600">{language === 'fr' ? 'Actif' : 'Active'}</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <span className="text-orange-600 font-bold text-xs">OM</span>
+                    </div>
+                    <div>
+                      <p className="font-medium">Orange Money</p>
+                      <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Paiement mobile' : 'Mobile payment'}</p>
+                    </div>
+                  </div>
+                  <Badge variant="default" className="bg-green-600">{language === 'fr' ? 'Actif' : 'Active'}</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Stripe</p>
+                      <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Carte bancaire' : 'Bank card'}</p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary">{language === 'fr' ? 'Config requise' : 'Setup required'}</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <DollarSign className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{t.cash}</p>
+                      <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Paiement en espèces' : 'Cash payment'}</p>
+                    </div>
+                  </div>
+                  <Badge variant="default" className="bg-green-600">{language === 'fr' ? 'Actif' : 'Active'}</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Percent className="h-5 w-5" />
+                  {t.discountSettings}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'fr' ? 'Configurer les remises et pénalités' : 'Configure discounts and penalties'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{t.siblingDiscount}</Label>
+                  <div className="flex items-center gap-2">
+                    <Input type="number" defaultValue="10" className="w-20" data-testid="input-sibling-discount" />
+                    <span className="text-muted-foreground">%</span>
+                    <p className="text-xs text-muted-foreground flex-1">
+                      {language === 'fr' ? 'Appliqué au 2ème enfant et plus' : 'Applied to 2nd child and more'}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>{t.scholarshipDiscount}</Label>
+                  <div className="flex items-center gap-2">
+                    <Input type="number" defaultValue="25" className="w-20" data-testid="input-scholarship-discount" />
+                    <span className="text-muted-foreground">%</span>
+                    <p className="text-xs text-muted-foreground flex-1">
+                      {language === 'fr' ? 'Pour les boursiers' : 'For scholarship students'}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>{t.latePaymentPenalty}</Label>
+                  <div className="flex items-center gap-2">
+                    <Input type="number" defaultValue="5" className="w-20" data-testid="input-late-penalty" />
+                    <span className="text-muted-foreground">%</span>
+                    <p className="text-xs text-muted-foreground flex-1">
+                      {language === 'fr' ? 'Après 30 jours de retard' : 'After 30 days overdue'}
+                    </p>
+                  </div>
+                </div>
+                <Button className="w-full mt-4" data-testid="btn-save-settings">
+                  {t.save}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                {t.autoReminders}
+              </CardTitle>
+              <CardDescription>
+                {language === 'fr' ? 'Configurer les rappels automatiques' : 'Configure automatic reminders'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 space-y-2">
+                  <Label>{t.reminderDaysBefore}</Label>
+                  <Select defaultValue="3">
+                    <SelectTrigger data-testid="select-reminder-days">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 {language === 'fr' ? 'jour' : 'day'}</SelectItem>
+                      <SelectItem value="3">3 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
+                      <SelectItem value="7">7 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
+                      <SelectItem value="14">14 {language === 'fr' ? 'jours' : 'days'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end">
+                  <Badge variant="default" className="bg-green-600 py-2">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    {language === 'fr' ? 'Rappels activés' : 'Reminders enabled'}
+                  </Badge>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {language === 'fr' 
+                  ? 'Les rappels sont envoyés automatiquement par email et WhatsApp aux parents des élèves dont les frais arrivent à échéance.'
+                  : 'Reminders are automatically sent via email and WhatsApp to parents of students with fees due soon.'}
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
