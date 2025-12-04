@@ -942,22 +942,22 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                 zIndex: 0
               }} />
               
-              <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '2.5mm' }}>
-                {/* Header Strip */}
+              <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '2mm' }}>
+                {/* Header Strip - Compact */}
                 <div style={{
                   background: 'linear-gradient(90deg, #059669 0%, #10b981 50%, #34d399 100%)',
-                  height: '8mm',
-                  margin: '-2.5mm -2.5mm 2mm -2.5mm',
+                  height: '7mm',
+                  margin: '-2mm -2mm 1.5mm -2mm',
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '0 3mm',
-                  gap: '2mm'
+                  padding: '0 2mm',
+                  gap: '1.5mm'
                 }}>
                   {school.logoUrl ? (
                     <img 
                       src={school.logoUrl} 
                       alt="Logo" 
-                      style={{ width: '6mm', height: '6mm', borderRadius: '1mm', objectFit: 'contain', background: 'white', padding: '0.3mm' }}
+                      style={{ width: '5mm', height: '5mm', borderRadius: '0.8mm', objectFit: 'contain', background: 'white', padding: '0.2mm' }}
                       onError={(e) => {
                         console.error('[ID_CARD] Logo failed to load:', school.logoUrl);
                         e.currentTarget.style.display = 'none';
@@ -967,128 +967,129 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                     />
                   ) : null}
                   <div style={{ 
-                    width: '6mm', height: '6mm', background: 'white', borderRadius: '1mm', 
+                    width: '5mm', height: '5mm', background: 'white', borderRadius: '0.8mm', 
                     display: school.logoUrl ? 'none' : 'flex', 
                     alignItems: 'center', justifyContent: 'center', 
-                    fontSize: '3.5mm', fontWeight: 800, color: '#059669' 
+                    fontSize: '3mm', fontWeight: 800, color: '#059669' 
                   }}>
                     E
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '2.8mm', fontWeight: 700, color: 'white', lineHeight: 1.1, textShadow: '0 0.5mm 1mm rgba(0,0,0,0.2)' }}>{school.name}</div>
-                    <div style={{ fontSize: '1.6mm', color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontStyle: 'italic' }}>{school.slogan || school.tagline || 'Excellence • Discipline • Intégrité'}</div>
+                    <div style={{ fontSize: '2.2mm', fontWeight: 700, color: 'white', lineHeight: 1.1, textShadow: '0 0.5mm 1mm rgba(0,0,0,0.2)' }}>{school.name}</div>
+                    <div style={{ fontSize: '1.3mm', color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontStyle: 'italic' }}>{school.slogan || school.tagline || 'Excellence • Discipline • Intégrité'}</div>
                   </div>
                   <div style={{
                     background: 'rgba(255,255,255,0.95)',
                     color: '#059669',
-                    fontSize: '1.8mm',
+                    fontSize: '1.4mm',
                     fontWeight: 700,
-                    padding: '1mm 2mm',
-                    borderRadius: '1mm',
+                    padding: '0.8mm 1.5mm',
+                    borderRadius: '0.8mm',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.3mm'
+                    letterSpacing: '0.2mm'
                   }}>
                     {text.studentCard}
                   </div>
                 </div>
                 
-                {/* Main Content */}
-                <div style={{ display: 'flex', gap: '3mm', flex: 1 }}>
-                  {/* Photo */}
+                {/* Main Content - Compact */}
+                <div style={{ display: 'flex', gap: '2mm', flex: 1 }}>
+                  {/* Photo - Smaller */}
                   <div>
                     {photoSrc ? (
                       <img 
                         src={photoSrc} 
                         alt={fullName}
-                        style={{ width: '22mm', height: '28mm', borderRadius: '2mm', objectFit: 'cover', border: '0.5mm solid #d1d5db', boxShadow: '0 1mm 3mm rgba(0,0,0,0.1)' }}
+                        style={{ width: '18mm', height: '24mm', borderRadius: '1.5mm', objectFit: 'cover', border: '0.4mm solid #d1d5db', boxShadow: '0 0.5mm 2mm rgba(0,0,0,0.1)' }}
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       />
                     ) : (
-                      <div style={{ width: '22mm', height: '28mm', background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)', borderRadius: '2mm', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '0.5mm solid #d1d5db', gap: '1mm' }}>
-                        <svg width="8mm" height="8mm" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+                      <div style={{ width: '18mm', height: '24mm', background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)', borderRadius: '1.5mm', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '0.4mm solid #d1d5db', gap: '0.5mm' }}>
+                        <svg width="6mm" height="6mm" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
                           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                           <circle cx="12" cy="7" r="4"/>
                         </svg>
-                        <span style={{ fontSize: '1.5mm', color: '#9ca3af', fontWeight: 500 }}>{text.photo}</span>
+                        <span style={{ fontSize: '1.2mm', color: '#9ca3af', fontWeight: 500 }}>{text.photo}</span>
                       </div>
                     )}
                   </div>
                   
-                  {/* Info Panel */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div style={{ fontSize: '3.2mm', fontWeight: 800, color: '#111827', lineHeight: 1.15, marginBottom: '1mm', textTransform: 'uppercase', maxWidth: '30mm' }}>{fullName}</div>
+                  {/* Info Panel - Compact */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: '0.8mm' }}>
+                    <div style={{ fontSize: '2.8mm', fontWeight: 800, color: '#111827', lineHeight: 1.1, textTransform: 'uppercase', maxWidth: '32mm' }}>{fullName}</div>
                     
-                    <div style={{ display: 'grid', gap: '0.5mm' }}>
+                    <div style={{ display: 'grid', gap: '0.3mm' }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.studentId}:</span>
-                        <span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span>
+                        <span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.studentId}:</span>
+                        <span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span>
                       </div>
                       {formattedBirthDate && (
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
-                          <span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.birthDate}</span>
-                          <span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 600 }}>{formattedBirthDate}</span>
+                          <span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.birthDate}</span>
+                          <span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 600 }}>{formattedBirthDate}</span>
                         </div>
                       )}
                       {birthPlaceValue && (
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
-                          <span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.birthPlace}</span>
-                          <span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '20mm' }}>{birthPlaceValue}</span>
+                          <span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.birthPlace}</span>
+                          <span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '18mm' }}>{birthPlaceValue}</span>
                         </div>
                       )}
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.class}:</span>
-                        <span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '22mm' }}>{student.className}</span>
+                        <span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.class}:</span>
+                        <span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '20mm' }}>{student.className}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.academicYear}:</span>
-                        <span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700 }}>{academicYear}</span>
+                        <span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.academicYear}:</span>
+                        <span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 700 }}>{academicYear}</span>
                       </div>
                     </div>
                     
                     <div style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '0.5mm',
+                      gap: '0.3mm',
                       background: 'linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%)',
                       color: '#166534',
-                      fontSize: '1.5mm',
+                      fontSize: '1.3mm',
                       fontWeight: 600,
-                      padding: '0.6mm 1.2mm',
-                      borderRadius: '0.8mm',
+                      padding: '0.5mm 1mm',
+                      borderRadius: '0.6mm',
                       border: '0.2mm solid #86efac',
                       width: 'fit-content',
-                      whiteSpace: 'nowrap'
+                      whiteSpace: 'nowrap',
+                      marginTop: '0.5mm'
                     }}>
                       ✓ {text.validThru}: {validityDate}
                     </div>
                   </div>
                   
-                  {/* QR Code & Signature Column */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', paddingTop: '1mm', minWidth: '20mm' }}>
+                  {/* QR Code & Signature Column - Compact */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', minWidth: '16mm' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <canvas ref={qrCanvasFrontRef} style={{ width: '18mm', height: '18mm', border: '0.3mm solid #e5e7eb', borderRadius: '1mm', padding: '0.5mm', background: 'white' }} />
-                      <span style={{ fontSize: '1.3mm', color: '#9ca3af', marginTop: '0.3mm', fontWeight: 500 }}>SCAN</span>
+                      <canvas ref={qrCanvasFrontRef} style={{ width: '14mm', height: '14mm', border: '0.2mm solid #e5e7eb', borderRadius: '0.8mm', padding: '0.3mm', background: 'white' }} />
+                      <span style={{ fontSize: '1.1mm', color: '#9ca3af', marginTop: '0.2mm', fontWeight: 500 }}>SCAN</span>
                     </div>
                     {/* Principal Signature on Front */}
-                    <div style={{ textAlign: 'center', marginTop: '1mm' }}>
+                    <div style={{ textAlign: 'center', marginTop: '0.5mm' }}>
                       {principalSignature ? (
                         <img 
                           src={principalSignature} 
                           alt="Signature Directeur" 
-                          style={{ maxHeight: '6mm', maxWidth: '18mm', objectFit: 'contain' }}
+                          style={{ maxHeight: '5mm', maxWidth: '14mm', objectFit: 'contain' }}
                         />
                       ) : (
-                        <div style={{ width: '16mm', borderBottom: '0.3mm solid #94a3b8', height: '4mm' }}></div>
+                        <div style={{ width: '12mm', borderBottom: '0.2mm solid #94a3b8', height: '3mm' }}></div>
                       )}
-                      <span style={{ fontSize: '1.2mm', color: '#6b7280', display: 'block' }}>Directeur</span>
+                      <span style={{ fontSize: '1mm', color: '#6b7280', display: 'block' }}>Directeur</span>
                     </div>
                   </div>
                 </div>
                 
-                {/* Footer Strip */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '1mm', borderTop: '0.2mm solid #e5e7eb' }}>
-                  <span style={{ fontSize: '1.5mm', color: '#9ca3af', fontFamily: "'Courier New', monospace", fontWeight: 600 }}>{text.cardNumber}: {cardId}</span>
-                  <span style={{ fontSize: '1.5mm', color: '#6b7280' }}>{text.issuedOn}: {issueDate}</span>
+                {/* Footer Strip - Compact */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '0.5mm', borderTop: '0.15mm solid #e5e7eb' }}>
+                  <span style={{ fontSize: '1.2mm', color: '#9ca3af', fontFamily: "'Courier New', monospace", fontWeight: 600 }}>{cardId}</span>
+                  <span style={{ fontSize: '1.2mm', color: '#6b7280' }}>{issueDate}</span>
                 </div>
               </div>
             </div>
@@ -1273,25 +1274,25 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                       )}
                     </div>
                     
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                      <div style={{ fontSize: '3.2mm', fontWeight: 800, color: '#111827', lineHeight: 1.15, marginBottom: '1mm', textTransform: 'uppercase', maxWidth: '30mm' }}>{fullName}</div>
-                      <div style={{ display: 'grid', gap: '0.5mm' }}>
-                        <div style={{ display: 'flex', gap: '0.5mm', whiteSpace: 'nowrap' }}><span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.studentId}:</span><span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span></div>
-                        <div style={{ display: 'flex', gap: '0.5mm', whiteSpace: 'nowrap' }}><span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.class}:</span><span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700 }}>{student.className}</span></div>
-                        <div style={{ display: 'flex', gap: '0.5mm', whiteSpace: 'nowrap' }}><span style={{ fontSize: '1.5mm', color: '#6b7280', fontWeight: 600 }}>{text.academicYear}:</span><span style={{ fontSize: '1.7mm', color: '#1f2937', fontWeight: 700 }}>{academicYear}</span></div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: '0.8mm' }}>
+                      <div style={{ fontSize: '2.8mm', fontWeight: 800, color: '#111827', lineHeight: 1.1, textTransform: 'uppercase', maxWidth: '32mm' }}>{fullName}</div>
+                      <div style={{ display: 'grid', gap: '0.3mm' }}>
+                        <div style={{ display: 'flex', gap: '0.5mm', whiteSpace: 'nowrap' }}><span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.studentId}:</span><span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span></div>
+                        <div style={{ display: 'flex', gap: '0.5mm', whiteSpace: 'nowrap' }}><span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.class}:</span><span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 700 }}>{student.className}</span></div>
+                        <div style={{ display: 'flex', gap: '0.5mm', whiteSpace: 'nowrap' }}><span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.academicYear}:</span><span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 700 }}>{academicYear}</span></div>
                       </div>
-                      <div style={{ display: 'inline-flex', background: 'linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%)', color: '#166534', fontSize: '1.5mm', fontWeight: 600, padding: '0.6mm 1.2mm', borderRadius: '0.8mm', border: '0.2mm solid #86efac', width: 'fit-content', whiteSpace: 'nowrap' }}>✓ {text.validThru}: {validityDate}</div>
+                      <div style={{ display: 'inline-flex', background: 'linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%)', color: '#166534', fontSize: '1.3mm', fontWeight: 600, padding: '0.5mm 1mm', borderRadius: '0.6mm', border: '0.2mm solid #86efac', width: 'fit-content', whiteSpace: 'nowrap', marginTop: '0.5mm' }}>✓ {text.validThru}: {validityDate}</div>
                     </div>
                     
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '1mm' }}>
-                      <canvas className="qr-front-print" style={{ width: '16mm', height: '16mm', border: '0.3mm solid #e5e7eb', borderRadius: '1mm', padding: '0.5mm', background: 'white' }} />
-                      <span style={{ fontSize: '1.5mm', color: '#9ca3af', marginTop: '0.5mm', fontWeight: 500 }}>SCAN</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <canvas className="qr-front-print" style={{ width: '14mm', height: '14mm', border: '0.2mm solid #e5e7eb', borderRadius: '0.8mm', padding: '0.3mm', background: 'white' }} />
+                      <span style={{ fontSize: '1.1mm', color: '#9ca3af', marginTop: '0.2mm', fontWeight: 500 }}>SCAN</span>
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '1.5mm', borderTop: '0.2mm solid #e5e7eb' }}>
-                    <span style={{ fontSize: '1.6mm', color: '#9ca3af', fontFamily: "'Courier New', monospace", fontWeight: 600 }}>{text.cardNumber}: {cardId}</span>
-                    <span style={{ fontSize: '1.6mm', color: '#6b7280' }}>{text.issuedOn}: {issueDate}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '0.5mm', borderTop: '0.15mm solid #e5e7eb' }}>
+                    <span style={{ fontSize: '1.2mm', color: '#9ca3af', fontFamily: "'Courier New', monospace", fontWeight: 600 }}>{cardId}</span>
+                    <span style={{ fontSize: '1.2mm', color: '#6b7280' }}>{issueDate}</span>
                   </div>
                 </div>
               </div>
