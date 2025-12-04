@@ -85,7 +85,12 @@ const TeacherSubmittedBulletins: React.FC = () => {
       absences: 'Absences Justifiées',
       absencesNotJustified: 'Absences Non Justifiées',
       tardiness: 'Retards',
-      sanctions: 'Sanctions',
+      sanctions: 'Sanctions (heures)',
+      sanctionTypes: 'Types de sanctions (CBA)',
+      conductWarning: 'Avertissement conduite',
+      conductBlame: 'Blâme',
+      suspension: 'Suspension (jours)',
+      dismissal: 'Renvoyé',
       approveSuccess: 'Bulletin approuvé avec succès',
       rejectSuccess: 'Bulletin rejeté avec succès',
       error: 'Erreur',
@@ -127,7 +132,12 @@ const TeacherSubmittedBulletins: React.FC = () => {
       absences: 'Justified Absences',
       absencesNotJustified: 'Unjustified Absences',
       tardiness: 'Tardiness',
-      sanctions: 'Sanctions',
+      sanctions: 'Sanctions (hours)',
+      sanctionTypes: 'Sanction Types (CBA)',
+      conductWarning: 'Conduct Warning',
+      conductBlame: 'Reprimand',
+      suspension: 'Suspension (days)',
+      dismissal: 'Dismissed',
       approveSuccess: 'Bulletin approved successfully',
       rejectSuccess: 'Bulletin rejected successfully',
       error: 'Error',
@@ -279,7 +289,7 @@ const TeacherSubmittedBulletins: React.FC = () => {
               </h3>
               <div className="pl-7 space-y-1">
                 <p data-testid="text-student-name"><strong>{t.student}:</strong> {selectedBulletin.studentName || selectedBulletin.studentInfo?.name || t.noData}</p>
-                <p data-testid="text-class"><strong>{t.class}:</strong> {selectedBulletin.studentInfo?.classLabel || t.noData}</p>
+                <p data-testid="text-class"><strong>{t.class}:</strong> {selectedBulletin.studentInfo?.className || selectedBulletin.studentInfo?.classLabel || selectedBulletin.className || t.noData}</p>
                 <p data-testid="text-term"><strong>{t.term}:</strong> {selectedBulletin.term}</p>
                 <p data-testid="text-academic-year"><strong>{language === 'fr' ? 'Année Académique' : 'Academic Year'}:</strong> {selectedBulletin.academicYear}</p>
               </div>
@@ -298,11 +308,12 @@ const TeacherSubmittedBulletins: React.FC = () => {
           </div>
 
           {/* Discipline Info */}
-          <div className="space-y-2">
+          <div className="space-y-4">
             <h3 className="font-semibold text-lg flex items-center gap-2" data-testid="heading-discipline">
               <AlertCircle className="w-5 h-5" />
               {t.disciplineInfo}
             </h3>
+            {/* First row: Absences and Tardiness */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pl-7">
               <div data-testid="discipline-absences">
                 <p className="text-sm text-gray-600">{t.absences}</p>
@@ -319,6 +330,28 @@ const TeacherSubmittedBulletins: React.FC = () => {
               <div data-testid="discipline-sanctions">
                 <p className="text-sm text-gray-600">{t.sanctions}</p>
                 <p className="text-lg font-semibold">{selectedBulletin.discipline?.sanctions || 0}</p>
+              </div>
+            </div>
+            {/* Second row: Sanction Types (CBA format) */}
+            <div className="pl-7">
+              <p className="text-sm font-medium text-orange-700 mb-2">{t.sanctionTypes}</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div data-testid="discipline-conduct-warning">
+                  <p className="text-sm text-gray-600">{t.conductWarning}</p>
+                  <p className="text-lg font-semibold">{selectedBulletin.discipline?.conductWarning || 0}</p>
+                </div>
+                <div data-testid="discipline-conduct-blame">
+                  <p className="text-sm text-gray-600">{t.conductBlame}</p>
+                  <p className="text-lg font-semibold">{selectedBulletin.discipline?.conductBlame || 0}</p>
+                </div>
+                <div data-testid="discipline-suspension">
+                  <p className="text-sm text-gray-600">{t.suspension}</p>
+                  <p className="text-lg font-semibold">{selectedBulletin.discipline?.suspension || 0}</p>
+                </div>
+                <div data-testid="discipline-dismissal">
+                  <p className="text-sm text-gray-600">{t.dismissal}</p>
+                  <p className="text-lg font-semibold">{selectedBulletin.discipline?.dismissal === 1 ? (language === 'fr' ? 'Oui' : 'Yes') : (language === 'fr' ? 'Non' : 'No')}</p>
+                </div>
               </div>
             </div>
           </div>

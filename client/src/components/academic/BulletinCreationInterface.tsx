@@ -3218,54 +3218,56 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
 
           {/* ✅ MINISTRY COMPLIANT: Single consolidated Attendance and Discipline section implemented above */}
 
-          {/* General Appreciations and Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">
-                📝 {language === 'fr' ? 'Appréciations et Observations Finales' : 'Final Appreciations and Observations'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">
-                    {language === 'fr' ? 'Appréciation générale du travail de l\'élève' : 'General student work appreciation'}
-                  </Label>
-                  
-                  {/* Ministry-required Teacher Comments - Now Per-Subject */}
-                  <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-2 mb-3">
-                      <h4 className="text-sm font-semibold text-blue-800 flex items-center gap-2">
-                        📋 {language === 'fr' ? 'COMMENTAIRES PAR MATIÈRE (Ministère)' : 'COMMENTS PER SUBJECT (Ministry)'}
-                      </h4>
-                    </div>
-                    <p className="text-xs text-blue-600">
-                      {language === 'fr' 
-                        ? 'Les commentaires officiels du Ministère sont maintenant gérés par matière dans le tableau des notes ci-dessus. Chaque enseignant peut sélectionner jusqu\'à 2 commentaires spécifiques pour chaque élève.'
-                        : 'Ministry official comments are now managed per subject in the grade table above. Each teacher can select up to 2 specific comments for each student.'
-                      }
-                    </p>
-                  </div>
-                  
-                  {/* Additional Free Text (Optional) */}
+          {/* General Appreciations and Summary - DIRECTORS ONLY (not for teachers) */}
+          {!isTeacherRole && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  📝 {language === 'fr' ? 'Appréciations et Observations Finales' : 'Final Appreciations and Observations'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
                   <div>
-                    <Label className="text-xs text-gray-600 mb-1 block">
-                      {language === 'fr' ? 'Commentaire libre supplémentaire (optionnel)' : 'Additional free comment (optional)'}
+                    <Label className="text-sm font-medium mb-2 block">
+                      {language === 'fr' ? 'Appréciation générale du travail de l\'élève' : 'General student work appreciation'}
                     </Label>
-                    <textarea
-                      className="w-full border rounded-lg p-3 text-sm min-h-[60px] resize-y"
-                      placeholder={language === 'fr' ? 
-                        'Ajoutez un commentaire personnalisé si nécessaire...' : 
-                        'Add a personal comment if needed...'}
-                      value={generalRemark}
-                      onChange={(e) => setGeneralRemark(e.target.value)}
-                      data-testid="textarea-additional-remark"
-                    />
+                    
+                    {/* Ministry-required Teacher Comments - Now Per-Subject */}
+                    <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <h4 className="text-sm font-semibold text-blue-800 flex items-center gap-2">
+                          📋 {language === 'fr' ? 'COMMENTAIRES PAR MATIÈRE (Ministère)' : 'COMMENTS PER SUBJECT (Ministry)'}
+                        </h4>
+                      </div>
+                      <p className="text-xs text-blue-600">
+                        {language === 'fr' 
+                          ? 'Les commentaires officiels du Ministère sont maintenant gérés par matière dans le tableau des notes ci-dessus. Chaque enseignant peut sélectionner jusqu\'à 2 commentaires spécifiques pour chaque élève.'
+                          : 'Ministry official comments are now managed per subject in the grade table above. Each teacher can select up to 2 specific comments for each student.'
+                        }
+                      </p>
+                    </div>
+                    
+                    {/* Additional Free Text (Optional) */}
+                    <div>
+                      <Label className="text-xs text-gray-600 mb-1 block">
+                        {language === 'fr' ? 'Commentaire libre supplémentaire (optionnel)' : 'Additional free comment (optional)'}
+                      </Label>
+                      <textarea
+                        className="w-full border rounded-lg p-3 text-sm min-h-[60px] resize-y"
+                        placeholder={language === 'fr' ? 
+                          'Ajoutez un commentaire personnalisé si nécessaire...' : 
+                          'Add a personal comment if needed...'}
+                        value={generalRemark}
+                        onChange={(e) => setGeneralRemark(e.target.value)}
+                        data-testid="textarea-additional-remark"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Real School Logo Info */}
           {realSchoolLogoUrl && (
