@@ -633,14 +633,6 @@ export default function FeesManagement() {
             <span className="hidden sm:inline">{t.payments}</span>
           </TabsTrigger>
           <TabsTrigger 
-            value="reminders" 
-            data-testid="tab-reminders"
-            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
-          >
-            <Bell className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden sm:inline">{t.reminders}</span>
-          </TabsTrigger>
-          <TabsTrigger 
             value="reports" 
             data-testid="tab-reports"
             className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 px-2 py-2 text-xs sm:text-sm whitespace-nowrap"
@@ -1270,103 +1262,6 @@ export default function FeesManagement() {
                   )}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* REMINDERS TAB */}
-        <TabsContent value="reminders" className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{t.upcomingDue}</CardTitle>
-                <Calendar className="h-4 w-4 text-orange-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{stats?.upcomingDueCount || stats?.upcomingDue || 0}</div>
-                <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Dans les 7 prochains jours' : 'In next 7 days'}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{t.overdueCount}</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">{stats?.studentsInArrears || stats?.overdue || 0}</div>
-                <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Élèves en retard' : 'Students overdue'}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{t.remindersSent}</CardTitle>
-                <Send className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">{stats?.remindersSentToday || 0}</div>
-                <p className="text-xs text-muted-foreground">{language === 'fr' ? "Aujourd'hui" : 'Today'}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{t.autoReminders}</CardTitle>
-                <Bell className="h-4 w-4 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
-                  <CheckCircle className="h-6 w-6 inline" />
-                </div>
-                <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Activés' : 'Enabled'}</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                {t.sendReminder}
-              </CardTitle>
-              <CardDescription>
-                {language === 'fr' ? 'Envoyer des rappels aux parents des élèves en retard de paiement' : 'Send reminders to parents of students with overdue payments'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Select defaultValue="all">
-                  <SelectTrigger className="w-full sm:w-[200px]" data-testid="select-reminder-class">
-                    <SelectValue placeholder={t.selectClass} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t.all}</SelectItem>
-                    {classes?.map((cls: any) => (
-                      <SelectItem key={cls.id} value={cls.id.toString()}>{cls.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select defaultValue="overdue">
-                  <SelectTrigger className="w-full sm:w-[200px]" data-testid="select-reminder-status">
-                    <SelectValue placeholder={t.filterByStatus} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="overdue">{t.overdue}</SelectItem>
-                    <SelectItem value="pending">{t.pending}</SelectItem>
-                    <SelectItem value="partial">{t.partial}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button className="bg-green-600 hover:bg-green-700" data-testid="btn-send-reminders">
-                  <Send className="w-4 h-4 mr-2" />
-                  {t.sendReminder}
-                </Button>
-              </div>
-              <div className="border rounded-lg p-4 bg-muted/50">
-                <h4 className="font-medium mb-2">{language === 'fr' ? 'Aperçu du message' : 'Message Preview'}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {language === 'fr' 
-                    ? "Cher parent, nous vous rappelons que les frais de scolarité de votre enfant [NOM] sont en retard. Montant dû: [MONTANT] XAF. Veuillez régulariser dans les plus brefs délais."
-                    : "Dear parent, this is a reminder that the school fees for your child [NAME] are overdue. Amount due: [AMOUNT] XAF. Please settle at your earliest convenience."}
-                </p>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
