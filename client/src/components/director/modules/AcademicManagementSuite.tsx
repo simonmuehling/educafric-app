@@ -2150,7 +2150,7 @@ export default function AcademicManagementSuite() {
               </TabsTrigger>
               <TabsTrigger value="transcript" className="flex items-center gap-2" data-testid="tab-transcript">
                 <BookOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">{language === 'fr' ? 'Relevé' : 'Marksheet'}</span>
+                <span className="hidden sm:inline">{language === 'fr' ? 'Relevé' : 'Transcript'}</span>
               </TabsTrigger>
               <TabsTrigger value="archives" className="flex items-center gap-2" data-testid="tab-archives">
                 <Archive className="h-4 w-4" />
