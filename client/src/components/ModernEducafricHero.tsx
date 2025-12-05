@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles, Zap, Globe, Leaf, Recycle } from 'lucide-react';
+import { ArrowRight, Sparkles, Zap, Globe, WifiOff, CloudOff, Signal } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function ModernEducafricHero() {
@@ -55,37 +55,43 @@ export default function ModernEducafricHero() {
               }
             </p>
 
-            {/* Environmental Impact Banner */}
-            <div className="glass-card p-4 rounded-2xl border border-green-300/30 bg-green-500/10 backdrop-blur-sm">
-              <div className="flex items-center gap-3">
+            {/* Offline Feature Banner - Highlighted */}
+            <div className="glass-card p-5 rounded-2xl border-2 border-purple-400/50 bg-gradient-to-r from-purple-600/30 via-indigo-600/30 to-blue-600/30 backdrop-blur-sm shadow-lg shadow-purple-500/20">
+              <div className="flex items-center gap-4">
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-green-400/20 rounded-full flex items-center justify-center">
-                    <Leaf className="w-6 h-6 text-green-300" />
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg animate-pulse">
+                    <WifiOff className="w-8 h-8 text-white" />
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-white font-semibold text-lg mb-1">
-                    {language === 'fr' 
-                      ? '🌍 Impact Environnemental Positif' 
-                      : '🌍 Positive Environmental Impact'
-                    }
-                  </h3>
-                  <p className="text-green-100 text-sm leading-relaxed">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-white font-bold text-xl">
+                      {language === 'fr' 
+                        ? '📴 Mode Hors-Ligne Premium' 
+                        : '📴 Premium Offline Mode'
+                      }
+                    </h3>
+                    <span className="px-2 py-0.5 bg-yellow-400 text-yellow-900 text-xs font-bold rounded-full animate-bounce">
+                      {language === 'fr' ? 'NOUVEAU' : 'NEW'}
+                    </span>
+                  </div>
+                  <p className="text-purple-100 text-sm leading-relaxed">
                     {language === 'fr'
-                      ? 'En digitalisant l\'éducation, Educafric contribue à préserver l\'environnement africain. Chaque bulletin numérique économise 3 feuilles de papier, soit plus de 8,500 arbres protégés par an.'
-                      : 'By digitalizing education, Educafric helps preserve the African environment. Each digital report card saves 3 sheets of paper, protecting over 8,500 trees annually.'
+                      ? 'Travaillez sans connexion internet ! Gérez les notes, la présence, les bulletins et bien plus, même dans les zones rurales. Synchronisation automatique dès que vous êtes en ligne.'
+                      : 'Work without internet connection! Manage grades, attendance, report cards and more, even in rural areas. Automatic sync when you\'re back online.'
                     }
                   </p>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-green-200">
-                    <span className="flex items-center gap-1">
-                      <Recycle className="w-3 h-3" />
-                      {language === 'fr' ? '100% Numérique' : '100% Digital'}
+                  <div className="flex flex-wrap items-center gap-3 mt-3 text-xs">
+                    <span className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-full text-white">
+                      <CloudOff className="w-3 h-3" />
+                      {language === 'fr' ? '12 Modules Hors-Ligne' : '12 Offline Modules'}
                     </span>
-                    <span>
-                      {language === 'fr' ? '✓ 8,500+ Arbres Protégés' : '✓ 8,500+ Trees Protected'}
+                    <span className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-full text-white">
+                      <Signal className="w-3 h-3" />
+                      {language === 'fr' ? 'Sync Automatique' : 'Auto Sync'}
                     </span>
-                    <span>
-                      {language === 'fr' ? '✓ Zéro Papier' : '✓ Zero Paper'}
+                    <span className="bg-green-400/30 px-2 py-1 rounded-full text-green-200 font-semibold">
+                      {language === 'fr' ? '✓ Zones Rurales' : '✓ Rural Areas'}
                     </span>
                   </div>
                 </div>
@@ -102,7 +108,7 @@ export default function ModernEducafricHero() {
               </Link>
             </div>
 
-            {/* Stats - Enhanced with Environmental Impact */}
+            {/* Stats - Enhanced with Offline Feature */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-8">
               <div className="text-center">
                 <div className="text-3xl font-bold text-white mb-1">2,847</div>
@@ -122,13 +128,13 @@ export default function ModernEducafricHero() {
                   {language === 'fr' ? 'Écoles' : 'Schools'}
                 </div>
               </div>
-              <div className="text-center bg-green-500/20 rounded-lg p-3 border border-green-300/30">
+              <div className="text-center bg-purple-500/20 rounded-lg p-3 border border-purple-300/30">
                 <div className="flex items-center justify-center gap-1 mb-1">
-                  <Leaf className="w-4 h-4 text-green-300" />
-                  <div className="text-3xl font-bold text-green-300">8.5K</div>
+                  <WifiOff className="w-4 h-4 text-purple-300" />
+                  <div className="text-3xl font-bold text-purple-300">12</div>
                 </div>
-                <div className="text-xs text-green-200">
-                  {language === 'fr' ? 'Arbres Protégés' : 'Trees Protected'}
+                <div className="text-xs text-purple-200">
+                  {language === 'fr' ? 'Modules Hors-Ligne' : 'Offline Modules'}
                 </div>
               </div>
             </div>
