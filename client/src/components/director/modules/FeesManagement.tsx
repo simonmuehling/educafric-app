@@ -21,6 +21,7 @@ import {
   CreditCard, Send, Edit, Trash2, Download, Bell, Settings, FileBarChart,
   RefreshCw, Printer, MessageSquare, Mail, Smartphone, UserCheck, School
 } from 'lucide-react';
+import { generateBilingualPrintHeaderHtml } from '@/components/shared/StandardBilingualPrintHeader';
 
 const translations = {
   fr: {
@@ -475,20 +476,19 @@ export default function FeesManagement() {
   };
 
   const handlePrintFee = (fee: FeeStructure) => {
-    const w = window.open('', '_blank', 'width=600,height=700');
+    const w = window.open('', '_blank', 'width=600,height=800');
     if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
     
     const className = classes.find((c: any) => c.id === fee.classId)?.name || 'Toutes les classes';
-    const logoHtml = schoolLogoUrl ? `<img src="${schoolLogoUrl}" alt="Logo" style="width:80px;height:80px;object-fit:contain;margin-bottom:10px;">` : '';
+    const bilingualHeader = generateBilingualPrintHeaderHtml(
+      school,
+      { fr: 'GRILLE TARIFAIRE', en: 'FEE SCHEDULE' }
+    );
+    
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
       <title>Tarif - ${fee.name}</title>
       <style>
-        body { font-family: Arial, sans-serif; padding: 40px; max-width: 500px; margin: 0 auto; }
-        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
-        .header-official { font-size: 11px; margin-bottom: 10px; }
-        .school-logo { margin-bottom: 10px; }
-        .school-name { font-size: 24px; font-weight: bold; color: #1a365d; }
-        .title { font-size: 18px; font-weight: bold; margin: 20px 0; padding: 10px; background: #1a365d; color: white; text-align: center; }
+        body { font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; }
         .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #ddd; }
         .label { color: #666; }
         .value { font-weight: bold; }
@@ -498,14 +498,7 @@ export default function FeesManagement() {
         @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
       </style>
     </head><body>
-      <div class="header">
-        <div class="header-official">RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON</div>
-        <div class="school-logo">${logoHtml}</div>
-        <div class="school-name">${school?.name || 'EDUCAFRIC'}</div>
-        <div style="font-size:12px;margin-top:5px;">${school?.address || ''}</div>
-        ${school?.phone ? `<div style="font-size:12px;">Tél: ${school.phone}</div>` : ''}
-      </div>
-      <div class="title">${language === 'fr' ? 'GRILLE TARIFAIRE' : 'FEE SCHEDULE'}</div>
+      ${bilingualHeader}
       <div class="row"><span class="label">${t.name}:</span><span class="value">${fee.name}</span></div>
       <div class="row"><span class="label">${t.feeType}:</span><span class="value">${t[fee.feeType as keyof typeof t] || fee.feeType}</span></div>
       <div class="row"><span class="label">${t.frequency}:</span><span class="value">${t[fee.frequency as keyof typeof t] || fee.frequency}</span></div>
@@ -513,7 +506,7 @@ export default function FeesManagement() {
       <div class="row"><span class="label">${t.dueDate}:</span><span class="value">${fee.dueDate ? new Date(fee.dueDate).toLocaleDateString() : '-'}</span></div>
       <div class="row"><span class="label">${t.status}:</span><span class="value">${fee.isActive ? t.active : t.inactive}</span></div>
       <div class="amount">
-        <div style="font-size:14px;color:#166534;margin-bottom:5px;">${language === 'fr' ? 'MONTANT' : 'AMOUNT'}</div>
+        <div style="font-size:14px;color:#166534;margin-bottom:5px;">${language === 'fr' ? 'MONTANT' : 'AMOUNT'} / ${language === 'fr' ? 'AMOUNT' : 'MONTANT'}</div>
         <div class="amount-value">${parseInt(fee.amount.toString()).toLocaleString()} CFA</div>
       </div>
       <div class="footer">
@@ -527,43 +520,36 @@ export default function FeesManagement() {
   };
 
   const handlePrintReceipt = (fee: any) => {
-    const w = window.open('', '_blank', 'width=500,height=600');
+    const w = window.open('', '_blank', 'width=600,height=800');
     if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
     
-    const logoHtml = schoolLogoUrl ? `<img src="${schoolLogoUrl}" alt="Logo" style="width:60px;height:60px;object-fit:contain;margin-bottom:8px;">` : '';
+    const bilingualHeader = generateBilingualPrintHeaderHtml(
+      school,
+      { fr: 'REÇU DE PAIEMENT', en: 'PAYMENT RECEIPT' },
+      { fr: `Élève: ${fee.studentFirstName} ${fee.studentLastName}`, en: `Student: ${fee.studentFirstName} ${fee.studentLastName}` }
+    );
+    
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
       <title>Reçu - ${fee.studentFirstName} ${fee.studentLastName}</title>
       <style>
-        body { font-family: Arial, sans-serif; padding: 30px; max-width: 400px; margin: 0 auto; }
-        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
-        .header-official { font-size: 10px; margin-bottom: 8px; }
-        .school-logo { margin-bottom: 8px; }
-        .school-name { font-size: 20px; font-weight: bold; color: #1a365d; }
-        .title { text-align: center; font-size: 16px; font-weight: bold; margin: 15px 0; padding: 8px; background: #16a34a; color: white; }
-        .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted #ccc; }
-        .amount { text-align: center; margin: 20px 0; padding: 15px; border: 2px solid #16a34a; background: #f0fdf4; }
-        .amount-value { font-size: 24px; font-weight: bold; color: #16a34a; }
-        .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #888; }
+        body { font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; }
+        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dotted #ccc; }
+        .amount { text-align: center; margin: 25px 0; padding: 20px; border: 3px solid #16a34a; background: #f0fdf4; }
+        .amount-value { font-size: 28px; font-weight: bold; color: #16a34a; }
+        .footer { text-align: center; margin-top: 25px; font-size: 11px; color: #888; }
         @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
       </style>
     </head><body>
-      <div class="header">
-        <div class="header-official">RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON</div>
-        <div class="school-logo">${logoHtml}</div>
-        <div class="school-name">${school?.name || 'EDUCAFRIC'}</div>
-        ${school?.address ? `<div style="font-size:11px;margin-top:5px;">${school.address}</div>` : ''}
-        ${school?.phone ? `<div style="font-size:11px;">Tél: ${school.phone}</div>` : ''}
-      </div>
-      <div class="title">${language === 'fr' ? 'REÇU DE PAIEMENT' : 'PAYMENT RECEIPT'}</div>
-      <div class="row"><span>${t.student}:</span><span><b>${fee.studentFirstName} ${fee.studentLastName}</b></span></div>
-      <div class="row"><span>${t.name}:</span><span>${fee.structureName}</span></div>
-      <div class="row"><span>${t.status}:</span><span>${t[fee.status as keyof typeof t] || fee.status}</span></div>
+      ${bilingualHeader}
+      <div class="row"><span>${t.student} / Student:</span><span><b>${fee.studentFirstName} ${fee.studentLastName}</b></span></div>
+      <div class="row"><span>${t.name} / Fee Name:</span><span>${fee.structureName}</span></div>
+      <div class="row"><span>${t.status} / Status:</span><span>${t[fee.status as keyof typeof t] || fee.status}</span></div>
       <div class="row"><span>Date:</span><span>${new Date().toLocaleDateString()}</span></div>
       <div class="amount">
-        <div style="font-size:12px;color:#166534;">${language === 'fr' ? 'MONTANT PAYÉ' : 'AMOUNT PAID'}</div>
+        <div style="font-size:13px;color:#166534;margin-bottom:5px;">MONTANT PAYÉ / AMOUNT PAID</div>
         <div class="amount-value">${((fee.finalAmount || 0) - (fee.balanceAmount || 0)).toLocaleString()} CFA</div>
       </div>
-      <div class="footer">Merci - ${school?.name || 'EDUCAFRIC'}</div>
+      <div class="footer">Merci / Thank you - ${school?.name || 'EDUCAFRIC'}</div>
       <script>window.onload=function(){window.print();}</script>
     </body></html>`;
     w.document.write(html);
@@ -571,57 +557,46 @@ export default function FeesManagement() {
   };
 
   const handlePrintReminder = (fee: any) => {
-    const w = window.open('', '_blank', 'width=500,height=700');
+    const w = window.open('', '_blank', 'width=600,height=900');
     if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
     
-    const logoHtml = schoolLogoUrl ? `<img src="${schoolLogoUrl}" alt="Logo" style="width:70px;height:70px;object-fit:contain;margin-bottom:10px;">` : '';
+    const bilingualHeader = generateBilingualPrintHeaderHtml(
+      school,
+      { fr: 'RAPPEL DE PAIEMENT', en: 'PAYMENT REMINDER' },
+      { fr: `Élève: ${fee.studentFirstName} ${fee.studentLastName}`, en: `Student: ${fee.studentFirstName} ${fee.studentLastName}` }
+    );
+    
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
       <title>Rappel - ${fee.studentFirstName} ${fee.studentLastName}</title>
       <style>
-        body { font-family: Arial, sans-serif; padding: 40px; max-width: 500px; margin: 0 auto; line-height: 1.6; }
-        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
-        .header-official { font-size: 11px; margin-bottom: 10px; }
-        .school-logo { margin-bottom: 10px; }
-        .school-name { font-size: 22px; font-weight: bold; color: #1a365d; }
-        .title { font-size: 18px; font-weight: bold; margin: 25px 0; padding: 12px; background: #dc2626; color: white; text-align: center; }
+        body { font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; line-height: 1.6; }
         .content { margin: 20px 0; }
-        .highlight { background: #fef2f2; border: 2px solid #dc2626; padding: 20px; margin: 20px 0; text-align: center; }
-        .amount { font-size: 28px; font-weight: bold; color: #dc2626; }
+        .highlight { background: #fef2f2; border: 3px solid #dc2626; padding: 20px; margin: 25px 0; text-align: center; }
+        .amount { font-size: 32px; font-weight: bold; color: #dc2626; }
         .footer { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px; }
         .signature { margin-top: 50px; }
         @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
       </style>
     </head><body>
-      <div class="header">
-        <div class="header-official">RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON</div>
-        <div class="school-logo">${logoHtml}</div>
-        <div class="school-name">${school?.name || 'EDUCAFRIC'}</div>
-        <div style="margin-top:5px;font-size:12px;">${school?.address || ''}</div>
-        ${school?.phone ? `<div style="font-size:12px;">Tél: ${school.phone}</div>` : ''}
-      </div>
-      <div class="title">${language === 'fr' ? 'RAPPEL DE PAIEMENT' : 'PAYMENT REMINDER'}</div>
+      ${bilingualHeader}
       <div class="content">
         <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-        <p><strong>${language === 'fr' ? 'Cher Parent/Tuteur' : 'Dear Parent/Guardian'},</strong></p>
-        <p>${language === 'fr' 
-          ? `Nous vous rappelons que les frais de scolarité de votre enfant <strong>${fee.studentFirstName} ${fee.studentLastName}</strong> sont en attente de paiement.`
-          : `This is a reminder that the school fees for your child <strong>${fee.studentFirstName} ${fee.studentLastName}</strong> are pending payment.`
-        }</p>
+        <p><strong>Cher Parent/Tuteur, / Dear Parent/Guardian,</strong></p>
+        <p>Nous vous rappelons que les frais de scolarité de votre enfant <strong>${fee.studentFirstName} ${fee.studentLastName}</strong> sont en attente de paiement.</p>
+        <p><em>This is a reminder that the school fees for your child <strong>${fee.studentFirstName} ${fee.studentLastName}</strong> are pending payment.</em></p>
         <div class="highlight">
-          <div style="font-size:14px;margin-bottom:10px;">${language === 'fr' ? 'MONTANT DÛ' : 'AMOUNT DUE'}</div>
+          <div style="font-size:14px;margin-bottom:10px;">MONTANT DÛ / AMOUNT DUE</div>
           <div class="amount">${(fee.balanceAmount || 0).toLocaleString()} CFA</div>
           <div style="margin-top:10px;font-size:14px;">${fee.structureName}</div>
         </div>
-        <p>${language === 'fr' 
-          ? 'Nous vous prions de bien vouloir régulariser cette situation dans les meilleurs délais.'
-          : 'Please settle this amount at your earliest convenience.'
-        }</p>
+        <p>Nous vous prions de bien vouloir régulariser cette situation dans les meilleurs délais.</p>
+        <p><em>Please settle this amount at your earliest convenience.</em></p>
       </div>
       <div class="footer">
-        <p>${language === 'fr' ? 'Cordialement,' : 'Best regards,'}</p>
+        <p>Cordialement, / Best regards,</p>
         <div class="signature">
           <p>_____________________________</p>
-          <p>${language === 'fr' ? 'La Direction' : 'The Administration'}</p>
+          <p>La Direction / The Administration</p>
         </div>
       </div>
       <script>window.onload=function(){window.print();}</script>
