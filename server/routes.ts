@@ -34,7 +34,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, timetableChangeRequests, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages, bulletinComprehensive } from "../shared/schema";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, timetableChangeRequests, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages, bulletinComprehensive, assignedFees, feeStructures, paymentItems } from "../shared/schema";
 import { attendance } from "../shared/schemas/academicSchema";
 import bcrypt from 'bcryptjs';
 
@@ -10885,6 +10885,260 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[PARENT_LIBRARY] Error fetching books:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch library books' });
+    }
+  });
+
+  // ============= PARENT PAYMENTS API - Integrated with Fee Management =============
+  
+  // GET /api/parent/payments - Get all fee payments for parent's children
+  app.get("/api/parent/payments", requireAuth, requireAnyRole(['Parent', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const parentId = user.id;
+      
+      console.log(`[PARENT_PAYMENTS] 💰 Fetching payments for parent ${parentId}`);
+      
+      // Check if sandbox/demo parent - return mock data
+      const isSandbox = user.email?.includes('@test.educafric.com') || 
+                        user.email?.includes('sandbox@') || 
+                        user.email?.includes('demo@') ||
+                        user.email?.includes('.sandbox@') ||
+                        user.email?.includes('.demo@') ||
+                        user.email?.includes('.test@');
+      
+      if (isSandbox) {
+        console.log(`[PARENT_PAYMENTS] 🧪 Sandbox parent detected, returning demo payments`);
+        const demoPayments = [
+          {
+            id: 1,
+            studentName: 'Emma Tall',
+            description: 'Frais de scolarité - Trimestre 1',
+            amount: 150000,
+            currency: 'XAF',
+            dueDate: '2024-10-15',
+            paidDate: '2024-10-10',
+            status: 'paid',
+            paymentMethod: 'mtn_momo',
+            category: 'tuition',
+            invoiceNumber: 'INV-2024-001',
+            academicYear: '2024-2025',
+            term: 'Trimestre 1',
+            installmentNumber: 1,
+            totalInstallments: 3,
+            lateFee: 0,
+            discount: 5000,
+            notes: 'Paiement anticipé - réduction appliquée'
+          },
+          {
+            id: 2,
+            studentName: 'Paul Tall',
+            description: 'Frais de scolarité - Trimestre 1',
+            amount: 175000,
+            currency: 'XAF',
+            dueDate: '2024-10-15',
+            paidDate: null,
+            status: 'pending',
+            paymentMethod: null,
+            category: 'tuition',
+            invoiceNumber: 'INV-2024-002',
+            academicYear: '2024-2025',
+            term: 'Trimestre 1',
+            installmentNumber: 1,
+            totalInstallments: 3,
+            lateFee: 0,
+            discount: 0,
+            notes: ''
+          },
+          {
+            id: 3,
+            studentName: 'Emma Tall',
+            description: 'Transport scolaire',
+            amount: 25000,
+            currency: 'XAF',
+            dueDate: '2024-09-30',
+            paidDate: '2024-09-25',
+            status: 'paid',
+            paymentMethod: 'cash',
+            category: 'transport',
+            invoiceNumber: 'INV-2024-003',
+            academicYear: '2024-2025',
+            term: 'Annuel',
+            installmentNumber: 1,
+            totalInstallments: 1,
+            lateFee: 0,
+            discount: 0,
+            notes: ''
+          }
+        ];
+        
+        return res.json(demoPayments);
+      }
+      
+      // Real parent: fetch from database using Fee Management module
+      // Step 1: Get children linked to this parent
+      const childRelations = await db
+        .select({
+          studentId: parentStudentRelations.studentId,
+          relationship: parentStudentRelations.relationship
+        })
+        .from(parentStudentRelations)
+        .where(eq(parentStudentRelations.parentId, parentId));
+      
+      if (childRelations.length === 0) {
+        console.log(`[PARENT_PAYMENTS] No children found for parent ${parentId}`);
+        return res.json([]);
+      }
+      
+      const childIds = childRelations.map(r => r.studentId);
+      
+      // Step 2: Get assigned fees for all children
+      const childFees = await db
+        .select({
+          id: assignedFees.id,
+          studentId: assignedFees.studentId,
+          studentFirstName: users.firstName,
+          studentLastName: users.lastName,
+          feeStructureId: assignedFees.feeStructureId,
+          feeName: feeStructures.name,
+          feeNameFr: feeStructures.nameFr,
+          feeType: feeStructures.feeType,
+          originalAmount: assignedFees.originalAmount,
+          discountAmount: assignedFees.discountAmount,
+          discountReason: assignedFees.discountReason,
+          finalAmount: assignedFees.finalAmount,
+          paidAmount: assignedFees.paidAmount,
+          balanceAmount: assignedFees.balanceAmount,
+          status: assignedFees.status,
+          dueDate: assignedFees.dueDate,
+          paidDate: assignedFees.paidDate,
+          lastPaymentDate: assignedFees.lastPaymentDate,
+          termId: assignedFees.termId,
+          academicYearId: assignedFees.academicYearId
+        })
+        .from(assignedFees)
+        .leftJoin(users, eq(assignedFees.studentId, users.id))
+        .leftJoin(feeStructures, eq(assignedFees.feeStructureId, feeStructures.id))
+        .where(inArray(assignedFees.studentId, childIds))
+        .orderBy(desc(assignedFees.dueDate));
+      
+      // Step 3: Get payment items for these fees
+      const feeIds = childFees.map(f => f.id);
+      let paymentItemsData: any[] = [];
+      
+      if (feeIds.length > 0) {
+        paymentItemsData = await db
+          .select()
+          .from(paymentItems)
+          .where(inArray(paymentItems.assignedFeeId, feeIds));
+      }
+      
+      // Step 4: Format response with combined fee and payment information
+      const formattedPayments = childFees.map(fee => {
+        const feePayments = paymentItemsData.filter(p => p.assignedFeeId === fee.id);
+        const lastPayment = feePayments.length > 0 ? feePayments[feePayments.length - 1] : null;
+        
+        return {
+          id: fee.id,
+          studentName: `${fee.studentFirstName || ''} ${fee.studentLastName || ''}`.trim(),
+          description: fee.feeNameFr || fee.feeName || 'Frais scolaires',
+          amount: fee.finalAmount || 0,
+          currency: 'XAF',
+          dueDate: fee.dueDate ? new Date(fee.dueDate).toISOString().split('T')[0] : null,
+          paidDate: fee.paidDate ? new Date(fee.paidDate).toISOString().split('T')[0] : null,
+          status: fee.status || 'pending',
+          paymentMethod: lastPayment?.paymentMethod || null,
+          category: fee.feeType || 'tuition',
+          invoiceNumber: `FEE-${fee.id}`,
+          academicYear: fee.academicYearId ? `${fee.academicYearId}` : '2024-2025',
+          term: fee.termId ? `Trimestre ${fee.termId}` : 'Non spécifié',
+          installmentNumber: 1,
+          totalInstallments: 1,
+          lateFee: 0,
+          discount: fee.discountAmount || 0,
+          notes: fee.discountReason || '',
+          paidAmount: fee.paidAmount || 0,
+          balanceAmount: fee.balanceAmount || fee.finalAmount || 0
+        };
+      });
+      
+      console.log(`[PARENT_PAYMENTS] ✅ Found ${formattedPayments.length} fee assignments for parent's children`);
+      res.json(formattedPayments);
+      
+    } catch (error) {
+      console.error('[PARENT_PAYMENTS] Error fetching payments:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch payment data' });
+    }
+  });
+  
+  // POST /api/parent/payments - Record a payment for a fee
+  app.post("/api/parent/payments", requireAuth, requireAnyRole(['Parent', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const parentId = user.id;
+      const { feeId, amount, paymentMethod, notes } = req.body;
+      
+      console.log(`[PARENT_PAYMENTS] 💳 Recording payment for fee ${feeId} by parent ${parentId}`);
+      
+      // Validate the fee belongs to one of the parent's children
+      const childRelations = await db
+        .select({ studentId: parentStudentRelations.studentId })
+        .from(parentStudentRelations)
+        .where(eq(parentStudentRelations.parentId, parentId));
+      
+      const childIds = childRelations.map(r => r.studentId);
+      
+      const [fee] = await db
+        .select()
+        .from(assignedFees)
+        .where(and(
+          eq(assignedFees.id, feeId),
+          inArray(assignedFees.studentId, childIds)
+        ));
+      
+      if (!fee) {
+        return res.status(404).json({ success: false, message: 'Fee not found or not authorized' });
+      }
+      
+      // Create payment item
+      const [newPayment] = await db.insert(paymentItems).values({
+        schoolId: fee.schoolId,
+        studentId: fee.studentId,
+        assignedFeeId: feeId,
+        amount: parseInt(amount),
+        paymentMethod: paymentMethod || 'cash',
+        paymentDate: new Date(),
+        status: 'completed',
+        collectedBy: parentId,
+        notes: notes || ''
+      }).returning();
+      
+      // Update assigned fee with new payment
+      const newPaidAmount = (fee.paidAmount || 0) + parseInt(amount);
+      const newBalance = fee.finalAmount - newPaidAmount;
+      const newStatus = newBalance <= 0 ? 'paid' : newPaidAmount > 0 ? 'partial' : 'pending';
+      
+      await db.update(assignedFees)
+        .set({
+          paidAmount: newPaidAmount,
+          balanceAmount: Math.max(0, newBalance),
+          status: newStatus,
+          lastPaymentDate: new Date(),
+          paidDate: newStatus === 'paid' ? new Date() : undefined,
+          updatedAt: new Date()
+        })
+        .where(eq(assignedFees.id, feeId));
+      
+      console.log(`[PARENT_PAYMENTS] ✅ Payment recorded successfully: ${amount} XAF for fee ${feeId}`);
+      
+      res.json({
+        success: true,
+        message: 'Payment recorded successfully',
+        payment: newPayment
+      });
+      
+    } catch (error) {
+      console.error('[PARENT_PAYMENTS] Error recording payment:', error);
+      res.status(500).json({ success: false, message: 'Failed to record payment' });
     }
   });
 

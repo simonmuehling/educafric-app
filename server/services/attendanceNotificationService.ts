@@ -1,7 +1,7 @@
 import { hostingerMailService } from './hostingerMailService';
 import { whatsappService } from './whatsappService';
 import { db } from '../db';
-import { users } from '../../shared/schema';
+import { users, parentStudentRelations } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { createWaToken, getRecipientById } from './waClickToChat';
 import { renderTemplate } from '../templates/waTemplates';
@@ -145,25 +145,29 @@ class AttendanceNotificationService {
   }
 
   /**
-   * Get parent connections for a student
+   * Get parent connections for a student using parent_student_relations table
+   * Note: studentId in parent_student_relations refers directly to users.id of Student role users
    */
   private async getParentConnections(studentId: number) {
     try {
-      // For demo purposes, we'll simulate finding parents
-      // In real implementation, this would query the parent-child connections table
-      const connections = await db
+      // Find all parents connected to this student via parent_student_relations
+      // studentId in parent_student_relations maps directly to users.id (Student role)
+      const parentConnections = await db
         .select({
           id: users.id,
           firstName: users.firstName,
           lastName: users.lastName,
           email: users.email,
-          phone: users.phone
+          phone: users.phone,
+          relationship: parentStudentRelations.relationship
         })
-        .from(users)
-        .where(eq(users.role, 'Parent'))
-        .limit(2); // Simulate finding 2 parents for demo
+        .from(parentStudentRelations)
+        .leftJoin(users, eq(parentStudentRelations.parentId, users.id))
+        .where(eq(parentStudentRelations.studentId, studentId));
 
-      return connections.filter(conn => conn.id !== null);
+      console.log(`[ATTENDANCE_NOTIFICATIONS] Found ${parentConnections.length} parent connections for student ${studentId}`);
+      
+      return parentConnections.filter(conn => conn.id !== null);
     } catch (error) {
       console.error('[ATTENDANCE_NOTIFICATIONS] Error fetching parent connections:', error);
       return [];

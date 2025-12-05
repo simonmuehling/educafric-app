@@ -12,7 +12,7 @@ import {
   type InsertLibraryBook,
   type InsertLibraryRecommendation
 } from "../../shared/schemas/librarySchema";
-import { users, classes } from "../../shared/schema";
+import { users, classes, parentStudentRelations, enrollments } from "../../shared/schema";
 
 export class LibraryStorage implements ILibraryStorage {
   
@@ -245,23 +245,129 @@ export class LibraryStorage implements ILibraryStorage {
   
   async getRecommendedBooksForParent(parentId: number, schoolId: number): Promise<any[]> {
     try {
-      // Simplified: Get all student recommendations and filter
-      const allRecommendations = await db.select()
+      console.log(`[LIBRARY_STORAGE] 📚 Getting recommendations for parent ${parentId}, school ${schoolId}`);
+      
+      // Step 1: Find all children of this parent via parent_student_relations
+      // Note: studentId in parent_student_relations refers directly to users.id of Student role
+      const parentChildren = await db.select({
+        studentId: parentStudentRelations.studentId,
+        studentFirstName: users.firstName,
+        studentLastName: users.lastName,
+        relationship: parentStudentRelations.relationship
+      })
+        .from(parentStudentRelations)
+        .leftJoin(users, eq(parentStudentRelations.studentId, users.id))
+        .where(eq(parentStudentRelations.parentId, parentId));
+      
+      console.log(`[LIBRARY_STORAGE] Found ${parentChildren.length} children for parent ${parentId}`);
+      
+      if (parentChildren.length === 0) {
+        console.log(`[LIBRARY_STORAGE] ⚠️ No children found for parent ${parentId}`);
+        return [];
+      }
+      
+      // Get student IDs (these are user IDs of students)
+      const childStudentIds = parentChildren.map(c => c.studentId).filter(Boolean);
+      
+      // Step 2: Get children's class IDs for class-level recommendations
+      const childEnrollments = await db.select({
+        studentId: enrollments.studentId,
+        classId: enrollments.classId
+      })
+        .from(enrollments)
+        .where(inArray(enrollments.studentId, childStudentIds));
+      
+      const childClassIds = [...new Set(childEnrollments.map(e => e.classId).filter(Boolean))];
+      
+      // Step 3: Get all recommendations where children are in the audience
+      // Filter by schoolId to prevent cross-school data leakage
+      // Use alias to avoid column name conflicts
+      const teacherUsers = users;
+      const allRecommendations = await db.select({
+        recommendation: libraryRecommendations,
+        book: libraryBooks,
+        teacher: {
+          id: teacherUsers.id,
+          firstName: teacherUsers.firstName,
+          lastName: teacherUsers.lastName
+        }
+      })
         .from(libraryRecommendations)
         .leftJoin(libraryBooks, eq(libraryRecommendations.bookId, libraryBooks.id))
-        .leftJoin(users, eq(libraryRecommendations.teacherId, users.id))
-        .where(eq(libraryRecommendations.audienceType, 'student'))
+        .leftJoin(teacherUsers, eq(libraryRecommendations.teacherId, teacherUsers.id))
+        .where(eq(libraryRecommendations.schoolId, schoolId))
         .orderBy(desc(libraryRecommendations.recommendedAt));
       
-      // For parent recommendations, would need to check parent_child_connections
-      // Simplified for now - returns all student recommendations
-      return allRecommendations.map(row => ({
-        ...row.library_books,
-        note: row.library_recommendations?.note,
-        recommended_at: row.library_recommendations?.recommendedAt,
-        teacher_name: row.users?.name,
-        student_name: 'Student' // Simplified - would need student lookup
-      }));
+      // Step 4: Filter recommendations that match this parent's children
+      const matchingRecommendations: any[] = [];
+      
+      for (const row of allRecommendations) {
+        const rec = row.recommendation;
+        const book = row.book;
+        const teacher = row.teacher;
+        
+        if (!rec || !book) continue;
+        
+        const audienceIds = rec.audienceIds as number[] | null;
+        if (!audienceIds || !Array.isArray(audienceIds)) continue;
+        
+        let matchedChild: typeof parentChildren[0] | null = null;
+        let matchedClassId: number | null = null;
+        
+        // Check if recommendation targets one of the parent's children
+        if (rec.audienceType === 'student') {
+          // Check against student user IDs
+          for (const child of parentChildren) {
+            if (audienceIds.includes(child.studentId)) {
+              matchedChild = child;
+              break;
+            }
+          }
+        } else if (rec.audienceType === 'class') {
+          // Check if any of the parent's children are in the target class
+          for (const classId of audienceIds) {
+            if (childClassIds.includes(classId)) {
+              matchedClassId = classId;
+              // Find which child is in this class
+              const enrollment = childEnrollments.find(e => e.classId === classId);
+              if (enrollment) {
+                matchedChild = parentChildren.find(c => c.studentId === enrollment.studentId) || null;
+              }
+              break;
+            }
+          }
+        }
+        
+        if (matchedChild || matchedClassId) {
+          matchingRecommendations.push({
+            id: rec.id,
+            bookId: rec.bookId,
+            teacherId: rec.teacherId,
+            audienceType: rec.audienceType,
+            audienceIds: rec.audienceIds,
+            note: rec.note,
+            recommendedAt: rec.recommendedAt,
+            book: {
+              id: book.id,
+              title: book.title,
+              author: book.author,
+              description: book.description,
+              linkUrl: book.linkUrl,
+              coverUrl: book.coverUrl,
+              recommendedLevel: book.recommendedLevel
+            },
+            teacherName: teacher?.firstName ? `${teacher.firstName} ${teacher.lastName || ''}`.trim() : 'Professeur',
+            childName: matchedChild 
+              ? `${matchedChild.studentFirstName || ''} ${matchedChild.studentLastName || ''}`.trim() 
+              : 'Votre enfant',
+            childClass: matchedClassId ? `Classe ${matchedClassId}` : undefined
+          });
+        }
+      }
+      
+      console.log(`[LIBRARY_STORAGE] ✅ Found ${matchingRecommendations.length} recommendations for parent's children`);
+      return matchingRecommendations;
+      
     } catch (error) {
       console.error("[LIBRARY_STORAGE] Error getting parent recommendations:", error);
       throw error;
