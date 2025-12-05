@@ -1697,6 +1697,7 @@ const UnifiedSchoolSettings: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+          )}
         </TabsContent>
 
         {/* Configuration Tab */}
