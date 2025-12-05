@@ -44,28 +44,33 @@ export class PdfLibBulletinGenerator {
       const centerX = pageWidth / 2;
       const rightColX = pageWidth - margin - 150; // Ajusté pour éviter débordement
       
-      // ✅ DETERMINE MINISTRY BASED ON EDUCATION LEVEL
-      const ministry = safeHeaderData.educationLevel === 'base' 
+      // ✅ DETERMINE MINISTRY BASED ON EDUCATION LEVEL (BILINGUAL)
+      const ministryFR = safeHeaderData.educationLevel === 'base' 
         ? 'MINISTÈRE DE L\'ÉDUCATION DE BASE'
         : 'MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES';
+      const ministryEN = safeHeaderData.educationLevel === 'base' 
+        ? 'MINISTRY OF BASIC EDUCATION'
+        : 'MINISTRY OF SECONDARY EDUCATION';
       
-      // ✅ BUILD CONFIGURABLE REGIONAL AND DEPARTMENTAL DELEGATIONS
-      const regionalDelegation = `DÉLÉGATION RÉGIONALE DU ${safeHeaderData.region.toUpperCase()}`;
-      const departmentalDelegation = `DÉLÉGATION DÉPARTEMENTALE DU ${safeHeaderData.department.toUpperCase()}`;
+      // ✅ BUILD CONFIGURABLE REGIONAL AND DEPARTMENTAL DELEGATIONS (BILINGUAL)
+      const regionalDelegationFR = `DÉLÉGATION RÉGIONALE DU ${safeHeaderData.region.toUpperCase()}`;
+      const regionalDelegationEN = `REGIONAL DELEGATION OF ${safeHeaderData.region.toUpperCase()}`;
+      const departmentalDelegationFR = `DÉLÉGATION DÉPARTEMENTALE DU ${safeHeaderData.department.toUpperCase()}`;
+      const departmentalDelegationEN = `DIVISIONAL DELEGATION OF ${safeHeaderData.department.toUpperCase()}`;
       
-      // === COLONNE GAUCHE: Informations officielles ===
+      // === COLONNE GAUCHE: Français ===
       drawText('RÉPUBLIQUE DU CAMEROUN', leftColX, yPosition, { font: boldFont, size: 10 });
       drawText('Paix - Travail - Patrie', leftColX, yPosition - 18, { font: normalFont, size: 8 });
-      drawText(ministry, leftColX, yPosition - 32, { font: boldFont, size: 8 });
-      drawText(regionalDelegation, leftColX, yPosition - 46, { font: normalFont, size: 7 });
-      drawText(departmentalDelegation, leftColX, yPosition - 58, { font: normalFont, size: 7 });
+      drawText(ministryFR, leftColX, yPosition - 32, { font: boldFont, size: 8 });
+      drawText(regionalDelegationFR, leftColX, yPosition - 46, { font: normalFont, size: 7 });
+      drawText(departmentalDelegationFR, leftColX, yPosition - 58, { font: normalFont, size: 7 });
       
-      // === COLONNE DROITE: Informations d'authentification ===
-      drawText('DOCUMENT OFFICIEL', rightColX, yPosition, { font: boldFont, size: 8 });
-      const currentDate = new Date().toLocaleDateString('fr-FR');
-      drawText(`Généré le: ${currentDate}`, rightColX, yPosition - 18, { font: normalFont, size: 7 });
-      drawText('Version: 2025.1', rightColX, yPosition - 32, { font: normalFont, size: 7 });
-      drawText('educafric.com', rightColX, yPosition - 46, { font: normalFont, size: 6, color: rgb(0.4, 0.4, 0.4) });
+      // === COLONNE DROITE: English ===
+      drawText('REPUBLIC OF CAMEROON', rightColX, yPosition, { font: boldFont, size: 10 });
+      drawText('Peace - Work - Fatherland', rightColX, yPosition - 18, { font: normalFont, size: 8 });
+      drawText(ministryEN, rightColX, yPosition - 32, { font: boldFont, size: 8 });
+      drawText(regionalDelegationEN, rightColX, yPosition - 46, { font: normalFont, size: 7 });
+      drawText(departmentalDelegationEN, rightColX, yPosition - 58, { font: normalFont, size: 7 });
       
       // === COLONNE CENTRE: École et logo ===
       const logoSize = 50;
