@@ -86,44 +86,108 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
   const primaryRgb = hexToRgb(primaryColor);
   const secondaryRgb = hexToRgb(secondaryColor);
 
-  // ===== CLEAN BLACK & WHITE HEADER =====
-  const addProfessionalHeader = () => {
-    // République du Cameroun - style classique
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
+  // ===== THREE-COLUMN BILINGUAL HEADER (FR | LOGO | EN) =====
+  const addProfessionalHeader = async () => {
+    const leftCol = margin;
+    const centerCol = pageWidth / 2;
+    const rightCol = pageWidth - margin;
+    const colWidth = (pageWidth - 2 * margin) / 3;
+    
+    // Délégations text
+    const regionaleFR = data.schoolBranding?.regionaleMinisterielle || 'DÉLÉGATION RÉGIONALE DU CENTRE';
+    const departementaleFR = data.schoolBranding?.delegationDepartementale || 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI';
+    const regionaleEN = regionaleFR.replace('DÉLÉGATION RÉGIONALE', 'REGIONAL DELEGATION OF').replace('DU ', '');
+    const departementaleEN = departementaleFR.replace('DÉLÉGATION DÉPARTEMENTALE', 'DIVISIONAL DELEGATION OF').replace('DU ', '');
+    
     pdf.setTextColor(0, 0, 0);
-    pdf.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 5;
     
-    // Devise du Cameroun
-    pdf.setFontSize(10);
+    // ===== LEFT COLUMN (FRENCH) =====
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('RÉPUBLIQUE DU CAMEROUN', leftCol, yPosition);
+    
+    pdf.setFontSize(7);
     pdf.setFont('helvetica', 'italic');
-    pdf.text('Paix - Travail - Patrie', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 5;
+    pdf.text('Paix - Travail - Patrie', leftCol, yPosition + 4);
     
-    // Ministère
+    pdf.setFontSize(7);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('MINISTÈRE DES ENSEIGNEMENTS', leftCol, yPosition + 9);
+    pdf.text('SECONDAIRES', leftCol, yPosition + 13);
+    
+    pdf.setFontSize(6);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(regionaleFR, leftCol, yPosition + 18);
+    pdf.text(departementaleFR, leftCol, yPosition + 22);
+    
+    // ===== RIGHT COLUMN (ENGLISH) =====
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('REPUBLIC OF CAMEROON', rightCol, yPosition, { align: 'right' });
+    
+    pdf.setFontSize(7);
+    pdf.setFont('helvetica', 'italic');
+    pdf.text('Peace - Work - Fatherland', rightCol, yPosition + 4, { align: 'right' });
+    
+    pdf.setFontSize(7);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('MINISTRY OF SECONDARY', rightCol, yPosition + 9, { align: 'right' });
+    pdf.text('EDUCATION', rightCol, yPosition + 13, { align: 'right' });
+    
+    pdf.setFontSize(6);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(regionaleEN, rightCol, yPosition + 18, { align: 'right' });
+    pdf.text(departementaleEN, rightCol, yPosition + 22, { align: 'right' });
+    
+    // ===== CENTER COLUMN (LOGO) =====
+    const logoSize = 20;
+    const logoX = centerCol - logoSize / 2;
+    const logoY = yPosition - 2;
+    
+    if (data.schoolBranding?.logoUrl) {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject();
+          img.src = data.schoolBranding!.logoUrl!;
+        });
+        pdf.addImage(img, 'PNG', logoX, logoY, logoSize, logoSize);
+      } catch (e) {
+        // Draw placeholder circle if logo fails to load
+        pdf.setDrawColor(0, 0, 0);
+        pdf.circle(centerCol, logoY + logoSize / 2, logoSize / 2 - 1);
+        pdf.setFontSize(6);
+        pdf.text('LOGO', centerCol, logoY + logoSize / 2 + 1, { align: 'center' });
+      }
+    } else {
+      // Draw placeholder circle if no logo
+      pdf.setDrawColor(0, 0, 0);
+      pdf.circle(centerCol, logoY + logoSize / 2, logoSize / 2 - 1);
+      pdf.setFontSize(6);
+      pdf.text('LOGO', centerCol, logoY + logoSize / 2 + 1, { align: 'center' });
+    }
+    
+    yPosition += 28;
+    
+    // School Name (centered below header)
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', pageWidth / 2, yPosition, { align: 'center' });
+    const schoolName = data.schoolBranding?.schoolName || 'ÉTABLISSEMENT SCOLAIRE';
+    pdf.text(schoolName.toUpperCase(), centerCol, yPosition, { align: 'center' });
     yPosition += 5;
     
-    // Délégations avec encadré simple
-    const regionaleText = data.schoolBranding?.regionaleMinisterielle || 'Délégation Régionale du Centre';
-    const departementaleText = data.schoolBranding?.delegationDepartementale || 'Délégation Départementale du Mfoundi';
-    const boitePostaleText = data.schoolBranding?.boitePostale || 'B.P. 8524 Yaoundé';
+    // BP and Address
+    const boitePostale = data.schoolBranding?.boitePostale || '';
+    if (boitePostale) {
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(boitePostale, centerCol, yPosition, { align: 'center' });
+      yPosition += 4;
+    }
     
-    pdf.setFontSize(10);
-    pdf.text(regionaleText, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 5;
-    
-    pdf.text(departementaleText, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 5;
-    
-    pdf.setFontSize(9);
-    pdf.text(boitePostaleText, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 4;
-    
-    // Ligne de séparation simple
+    // Separator line
     pdf.setLineWidth(0.5);
     pdf.setDrawColor(0, 0, 0);
     pdf.line(margin, yPosition + 1, pageWidth - margin, yPosition + 1);
@@ -209,7 +273,7 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
   }
 
   // === MOBILE-OPTIMIZED SCHOOL ADMINISTRATIVE HEADER ===
-  addProfessionalHeader();
+  await addProfessionalHeader();
 
   // === MOBILE-OPTIMIZED SCHOOL LOGO AND INFORMATION ===
   // School logo with mobile-friendly sizing
