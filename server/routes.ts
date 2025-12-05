@@ -7067,55 +7067,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[STUDENT_ATTENDANCE] 🏫 School: ${studentSchoolId}, Class: ${studentClassId}`);
       
-      // Fetch attendance from database with teacher info
-      const dbAttendance = await db
-        .select({
-          id: attendance.id,
-          studentId: attendance.studentId,
-          classId: attendance.classId,
-          date: attendance.date,
-          status: attendance.status,
-          notes: attendance.notes,
-          markedBy: attendance.markedBy,
-          timeIn: attendance.timeIn,
-          createdAt: attendance.createdAt,
-          updatedAt: attendance.updatedAt,
-          teacherFirstName: users.firstName,
-          teacherLastName: users.lastName
-        })
-        .from(attendance)
-        .leftJoin(users, eq(attendance.markedBy, users.id))
-        .where(and(
-          eq(attendance.studentId, user.id),
-          eq(attendance.schoolId, studentSchoolId)
-        ))
-        .orderBy(desc(attendance.date))
-        .limit(100);
+      // Fetch attendance from database with teacher info using raw SQL for correct column names
+      const dbAttendance = await db.execute(sql`
+        SELECT 
+          a.id,
+          a.student_id,
+          a.class_id,
+          a.date,
+          a.status,
+          a.notes,
+          a.reason,
+          a.marked_by,
+          a.time_in,
+          a.created_at,
+          a.updated_at,
+          u.first_name as teacher_first_name,
+          u.last_name as teacher_last_name,
+          c.name as class_name,
+          s.name_fr as subject_name
+        FROM attendance a
+        LEFT JOIN users u ON a.marked_by = u.id
+        LEFT JOIN classes c ON a.class_id = c.id
+        LEFT JOIN subjects s ON s.id = (
+          SELECT ts.subject_id FROM timetables ts 
+          WHERE ts.class_id = a.class_id 
+          AND ts.day_of_week = EXTRACT(DOW FROM a.date)::text
+          LIMIT 1
+        )
+        WHERE a.student_id = ${user.id}
+        AND a.school_id = ${studentSchoolId}
+        ORDER BY a.date DESC
+        LIMIT 100
+      `);
       
-      console.log(`[STUDENT_ATTENDANCE] ✅ Fetched ${dbAttendance.length} attendance records from database`);
+      console.log(`[STUDENT_ATTENDANCE] ✅ Fetched ${dbAttendance.rows.length} attendance records from database`);
       
       // Process attendance for frontend
       const now = new Date();
       const recentThreshold = 2 * 60 * 60 * 1000;
       
-      const processedAttendance = dbAttendance.map(record => {
-        const lastUpdateTime = record.updatedAt ? new Date(record.updatedAt).getTime() : 0;
+      const processedAttendance = dbAttendance.rows.map((record: any) => {
+        const lastUpdateTime = record.updated_at ? new Date(record.updated_at).getTime() : 0;
         const isRecent = (now.getTime() - lastUpdateTime) < recentThreshold;
-        const teacherName = record.teacherFirstName && record.teacherLastName
-          ? `${record.teacherFirstName} ${record.teacherLastName}`
-          : 'Unknown';
+        const teacherName = record.teacher_first_name && record.teacher_last_name
+          ? `${record.teacher_first_name} ${record.teacher_last_name}`
+          : 'Enseignant';
         
         return {
           id: record.id,
-          studentId: record.studentId,
-          date: record.date?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+          studentId: record.student_id,
+          date: record.date ? new Date(record.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           status: record.status || 'present',
           notes: record.notes || '',
+          reason: record.reason || '',
+          subject: record.subject_name || record.class_name || 'Cours',
+          period: record.time_in ? new Date(record.time_in).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'Journée',
           markedBy: teacherName,
           teacher: teacherName,
-          teacherId: record.markedBy,
-          markedAt: record.createdAt?.toISOString() || new Date().toISOString(),
-          lastUpdated: record.updatedAt?.toISOString() || new Date().toISOString(),
+          teacherId: record.marked_by,
+          markedAt: record.created_at ? new Date(record.created_at).toISOString() : new Date().toISOString(),
+          lastUpdated: record.updated_at ? new Date(record.updated_at).toISOString() : new Date().toISOString(),
           isNew: isRecent,
           syncStatus: 'synchronized'
         };
