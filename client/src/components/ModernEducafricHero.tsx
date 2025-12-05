@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles, Zap, Globe, WifiOff, CloudOff, Signal } from 'lucide-react';
+import { ArrowRight, Sparkles, Zap, Globe, WifiOff, CloudOff, Signal, MapPin, Shield, FileText, School, GraduationCap } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function ModernEducafricHero() {
@@ -93,6 +93,85 @@ export default function ModernEducafricHero() {
                     <span className="bg-green-400/30 px-2 py-1 rounded-full text-green-200 font-semibold">
                       {language === 'fr' ? '✓ Zones Rurales' : '✓ Rural Areas'}
                     </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Features Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Geolocation Parent-Student Feature */}
+              <div className="glass-card p-4 rounded-2xl border border-blue-400/40 bg-gradient-to-r from-blue-600/25 to-cyan-600/25 backdrop-blur-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+                      <MapPin className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-white font-bold text-base">
+                        {language === 'fr' 
+                          ? '📍 Géolocalisation Parent-Élève' 
+                          : '📍 Parent-Student Geolocation'
+                        }
+                      </h3>
+                    </div>
+                    <p className="text-blue-100 text-xs leading-relaxed mb-2">
+                      {language === 'fr'
+                        ? 'Suivez vos enfants en temps réel ! Alertes automatiques d\'arrivée/départ, zones de sécurité géofencing, et historique des déplacements.'
+                        : 'Track your children in real-time! Automatic arrival/departure alerts, geofencing safety zones, and movement history.'
+                      }
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-white">
+                        <Shield className="w-3 h-3" />
+                        {language === 'fr' ? 'Sécurité' : 'Safety'}
+                      </span>
+                      <span className="bg-cyan-400/30 px-2 py-0.5 rounded-full text-cyan-200">
+                        {language === 'fr' ? '✓ Temps Réel' : '✓ Real-Time'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Multi-Establishment Bulletin Feature */}
+              <div className="glass-card p-4 rounded-2xl border border-emerald-400/40 bg-gradient-to-r from-emerald-600/25 to-teal-600/25 backdrop-blur-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg">
+                      <FileText className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-white font-bold text-base">
+                        {language === 'fr' 
+                          ? '📋 Bulletins Multi-Établissements' 
+                          : '📋 Multi-Establishment Bulletins'
+                        }
+                      </h3>
+                    </div>
+                    <p className="text-emerald-100 text-xs leading-relaxed mb-2">
+                      {language === 'fr'
+                        ? 'Générez des bulletins conformes pour tous types d\'établissements : Général, Technique, Professionnel, Bilingue. Format ministère camerounais inclus.'
+                        : 'Generate compliant report cards for all establishment types: General, Technical, Professional, Bilingual. Cameroon ministry format included.'
+                      }
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-white">
+                        <School className="w-3 h-3" />
+                        {language === 'fr' ? 'Général' : 'General'}
+                      </span>
+                      <span className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-white">
+                        <GraduationCap className="w-3 h-3" />
+                        {language === 'fr' ? 'Technique' : 'Technical'}
+                      </span>
+                      <span className="bg-teal-400/30 px-2 py-0.5 rounded-full text-teal-200">
+                        {language === 'fr' ? '✓ APC' : '✓ CBA'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
