@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import { Bus, MapPin, Clock, Users } from "lucide-react";
 import "leaflet/dist/leaflet.css";
@@ -23,13 +24,38 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+interface Child {
+  id: number;
+  firstName: string;
+  lastName: string;
+  className?: string;
+}
+
 export default function BusTrackingPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const [selectedRoute, setSelectedRoute] = useState<any>(null);
+  const [selectedChildId, setSelectedChildId] = useState<number | null>(null);
 
   const schoolId = user?.schoolId;
+  const isParent = user?.role === "Parent";
   const studentId = user?.role === "Student" ? user?.id : null;
+
+  // For parents: fetch their children
+  const { data: children = [], isLoading: childrenLoading } = useQuery<Child[]>({
+    queryKey: ["/api/parent/children"],
+    queryFn: async () => {
+      const response = await fetch("/api/parent/children", { credentials: "include" });
+      if (!response.ok) throw new Error("Failed to fetch children");
+      return response.json();
+    },
+    enabled: isParent,
+  });
+
+  // Auto-select first child for parent
+  const activeStudentId = isParent 
+    ? (selectedChildId || (children.length > 0 ? children[0].id : null))
+    : studentId;
 
   // Fetch bus routes
   const { data: routes = [], isLoading: routesLoading } = useQuery({
@@ -64,15 +90,15 @@ export default function BusTrackingPage() {
     enabled: !!selectedRoute?.id,
   });
 
-  // Fetch student enrollment
+  // Fetch student enrollment (works for both student and parent viewing child)
   const { data: enrollment } = useQuery({
-    queryKey: ["/api/bus/enrollments/student", studentId],
+    queryKey: ["/api/bus/enrollments/student", activeStudentId],
     queryFn: async () => {
-      const response = await fetch(`/api/bus/enrollments/student/${studentId}`);
+      const response = await fetch(`/api/bus/enrollments/student/${activeStudentId}`);
       if (!response.ok) throw new Error("Failed to fetch enrollment");
       return response.json();
     },
-    enabled: !!studentId,
+    enabled: !!activeStudentId,
   });
 
   // Auto-select first route
@@ -95,21 +121,69 @@ export default function BusTrackingPage() {
     ? [parseFloat(stations[0].latitude), parseFloat(stations[0].longitude)] as [number, number]
     : defaultCenter;
 
+  // Get selected child name for display
+  const getSelectedChildName = () => {
+    if (!isParent || !activeStudentId) return "";
+    const child = children.find(c => c.id === activeStudentId);
+    return child ? `${child.firstName} ${child.lastName}` : "";
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2" data-testid="text-page-title">
             <Bus className="h-8 w-8" />
-            {t("busTracking")}
+            {isParent 
+              ? (language === 'fr' ? 'Transport Scolaire Enfants' : 'Children School Bus')
+              : t("busTracking")}
           </h1>
-          <p className="text-muted-foreground mt-2">{t("liveTracking")}</p>
+          <p className="text-muted-foreground mt-2">
+            {isParent 
+              ? (language === 'fr' ? 'Suivez le transport scolaire de vos enfants' : 'Track your children\'s school transportation')
+              : t("liveTracking")}
+          </p>
         </div>
+
+        {/* Child Selector for Parents */}
+        {isParent && children.length > 0 && (
+          <Card className="w-full md:w-72">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                {language === 'fr' ? 'Sélectionner un enfant' : 'Select a child'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select
+                value={activeStudentId?.toString() || ""}
+                onValueChange={(value) => setSelectedChildId(parseInt(value))}
+              >
+                <SelectTrigger data-testid="select-child">
+                  <SelectValue placeholder={language === 'fr' ? 'Choisir un enfant' : 'Choose a child'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {children.map((child) => (
+                    <SelectItem key={child.id} value={child.id.toString()}>
+                      {child.firstName} {child.lastName}
+                      {child.className && ` - ${child.className}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
         
         {enrollment && (
-          <Card className="w-64">
+          <Card className="w-full md:w-64">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">{t("enrollment")}</CardTitle>
+              <CardTitle className="text-sm">
+                {t("enrollment")}
+                {isParent && getSelectedChildName() && (
+                  <span className="text-xs text-muted-foreground ml-2">({getSelectedChildName()})</span>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="font-semibold" data-testid="text-route-name">

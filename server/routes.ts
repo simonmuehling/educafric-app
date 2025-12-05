@@ -10847,6 +10847,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/parent/profile - Get parent profile from database
+  app.get("/api/parent/profile", requireAuth, requireAnyRole(['Parent']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[PARENT_PROFILE] GET /api/parent/profile for user:', user.id);
+      
+      // Fetch user from database
+      const parentData = await db.select()
+        .from(users)
+        .where(eq(users.id, user.id))
+        .limit(1);
+      
+      if (parentData.length === 0) {
+        return res.status(404).json({ success: false, message: 'Parent not found' });
+      }
+      
+      const parent = parentData[0];
+      
+      // Privacy settings are stored in roleHistory.privacySettings
+      const roleHistory = (parent.roleHistory as any) || {};
+      const privacySettings = roleHistory.privacySettings || null;
+      
+      res.json({
+        id: parent.id,
+        firstName: parent.firstName,
+        lastName: parent.lastName,
+        email: parent.email,
+        phone: parent.phone,
+        role: parent.role,
+        schoolId: parent.schoolId,
+        privacySettings
+      });
+    } catch (error) {
+      console.error('[PARENT_PROFILE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch parent profile' });
+    }
+  });
+
+  // PUT /api/parent/profile - Update parent profile
+  app.put("/api/parent/profile", requireAuth, requireAnyRole(['Parent']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { firstName, lastName, email, phone } = req.body;
+      
+      console.log('[PARENT_PROFILE_UPDATE] Updating profile for user:', user.id, { firstName, lastName, email, phone });
+      
+      const updateData: any = {};
+      if (firstName) updateData.firstName = firstName;
+      if (lastName) updateData.lastName = lastName;
+      if (email !== undefined) updateData.email = email || null;
+      if (phone) updateData.phone = phone;
+      
+      await db.update(users)
+        .set(updateData)
+        .where(eq(users.id, user.id));
+      
+      res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (error) {
+      console.error('[PARENT_PROFILE_UPDATE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update parent profile' });
+    }
+  });
+
+  // PUT /api/parent/privacy - Update parent privacy settings
+  // Note: Privacy settings are stored in the roleHistory JSONB field as { ...roleHistory, privacySettings }
+  app.put("/api/parent/privacy", requireAuth, requireAnyRole(['Parent']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const privacySettings = req.body;
+      
+      console.log('[PARENT_PRIVACY_UPDATE] Updating privacy for user:', user.id, privacySettings);
+      
+      // Get current roleHistory and append privacy settings
+      const currentUser = await db.select({ roleHistory: users.roleHistory })
+        .from(users)
+        .where(eq(users.id, user.id))
+        .limit(1);
+      
+      const existingHistory = (currentUser[0]?.roleHistory as any) || {};
+      const updatedHistory = {
+        ...existingHistory,
+        privacySettings
+      };
+      
+      await db.update(users)
+        .set({ roleHistory: updatedHistory })
+        .where(eq(users.id, user.id));
+      
+      res.json({ success: true, message: 'Privacy settings updated successfully' });
+    } catch (error) {
+      console.error('[PARENT_PRIVACY_UPDATE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update privacy settings' });
+    }
+  });
+
   // ============= PARENT LIBRARY API =============
   
   // Get recommended books for parent's children

@@ -8,9 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Calendar, UtensilsCrossed, Wallet, Plus, X, Check } from "lucide-react";
+import { Calendar, UtensilsCrossed, Wallet, Plus, X, Check, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,19 +22,44 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+interface Child {
+  id: number;
+  firstName: string;
+  lastName: string;
+  className?: string;
+}
+
 export default function CanteenPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedMenu, setSelectedMenu] = useState<any>(null);
   const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [isBalanceOpen, setIsBalanceOpen] = useState(false);
   const [balanceAmount, setBalanceAmount] = useState("");
+  const [selectedChildId, setSelectedChildId] = useState<number | null>(null);
 
-  // Get school ID from user context
+  // Get school ID and determine user role
   const schoolId = user?.schoolId;
+  const isParent = user?.role === "Parent";
   const studentId = user?.role === "Student" ? user?.id : null;
   const isStaff = user?.role === "Director" || user?.role === "Teacher";
+
+  // For parents: fetch their children
+  const { data: children = [], isLoading: childrenLoading } = useQuery<Child[]>({
+    queryKey: ["/api/parent/children"],
+    queryFn: async () => {
+      const response = await fetch("/api/parent/children", { credentials: "include" });
+      if (!response.ok) throw new Error("Failed to fetch children");
+      return response.json();
+    },
+    enabled: isParent,
+  });
+
+  // Auto-select first child for parent
+  const activeStudentId = isParent 
+    ? (selectedChildId || (children.length > 0 ? children[0].id : null))
+    : studentId;
 
   // Fetch menus for the school
   const { data: menus = [], isLoading: menusLoading } = useQuery({
@@ -46,26 +72,26 @@ export default function CanteenPage() {
     enabled: !!schoolId,
   });
 
-  // Fetch student reservations
+  // Fetch student reservations (works for both student and parent viewing child)
   const { data: reservations = [], isLoading: reservationsLoading } = useQuery({
-    queryKey: ["/api/canteen/reservations/student", studentId],
+    queryKey: ["/api/canteen/reservations/student", activeStudentId],
     queryFn: async () => {
-      const response = await fetch(`/api/canteen/reservations/student/${studentId}`);
+      const response = await fetch(`/api/canteen/reservations/student/${activeStudentId}`);
       if (!response.ok) throw new Error("Failed to fetch reservations");
       return response.json();
     },
-    enabled: !!studentId,
+    enabled: !!activeStudentId,
   });
 
-  // Fetch student balance
+  // Fetch student balance (works for both student and parent viewing child)
   const { data: balance } = useQuery({
-    queryKey: ["/api/canteen/balance", studentId],
+    queryKey: ["/api/canteen/balance", activeStudentId],
     queryFn: async () => {
-      const response = await fetch(`/api/canteen/balance/${studentId}`);
+      const response = await fetch(`/api/canteen/balance/${activeStudentId}`);
       if (!response.ok) throw new Error("Failed to fetch balance");
       return response.json();
     },
-    enabled: !!studentId,
+    enabled: !!activeStudentId,
   });
 
   // Create reservation mutation
@@ -73,12 +99,12 @@ export default function CanteenPage() {
     mutationFn: async (menu: any) => {
       return apiRequest("POST", "/api/canteen/reservations", {
         menuId: menu.id,
-        studentId,
+        studentId: activeStudentId,
         reservedDate: menu.menuDate,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/canteen/reservations/student"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/canteen/reservations/student", activeStudentId] });
       toast({
         title: t("success"),
         description: t("makeReservation") + " " + t("success").toLowerCase(),
@@ -100,7 +126,7 @@ export default function CanteenPage() {
       return apiRequest("DELETE", `/api/canteen/reservations/${reservationId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/canteen/reservations/student"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/canteen/reservations/student", activeStudentId] });
       toast({
         title: t("success"),
         description: t("cancelReservation") + " " + t("success").toLowerCase(),
@@ -118,12 +144,12 @@ export default function CanteenPage() {
   // Add balance mutation
   const addBalanceMutation = useMutation({
     mutationFn: async (amount: string) => {
-      return apiRequest("POST", `/api/canteen/balance/${studentId}/add`, {
+      return apiRequest("POST", `/api/canteen/balance/${activeStudentId}/add`, {
         amount,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/canteen/balance"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/canteen/balance", activeStudentId] });
       toast({
         title: t("success"),
         description: t("addBalance") + " " + t("success").toLowerCase(),
@@ -161,29 +187,75 @@ export default function CanteenPage() {
     return Array.isArray(reservations) && reservations.some((r: any) => r.menuId === menuId);
   };
 
+  // Get selected child name for display
+  const getSelectedChildName = () => {
+    if (!isParent || !activeStudentId) return "";
+    const child = children.find(c => c.id === activeStudentId);
+    return child ? `${child.firstName} ${child.lastName}` : "";
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2" data-testid="text-page-title">
             <UtensilsCrossed className="h-8 w-8" />
-            {t("canteenManagement")}
+            {isParent 
+              ? (language === 'fr' ? 'Cantine Enfants' : 'Children Canteen')
+              : t("canteenManagement")}
           </h1>
-          <p className="text-muted-foreground mt-2">{t("canteenManagement")}</p>
+          <p className="text-muted-foreground mt-2">
+            {isParent 
+              ? (language === 'fr' ? 'Suivez les repas et le solde cantine de vos enfants' : 'Track your children\'s meals and canteen balance')
+              : t("canteenManagement")}
+          </p>
         </div>
+
+        {/* Child Selector for Parents */}
+        {isParent && children.length > 0 && (
+          <Card className="w-full md:w-72">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                {language === 'fr' ? 'Sélectionner un enfant' : 'Select a child'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select
+                value={activeStudentId?.toString() || ""}
+                onValueChange={(value) => setSelectedChildId(parseInt(value))}
+              >
+                <SelectTrigger data-testid="select-child">
+                  <SelectValue placeholder={language === 'fr' ? 'Choisir un enfant' : 'Choose a child'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {children.map((child) => (
+                    <SelectItem key={child.id} value={child.id.toString()}>
+                      {child.firstName} {child.lastName}
+                      {child.className && ` - ${child.className}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
         
-        {studentId && (
-          <Card className="w-64">
+        {activeStudentId && (
+          <Card className="w-full md:w-64">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Wallet className="h-4 w-4" />
                 {t("canteenBalance")}
+                {isParent && getSelectedChildName() && (
+                  <span className="text-xs text-muted-foreground">({getSelectedChildName()})</span>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <span className="text-2xl font-bold" data-testid="text-balance">
-                  {(balance as any)?.balance || "0"} FCFA
+                  {(balance as any)?.balance || "0"} CFA
                 </span>
                 <Dialog open={isBalanceOpen} onOpenChange={setIsBalanceOpen}>
                   <DialogTrigger asChild>
@@ -195,7 +267,7 @@ export default function CanteenPage() {
                     <DialogHeader>
                       <DialogTitle>{t("addBalance")}</DialogTitle>
                       <DialogDescription>
-                        {t("amount")} (FCFA)
+                        {t("amount")} (CFA)
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">

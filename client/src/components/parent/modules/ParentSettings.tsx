@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Shield, Bell, Lock, Phone, Smartphone, CheckCircle, XCircle, Wifi, Settings, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,10 +29,163 @@ const ParentSettings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const { language } = useLanguage();
   const { user, logout } = useAuth();
   const [pwaConnectionStatus, setPwaConnectionStatus] = useState<any>(null);
+  
+  // Profile form state
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+237');
+  
+  // Privacy form state
+  const [shareDataWithSchool, setShareDataWithSchool] = useState(true);
+  const [shareGeolocation, setShareGeolocation] = useState(true);
+  const [shareConnectionHistory, setShareConnectionHistory] = useState(false);
+  const [allowTeacherMessages, setAllowTeacherMessages] = useState(true);
+  const [allowPushNotifications, setAllowPushNotifications] = useState(true);
+  const [shareWhatsApp, setShareWhatsApp] = useState(true);
+  const [profileVisibility, setProfileVisibility] = useState<'public' | 'school' | 'private'>('school');
+  
+  // Fetch parent profile data
+  const { data: profileData, isLoading: profileLoading, refetch: refetchProfile } = useQuery({
+    queryKey: ['/api/parent/profile'],
+    queryFn: async () => {
+      const response = await fetch('/api/parent/profile', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch profile');
+      return response.json();
+    },
+    enabled: !!user?.id
+  });
+  
+  // Initialize form with profile data
+  useEffect(() => {
+    if (profileData) {
+      setFirstName(profileData.firstName || '');
+      setLastName(profileData.lastName || '');
+      setEmail(profileData.email || '');
+      // Extract country code and number from phone
+      const phoneNumber = profileData.phone || '';
+      if (phoneNumber.startsWith('+')) {
+        const match = phoneNumber.match(/^(\+\d{1,4})(.*)$/);
+        if (match) {
+          setCountryCode(match[1]);
+          setPhone(match[2].trim());
+        } else {
+          setPhone(phoneNumber);
+        }
+      } else {
+        setPhone(phoneNumber);
+      }
+      // Load privacy settings if available
+      if (profileData.privacySettings) {
+        setShareDataWithSchool(profileData.privacySettings.shareDataWithSchool ?? true);
+        setShareGeolocation(profileData.privacySettings.shareGeolocation ?? true);
+        setShareConnectionHistory(profileData.privacySettings.shareConnectionHistory ?? false);
+        setAllowTeacherMessages(profileData.privacySettings.allowTeacherMessages ?? true);
+        setAllowPushNotifications(profileData.privacySettings.allowPushNotifications ?? true);
+        setShareWhatsApp(profileData.privacySettings.shareWhatsApp ?? true);
+        setProfileVisibility(profileData.privacySettings.profileVisibility ?? 'school');
+      }
+    }
+  }, [profileData]);
+  
+  // Also populate from user context as fallback
+  useEffect(() => {
+    if (user && !profileData) {
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setEmail(user.email || '');
+      if (user.phone) {
+        const phoneNumber = user.phone;
+        if (phoneNumber.startsWith('+')) {
+          const match = phoneNumber.match(/^(\+\d{1,4})(.*)$/);
+          if (match) {
+            setCountryCode(match[1]);
+            setPhone(match[2].trim());
+          } else {
+            setPhone(phoneNumber);
+          }
+        } else {
+          setPhone(phoneNumber);
+        }
+      }
+    }
+  }, [user, profileData]);
+  
+  // Save profile
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/parent/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email: email || undefined,
+          phone: countryCode + phone
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to save profile');
+      
+      toast({
+        title: language === 'fr' ? 'Profil mis à jour' : 'Profile updated',
+        description: language === 'fr' ? 'Vos informations ont été sauvegardées.' : 'Your information has been saved.'
+      });
+      refetchProfile();
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de sauvegarder le profil.' : 'Failed to save profile.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  // Save privacy settings
+  const handleSavePrivacy = async () => {
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/parent/privacy', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          shareDataWithSchool,
+          shareGeolocation,
+          shareConnectionHistory,
+          allowTeacherMessages,
+          allowPushNotifications,
+          shareWhatsApp,
+          profileVisibility
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to save privacy settings');
+      
+      toast({
+        title: language === 'fr' ? 'Paramètres sauvegardés' : 'Settings saved',
+        description: language === 'fr' ? 'Vos préférences de confidentialité ont été mises à jour.' : 'Your privacy preferences have been updated.'
+      });
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de sauvegarder les paramètres.' : 'Failed to save settings.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
   
   // Fetch PWA subscription info
   const { data: pwaSubscription, refetch: refetchPwaSubscription } = useQuery({
@@ -226,23 +379,48 @@ const ParentSettings = () => {
               <CardTitle>{t.profile}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="firstName">{t.firstName}</Label>
-                  <Input id="firstName" placeholder="Entrez votre prénom" />
+              {profileLoading ? (
+                <div className="text-center py-4 text-gray-500">
+                  {language === 'fr' ? 'Chargement...' : 'Loading...'}
                 </div>
-                <div>
-                  <Label htmlFor="lastName">{t.lastName}</Label>
-                  <Input id="lastName" placeholder="Entrez votre nom" />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="email">{t.email}</Label>
-                <Input id="email" type="email" placeholder="parent@example.com" />
-              </div>
-              <div>
-                <Label htmlFor="phone">{t.phone}</Label>
-                <div className="flex">
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="firstName">{t.firstName}</Label>
+                      <Input 
+                        id="firstName" 
+                        placeholder={language === 'fr' ? 'Entrez votre prénom' : 'Enter your first name'}
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        data-testid="input-first-name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="lastName">{t.lastName}</Label>
+                      <Input 
+                        id="lastName" 
+                        placeholder={language === 'fr' ? 'Entrez votre nom' : 'Enter your last name'}
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        data-testid="input-last-name"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="email">{t.email}</Label>
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      placeholder="parent@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      data-testid="input-email"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">{t.phone}</Label>
+                    <div className="flex">
                   <select className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="+93">🇦🇫 Afghanistan +93</option>
                     <option value="+355">🇦🇱 Albania +355</option>
@@ -487,18 +665,28 @@ const ParentSettings = () => {
                     <option value="+260">🇿🇲 Zambia +260</option>
                     <option value="+263">🇿🇼 Zimbabwe +263</option>
                   </select>
-                  <Input 
-                    id="phone" 
-                    type="tel" 
-                    placeholder="XXX XXX XXX"
-                    className="rounded-l-none"
-                  />
-                </div>
-              </div>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Phone className="w-4 h-4 mr-2" />
-                {t.save}
-              </Button>
+                      <Input 
+                        id="phone" 
+                        type="tel" 
+                        placeholder="XXX XXX XXX"
+                        className="rounded-l-none"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        data-testid="input-phone"
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={handleSaveProfile}
+                    disabled={isSaving}
+                    data-testid="button-save-profile"
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    {isSaving ? (language === 'fr' ? 'Sauvegarde...' : 'Saving...') : t.save}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -685,30 +873,42 @@ const ParentSettings = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Lock className="w-5 h-5 text-blue-600" />
-                Confidentialité des Données
+                {language === 'fr' ? 'Confidentialité des Données' : 'Data Privacy'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="font-medium">Partage des données avec l'école</Label>
-                  <p className="text-sm text-gray-600">Autoriser le partage des informations avec l'administration scolaire</p>
+                  <Label className="font-medium">{language === 'fr' ? 'Partage des données avec l\'école' : 'Share data with school'}</Label>
+                  <p className="text-sm text-gray-600">{language === 'fr' ? 'Autoriser le partage des informations avec l\'administration scolaire' : 'Allow sharing information with school administration'}</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={shareDataWithSchool}
+                  onCheckedChange={setShareDataWithSchool}
+                  data-testid="switch-share-data"
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="font-medium">Géolocalisation de l'enfant</Label>
-                  <p className="text-sm text-gray-600">Partager la position GPS avec les enseignants pour la sécurité</p>
+                  <Label className="font-medium">{language === 'fr' ? 'Géolocalisation de l\'enfant' : 'Child geolocation'}</Label>
+                  <p className="text-sm text-gray-600">{language === 'fr' ? 'Partager la position GPS avec les enseignants pour la sécurité' : 'Share GPS location with teachers for safety'}</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={shareGeolocation}
+                  onCheckedChange={setShareGeolocation}
+                  data-testid="switch-geolocation"
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="font-medium">Historique des connexions</Label>
-                  <p className="text-sm text-gray-600">Conserver l'historique des connexions PWA et navigateur</p>
+                  <Label className="font-medium">{language === 'fr' ? 'Historique des connexions' : 'Connection history'}</Label>
+                  <p className="text-sm text-gray-600">{language === 'fr' ? 'Conserver l\'historique des connexions PWA et navigateur' : 'Keep PWA and browser connection history'}</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={shareConnectionHistory}
+                  onCheckedChange={setShareConnectionHistory}
+                  data-testid="switch-history"
+                />
               </div>
             </CardContent>
           </Card>
@@ -718,30 +918,42 @@ const ParentSettings = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="w-5 h-5 text-green-600" />
-                Confidentialité des Communications
+                {language === 'fr' ? 'Confidentialité des Communications' : 'Communication Privacy'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="font-medium">Messages avec les enseignants</Label>
-                  <p className="text-sm text-gray-600">Autoriser les enseignants à vous contacter directement</p>
+                  <Label className="font-medium">{language === 'fr' ? 'Messages avec les enseignants' : 'Messages with teachers'}</Label>
+                  <p className="text-sm text-gray-600">{language === 'fr' ? 'Autoriser les enseignants à vous contacter directement' : 'Allow teachers to contact you directly'}</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={allowTeacherMessages}
+                  onCheckedChange={setAllowTeacherMessages}
+                  data-testid="switch-teacher-messages"
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="font-medium">Notifications push</Label>
-                  <p className="text-sm text-gray-600">Recevoir des notifications push sur vos appareils</p>
+                  <Label className="font-medium">{language === 'fr' ? 'Notifications push' : 'Push notifications'}</Label>
+                  <p className="text-sm text-gray-600">{language === 'fr' ? 'Recevoir des notifications push sur vos appareils' : 'Receive push notifications on your devices'}</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={allowPushNotifications}
+                  onCheckedChange={setAllowPushNotifications}
+                  data-testid="switch-push"
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="font-medium">Partage numéro WhatsApp</Label>
-                  <p className="text-sm text-gray-600">Permettre à l'école d'utiliser WhatsApp pour les urgences</p>
+                  <Label className="font-medium">{language === 'fr' ? 'Partage numéro WhatsApp' : 'Share WhatsApp number'}</Label>
+                  <p className="text-sm text-gray-600">{language === 'fr' ? 'Permettre à l\'école d\'utiliser WhatsApp pour les urgences' : 'Allow school to use WhatsApp for emergencies'}</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={shareWhatsApp}
+                  onCheckedChange={setShareWhatsApp}
+                  data-testid="switch-whatsapp"
+                />
               </div>
             </CardContent>
           </Card>
@@ -751,27 +963,67 @@ const ParentSettings = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5 text-purple-600" />
-                Confidentialité du Compte
+                {language === 'fr' ? 'Confidentialité du Compte' : 'Account Privacy'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Visibilité du profil</Label>
+                <Label>{language === 'fr' ? 'Visibilité du profil' : 'Profile visibility'}</Label>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <input type="radio" id="visibility-full" name="visibility" value="full" defaultChecked />
-                    <label htmlFor="visibility-full" className="text-sm">Visible par tous les membres de l'école</label>
+                    <input 
+                      type="radio" 
+                      id="visibility-public" 
+                      name="visibility" 
+                      value="public" 
+                      checked={profileVisibility === 'public'}
+                      onChange={() => setProfileVisibility('public')}
+                    />
+                    <label htmlFor="visibility-public" className="text-sm">
+                      {language === 'fr' ? 'Visible par tous les membres de l\'école' : 'Visible by all school members'}
+                    </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <input type="radio" id="visibility-teachers" name="visibility" value="teachers" />
-                    <label htmlFor="visibility-teachers" className="text-sm">Visible uniquement par les enseignants</label>
+                    <input 
+                      type="radio" 
+                      id="visibility-school" 
+                      name="visibility" 
+                      value="school" 
+                      checked={profileVisibility === 'school'}
+                      onChange={() => setProfileVisibility('school')}
+                    />
+                    <label htmlFor="visibility-school" className="text-sm">
+                      {language === 'fr' ? 'Visible uniquement par les enseignants' : 'Visible only by teachers'}
+                    </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <input type="radio" id="visibility-admin" name="visibility" value="admin" />
-                    <label htmlFor="visibility-admin" className="text-sm">Visible uniquement par l'administration</label>
+                    <input 
+                      type="radio" 
+                      id="visibility-private" 
+                      name="visibility" 
+                      value="private" 
+                      checked={profileVisibility === 'private'}
+                      onChange={() => setProfileVisibility('private')}
+                    />
+                    <label htmlFor="visibility-private" className="text-sm">
+                      {language === 'fr' ? 'Visible uniquement par l\'administration' : 'Visible only by administration'}
+                    </label>
                   </div>
                 </div>
               </div>
+              
+              {/* Save Privacy Settings Button */}
+              <Button 
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                onClick={handleSavePrivacy}
+                disabled={isSaving}
+                data-testid="button-save-privacy"
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                {isSaving 
+                  ? (language === 'fr' ? 'Sauvegarde...' : 'Saving...') 
+                  : (language === 'fr' ? 'Sauvegarder les paramètres de confidentialité' : 'Save privacy settings')}
+              </Button>
               
               <div className="border-t pt-4">
                 <div className="flex items-center justify-between">
