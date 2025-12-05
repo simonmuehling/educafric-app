@@ -101,7 +101,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       timetable: 'Emploi du temps',
       grades: 'Notes',
       assignments: 'Devoirs',
-      notes: 'Mes Notes',
+      bulletins: 'Bulletins',
       attendance: 'Présences',
       progress: 'Mon Progrès',
       messages: 'Messages',
@@ -122,7 +122,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       timetable: 'Timetable',
       grades: 'Grades',
       assignments: 'Assignments',
-      notes: 'My Notes',
+      bulletins: 'Report Cards',
       attendance: 'Attendance',
       progress: 'My Progress',
       messages: 'Messages',
@@ -167,8 +167,8 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       color: 'bg-purple-500'
     },
     {
-      id: 'bulletins',
-      label: t.notes,
+      id: 'student-bulletins',
+      label: t.bulletins,
       icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-orange-500'
     },

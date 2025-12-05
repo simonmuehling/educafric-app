@@ -129,7 +129,7 @@ class FastModuleLoader {
       'timetable': () => import('@/components/student/modules/StudentTimetable'),
       'grades': () => import('@/components/student/modules/FunctionalStudentGrades'),
       'assignments': () => import('@/components/student/modules/StudentHomework'),
-      // 'bulletins' moved to teacher unified system - see teacher-bulletins mapping
+      'student-bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'), // ✅ Bulletins étudiants
       'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'progress': () => import('@/components/student/modules/StudentProgress'),
       'student-messages': () => import('@/components/student/modules/StudentCommunications'),
