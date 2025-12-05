@@ -229,7 +229,10 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     phone: schoolSettings?.settings?.profile?.phone || schoolSettings?.settings?.school?.phone || '',
     address: schoolSettings?.settings?.profile?.address || schoolSettings?.settings?.school?.address || '',
     email: schoolSettings?.settings?.profile?.email || schoolSettings?.settings?.school?.email || '',
-    principalName: schoolSettings?.settings?.profile?.principalName || schoolSettings?.settings?.school?.principalName || ''
+    principalName: schoolSettings?.settings?.profile?.principalName || schoolSettings?.settings?.school?.principalName || '',
+    settings: {
+      cardColors: schoolSettings?.settings?.school?.cardColors || null
+    }
   };
   
   console.log('[ID_CARD_DEBUG] Final schoolData:', schoolData);

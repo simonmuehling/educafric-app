@@ -1051,7 +1051,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           boitePostale: schoolInfo?.boitePostale || '',
           arrondissement: schoolInfo?.arrondissement || '',
           educationalType: schoolInfo?.educationalType || 'general',
-          principalName: schoolInfo?.principalName || ''
+          principalName: schoolInfo?.principalName || '',
+          // ID Card customization colors
+          cardColors: (schoolInfo?.settings as any)?.cardColors || null
         },
         director: {
           name: `${dbUser?.firstName} ${dbUser?.lastName}`,
