@@ -100,7 +100,6 @@ const UnifiedSchoolSettings: React.FC = () => {
     lastName: '',
     matricule: '',
     className: '',
-    level: '',
     birthDate: '',
     birthPlace: '',
     gender: 'M',
@@ -242,7 +241,6 @@ const UnifiedSchoolSettings: React.FC = () => {
       studentLastName: 'Nom de l\'Élève',
       studentMatricule: 'Numéro Matricule',
       studentClass: 'Classe',
-      studentLevel: 'Niveau',
       studentBirthDate: 'Date de Naissance',
       studentBirthPlace: 'Lieu de Naissance',
       studentGender: 'Genre',
@@ -376,7 +374,6 @@ const UnifiedSchoolSettings: React.FC = () => {
       studentLastName: 'Student Last Name',
       studentMatricule: 'Student ID Number',
       studentClass: 'Class',
-      studentLevel: 'Level',
       studentBirthDate: 'Date of Birth',
       studentBirthPlace: 'Place of Birth',
       studentGender: 'Gender',
@@ -1257,8 +1254,8 @@ const UnifiedSchoolSettings: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Class and Level */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Class and Gender */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="manualClass">{t.studentClass} *</Label>
                     <Input
@@ -1267,16 +1264,6 @@ const UnifiedSchoolSettings: React.FC = () => {
                       onChange={(e) => setManualCardData(prev => ({ ...prev, className: e.target.value }))}
                       placeholder="3ème A"
                       data-testid="input-manual-class"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="manualLevel">{t.studentLevel}</Label>
-                    <Input
-                      id="manualLevel"
-                      value={manualCardData.level}
-                      onChange={(e) => setManualCardData(prev => ({ ...prev, level: e.target.value }))}
-                      placeholder="Secondaire"
-                      data-testid="input-manual-level"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1448,7 +1435,6 @@ const UnifiedSchoolSettings: React.FC = () => {
                         lastName: '',
                         matricule: '',
                         className: '',
-                        level: '',
                         birthDate: '',
                         birthPlace: '',
                         gender: 'M',
@@ -2142,7 +2128,7 @@ const UnifiedSchoolSettings: React.FC = () => {
           lastName: manualCardData.lastName,
           matricule: manualCardData.matricule,
           educafricNumber: manualCardData.matricule,
-          className: manualCardData.className + (manualCardData.level ? ` (${manualCardData.level})` : ''),
+          className: manualCardData.className,
           birthDate: manualCardData.birthDate,
           dateOfBirth: manualCardData.birthDate,
           birthPlace: manualCardData.birthPlace,

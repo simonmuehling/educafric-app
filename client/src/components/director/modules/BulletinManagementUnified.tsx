@@ -843,17 +843,22 @@ export default function BulletinManagementUnified() {
     try {
       setLoading(true);
       
-      // Charger les données de l'école depuis les paramètres
+      // Charger les données de l'école depuis les paramètres (incluant informations officielles Cameroun)
       const settingsResponse = await fetch('/api/director/settings');
       if (settingsResponse.ok) {
         const { settings } = await settingsResponse.json();
+        console.log('[BULLETIN_INIT] ✅ School settings loaded:', settings.school);
         setFormData(prev => ({
           ...prev,
+          // Informations école de base
           schoolName: settings.school?.name || '',
           schoolAddress: settings.school?.address || '',
           schoolPhone: settings.school?.phone || '',
           schoolEmail: settings.school?.email || '',
-          directorName: settings.school?.directorName || ''
+          directorName: settings.school?.directorName || settings.school?.principalName || '',
+          // Informations officielles Cameroun (auto-import depuis School Settings)
+          regionalDelegation: settings.school?.regionaleMinisterielle || 'DU CENTRE',
+          departmentalDelegation: settings.school?.delegationDepartementale || 'DU MFOUNDI'
         }));
       }
 
