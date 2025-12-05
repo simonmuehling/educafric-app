@@ -6236,7 +6236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             address: schools.address,
             phone: schools.phone,
             email: schools.email,
-            city: schools.city,
+            city: schools.arrondissement,
             logoUrl: schools.logoUrl,
             educafricNumber: schools.educafricNumber
           })
@@ -6260,7 +6260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             classSection: classes.section,
             enrollmentDate: enrollments.enrollmentDate,
             enrollmentStatus: enrollments.status,
-            academicYear: enrollments.academicYear
+            academicYearId: enrollments.academicYearId
           })
           .from(enrollments)
           .leftJoin(classes, eq(enrollments.classId, classes.id))
@@ -6285,14 +6285,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: enrollment.className || 'Classe non spécifiée',
             level: enrollment.classLevel,
             section: enrollment.classSection,
-            academicYear: enrollment.academicYear || '2024-2025',
+            academicYear: '2024-2025',
             studentCount: studentCount?.count || 0
           };
           
           enrollmentInfo = {
             enrollmentDate: enrollment.enrollmentDate?.toISOString(),
             status: enrollment.enrollmentStatus || 'active',
-            academicYear: enrollment.academicYear || '2024-2025'
+            academicYear: '2024-2025'
           };
         }
       }
