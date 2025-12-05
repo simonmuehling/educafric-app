@@ -9,16 +9,19 @@ import {
 } from 'lucide-react';
 
 interface ProgressData {
+  id: number;
   subject: string;
-  currentGrade: number;
-  previousGrade: number;
+  subjectId: number;
+  currentAverage: number;
+  previousAverage: number;
   trend: 'up' | 'down' | 'stable';
   goal: number;
-  assignments: {
-    total: number;
-    completed: number;
-    average: number;
-  };
+  improvement: number;
+  assignmentsCompleted: number;
+  assignmentsPending: number;
+  totalAssignments: number;
+  completionRate: number;
+  teacher: string;
 }
 
 interface Achievement {
@@ -94,15 +97,11 @@ const StudentProgress = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Fetch student's progress data from API  
+  // Fetch student's progress data from API (DATABASE-ONLY)
   const { data: progressData = [], isLoading, error } = useQuery({
     queryKey: ['/api/student/progress', user?.id, selectedPeriod],
     queryFn: async () => {
-      // Use real data except for sandbox accounts
-      const isSandbox = user?.email?.includes('sandbox') || user?.email?.includes('@test.educafric.com');
-      const endpoint = isSandbox ? '/api/student/library' : '/api/student/progress';
-      
-      const response = await fetch(`${endpoint}?studentId=${user?.id}&period=${selectedPeriod}`, {
+      const response = await fetch(`/api/student/progress?period=${selectedPeriod}`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -171,11 +170,11 @@ const StudentProgress = () => {
   const calculateOverallProgress = () => {
     if ((Array.isArray(progressData) ? progressData.length : 0) === 0) return { average: 0, goal: 0, achievement: 0 };
     
-    const totalGrade = (Array.isArray(progressData) ? progressData : []).reduce((sum: number, data: ProgressData) => sum + data.currentGrade, 0);
-    const totalGoal = (Array.isArray(progressData) ? progressData : []).reduce((sum: number, data: ProgressData) => sum + data.goal, 0);
-    const average = totalGrade / (Array.isArray(progressData) ? progressData.length : 0);
-    const goalAverage = totalGoal / (Array.isArray(progressData) ? progressData.length : 0);
-    const achievement = (average / goalAverage) * 100;
+    const totalGrade = (Array.isArray(progressData) ? progressData : []).reduce((sum: number, data: ProgressData) => sum + (data.currentAverage || 0), 0);
+    const totalGoal = (Array.isArray(progressData) ? progressData : []).reduce((sum: number, data: ProgressData) => sum + (data.goal || 14), 0);
+    const average = totalGrade / (Array.isArray(progressData) ? progressData.length : 1);
+    const goalAverage = totalGoal / (Array.isArray(progressData) ? progressData.length : 1);
+    const achievement = goalAverage > 0 ? (average / goalAverage) * 100 : 0;
     
     return { average: average.toFixed(1), goal: goalAverage.toFixed(1), achievement: achievement.toFixed(0) };
   };
@@ -296,14 +295,14 @@ const StudentProgress = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-gray-600">{t.average}</p>
-                        <p className={`text-xl font-bold ${getGradeColor(data.currentGrade, data.goal)}`}>
-                          {data?.currentGrade?.toFixed(1)}/20
+                        <p className={`text-xl font-bold ${getGradeColor(data.currentAverage || 0, data.goal || 14)}`}>
+                          {(data?.currentAverage || 0).toFixed(1)}/20
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">{t.goal}</p>
                         <p className="text-xl font-bold text-blue-600">
-                          {data?.goal?.toFixed(1)}/20
+                          {(data?.goal || 14).toFixed(1)}/20
                         </p>
                       </div>
                     </div>
@@ -313,18 +312,18 @@ const StudentProgress = () => {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-gray-600">{t.improvement}</span>
                         <span className="font-medium">
-                          {data.currentGrade > data.previousGrade ? '+' : ''}
-                          {(data.currentGrade - data.previousGrade).toFixed(1)}
+                          {(data.improvement || 0) > 0 ? '+' : ''}
+                          {(data.improvement || 0).toFixed(1)}
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full ${
-                            data.currentGrade >= data.goal ? 'bg-green-500' : 
-                            data.currentGrade >= data.goal * 0.8 ? 'bg-blue-500' : 
+                            (data.currentAverage || 0) >= (data.goal || 14) ? 'bg-green-500' : 
+                            (data.currentAverage || 0) >= (data.goal || 14) * 0.8 ? 'bg-blue-500' : 
                             'bg-orange-500'
                           }`}
-                          style={{ width: `${Math.min((data.currentGrade / data.goal) * 100, 100)}%` }}
+                          style={{ width: `${Math.min(((data.currentAverage || 0) / (data.goal || 14)) * 100, 100)}%` }}
                         ></div>
                       </div>
                     </div>
@@ -334,15 +333,15 @@ const StudentProgress = () => {
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
                           <p className="text-xs text-gray-600">{t.assignments}</p>
-                          <p className="font-semibold text-gray-900">{data?.assignments?.total}</p>
+                          <p className="font-semibold text-gray-900">{data?.totalAssignments || 0}</p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-600">{t.completed}</p>
-                          <p className="font-semibold text-green-600">{data?.assignments?.completed}</p>
+                          <p className="font-semibold text-green-600">{data?.assignmentsCompleted || 0}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-600">{t.average}</p>
-                          <p className="font-semibold text-blue-600">{data?.assignments?.average.toFixed(1)}</p>
+                          <p className="text-xs text-gray-600">{t.pending}</p>
+                          <p className="font-semibold text-orange-600">{data?.assignmentsPending || 0}</p>
                         </div>
                       </div>
                     </div>

@@ -6878,13 +6878,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/student/achievements", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      const studentId = user.id;
       const category = req.query.category || 'all';
       
-      // 🏆 SYNCHRONISATION AUTOMATIQUE AVEC LES RÉUSSITES BASÉES SUR PERFORMANCES
-      console.log('[STUDENT_ACHIEVEMENTS] 🔄 Synchronizing achievements with teacher evaluations...');
-      console.log('[STUDENT_ACHIEVEMENTS] 🏆 Calculating earned achievements for student:', user.id);
+      console.log('[STUDENT_ACHIEVEMENTS] 🏆 DATABASE-ONLY: Calculating achievements for student:', studentId);
       
-      // Récupérer l'ID de l'école et la classe de l'étudiant avec validation
       const studentSchoolId = user.schoolId;
       if (!studentSchoolId) {
         return res.status(403).json({ 
@@ -6892,140 +6890,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: 'School access required' 
         });
       }
-      const studentClass = user.class || '3ème A';
       
-      console.log(`[STUDENT_ACHIEVEMENTS] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
+      // STEP 1: Get student's grades from database
+      const studentGrades = await db.execute(sql`
+        SELECT g.grade, g.created_at, s.name_fr as subject_name
+        FROM grades g
+        LEFT JOIN subjects s ON g.subject_id = s.id
+        WHERE g.student_id = ${studentId}
+        AND g.school_id = ${studentSchoolId}
+        ORDER BY g.created_at DESC
+      `);
       
-      // Réussites calculées automatiquement basées sur les vraies performances
-      const earnedAchievements = [
-        {
-          id: 1,
-          title: "Excellence en Mathématiques",
-          titleEn: "Excellence in Mathematics",
-          description: "Moyenne supérieure à 16/20 en mathématiques",
-          descriptionEn: "Average above 16/20 in mathematics",
+      // STEP 2: Get attendance data from database
+      const attendanceData = await db.execute(sql`
+        SELECT status, date FROM attendance
+        WHERE student_id = ${studentId}
+        AND school_id = ${studentSchoolId}
+        ORDER BY date DESC
+        LIMIT 30
+      `);
+      
+      // STEP 3: Calculate achievements based on real data
+      const earnedAchievements: any[] = [];
+      let achievementId = 1;
+      
+      // Calculate subject averages
+      const subjectAverages: { [key: string]: { total: number; count: number; grades: number[] } } = {};
+      (studentGrades.rows || []).forEach((g: any) => {
+        const subject = g.subject_name || 'Unknown';
+        if (!subjectAverages[subject]) {
+          subjectAverages[subject] = { total: 0, count: 0, grades: [] };
+        }
+        const gradeValue = parseFloat(g.grade);
+        if (!isNaN(gradeValue)) {
+          subjectAverages[subject].total += gradeValue;
+          subjectAverages[subject].count++;
+          subjectAverages[subject].grades.push(gradeValue);
+        }
+      });
+      
+      // Achievement: Excellence by subject (average >= 16)
+      Object.entries(subjectAverages).forEach(([subject, data]) => {
+        const avg = data.count > 0 ? data.total / data.count : 0;
+        if (avg >= 16) {
+          earnedAchievements.push({
+            id: achievementId++,
+            title: `Excellence en ${subject}`,
+            titleEn: `Excellence in ${subject}`,
+            description: `Moyenne de ${avg.toFixed(1)}/20 en ${subject}`,
+            descriptionEn: `Average of ${avg.toFixed(1)}/20 in ${subject}`,
+            category: "academic",
+            icon: "🏆",
+            points: Math.round(avg * 5),
+            status: "earned",
+            date: new Date().toISOString(),
+            earnedDate: new Date().toISOString()
+          });
+        }
+      });
+      
+      // Calculate overall average
+      const allGrades = Object.values(subjectAverages).flatMap(s => s.grades);
+      const overallAverage = allGrades.length > 0 
+        ? allGrades.reduce((a, b) => a + b, 0) / allGrades.length 
+        : 0;
+      
+      // Achievement: Honor Roll (overall average >= 14)
+      if (overallAverage >= 14) {
+        earnedAchievements.push({
+          id: achievementId++,
+          title: "Tableau d'Honneur",
+          titleEn: "Honor Roll",
+          description: `Moyenne générale de ${overallAverage.toFixed(1)}/20`,
+          descriptionEn: `Overall average of ${overallAverage.toFixed(1)}/20`,
           category: "academic",
-          icon: "🏆",
+          icon: "⭐",
           points: 100,
           status: "earned",
-          earnedDate: "2025-08-25T14:30:00Z",
-          criteria: "Moyenne ≥ 16/20",
-          currentValue: 16.5,
-          progress: 100,
-          teacher: "Prof. Mvondo",
-          rarity: "uncommon", // common, uncommon, rare, legendary
-          badgeColor: "#FFD700"
-        },
-        {
-          id: 2,
-          title: "Maître des Langues",
-          titleEn: "Language Master",
-          description: "Excellente performance en anglais",
-          descriptionEn: "Excellent performance in English",
-          category: "academic",
-          icon: "🗣️",
-          points: 75,
-          status: "earned",
-          earnedDate: "2025-08-20T11:00:00Z",
-          criteria: "Moyenne ≥ 17/20 en anglais",
-          currentValue: 17.5,
-          progress: 100,
-          teacher: "Mr. Smith",
-          rarity: "rare",
-          badgeColor: "#C0392B"
-        },
-        {
-          id: 3,
-          title: "Assidu Exemplaire",
+          date: new Date().toISOString(),
+          earnedDate: new Date().toISOString()
+        });
+      }
+      
+      // Calculate attendance rate
+      const attendanceRecords = attendanceData.rows || [];
+      const totalAttendance = attendanceRecords.length;
+      const presentCount = attendanceRecords.filter((r: any) => r.status === 'present').length;
+      const attendanceRate = totalAttendance > 0 ? (presentCount / totalAttendance) * 100 : 0;
+      
+      // Achievement: Perfect Attendance (>= 95%)
+      if (attendanceRate >= 95 && totalAttendance >= 5) {
+        earnedAchievements.push({
+          id: achievementId++,
+          title: "Assiduité Exemplaire",
           titleEn: "Exemplary Attendance",
-          description: "Présence parfaite pendant 2 semaines",
-          descriptionEn: "Perfect attendance for 2 weeks",
+          description: `Taux de présence de ${attendanceRate.toFixed(0)}%`,
+          descriptionEn: `Attendance rate of ${attendanceRate.toFixed(0)}%`,
           category: "behavior",
           icon: "⏰",
           points: 50,
           status: "earned",
-          earnedDate: "2025-09-05T08:00:00Z",
-          criteria: "100% de présence sur 2 semaines",
-          currentValue: 100,
-          progress: 100,
-          teacher: "Administration",
-          rarity: "uncommon",
-          badgeColor: "#27AE60"
-        },
-        {
-          id: 4,
-          title: "Progression Remarquable",
-          titleEn: "Remarkable Progress",
-          description: "Amélioration de +2 points en moyenne générale",
-          descriptionEn: "Improvement of +2 points in general average",
-          category: "academic",
-          icon: "📈",
-          points: 80,
-          status: "inProgress",
-          criteria: "Amélioration ≥ +2 points",
-          currentValue: 1.5,
-          progress: 75,
-          target: 2.0,
-          teacher: "Conseil de Classe",
-          rarity: "rare",
-          badgeColor: "#3498DB"
-        },
-        {
-          id: 5,
-          title: "Perfectionniste",
-          titleEn: "Perfectionist",
-          description: "Obtenir 18/20 ou plus dans 3 matières",
-          descriptionEn: "Score 18/20 or higher in 3 subjects",
-          category: "academic",
-          icon: "💎",
-          points: 150,
-          status: "locked",
-          criteria: "≥ 18/20 dans 3 matières",
-          currentValue: 1, // Actuellement 1 matière (Anglais 17.5, proche)
-          progress: 33,
-          target: 3,
-          teacher: "Conseil de Classe",
-          rarity: "legendary",
-          badgeColor: "#9B59B6"
-        }
-      ];
-      
-      // 📊 FILTRAGE PAR CATÉGORIE
-      let filteredAchievements = earnedAchievements;
-      if (category !== 'all') {
-        filteredAchievements = earnedAchievements.filter(achievement => achievement.category === category);
-        console.log(`[STUDENT_ACHIEVEMENTS] 📅 Filtered to ${filteredAchievements.length} achievements for category: ${category}`);
+          date: new Date().toISOString(),
+          earnedDate: new Date().toISOString()
+        });
       }
       
-      // 📊 CALCUL STATISTIQUES
-      const totalEarned = earnedAchievements.filter(a => a.status === 'earned').length;
-      const totalPoints = earnedAchievements.filter(a => a.status === 'earned').reduce((sum, a) => sum + a.points, 0);
-      const inProgressCount = earnedAchievements.filter(a => a.status === 'inProgress').length;
-      const lockedCount = earnedAchievements.filter(a => a.status === 'locked').length;
+      // Achievement: First steps (has at least one grade)
+      if (allGrades.length > 0) {
+        earnedAchievements.push({
+          id: achievementId++,
+          title: "Premiers Pas",
+          titleEn: "First Steps",
+          description: `${allGrades.length} note(s) enregistrée(s)`,
+          descriptionEn: `${allGrades.length} grade(s) recorded`,
+          category: "academic",
+          icon: "🎯",
+          points: 10,
+          status: "earned",
+          date: new Date().toISOString(),
+          earnedDate: new Date().toISOString()
+        });
+      }
       
-      // Calculer série actuelle (jours consécutifs avec de bonnes performances)
-      const currentStreak = 7; // Calculé en fonction des dernières performances
-      const classRank = 8; // Basé sur les moyennes comparées aux autres élèves
+      // Filter by category
+      let filteredAchievements = earnedAchievements;
+      if (category !== 'all') {
+        filteredAchievements = earnedAchievements.filter(a => a.category === category);
+      }
       
-      console.log(`[STUDENT_ACHIEVEMENTS] ✅ Loaded ${filteredAchievements.length} achievements`);
-      console.log(`[STUDENT_ACHIEVEMENTS] 🏆 Total earned: ${totalEarned}, Points: ${totalPoints}`);
-      console.log(`[STUDENT_ACHIEVEMENTS] 📊 In progress: ${inProgressCount}, Locked: ${lockedCount}`);
-      console.log(`[STUDENT_ACHIEVEMENTS] 🔄 Last sync: ${new Date().toISOString()}`);
+      // Calculate stats
+      const totalPoints = earnedAchievements.reduce((sum, a) => sum + a.points, 0);
+      
+      console.log(`[STUDENT_ACHIEVEMENTS] ✅ DATABASE: Found ${studentGrades.rows.length} grades, ${totalAttendance} attendance records`);
+      console.log(`[STUDENT_ACHIEVEMENTS] 🏆 Calculated ${earnedAchievements.length} achievements, ${totalPoints} points`);
       
       res.json({
         success: true,
+        data: filteredAchievements,
         achievements: filteredAchievements,
         stats: {
-          total: totalEarned,
+          total: earnedAchievements.length,
           points: totalPoints,
-          streak: currentStreak,
-          rank: classRank,
-          inProgress: inProgressCount,
-          locked: lockedCount
+          gradesCount: allGrades.length,
+          attendanceRate: attendanceRate.toFixed(0),
+          overallAverage: overallAverage.toFixed(1)
         },
         category,
         syncTime: new Date().toISOString(),
-        message: 'Achievements synchronized with academic performance'
+        message: 'Achievements calculated from database'
       });
     } catch (error) {
       console.error('[STUDENT_API] Error fetching achievements:', error);
