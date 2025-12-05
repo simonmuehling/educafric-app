@@ -969,50 +969,51 @@ export function MasterSheet({ selectedClass, selectedTerm, className }: { select
           </div>
         </CardHeader>
         
-        {/* Ministry Official Header for Print */}
+        {/* Ministry Official Header for Print - Standard Bilingual Format */}
         <div className="hidden print:block p-4 border-b-2 border-black">
           <div className="text-center space-y-1">
-            {/* School Logo - Centered Above */}
-            {school?.logoUrl && (
-              <div className="flex justify-center mb-2">
-                <img 
-                  src={school.logoUrl} 
-                  alt={language === 'fr' ? 'Logo de l\'établissement' : 'School Logo'}
-                  className="h-20 w-20 object-contain"
-                />
-              </div>
-            )}
-            
-            {/* Bilingual Header */}
-            <div className="grid grid-cols-2 gap-4 text-xs font-bold uppercase">
+            {/* Bilingual Header with 3 columns: FR - LOGO - EN */}
+            <div className="grid grid-cols-3 gap-2 text-xs font-bold uppercase">
               <div className="text-left">
-                <div>RÉPUBLIQUE DU CAMEROUN</div>
-                <div className="italic">Paix – Travail – Patrie</div>
-                <div className="mt-2">MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
-                <div>DÉLÉGATION RÉGIONALE DE {school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '…'}</div>
-                <div>DÉLÉGATION DÉPARTEMENTALE DE {school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '…'}</div>
-                <div className="mt-1 font-bold">{school?.name || 'LYCÉE DE……….'}</div>
+                <div>REPUBLIC OF CAMEROON</div>
+                <div className="italic font-normal">Peace – Work – Fatherland</div>
+                <div className="text-[10px] mt-1">***</div>
+                <div className="mt-1">MINISTRY OF SECONDARY EDUCATION</div>
+                <div className="text-[10px] mt-1">***</div>
+                <div>REGIONAL DELEGATION OF {school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '….'}</div>
+                <div>DIVISIONAL DELEGATION OF {school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '….'}</div>
+                <div className="mt-1 font-bold">{school?.name || 'HIGH SCHOOL'}</div>
+              </div>
+              <div className="flex items-center justify-center">
+                {school?.logoUrl ? (
+                  <img 
+                    src={school.logoUrl} 
+                    alt="Logo"
+                    className="h-20 w-20 object-contain"
+                  />
+                ) : (
+                  <div className="text-gray-400 text-sm">LOGO</div>
+                )}
               </div>
               <div className="text-right">
-                <div>REPUBLIC OF CAMEROON</div>
-                <div className="italic">Peace – Work – Fatherland</div>
-                <div className="mt-2">MINISTRY OF SECONDARY EDUCATION</div>
-                <div>REGIONAL DELEGATION OF {school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '….'}</div>
-                <div>DIVISIONAL DELEGATION {school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '….'}</div>
-                <div className="mt-1 font-bold">HIGH SCHOOL</div>
+                <div>RÉPUBLIQUE DU CAMEROUN</div>
+                <div className="italic font-normal">Paix – Travail – Patrie</div>
+                <div className="text-[10px] mt-1">***</div>
+                <div className="mt-1">MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
+                <div className="text-[10px] mt-1">***</div>
+                <div>DÉLÉGATION RÉGIONALE DE {school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '…'}</div>
+                <div>DÉLÉGATION DÉPARTEMENTALE DE {school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '…'}</div>
+                <div className="mt-1 font-bold">{school?.name || 'LYCÉE / COLLÈGE'}</div>
               </div>
             </div>
             
             {/* Title */}
-            <div className="mt-6 pt-4 border-t-2 border-black">
+            <div className="mt-4 pt-3 border-t-2 border-black">
               <h1 className="text-lg font-bold uppercase">
-                {language === 'fr' ? 'PROCÈS VERBAL' : 'MASTERSHEET'}
+                PROCÈS VERBAL / MASTERSHEET
               </h1>
               <p className="text-sm font-semibold mt-2">
-                {language === 'fr' 
-                  ? `Classe: ${className || selectedClass} • ${termLabel} • Année ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
-                  : `Class: ${className || selectedClass} • ${termLabel} • Year ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
-                }
+                Classe / Class: {className || selectedClass} • {termLabel} • Année / Year {new Date().getFullYear()}/{new Date().getFullYear() + 1}
               </p>
             </div>
           </div>
@@ -1208,39 +1209,51 @@ export function Transcript({ selectedStudentId }: { selectedStudentId: string })
         </div>
       </CardHeader>
       
-      {/* Ministry Official Header for Print */}
+      {/* Ministry Official Header for Print - Standard Bilingual Format */}
       <div className="hidden print:block p-4 border-b-2 border-black">
         <div className="text-center space-y-1">
-          {/* Bilingual Header */}
-          <div className="grid grid-cols-2 gap-4 text-xs font-bold uppercase">
+          {/* Bilingual Header with 3 columns: EN - LOGO - FR */}
+          <div className="grid grid-cols-3 gap-2 text-xs font-bold uppercase">
             <div className="text-left">
-              <div>RÉPUBLIQUE DU CAMEROUN</div>
-              <div className="italic">Paix – Travail – Patrie</div>
-              <div className="mt-2">MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
-              <div>DÉLÉGATION RÉGIONALE DE {school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '…'}</div>
-              <div>DÉLÉGATION DÉPARTEMENTALE DE {school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '…'}</div>
-              <div className="mt-1 font-bold">{school?.name || 'LYCÉE DE……….'}</div>
+              <div>REPUBLIC OF CAMEROON</div>
+              <div className="italic font-normal">Peace – Work – Fatherland</div>
+              <div className="text-[10px] mt-1">***</div>
+              <div className="mt-1">MINISTRY OF SECONDARY EDUCATION</div>
+              <div className="text-[10px] mt-1">***</div>
+              <div>REGIONAL DELEGATION OF {school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '….'}</div>
+              <div>DIVISIONAL DELEGATION OF {school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '….'}</div>
+              <div className="mt-1 font-bold">{school?.name || 'HIGH SCHOOL'}</div>
+            </div>
+            <div className="flex items-center justify-center">
+              {school?.logoUrl ? (
+                <img 
+                  src={school.logoUrl} 
+                  alt="Logo"
+                  className="h-20 w-20 object-contain"
+                />
+              ) : (
+                <div className="text-gray-400 text-sm">LOGO</div>
+              )}
             </div>
             <div className="text-right">
-              <div>REPUBLIC OF CAMEROON</div>
-              <div className="italic">Peace – Work – Fatherland</div>
-              <div className="mt-2">MINISTRY OF SECONDARY EDUCATION</div>
-              <div>REGIONAL DELEGATION OF {school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '….'}</div>
-              <div>DIVISIONAL DELEGATION {school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '….'}</div>
-              <div className="mt-1 font-bold">HIGH SCHOOL</div>
+              <div>RÉPUBLIQUE DU CAMEROUN</div>
+              <div className="italic font-normal">Paix – Travail – Patrie</div>
+              <div className="text-[10px] mt-1">***</div>
+              <div className="mt-1">MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
+              <div className="text-[10px] mt-1">***</div>
+              <div>DÉLÉGATION RÉGIONALE DE {school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '…'}</div>
+              <div>DÉLÉGATION DÉPARTEMENTALE DE {school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '…'}</div>
+              <div className="mt-1 font-bold">{school?.name || 'LYCÉE / COLLÈGE'}</div>
             </div>
           </div>
           
           {/* Title */}
-          <div className="mt-6 pt-4 border-t-2 border-black">
+          <div className="mt-4 pt-3 border-t-2 border-black">
             <h1 className="text-lg font-bold uppercase">
-              {language === 'fr' ? 'RELEVÉ DE NOTES' : 'TRANSCRIPT'}
+              RELEVÉ DE NOTES / TRANSCRIPT
             </h1>
             <p className="text-sm font-semibold mt-2">
-              {language === 'fr' 
-                ? `Élève: ${student.name} • Matricule: ${student.matricule} • Année ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
-                : `Student: ${student.name} • ID: ${student.matricule} • Year ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
-              }
+              Élève / Student: {student.name} • Matricule / ID: {student.matricule} • Année / Year {new Date().getFullYear()}/{new Date().getFullYear() + 1}
             </p>
           </div>
         </div>
