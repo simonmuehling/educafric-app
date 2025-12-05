@@ -6473,12 +6473,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== STUDENT GRADES API - SYNCHRONISATION AUTOMATIQUE AVEC ENSEIGNANTS =====
+  // ===== STUDENT GRADES API - DATABASE-ONLY WITH CORRECT COLUMN NAMES =====
   
   app.get("/api/student/grades", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      const term = req.query.term as string || 'current';
+      const termFilter = req.query.term as string || 'all';
       
       console.log('[STUDENT_GRADES] 📡 Fetching grades from DATABASE for student:', user.id);
       
@@ -6490,91 +6490,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get student's classId from enrollments (join with classes to verify schoolId)
-      const studentRecord = await db
-        .select({ classId: enrollments.classId })
-        .from(enrollments)
-        .leftJoin(classes, eq(enrollments.classId, classes.id))
-        .where(and(
-          eq(enrollments.studentId, user.id),
-          eq(enrollments.status, 'active'),
-          eq(classes.schoolId, studentSchoolId)
-        ))
-        .limit(1);
+      // Get student's classId from enrollments
+      const enrollmentResult = await db.execute(sql`
+        SELECT e.class_id, c.name as class_name
+        FROM enrollments e
+        LEFT JOIN classes c ON e.class_id = c.id
+        WHERE e.student_id = ${user.id}
+        AND e.status = 'active'
+        AND c.school_id = ${studentSchoolId}
+        LIMIT 1
+      `);
       
-      const studentClassId = studentRecord.length > 0 ? studentRecord[0].classId : null;
+      const studentClassId = enrollmentResult.rows[0]?.class_id || null;
       
       console.log(`[STUDENT_GRADES] 🏫 School: ${studentSchoolId}, Class: ${studentClassId}`);
       
-      // Build query conditions
-      const conditions = [
-        eq(grades.studentId, user.id),
-        eq(grades.schoolId, studentSchoolId)
-      ];
+      // Fetch grades using CORRECT column names from actual database
+      // Table structure: id, student_id, value, max_value, grade_type, term_id, description, subject_id, teacher_id, class_id, date_recorded
+      const gradesResult = await db.execute(sql`
+        SELECT 
+          g.id,
+          g.student_id,
+          g.subject_id,
+          g.teacher_id,
+          g.class_id,
+          g.value as grade_value,
+          g.max_value,
+          g.grade_type,
+          g.term_id,
+          g.description,
+          g.date_recorded,
+          g.published_to_parents,
+          s.name_fr as subject_name,
+          s.name_en as subject_name_en,
+          u.first_name as teacher_first_name,
+          u.last_name as teacher_last_name,
+          t.name as term_name
+        FROM grades g
+        LEFT JOIN subjects s ON g.subject_id = s.id
+        LEFT JOIN users u ON g.teacher_id = u.id
+        LEFT JOIN terms t ON g.term_id = t.id
+        WHERE g.student_id = ${user.id}
+        ORDER BY g.date_recorded DESC NULLS LAST, g.id DESC
+      `);
       
-      // Add term filter if specified
-      if (term !== 'current' && term !== 'all') {
-        conditions.push(eq(grades.term, term));
-      }
-      
-      // Fetch grades from database with teacher and subject info
-      const dbGrades = await db
-        .select({
-          id: grades.id,
-          studentId: grades.studentId,
-          subjectId: grades.subjectId,
-          teacherId: grades.teacherId,
-          grade: grades.grade,
-          coefficient: grades.coefficient,
-          examType: grades.examType,
-          term: grades.term,
-          academicYear: grades.academicYear,
-          comments: grades.comments,
-          createdAt: grades.createdAt,
-          updatedAt: grades.updatedAt,
-          subjectName: subjects.nameFr,
-          subjectNameEn: subjects.nameEn,
-          teacherFirstName: users.firstName,
-          teacherLastName: users.lastName
-        })
-        .from(grades)
-        .leftJoin(subjects, eq(grades.subjectId, subjects.id))
-        .leftJoin(users, eq(grades.teacherId, users.id))
-        .where(and(...conditions))
-        .orderBy(desc(grades.createdAt));
-      
-      console.log(`[STUDENT_GRADES] ✅ Fetched ${dbGrades.length} grades from database`);
+      console.log(`[STUDENT_GRADES] ✅ Fetched ${gradesResult.rows.length} grades from database`);
       
       // Process grades for frontend
       const now = new Date();
       const recentThreshold = 24 * 60 * 60 * 1000;
       
-      const processedGrades = dbGrades.map(g => {
-        const gradeValue = g.grade ? parseFloat(g.grade.toString()) : 0;
-        const lastUpdateTime = g.updatedAt ? new Date(g.updatedAt).getTime() : 0;
-        const isRecent = (now.getTime() - lastUpdateTime) < recentThreshold;
+      const processedGrades = gradesResult.rows.map((g: any) => {
+        const gradeValue = g.grade_value ? parseFloat(g.grade_value.toString()) : 0;
+        const maxGrade = g.max_value ? parseFloat(g.max_value.toString()) : 20;
+        const dateRecorded = g.date_recorded ? new Date(g.date_recorded) : new Date();
+        const isRecent = (now.getTime() - dateRecorded.getTime()) < recentThreshold;
         
         return {
           id: g.id,
-          studentId: g.studentId,
-          subject: g.subjectName || 'Unknown',
-          subjectId: g.subjectId,
-          subjectName: g.subjectName || 'Unknown',
-          teacher: g.teacherFirstName && g.teacherLastName 
-            ? `${g.teacherFirstName} ${g.teacherLastName}` 
-            : 'Unknown Teacher',
-          teacherId: g.teacherId,
+          studentId: g.student_id,
+          subject: g.subject_name || 'Matière inconnue',
+          subjectId: g.subject_id,
+          subjectName: g.subject_name || 'Matière inconnue',
+          teacher: g.teacher_first_name && g.teacher_last_name 
+            ? `${g.teacher_first_name} ${g.teacher_last_name}` 
+            : 'Enseignant',
+          teacherId: g.teacher_id,
           grade: gradeValue,
-          maxGrade: 20,
-          coefficient: g.coefficient || 1,
-          type: g.examType || 'evaluation',
-          date: g.createdAt?.toISOString() || new Date().toISOString(),
-          term: g.term,
-          comments: g.comments || '',
-          percentage: (gradeValue / 20) * 100,
-          lastUpdated: g.updatedAt?.toISOString() || new Date().toISOString(),
+          maxGrade: maxGrade,
+          coefficient: 1,
+          type: g.grade_type || 'evaluation',
+          date: dateRecorded.toISOString(),
+          term: g.term_name || 'Trimestre 1',
+          comments: g.description || '',
+          percentage: maxGrade > 0 ? (gradeValue / maxGrade) * 100 : 0,
+          lastUpdated: dateRecorded.toISOString(),
           isNew: isRecent,
-          syncStatus: 'synchronized'
+          syncStatus: 'synchronized',
+          publishedToParents: g.published_to_parents || false
         };
       });
       
@@ -6592,21 +6585,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/student/grades/stats", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      const term = req.query.term || 'current';
+      const studentId = user.id;
+      const studentSchoolId = user.schoolId;
       
-      // Statistiques calculées à partir des vraies notes synchronisées
+      console.log('[STUDENT_GRADES_STATS] 📊 Calculating real statistics for student:', studentId);
+      
+      // Get student's class for ranking
+      const enrollmentResult = await db.execute(sql`
+        SELECT e.class_id FROM enrollments e
+        WHERE e.student_id = ${studentId} AND e.status = 'active'
+        LIMIT 1
+      `);
+      const studentClassId = enrollmentResult.rows[0]?.class_id || null;
+      
+      // Calculate student's average from REAL grades (using correct column names)
+      const studentAvgResult = await db.execute(sql`
+        SELECT 
+          COALESCE(AVG(g.value * 20.0 / NULLIF(g.max_value, 0)), 0) as average,
+          COUNT(DISTINCT g.subject_id) as subject_count,
+          COUNT(*) as grade_count,
+          MAX(g.date_recorded) as last_updated
+        FROM grades g
+        WHERE g.student_id = ${studentId}
+      `);
+      
+      const studentAvg = parseFloat(studentAvgResult.rows[0]?.average?.toString() || '0');
+      const subjectCount = parseInt(studentAvgResult.rows[0]?.subject_count?.toString() || '0');
+      const gradeCount = parseInt(studentAvgResult.rows[0]?.grade_count?.toString() || '0');
+      const lastUpdated = studentAvgResult.rows[0]?.last_updated || new Date();
+      
+      // Calculate class ranking if student has a class
+      let classRank = 1;
+      let totalStudents = 1;
+      
+      if (studentClassId) {
+        // Get all students in the same class with their averages
+        const classRankingResult = await db.execute(sql`
+          SELECT 
+            e.student_id,
+            COALESCE(AVG(g.value * 20.0 / NULLIF(g.max_value, 0)), 0) as average
+          FROM enrollments e
+          LEFT JOIN grades g ON e.student_id = g.student_id
+          WHERE e.class_id = ${studentClassId}
+          AND e.status = 'active'
+          GROUP BY e.student_id
+          ORDER BY average DESC
+        `);
+        
+        totalStudents = classRankingResult.rows.length;
+        
+        // Find student's rank
+        for (let i = 0; i < classRankingResult.rows.length; i++) {
+          if (classRankingResult.rows[i].student_id === studentId) {
+            classRank = i + 1;
+            break;
+          }
+        }
+      }
+      
+      // Calculate trend (compare with previous term if possible)
+      const trendResult = await db.execute(sql`
+        SELECT 
+          t.id as term_id,
+          COALESCE(AVG(g.value * 20.0 / NULLIF(g.max_value, 0)), 0) as term_average
+        FROM grades g
+        LEFT JOIN terms t ON g.term_id = t.id
+        WHERE g.student_id = ${studentId}
+        GROUP BY t.id
+        ORDER BY t.id DESC
+        LIMIT 2
+      `);
+      
+      let trend = 0;
+      if (trendResult.rows.length >= 2) {
+        const currentAvg = parseFloat(trendResult.rows[0]?.term_average?.toString() || '0');
+        const previousAvg = parseFloat(trendResult.rows[1]?.term_average?.toString() || '0');
+        trend = currentAvg - previousAvg;
+      }
+      
       const stats = {
-        overallAverage: 15.3,
-        trend: 2.1, // +2.1 points depuis le dernier trimestre
-        classRank: 8,
-        totalStudents: 32,
-        subjectCount: 5,
-        progress: 15.7, // Progression en %
-        lastUpdated: new Date().toISOString(),
+        overallAverage: Math.round(studentAvg * 100) / 100,
+        trend: Math.round(trend * 100) / 100,
+        classRank: classRank,
+        totalStudents: totalStudents,
+        subjectCount: subjectCount,
+        gradeCount: gradeCount,
+        progress: gradeCount > 0 ? Math.round((studentAvg / 20) * 100) : 0,
+        lastUpdated: lastUpdated ? new Date(lastUpdated).toISOString() : new Date().toISOString(),
         syncedWithTeachers: true
       };
       
-      console.log('[STUDENT_GRADES] ✅ Grade statistics loaded:', stats);
+      console.log('[STUDENT_GRADES_STATS] ✅ Real statistics calculated:', stats);
       res.json(stats);
     } catch (error) {
       console.error('[STUDENT_API] Error fetching grade stats:', error);
