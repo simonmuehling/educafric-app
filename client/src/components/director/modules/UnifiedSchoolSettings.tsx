@@ -23,13 +23,15 @@ import {
   Settings, School, Bell, MapPin, Clock, Users, 
   GraduationCap, Palette, Globe, Database,
   Eye, EyeOff, Save, Mail, Phone, Upload, Image, Flag,
-  WifiOff, Download, CheckCircle2, RefreshCw, AlertTriangle, MessageSquare, Pen, Trash2
+  WifiOff, Download, CheckCircle2, RefreshCw, AlertTriangle, MessageSquare, Pen, Trash2,
+  Camera, Printer, UserPlus, RotateCcw
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
 import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 import { SignaturePadCapture } from '@/components/shared/SignaturePadCapture';
+import { StudentIDCard } from '@/components/shared/StudentIDCard';
 
 interface SchoolProfile {
   id: number;
@@ -90,6 +92,25 @@ const UnifiedSchoolSettings: React.FC = () => {
     secondaryColor: '#1e40af', // Default blue
     accentColor: '#f59e0b' // Default amber for emergency section
   });
+  
+  // Manual ID Card creation state
+  const [manualCardMode, setManualCardMode] = useState(false);
+  const [manualCardData, setManualCardData] = useState({
+    firstName: '',
+    lastName: '',
+    matricule: '',
+    className: '',
+    level: '',
+    birthDate: '',
+    birthPlace: '',
+    gender: 'M',
+    parentName: '',
+    parentPhone: '',
+    photoUrl: '',
+    validUntil: new Date(new Date().getFullYear() + 1, 7, 31).toISOString().split('T')[0] // Default: Aug 31 next year
+  });
+  const [manualCardPhotoFile, setManualCardPhotoFile] = useState<File | null>(null);
+  const [showManualCardPreview, setShowManualCardPreview] = useState(false);
   
   // Offline Premium Mode
   const { 
@@ -211,7 +232,33 @@ const UnifiedSchoolSettings: React.FC = () => {
       presetRoyal: 'Royal (Violet/Or)',
       presetNature: 'Nature (Vert foncé/Marron)',
       presetModern: 'Moderne (Bleu/Gris)',
-      presetAfrican: 'Africain (Rouge/Vert/Or)'
+      presetAfrican: 'Africain (Rouge/Vert/Or)',
+      // Manual ID Card creation
+      manualCardCreation: 'Création Manuelle de Carte',
+      colorCustomization: 'Personnalisation des Couleurs',
+      manualCardTitle: 'Créer une Carte d\'Identité Manuellement',
+      manualCardDescription: 'Remplissez les informations de l\'élève pour générer une carte d\'identité personnalisée',
+      studentFirstName: 'Prénom de l\'Élève',
+      studentLastName: 'Nom de l\'Élève',
+      studentMatricule: 'Numéro Matricule',
+      studentClass: 'Classe',
+      studentLevel: 'Niveau',
+      studentBirthDate: 'Date de Naissance',
+      studentBirthPlace: 'Lieu de Naissance',
+      studentGender: 'Genre',
+      male: 'Masculin',
+      female: 'Féminin',
+      parentGuardianName: 'Nom du Parent/Tuteur',
+      parentGuardianPhone: 'Téléphone du Parent/Tuteur',
+      studentPhoto: 'Photo de l\'Élève',
+      uploadPhoto: 'Télécharger une Photo',
+      changePhoto: 'Changer la Photo',
+      validityDate: 'Date de Validité',
+      generateCard: 'Générer la Carte',
+      previewAndPrint: 'Aperçu et Impression',
+      clearForm: 'Effacer le Formulaire',
+      requiredFields: 'Les champs marqués * sont obligatoires',
+      photoOptional: 'La photo est optionnelle mais recommandée'
     },
     en: {
       title: 'School Settings',
@@ -319,7 +366,33 @@ const UnifiedSchoolSettings: React.FC = () => {
       presetRoyal: 'Royal (Purple/Gold)',
       presetNature: 'Nature (Dark Green/Brown)',
       presetModern: 'Modern (Blue/Gray)',
-      presetAfrican: 'African (Red/Green/Gold)'
+      presetAfrican: 'African (Red/Green/Gold)',
+      // Manual ID Card creation
+      manualCardCreation: 'Manual Card Creation',
+      colorCustomization: 'Color Customization',
+      manualCardTitle: 'Create ID Card Manually',
+      manualCardDescription: 'Fill in student information to generate a customized ID card',
+      studentFirstName: 'Student First Name',
+      studentLastName: 'Student Last Name',
+      studentMatricule: 'Student ID Number',
+      studentClass: 'Class',
+      studentLevel: 'Level',
+      studentBirthDate: 'Date of Birth',
+      studentBirthPlace: 'Place of Birth',
+      studentGender: 'Gender',
+      male: 'Male',
+      female: 'Female',
+      parentGuardianName: 'Parent/Guardian Name',
+      parentGuardianPhone: 'Parent/Guardian Phone',
+      studentPhoto: 'Student Photo',
+      uploadPhoto: 'Upload Photo',
+      changePhoto: 'Change Photo',
+      validityDate: 'Validity Date',
+      generateCard: 'Generate Card',
+      previewAndPrint: 'Preview and Print',
+      clearForm: 'Clear Form',
+      requiredFields: 'Fields marked * are required',
+      photoOptional: 'Photo is optional but recommended'
     }
   };
 
@@ -1115,43 +1188,324 @@ const UnifiedSchoolSettings: React.FC = () => {
 
         {/* ID Card Customization Tab */}
         <TabsContent value="idcard" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="w-5 h-5" />
-                {t.idCardTitle}
-              </CardTitle>
-              <CardDescription>{t.idCardDescription}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Color Presets */}
-              <div className="space-y-3">
-                <Label className="text-base font-semibold">{t.colorPresets}</Label>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                  {colorPresets.map((preset, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className="h-auto py-3 flex flex-col items-center gap-2"
-                      onClick={() => setCardColors({
-                        primaryColor: preset.primary,
-                        secondaryColor: preset.secondary,
-                        accentColor: preset.accent
-                      })}
-                      data-testid={`button-preset-${index}`}
-                    >
-                      <div className="flex gap-1">
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.primary }} />
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.secondary }} />
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.accent }} />
-                      </div>
-                      <span className="text-xs text-center">{preset.name}</span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
+          {/* Mode Toggle */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <Button
+              variant={!manualCardMode ? "default" : "outline"}
+              onClick={() => setManualCardMode(false)}
+              className="flex-1"
+              data-testid="button-color-mode"
+            >
+              <Palette className="w-4 h-4 mr-2" />
+              {t.colorCustomization}
+            </Button>
+            <Button
+              variant={manualCardMode ? "default" : "outline"}
+              onClick={() => setManualCardMode(true)}
+              className="flex-1"
+              data-testid="button-manual-mode"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              {t.manualCardCreation}
+            </Button>
+          </div>
 
-              <Separator />
+          {/* Manual Card Creation Mode */}
+          {manualCardMode ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserPlus className="w-5 h-5" />
+                  {t.manualCardTitle}
+                </CardTitle>
+                <CardDescription>{t.manualCardDescription}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-sm text-muted-foreground">{t.requiredFields}</p>
+                
+                {/* Student Basic Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="manualLastName">{t.studentLastName} *</Label>
+                    <Input
+                      id="manualLastName"
+                      value={manualCardData.lastName}
+                      onChange={(e) => setManualCardData(prev => ({ ...prev, lastName: e.target.value }))}
+                      placeholder="DUPONT"
+                      data-testid="input-manual-lastname"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="manualFirstName">{t.studentFirstName} *</Label>
+                    <Input
+                      id="manualFirstName"
+                      value={manualCardData.firstName}
+                      onChange={(e) => setManualCardData(prev => ({ ...prev, firstName: e.target.value }))}
+                      placeholder="Jean"
+                      data-testid="input-manual-firstname"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="manualMatricule">{t.studentMatricule} *</Label>
+                    <Input
+                      id="manualMatricule"
+                      value={manualCardData.matricule}
+                      onChange={(e) => setManualCardData(prev => ({ ...prev, matricule: e.target.value }))}
+                      placeholder="EDU-2024-001"
+                      data-testid="input-manual-matricule"
+                    />
+                  </div>
+                </div>
+
+                {/* Class and Level */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="manualClass">{t.studentClass} *</Label>
+                    <Input
+                      id="manualClass"
+                      value={manualCardData.className}
+                      onChange={(e) => setManualCardData(prev => ({ ...prev, className: e.target.value }))}
+                      placeholder="3ème A"
+                      data-testid="input-manual-class"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="manualLevel">{t.studentLevel}</Label>
+                    <Input
+                      id="manualLevel"
+                      value={manualCardData.level}
+                      onChange={(e) => setManualCardData(prev => ({ ...prev, level: e.target.value }))}
+                      placeholder="Secondaire"
+                      data-testid="input-manual-level"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="manualGender">{t.studentGender}</Label>
+                    <Select 
+                      value={manualCardData.gender} 
+                      onValueChange={(value) => setManualCardData(prev => ({ ...prev, gender: value }))}
+                    >
+                      <SelectTrigger id="manualGender" data-testid="select-manual-gender">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M">{t.male}</SelectItem>
+                        <SelectItem value="F">{t.female}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Birth Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="manualBirthDate">{t.studentBirthDate}</Label>
+                    <Input
+                      id="manualBirthDate"
+                      type="date"
+                      value={manualCardData.birthDate}
+                      onChange={(e) => setManualCardData(prev => ({ ...prev, birthDate: e.target.value }))}
+                      data-testid="input-manual-birthdate"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="manualBirthPlace">{t.studentBirthPlace}</Label>
+                    <Input
+                      id="manualBirthPlace"
+                      value={manualCardData.birthPlace}
+                      onChange={(e) => setManualCardData(prev => ({ ...prev, birthPlace: e.target.value }))}
+                      placeholder="Yaoundé"
+                      data-testid="input-manual-birthplace"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="manualValidUntil">{t.validityDate}</Label>
+                    <Input
+                      id="manualValidUntil"
+                      type="date"
+                      value={manualCardData.validUntil}
+                      onChange={(e) => setManualCardData(prev => ({ ...prev, validUntil: e.target.value }))}
+                      data-testid="input-manual-validity"
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Parent/Emergency Contact */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="manualParentName">{t.parentGuardianName}</Label>
+                    <Input
+                      id="manualParentName"
+                      value={manualCardData.parentName}
+                      onChange={(e) => setManualCardData(prev => ({ ...prev, parentName: e.target.value }))}
+                      placeholder="M. DUPONT Pierre"
+                      data-testid="input-manual-parentname"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="manualParentPhone">{t.parentGuardianPhone}</Label>
+                    <Input
+                      id="manualParentPhone"
+                      value={manualCardData.parentPhone}
+                      onChange={(e) => setManualCardData(prev => ({ ...prev, parentPhone: e.target.value }))}
+                      placeholder="+237 6XX XXX XXX"
+                      data-testid="input-manual-parentphone"
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Photo Upload */}
+                <div className="space-y-3">
+                  <Label>{t.studentPhoto}</Label>
+                  <p className="text-xs text-muted-foreground">{t.photoOptional}</p>
+                  <div className="flex items-center gap-4">
+                    {manualCardData.photoUrl ? (
+                      <div className="relative">
+                        <img 
+                          src={manualCardData.photoUrl} 
+                          alt="Student" 
+                          className="w-24 h-32 object-cover rounded-lg border"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                          onClick={() => {
+                            setManualCardData(prev => ({ ...prev, photoUrl: '' }));
+                            setManualCardPhotoFile(null);
+                          }}
+                          data-testid="button-remove-photo"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="w-24 h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                        <Camera className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                    <div>
+                      <input
+                        type="file"
+                        id="manualPhotoUpload"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setManualCardPhotoFile(file);
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                              setManualCardData(prev => ({ ...prev, photoUrl: e.target?.result as string }));
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => document.getElementById('manualPhotoUpload')?.click()}
+                        data-testid="button-upload-photo"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {manualCardData.photoUrl ? t.changePhoto : t.uploadPhoto}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    onClick={() => {
+                      if (!manualCardData.firstName || !manualCardData.lastName || !manualCardData.matricule || !manualCardData.className) {
+                        toast({
+                          title: language === 'fr' ? 'Champs requis manquants' : 'Missing required fields',
+                          description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill in all required fields',
+                          variant: 'destructive'
+                        });
+                        return;
+                      }
+                      setShowManualCardPreview(true);
+                    }}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    data-testid="button-generate-card"
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    {t.previewAndPrint}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setManualCardData({
+                        firstName: '',
+                        lastName: '',
+                        matricule: '',
+                        className: '',
+                        level: '',
+                        birthDate: '',
+                        birthPlace: '',
+                        gender: 'M',
+                        parentName: '',
+                        parentPhone: '',
+                        photoUrl: '',
+                        validUntil: new Date(new Date().getFullYear() + 1, 7, 31).toISOString().split('T')[0]
+                      });
+                      setManualCardPhotoFile(null);
+                    }}
+                    data-testid="button-clear-form"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    {t.clearForm}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            /* Color Customization Mode */
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="w-5 h-5" />
+                  {t.idCardTitle}
+                </CardTitle>
+                <CardDescription>{t.idCardDescription}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Color Presets */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">{t.colorPresets}</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {colorPresets.map((preset, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className="h-auto py-3 flex flex-col items-center gap-2"
+                        onClick={() => setCardColors({
+                          primaryColor: preset.primary,
+                          secondaryColor: preset.secondary,
+                          accentColor: preset.accent
+                        })}
+                        data-testid={`button-preset-${index}`}
+                      >
+                        <div className="flex gap-1">
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.primary }} />
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.secondary }} />
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.accent }} />
+                        </div>
+                        <span className="text-xs text-center">{preset.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
 
               {/* Custom Colors */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1777,6 +2131,47 @@ const UnifiedSchoolSettings: React.FC = () => {
         onClose={() => setSignaturePadOpen(false)}
         signatureFor="principal"
         title={language === 'fr' ? 'Signature du Directeur' : 'Principal Signature'}
+      />
+
+      {/* Manual ID Card Preview Dialog */}
+      <StudentIDCard
+        student={{
+          id: 0,
+          firstName: manualCardData.firstName,
+          lastName: manualCardData.lastName,
+          matricule: manualCardData.matricule,
+          educafricNumber: manualCardData.matricule,
+          className: manualCardData.className + (manualCardData.level ? ` (${manualCardData.level})` : ''),
+          birthDate: manualCardData.birthDate,
+          dateOfBirth: manualCardData.birthDate,
+          birthPlace: manualCardData.birthPlace,
+          placeOfBirth: manualCardData.birthPlace,
+          gender: manualCardData.gender,
+          profilePictureUrl: manualCardData.photoUrl,
+          parentName: manualCardData.parentName,
+          parentPhone: manualCardData.parentPhone
+        }}
+        school={{
+          name: schoolProfile?.name || 'École',
+          tagline: schoolProfile?.slogan || 'Excellence et Discipline',
+          slogan: schoolProfile?.slogan || '',
+          logoUrl: schoolProfile?.logoUrl || undefined,
+          phone: schoolProfile?.phone || '',
+          address: schoolProfile?.address || '',
+          email: schoolProfile?.email || '',
+          principalName: schoolProfile?.principalName || '',
+          settings: {
+            cardColors: {
+              primaryColor: cardColors.primaryColor,
+              secondaryColor: cardColors.secondaryColor,
+              accentColor: cardColors.accentColor
+            }
+          }
+        }}
+        isOpen={showManualCardPreview}
+        onClose={() => setShowManualCardPreview(false)}
+        validUntil={manualCardData.validUntil}
+        schoolId={schoolProfile?.id}
       />
     </div>
   );
