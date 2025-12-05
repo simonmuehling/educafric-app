@@ -604,6 +604,9 @@ const UnifiedSchoolSettings: React.FC = () => {
       const data = await response.json();
       
       if (response.ok && data.success) {
+        // Invalidate all relevant queries to refresh logo everywhere
+        queryClient.invalidateQueries({ queryKey: ['/api/director/school-settings'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/director/settings'] });
         queryClient.invalidateQueries({ queryKey: ['/api/school/profile'] });
         toast({
           title: language === 'fr' ? 'Succès' : 'Success',
