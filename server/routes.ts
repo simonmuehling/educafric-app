@@ -6252,47 +6252,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let enrollmentInfo = null;
       
       if (studentSchoolId) {
-        const [enrollment] = await db
-          .select({
-            classId: enrollments.classId,
-            className: classes.name,
-            classLevel: classes.level,
-            classSection: classes.section,
-            enrollmentDate: enrollments.enrollmentDate,
-            enrollmentStatus: enrollments.status,
-            academicYearId: enrollments.academicYearId
-          })
-          .from(enrollments)
-          .leftJoin(classes, eq(enrollments.classId, classes.id))
-          .where(and(
-            eq(enrollments.studentId, user.id),
-            eq(enrollments.status, 'active')
-          ))
-          .limit(1);
+        // Get enrollment with academic year from database using raw SQL join
+        const enrollmentResult = await db.execute(sql`
+          SELECT 
+            e.class_id,
+            c.name as class_name,
+            c.level as class_level,
+            c.section as class_section,
+            e.enrollment_date,
+            e.status as enrollment_status,
+            ay.name as academic_year_name
+          FROM enrollments e
+          LEFT JOIN classes c ON e.class_id = c.id
+          LEFT JOIN academic_years ay ON e.academic_year_id = ay.id
+          WHERE e.student_id = ${user.id}
+          AND e.status = 'active'
+          LIMIT 1
+        `);
         
-        if (enrollment && enrollment.classId) {
+        const enrollment = enrollmentResult.rows[0] as any;
+        
+        if (enrollment && enrollment.class_id) {
           // Count students in the same class
           const [studentCount] = await db
             .select({ count: sql<number>`count(*)` })
             .from(enrollments)
             .where(and(
-              eq(enrollments.classId, enrollment.classId),
+              eq(enrollments.classId, enrollment.class_id),
               eq(enrollments.status, 'active')
             ));
           
           classInfo = {
-            id: enrollment.classId,
-            name: enrollment.className || 'Classe non spécifiée',
-            level: enrollment.classLevel,
-            section: enrollment.classSection,
-            academicYear: '2024-2025',
+            id: enrollment.class_id,
+            name: enrollment.class_name || 'Classe non spécifiée',
+            level: enrollment.class_level,
+            section: enrollment.class_section,
+            academicYear: enrollment.academic_year_name || null,
             studentCount: studentCount?.count || 0
           };
           
           enrollmentInfo = {
-            enrollmentDate: enrollment.enrollmentDate?.toISOString(),
-            status: enrollment.enrollmentStatus || 'active',
-            academicYear: '2024-2025'
+            enrollmentDate: enrollment.enrollment_date ? new Date(enrollment.enrollment_date).toISOString() : null,
+            status: enrollment.enrollment_status || 'active',
+            academicYear: enrollment.academic_year_name || null
           };
         }
       }
