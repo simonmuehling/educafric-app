@@ -528,7 +528,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                                 data-testid={`button-action-${notification.id}`}
                               >
                                 <ExternalLink className="w-3 h-3 mr-1" />
-                                {notification.actionText || 'Action'}
+                                {notification.actionText || (language === 'fr' ? 'Voir' : 'View')}
                               </Button>
                             )}
                             
@@ -540,7 +540,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                                 onClick={() => markAsReadMutation.mutate(notification.id)}
                                 disabled={markAsReadMutation.isPending}
                                 data-testid={`button-mark-read-${notification.id}`}
-                                aria-label="Marquer comme lu"
+                                aria-label={t.markRead}
                               >
                                 <Check className="w-4 h-4" />
                               </Button>
@@ -553,7 +553,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                               onClick={() => deleteNotificationMutation.mutate(notification.id)}
                               disabled={deleteNotificationMutation.isPending}
                               data-testid={`button-delete-${notification.id}`}
-                              aria-label="Supprimer la notification"
+                              aria-label={t.delete}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
