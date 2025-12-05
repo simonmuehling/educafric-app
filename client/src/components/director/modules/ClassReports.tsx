@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { EnhancedImage } from '@/components/ui/enhanced-image';
 import StandardFormHeader from '@/components/shared/StandardFormHeader';
+import StandardBilingualPrintHeader from '@/components/shared/StandardBilingualPrintHeader';
 
 interface ClassReport {
   id: number;
@@ -228,13 +229,23 @@ const ClassReports: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <StandardFormHeader
-        title={language === 'fr' ? 'Rapports par Classe' : 'Class Reports'}
-        documentType={language === 'fr' ? 'Analyse détaillée des performances par classe' : 'Detailed class performance analysis'}
-        showLogo={true}
-        showOfficialInfo={true}
-        className="mb-6"
-      >
+      {/* Standard Bilingual Print Header */}
+      <StandardBilingualPrintHeader
+        title={{ fr: 'RAPPORTS PAR CLASSE', en: 'CLASS REPORTS' }}
+        subtitle={{ 
+          fr: `Analyse des performances - Année ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`,
+          en: `Performance Analysis - Year ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`
+        }}
+      />
+      
+      <div className="print:hidden">
+        <StandardFormHeader
+          title={language === 'fr' ? 'Rapports par Classe' : 'Class Reports'}
+          documentType={language === 'fr' ? 'Analyse détaillée des performances par classe' : 'Detailed class performance analysis'}
+          showLogo={true}
+          showOfficialInfo={true}
+          className="mb-6"
+        >
         <div className="flex justify-end gap-2 mt-4">
           <Button 
             variant={viewMode === 'summary' ? 'default' : 'outline'}
@@ -254,6 +265,7 @@ const ClassReports: React.FC = () => {
           </Button>
         </div>
       </StandardFormHeader>
+      </div>
       <div className="p-6 space-y-6">
 
         {/* Summary Statistics */}
