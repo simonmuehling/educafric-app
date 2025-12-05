@@ -1221,6 +1221,84 @@ const UnifiedSchoolSettings: React.FC = () => {
                 <CardDescription>{t.manualCardDescription}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* School Logo Section - Important for ID Card */}
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Image className="w-5 h-5 text-blue-600" />
+                    <Label className="text-base font-semibold text-blue-900">
+                      {language === 'fr' ? 'Logo de l\'École' : 'School Logo'}
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    {schoolProfile?.logoUrl ? (
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <img 
+                            src={schoolProfile.logoUrl} 
+                            alt="School Logo" 
+                            className="w-20 h-20 object-contain rounded-lg border-2 border-blue-300 bg-white p-2 shadow-sm"
+                          />
+                          <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-xs">✓</Badge>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-green-700">
+                            {language === 'fr' ? '✅ Logo chargé' : '✅ Logo loaded'}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {language === 'fr' ? 'Sera affiché sur la carte' : 'Will be displayed on the card'}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-2 text-xs"
+                            onClick={() => document.getElementById('logo-upload-input')?.click()}
+                            data-testid="button-change-logo-manual"
+                          >
+                            <Upload className="w-3 h-3 mr-1" />
+                            {language === 'fr' ? 'Changer' : 'Change'}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <div className="w-20 h-20 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                          <Image className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-orange-600">
+                            {language === 'fr' ? '⚠️ Aucun logo' : '⚠️ No logo'}
+                          </span>
+                          <span className="text-xs text-gray-500 mb-2">
+                            {language === 'fr' ? 'Téléchargez un logo pour la carte' : 'Upload a logo for the card'}
+                          </span>
+                          <Button
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-xs"
+                            onClick={() => document.getElementById('logo-upload-input')?.click()}
+                            disabled={uploadingLogo}
+                            data-testid="button-upload-logo-manual"
+                          >
+                            {uploadingLogo ? (
+                              <>
+                                <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full mr-1" />
+                                {language === 'fr' ? 'Téléchargement...' : 'Uploading...'}
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-3 h-3 mr-1" />
+                                {language === 'fr' ? 'Télécharger Logo' : 'Upload Logo'}
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <Separator />
+                
                 <p className="text-sm text-muted-foreground">{t.requiredFields}</p>
                 
                 {/* Student Basic Info */}
