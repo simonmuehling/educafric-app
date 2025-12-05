@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, User, Calendar, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, MapPin, User, Calendar, BookOpen, ChevronLeft, ChevronRight, School, Bell } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-const StudentTimetable: React.FC = () => {
+const StudentTimetable = () => {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const [selectedDay, setSelectedDay] = useState(new Date().getDay() || 1);
+  const [previousClassId, setPreviousClassId] = useState<number | null>(null);
 
   const text = {
     fr: {
@@ -23,7 +26,11 @@ const StudentTimetable: React.FC = () => {
       currentClass: 'Cours actuel',
       room: 'Salle',
       teacher: 'Professeur',
-      duration: 'Durée'
+      duration: 'Durée',
+      yourClass: 'Votre classe',
+      classChanged: 'Changement de classe',
+      classChangedDesc: 'Votre classe a été modifiée. Votre emploi du temps a été mis à jour.',
+      noClassAssigned: 'Aucune classe assignée'
     },
     en: {
       title: 'My Timetable',
@@ -37,11 +44,34 @@ const StudentTimetable: React.FC = () => {
       currentClass: 'Current class',
       room: 'Room',
       teacher: 'Teacher',
-      duration: 'Duration'
+      duration: 'Duration',
+      yourClass: 'Your class',
+      classChanged: 'Class Changed',
+      classChangedDesc: 'Your class has been modified. Your timetable has been updated.',
+      noClassAssigned: 'No class assigned'
     }
   };
 
   const t = text[language as keyof typeof text];
+
+  // Fetch class info from "Mon École" module
+  const { data: schoolData } = useQuery<{ success: boolean; school: any; class: any; enrollment: any }>({
+    queryKey: ['/api/student/my-school']
+  });
+
+  // Detect class changes and notify
+  useEffect(() => {
+    if (schoolData?.class?.id) {
+      if (previousClassId !== null && previousClassId !== schoolData.class.id) {
+        toast({
+          title: t.classChanged,
+          description: t.classChangedDesc,
+          duration: 5000,
+        });
+      }
+      setPreviousClassId(schoolData.class.id);
+    }
+  }, [schoolData?.class?.id, previousClassId, toast, t.classChanged, t.classChangedDesc]);
 
   const { data: timetableData, isLoading, error } = useQuery({
     queryKey: ['/api/student/timetable'],
@@ -87,11 +117,6 @@ const StudentTimetable: React.FC = () => {
     );
   }
 
-  // Remove error blocking - show interface even if API has issues
-  if (error) {
-    console.log('API error, using fallback data:', error);
-  }
-
   const today = new Date();
   const weekDays = [1, 2, 3, 4, 5, 6]; // Monday to Saturday
   const currentTime = today.getHours() * 60 + today.getMinutes();
@@ -101,19 +126,8 @@ const StudentTimetable: React.FC = () => {
     return hours * 60 + minutes;
   };
 
-  // Use real data or fallback data with African professors
-  const displayData = timetableData || [
-    { id: 1, dayOfWeek: 1, startTime: "08:00", endTime: "09:00", subjectName: "Mathématiques", teacherName: "Marie Nguesso", room: "Salle 105" },
-    { id: 2, dayOfWeek: 1, startTime: "09:00", endTime: "10:00", subjectName: "Français", teacherName: "Paul Essomba", room: "Salle 102" },
-    { id: 3, dayOfWeek: 1, startTime: "10:15", endTime: "11:15", subjectName: "Anglais", teacherName: "Sarah Johnson", room: "Salle 201" },
-    { id: 4, dayOfWeek: 1, startTime: "14:00", endTime: "15:00", subjectName: "IA & Numérique", teacherName: "Tech. Mvondo", room: "Salle Info" },
-    { id: 5, dayOfWeek: 2, startTime: "08:00", endTime: "09:00", subjectName: "Histoire-Géographie", teacherName: "Prof. Mbarga", room: "Salle 103" },
-    { id: 6, dayOfWeek: 2, startTime: "09:00", endTime: "10:00", subjectName: "Mathématiques", teacherName: "Marie Nguesso", room: "Salle 105" },
-    { id: 7, dayOfWeek: 2, startTime: "15:00", endTime: "16:00", subjectName: "Robotique", teacherName: "Ing. Nkomo", room: "Labo Tech" },
-    { id: 8, dayOfWeek: 3, startTime: "08:00", endTime: "09:00", subjectName: "Sciences", teacherName: "Dr. Kamdem", room: "Labo 1" },
-    { id: 9, dayOfWeek: 4, startTime: "08:00", endTime: "09:00", subjectName: "Anglais", teacherName: "Sarah Johnson", room: "Salle 201" },
-    { id: 10, dayOfWeek: 5, startTime: "08:00", endTime: "09:00", subjectName: "Sciences", teacherName: "Dr. Kamdem", room: "Labo 1" }
-  ];
+  // Use only real database data - no mock data
+  const displayData = timetableData || [];
 
   const getCurrentClass = () => {
     if (selectedDay !== today.getDay()) return null;
@@ -150,6 +164,36 @@ const StudentTimetable: React.FC = () => {
           </h1>
           <p className="text-gray-600 mt-2">{t.subtitle}</p>
         </div>
+
+        {/* Class Info from Mon École */}
+        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <School className="w-6 h-6 text-blue-600" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-500">{t.yourClass}</p>
+                {schoolData?.class ? (
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-900">{schoolData.class.name}</span>
+                    {schoolData.class.level && (
+                      <Badge variant="outline" className="text-xs">{schoolData.class.level}</Badge>
+                    )}
+                    {schoolData.class.academicYear && (
+                      <Badge className="bg-blue-100 text-blue-700 text-xs">{schoolData.class.academicYear}</Badge>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-gray-400 italic">{t.noClassAssigned}</span>
+                )}
+              </div>
+              {schoolData?.school?.name && (
+                <Badge variant="secondary" className="text-xs hidden sm:inline-flex">
+                  {schoolData.school.name}
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Day Navigation */}
         <Card>
