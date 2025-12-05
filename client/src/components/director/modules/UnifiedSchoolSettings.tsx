@@ -84,6 +84,13 @@ const UnifiedSchoolSettings: React.FC = () => {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [signaturePadOpen, setSignaturePadOpen] = useState(false);
   
+  // ID Card color customization state
+  const [cardColors, setCardColors] = useState({
+    primaryColor: '#059669', // Default emerald/green
+    secondaryColor: '#1e40af', // Default blue
+    accentColor: '#f59e0b' // Default amber for emergency section
+  });
+  
   // Offline Premium Mode
   const { 
     isOnline, 
@@ -183,7 +190,28 @@ const UnifiedSchoolSettings: React.FC = () => {
       signatureUsageList: 'Bulletins scolaires, Cartes d\'identité, Certificats, Lettres officielles',
       signatureSecurityNote: 'Cette signature est cryptée et ne peut être utilisée que par votre établissement.',
       signatureDeleted: 'Signature supprimée avec succès',
-      signatureDeleteError: 'Erreur lors de la suppression'
+      signatureDeleteError: 'Erreur lors de la suppression',
+      // ID Card customization
+      idCardTab: 'Carte d\'Identité',
+      idCardTitle: 'Personnalisation Carte d\'Identité',
+      idCardDescription: 'Personnalisez les couleurs de la carte d\'identité de vos élèves',
+      primaryColor: 'Couleur Principale',
+      primaryColorHint: 'Couleur de l\'en-tête et des accents (par défaut: vert)',
+      secondaryColor: 'Couleur Secondaire',
+      secondaryColorHint: 'Couleur du dos de la carte (par défaut: bleu)',
+      accentColor: 'Couleur d\'Accent',
+      accentColorHint: 'Couleur de la section urgence (par défaut: orange)',
+      previewCard: 'Aperçu de la Carte',
+      resetColors: 'Réinitialiser les couleurs',
+      saveColors: 'Enregistrer les couleurs',
+      colorsSaved: 'Couleurs de la carte enregistrées',
+      colorsReset: 'Couleurs réinitialisées par défaut',
+      colorPresets: 'Préréglages de couleurs',
+      presetClassic: 'Classique (Vert/Bleu)',
+      presetRoyal: 'Royal (Violet/Or)',
+      presetNature: 'Nature (Vert foncé/Marron)',
+      presetModern: 'Moderne (Bleu/Gris)',
+      presetAfrican: 'Africain (Rouge/Vert/Or)'
     },
     en: {
       title: 'School Settings',
@@ -270,7 +298,28 @@ const UnifiedSchoolSettings: React.FC = () => {
       signatureUsageList: 'Report cards, ID cards, Certificates, Official letters',
       signatureSecurityNote: 'This signature is encrypted and can only be used by your institution.',
       signatureDeleted: 'Signature deleted successfully',
-      signatureDeleteError: 'Error deleting signature'
+      signatureDeleteError: 'Error deleting signature',
+      // ID Card customization
+      idCardTab: 'ID Card',
+      idCardTitle: 'ID Card Customization',
+      idCardDescription: 'Customize the colors of your students\' ID cards',
+      primaryColor: 'Primary Color',
+      primaryColorHint: 'Header and accent color (default: green)',
+      secondaryColor: 'Secondary Color',
+      secondaryColorHint: 'Back of card color (default: blue)',
+      accentColor: 'Accent Color',
+      accentColorHint: 'Emergency section color (default: orange)',
+      previewCard: 'Card Preview',
+      resetColors: 'Reset colors',
+      saveColors: 'Save colors',
+      colorsSaved: 'Card colors saved',
+      colorsReset: 'Colors reset to default',
+      colorPresets: 'Color Presets',
+      presetClassic: 'Classic (Green/Blue)',
+      presetRoyal: 'Royal (Purple/Gold)',
+      presetNature: 'Nature (Dark Green/Brown)',
+      presetModern: 'Modern (Blue/Gray)',
+      presetAfrican: 'African (Red/Green/Gold)'
     }
   };
 
@@ -293,7 +342,7 @@ const UnifiedSchoolSettings: React.FC = () => {
 
   const schoolProfile = schoolData?.school;
   
-  // Initialize formData when schoolProfile loads
+  // Initialize formData and cardColors when schoolProfile loads
   React.useEffect(() => {
     if (schoolProfile) {
       setFormData({
@@ -314,6 +363,15 @@ const UnifiedSchoolSettings: React.FC = () => {
         arrondissement: schoolProfile.arrondissement,
         logoUrl: schoolProfile.logoUrl
       });
+      
+      // Load saved card colors from school settings
+      if (schoolProfile.settings?.cardColors) {
+        setCardColors({
+          primaryColor: schoolProfile.settings.cardColors.primaryColor || '#059669',
+          secondaryColor: schoolProfile.settings.cardColors.secondaryColor || '#1e40af',
+          accentColor: schoolProfile.settings.cardColors.accentColor || '#f59e0b'
+        });
+      }
     }
   }, [schoolProfile]);
   
@@ -500,9 +558,40 @@ const UnifiedSchoolSettings: React.FC = () => {
     { id: 'profile', label: t.profileTab, icon: School },
     { id: 'official', label: t.officialTab, icon: Flag },
     { id: 'signature', label: t.signatureTab, icon: Pen },
+    { id: 'idcard', label: t.idCardTab, icon: Users },
     { id: 'configuration', label: t.configTab, icon: Settings },
     { id: 'notifications', label: t.notificationsTab, icon: Bell }
   ];
+  
+  // Color presets for ID cards
+  const colorPresets = [
+    { name: t.presetClassic, primary: '#059669', secondary: '#1e40af', accent: '#f59e0b' },
+    { name: t.presetRoyal, primary: '#7c3aed', secondary: '#d97706', accent: '#dc2626' },
+    { name: t.presetNature, primary: '#166534', secondary: '#78350f', accent: '#ca8a04' },
+    { name: t.presetModern, primary: '#2563eb', secondary: '#475569', accent: '#0891b2' },
+    { name: t.presetAfrican, primary: '#dc2626', secondary: '#166534', accent: '#d97706' }
+  ];
+  
+  // Save card colors mutation
+  const saveCardColorsMutation = useMutation({
+    mutationFn: async (colors: typeof cardColors) => {
+      const response = await fetch('/api/director/school-settings/card-colors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(colors)
+      });
+      if (!response.ok) throw new Error('Failed to save colors');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/director/school-settings'] });
+      toast({ title: language === 'fr' ? 'Succès' : 'Success', description: t.colorsSaved });
+    },
+    onError: () => {
+      toast({ title: language === 'fr' ? 'Erreur' : 'Error', description: t.errorUpdate, variant: 'destructive' });
+    }
+  });
 
   if (profileLoading || configLoading || notificationsLoading) {
     return (
@@ -544,7 +633,7 @@ const UnifiedSchoolSettings: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop Navigation */}
         <div className="hidden md:block">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             {tabs.map((tab) => (
               <TabsTrigger 
                 key={tab.id} 
@@ -1020,6 +1109,238 @@ const UnifiedSchoolSettings: React.FC = () => {
                   </Button>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ID Card Customization Tab */}
+        <TabsContent value="idcard" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="w-5 h-5" />
+                {t.idCardTitle}
+              </CardTitle>
+              <CardDescription>{t.idCardDescription}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Color Presets */}
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">{t.colorPresets}</Label>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {colorPresets.map((preset, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="h-auto py-3 flex flex-col items-center gap-2"
+                      onClick={() => setCardColors({
+                        primaryColor: preset.primary,
+                        secondaryColor: preset.secondary,
+                        accentColor: preset.accent
+                      })}
+                      data-testid={`button-preset-${index}`}
+                    >
+                      <div className="flex gap-1">
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.primary }} />
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.secondary }} />
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.accent }} />
+                      </div>
+                      <span className="text-xs text-center">{preset.name}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Custom Colors */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="primaryColor">{t.primaryColor}</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      id="primaryColor"
+                      value={cardColors.primaryColor}
+                      onChange={(e) => setCardColors(prev => ({ ...prev, primaryColor: e.target.value }))}
+                      className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
+                      data-testid="input-primary-color"
+                    />
+                    <Input
+                      value={cardColors.primaryColor}
+                      onChange={(e) => setCardColors(prev => ({ ...prev, primaryColor: e.target.value }))}
+                      className="flex-1 font-mono"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t.primaryColorHint}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="secondaryColor">{t.secondaryColor}</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      id="secondaryColor"
+                      value={cardColors.secondaryColor}
+                      onChange={(e) => setCardColors(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                      className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
+                      data-testid="input-secondary-color"
+                    />
+                    <Input
+                      value={cardColors.secondaryColor}
+                      onChange={(e) => setCardColors(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                      className="flex-1 font-mono"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t.secondaryColorHint}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accentColor">{t.accentColor}</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      id="accentColor"
+                      value={cardColors.accentColor}
+                      onChange={(e) => setCardColors(prev => ({ ...prev, accentColor: e.target.value }))}
+                      className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
+                      data-testid="input-accent-color"
+                    />
+                    <Input
+                      value={cardColors.accentColor}
+                      onChange={(e) => setCardColors(prev => ({ ...prev, accentColor: e.target.value }))}
+                      className="flex-1 font-mono"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t.accentColorHint}</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Live Preview */}
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">{t.previewCard}</Label>
+                <div className="flex flex-col md:flex-row gap-6 justify-center items-center p-6 bg-gray-100 rounded-lg">
+                  {/* Front Card Preview */}
+                  <div 
+                    className="w-[320px] h-[200px] rounded-xl shadow-lg overflow-hidden border"
+                    style={{ background: `linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)` }}
+                  >
+                    {/* Header */}
+                    <div 
+                      className="h-[30px] flex items-center px-3 gap-2"
+                      style={{ background: `linear-gradient(90deg, ${cardColors.primaryColor} 0%, ${cardColors.primaryColor}dd 100%)` }}
+                    >
+                      <div className="w-5 h-5 bg-white rounded flex items-center justify-center text-xs font-bold" style={{ color: cardColors.primaryColor }}>E</div>
+                      <div className="flex-1">
+                        <div className="text-[10px] font-bold text-white truncate">{schoolProfile?.name || 'ÉCOLE EXAMPLE'}</div>
+                        <div className="text-[7px] text-white/80">{schoolProfile?.slogan || 'Excellence et Discipline'}</div>
+                      </div>
+                      <div className="bg-white/90 px-2 py-0.5 rounded text-[7px] font-bold" style={{ color: cardColors.primaryColor }}>
+                        ÉLÈVE
+                      </div>
+                    </div>
+                    {/* Content */}
+                    <div className="p-3 flex gap-3">
+                      <div className="w-[70px] h-[85px] bg-gray-200 rounded flex items-center justify-center">
+                        <Users className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-sm text-gray-900">NOM PRÉNOM</div>
+                        <div className="text-[9px] text-gray-600 space-y-0.5 mt-1">
+                          <div>Né(e) le: 01/01/2010</div>
+                          <div>Classe: 3ème A</div>
+                          <div>Matricule: EDU-2024-001</div>
+                        </div>
+                        <div 
+                          className="mt-2 inline-block px-2 py-0.5 rounded text-[8px] font-medium"
+                          style={{ 
+                            background: `${cardColors.primaryColor}20`,
+                            color: cardColors.primaryColor,
+                            border: `1px solid ${cardColors.primaryColor}40`
+                          }}
+                        >
+                          Valide jusqu'au: 31 Août 2025
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Back Card Preview */}
+                  <div 
+                    className="w-[320px] h-[200px] rounded-xl shadow-lg overflow-hidden border"
+                    style={{ background: `linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)` }}
+                  >
+                    {/* Header */}
+                    <div 
+                      className="h-[24px] flex items-center justify-center"
+                      style={{ background: `linear-gradient(90deg, ${cardColors.secondaryColor} 0%, ${cardColors.secondaryColor}dd 100%)` }}
+                    >
+                      <div className="text-[9px] font-bold text-white uppercase tracking-wider">Informations & Vérification</div>
+                    </div>
+                    {/* Content */}
+                    <div className="p-3 flex gap-3">
+                      <div className="flex-1 space-y-2">
+                        {/* Emergency Contact */}
+                        <div 
+                          className="p-2 rounded-lg"
+                          style={{ 
+                            background: `${cardColors.accentColor}15`,
+                            border: `1px solid ${cardColors.accentColor}40`
+                          }}
+                        >
+                          <div className="text-[8px] font-bold" style={{ color: cardColors.accentColor }}>
+                            CONTACT D'URGENCE
+                          </div>
+                          <div className="text-[7px] text-gray-600 mt-0.5">
+                            Parent: +237 6XX XXX XXX
+                          </div>
+                        </div>
+                        {/* School Contact */}
+                        <div className="p-2 bg-gray-100 rounded-lg">
+                          <div className="text-[8px] font-bold text-gray-700">COORDONNÉES ÉCOLE</div>
+                          <div className="text-[7px] text-gray-500 mt-0.5">{schoolProfile?.phone || '+237 XXX XXX XXX'}</div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-16 h-16 bg-white border rounded flex items-center justify-center">
+                          <div className="grid grid-cols-4 gap-0.5">
+                            {[...Array(16)].map((_, i) => (
+                              <div key={i} className="w-1.5 h-1.5 bg-gray-800 rounded-sm" />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="text-[7px] text-gray-400 mt-1">Scanner pour vérifier</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCardColors({ primaryColor: '#059669', secondaryColor: '#1e40af', accentColor: '#f59e0b' });
+                    toast({ description: t.colorsReset });
+                  }}
+                  data-testid="button-reset-colors"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  {t.resetColors}
+                </Button>
+                <Button
+                  onClick={() => saveCardColorsMutation.mutate(cardColors)}
+                  disabled={saveCardColorsMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                  data-testid="button-save-colors"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {t.saveColors}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -1175,6 +1175,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Save ID Card Colors for School
+  app.post("/api/director/school-settings/card-colors", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { primaryColor, secondaryColor, accentColor } = req.body;
+      
+      if (!user.schoolId) {
+        return res.status(403).json({ success: false, message: 'School access required' });
+      }
+      
+      console.log('[CARD_COLORS] Saving colors for school:', user.schoolId, { primaryColor, secondaryColor, accentColor });
+      
+      // Get current settings and merge with new card colors
+      const [schoolInfo] = await db.select({ settings: schools.settings }).from(schools).where(eq(schools.id, user.schoolId)).limit(1);
+      
+      const currentSettings = (schoolInfo?.settings as any) || {};
+      const updatedSettings = {
+        ...currentSettings,
+        cardColors: {
+          primaryColor: primaryColor || '#059669',
+          secondaryColor: secondaryColor || '#1e40af',
+          accentColor: accentColor || '#f59e0b'
+        }
+      };
+      
+      await db.update(schools)
+        .set({ settings: updatedSettings })
+        .where(eq(schools.id, user.schoolId));
+      
+      console.log('[CARD_COLORS] ✅ Card colors saved for school:', user.schoolId);
+      
+      res.json({ 
+        success: true, 
+        message: 'Card colors saved successfully',
+        cardColors: updatedSettings.cardColors
+      });
+    } catch (error) {
+      console.error('[CARD_COLORS] Error saving:', error);
+      res.status(500).json({ success: false, message: 'Failed to save card colors' });
+    }
+  });
+
   // Get Director's School Information
   app.get("/api/director/school", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {

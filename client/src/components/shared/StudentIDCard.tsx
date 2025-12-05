@@ -38,6 +38,13 @@ interface SchoolData {
   email?: string;
   principalName?: string;
   principalSignature?: string;
+  settings?: {
+    cardColors?: {
+      primaryColor?: string;
+      secondaryColor?: string;
+      accentColor?: string;
+    };
+  };
 }
 
 interface StudentIDCardProps {
@@ -56,6 +63,13 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
   const barcodeRef = useRef<HTMLCanvasElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const [showBack, setShowBack] = useState(false);
+  
+  // Get school's custom card colors (or use defaults)
+  const cardColors = {
+    primary: school.settings?.cardColors?.primaryColor || '#059669',
+    secondary: school.settings?.cardColors?.secondaryColor || '#1e40af',
+    accent: school.settings?.cardColors?.accentColor || '#f59e0b'
+  };
   
   // Fetch principal's digital signature for the school
   const { data: signatureData } = useQuery<{ signatureData: string | null; signatoryName?: string }>({
@@ -244,7 +258,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
         transform: translate(-50%, -50%) rotate(-30deg);
         font-size: 18mm;
         font-weight: 800;
-        color: rgba(16, 185, 129, 0.03) !important;
+        color: ${cardColors.primary}08 !important;
         white-space: nowrap;
         pointer-events: none;
         z-index: 1;
@@ -258,8 +272,8 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
         right: 0;
         bottom: 0;
         background-image: 
-          repeating-linear-gradient(45deg, transparent, transparent 2mm, rgba(16, 185, 129, 0.02) 2mm, rgba(16, 185, 129, 0.02) 4mm),
-          repeating-linear-gradient(-45deg, transparent, transparent 2mm, rgba(16, 185, 129, 0.02) 2mm, rgba(16, 185, 129, 0.02) 4mm) !important;
+          repeating-linear-gradient(45deg, transparent, transparent 2mm, ${cardColors.primary}05 2mm, ${cardColors.primary}05 4mm),
+          repeating-linear-gradient(-45deg, transparent, transparent 2mm, ${cardColors.primary}05 2mm, ${cardColors.primary}05 4mm) !important;
         pointer-events: none;
         z-index: 0;
       }
@@ -274,7 +288,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
       }
       
       .header-strip {
-        background: linear-gradient(90deg, #059669 0%, #10b981 50%, #34d399 100%) !important;
+        background: linear-gradient(90deg, ${cardColors.primary} 0%, ${cardColors.primary}dd 50%, ${cardColors.primary}aa 100%) !important;
         height: 8mm;
         margin: -2.5mm -2.5mm 2mm -2.5mm;
         display: flex;
@@ -302,7 +316,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
         justify-content: center;
         font-size: 3.5mm;
         font-weight: 800;
-        color: #059669 !important;
+        color: ${cardColors.primary} !important;
       }
       
       .header-text {
@@ -325,7 +339,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
       
       .card-type-badge {
         background: rgba(255,255,255,0.95) !important;
-        color: #059669 !important;
+        color: ${cardColors.primary} !important;
         font-size: 1.8mm;
         font-weight: 700;
         padding: 1mm 2mm;
@@ -510,7 +524,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
       }
       
       .back-header {
-        background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%) !important;
+        background: linear-gradient(90deg, ${cardColors.secondary} 0%, ${cardColors.secondary}cc 100%) !important;
         height: 6mm;
         margin: -2.5mm -2.5mm 2mm -2.5mm;
         display: flex;
@@ -559,7 +573,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
       
       .verification-url {
         font-size: 1.4mm;
-        color: #3b82f6 !important;
+        color: ${cardColors.secondary} !important;
         font-family: 'Courier New', monospace;
       }
       
@@ -571,8 +585,8 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
       }
       
       .emergency-box {
-        background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%) !important;
-        border: 0.3mm solid #f59e0b !important;
+        background: linear-gradient(90deg, ${cardColors.accent}22 0%, ${cardColors.accent}44 100%) !important;
+        border: 0.3mm solid ${cardColors.accent} !important;
         border-radius: 1.5mm;
         padding: 2mm;
       }
@@ -580,11 +594,12 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
       .emergency-title {
         font-size: 2mm;
         font-weight: 700;
-        color: #92400e !important;
+        color: ${cardColors.accent} !important;
         margin-bottom: 0.8mm;
         display: flex;
         align-items: center;
         gap: 1mm;
+        filter: brightness(0.7);
       }
       
       .emergency-icon {
@@ -594,8 +609,9 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
       
       .emergency-info {
         font-size: 1.8mm;
-        color: #78350f !important;
+        color: ${cardColors.accent} !important;
         line-height: 1.3;
+        filter: brightness(0.6);
       }
       
       .school-contact-box {
@@ -924,7 +940,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                 transform: 'translate(-50%, -50%) rotate(-30deg)',
                 fontSize: '18mm',
                 fontWeight: 800,
-                color: 'rgba(16, 185, 129, 0.03)',
+                color: `${cardColors.primary}08`,
                 whiteSpace: 'nowrap',
                 pointerEvents: 'none',
                 zIndex: 1,
@@ -937,7 +953,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
               <div style={{
                 position: 'absolute',
                 top: 0, left: 0, right: 0, bottom: 0,
-                backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2mm, rgba(16, 185, 129, 0.02) 2mm, rgba(16, 185, 129, 0.02) 4mm), repeating-linear-gradient(-45deg, transparent, transparent 2mm, rgba(16, 185, 129, 0.02) 2mm, rgba(16, 185, 129, 0.02) 4mm)',
+                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 2mm, ${cardColors.primary}05 2mm, ${cardColors.primary}05 4mm), repeating-linear-gradient(-45deg, transparent, transparent 2mm, ${cardColors.primary}05 2mm, ${cardColors.primary}05 4mm)`,
                 pointerEvents: 'none',
                 zIndex: 0
               }} />
@@ -945,7 +961,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
               <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '2mm' }}>
                 {/* Header Strip - Compact */}
                 <div style={{
-                  background: 'linear-gradient(90deg, #059669 0%, #10b981 50%, #34d399 100%)',
+                  background: `linear-gradient(90deg, ${cardColors.primary} 0%, ${cardColors.primary}dd 50%, ${cardColors.primary}aa 100%)`,
                   height: '7mm',
                   margin: '-2mm -2mm 1.5mm -2mm',
                   display: 'flex',
@@ -970,7 +986,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                     width: '5mm', height: '5mm', background: 'white', borderRadius: '0.8mm', 
                     display: school.logoUrl ? 'none' : 'flex', 
                     alignItems: 'center', justifyContent: 'center', 
-                    fontSize: '3mm', fontWeight: 800, color: '#059669' 
+                    fontSize: '3mm', fontWeight: 800, color: cardColors.primary 
                   }}>
                     E
                   </div>
@@ -980,7 +996,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                   </div>
                   <div style={{
                     background: 'rgba(255,255,255,0.95)',
-                    color: '#059669',
+                    color: cardColors.primary,
                     fontSize: '1.4mm',
                     fontWeight: 700,
                     padding: '0.8mm 1.5mm',
@@ -1114,7 +1130,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
               <div style={{
                 position: 'absolute',
                 top: 0, left: 0, right: 0, bottom: 0,
-                backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2mm, rgba(59, 130, 246, 0.02) 2mm, rgba(59, 130, 246, 0.02) 4mm)',
+                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 2mm, ${cardColors.secondary}05 2mm, ${cardColors.secondary}05 4mm)`,
                 pointerEvents: 'none',
                 zIndex: 0
               }} />
@@ -1122,7 +1138,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
               <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '2.5mm' }}>
                 {/* Back Header */}
                 <div style={{
-                  background: 'linear-gradient(90deg, #1e40af 0%, #3b82f6 100%)',
+                  background: `linear-gradient(90deg, ${cardColors.secondary} 0%, ${cardColors.secondary}cc 100%)`,
                   height: '6mm',
                   margin: '-2.5mm -2.5mm 2mm -2.5mm',
                   display: 'flex',
@@ -1138,22 +1154,22 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1mm' }}>
                     <canvas ref={qrCanvasBackRef} style={{ width: '20mm', height: '20mm', border: '0.3mm solid #e5e7eb', borderRadius: '1.5mm', padding: '0.5mm', background: 'white' }} />
                     <span style={{ fontSize: '1.8mm', color: '#6b7280', textAlign: 'center', fontWeight: 500 }}>{text.scanToVerify}</span>
-                    <span style={{ fontSize: '1.4mm', color: '#3b82f6', fontFamily: "'Courier New', monospace" }}>{text.verifyAt}</span>
+                    <span style={{ fontSize: '1.4mm', color: cardColors.secondary, fontFamily: "'Courier New', monospace" }}>{text.verifyAt}</span>
                   </div>
                   
                   {/* Info Panel Back */}
                   <div style={{ flex: 1.2, display: 'flex', flexDirection: 'column', gap: '2mm' }}>
                     {/* Emergency Contact */}
                     <div style={{
-                      background: 'linear-gradient(90deg, #fef3c7 0%, #fde68a 100%)',
-                      border: '0.3mm solid #f59e0b',
+                      background: `linear-gradient(90deg, ${cardColors.accent}22 0%, ${cardColors.accent}44 100%)`,
+                      border: `0.3mm solid ${cardColors.accent}`,
                       borderRadius: '1.5mm',
                       padding: '2mm'
                     }}>
-                      <div style={{ fontSize: '2mm', fontWeight: 700, color: '#92400e', marginBottom: '0.8mm', display: 'flex', alignItems: 'center', gap: '1mm' }}>
+                      <div style={{ fontSize: '2mm', fontWeight: 700, color: cardColors.accent, marginBottom: '0.8mm', display: 'flex', alignItems: 'center', gap: '1mm', filter: 'brightness(0.7)' }}>
                         ⚠ {text.emergencyContact}
                       </div>
-                      <div style={{ fontSize: '1.8mm', color: '#78350f', lineHeight: 1.3 }}>
+                      <div style={{ fontSize: '1.8mm', color: cardColors.accent, lineHeight: 1.3, filter: 'brightness(0.6)' }}>
                         {student.parentName || 'Parent/Tuteur'}<br/>
                         {student.parentPhone || '+237 XXX XXX XXX'}
                       </div>
