@@ -2,11 +2,13 @@ import { Router } from 'express';
 import { simpleGeolocationService } from '../services/simpleGeolocationService';
 import { z } from 'zod';
 
-// Authentication middleware (simplified for demo)
+// Authentication middleware - use actual authenticated user
 const requireAuth = (req: any, res: any, next: any) => {
-  // For demo purposes, always allow access with mock user
-  console.log('[GEOLOCATION_AUTH] Request for:', req.originalUrl, 'User:', req.user ? 'authenticated' : 'not authenticated');
-  req.user = { id: 1, role: 'Admin', schoolId: 1 }; // Mock user for demo
+  if (!req.user) {
+    console.log('[GEOLOCATION_AUTH] No authenticated user for:', req.originalUrl);
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  console.log('[GEOLOCATION_AUTH] User authenticated:', req.user.id, 'for:', req.originalUrl);
   return next();
 };
 
@@ -59,14 +61,17 @@ router.patch('/devices/:deviceId/emergency', async (req, res) => {
   }
 });
 
-// Safe Zone Management Routes
+// Safe Zone Management Routes - DATABASE ONLY
 router.post('/safe-zones', async (req, res) => {
   try {
-    const zoneData = req.body;
-    console.log('[GEOLOCATION_API] Creating safe zone:', zoneData);
+    const parentId = (req.user as any)?.id;
+    const schoolId = (req.user as any)?.schoolId || 1;
+    const zoneData = { ...req.body, parentId, schoolId };
+    console.log('[GEOLOCATION_API] Creating safe zone for parent:', parentId, zoneData);
     const zone = await simpleGeolocationService.createSafeZone(zoneData);
     res.json(zone);
   } catch (error) {
+    console.error('[GEOLOCATION_API] Error creating safe zone:', error);
     res.status(400).json({ error: 'Invalid safe zone data', details: error });
   }
 });
@@ -274,62 +279,120 @@ router.get('/parent/alerts', async (req, res) => {
   }
 });
 
-// Get location details for a specific child
+// Get location details for a specific child - DATABASE ONLY
 router.get('/parent/children/:id/location', async (req, res) => {
   try {
     const childId = parseInt(req.params.id);
-    console.log('[GEOLOCATION_API] Getting location for child:', childId);
+    const parentId = (req.user as any)?.id;
+    console.log('[GEOLOCATION_API] Getting location for child:', childId, 'parent:', parentId);
     
-    // Mock location data - in production this would come from the database
+    // Get real location data from tracking_devices
+    const { db } = await import('../db');
+    const { sql } = await import('drizzle-orm');
+    
+    const result = await db.execute(sql`
+      SELECT 
+        td.current_latitude as latitude,
+        td.current_longitude as longitude,
+        td.current_address as address,
+        td.last_update as timestamp,
+        td.location_accuracy as accuracy,
+        td.battery_level as "batteryLevel",
+        td.is_active as "isActive",
+        td.device_type as "deviceType"
+      FROM tracking_devices td
+      JOIN parent_student_relations psr ON psr.student_id = td.student_id
+      WHERE td.student_id = ${childId} 
+        AND psr.parent_id = ${parentId}
+        AND td.is_active = true
+      LIMIT 1
+    `);
+    
+    const device: any = (result.rows || [])[0];
+    
     const locationData = {
-      location: {
-        lat: 4.0511,
-        lng: 9.7679,
-        address: 'Douala, Cameroon',
-        timestamp: new Date().toISOString(),
-        accuracy: 10
-      },
+      location: device?.latitude ? {
+        lat: parseFloat(device.latitude),
+        lng: parseFloat(device.longitude),
+        address: device.address || 'Position inconnue',
+        timestamp: device.timestamp || new Date().toISOString(),
+        accuracy: device.accuracy || 10
+      } : null,
       childId,
-      deviceStatus: 'active',
-      batteryLevel: 85
+      deviceStatus: device?.isActive ? 'active' : 'inactive',
+      deviceType: device?.deviceType || 'smartphone',
+      batteryLevel: device?.batteryLevel || null
     };
     
     res.json(locationData);
   } catch (error) {
+    console.error('[GEOLOCATION_API] Error getting child location:', error);
     res.status(500).json({ error: 'Failed to fetch child location', details: error });
   }
 });
 
-// Get location details for a specific alert
+// Get location details for a specific alert - DATABASE ONLY
 router.get('/parent/alerts/:id/location', async (req, res) => {
   try {
     const alertId = parseInt(req.params.id);
-    console.log('[GEOLOCATION_API] Getting location for alert:', alertId);
+    const parentId = (req.user as any)?.id;
+    console.log('[GEOLOCATION_API] Getting location for alert:', alertId, 'parent:', parentId);
     
-    // Mock alert location data - in production this would come from the database
+    // Get real alert location from database
+    const { db } = await import('../db');
+    const { sql } = await import('drizzle-orm');
+    
+    const result = await db.execute(sql`
+      SELECT 
+        ga.latitude,
+        ga.longitude,
+        ga.alert_type as "alertType",
+        ga.priority as severity,
+        ga.message,
+        ga.created_at as timestamp
+      FROM geolocation_alerts ga
+      WHERE ga.id = ${alertId} AND ga.parent_id = ${parentId}
+      LIMIT 1
+    `);
+    
+    const alert: any = (result.rows || [])[0];
+    
     const alertLocationData = {
-      location: {
-        lat: 4.0511,
-        lng: 9.7679,
-        address: 'Douala, Cameroon',
-        timestamp: new Date().toISOString()
-      },
+      location: alert?.latitude ? {
+        lat: parseFloat(alert.latitude),
+        lng: parseFloat(alert.longitude),
+        address: 'Position enregistrée',
+        timestamp: alert.timestamp || new Date().toISOString()
+      } : null,
       alertId,
-      alertType: 'zone_exit',
-      severity: 'warning'
+      alertType: alert?.alertType || 'unknown',
+      severity: alert?.severity || 'normal',
+      message: alert?.message
     };
     
     res.json(alertLocationData);
   } catch (error) {
+    console.error('[GEOLOCATION_API] Error getting alert location:', error);
     res.status(500).json({ error: 'Failed to fetch alert location', details: error });
   }
 });
 
-// Acknowledge an alert
+// Acknowledge an alert - DATABASE UPDATE
 router.patch('/parent/alerts/:id/acknowledge', async (req, res) => {
   try {
     const alertId = parseInt(req.params.id);
-    console.log('[GEOLOCATION_API] Acknowledging alert:', alertId);
+    const parentId = (req.user as any)?.id;
+    console.log('[GEOLOCATION_API] Acknowledging alert:', alertId, 'by parent:', parentId);
+    
+    const { db } = await import('../db');
+    const { sql } = await import('drizzle-orm');
+    
+    await db.execute(sql`
+      UPDATE geolocation_alerts SET
+        notifications_sent = jsonb_set(COALESCE(notifications_sent, '{}'), '{acknowledged}', 'true'),
+        updated_at = NOW()
+      WHERE id = ${alertId} AND parent_id = ${parentId}
+    `);
     
     res.json({ 
       success: true, 
@@ -338,16 +401,30 @@ router.patch('/parent/alerts/:id/acknowledge', async (req, res) => {
       acknowledgedAt: new Date().toISOString() 
     });
   } catch (error) {
+    console.error('[GEOLOCATION_API] Error acknowledging alert:', error);
     res.status(500).json({ error: 'Failed to acknowledge alert', details: error });
   }
 });
 
-// Resolve an alert (already exists but let's make sure the path is correct)
+// Resolve an alert - DATABASE UPDATE
 router.patch('/parent/alerts/:id/resolve', async (req, res) => {
   try {
     const alertId = parseInt(req.params.id);
+    const parentId = (req.user as any)?.id;
     const { action, resolution, resolvedAt } = req.body;
-    console.log('[GEOLOCATION_API] Resolving alert:', { alertId, action, resolution });
+    console.log('[GEOLOCATION_API] Resolving alert:', { alertId, parentId, action, resolution });
+    
+    const { db } = await import('../db');
+    const { sql } = await import('drizzle-orm');
+    
+    await db.execute(sql`
+      UPDATE geolocation_alerts SET
+        is_resolved = true,
+        resolved_by = ${parentId},
+        resolved_at = NOW(),
+        updated_at = NOW()
+      WHERE id = ${alertId} AND parent_id = ${parentId}
+    `);
     
     res.json({ 
       success: true, 
@@ -356,6 +433,7 @@ router.patch('/parent/alerts/:id/resolve', async (req, res) => {
       resolvedAt: resolvedAt || new Date().toISOString() 
     });
   } catch (error) {
+    console.error('[GEOLOCATION_API] Error resolving alert:', error);
     res.status(500).json({ error: 'Failed to resolve alert', details: error });
   }
 });
