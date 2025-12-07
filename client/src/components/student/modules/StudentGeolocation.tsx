@@ -186,45 +186,7 @@ const StudentGeolocation: React.FC = () => {
     }
   };
 
-  // Mock data for demonstration
-  const mockDeviceStatus: DeviceStatus = {
-    id: 'STU001',
-    name: 'Mon Smartphone',
-    type: 'smartphone',
-    batteryLevel: 78,
-    gpsEnabled: true,
-    lastUpdate: new Date().toISOString(),
-    isActive: true,
-    currentLocation: {
-      latitude: 4.0511,
-      longitude: 9.7679,
-      address: 'École Primaire Central, Douala',
-      inSafeZone: true,
-      safeZoneName: 'École Primaire Central'
-    }
-  };
-
-  const mockSafeZones: SafeZone[] = [
-    {
-      id: 1,
-      name: 'École Primaire Central',
-      type: 'school',
-      radius: 200,
-      active: true,
-      createdBy: 7,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: 2,
-      name: 'Maison',
-      type: 'home',
-      radius: 100,
-      active: true,
-      createdBy: 7,
-      updatedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString()
-    }
-  ];
-
+  // Use database data only - no mock data
   if (zonesLoading || deviceLoading) {
     return (
       <div className="p-8">
@@ -237,8 +199,9 @@ const StudentGeolocation: React.FC = () => {
     );
   }
 
-  const activeSafeZones = mockSafeZones.filter(zone => zone.active);
-  const currentDevice = mockDeviceStatus;
+  // Use real database data from API queries
+  const activeSafeZones = (safeZones || []).filter((zone: SafeZone) => zone.active);
+  const currentDevice = deviceStatus as DeviceStatus || null;
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -307,84 +270,99 @@ const StudentGeolocation: React.FC = () => {
       )}
 
       {/* Current Status Card */}
-      <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
-        <CardHeader className="pb-3">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-green-500" />
-            {translations.currentStatus}
-          </h2>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">{currentDevice.currentLocation?.address}</p>
-              <div className="flex items-center gap-2 mt-1">
-                {currentDevice.currentLocation?.inSafeZone ? (
-                  <>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span className="text-green-600 font-medium">
-                      {translations.inSafeZone}: {currentDevice.currentLocation.safeZoneName}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle className="w-4 h-4 text-orange-500" />
-                    <span className="text-orange-600 font-medium">{translations.outOfSafeZone}</span>
-                  </>
-                )}
+      {currentDevice && (
+        <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
+          <CardHeader className="pb-3">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-green-500" />
+              {translations.currentStatus}
+            </h2>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">{currentDevice.currentLocation?.address || (language === 'fr' ? 'Position en cours de mise à jour...' : 'Location updating...')}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  {currentDevice.currentLocation?.inSafeZone ? (
+                    <>
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span className="text-green-600 font-medium">
+                        {translations.inSafeZone}: {currentDevice.currentLocation.safeZoneName}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="w-4 h-4 text-orange-500" />
+                      <span className="text-orange-600 font-medium">{translations.outOfSafeZone}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <Badge variant={currentDevice.currentLocation?.inSafeZone ? "default" : "secondary"}>
+                {currentDevice.currentLocation?.inSafeZone ? translations.active : translations.inactive}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+              <div className="text-center">
+                <Clock className="w-5 h-5 mx-auto text-gray-400 mb-1" />
+                <p className="text-sm text-gray-600">{currentTime.toLocaleTimeString()}</p>
+              </div>
+              <div className="text-center">
+                <Signal className="w-5 h-5 mx-auto text-green-500 mb-1" />
+                <p className="text-sm text-green-600">{translations.parentControlled}</p>
               </div>
             </div>
-            <Badge variant={currentDevice.currentLocation?.inSafeZone ? "default" : "secondary"}>
-              {currentDevice.currentLocation?.inSafeZone ? translations.active : translations.inactive}
-            </Badge>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-            <div className="text-center">
-              <Clock className="w-5 h-5 mx-auto text-gray-400 mb-1" />
-              <p className="text-sm text-gray-600">{currentTime.toLocaleTimeString()}</p>
-            </div>
-            <div className="text-center">
-              <Signal className="w-5 h-5 mx-auto text-green-500 mb-1" />
-              <p className="text-sm text-green-600">{translations.parentControlled}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Device Information */}
-      <Card>
-        <CardHeader>
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            📱 {translations.deviceInfo}
-          </h3>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{getDeviceIcon(currentDevice.type)}</span>
-              <div>
-                <p className="font-medium">{currentDevice.name}</p>
-                <p className="text-sm text-gray-600">{translations.lastUpdate}: {new Date(currentDevice.lastUpdate).toLocaleTimeString()}</p>
+      {currentDevice && (
+        <Card>
+          <CardHeader>
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              📱 {translations.deviceInfo}
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{getDeviceIcon(currentDevice.type)}</span>
+                <div>
+                  <p className="font-medium">{currentDevice.name}</p>
+                  <p className="text-sm text-gray-600">{translations.lastUpdate}: {new Date(currentDevice.lastUpdate).toLocaleTimeString()}</p>
+                </div>
+              </div>
+              <Badge variant={currentDevice.isActive ? "default" : "secondary"}>
+                {currentDevice.isActive ? translations.active : translations.inactive}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <Battery className="w-4 h-4 text-green-500" />
+                <span className="text-sm">{translations.battery}: {currentDevice.batteryLevel}%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-blue-500" />
+                <span className="text-sm">{translations.gps}: {currentDevice.gpsEnabled ? translations.enabled : translations.disabled}</span>
               </div>
             </div>
-            <Badge variant={currentDevice.isActive ? "default" : "secondary"}>
-              {currentDevice.isActive ? translations.active : translations.inactive}
-            </Badge>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-2">
-              <Battery className="w-4 h-4 text-green-500" />
-              <span className="text-sm">{translations.battery}: {currentDevice.batteryLevel}%</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-blue-500" />
-              <span className="text-sm">{translations.gps}: {currentDevice.gpsEnabled ? translations.enabled : translations.disabled}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* No device registered message */}
+      {!currentDevice && (
+        <Card className="border-gray-200">
+          <CardContent className="py-8 text-center text-gray-500">
+            <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>{language === 'fr' ? 'Aucun appareil enregistré' : 'No device registered'}</p>
+            <p className="text-sm mt-2">{language === 'fr' ? 'Demandez à vos parents d\'ajouter votre appareil' : 'Ask your parents to add your device'}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Active Safe Zones */}
       <Card>
