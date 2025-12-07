@@ -80,9 +80,37 @@ router.get('/safe-zones/school/:schoolId', async (req, res) => {
   try {
     const schoolId = parseInt(req.params.schoolId);
     console.log('[GEOLOCATION_API] Getting safe zones for school:', schoolId);
-    const zones = await simpleGeolocationService.getSafeZonesForParent(schoolId);
-    res.json(zones);
+    
+    // Get school-wide safe zones from database
+    const { db } = await import('../db');
+    const { sql } = await import('drizzle-orm');
+    
+    const zones = await db.execute(sql`
+      SELECT 
+        id, name, type, description, latitude, longitude, radius,
+        is_active as "isActive", alert_on_entry as "alertOnEntry",
+        alert_on_exit as "alertOnExit", children_ids as "childrenIds"
+      FROM safe_zones
+      WHERE school_id = ${schoolId}
+      ORDER BY created_at DESC
+    `);
+    
+    const result = (zones.rows || []).map((zone: any) => ({
+      id: zone.id,
+      name: zone.name,
+      type: zone.type || 'custom',
+      description: zone.description,
+      coordinates: { lat: parseFloat(zone.latitude), lng: parseFloat(zone.longitude) },
+      radius: zone.radius,
+      childrenIds: zone.childrenIds || [],
+      active: zone.isActive,
+      alertOnEntry: zone.alertOnEntry,
+      alertOnExit: zone.alertOnExit
+    }));
+    
+    res.json(result);
   } catch (error) {
+    console.error('[GEOLOCATION_API] Error fetching school zones:', error);
     res.status(500).json({ error: 'Failed to fetch safe zones', details: error });
   }
 });
@@ -111,21 +139,35 @@ router.patch('/safe-zones/:zoneId/toggle', async (req, res) => {
   }
 });
 
-// Location Tracking Routes
+// Location Tracking Routes - DATABASE ONLY
 router.post('/locations', async (req, res) => {
   try {
     const locationData = req.body;
-    console.log('[GEOLOCATION_API] Recording location:', locationData);
+    const { deviceId, latitude, longitude, accuracy, address, batteryLevel } = locationData;
+    console.log('[GEOLOCATION_API] Recording location to database:', { deviceId, latitude, longitude });
     
-    const mockResponse = {
-      id: Date.now(),
-      ...locationData,
-      timestamp: new Date().toISOString(),
-      recorded: true
-    };
+    // Update device location in database
+    const result = await simpleGeolocationService.updateDeviceLocation(deviceId, {
+      latitude,
+      longitude,
+      accuracy,
+      address,
+      batteryLevel
+    });
     
-    res.json({ location: mockResponse, safeZones: [] });
+    // Get related safe zones for this device
+    const { db } = await import('../db');
+    const { sql } = await import('drizzle-orm');
+    const zones = await db.execute(sql`
+      SELECT id, name, latitude, longitude, radius FROM safe_zones WHERE is_active = true LIMIT 10
+    `);
+    
+    res.json({ 
+      location: { id: deviceId, latitude, longitude, timestamp: new Date().toISOString(), recorded: true },
+      safeZones: zones.rows || []
+    });
   } catch (error) {
+    console.error('[GEOLOCATION_API] Error recording location:', error);
     res.status(400).json({ error: 'Failed to record location', details: error });
   }
 });
@@ -153,19 +195,23 @@ router.get('/locations/device/:deviceId/latest', async (req, res) => {
   }
 });
 
-// Alert Management Routes
+// Alert Management Routes - DATABASE ONLY
 router.post('/alerts', async (req, res) => {
   try {
     const alertData = req.body;
-    console.log('[GEOLOCATION_API] Creating alert:', alertData);
-    const mockAlert = {
-      id: Date.now(),
+    const userId = (req.user as any)?.id;
+    const schoolId = (req.user as any)?.schoolId || alertData.schoolId || 1;
+    console.log('[GEOLOCATION_API] Creating alert in database:', alertData);
+    
+    const alert = await simpleGeolocationService.createAlert({
       ...alertData,
-      timestamp: new Date().toISOString(),
-      resolved: false
-    };
-    res.json(mockAlert);
+      schoolId,
+      parentId: alertData.parentId || null
+    });
+    
+    res.json(alert);
   } catch (error) {
+    console.error('[GEOLOCATION_API] Error creating alert:', error);
     res.status(400).json({ error: 'Failed to create alert', details: error });
   }
 });
@@ -181,21 +227,21 @@ router.get('/alerts', async (req, res) => {
   }
 });
 
-// Statistics Routes (Mock data for development)
+// Statistics Routes - DATABASE ONLY
 router.get('/stats/school/:schoolId', async (req, res) => {
   try {
-    const stats = {
-      totalDevices: 12,
-      activeDevices: 8,
-      safeZonesCount: 3,
-      activeAlerts: 2,
-      studentsTracked: 8,
-      emergencyContacts: 15,
-      batteryLow: 1,
-      lastUpdate: new Date().toISOString()
-    };
-    res.json(stats);
-  } catch (error) {
+    const schoolId = parseInt(req.params.schoolId);
+    console.log('[GEOLOCATION_API] Getting stats for school:', schoolId);
+    
+    const stats = await simpleGeolocationService.getSchoolGeolocationStats(schoolId);
+    res.json({
+      ...stats,
+      safeZonesCount: stats.totalZones,
+      studentsTracked: stats.activeDevices,
+      emergencyContacts: 0,
+      batteryLow: 0
+    });
+  } catch (error: any) {
     console.error('[GEOLOCATION_STATS] Error:', error);
     res.status(500).json({ error: 'Failed to fetch school statistics', details: error.message });
   }
@@ -238,9 +284,13 @@ router.get('/emergency-contacts/student/:studentId', async (req, res) => {
 router.patch('/alerts/:alertId/resolve', async (req, res) => {
   try {
     const alertId = parseInt(req.params.alertId);
-    console.log('[GEOLOCATION_API] Resolving alert:', alertId);
+    const userId = (req.user as any)?.id;
+    console.log('[GEOLOCATION_API] Resolving alert in database:', alertId);
+    
+    const result = await simpleGeolocationService.resolveAlert(alertId, userId);
     res.json({ success: true, alertId, resolvedAt: new Date().toISOString() });
   } catch (error) {
+    console.error('[GEOLOCATION_API] Error resolving alert:', error);
     res.status(500).json({ error: 'Failed to resolve alert', details: error });
   }
 });
