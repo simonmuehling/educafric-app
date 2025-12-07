@@ -117,38 +117,8 @@ export default function MultiRoleManagement() {
     setIsDialogOpen(true);
   };
 
-  const mockMultiRoleUsers = [
-    {
-      id: 1,
-      name: "Dr. Marie Nkomo",
-      email: "marie.nkomo@excellence.cm",
-      primaryRole: "Director",
-      secondaryRoles: ["Teacher", "Parent"],
-      school: "École Primaire Bilingue Excellence",
-      lastLogin: "2025-01-26 14:30",
-      status: "active"
-    },
-    {
-      id: 2,
-      name: "Prof. Jean Mbarga",
-      email: "jean.mbarga@saintmichel.cm",
-      primaryRole: "Teacher",
-      secondaryRoles: ["Parent"],
-      school: "Collège Saint-Michel",
-      lastLogin: "2025-01-26 13:15",
-      status: "active"
-    },
-    {
-      id: 3,
-      name: "Sophie Kamga",
-      email: "sophie.kamga@parent.cm",
-      primaryRole: "Parent",
-      secondaryRoles: ["Commercial"],
-      school: "École Primaire Bilingue Excellence",
-      lastLogin: "2025-01-26 12:45",
-      status: "active"
-    }
-  ];
+  // Use real database data from API - no mock data
+  const usersToDisplay = Array.isArray(multiRoleUsers) ? multiRoleUsers : [];
 
   return (
     <div className="p-6 space-y-6">
@@ -199,7 +169,7 @@ export default function MultiRoleManagement() {
               </div>
             ) : (
               <div className="space-y-4">
-                {(Array.isArray(mockMultiRoleUsers) ? mockMultiRoleUsers : []).map((user) => (
+                {usersToDisplay.map((user: any) => (
                   <div key={user.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex items-center space-x-4">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">

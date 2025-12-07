@@ -2,12 +2,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { BarChart3, TrendingUp, Users, DollarSign, Globe, Activity, School, Calendar } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { BarChart3, TrendingUp, Users, DollarSign, Globe, Activity, School, Calendar, Loader2 } from 'lucide-react';
 
 const AnalyticsBusiness = () => {
   const { language } = useLanguage();
   const [selectedMetric, setSelectedMetric] = useState('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+
+  // Fetch real analytics data from API
+  const { data: analyticsData, isLoading: loadingAnalytics } = useQuery({
+    queryKey: ['/api/admin/analytics', selectedPeriod],
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/analytics?period=${selectedPeriod}`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch analytics');
+      return response.json();
+    }
+  });
+
+  // Fetch real regional data from API
+  const { data: regionsData, isLoading: loadingRegions } = useQuery({
+    queryKey: ['/api/admin/analytics/regions'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/analytics/regions', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch regions');
+      return response.json();
+    }
+  });
+
+  // Fetch real user role distribution from API
+  const { data: rolesData, isLoading: loadingRoles } = useQuery({
+    queryKey: ['/api/admin/analytics/roles'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/analytics/roles', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch roles');
+      return response.json();
+    }
+  });
 
   const text = {
     fr: {
@@ -91,80 +122,27 @@ const AnalyticsBusiness = () => {
     { key: 'year', label: t.thisYear }
   ];
 
-  // Mock analytics data based on period
-  const getAnalyticsData = (period: string) => {
-    switch (period) {
-      case 'month':
-        return {
-          totalUsers: 8547,
-          activeUsers: 6823,
-          monthlyRevenue: 18500000,
-          churnRate: 2.3,
-          schoolsOnboard: 156,
-          avgSessionTime: '24m 35s',
-          conversionRate: 18.5,
-          customerSatisfaction: 94,
-          newRegistrations: 234,
-          activeSchools: 142,
-          totalSessions: 23456,
-          bounceRate: 12.4
-        };
-      case 'quarter':
-        return {
-          totalUsers: 24821,
-          activeUsers: 19657,
-          monthlyRevenue: 52300000,
-          churnRate: 2.8,
-          schoolsOnboard: 425,
-          avgSessionTime: '26m 12s',
-          conversionRate: 21.2,
-          customerSatisfaction: 92,
-          newRegistrations: 1024,
-          activeSchools: 398,
-          totalSessions: 89234,
-          bounceRate: 11.8
-        };
-      case 'year':
-        return {
-          totalUsers: 87456,
-          activeUsers: 72341,
-          monthlyRevenue: 198700000,
-          churnRate: 3.1,
-          schoolsOnboard: 1456,
-          avgSessionTime: '28m 45s',
-          conversionRate: 24.7,
-          customerSatisfaction: 96,
-          newRegistrations: 5678,
-          activeSchools: 1342,
-          totalSessions: 456789,
-          bounceRate: 10.2
-        };
-      default:
-        return getAnalyticsData('month');
-    }
+  // Use real database data from API - no mock data
+  const data = analyticsData || {
+    totalUsers: 0,
+    activeUsers: 0,
+    monthlyRevenue: 0,
+    churnRate: 0,
+    schoolsOnboard: 0,
+    avgSessionTime: '0m',
+    conversionRate: 0,
+    customerSatisfaction: 0,
+    newRegistrations: 0,
+    activeSchools: 0,
+    totalSessions: 0,
+    bounceRate: 0
   };
 
-  const data = getAnalyticsData(selectedPeriod);
+  // Use real regional distribution data from API
+  const regionalData = Array.isArray(regionsData?.regions) ? regionsData.regions : [];
 
-  // Regional distribution data
-  const regionalData = [
-    { region: 'Cameroun', schools: 89, users: 4234, revenue: 12400000, growth: '+15%' },
-    { region: 'Côte d\'Ivoire', schools: 34, users: 1876, revenue: 3200000, growth: '+22%' },
-    { region: 'Sénégal', schools: 23, users: 1245, revenue: 2100000, growth: '+18%' },
-    { region: 'Burkina Faso', schools: 10, users: 567, revenue: 800000, growth: '+12%' },
-    { region: 'Mali', schools: 8, users: 389, revenue: 650000, growth: '+8%' }
-  ];
-
-  // User role distribution
-  const userRoleData = [
-    { role: 'Students', count: 5234, percentage: 61.2, color: 'bg-blue-500' },
-    { role: 'Parents', count: 1876, percentage: 21.9, color: 'bg-green-500' },
-    { role: 'Teachers', count: 987, percentage: 11.5, color: 'bg-purple-500' },
-    { role: 'Directors', count: 234, percentage: 2.7, color: 'bg-orange-500' },
-    { role: 'Admins', count: 156, percentage: 1.8, color: 'bg-red-500' },
-    { role: 'Commercial', count: 45, percentage: 0.5, color: 'bg-yellow-500' },
-    { role: 'Freelancers', count: 34, percentage: 0.4, color: 'bg-pink-500' }
-  ];
+  // Use real user role distribution from API
+  const userRoleData = Array.isArray(rolesData?.roles) ? rolesData.roles : [];
 
   const formatCurrency = (amount: number) => {
     return `${amount.toLocaleString()} CFA`;
