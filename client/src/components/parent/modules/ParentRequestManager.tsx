@@ -62,11 +62,25 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Mock children data for demo - in production this would come from API
-  const children = [
-    { id: 1, firstName: 'Junior', lastName: 'Kamga', className: '3ème A' },
-    { id: 2, firstName: 'Marie', lastName: 'Kamga', className: '6ème B' }
-  ];
+  // Fetch children data from database
+  const { data: childrenResponse } = useQuery({
+    queryKey: ['/api/parent/children'],
+    queryFn: async () => {
+      const response = await fetch('/api/parent/children', {
+        credentials: 'include'
+      });
+      if (!response.ok) return { children: [] };
+      return response.json();
+    },
+    enabled: !!user
+  });
+  
+  const children = (childrenResponse?.children || []).map((child: any) => ({
+    id: child.id,
+    firstName: child.firstName || child.name?.split(' ')[0] || '',
+    lastName: child.lastName || child.name?.split(' ')[1] || '',
+    className: child.className || child.class || ''
+  }));
 
   // Search schools query with debouncing
   const { data: schoolsData } = useQuery({
@@ -86,65 +100,27 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
     },
   });
 
-  // Récupérer les demandes du parent - TEMPORAIRE: données mock pour test
+  // Récupérer les demandes du parent - DATABASE ONLY
   const { data: requestsData, isLoading } = useQuery({
     queryKey: ['/api/parent/requests'],
     queryFn: async () => {
-      try {
-        const response = await fetch('/api/parent/requests', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          console.warn('[PARENT_REQUEST_MANAGER] API failed, using mock data');
-          // Données mock pour que le module s'affiche
-          return [
-            {
-              id: 1,
-              type: 'absence_request',
-              subject: 'Absence pour rendez-vous médical',
-              description: 'Mon enfant a un rendez-vous médical important le 15 novembre',
-              status: 'pending',
-              priority: 'medium',
-              submittedAt: '2025-08-20T10:00:00Z',
-              studentId: 1
-            },
-            {
-              id: 2,
-              type: 'meeting',
-              subject: 'Demande de rendez-vous avec professeur',
-              description: 'Souhait de discuter des progrès en mathématiques',
-              status: 'approved',
-              priority: 'low',
-              submittedAt: '2025-08-18T14:30:00Z',
-              studentId: 1
-            }
-          ];
-        }
-        
-        const data = await response.json();
-        return data.requests || [];
-      } catch (error) {
-        console.error('[PARENT_REQUEST_MANAGER] Error:', error);
-        // Données mock en cas d'erreur
-        return [
-          {
-            id: 1,
-            type: 'absence_request',
-            subject: 'Absence pour rendez-vous médical',
-            description: 'Mon enfant a un rendez-vous médical important',
-            status: 'pending',
-            priority: 'medium',
-            submittedAt: '2025-08-20T10:00:00Z',
-            studentId: 1
-          }
-        ];
+      const response = await fetch('/api/parent/requests', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        console.error('[PARENT_REQUEST_MANAGER] API failed:', response.status);
+        return [];
       }
-    }
+      
+      const data = await response.json();
+      return data.requests || [];
+    },
+    enabled: !!user
   });
 
   const requests = requestsData || [];

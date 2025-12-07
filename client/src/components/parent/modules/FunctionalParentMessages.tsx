@@ -51,64 +51,25 @@ const FunctionalParentMessages: React.FC = () => {
     notificationChannels: ['pwa', 'email'] // Only PWA notifications and email, no SMS
   });
 
-  // Fetch parent messages data - TEMPORAIRE: utiliser données réelles de l'API
+  // Fetch parent messages data from PostgreSQL - DATABASE ONLY
   const { data: messages = [], isLoading } = useQuery<ParentMessage[]>({
     queryKey: ['/api/parent/messages'],
     queryFn: async () => {
-      try {
-        const response = await fetch('/api/parent/messages', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          console.warn('[PARENT_MESSAGES] API failed, using mock data');
-          // Données mock pour affichage
-          return [
-            {
-              id: 1,
-              subject: "Réunion parent-professeur",
-              content: "Nous aimerions organiser une réunion pour discuter des progrès de votre enfant.",
-              senderName: "Mme Kouam",
-              senderRole: "Enseignant",
-              recipientName: "Parent Kamga",
-              childName: "Junior Kamga", 
-              priority: "medium",
-              status: "unread",
-              sentAt: "2025-08-25T10:30:00Z",
-              readAt: "",
-              category: "education",
-              hasAttachment: false,
-              requiresResponse: true
-            },
-            {
-              id: 2,
-              subject: "Absence justifiée",
-              content: "Merci d'avoir signalé l'absence de votre enfant. C'est bien noté.",
-              senderName: "M. Mballa",
-              senderRole: "Directeur",
-              recipientName: "Parent Kamga",
-              childName: "Junior Kamga",
-              priority: "low", 
-              status: "read",
-              sentAt: "2025-08-24T14:15:00Z",
-              readAt: "2025-08-24T15:30:00Z",
-              category: "administrative",
-              hasAttachment: false,
-              requiresResponse: false
-            }
-          ];
-        }
-        
-        const data = await response.json();
-        return data.messages || [];
-      } catch (error) {
-        console.error('[PARENT_MESSAGES] Error:', error);
+      const response = await fetch('/api/parent/messages', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        console.error('[PARENT_MESSAGES] API failed:', response.status);
         return [];
       }
+      
+      const data = await response.json();
+      return data.messages || [];
     },
     enabled: !!user
   });

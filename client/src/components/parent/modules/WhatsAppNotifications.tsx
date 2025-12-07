@@ -127,35 +127,23 @@ const WhatsAppNotifications = () => {
     loadNotifications();
   }, [user]);
 
-  const loadNotifications = () => {
-    // Mock notifications - in real implementation, fetch from API
-    const mockNotifications: WhatsAppNotification[] = [
-      {
-        id: '1',
-        type: 'grade',
-        studentName: 'Jean Dupont',
-        content: '📚 Nouvelle Note - Mathématiques: 16/20',
-        timestamp: '2025-01-24T10:30:00Z',
-        read: false
-      },
-      {
-        id: '2',
-        type: 'absence',
-        studentName: 'Marie Dupont',
-        content: '⚠️ Absence signalée - 24 Jan 2025, Matin',
-        timestamp: '2025-01-24T08:15:00Z',
-        read: true
-      },
-      {
-        id: '3',
-        type: 'announcement',
-        studentName: 'École Primaire',
-        content: '📢 Réunion parents-professeurs - 30 janvier',
-        timestamp: '2025-01-23T16:45:00Z',
-        read: true
+  const loadNotifications = async () => {
+    // Load notifications from database - DATABASE ONLY
+    try {
+      const response = await fetch('/api/parent/notifications/whatsapp', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data.notifications || []);
+      } else {
+        console.log('[WHATSAPP_NOTIFICATIONS] No notifications available');
+        setNotifications([]);
       }
-    ];
-    setNotifications(mockNotifications);
+    } catch (error) {
+      console.error('[WHATSAPP_NOTIFICATIONS] Error loading notifications:', error);
+      setNotifications([]);
+    }
   };
 
   const updatePreference = (type: string, field: string, value: boolean) => {
