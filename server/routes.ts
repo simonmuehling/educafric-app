@@ -11471,11 +11471,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Family Connections API - REAL DATABASE QUERIES
+  // Note: Family relationships can span schools (parent may have children at different schools)
   app.get("/api/family/connections", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
       const userRole = (req as any).user?.role;
       console.log('[FAMILY_CONNECTIONS] Getting family connections for user:', userId, 'role:', userRole);
+      
+      // Only Parents and Students can access family connections
+      if (userRole !== 'Parent' && userRole !== 'Student') {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Only Parents and Students can access family connections' 
+        });
+      }
       
       // Query parent_student_relations table joined with users
       let connections: any[] = [];
@@ -11647,11 +11656,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Family Search Users API - REAL DATABASE SEARCH for students by email or phone
+  // Note: Parents can search for their children who may be at any school
   app.post("/api/family/search-users", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
+      const userRole = (req as any).user?.role;
       const { searchValue, searchType } = req.body;
-      console.log('[FAMILY_SEARCH] Searching users:', { searchValue, searchType, userId });
+      console.log('[FAMILY_SEARCH] Searching users:', { searchValue, searchType, userId, userRole });
+      
+      // Only Parents can search for students to link
+      if (userRole !== 'Parent') {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Only Parents can search for students / Seuls les parents peuvent rechercher des étudiants' 
+        });
+      }
       
       if (!searchValue || !searchType) {
         return res.status(400).json({ 
@@ -11740,12 +11759,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Family Connections API - REAL DATABASE: Create new connection in parent_student_relations
+  // Note: Parents can link to their children who may be at any school (family spans schools)
   app.post("/api/family/connections", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
       const userRole = (req as any).user?.role;
       const { childEmail, childPhone } = req.body;
       console.log('[FAMILY_CONNECTIONS] Creating connection:', { childEmail, childPhone, userId, userRole });
+      
+      // Only Parents can create family connections
+      if (userRole !== 'Parent') {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Only Parents can create family connections / Seuls les parents peuvent créer des connexions familiales' 
+        });
+      }
       
       if (!childEmail && !childPhone) {
         return res.status(400).json({ 
