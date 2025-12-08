@@ -14829,26 +14829,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   trackingRoutes(app);
   app.use('/api/tutorials', tutorialRoutes);
 
-  // Add missing communications routes to fix 404 errors
+  // Add missing communications routes - REAL DATABASE QUERIES
   app.get('/api/communications/history', requireAuth, async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
+      const userId = user?.id;
       const limit = parseInt(req.query.limit as string) || 10;
       
-      // Mock communications history for now - replace with actual database query
-      const history = [];
-      for (let i = 1; i <= Math.min(limit, 5); i++) {
-        history.push({
-          id: i,
-          type: 'email',
-          recipient: `user${i}@example.com`,
-          subject: `Communication ${i}`,
-          content: `Sample communication content ${i}`,
-          sentAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
-          status: 'sent'
-        });
-      }
+      console.log('[COMMUNICATIONS_HISTORY] Fetching history for user:', userId);
       
+      // Query messages from database for this user
+      const sentMessages = await db.select()
+        .from(messages)
+        .where(eq(messages.senderId, userId))
+        .orderBy(messages.createdAt)
+        .limit(limit);
+      
+      // Format as history
+      const history = sentMessages.map(msg => ({
+        id: msg.id,
+        type: msg.messageType || 'email',
+        recipient: msg.recipientName || 'Destinataire',
+        subject: msg.subject || 'Sans objet',
+        content: msg.content,
+        sentAt: msg.createdAt?.toISOString() || new Date().toISOString(),
+        status: msg.status || 'sent'
+      }));
+      
+      console.log('[COMMUNICATIONS_HISTORY] Found', history.length, 'communications');
       res.json({ success: true, data: history });
     } catch (error) {
       console.error('[COMMUNICATIONS_HISTORY] Error:', error);
@@ -14859,36 +14867,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/director/communications', requireAuth, requireAnyRole(['Director', 'Admin', 'SiteAdmin']), async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
+      const userId = user?.id;
+      const schoolId = user?.schoolId;
       
-      // Mock director communications data - replace with actual database query
+      console.log('[DIRECTOR_COMMUNICATIONS] Fetching communications for director:', userId, 'school:', schoolId);
+      
+      // Query messages from database for director's school
+      const receivedMessages = await db.select()
+        .from(messages)
+        .where(
+          or(
+            eq(messages.recipientId, userId),
+            eq(messages.schoolId, schoolId)
+          )
+        )
+        .orderBy(messages.createdAt)
+        .limit(20);
+      
+      const unreadCount = receivedMessages.filter(m => !m.isRead).length;
+      
+      // Format recent messages
+      const recentMessages = receivedMessages.slice(0, 5).map(msg => ({
+        id: msg.id,
+        from: msg.senderName || 'Utilisateur',
+        subject: msg.subject || 'Sans objet',
+        timestamp: msg.createdAt?.toISOString() || new Date().toISOString(),
+        priority: 'normal',
+        read: msg.isRead || false
+      }));
+      
+      // Count by sender role
+      const parentCount = receivedMessages.filter(m => m.senderRole === 'Parent').length;
+      const teacherCount = receivedMessages.filter(m => m.senderRole === 'Teacher').length;
+      const systemCount = receivedMessages.filter(m => m.senderRole === 'System' || m.senderRole === 'Admin').length;
+      
       const communications = {
-        totalMessages: 25,
-        unreadMessages: 5,
-        recentMessages: [
-          {
-            id: 1,
-            from: 'teacher@example.com',
-            subject: 'Parent meeting request',
-            timestamp: new Date().toISOString(),
-            priority: 'normal',
-            read: false
-          },
-          {
-            id: 2,
-            from: 'parent@example.com',
-            subject: 'Student absence notification',
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            priority: 'high',
-            read: true
-          }
-        ],
+        totalMessages: receivedMessages.length,
+        unreadMessages: unreadCount,
+        recentMessages,
         categories: {
-          parents: 12,
-          teachers: 8,
-          system: 5
+          parents: parentCount,
+          teachers: teacherCount,
+          system: systemCount
         }
       };
       
+      console.log('[DIRECTOR_COMMUNICATIONS] Found', communications.totalMessages, 'messages');
       res.json({ success: true, data: communications });
     } catch (error) {
       console.error('[DIRECTOR_COMMUNICATIONS] Error:', error);

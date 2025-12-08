@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
 import { requireAuth } from '../../middleware/auth';
 import { db } from '../../db';
-import { users, messages, parentStudentRelations, schools, classes } from '../../../shared/schema';
+import { users, messages as messagesTable, parentStudentRelations, schools, classes } from '../../../shared/schema';
 import { eq, or, and, desc, inArray } from 'drizzle-orm';
 
 // Extended request interface for authenticated routes
@@ -297,16 +297,16 @@ router.get('/messages', requireAuth, async (req: AuthenticatedRequest, res: Resp
     
     // Query messages from database where recipient is this parent
     const parentMessages = await db.select()
-      .from(messages)
-      .where(eq(messages.recipientId, parentId))
-      .orderBy(desc(messages.createdAt))
+      .from(messagesTable)
+      .where(eq(messagesTable.recipientId, parentId))
+      .orderBy(desc(messagesTable.createdAt))
       .limit(50);
     
     // Also get messages FROM this parent (sent messages)
     const sentMessages = await db.select()
-      .from(messages)
-      .where(eq(messages.senderId, parentId))
-      .orderBy(desc(messages.createdAt))
+      .from(messagesTable)
+      .where(eq(messagesTable.senderId, parentId))
+      .orderBy(desc(messagesTable.createdAt))
       .limit(50);
     
     // Format messages for frontend
@@ -377,7 +377,7 @@ router.post('/messages', requireAuth, async (req: AuthenticatedRequest, res: Res
     const senderRole = senderInfo.length > 0 ? senderInfo[0].role : 'Parent';
     
     // Insert message into database
-    const newMessageResult = await db.insert(messages).values({
+    const newMessageResult = await db.insert(messagesTable).values({
       senderId: parentId,
       senderName,
       senderRole,
