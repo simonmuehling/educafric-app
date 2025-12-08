@@ -11475,11 +11475,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/family/connections", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
-      const userRole = (req as any).user?.role;
+      let userRole = (req as any).user?.role;
+      
+      // Fallback: If role is not in session, get from database
+      if (!userRole && userId) {
+        const userResult = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+        if (userResult.length > 0) {
+          userRole = userResult[0].role;
+        }
+      }
+      
       console.log('[FAMILY_CONNECTIONS] Getting family connections for user:', userId, 'role:', userRole);
       
       // Only Parents and Students can access family connections
       if (userRole !== 'Parent' && userRole !== 'Student') {
+        console.log('[FAMILY_CONNECTIONS] Access denied - role not Parent/Student:', userRole);
         return res.status(403).json({ 
           success: false, 
           message: 'Only Parents and Students can access family connections' 
@@ -11660,8 +11670,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/family/search-users", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
-      const userRole = (req as any).user?.role;
+      let userRole = (req as any).user?.role;
       const { searchValue, searchType } = req.body;
+      
+      // Fallback: If role is not in session, get from database
+      if (!userRole && userId) {
+        const userResult = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+        if (userResult.length > 0) {
+          userRole = userResult[0].role;
+        }
+      }
+      
       console.log('[FAMILY_SEARCH] Searching users:', { searchValue, searchType, userId, userRole });
       
       // Only Parents can search for students to link
@@ -11763,8 +11782,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/family/connections", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
-      const userRole = (req as any).user?.role;
+      let userRole = (req as any).user?.role;
       const { childEmail, childPhone } = req.body;
+      
+      // Fallback: If role is not in session, get from database
+      if (!userRole && userId) {
+        const userResult = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+        if (userResult.length > 0) {
+          userRole = userResult[0].role;
+        }
+      }
+      
       console.log('[FAMILY_CONNECTIONS] Creating connection:', { childEmail, childPhone, userId, userRole });
       
       // Only Parents can create family connections
