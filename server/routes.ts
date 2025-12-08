@@ -11470,36 +11470,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Family Connections API - MISSING ROUTE FIXED
+  // Family Connections API - REAL DATABASE QUERIES
   app.get("/api/family/connections", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
-      console.log('[FAMILY_CONNECTIONS] Getting family connections for user:', userId);
+      const userRole = (req as any).user?.role;
+      console.log('[FAMILY_CONNECTIONS] Getting family connections for user:', userId, 'role:', userRole);
       
-      // Mock family connections data - based on user role
-      const connections = [
-        {
-          id: 1,
+      // Query parent_student_relations table joined with users
+      let connections: any[] = [];
+      
+      if (userRole === 'Parent') {
+        // Parent viewing their children
+        const relations = await db.select({
+          id: parentStudentRelations.id,
+          parentId: parentStudentRelations.parentId,
+          studentId: parentStudentRelations.studentId,
+          relationship: parentStudentRelations.relationship,
+          createdAt: parentStudentRelations.createdAt,
+          childFirstName: users.firstName,
+          childLastName: users.lastName,
+          childEmail: users.email,
+          childPhone: users.phone
+        })
+        .from(parentStudentRelations)
+        .innerJoin(users, eq(users.id, parentStudentRelations.studentId))
+        .where(eq(parentStudentRelations.parentId, userId));
+        
+        connections = relations.map(rel => ({
+          id: rel.id,
           type: 'parent-child',
-          parentId: 7,
-          parentName: 'Marie Ndomo',
-          childId: 1,
-          childName: 'Emma Tall',
-          status: 'active',
-          establishedAt: '2024-01-15'
-        },
-        {
-          id: 2,
+          parentId: rel.parentId,
+          childId: rel.studentId,
+          childName: `${rel.childFirstName || ''} ${rel.childLastName || ''}`.trim() || 'Nom inconnu',
+          childEmail: rel.childEmail,
+          childPhone: rel.childPhone,
+          connectionStatus: 'active',
+          relationship: rel.relationship || 'parent',
+          lastContact: rel.createdAt?.toISOString() || new Date().toISOString(),
+          unreadMessages: 0,
+          isOnline: false
+        }));
+      } else if (userRole === 'Student') {
+        // Student viewing their parents
+        const relations = await db.select({
+          id: parentStudentRelations.id,
+          parentId: parentStudentRelations.parentId,
+          studentId: parentStudentRelations.studentId,
+          relationship: parentStudentRelations.relationship,
+          createdAt: parentStudentRelations.createdAt,
+          parentFirstName: users.firstName,
+          parentLastName: users.lastName,
+          parentEmail: users.email,
+          parentPhone: users.phone
+        })
+        .from(parentStudentRelations)
+        .innerJoin(users, eq(users.id, parentStudentRelations.parentId))
+        .where(eq(parentStudentRelations.studentId, userId));
+        
+        connections = relations.map(rel => ({
+          id: rel.id,
           type: 'student-parent',
-          studentId: 1,
-          studentName: 'Emma Tall',
-          parentId: 7,
-          parentName: 'Marie Ndomo',
-          status: 'active',
-          establishedAt: '2024-01-15'
-        }
-      ];
+          studentId: rel.studentId,
+          parentId: rel.parentId,
+          parentName: `${rel.parentFirstName || ''} ${rel.parentLastName || ''}`.trim() || 'Nom inconnu',
+          parentEmail: rel.parentEmail,
+          parentPhone: rel.parentPhone,
+          connectionStatus: 'active',
+          relationship: rel.relationship || 'parent',
+          lastContact: rel.createdAt?.toISOString() || new Date().toISOString(),
+          unreadMessages: 0,
+          isOnline: false
+        }));
+      }
 
+      console.log('[FAMILY_CONNECTIONS] Found', connections.length, 'connections for user', userId);
       res.json({ 
         success: true, 
         connections,
@@ -11601,7 +11646,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Family Search Users API - Search for students by email or phone
+  // Family Search Users API - REAL DATABASE SEARCH for students by email or phone
   app.post("/api/family/search-users", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
@@ -11615,39 +11660,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Mock user search results
-      let users = [];
+      // Real database search for students
+      let foundUsers: any[] = [];
       
-      if (searchType === 'email' && searchValue.includes('student')) {
-        users = [
-          {
-            id: 1,
-            firstName: 'Emma',
-            lastName: 'Tall',
-            email: 'emma.tall@test.educafric.com',
-            phone: '+237690123456',
-            schoolName: 'École Saint-Joseph Yaoundé',
-            className: '6ème A'
-          }
-        ];
-      } else if (searchType === 'phone' && searchValue.includes('237')) {
-        users = [
-          {
-            id: 2,
-            firstName: 'Paul',
-            lastName: 'Mvondo',
-            email: 'paul.mvondo@test.educafric.com',
-            phone: '+237690654321',
-            schoolName: 'École Saint-Joseph Yaoundé',
-            className: '3ème B'
-          }
-        ];
+      if (searchType === 'email') {
+        // Search by email - only Students
+        const results = await db.select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          schoolId: users.schoolId
+        })
+        .from(users)
+        .where(and(
+          eq(users.role, 'Student'),
+          eq(users.email, searchValue)
+        ));
+        foundUsers = results;
+      } else if (searchType === 'phone') {
+        // Normalize phone number (remove spaces, handle with/without +237)
+        const normalizedPhone = searchValue.replace(/\s+/g, '');
+        
+        // Search by phone - only Students
+        const results = await db.select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          schoolId: users.schoolId
+        })
+        .from(users)
+        .where(and(
+          eq(users.role, 'Student'),
+          or(
+            eq(users.phone, normalizedPhone),
+            eq(users.phone, normalizedPhone.replace('+237', '')),
+            eq(users.phone, '+237' + normalizedPhone.replace('+237', ''))
+          )
+        ));
+        foundUsers = results;
       }
+      
+      // Get school names for found users
+      const usersWithSchools = await Promise.all(foundUsers.map(async (user) => {
+        let schoolName = 'Non assigné';
+        if (user.schoolId) {
+          const school = await db.select({ name: schools.name })
+            .from(schools)
+            .where(eq(schools.id, user.schoolId))
+            .limit(1);
+          if (school.length > 0) {
+            schoolName = school[0].name;
+          }
+        }
+        return {
+          ...user,
+          schoolName
+        };
+      }));
 
+      console.log('[FAMILY_SEARCH] Found', usersWithSchools.length, 'students for search:', searchValue);
       res.json({ 
         success: true, 
-        users,
-        total: users.length,
+        users: usersWithSchools,
+        total: usersWithSchools.length,
         searchType,
         searchValue 
       });
@@ -11660,12 +11739,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Family Connections API - Create new connection
+  // Family Connections API - REAL DATABASE: Create new connection in parent_student_relations
   app.post("/api/family/connections", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
+      const userRole = (req as any).user?.role;
       const { childEmail, childPhone } = req.body;
-      console.log('[FAMILY_CONNECTIONS] Creating connection:', { childEmail, childPhone, userId });
+      console.log('[FAMILY_CONNECTIONS] Creating connection:', { childEmail, childPhone, userId, userRole });
       
       if (!childEmail && !childPhone) {
         return res.status(400).json({ 
@@ -11674,14 +11754,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Mock connection creation
-      const newConnection = {
-        id: Date.now(),
+      // Find the student by email or phone
+      let student = null;
+      
+      if (childEmail) {
+        const results = await db.select()
+          .from(users)
+          .where(and(
+            eq(users.role, 'Student'),
+            eq(users.email, childEmail)
+          ))
+          .limit(1);
+        if (results.length > 0) student = results[0];
+      } else if (childPhone) {
+        const normalizedPhone = childPhone.replace(/\s+/g, '');
+        const results = await db.select()
+          .from(users)
+          .where(and(
+            eq(users.role, 'Student'),
+            or(
+              eq(users.phone, normalizedPhone),
+              eq(users.phone, normalizedPhone.replace('+237', '')),
+              eq(users.phone, '+237' + normalizedPhone.replace('+237', ''))
+            )
+          ))
+          .limit(1);
+        if (results.length > 0) student = results[0];
+      }
+      
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          message: 'Aucun étudiant trouvé avec ces informations / No student found with this information'
+        });
+      }
+      
+      // Check if relation already exists
+      const existingRelation = await db.select()
+        .from(parentStudentRelations)
+        .where(and(
+          eq(parentStudentRelations.parentId, userId),
+          eq(parentStudentRelations.studentId, student.id)
+        ))
+        .limit(1);
+        
+      if (existingRelation.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cette connexion existe déjà / This connection already exists'
+        });
+      }
+      
+      // Create the parent-student relation in database
+      const newRelation = await db.insert(parentStudentRelations).values({
         parentId: userId,
-        childEmail,
-        childPhone,
-        childName: childEmail ? 'Emma Tall' : 'Paul Mvondo',
-        connectionStatus: 'pending',
+        studentId: student.id,
+        relationship: 'parent'
+      }).returning();
+      
+      console.log('[FAMILY_CONNECTIONS] Created relation:', newRelation[0]);
+      
+      const newConnection = {
+        id: newRelation[0].id,
+        parentId: userId,
+        childId: student.id,
+        childName: `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+        childEmail: student.email,
+        childPhone: student.phone,
+        connectionStatus: 'active',
+        relationship: 'parent',
         lastContact: new Date().toISOString(),
         unreadMessages: 0,
         isOnline: false,
@@ -11690,7 +11831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         success: true, 
-        message: 'Connexion créée avec succès. En attente d\'approbation de l\'enfant.',
+        message: 'Connexion créée avec succès / Connection created successfully',
         connection: newConnection 
       });
     } catch (error) {

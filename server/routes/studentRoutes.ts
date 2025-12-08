@@ -5,7 +5,7 @@ import fs from 'fs';
 import { requireAuth } from '../middleware/auth';
 import { storage } from '../storage';
 import { db } from '../db';
-import { homework, homeworkSubmissions, subjects, users, grades, userAchievements, classes, enrollments } from '../../shared/schema';
+import { homework, homeworkSubmissions, subjects, users, grades, userAchievements, classes, enrollments, parentStudentRelations } from '../../shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 
 const router = Router();
@@ -1040,32 +1040,46 @@ router.get('/geolocation/safe-zones', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student-parent/connections - Get parent-child connections
+// GET /api/student-parent/connections - Get parent-child connections - REAL DATABASE
 router.get('/parent-connections', requireAuth, async (req, res) => {
   try {
     const studentId = req.user?.id;
     
-    // Mock parent connections
-    const connections = [
-      {
-        id: 1,
-        parentName: 'Marie Kouam',
-        parentEmail: 'marie.kouam@example.com',
-        relationship: 'Mère',
-        status: 'active',
-        connectedAt: '2025-01-15T10:00:00Z'
-      },
-      {
-        id: 2,
-        parentName: 'Paul Kouam',
-        parentEmail: 'paul.kouam@example.com',
-        relationship: 'Père',
-        status: 'pending',
-        connectedAt: null
-      }
-    ];
+    if (!studentId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Student not authenticated'
+      });
+    }
+    
+    // Real database query - get parents from parent_student_relations
+    const relations = await db.select({
+      id: parentStudentRelations.id,
+      parentId: parentStudentRelations.parentId,
+      studentId: parentStudentRelations.studentId,
+      relationship: parentStudentRelations.relationship,
+      createdAt: parentStudentRelations.createdAt,
+      parentFirstName: users.firstName,
+      parentLastName: users.lastName,
+      parentEmail: users.email,
+      parentPhone: users.phone
+    })
+    .from(parentStudentRelations)
+    .innerJoin(users, eq(users.id, parentStudentRelations.parentId))
+    .where(eq(parentStudentRelations.studentId, studentId));
+    
+    const connections = relations.map(rel => ({
+      id: rel.id,
+      parentId: rel.parentId,
+      parentName: `${rel.parentFirstName || ''} ${rel.parentLastName || ''}`.trim() || 'Nom inconnu',
+      parentEmail: rel.parentEmail,
+      parentPhone: rel.parentPhone,
+      relationship: rel.relationship || 'Parent',
+      status: 'active',
+      connectedAt: rel.createdAt?.toISOString() || null
+    }));
 
-    console.log(`[STUDENT_API] ✅ Parent connections retrieved for student:`, studentId);
+    console.log(`[STUDENT_API] ✅ Parent connections retrieved from DB for student:`, studentId, 'count:', connections.length);
 
     res.json({
       success: true,
