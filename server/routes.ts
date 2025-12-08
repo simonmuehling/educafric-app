@@ -11578,42 +11578,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Family Messages API - Get messages for a connection
+  // Family Messages API - REAL DATABASE: Get messages for a parent-child connection
   app.get("/api/family/messages/:connectionId", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
       const { connectionId } = req.params;
       console.log('[FAMILY_MESSAGES] Getting messages for connection:', connectionId, 'user:', userId);
       
-      // Mock messages data
-      const messages = [
-        {
-          id: 1,
-          connectionId: Number(connectionId),
-          senderId: userId,
-          senderName: 'Marie Ndomo',
-          senderType: 'parent',
-          message: 'Bonjour Emma! Comment s\'est passée ta journée?',
-          messageType: 'text',
-          timestamp: '2024-08-24T14:30:00Z',
-          isRead: true,
-          isEncrypted: true
-        },
-        {
-          id: 2,
-          connectionId: Number(connectionId),
-          senderId: 1,
-          senderName: 'Emma Tall',
-          senderType: 'child',
-          message: 'Ça va bien maman! J\'ai eu une bonne note en maths.',
-          messageType: 'text',
-          timestamp: '2024-08-24T15:00:00Z',
-          isRead: false,
-          isEncrypted: true
-        }
-      ];
+      // Get the connection to find parent and child IDs
+      const connection = await db.select()
+        .from(parentStudentRelations)
+        .where(eq(parentStudentRelations.id, Number(connectionId)))
+        .limit(1);
+        
+      if (connection.length === 0) {
+        return res.json([]);
+      }
+      
+      const { parentId, studentId } = connection[0];
+      
+      // Verify user is part of this connection
+      if (userId !== parentId && userId !== studentId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Access denied' 
+        });
+      }
+      
+      // Get messages between parent and student from messages table
+      const messageResults = await db.select()
+        .from(messages)
+        .where(
+          or(
+            and(eq(messages.senderId, parentId), eq(messages.recipientId, studentId)),
+            and(eq(messages.senderId, studentId), eq(messages.recipientId, parentId))
+          )
+        )
+        .orderBy(messages.createdAt);
+      
+      // Format messages for frontend
+      const formattedMessages = messageResults.map(msg => ({
+        id: msg.id,
+        connectionId: Number(connectionId),
+        senderId: msg.senderId,
+        senderName: msg.senderName || 'Utilisateur',
+        senderType: msg.senderId === parentId ? 'parent' : 'child',
+        message: msg.content,
+        messageType: msg.messageType || 'text',
+        timestamp: msg.createdAt?.toISOString() || new Date().toISOString(),
+        isRead: msg.isRead || false,
+        isEncrypted: true
+      }));
 
-      res.json(messages);
+      console.log('[FAMILY_MESSAGES] Found', formattedMessages.length, 'messages for connection', connectionId);
+      res.json(formattedMessages);
     } catch (error) {
       console.error('[FAMILY_MESSAGES] Error:', error);
       res.status(500).json({ 
@@ -11623,7 +11641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Family Messages API - Send message
+  // Family Messages API - REAL DATABASE: Send message between parent and child
   app.post("/api/family/messages", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
@@ -11637,13 +11655,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Mock message creation
+      // Get the connection to find parent and child IDs
+      const connection = await db.select()
+        .from(parentStudentRelations)
+        .where(eq(parentStudentRelations.id, Number(connectionId)))
+        .limit(1);
+        
+      if (connection.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Connection not found' 
+        });
+      }
+      
+      const { parentId, studentId } = connection[0];
+      
+      // Verify user is part of this connection
+      if (userId !== parentId && userId !== studentId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Access denied' 
+        });
+      }
+      
+      // Determine recipient (if sender is parent, recipient is student and vice versa)
+      const recipientId = userId === parentId ? studentId : parentId;
+      
+      // Get sender info
+      const senderInfo = await db.select({ firstName: users.firstName, lastName: users.lastName, role: users.role })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      
+      const senderName = senderInfo.length > 0 
+        ? `${senderInfo[0].firstName || ''} ${senderInfo[0].lastName || ''}`.trim() 
+        : 'Utilisateur';
+      const senderRole = senderInfo.length > 0 ? senderInfo[0].role : 'Parent';
+      
+      // Insert message into database
+      const newMessageResult = await db.insert(messages).values({
+        senderId: userId,
+        senderName,
+        senderRole,
+        recipientId,
+        content: message,
+        messageType: messageType || 'text',
+        isRead: false,
+        status: 'sent'
+      }).returning();
+      
       const newMessage = {
-        id: Date.now(),
+        id: newMessageResult[0].id,
         connectionId: Number(connectionId),
         senderId: userId,
-        senderName: 'Parent User',
-        senderType: 'parent',
+        senderName,
+        senderType: userId === parentId ? 'parent' : 'child',
         message,
         messageType: messageType || 'text',
         timestamp: new Date().toISOString(),
@@ -11651,6 +11717,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isEncrypted: true
       };
 
+      console.log('[FAMILY_MESSAGES] Message saved to database:', newMessageResult[0].id);
       res.json({ 
         success: true, 
         message: 'Message sent successfully',
