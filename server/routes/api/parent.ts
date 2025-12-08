@@ -3,6 +3,7 @@ import { storage } from '../../storage';
 import { requireAuth } from '../../middleware/auth';
 import { db } from '../../db';
 import { users, messages as messagesTable, parentStudentRelations, schools, classes, attendance } from '../../../shared/schema';
+import { geolocationDevices, locationTracking, geolocationAlerts } from '../../../shared/geolocationSchema';
 import { eq, or, and, desc, inArray } from 'drizzle-orm';
 
 // Extended request interface for authenticated routes
@@ -12,108 +13,158 @@ interface AuthenticatedRequest extends Request {
 
 const router = Router();
 
-// Helper function to get child information with school details
+// Helper function to get child information with school details - REAL DATABASE QUERIES
 async function getChildInfo(childId: number, parentId: number) {
-  // Mock child information - in production this would query the database
-  const mockChildren = {
-    1: {
-      id: 1,
-      firstName: 'Marie',
-      lastName: 'Kouame', 
-      parentId: 7,
-      schoolId: 1,
-      schoolName: 'École Saint-Joseph Yaoundé',
-      schoolPhone: '+237690001111',
-      className: '6ème A',
-      classTeacherId: 101
-    },
-    2: {
-      id: 2,
-      firstName: 'Paul',
-      lastName: 'Kouame',
-      parentId: 7,
-      schoolId: 1, 
-      schoolName: 'École Saint-Joseph Yaoundé',
-      schoolPhone: '+237690001111',
-      className: '3ème B',
-      classTeacherId: 102
-    },
-    9004: {
-      id: 9004,
-      firstName: 'Junior',
-      lastName: 'Kamga',
-      parentId: 9001,
-      schoolId: 9000,
-      schoolName: 'École Internationale de Yaoundé - Campus Sandbox',
-      schoolPhone: '+237690009999',
-      className: '3ème A',
-      classTeacherId: 9010
+  try {
+    // Verify parent has access to this child via parent_student_relations
+    const [relation] = await db.select()
+      .from(parentStudentRelations)
+      .where(and(
+        eq(parentStudentRelations.parentId, parentId),
+        eq(parentStudentRelations.studentId, childId)
+      ));
+    
+    if (!relation) {
+      return null;
     }
-  };
-
-  const child = mockChildren[childId as keyof typeof mockChildren];
-  
-  // Verify parent has access to this child
-  if (child && child.parentId === parentId) {
-    return child;
+    
+    // Get student details
+    const [student] = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      schoolId: users.schoolId
+    })
+    .from(users)
+    .where(eq(users.id, childId));
+    
+    if (!student) {
+      return null;
+    }
+    
+    // Get school details if available
+    let schoolName = 'École non définie';
+    let schoolPhone = '';
+    if (student.schoolId) {
+      const [school] = await db.select({ name: schools.name, phone: schools.phone })
+        .from(schools)
+        .where(eq(schools.id, student.schoolId));
+      if (school) {
+        schoolName = school.name;
+        schoolPhone = school.phone || '';
+      }
+    }
+    
+    return {
+      id: student.id,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      parentId: parentId,
+      schoolId: student.schoolId,
+      schoolName,
+      schoolPhone,
+      className: 'Non assigné',
+      classTeacherId: null
+    };
+  } catch (error) {
+    console.error('[PARENT_API] Error in getChildInfo:', error);
+    return null;
   }
-  
-  return null;
 }
 
-// Get children for parent geolocation
+// Get children for parent geolocation - REAL DATABASE QUERIES
 router.get('/geolocation/children', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    // Check if user is authenticated
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Authentication required' });
     }
     
     const parentId = req.user.id;
+    console.log('[PARENT_GEOLOCATION] Fetching children for parent:', parentId);
     
-    // Get all children connected to this parent - placeholder implementation
-    const children: any[] = []; // Simplified for stability
+    // Get children linked to this parent from database
+    const relations = await db.select({ studentId: parentStudentRelations.studentId })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, parentId));
     
-    if (!children || children.length === 0) {
+    if (relations.length === 0) {
       return res.json([]);
     }
-
-    // Get geolocation data for each child
+    
+    const studentIds = relations.map(r => r.studentId);
+    
+    // Get student details
+    const studentDetails = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      schoolId: users.schoolId
+    })
+    .from(users)
+    .where(inArray(users.id, studentIds));
+    
+    // Get school names
+    const schoolIds = [...new Set(studentDetails.filter(s => s.schoolId).map(s => s.schoolId!))];
+    let schoolMap: Record<number, string> = {};
+    if (schoolIds.length > 0) {
+      const schoolData = await db.select({ id: schools.id, name: schools.name })
+        .from(schools)
+        .where(inArray(schools.id, schoolIds));
+      schoolMap = Object.fromEntries(schoolData.map(s => [s.id, s.name]));
+    }
+    
+    // Get devices and locations for each child
     const childrenWithLocation = await Promise.all(
-      children.map(async (child: any) => {
+      studentDetails.map(async (student) => {
         try {
-          const devices: any[] = await storage.getTrackingDevices(1); // Simplified for now
-          const lastLocation = devices && devices.length > 0 && devices[0] && devices[0].lastLocation ? devices[0].lastLocation : null;
+          // Get devices for this student
+          const devices = await db.select()
+            .from(geolocationDevices)
+            .where(eq(geolocationDevices.studentId, student.id));
+          
+          // Get latest location if devices exist
+          let lastLocation = null;
+          if (devices.length > 0) {
+            const deviceIds = devices.map(d => d.id);
+            const [latestTracking] = await db.select()
+              .from(locationTracking)
+              .where(inArray(locationTracking.deviceId, deviceIds))
+              .orderBy(desc(locationTracking.timestamp))
+              .limit(1);
+            
+            if (latestTracking) {
+              lastLocation = {
+                latitude: parseFloat(latestTracking.latitude as string),
+                longitude: parseFloat(latestTracking.longitude as string),
+                timestamp: latestTracking.timestamp?.toISOString() || new Date().toISOString(),
+                address: 'Position enregistrée'
+              };
+            }
+          }
           
           return {
-            id: child.id,
-            firstName: child.firstName,
-            lastName: child.lastName,
-            class: child.className || 'Non assigné',
-            school: child.schoolName || 'École non définie',
-            lastLocation: lastLocation ? {
-              latitude: lastLocation.latitude,
-              longitude: lastLocation.longitude,
-              timestamp: lastLocation.timestamp,
-              address: lastLocation.address || 'Adresse inconnue'
-            } : null,
-            devices: devices.map((device: any) => ({
+            id: student.id,
+            firstName: student.firstName || '',
+            lastName: student.lastName || '',
+            class: 'Non assigné',
+            school: student.schoolId ? (schoolMap[student.schoolId] || 'École non définie') : 'École non définie',
+            lastLocation,
+            devices: devices.map(device => ({
               id: device.id,
-              name: device.deviceName,
+              name: device.deviceId,
               type: device.deviceType,
               isActive: device.isActive,
               batteryLevel: device.batteryLevel || 0,
-              lastSeen: device.lastUpdate
+              lastSeen: device.lastUpdate?.toISOString()
             }))
           };
         } catch (error) {
-          // Error getting location for child - handled gracefully
           return {
-            id: child.id,
-            firstName: child.firstName,
-            lastName: child.lastName,
-            class: child.className || 'Non assigné',
-            school: child.schoolName || 'École non définie',
+            id: student.id,
+            firstName: student.firstName || '',
+            lastName: student.lastName || '',
+            class: 'Non assigné',
+            school: student.schoolId ? (schoolMap[student.schoolId] || 'École non définie') : 'École non définie',
             lastLocation: null,
             devices: []
           };
@@ -121,73 +172,106 @@ router.get('/geolocation/children', requireAuth, async (req: AuthenticatedReques
       })
     );
 
+    console.log('[PARENT_GEOLOCATION] Found', childrenWithLocation.length, 'children');
     res.json(childrenWithLocation);
   } catch (error: any) {
-    // Error handled gracefully
+    console.error('[PARENT_API] Error fetching children location:', error);
     res.status(500).json({ message: 'Failed to fetch children location data' });
   }
 });
 
-// Get geolocation alerts for parent
+// Get geolocation alerts for parent - REAL DATABASE QUERIES
 router.get('/geolocation/alerts', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    // Check if user is authenticated
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Authentication required' });
     }
     
-    const parentId = (req.user as any).id;
+    const parentId = req.user.id;
+    console.log('[PARENT_GEOLOCATION] Fetching alerts for parent:', parentId);
     
-    // Get recent geolocation alerts for parent's children - placeholder
-    const alerts: any[] = []; // Simplified for stability
+    // Get children linked to this parent
+    const relations = await db.select({ studentId: parentStudentRelations.studentId })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, parentId));
+    
+    if (relations.length === 0) {
+      return res.json([]);
+    }
+    
+    const studentIds = relations.map(r => r.studentId);
+    
+    // Get geolocation alerts for children
+    const alerts = await db.select()
+      .from(geolocationAlerts)
+      .where(inArray(geolocationAlerts.studentId, studentIds))
+      .orderBy(desc(geolocationAlerts.createdAt))
+      .limit(50);
     
     res.json(alerts);
   } catch (error: any) {
-    // Error handled gracefully
+    console.error('[PARENT_API] Error fetching geolocation alerts:', error);
     res.status(500).json({ message: 'Failed to fetch geolocation alerts' });
   }
 });
 
-// Get specific child location
+// Get specific child location - REAL DATABASE QUERIES
 router.get('/geolocation/children/:childId/location', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    // Check if user is authenticated
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Authentication required' });
     }
     
-    const parentId = (req.user as any).id;
-    const { childId } = req.params;
+    const parentId = req.user.id;
+    const childId = parseInt(req.params.childId);
     
-    // Verify parent has access to this child - placeholder implementation
-    const child = { firstName: 'Test', lastName: 'Child' }; // Simplified for stability
-
-    // Get current location for the child - placeholder
-    const devices: any[] = await storage.getTrackingDevices(1); // Simplified for now
-    const location = null; // Placeholder
-    
-    if (!location) {
-      return res.status(404).json({ message: 'No location data available' });
+    // Verify parent has access to this child
+    const child = await getChildInfo(childId, parentId);
+    if (!child) {
+      return res.status(403).json({ message: 'Access denied to this child' });
     }
 
-    if (!location) {
+    // Get devices for this child
+    const devices = await db.select()
+      .from(geolocationDevices)
+      .where(eq(geolocationDevices.studentId, childId));
+    
+    if (devices.length === 0) {
+      return res.status(404).json({ message: 'No tracking devices registered for this child' });
+    }
+    
+    // Get latest location
+    const deviceIds = devices.map(d => d.id);
+    const [latestTracking] = await db.select()
+      .from(locationTracking)
+      .where(inArray(locationTracking.deviceId, deviceIds))
+      .orderBy(desc(locationTracking.timestamp))
+      .limit(1);
+    
+    if (!latestTracking) {
       return res.status(404).json({ message: 'No location data available' });
     }
     
     res.json({
-      childId: Number(childId),
+      childId: childId,
       childName: `${child.firstName} ${child.lastName}`,
       location: {
-        latitude: 0,
-        longitude: 0,
-        timestamp: new Date().toISOString(),
-        address: 'Adresse inconnue',
-        accuracy: 0
+        latitude: parseFloat(latestTracking.latitude as string),
+        longitude: parseFloat(latestTracking.longitude as string),
+        timestamp: latestTracking.timestamp?.toISOString() || new Date().toISOString(),
+        address: 'Position enregistrée',
+        accuracy: latestTracking.accuracy || 0
       },
-      deviceInfo: []
+      deviceInfo: devices.map(device => ({
+        id: device.id,
+        name: device.deviceId,
+        type: device.deviceType,
+        isActive: device.isActive,
+        batteryLevel: device.batteryLevel || 0
+      }))
     });
   } catch (error: any) {
-    // Error handled gracefully
+    console.error('[PARENT_API] Error fetching child location:', error);
     res.status(500).json({ message: 'Failed to fetch child location' });
   }
 });
