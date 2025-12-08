@@ -5,8 +5,9 @@ import fs from 'fs';
 import { requireAuth } from '../middleware/auth';
 import { storage } from '../storage';
 import { db } from '../db';
-import { homework, homeworkSubmissions, subjects, users, grades, userAchievements, classes, enrollments, parentStudentRelations } from '../../shared/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { homework, homeworkSubmissions, subjects, users, grades, userAchievements, classes, enrollments, parentStudentRelations, attendance, schools, teacherSubjectAssignments } from '../../shared/schema';
+import { eq, and, desc, sql, inArray } from 'drizzle-orm';
+import { safeZones } from '../../shared/geolocationSchema';
 
 const router = Router();
 
@@ -773,54 +774,78 @@ router.post('/messages/school', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student/teachers - Get teachers for student (for Messages École module)
+// GET /api/student/teachers - Get teachers for student (for Messages École module) - REAL DATABASE
 router.get('/teachers', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
+    const studentId = user?.id;
+    const schoolId = user?.schoolId;
     
-    // For demo accounts, return mock teachers
-    if (user.email && user.email.includes('@test.educafric.com')) {
-      const mockTeachers = [
-        {
-          id: 1,
-          firstName: 'Marie',
-          lastName: 'Nguyen',
-          subject: 'Mathématiques',
-          email: 'marie.nguyen@test.educafric.com',
-          phone: '+237657001001'
-        },
-        {
-          id: 2,
-          firstName: 'Jean',
-          lastName: 'Kamga',
-          subject: 'Français',
-          email: 'jean.kamga@test.educafric.com',
-          phone: '+237657001002'
-        },
-        {
-          id: 3,
-          firstName: 'Sophie',
-          lastName: 'Mballa',
-          subject: 'Sciences',
-          email: 'sophie.mballa@test.educafric.com',
-          phone: '+237657001003'
-        }
-      ];
-      
-      return res.json({
-        success: true,
-        teachers: mockTeachers,
-        message: 'Teachers list retrieved successfully'
-      });
-    } else {
-      // For real accounts, get actual teacher list from database
-      // This would normally query the database for student's teachers by class/school
-      return res.json({
-        success: true,
-        teachers: [],
-        message: 'No teachers found'
-      });
+    console.log('[STUDENT_API] Fetching teachers for student:', studentId, 'school:', schoolId);
+    
+    if (!schoolId) {
+      return res.json({ success: true, teachers: [], message: 'No school assigned' });
     }
+    
+    // Get student's class enrollment
+    const [enrollment] = await db.select({ classId: enrollments.classId })
+      .from(enrollments)
+      .where(eq(enrollments.studentId, studentId))
+      .limit(1);
+    
+    let teacherIds: number[] = [];
+    
+    if (enrollment?.classId) {
+      // Get teachers assigned to this class via teacherSubjectAssignments
+      const assignments = await db.select({ teacherId: teacherSubjectAssignments.teacherId })
+        .from(teacherSubjectAssignments)
+        .where(eq(teacherSubjectAssignments.classId, enrollment.classId));
+      teacherIds = [...new Set(assignments.map(a => a.teacherId))];
+    }
+    
+    // If no class-specific teachers, get all teachers from the school
+    if (teacherIds.length === 0) {
+      const schoolTeachers = await db.select({ id: users.id })
+        .from(users)
+        .where(and(
+          eq(users.schoolId, schoolId),
+          eq(users.role, 'Teacher')
+        ))
+        .limit(20);
+      teacherIds = schoolTeachers.map(t => t.id);
+    }
+    
+    if (teacherIds.length === 0) {
+      return res.json({ success: true, teachers: [], message: 'No teachers found' });
+    }
+    
+    // Get teacher details
+    const teachersList = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      phone: users.phone
+    })
+    .from(users)
+    .where(inArray(users.id, teacherIds));
+    
+    const teachers = teachersList.map(t => ({
+      id: t.id,
+      firstName: t.firstName || '',
+      lastName: t.lastName || '',
+      subject: 'Enseignant',
+      email: t.email || '',
+      phone: t.phone || ''
+    }));
+    
+    console.log('[STUDENT_API] Found', teachers.length, 'teachers');
+    
+    return res.json({
+      success: true,
+      teachers,
+      message: 'Teachers list retrieved successfully'
+    });
   } catch (error) {
     console.error('[STUDENT_API] Error fetching teachers:', error);
     res.status(500).json({
@@ -830,35 +855,37 @@ router.get('/teachers', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student/attendance - Get student attendance
+// GET /api/student/attendance - Get student attendance - REAL DATABASE
 router.get('/attendance', requireAuth, async (req, res) => {
   try {
-    const studentId = req.user?.id;
+    const user = req.user as any;
+    const studentId = user?.id;
     
-    const attendance = [
-      {
-        date: '2025-08-24',
-        status: 'present',
-        periods: [
-          { subject: 'Mathématiques', status: 'present', time: '08:00' },
-          { subject: 'Français', status: 'present', time: '10:00' },
-          { subject: 'Sciences', status: 'present', time: '14:00' }
-        ]
-      },
-      {
-        date: '2025-08-23',
-        status: 'absent',
-        periods: [
-          { subject: 'Mathématiques', status: 'absent', time: '08:00' },
-          { subject: 'Français', status: 'absent', time: '10:00' }
-        ],
-        reason: 'Sick leave'
-      }
-    ];
+    console.log('[STUDENT_API] Fetching attendance for student:', studentId);
+    
+    // Get attendance records from database
+    const attendanceRecords = await db.select()
+      .from(attendance)
+      .where(eq(attendance.studentId, studentId))
+      .orderBy(desc(attendance.date))
+      .limit(30);
+    
+    // Format attendance data
+    const formattedAttendance = attendanceRecords.map(record => ({
+      id: record.id,
+      date: record.date?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+      status: record.status,
+      reason: record.reason || '',
+      notes: record.notes || '',
+      timeIn: record.timeIn?.toISOString().split('T')[1]?.substring(0, 5) || null,
+      timeOut: record.timeOut?.toISOString().split('T')[1]?.substring(0, 5) || null
+    }));
+
+    console.log('[STUDENT_API] Found', formattedAttendance.length, 'attendance records');
 
     res.json({
       success: true,
-      attendance: attendance,
+      attendance: formattedAttendance,
       message: 'Attendance retrieved successfully'
     });
   } catch (error) {
@@ -870,40 +897,73 @@ router.get('/attendance', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student/settings - Get student settings  
-router.get('/settings', async (req, res) => {
+// GET /api/student/settings - Get student settings - REAL DATABASE
+router.get('/settings', requireAuth, async (req, res) => {
   try {
-    const studentId = req.user?.id || 6; // Default for demo
+    const user = req.user as any;
+    const studentId = user?.id;
     
-    // Mock student settings
+    console.log('[STUDENT_API] Fetching settings for student:', studentId);
+    
+    // Get student profile from database
+    const [student] = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      phone: users.phone,
+      schoolId: users.schoolId
+    })
+    .from(users)
+    .where(eq(users.id, studentId));
+    
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+    
+    // Get class name if enrolled
+    let className = 'Non assigné';
+    const [enrollment] = await db.select({ classId: enrollments.classId })
+      .from(enrollments)
+      .where(eq(enrollments.studentId, studentId))
+      .limit(1);
+    
+    if (enrollment?.classId) {
+      const [classData] = await db.select({ name: classes.name })
+        .from(classes)
+        .where(eq(classes.id, enrollment.classId));
+      if (classData) className = classData.name;
+    }
+    
     const settings = {
       profile: {
-        firstName: 'Jean',
-        lastName: 'Kouam',
-        email: 'jean.kouam@test.educafric.com',
-        className: 'Première A',
-        studentId: 'STU001'
+        firstName: student.firstName || '',
+        lastName: student.lastName || '',
+        email: student.email || '',
+        phone: student.phone || '',
+        className,
+        studentId: `STU${String(student.id).padStart(4, '0')}`
       },
       notifications: {
         gradeNotifications: true,
         assignmentNotifications: true,
-        attendanceNotifications: false
+        attendanceNotifications: true
       },
       privacy: {
         showProfileToParents: true,
-        allowDirectMessages: false
+        allowDirectMessages: true
       }
     };
 
-    console.log(`[STUDENT_API] ✅ Settings retrieved for student:`, studentId);
+    console.log('[STUDENT_API] Settings retrieved for student:', studentId);
 
     res.json({
       success: true,
-      settings: settings,
+      settings,
       message: 'Settings retrieved successfully'
     });
   } catch (error) {
-    console.error('[STUDENT_API] ❌ Error fetching settings:', error);
+    console.error('[STUDENT_API] Error fetching settings:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching settings'
@@ -999,40 +1059,48 @@ router.post('/generate-qr', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student/geolocation/safe-zones - Get student safe zones
+// GET /api/student/geolocation/safe-zones - Get student safe zones - REAL DATABASE
 router.get('/geolocation/safe-zones', requireAuth, async (req, res) => {
   try {
-    const studentId = req.user?.id;
+    const user = req.user as any;
+    const studentId = user?.id;
+    const schoolId = user?.schoolId;
     
-    // Mock safe zones data
-    const safeZones = [
-      {
-        id: 1,
-        name: 'École Primaire',
-        address: 'Rue de l\'École, Yaoundé',
-        radius: 100,
-        isActive: true,
-        coordinates: { lat: 3.848, lng: 11.502 }
-      },
-      {
-        id: 2,
-        name: 'Domicile',
-        address: 'Quartier Résidentiel, Yaoundé',
-        radius: 50,
-        isActive: true,
-        coordinates: { lat: 3.866, lng: 11.518 }
+    console.log('[STUDENT_API] Fetching safe zones for student:', studentId, 'school:', schoolId);
+    
+    if (!schoolId) {
+      return res.json({ success: true, safeZones: [], message: 'No school assigned' });
+    }
+    
+    // Get safe zones from database
+    const zones = await db.select()
+      .from(safeZones)
+      .where(and(
+        eq(safeZones.schoolId, schoolId),
+        eq(safeZones.isActive, true)
+      ));
+    
+    const formattedZones = zones.map(zone => ({
+      id: zone.id,
+      name: zone.name,
+      address: zone.description || '',
+      radius: zone.radius,
+      isActive: zone.isActive,
+      coordinates: {
+        lat: parseFloat(zone.latitude as string),
+        lng: parseFloat(zone.longitude as string)
       }
-    ];
+    }));
 
-    console.log(`[STUDENT_API] ✅ Safe zones retrieved for student:`, studentId);
+    console.log('[STUDENT_API] Found', formattedZones.length, 'safe zones');
 
     res.json({
       success: true,
-      safeZones: safeZones,
+      safeZones: formattedZones,
       message: 'Safe zones retrieved successfully'
     });
   } catch (error) {
-    console.error('[STUDENT_API] ❌ Error fetching safe zones:', error);
+    console.error('[STUDENT_API] Error fetching safe zones:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching safe zones'

@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { storage } from '../storage';
+import { db } from '../db';
+import { users, parentStudentRelations, teacherSubjectAssignments, enrollments } from '../../shared/schema';
+import { eq, and, inArray } from 'drizzle-orm';
 
 const router = Router();
 
@@ -312,10 +315,11 @@ router.get('/teachers', requireAuth, async (req, res) => {
   }
 });
 
-// Get parents for current student (for messaging)
+// Get parents for current student (for messaging) - REAL DATABASE
 router.get('/parents', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
+    const studentId = user?.id;
     
     // Only students can access their parents
     if (user.role !== 'Student') {
@@ -325,34 +329,47 @@ router.get('/parents', requireAuth, async (req, res) => {
       });
     }
 
-    // For demo/sandbox accounts, return mock data
-    const isSandbox = user.email?.includes('sandbox') || user.email?.includes('@test.educafric.com');
+    console.log('[STUDENTS_API] Fetching parents for student:', studentId);
     
-    let parentsList: any[] = [];
+    // Get parents from parent_student_relations table
+    const relations = await db.select({
+      parentId: parentStudentRelations.parentId,
+      relationship: parentStudentRelations.relationship
+    })
+    .from(parentStudentRelations)
+    .where(eq(parentStudentRelations.studentId, studentId));
     
-    if (isSandbox || user.id === 6) {
-      // Demo student (student.demo@test.educafric.com)
-      parentsList = [
-        {
-          id: 7,
-          firstName: 'Marie',
-          lastName: 'Kouame',
-          relationship: 'Mère',
-          email: 'parent.demo@test.educafric.com'
-        },
-        {
-          id: 7001,
-          firstName: 'Jean',
-          lastName: 'Kouame', 
-          relationship: 'Père',
-          email: 'jean.kouame@test.educafric.com'
-        }
-      ];
-    } else {
-      // For real accounts, get actual parent connections
-      // This would normally query the database for parent-child connections
-      parentsList = [];
+    if (relations.length === 0) {
+      console.log('[STUDENTS_API] No parents found for student:', studentId);
+      return res.json({ success: true, parents: [] });
     }
+    
+    const parentIds = relations.map(r => r.parentId);
+    
+    // Get parent details
+    const parentDetails = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      phone: users.phone
+    })
+    .from(users)
+    .where(inArray(users.id, parentIds));
+    
+    // Create relationship map
+    const relationMap = Object.fromEntries(relations.map(r => [r.parentId, r.relationship]));
+    
+    const parentsList = parentDetails.map(parent => ({
+      id: parent.id,
+      firstName: parent.firstName || '',
+      lastName: parent.lastName || '',
+      relationship: relationMap[parent.id] || 'Parent',
+      email: parent.email || '',
+      phone: parent.phone || ''
+    }));
+    
+    console.log('[STUDENTS_API] Found', parentsList.length, 'parents');
     
     res.json({
       success: true,
@@ -491,69 +508,76 @@ router.post('/messages/school', requireAuth, async (req, res) => {
   }
 });
 
-// Get teachers for student (for Messages École module)
+// Get teachers for student (for Messages École module) - REAL DATABASE
 router.get('/teachers', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
+    const studentId = user?.id;
+    const schoolId = user?.schoolId;
     
-    // For demo accounts, return mock teachers
-    if (user.email.includes('@test.educafric.com')) {
-      const mockTeachers = [
-        {
-          id: 1,
-          firstName: 'Marie',
-          lastName: 'Nguyen',
-          subject: 'Mathématiques',
-          email: 'marie.nguyen@test.educafric.com',
-          phone: '+237657001001'
-        },
-        {
-          id: 2,
-          firstName: 'Jean',
-          lastName: 'Kamga',
-          subject: 'Français',
-          email: 'jean.kamga@test.educafric.com',
-          phone: '+237657001002'
-        },
-        {
-          id: 3,
-          firstName: 'Fatima',
-          lastName: 'Bello',
-          subject: 'Anglais',
-          email: 'fatima.bello@test.educafric.com',
-          phone: '+237657001003'
-        }
-      ];
-      
-      return res.json({
-        success: true,
-        teachers: mockTeachers
-      });
+    console.log('[STUDENTS_API] Fetching teachers for student:', studentId, 'school:', schoolId);
+    
+    if (!schoolId) {
+      return res.json({ success: true, teachers: [] });
     }
     
-    // For real accounts, return standard teachers (demo implementation)
-    const standardTeachers = [
-      {
-        id: 1,
-        firstName: 'Professor',
-        lastName: 'Mathématiques',
-        subject: 'Mathématiques',
-        email: 'math.teacher@educafric.com',
-        phone: '+237657001001'
-      },
-      {
-        id: 2,
-        firstName: 'Professor',
-        lastName: 'Français',
-        subject: 'Français',
-        email: 'french.teacher@educafric.com',
-        phone: '+237657001002'
-      }
-    ];
+    // Get student's class enrollment
+    const [enrollment] = await db.select({ classId: enrollments.classId })
+      .from(enrollments)
+      .where(eq(enrollments.studentId, studentId))
+      .limit(1);
+    
+    let teacherIds: number[] = [];
+    
+    if (enrollment?.classId) {
+      // Get teachers assigned to this class
+      const assignments = await db.select({ teacherId: teacherSubjectAssignments.teacherId })
+        .from(teacherSubjectAssignments)
+        .where(eq(teacherSubjectAssignments.classId, enrollment.classId));
+      teacherIds = [...new Set(assignments.map(a => a.teacherId))];
+    }
+    
+    // If no class-specific teachers, get school teachers
+    if (teacherIds.length === 0) {
+      const schoolTeachers = await db.select({ id: users.id })
+        .from(users)
+        .where(and(
+          eq(users.schoolId, schoolId),
+          eq(users.role, 'Teacher')
+        ))
+        .limit(20);
+      teacherIds = schoolTeachers.map(t => t.id);
+    }
+    
+    if (teacherIds.length === 0) {
+      return res.json({ success: true, teachers: [] });
+    }
+    
+    // Get teacher details
+    const teachersList = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      phone: users.phone
+    })
+    .from(users)
+    .where(inArray(users.id, teacherIds));
+    
+    const teachers = teachersList.map(t => ({
+      id: t.id,
+      firstName: t.firstName || '',
+      lastName: t.lastName || '',
+      subject: 'Enseignant',
+      email: t.email || '',
+      phone: t.phone || ''
+    }));
+    
+    console.log('[STUDENTS_API] Found', teachers.length, 'teachers');
     
     res.json({
       success: true,
-      teachers: standardTeachers
+      teachers
     });
   } catch (error) {
     console.error('[STUDENTS_API] Error fetching student teachers:', error);
