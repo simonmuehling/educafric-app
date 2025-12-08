@@ -1,6 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
 import { requireAuth } from '../../middleware/auth';
+import { db } from '../../db';
+import { users, messages, parentStudentRelations, schools, classes } from '../../../shared/schema';
+import { eq, or, and, desc, inArray } from 'drizzle-orm';
 
 // Extended request interface for authenticated routes
 interface AuthenticatedRequest extends Request {
@@ -282,7 +285,7 @@ router.post('/children/connect', requireAuth, async (req: AuthenticatedRequest, 
   }
 });
 
-// Get messages for parent
+// Get messages for parent - REAL DATABASE QUERIES
 router.get('/messages', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user || !req.user.id) {
@@ -290,80 +293,122 @@ router.get('/messages', requireAuth, async (req: AuthenticatedRequest, res: Resp
     }
     
     const parentId = req.user.id;
+    console.log('[PARENT_MESSAGES] Fetching messages for parent:', parentId);
     
-    // Return messages for parent
-    const messages = [
-      {
-        id: 1,
-        from: 'Paul Mvondo',
-        fromRole: 'Teacher',
-        subject: 'Résultats de Junior en Mathématiques',
-        message: 'Bonjour, Junior a obtenu d\'excellents résultats ce trimestre en mathématiques. Il a une moyenne de 16.5/20. Félicitations !',
-        date: '2025-08-24',
-        read: false,
-        type: 'teacher',
-        priority: 'normal'
-      },
-      {
-        id: 2,
-        from: 'Administration École',
-        fromRole: 'Admin',
-        subject: 'Réunion Parents d\'Élèves',
-        message: 'Vous êtes invité(e) à la réunion parents-enseignants du 30 août 2025 à 15h00. Présence obligatoire.',
-        date: '2025-08-23',
-        read: false,
-        type: 'admin',
-        priority: 'high'
-      },
-      {
-        id: 3,
-        from: 'Sophie Biya',
-        fromRole: 'Teacher',
-        subject: 'Devoirs de Français',
-        message: 'Junior doit rendre sa dissertation sur l\'importance de l\'éducation en Afrique avant vendredi.',
-        date: '2025-08-22',
-        read: true,
-        type: 'teacher',
-        priority: 'normal'
-      }
-    ];
+    // Query messages from database where recipient is this parent
+    const parentMessages = await db.select()
+      .from(messages)
+      .where(eq(messages.recipientId, parentId))
+      .orderBy(desc(messages.createdAt))
+      .limit(50);
     
-    res.json({ success: true, messages });
+    // Also get messages FROM this parent (sent messages)
+    const sentMessages = await db.select()
+      .from(messages)
+      .where(eq(messages.senderId, parentId))
+      .orderBy(desc(messages.createdAt))
+      .limit(50);
+    
+    // Format messages for frontend
+    const formattedMessages = parentMessages.map(msg => ({
+      id: msg.id,
+      from: msg.senderName || 'Utilisateur',
+      fromRole: msg.senderRole || 'Unknown',
+      subject: msg.subject || 'Sans objet',
+      message: msg.content,
+      content: msg.content,
+      date: msg.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+      read: msg.isRead || false,
+      type: msg.messageType || 'general',
+      priority: 'normal',
+      status: msg.status || 'sent'
+    }));
+    
+    const formattedSentMessages = sentMessages.map(msg => ({
+      id: msg.id,
+      to: msg.recipientName || 'Destinataire',
+      toRole: msg.recipientRole || 'Unknown',
+      subject: msg.subject || 'Sans objet',
+      message: msg.content,
+      content: msg.content,
+      date: msg.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+      read: msg.isRead || false,
+      type: msg.messageType || 'general',
+      priority: 'normal',
+      status: msg.status || 'sent'
+    }));
+    
+    console.log('[PARENT_MESSAGES] Found', formattedMessages.length, 'received messages and', formattedSentMessages.length, 'sent messages');
+    res.json({ 
+      success: true, 
+      messages: formattedMessages,
+      sentMessages: formattedSentMessages 
+    });
   } catch (error: any) {
     console.error('[PARENT_API] Error fetching messages:', error);
     res.status(500).json({ message: 'Failed to fetch messages' });
   }
 });
 
-// Send message from parent
+// Send message from parent - REAL DATABASE QUERIES
 router.post('/messages', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Authentication required' });
     }
     
-    const { to, toRole, subject, message, priority = 'normal' } = req.body;
+    const parentId = req.user.id;
+    const { recipientId, to, toRole, subject, message, content, priority = 'normal' } = req.body;
+    const messageContent = message || content;
     
-    if (!to || !subject || !message) {
-      return res.status(400).json({ message: 'Recipient, subject, and message are required' });
+    if ((!recipientId && !to) || !messageContent) {
+      return res.status(400).json({ message: 'Recipient and message content are required' });
     }
     
-    const newMessage = {
-      id: Date.now(),
-      from: req.user.name || 'Parent',
-      fromRole: 'Parent',
-      to,
-      toRole,
-      subject,
-      message,
-      priority,
-      date: new Date().toISOString(),
+    // Get sender info
+    const senderInfo = await db.select({ firstName: users.firstName, lastName: users.lastName, role: users.role })
+      .from(users)
+      .where(eq(users.id, parentId))
+      .limit(1);
+    
+    const senderName = senderInfo.length > 0 
+      ? `${senderInfo[0].firstName || ''} ${senderInfo[0].lastName || ''}`.trim() 
+      : 'Parent';
+    const senderRole = senderInfo.length > 0 ? senderInfo[0].role : 'Parent';
+    
+    // Insert message into database
+    const newMessageResult = await db.insert(messages).values({
+      senderId: parentId,
+      senderName,
+      senderRole,
+      recipientId: recipientId || 0,
+      recipientName: to || 'Destinataire',
+      recipientRole: toRole || 'Unknown',
+      subject: subject || 'Sans objet',
+      content: messageContent,
+      messageType: 'general',
+      isRead: false,
       status: 'sent'
-    };
+    }).returning();
     
-    console.log('[PARENT_API] Message sent:', newMessage);
+    console.log('[PARENT_MESSAGES] Message saved to database:', newMessageResult[0]?.id);
     
-    res.json({ success: true, message: 'Message sent successfully', data: newMessage });
+    res.json({ 
+      success: true, 
+      message: 'Message sent successfully', 
+      data: {
+        id: newMessageResult[0]?.id,
+        from: senderName,
+        fromRole: senderRole,
+        to: to || 'Destinataire',
+        toRole: toRole || 'Unknown',
+        subject: subject || 'Sans objet',
+        message: messageContent,
+        priority,
+        date: new Date().toISOString(),
+        status: 'sent'
+      }
+    });
   } catch (error: any) {
     console.error('[PARENT_API] Error sending message:', error);
     res.status(500).json({ message: 'Failed to send message' });
