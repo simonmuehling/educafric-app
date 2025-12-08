@@ -1,5 +1,4 @@
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { getJsPDF, getHtml2Canvas } from './dynamicImports';
 
 interface FinancialProjectionData {
   schoolName: string;
@@ -24,6 +23,7 @@ interface FinancialProjectionData {
 }
 
 export const generateFinancialProjectionPDF = async (data: FinancialProjectionData) => {
+  const jsPDF = await getJsPDF();
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf?.internal?.pageSize.getWidth();
   const pageHeight = pdf?.internal?.pageSize.getHeight();

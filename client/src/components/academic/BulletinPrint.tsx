@@ -1,8 +1,7 @@
 'use client';
 import { useRef, useState, useEffect } from 'react';
 import { Printer, Smartphone, FileDown, Loader2 } from "lucide-react";
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import { getJsPDF, getHtml2Canvas } from '@/utils/dynamicImports';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 type Props = {
@@ -88,6 +87,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
       
       const A4_WIDTH_PX = 794;
       
+      const html2canvas = await getHtml2Canvas();
       const canvas = await html2canvas(printArea, {
         scale: 2,
         useCORS: true,
@@ -102,6 +102,7 @@ export default function BulletinPrint({ documentTitle = 'bulletin', children }: 
 
       const imgData = canvas.toDataURL('image/jpeg', 0.92);
       
+      const jsPDF = await getJsPDF();
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',

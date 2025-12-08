@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { getJsPDF } from './dynamicImports';
 
 interface Student {
   id: number;
@@ -63,6 +63,7 @@ interface BulletinData {
 }
 
 export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | 'en' = 'fr') => {
+  const jsPDF = await getJsPDF();
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf?.internal?.pageSize.getWidth();
   const pageHeight = pdf?.internal?.pageSize.getHeight();

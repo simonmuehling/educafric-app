@@ -35,6 +35,12 @@ import { logJson } from "./utils/logger";
 
 const app = express();
 
+// ULTRA-LIGHTWEIGHT HEALTH CHECK - Before ANY middleware for fastest Autoscale response
+// This ensures health checks pass even if other middleware is slow
+app.get('/_health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // Request ID tracking - MUST be first
 app.use(requestIdMiddleware);
 
@@ -268,45 +274,57 @@ app.use((req, res, next) => {
 
   const server = await registerRoutes(app);
 
-  // Mark app as ready for health checks
+  // Mark app as ready for health checks IMMEDIATELY before any heavy initialization
   markAsReady();
   logJson('info', 'app_ready', { message: 'Application is ready to handle requests' });
 
-  // Initialize real-time WebSocket service
+  // Initialize real-time WebSocket service (lightweight, required for core functionality)
   console.log('[REALTIME] Initializing WebSocket service...');
   realTimeService.initialize(server);
   console.log('[REALTIME] ✅ Real-time service initialized');
 
-  // Initialize automated system reporting service
-  console.log('[SYSTEM_REPORTS] Initializing automated reporting service...');
-  // systemReportService automatically initializes itself
-
-  // Initialize daily connection reporting service with cron job
-  const { default: cron } = await import('node-cron');
-  
-  // Send daily connection report at 8:00 AM Africa/Douala timezone
-  cron.schedule('0 8 * * *', async () => {
+  // DEFERRED INITIALIZATION: Move heavy services to background to speed up startup
+  // This allows health checks to pass while services initialize in background
+  setImmediate(async () => {
     try {
-      console.log('[DAILY_CONNECTIONS] Sending scheduled daily report...');
-      await ConnectionTrackingService.sendDailyReport();
-      console.log('[DAILY_CONNECTIONS] ✅ Daily report sent successfully to simonpmuehling@gmail.com');
+      console.log('[DEFERRED_INIT] Starting background service initialization...');
+      
+      // Initialize automated system reporting service
+      console.log('[SYSTEM_REPORTS] Initializing automated reporting service...');
+      // systemReportService automatically initializes itself
+
+      // Initialize daily connection reporting service with cron job
+      const { default: cron } = await import('node-cron');
+      
+      // Send daily connection report at 8:00 AM Africa/Douala timezone
+      cron.schedule('0 8 * * *', async () => {
+        try {
+          console.log('[DAILY_CONNECTIONS] Sending scheduled daily report...');
+          await ConnectionTrackingService.sendDailyReport();
+          console.log('[DAILY_CONNECTIONS] ✅ Daily report sent successfully to simonpmuehling@gmail.com');
+        } catch (error) {
+          console.error('[DAILY_CONNECTIONS] ❌ Failed to send daily report:', error);
+        }
+      }, {
+        timezone: 'Africa/Douala'
+      });
+      
+      console.log('[DAILY_CONNECTIONS] ✅ Daily connection reports scheduled at 8:00 AM (Africa/Douala) → simonpmuehling@gmail.com');
+
+      // Initialize homework reminder service
+      const { initHomeworkReminderService } = await import('./services/homeworkReminderService');
+      initHomeworkReminderService();
+
+      // Initialize fee notification service
+      const { feeNotificationService } = await import('./services/feeNotificationService');
+      feeNotificationService.initialize();
+      console.log('[FEE_NOTIFICATIONS] ✅ Fee notification service started');
+      
+      console.log('[DEFERRED_INIT] ✅ All background services initialized');
     } catch (error) {
-      console.error('[DAILY_CONNECTIONS] ❌ Failed to send daily report:', error);
+      console.error('[DEFERRED_INIT] ❌ Background service initialization error:', error);
     }
-  }, {
-    timezone: 'Africa/Douala'
   });
-  
-  console.log('[DAILY_CONNECTIONS] ✅ Daily connection reports scheduled at 8:00 AM (Africa/Douala) → simonpmuehling@gmail.com');
-
-  // Initialize homework reminder service
-  const { initHomeworkReminderService } = await import('./services/homeworkReminderService');
-  initHomeworkReminderService();
-
-  // Initialize fee notification service
-  const { feeNotificationService } = await import('./services/feeNotificationService');
-  feeNotificationService.initialize();
-  console.log('[FEE_NOTIFICATIONS] ✅ Fee notification service started');
 
   // Enhanced error handler middleware with critical alerting
   app.use(async (err: any, req: Request, res: Response, next: NextFunction) => {
