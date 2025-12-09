@@ -33,6 +33,14 @@ interface ParentAttendance {
   parentNotified: boolean;
 }
 
+interface Child {
+  id: number;
+  firstName: string;
+  lastName: string;
+  className?: string;
+  schoolName?: string;
+}
+
 const FunctionalParentAttendance: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
@@ -43,9 +51,23 @@ const FunctionalParentAttendance: React.FC = () => {
   const [dateRange, setDateRange] = useState<string>('week');
   const [isExcuseOpen, setIsExcuseOpen] = useState(false);
   const [excuseForm, setExcuseForm] = useState({
-    studentName: 'Junior Kamga',
+    childId: '',
     date: '',
     reason: ''
+  });
+
+  // Fetch real children from database
+  const { data: childrenData = [] } = useQuery<Child[]>({
+    queryKey: ['/api/parent/children'],
+    queryFn: async () => {
+      const response = await fetch('/api/parent/children', {
+        credentials: 'include'
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.children || [];
+    },
+    enabled: !!user
   });
 
   // Fetch parent attendance data from PostgreSQL API
@@ -82,10 +104,10 @@ const FunctionalParentAttendance: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/parent/attendance'] });
       setIsExcuseOpen(false);
-      setExcuseForm({ studentName: 'Junior Kamga', date: '', reason: '' });
+      setExcuseForm({ childId: '', date: '', reason: '' });
       toast({
         title: "Demande d'excuse envoyée",
-        description: "Votre demande d'excuse a été soumise avec succès.",
+        description: "Votre demande a été envoyée à l'école avec succès. L'administration a été notifiée.",
       });
     },
     onError: (error) => {
@@ -98,7 +120,7 @@ const FunctionalParentAttendance: React.FC = () => {
   });
 
   const handleSubmitExcuse = () => {
-    if (excuseForm.date && excuseForm.reason) {
+    if (excuseForm.childId && excuseForm.date && excuseForm.reason) {
       createExcuseMutation.mutate(excuseForm);
     }
   };
@@ -441,12 +463,20 @@ const FunctionalParentAttendance: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Élève</label>
-                  <Select value={excuseForm.studentName} onValueChange={(value) => setExcuseForm(prev => ({ ...prev, studentName: value }))}>
+                  <Select value={excuseForm.childId} onValueChange={(value) => setExcuseForm(prev => ({ ...prev, childId: value }))}>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Sélectionnez un enfant" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Junior Kamga">Junior Kamga</SelectItem>
+                      {childrenData.length > 0 ? (
+                        childrenData.map((child) => (
+                          <SelectItem key={child.id} value={String(child.id)}>
+                            {child.firstName} {child.lastName} {child.className ? `- ${child.className}` : ''}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-children" disabled>Aucun enfant trouvé</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -470,7 +500,7 @@ const FunctionalParentAttendance: React.FC = () => {
                 <div className="flex gap-2 pt-4">
                   <Button 
                     onClick={handleSubmitExcuse}
-                    disabled={createExcuseMutation.isPending || !excuseForm.date || !excuseForm.reason}
+                    disabled={createExcuseMutation.isPending || !excuseForm.childId || !excuseForm.date || !excuseForm.reason}
                     className="flex-1 bg-orange-600 hover:bg-orange-700"
                   >
                     {createExcuseMutation.isPending ? 'Envoi...' : 'Soumettre la Demande'}
