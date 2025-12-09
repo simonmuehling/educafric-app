@@ -465,10 +465,26 @@ router.post('/register', async (req, res) => {
     if (validatedData.phoneNumber) {
       const existingPhone = await storage.getUserByPhone(validatedData.phoneNumber);
       if (existingPhone) {
+        // Provide specific message based on the existing user's role
+        const roleMessages: Record<string, { fr: string; en: string }> = {
+          Director: {
+            fr: `Ce numéro de téléphone "${validatedData.phoneNumber}" est déjà utilisé par une école. Chaque école doit avoir un numéro de téléphone unique. Si c'est votre numéro, connectez-vous directement.`,
+            en: `This phone number "${validatedData.phoneNumber}" is already used by a school. Each school must have a unique phone number. If this is your number, log in directly.`
+          },
+          default: {
+            fr: `Un compte existe déjà avec le numéro "${validatedData.phoneNumber}". Utilisez un autre numéro ou connectez-vous.`,
+            en: `An account already exists with the phone number "${validatedData.phoneNumber}". Use a different number or log in.`
+          }
+        };
+        
+        const msg = roleMessages[existingPhone.role] || roleMessages.default;
+        console.log(`[AUTH_REGISTER] Phone already exists: ${validatedData.phoneNumber} (existing user: ${existingPhone.id}, role: ${existingPhone.role})`);
+        
         return res.status(409).json({ 
-          message: `Un compte existe déjà avec le numéro "${validatedData.phoneNumber}". Utilisez un autre numéro ou connectez-vous.`,
-          messageFr: `Un compte existe déjà avec le numéro "${validatedData.phoneNumber}". Utilisez un autre numéro ou connectez-vous.`,
-          messageEn: `An account already exists with the phone number "${validatedData.phoneNumber}". Use a different number or log in.`
+          message: msg.fr,
+          messageFr: msg.fr,
+          messageEn: msg.en,
+          existingRole: existingPhone.role
         });
       }
     }

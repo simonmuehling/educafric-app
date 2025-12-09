@@ -885,6 +885,15 @@ export default function Login() {
                     }
                   </span>
                 </p>
+                <p className="text-xs text-blue-700 flex items-start gap-2 mt-2 bg-blue-50 p-2 rounded">
+                  <span>📱</span>
+                  <span>
+                    {language === 'fr' 
+                      ? 'Important: Chaque école doit avoir un numéro de téléphone unique. Si vous essayez de vous inscrire et qu\'une erreur apparaît, cela signifie peut-être qu\'un compte existe déjà avec ce numéro.'
+                      : 'Important: Each school must have a unique phone number. If you try to register and see an error, it may mean an account already exists with this number.'
+                    }
+                  </span>
+                </p>
               </div>
             )}
 
