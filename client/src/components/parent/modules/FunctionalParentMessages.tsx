@@ -101,19 +101,25 @@ const FunctionalParentMessages: React.FC = () => {
   const teacherRecipients = recipients.filter(r => r.type === 'teacher');
   const schoolRecipients = recipients.filter(r => r.type === 'school');
 
-  // Create message mutation - unified system
+  // Create message mutation - using parent communications endpoint
   const createMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const response = await fetch('/api/unified-messaging/messages/student-parent', {
+      // Parse recipient type from the ID format (e.g., "teacher_123", "school_456")
+      const recipientParts = messageData.recipient.split('_');
+      const recipientType = recipientParts[0]; // 'teacher', 'school', 'child'
+      const recipientId = recipientParts.slice(1).join('_');
+      
+      const response = await fetch('/api/parent/communications/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({
-          connectionId: messageData.connectionId || 1,
-          message: messageData.content,
-          messageType: 'text',
+          recipientId,
+          recipientType,
+          subject: messageData.subject,
+          content: messageData.content,
           priority: messageData.priority || 'normal'
         }),
       });
