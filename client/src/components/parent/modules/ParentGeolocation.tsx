@@ -715,13 +715,84 @@ export const ParentGeolocation = () => {
         </div>
       )}
 
-      {/* Add Safe Zone Modal */}
-      {showAddZone && (
+      {/* Add Safe Zone Modal - BILINGUAL */}
+      {showAddZone && (() => {
+        const zoneModalText = {
+          fr: {
+            title: 'Ajouter une Zone de Sécurité',
+            zoneName: 'Nom de la zone',
+            zoneNamePlaceholder: 'Ex: Maison, École, Chez Grand-mère',
+            scheduleTitle: 'Programmation horaire',
+            startTime: 'Heure de début',
+            endTime: 'Heure de fin',
+            startDate: 'Date de début',
+            endDateOptional: 'Date de fin (optionnelle)',
+            activeDays: 'Jours actifs',
+            days: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+            zoneType: 'Type de zone',
+            zoneTypes: { home: '🏠 Maison', school: '🏫 École', relative: '👨‍👩‍👧‍👦 Famille', activity: '⚽ Activité' },
+            childTracking: '📍 Suivi de Localisation des Enfants',
+            childTrackingDesc: 'Sélectionnez les enfants dont les appareils seront suivis automatiquement dans cette zone de sécurité.',
+            classUndefined: 'Classe non définie',
+            device: 'Appareil:',
+            deviceTypes: { smartphone: '📱 Smartphone', smartwatch: '⌚ Montre', tablet: '📱 Tablette', other: '📍 Autre' },
+            noChildrenFound: 'Aucun enfant trouvé',
+            autoTracking: 'Suivi automatique:',
+            autoTrackingDesc: 'Les appareils des enfants sélectionnés seront automatiquement surveillés. Vous recevrez des alertes en temps réel en cas de sortie de zone.',
+            locationHelp: '🗺️ Aide à la localisation',
+            locating: 'Localisation...',
+            myPosition: 'Ma Position',
+            popularLocations: 'Lieux populaires au Cameroun:',
+            latitude: 'Latitude',
+            longitude: 'Longitude',
+            positionDetected: 'Position détectée:',
+            radius: 'Rayon (mètres)',
+            cancel: 'Annuler',
+            creating: 'Création...',
+            createZone: 'Créer Zone'
+          },
+          en: {
+            title: 'Add a Safety Zone',
+            zoneName: 'Zone name',
+            zoneNamePlaceholder: 'Ex: Home, School, Grandma\'s',
+            scheduleTitle: 'Schedule configuration',
+            startTime: 'Start time',
+            endTime: 'End time',
+            startDate: 'Start date',
+            endDateOptional: 'End date (optional)',
+            activeDays: 'Active days',
+            days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            zoneType: 'Zone type',
+            zoneTypes: { home: '🏠 Home', school: '🏫 School', relative: '👨‍👩‍👧‍👦 Family', activity: '⚽ Activity' },
+            childTracking: '📍 Child Location Tracking',
+            childTrackingDesc: 'Select children whose devices will be automatically tracked in this safety zone.',
+            classUndefined: 'Class undefined',
+            device: 'Device:',
+            deviceTypes: { smartphone: '📱 Smartphone', smartwatch: '⌚ Watch', tablet: '📱 Tablet', other: '📍 Other' },
+            noChildrenFound: 'No children found',
+            autoTracking: 'Automatic tracking:',
+            autoTrackingDesc: 'Selected children\'s devices will be monitored automatically. You will receive real-time alerts when they leave the zone.',
+            locationHelp: '🗺️ Location Help',
+            locating: 'Locating...',
+            myPosition: 'My Position',
+            popularLocations: 'Popular locations in Cameroon:',
+            latitude: 'Latitude',
+            longitude: 'Longitude',
+            positionDetected: 'Detected position:',
+            radius: 'Radius (meters)',
+            cancel: 'Cancel',
+            creating: 'Creating...',
+            createZone: 'Create Zone'
+          }
+        };
+        const zt = zoneModalText[language === 'fr' ? 'fr' : 'en'];
+        
+        return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white p-6 pb-4 border-b">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Ajouter une Zone de Sécurité</h3>
+                <h3 className="text-lg font-semibold">{zt.title}</h3>
                 <Button 
                   variant="ghost" 
                   size="sm"
@@ -738,10 +809,7 @@ export const ParentGeolocation = () => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
               
-              // Récupérer les jours actifs sélectionnés
               const activeDays = Array.from(formData.getAll('activeDays')).map(day => parseInt(day as string));
-              
-              // Récupérer les enfants sélectionnés
               const selectedChildrenIds = Array.from(formData.getAll('childrenIds')).map(id => parseInt(id as string));
               
               const zoneData = {
@@ -751,9 +819,7 @@ export const ParentGeolocation = () => {
                 longitude: parseFloat(formData.get('longitude') as string),
                 radius: parseInt(formData.get('radius') as string),
                 active: true,
-                // Enfants à suivre dans cette zone
                 childrenIds: selectedChildrenIds,
-                // Configuration horaire
                 schedule: {
                   startTime: formData.get('startTime') as string,
                   endTime: formData.get('endTime') as string,
@@ -767,23 +833,23 @@ export const ParentGeolocation = () => {
               createSafeZoneMutation.mutate(zoneData);
             }} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Nom de la zone</label>
+                <label className="block text-sm font-medium mb-2">{zt.zoneName}</label>
                 <input
                   name="name"
                   type="text"
                   className="w-full p-2 border rounded-lg"
-                  placeholder="Ex: Maison, École, Chez Grand-mère"
+                  placeholder={zt.zoneNamePlaceholder}
                   required
                 />
               </div>
 
-              {/* Configuration des horaires */}
+              {/* Schedule configuration */}
               <div className="border rounded-lg p-4 bg-gray-50">
-                <h4 className="font-medium mb-3 text-gray-700">Programmation horaire</h4>
+                <h4 className="font-medium mb-3 text-gray-700">{zt.scheduleTitle}</h4>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Heure de début</label>
+                    <label className="block text-sm font-medium mb-1">{zt.startTime}</label>
                     <input
                       name="startTime"
                       type="time"
@@ -792,7 +858,7 @@ export const ParentGeolocation = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Heure de fin</label>
+                    <label className="block text-sm font-medium mb-1">{zt.endTime}</label>
                     <input
                       name="endTime"
                       type="time"
@@ -804,7 +870,7 @@ export const ParentGeolocation = () => {
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Date de début</label>
+                    <label className="block text-sm font-medium mb-1">{zt.startDate}</label>
                     <input
                       name="startDate"
                       type="date"
@@ -813,7 +879,7 @@ export const ParentGeolocation = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Date de fin (optionnelle)</label>
+                    <label className="block text-sm font-medium mb-1">{zt.endDateOptional}</label>
                     <input
                       name="endDate"
                       type="date"
@@ -823,15 +889,15 @@ export const ParentGeolocation = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Jours actifs</label>
+                  <label className="block text-sm font-medium mb-2">{zt.activeDays}</label>
                   <div className="flex flex-wrap gap-2">
-                    {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, index) => (
+                    {zt.days.map((day, index) => (
                       <label key={day} className="flex items-center space-x-1">
                         <input
                           type="checkbox"
                           name="activeDays"
                           value={index}
-                          defaultChecked={index < 5} // Lun-Ven par défaut
+                          defaultChecked={index < 5}
                           className="rounded"
                         />
                         <span className="text-sm">{day}</span>
@@ -842,27 +908,27 @@ export const ParentGeolocation = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Type de zone</label>
+                <label className="block text-sm font-medium mb-2">{zt.zoneType}</label>
                 <select
                   name="type"
                   className="w-full p-2 border rounded-lg"
                   required
                 >
-                  <option value="home">🏠 Maison</option>
-                  <option value="school">🏫 École</option>
-                  <option value="relative">👨‍👩‍👧‍👦 Famille</option>
-                  <option value="activity">⚽ Activité</option>
+                  <option value="home">{zt.zoneTypes.home}</option>
+                  <option value="school">{zt.zoneTypes.school}</option>
+                  <option value="relative">{zt.zoneTypes.relative}</option>
+                  <option value="activity">{zt.zoneTypes.activity}</option>
                 </select>
               </div>
 
-              {/* Suivi de Localisation des Enfants */}
+              {/* Child Location Tracking */}
               <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg border border-blue-200">
                 <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
-                  📍 Suivi de Localisation des Enfants
+                  {zt.childTracking}
                 </h4>
                 <div className="space-y-3">
                   <div className="text-sm text-blue-800 mb-3">
-                    Sélectionnez les enfants dont les appareils seront suivis automatiquement dans cette zone de sécurité.
+                    {zt.childTrackingDesc}
                   </div>
                   
                   {children.map((child) => (
@@ -880,16 +946,16 @@ export const ParentGeolocation = () => {
                           </div>
                           <div className="flex-1">
                             <div className="font-medium text-gray-900">{child.name}</div>
-                            <div className="text-xs text-gray-500">{child.class || 'Classe non définie'}</div>
+                            <div className="text-xs text-gray-500">{child.class || zt.classUndefined}</div>
                           </div>
                           <div className="flex items-center space-x-2">
                             <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-500">Appareil:</span>
+                              <span className="text-xs text-gray-500">{zt.device}</span>
                               <span className={`w-3 h-3 rounded-full ${child.deviceType === 'smartphone' ? 'bg-green-400' : child.deviceType === 'smartwatch' ? 'bg-blue-400' : 'bg-gray-400'}`} />
                               <span className="text-xs font-medium">
-                                {child.deviceType === 'smartphone' ? '📱 Smartphone' : 
-                                 child.deviceType === 'smartwatch' ? '⌚ Montre' : 
-                                 child.deviceType === 'tablet' ? '📱 Tablette' : '📍 Autre'}
+                                {child.deviceType === 'smartphone' ? zt.deviceTypes.smartphone : 
+                                 child.deviceType === 'smartwatch' ? zt.deviceTypes.smartwatch : 
+                                 child.deviceType === 'tablet' ? zt.deviceTypes.tablet : zt.deviceTypes.other}
                               </span>
                             </div>
                           </div>
@@ -901,7 +967,7 @@ export const ParentGeolocation = () => {
                   {children.length === 0 && (
                     <div className="text-center py-4 text-gray-500">
                       <Users className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                      <p className="text-sm">Aucun enfant trouvé</p>
+                      <p className="text-sm">{zt.noChildrenFound}</p>
                     </div>
                   )}
                 </div>
@@ -910,15 +976,15 @@ export const ParentGeolocation = () => {
                   <div className="flex items-start gap-2">
                     <Shield className="w-4 h-4 text-blue-600 mt-0.5" />
                     <div className="text-xs text-blue-800">
-                      <strong>Suivi automatique:</strong> Les appareils des enfants sélectionnés seront automatiquement surveillés. Vous recevrez des alertes en temps réel en cas de sortie de zone.
+                      <strong>{zt.autoTracking}</strong> {zt.autoTrackingDesc}
                     </div>
                   </div>
                 </div>
               </div>
               
-              {/* Aide interactive pour la géolocalisation */}
+              {/* Location help */}
               <div className="bg-blue-50 p-4 rounded-lg space-y-3">
-                <h4 className="font-medium text-blue-800">🗺️ Aide à la localisation</h4>
+                <h4 className="font-medium text-blue-800">{zt.locationHelp}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <Button
                     type="button"
@@ -932,7 +998,7 @@ export const ParentGeolocation = () => {
                     ) : (
                       <Navigation className="w-4 h-4 mr-2" />
                     )}
-                    {locationHelperActive ? 'Localisation...' : 'Ma Position'}
+                    {locationHelperActive ? zt.locating : zt.myPosition}
                   </Button>
                   <Button
                     type="button"
@@ -948,9 +1014,9 @@ export const ParentGeolocation = () => {
                   </Button>
                 </div>
                 
-                {/* Suggestions de lieux populaires */}
+                {/* Popular locations */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-blue-700">Lieux populaires au Cameroun:</label>
+                  <label className="text-sm font-medium text-blue-700">{zt.popularLocations}</label>
                   <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
                     {suggestedLocations.map((loc, index) => (
                       <button
@@ -973,7 +1039,7 @@ export const ParentGeolocation = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Latitude</label>
+                  <label className="block text-sm font-medium mb-2">{zt.latitude}</label>
                   <input
                     name="latitude"
                     type="number"
@@ -984,12 +1050,12 @@ export const ParentGeolocation = () => {
                   />
                   {currentPosition && (
                     <p className="text-xs text-green-600 mt-1">
-                      Position détectée: {currentPosition.lat.toFixed(6)}
+                      {zt.positionDetected} {currentPosition.lat.toFixed(6)}
                     </p>
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Longitude</label>
+                  <label className="block text-sm font-medium mb-2">{zt.longitude}</label>
                   <input
                     name="longitude"
                     type="number"
@@ -1000,14 +1066,14 @@ export const ParentGeolocation = () => {
                   />
                   {currentPosition && (
                     <p className="text-xs text-green-600 mt-1">
-                      Position détectée: {currentPosition.lng.toFixed(6)}
+                      {zt.positionDetected} {currentPosition.lng.toFixed(6)}
                     </p>
                   )}
                 </div>
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Rayon (mètres)</label>
+                <label className="block text-sm font-medium mb-2">{zt.radius}</label>
                 <input
                   name="radius"
                   type="number"
@@ -1027,21 +1093,22 @@ export const ParentGeolocation = () => {
                   onClick={() => setShowAddZone(false)}
                   disabled={createSafeZoneMutation.isPending}
                 >
-                  Annuler
+                  {zt.cancel}
                 </Button>
                 <Button 
                   type="submit"
                   className="flex-1"
                   disabled={createSafeZoneMutation.isPending}
                 >
-                  {createSafeZoneMutation.isPending ? 'Création...' : 'Créer Zone'}
+                  {createSafeZoneMutation.isPending ? zt.creating : zt.createZone}
                 </Button>
               </div>
             </form>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Modal Carte Interactive */}
       {showMapModal.show && (

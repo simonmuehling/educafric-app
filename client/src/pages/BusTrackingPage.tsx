@@ -41,8 +41,8 @@ export default function BusTrackingPage() {
   const isParent = user?.role === "Parent";
   const studentId = user?.role === "Student" ? user?.id : null;
 
-  // For parents: fetch their children
-  const { data: children = [], isLoading: childrenLoading } = useQuery<Child[]>({
+  // For parents: fetch their children (handles new response format)
+  const { data: childrenData, isLoading: childrenLoading } = useQuery<{ children: Child[] } | Child[]>({
     queryKey: ["/api/parent/children"],
     queryFn: async () => {
       const response = await fetch("/api/parent/children", { credentials: "include" });
@@ -51,6 +51,11 @@ export default function BusTrackingPage() {
     },
     enabled: isParent,
   });
+  
+  // Normalize children response - handles both array and {children: [...]} format
+  const children: Child[] = Array.isArray(childrenData) 
+    ? childrenData 
+    : (childrenData?.children || []);
 
   // Auto-select first child for parent
   const activeStudentId = isParent 

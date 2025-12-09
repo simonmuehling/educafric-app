@@ -390,15 +390,15 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Type de demande</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-white text-gray-900 border border-gray-300">
                             <SelectValue placeholder="Sélectionnez le type de demande" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="bg-white text-gray-900 border border-gray-300 shadow-lg z-50">
                           {Object.entries(requestTypes).map(([key, type]) => (
-                            <SelectItem key={key} value={key}>
+                            <SelectItem key={key} value={key} className="cursor-pointer hover:bg-gray-100">
                               <div className="flex items-center space-x-2">
                                 <type.icon className="w-4 h-4" />
                                 <span>{type.label}</span>
@@ -419,20 +419,20 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Catégorie</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-white text-gray-900 border border-gray-300">
                             <SelectValue placeholder="Sélectionnez une catégorie" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="academic">Académique</SelectItem>
-                          <SelectItem value="administrative">Administrative</SelectItem>
-                          <SelectItem value="health">Santé</SelectItem>
-                          <SelectItem value="disciplinary">Disciplinaire</SelectItem>
-                          <SelectItem value="transportation">Transport</SelectItem>
-                          <SelectItem value="enrollment">Inscription/Adhésion</SelectItem>
-                          <SelectItem value="other">Autre</SelectItem>
+                        <SelectContent className="bg-white text-gray-900 border border-gray-300 shadow-lg z-50">
+                          <SelectItem value="academic" className="cursor-pointer hover:bg-gray-100">Académique</SelectItem>
+                          <SelectItem value="administrative" className="cursor-pointer hover:bg-gray-100">Administrative</SelectItem>
+                          <SelectItem value="health" className="cursor-pointer hover:bg-gray-100">Santé</SelectItem>
+                          <SelectItem value="disciplinary" className="cursor-pointer hover:bg-gray-100">Disciplinaire</SelectItem>
+                          <SelectItem value="transportation" className="cursor-pointer hover:bg-gray-100">Transport</SelectItem>
+                          <SelectItem value="enrollment" className="cursor-pointer hover:bg-gray-100">Inscription/Adhésion</SelectItem>
+                          <SelectItem value="other" className="cursor-pointer hover:bg-gray-100">Autre</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -447,17 +447,17 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Priorité</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-white text-gray-900 border border-gray-300">
                             <SelectValue placeholder="Sélectionnez la priorité" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="low">Faible</SelectItem>
-                          <SelectItem value="medium">Moyenne</SelectItem>
-                          <SelectItem value="high">Élevée</SelectItem>
-                          <SelectItem value="urgent">Urgente</SelectItem>
+                        <SelectContent className="bg-white text-gray-900 border border-gray-300 shadow-lg z-50">
+                          <SelectItem value="low" className="cursor-pointer hover:bg-gray-100">Faible</SelectItem>
+                          <SelectItem value="medium" className="cursor-pointer hover:bg-gray-100">Moyenne</SelectItem>
+                          <SelectItem value="high" className="cursor-pointer hover:bg-gray-100">Élevée</SelectItem>
+                          <SelectItem value="urgent" className="cursor-pointer hover:bg-gray-100">Urgente</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
