@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   getLastServerSync,
@@ -72,13 +72,56 @@ export function OfflinePremiumProvider({ children }: { children: ReactNode }) {
   const [isPreparing, setIsPreparing] = useState(false);
 
   // ===========================
+  // 🔄 SYNC FUNCTION (defined early for event listeners)
+  // ===========================
+  const triggerSyncRef = useRef<() => Promise<void>>();
+  
+  const triggerSync = useCallback(async (): Promise<void> => {
+    if (!navigator.onLine || isSyncing) {
+      console.log('[OFFLINE_PREMIUM] ⚠️ Sync skipped - offline or already syncing');
+      return;
+    }
+
+    setIsSyncing(true);
+    console.log('[OFFLINE_PREMIUM] 🔄 Starting sync...');
+
+    try {
+      const result = await SyncQueueManager.processQueue();
+      console.log('[OFFLINE_PREMIUM] ✅ Sync complete:', result);
+      
+      // Update last sync timestamp
+      const now = Date.now();
+      await setLastServerSync(now);
+      setLastSyncState(now);
+      setDaysOffline(0);
+      
+      // Update pending count
+      const count = await SyncQueueManager.getPendingCount();
+      setPendingSyncCount(count);
+    } catch (error) {
+      console.error('[OFFLINE_PREMIUM] ❌ Sync failed:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isSyncing]);
+  
+  // Keep ref updated
+  triggerSyncRef.current = triggerSync;
+
+  // ===========================
   // 🌐 ONLINE/OFFLINE DETECTION
   // ===========================
   useEffect(() => {
-    const handleOnline = () => {
-      console.log('[OFFLINE_PREMIUM] 🌐 Connection restored');
+    const handleOnline = async () => {
+      console.log('[OFFLINE_PREMIUM] 🌐 Connection restored - triggering immediate sync');
       setIsOnline(true);
-      triggerSync(); // Auto-sync when back online
+      
+      // Small delay to ensure network is stable
+      setTimeout(async () => {
+        if (triggerSyncRef.current) {
+          await triggerSyncRef.current();
+        }
+      }, 1000);
     };
 
     const handleOffline = () => {
@@ -88,6 +131,16 @@ export function OfflinePremiumProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    
+    // Also trigger sync on initial load if online and there are pending items
+    if (navigator.onLine) {
+      SyncQueueManager.getPendingCount().then(count => {
+        if (count > 0) {
+          console.log('[OFFLINE_PREMIUM] 📊 Found', count, 'pending items on startup - syncing...');
+          setTimeout(() => triggerSyncRef.current?.(), 2000);
+        }
+      });
+    }
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -347,42 +400,14 @@ export function OfflinePremiumProvider({ children }: { children: ReactNode }) {
     return 'none'; // ✅ 0-3 days - Full access
   };
 
-  // ===========================
-  // 🔄 SYNC OPERATIONS
-  // ===========================
-  const triggerSync = async (): Promise<void> => {
-    if (!isOnline || isSyncing) {
-      console.log('[OFFLINE_PREMIUM] ⚠️ Sync skipped - offline or already syncing');
-      return;
-    }
-
-    setIsSyncing(true);
-    console.log('[OFFLINE_PREMIUM] 🔄 Starting sync...');
-
-    try {
-      const result = await SyncQueueManager.processQueue();
-      console.log('[OFFLINE_PREMIUM] ✅ Sync complete:', result);
-      
-      // Update last sync timestamp
-      await updateLastSync();
-      
-      // Update pending count
-      const count = await SyncQueueManager.getPendingCount();
-      setPendingSyncCount(count);
-    } catch (error) {
-      console.error('[OFFLINE_PREMIUM] ❌ Sync failed:', error);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const updateLastSync = async (): Promise<void> => {
+  // updateLastSync wrapper for external use
+  const updateLastSync = useCallback(async (): Promise<void> => {
     const now = Date.now();
     await setLastServerSync(now);
     setLastSyncState(now);
     setDaysOffline(0);
     console.log('[OFFLINE_PREMIUM] ✅ Last sync updated');
-  };
+  }, []);
 
   const value: OfflinePremiumContextType = {
     isOnline,
