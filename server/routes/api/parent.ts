@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
 import { requireAuth } from '../../middleware/auth';
 import { db } from '../../db';
-import { users, messages as messagesTable, parentStudentRelations, schools, classes, attendance, enrollments } from '../../../shared/schema';
+import { users, messages as messagesTable, parentStudentRelations, schools, classes, attendance, enrollments, teacherSubjectAssignments, subjects } from '../../../shared/schema';
 import { geolocationDevices, locationTracking, geolocationAlerts, safeZones } from '../../../shared/geolocationSchema';
 import { eq, or, and, desc, inArray } from 'drizzle-orm';
 
@@ -1804,23 +1804,68 @@ router.get('/communications/recipients', requireAuth, async (req: AuthenticatedR
       }
     });
     
-    // 5. Get teachers from children's schools
+    // 5. Get teachers assigned to children's classes via teacher_subject_assignments
     let teachersData: any[] = [];
-    if (schoolIds.length > 0) {
-      teachersData = await db.select({
-        id: users.id,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        schoolId: users.schoolId
+    let teacherSubjectMap: { [key: number]: { subjects: string[]; classes: string[] } } = {};
+    
+    if (classIds.length > 0) {
+      // Get teacher assignments for these classes
+      const assignmentsData = await db.select({
+        teacherId: teacherSubjectAssignments.teacherId,
+        classId: teacherSubjectAssignments.classId,
+        subjectId: teacherSubjectAssignments.subjectId
       })
-      .from(users)
-      .where(and(
-        inArray(users.schoolId, schoolIds),
-        eq(users.role, 'Teacher')
-      ));
+      .from(teacherSubjectAssignments)
+      .where(inArray(teacherSubjectAssignments.classId, classIds));
+      
+      // Get unique teacher IDs
+      const teacherIds = [...new Set(assignmentsData.map(a => a.teacherId).filter((id): id is number => id !== null))];
+      
+      if (teacherIds.length > 0) {
+        // Get teacher details
+        teachersData = await db.select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          schoolId: users.schoolId
+        })
+        .from(users)
+        .where(inArray(users.id, teacherIds));
+        
+        // Get subject names for better display
+        const subjectIds = [...new Set(assignmentsData.map(a => a.subjectId).filter((id): id is number => id !== null))];
+        let subjectMap: { [key: number]: string } = {};
+        if (subjectIds.length > 0) {
+          const subjectsData = await db.select({ id: subjects.id, name: subjects.name })
+            .from(subjects)
+            .where(inArray(subjects.id, subjectIds));
+          subjectMap = Object.fromEntries(subjectsData.map(s => [s.id, s.name]));
+        }
+        
+        // Build teacher subject/class mapping for display
+        assignmentsData.forEach(a => {
+          if (a.teacherId) {
+            if (!teacherSubjectMap[a.teacherId]) {
+              teacherSubjectMap[a.teacherId] = { subjects: [], classes: [] };
+            }
+            if (a.subjectId && subjectMap[a.subjectId]) {
+              const subjectName = subjectMap[a.subjectId];
+              if (!teacherSubjectMap[a.teacherId].subjects.includes(subjectName)) {
+                teacherSubjectMap[a.teacherId].subjects.push(subjectName);
+              }
+            }
+            if (a.classId && classMap[a.classId]) {
+              const className = classMap[a.classId].name;
+              if (!teacherSubjectMap[a.teacherId].classes.includes(className)) {
+                teacherSubjectMap[a.teacherId].classes.push(className);
+              }
+            }
+          }
+        });
+      }
     }
     
-    console.log('[PARENT_COMMUNICATIONS] Found', childrenData.length, 'children,', schoolsData.length, 'schools,', teachersData.length, 'teachers');
+    console.log('[PARENT_COMMUNICATIONS] Found', childrenData.length, 'children,', schoolsData.length, 'schools,', teachersData.length, 'teachers (class-filtered)');
     
     // Format children as potential recipients
     const childrenRecipients = childrenData.map(child => ({
@@ -1839,14 +1884,23 @@ router.get('/communications/recipients', requireAuth, async (req: AuthenticatedR
       details: 'Direction de l\'école'
     }));
     
-    // Format teachers as recipients
-    const teacherRecipients = teachersData.map(teacher => ({
-      id: `teacher_${teacher.id}`,
-      name: `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || 'Enseignant',
-      type: 'teacher',
-      details: teacher.schoolId ? (schoolMap[teacher.schoolId] || 'École') : 'Enseignant',
-      schoolId: teacher.schoolId
-    }));
+    // Format teachers as recipients with subject/class info
+    const teacherRecipients = teachersData.map(teacher => {
+      const teacherInfo = teacherSubjectMap[teacher.id];
+      const subjectsStr = teacherInfo?.subjects?.length > 0 ? teacherInfo.subjects.join(', ') : '';
+      const classesStr = teacherInfo?.classes?.length > 0 ? teacherInfo.classes.join(', ') : '';
+      const details = subjectsStr && classesStr 
+        ? `${subjectsStr} (${classesStr})`
+        : subjectsStr || classesStr || 'Enseignant';
+      
+      return {
+        id: `teacher_${teacher.id}`,
+        name: `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || 'Enseignant',
+        type: 'teacher',
+        details,
+        schoolId: teacher.schoolId
+      };
+    });
     
     // Combine all authorized recipients
     const authorizedRecipients = [
