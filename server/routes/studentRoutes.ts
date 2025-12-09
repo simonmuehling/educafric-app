@@ -601,37 +601,42 @@ router.get('/grades', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student/messages - Get student messages
+// GET /api/student/messages - Get student messages - REAL DATABASE
 router.get('/messages', requireAuth, async (req, res) => {
   try {
     const studentId = req.user?.id;
+    console.log('[STUDENT_API] Fetching messages for student:', studentId);
     
-    const messages = [
-      {
-        id: 1,
-        from: 'M. Dupont',
-        subject: 'Assignment Reminder',
-        message: 'Don\'t forget your math assignment due tomorrow',
-        date: '2025-08-24',
-        read: false,
-        type: 'teacher'
-      },
-      {
-        id: 2,
-        from: 'Administration',
-        subject: 'School Event',
-        message: 'Sports day scheduled for next Friday',
-        date: '2025-08-23',
-        read: true,
-        type: 'admin'
-      }
-    ];
+    // Import database dependencies
+    const { db } = await import('../db');
+    const { messages: messagesTable } = await import('../../shared/schema');
+    const { eq, desc } = await import('drizzle-orm');
+    
+    // Get all messages where this student is the recipient (from parents, teachers, admin)
+    const studentMessages = await db.select()
+      .from(messagesTable)
+      .where(eq(messagesTable.recipientId, studentId))
+      .orderBy(desc(messagesTable.createdAt))
+      .limit(50);
+    
+    // Format messages for frontend
+    const formattedMessages = studentMessages.map(msg => ({
+      id: msg.id,
+      from: msg.senderName || 'Expéditeur',
+      fromRole: msg.senderRole || 'Unknown',
+      subject: msg.subject || 'Sans objet',
+      message: msg.content || '',
+      content: msg.content || '',
+      date: msg.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+      read: msg.isRead || false,
+      isRead: msg.isRead || false,
+      type: msg.senderRole === 'Parent' ? 'family' : (msg.senderRole === 'Teacher' ? 'teacher' : 'admin'),
+      priority: 'normal',
+      status: msg.status || 'sent'
+    }));
 
-    res.json({
-      success: true,
-      messages: messages,
-      message: 'Messages retrieved successfully'
-    });
+    console.log('[STUDENT_API] Found', formattedMessages.length, 'messages for student', studentId);
+    res.json(formattedMessages);
   } catch (error) {
     console.error('[STUDENT_API] Error fetching messages:', error);
     res.status(500).json({
