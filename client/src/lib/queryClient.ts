@@ -3,23 +3,26 @@ import { csrfFetch } from "./csrf";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
+    let errorMessage = 'Request failed';
+    
     try {
       const text = await res.text();
-      let errorMessage = '';
       
-      try {
-        const json = JSON.parse(text);
-        errorMessage = json.message || json.error || text;
-      } catch {
-        errorMessage = text;
+      if (text) {
+        try {
+          const json = JSON.parse(text);
+          // Support bilingual error messages from backend
+          errorMessage = json.messageFr || json.message || json.messageEn || json.error || text;
+        } catch {
+          errorMessage = text;
+        }
       }
-      
-      // Return user-friendly error message without technical details
-      throw new Error(errorMessage || 'Request failed');
-    } catch (parseError) {
-      // Generic user-friendly error for network issues
-      throw new Error('Network error. Please check your connection.');
+    } catch {
+      // If we can't read the response body, use status text
+      errorMessage = res.statusText || 'Network error. Please check your connection.';
     }
+    
+    throw new Error(errorMessage);
   }
 }
 
