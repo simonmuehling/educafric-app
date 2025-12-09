@@ -275,6 +275,29 @@ export default function Login() {
         );
         return;
       }
+      
+      // Validate EDUCAFRIC number for Directors BEFORE submission
+      if (formData.role === 'Director') {
+        const educafricNumber = formData.educafricNumber?.trim();
+        
+        if (!educafricNumber) {
+          setError(language === 'fr' 
+            ? '⚠️ Le numéro EDUCAFRIC est obligatoire pour les directeurs d\'école. Veuillez saisir votre numéro EDUCAFRIC (format: EDU-CM-SC-XXX).' 
+            : '⚠️ EDUCAFRIC number is required for school directors. Please enter your EDUCAFRIC number (format: EDU-CM-SC-XXX).'
+          );
+          return;
+        }
+        
+        // Validate format locally before API call
+        const educafricRegex = /^EDU-CM-SC-\d{3}$/;
+        if (!educafricRegex.test(educafricNumber)) {
+          setError(language === 'fr' 
+            ? `⚠️ Format du numéro EDUCAFRIC invalide: "${educafricNumber}". Le format correct est EDU-CM-SC-XXX (ex: EDU-CM-SC-001, EDU-CM-SC-025).` 
+            : `⚠️ Invalid EDUCAFRIC number format: "${educafricNumber}". Correct format is EDU-CM-SC-XXX (e.g., EDU-CM-SC-001, EDU-CM-SC-025).`
+          );
+          return;
+        }
+      }
     }
 
     try {

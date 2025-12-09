@@ -96,16 +96,28 @@ export class EducafricNumberService {
   static async verifySchoolNumber(educafricNumber: string): Promise<{
     valid: boolean;
     message: string;
+    messageFr: string;
+    messageEn: string;
     record?: typeof educafricNumbers.$inferSelect;
   }> {
     // Check format
     if (!this.validateFormat(educafricNumber)) {
-      return { valid: false, message: 'Invalid EDUCAFRIC number format' };
+      return { 
+        valid: false, 
+        message: 'Format du numéro EDUCAFRIC invalide. Format attendu: EDU-CM-SC-XXX (ex: EDU-CM-SC-001)',
+        messageFr: 'Format du numéro EDUCAFRIC invalide. Format attendu: EDU-CM-SC-XXX (ex: EDU-CM-SC-001)',
+        messageEn: 'Invalid EDUCAFRIC number format. Expected format: EDU-CM-SC-XXX (e.g., EDU-CM-SC-001)'
+      };
     }
 
     // Check if it's a school number
     if (!educafricNumber.startsWith('EDU-CM-SC-')) {
-      return { valid: false, message: 'This is not a school EDUCAFRIC number' };
+      return { 
+        valid: false, 
+        message: 'Ce numéro n\'est pas un numéro EDUCAFRIC pour école. Les numéros école commencent par EDU-CM-SC-',
+        messageFr: 'Ce numéro n\'est pas un numéro EDUCAFRIC pour école. Les numéros école commencent par EDU-CM-SC-',
+        messageEn: 'This is not a school EDUCAFRIC number. School numbers start with EDU-CM-SC-'
+      };
     }
 
     // Check if exists
@@ -116,20 +128,59 @@ export class EducafricNumberService {
       .limit(1);
 
     if (!record) {
-      return { valid: false, message: 'EDUCAFRIC number not found' };
+      return { 
+        valid: false, 
+        message: `Le numéro EDUCAFRIC "${educafricNumber}" n'existe pas dans notre système. Veuillez contacter l'administration EDUCAFRIC pour obtenir un numéro valide.`,
+        messageFr: `Le numéro EDUCAFRIC "${educafricNumber}" n'existe pas dans notre système. Veuillez contacter l'administration EDUCAFRIC pour obtenir un numéro valide.`,
+        messageEn: `The EDUCAFRIC number "${educafricNumber}" does not exist in our system. Please contact EDUCAFRIC administration to obtain a valid number.`
+      };
     }
 
     // Check if already assigned to a school
     if (record.entityId) {
-      return { valid: false, message: 'This EDUCAFRIC number has already been used' };
+      return { 
+        valid: false, 
+        message: `Le numéro EDUCAFRIC "${educafricNumber}" a déjà été utilisé pour créer une autre école. Chaque numéro ne peut être utilisé qu'une seule fois.`,
+        messageFr: `Le numéro EDUCAFRIC "${educafricNumber}" a déjà été utilisé pour créer une autre école. Chaque numéro ne peut être utilisé qu'une seule fois.`,
+        messageEn: `The EDUCAFRIC number "${educafricNumber}" has already been used to create another school. Each number can only be used once.`
+      };
     }
 
     // Check status
     if (record.status !== 'active') {
-      return { valid: false, message: 'This EDUCAFRIC number is not active' };
+      const statusMessages: Record<string, { fr: string; en: string }> = {
+        'revoked': { 
+          fr: `Le numéro EDUCAFRIC "${educafricNumber}" a été révoqué. Veuillez contacter l'administration.`,
+          en: `The EDUCAFRIC number "${educafricNumber}" has been revoked. Please contact administration.`
+        },
+        'expired': { 
+          fr: `Le numéro EDUCAFRIC "${educafricNumber}" a expiré. Veuillez demander un renouvellement.`,
+          en: `The EDUCAFRIC number "${educafricNumber}" has expired. Please request a renewal.`
+        },
+        'pending': { 
+          fr: `Le numéro EDUCAFRIC "${educafricNumber}" est en attente d'activation. Veuillez patienter ou contacter l'administration.`,
+          en: `The EDUCAFRIC number "${educafricNumber}" is pending activation. Please wait or contact administration.`
+        }
+      };
+      const statusMsg = statusMessages[record.status] || { 
+        fr: `Le numéro EDUCAFRIC "${educafricNumber}" n'est pas actif (statut: ${record.status}).`,
+        en: `The EDUCAFRIC number "${educafricNumber}" is not active (status: ${record.status}).`
+      };
+      return { 
+        valid: false, 
+        message: statusMsg.fr,
+        messageFr: statusMsg.fr,
+        messageEn: statusMsg.en
+      };
     }
 
-    return { valid: true, message: 'EDUCAFRIC number is valid', record };
+    return { 
+      valid: true, 
+      message: 'Numéro EDUCAFRIC valide', 
+      messageFr: 'Numéro EDUCAFRIC valide',
+      messageEn: 'EDUCAFRIC number is valid',
+      record 
+    };
   }
 
   /**

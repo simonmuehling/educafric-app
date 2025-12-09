@@ -439,17 +439,36 @@ router.post('/register', async (req, res) => {
         console.error('[AUTH_REGISTER] Invalid EDUCAFRIC number for Director registration:', verification.message);
         return res.status(400).json({ 
           message: verification.message,
-          messageFr: verification.message,
-          messageEn: verification.message
+          messageFr: verification.messageFr,
+          messageEn: verification.messageEn
         });
       }
 
       console.log('[AUTH_REGISTER] Verified EDUCAFRIC number for Director:', educafricNumber);
     }
     
-    const existingUser = await storage.getUserByEmail(validatedData.email);
-    if (existingUser) {
-      return res.status(409).json({ message: 'User already exists' });
+    // Check for existing user by email (if provided)
+    if (validatedData.email) {
+      const existingUser = await storage.getUserByEmail(validatedData.email);
+      if (existingUser) {
+        return res.status(409).json({ 
+          message: `Un compte existe déjà avec l'email "${validatedData.email}". Utilisez un autre email ou connectez-vous.`,
+          messageFr: `Un compte existe déjà avec l'email "${validatedData.email}". Utilisez un autre email ou connectez-vous.`,
+          messageEn: `An account already exists with the email "${validatedData.email}". Use a different email or log in.`
+        });
+      }
+    }
+    
+    // Check for existing user by phone
+    if (validatedData.phoneNumber) {
+      const existingPhone = await storage.getUserByPhone(validatedData.phoneNumber);
+      if (existingPhone) {
+        return res.status(409).json({ 
+          message: `Un compte existe déjà avec le numéro "${validatedData.phoneNumber}". Utilisez un autre numéro ou connectez-vous.`,
+          messageFr: `Un compte existe déjà avec le numéro "${validatedData.phoneNumber}". Utilisez un autre numéro ou connectez-vous.`,
+          messageEn: `An account already exists with the phone number "${validatedData.phoneNumber}". Use a different number or log in.`
+        });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(validatedData.password, 12);
@@ -526,12 +545,36 @@ router.post('/register', async (req, res) => {
   } catch (error) {
     // Log error without exposing sensitive details
     if (error instanceof z.ZodError) {
-      console.warn('[AUTH_VALIDATION] Registration validation failed');
-      return res.status(400).json({ message: 'Validation failed', errors: error.errors });
+      console.warn('[AUTH_VALIDATION] Registration validation failed:', error.errors);
+      // Create user-friendly validation error messages
+      const fieldErrors = error.errors.map(e => {
+        const field = e.path.join('.');
+        const fieldLabels: Record<string, { fr: string; en: string }> = {
+          'firstName': { fr: 'Prénom', en: 'First name' },
+          'lastName': { fr: 'Nom', en: 'Last name' },
+          'email': { fr: 'Email', en: 'Email' },
+          'phoneNumber': { fr: 'Numéro de téléphone', en: 'Phone number' },
+          'password': { fr: 'Mot de passe', en: 'Password' },
+          'role': { fr: 'Rôle', en: 'Role' }
+        };
+        const label = fieldLabels[field] || { fr: field, en: field };
+        return `${label.fr}: ${e.message}`;
+      }).join(', ');
+      
+      return res.status(400).json({ 
+        message: `Erreur de validation: ${fieldErrors}`,
+        messageFr: `Erreur de validation: ${fieldErrors}`,
+        messageEn: `Validation error: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+        errors: error.errors 
+      });
     }
     
-    console.error('[AUTH_ERROR] Registration failed');
-    res.status(500).json({ message: 'Registration failed' });
+    console.error('[AUTH_ERROR] Registration failed:', error);
+    res.status(500).json({ 
+      message: 'Échec de l\'inscription. Veuillez réessayer ou contacter le support.',
+      messageFr: 'Échec de l\'inscription. Veuillez réessayer ou contacter le support.',
+      messageEn: 'Registration failed. Please try again or contact support.'
+    });
   }
 });
 
