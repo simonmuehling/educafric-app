@@ -261,6 +261,55 @@ router.get('/geolocation/safe-zones', requireAuth, async (req: AuthenticatedRequ
   }
 });
 
+// Create geolocation safe zone for parent - REAL DATABASE QUERIES
+router.post('/geolocation/safe-zones', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const { name, latitude, longitude, radius, childrenIds, alertOnEntry, alertOnExit, description } = req.body;
+    
+    console.log('[PARENT_GEOLOCATION] Creating safe zone for parent:', parentId, { name, latitude, longitude, radius });
+    
+    // Get parent's school ID from their children
+    const relations = await db.select({ studentId: parentStudentRelations.studentId })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, parentId));
+    
+    if (relations.length === 0) {
+      return res.status(400).json({ message: 'No children linked to create safe zone' });
+    }
+    
+    const studentIds = relations.map(r => r.studentId);
+    const [firstChild] = await db.select({ schoolId: users.schoolId })
+      .from(users)
+      .where(eq(users.id, studentIds[0]));
+    
+    const schoolId = firstChild?.schoolId || 1;
+    
+    // Insert safe zone into database
+    const [newZone] = await db.insert(safeZones).values({
+      schoolId,
+      name: name || 'Zone de sécurité',
+      description: description || '',
+      latitude: String(latitude),
+      longitude: String(longitude),
+      radius: radius || 100,
+      isActive: true,
+      alertOnEntry: alertOnEntry || false,
+      alertOnExit: alertOnExit !== false
+    }).returning();
+    
+    console.log('[PARENT_GEOLOCATION] ✅ Safe zone created:', newZone.id);
+    res.json(newZone);
+  } catch (error: any) {
+    console.error('[PARENT_API] Error creating geolocation safe zone:', error);
+    res.status(500).json({ message: 'Failed to create geolocation safe zone' });
+  }
+});
+
 // Get specific child location - REAL DATABASE QUERIES
 router.get('/geolocation/children/:childId/location', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {

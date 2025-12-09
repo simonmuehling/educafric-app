@@ -125,7 +125,7 @@ export const ParentGeolocation = () => {
   // Create safe zone mutation
   const createSafeZoneMutation = useMutation({
     mutationFn: async (zoneData: any) => {
-      const response = await csrfFetch('/api/geolocation/safe-zones', {
+      const response = await csrfFetch('/api/parent/geolocation/safe-zones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(zoneData)
@@ -137,8 +137,8 @@ export const ParentGeolocation = () => {
       console.log('[PARENT_GEOLOCATION] ✅ Zone créée avec succès:', newZone);
       
       // Force immediate data refresh with multiple strategies
-      await queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
-      await queryClient.refetchQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
       
       // Force complete geolocation cache refresh
       queryClient.invalidateQueries({ queryKey: ['/api/geolocation'] });
