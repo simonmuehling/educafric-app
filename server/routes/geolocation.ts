@@ -2,14 +2,42 @@ import { Router } from 'express';
 import { simpleGeolocationService } from '../services/simpleGeolocationService';
 import { z } from 'zod';
 
-// Authentication middleware - use actual authenticated user
-const requireAuth = (req: any, res: any, next: any) => {
-  if (!req.user) {
-    console.log('[GEOLOCATION_AUTH] No authenticated user for:', req.originalUrl);
-    return res.status(401).json({ message: 'Authentication required' });
+// Authentication middleware - use actual authenticated user or session
+const requireAuth = async (req: any, res: any, next: any) => {
+  // Check if user is already set by passport
+  if (req.user && req.user.id) {
+    console.log('[GEOLOCATION_AUTH] User authenticated via passport:', req.user.id, 'for:', req.originalUrl);
+    return next();
   }
-  console.log('[GEOLOCATION_AUTH] User authenticated:', req.user.id, 'for:', req.originalUrl);
-  return next();
+  
+  // Fallback: Check if we have a valid session with passport user
+  if (req.session?.passport?.user) {
+    try {
+      const { db } = await import('../db');
+      const { users } = await import('../../shared/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      const userId = req.session.passport.user;
+      const [userData] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      
+      if (userData) {
+        req.user = userData;
+        console.log('[GEOLOCATION_AUTH] User restored from session:', userData.id, 'for:', req.originalUrl);
+        return next();
+      }
+    } catch (error) {
+      console.error('[GEOLOCATION_AUTH] Error restoring user from session:', error);
+    }
+  }
+  
+  // Check isAuthenticated function
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    console.log('[GEOLOCATION_AUTH] User authenticated via isAuthenticated() for:', req.originalUrl);
+    return next();
+  }
+  
+  console.log('[GEOLOCATION_AUTH] No authenticated user for:', req.originalUrl);
+  return res.status(401).json({ message: 'Authentication required' });
 };
 
 const router = Router();
