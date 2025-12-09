@@ -11940,13 +11940,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requests = parentRequestsData.map(r => ({
         id: r.id,
         type: r.requestType,
-        category: 'general',
-        subject: r.requestType,
-        description: '',
+        category: r.category || 'general',
+        subject: r.subject || r.requestType,
+        description: r.description || '',
         status: r.status || 'pending',
-        priority: 'medium',
+        priority: r.priority || 'medium',
+        requestedDate: r.requestedDate,
+        schoolCode: r.schoolCode,
+        childFirstName: r.childFirstName,
+        childLastName: r.childLastName,
         submittedAt: r.createdAt?.toISOString() || new Date().toISOString(),
         studentName: studentNames[r.studentId] || 'Élève',
+        responseMessage: r.responseMessage,
+        respondedAt: r.respondedAt?.toISOString(),
         responseExpected: null
       }));
 
@@ -11992,11 +11998,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         studentId = linkedChildren.length > 0 ? linkedChildren[0].studentId : 0;
       }
       
-      // Insert into database
+      // Insert into database with ALL form fields
       const newRequestResult = await db.insert(parentRequests).values({
         parentId: userId,
         studentId: studentId || 0,
         requestType: requestData.type || requestData.requestType || 'general',
+        subject: requestData.subject || null,
+        description: requestData.description || null,
+        priority: requestData.priority || 'medium',
+        category: requestData.category || null,
+        requestedDate: requestData.requestedDate || null,
+        schoolCode: requestData.schoolCode || null,
+        childFirstName: requestData.childFirstName || null,
+        childLastName: requestData.childLastName || null,
+        childDateOfBirth: requestData.childDateOfBirth || null,
+        relationshipType: requestData.relationshipType || null,
+        contactPhone: requestData.contactPhone || null,
         status: 'pending'
       }).returning();
       

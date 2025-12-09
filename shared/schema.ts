@@ -126,7 +126,21 @@ export const parentRequests = pgTable("parent_requests", {
   parentId: integer("parent_id").notNull(),
   studentId: integer("student_id").notNull(),
   requestType: text("request_type").notNull(),
+  subject: text("subject"),
+  description: text("description"),
+  priority: text("priority").default("medium"),
+  category: text("category"),
+  requestedDate: text("requested_date"),
+  schoolCode: text("school_code"),
+  childFirstName: text("child_first_name"),
+  childLastName: text("child_last_name"),
+  childDateOfBirth: text("child_date_of_birth"),
+  relationshipType: text("relationship_type"),
+  contactPhone: text("contact_phone"),
   status: text("status").default("pending"),
+  responseMessage: text("response_message"),
+  respondedAt: timestamp("responded_at"),
+  respondedBy: integer("responded_by"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
