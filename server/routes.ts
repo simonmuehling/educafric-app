@@ -11966,52 +11966,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Parent requests API - FIXED MISSING ROUTE
+  // Parent requests API - REAL DATABASE QUERIES
   app.get("/api/parent/requests", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).user?.id || (req.session as any)?.userId;
       console.log('[PARENT_REQUESTS] Getting requests for parent:', userId);
       
-      // Mock parent requests data - comprehensive list
-      const requests = [
-        {
-          id: 1,
-          type: 'absence_request',
-          category: 'health',
-          subject: 'Demande d\'absence médicale',
-          description: 'Mon enfant Emma doit s\'absenter pour un rendez-vous médical.',
-          status: 'pending',
-          priority: 'medium',
-          submittedAt: '2024-08-20T10:30:00Z',
-          studentName: 'Emma Tall',
-          responseExpected: '2024-08-25T17:00:00Z'
-        },
-        {
-          id: 2,
-          type: 'meeting',
-          category: 'academic',
-          subject: 'Rendez-vous avec l\'enseignant',
-          description: 'Je souhaiterais discuter des progrès d\'Emma en mathématiques.',
-          status: 'approved',
-          priority: 'low',
-          submittedAt: '2024-08-18T14:15:00Z',
-          studentName: 'Emma Tall',
-          responseExpected: '2024-08-22T16:00:00Z'
-        },
-        {
-          id: 3,
-          type: 'complaint',
-          category: 'disciplinary',
-          subject: 'Problème de comportement en classe',
-          description: 'J\'aimerais discuter d\'un incident qui s\'est produit en classe.',
-          status: 'in_review',
-          priority: 'high',
-          submittedAt: '2024-08-22T09:20:00Z',
-          studentName: 'Emma Tall',
-          responseExpected: '2024-08-24T12:00:00Z'
-        }
-      ];
+      // Query parent_requests table for this parent
+      const parentRequestsData = await db.select()
+        .from(parentRequests)
+        .where(eq(parentRequests.parentId, userId))
+        .orderBy(desc(parentRequests.createdAt));
+      
+      // Get student names for each request
+      const studentIds = [...new Set(parentRequestsData.map(r => r.studentId))];
+      let studentNames: Record<number, string> = {};
+      
+      if (studentIds.length > 0) {
+        const studentsList = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+          .from(users)
+          .where(inArray(users.id, studentIds));
+        studentNames = Object.fromEntries(studentsList.map(s => [s.id, `${s.firstName || ''} ${s.lastName || ''}`.trim()]));
+      }
+      
+      const requests = parentRequestsData.map(r => ({
+        id: r.id,
+        type: r.requestType,
+        category: 'general',
+        subject: r.requestType,
+        description: '',
+        status: r.status || 'pending',
+        priority: 'medium',
+        submittedAt: r.createdAt?.toISOString() || new Date().toISOString(),
+        studentName: studentNames[r.studentId] || 'Élève',
+        responseExpected: null
+      }));
 
+      console.log('[PARENT_REQUESTS] Found', requests.length, 'requests for parent', userId);
       res.json({ success: true, requests, total: requests.length });
     } catch (error) {
       console.error('[PARENT_REQUESTS] Error:', error);
@@ -12019,27 +12010,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Parent requests test endpoint - For frontend diagnostics
-  app.get("/api/parent-requests-test", async (req, res) => {
+  // Parent requests test endpoint - REAL DATABASE (for diagnostics)
+  app.get("/api/parent-requests-test", requireAuth, async (req, res) => {
     try {
+      const userId = (req as any).user?.id || (req.session as any)?.userId;
       
-      // Mock test data for parent requests
-      const testRequests = [
-        {
-          id: 1,
-          type: 'absence_request',
-          category: 'health',
-          subject: 'Test - Demande d\'absence médicale',
-          description: 'Demande de test pour vérifier le système.',
-          status: 'pending',
-          priority: 'medium',
-          submittedAt: new Date().toISOString(),
-          studentName: 'Emma Test',
-          responseExpected: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ];
+      // Query actual database
+      const testRequests = await db.select()
+        .from(parentRequests)
+        .where(eq(parentRequests.parentId, userId))
+        .limit(5);
       
-      res.json({ success: true, requests: testRequests });
+      res.json({ success: true, requests: testRequests, count: testRequests.length });
     } catch (error) {
       console.error('[PARENT_REQUESTS_TEST] Error:', error);
       res.status(500).json({ success: false, message: 'Test endpoint failed' });
@@ -12048,13 +12030,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/parent/requests", requireAuth, async (req, res) => {
     try {
-      const userId = (req.session as any)?.userId;
+      const userId = (req as any).user?.id || (req.session as any)?.userId;
       const requestData = req.body;
       console.log('[PARENT_REQUESTS] Creating new request for parent:', userId, requestData);
       
-      // Mock response for request submission
+      // Get studentId - either from request or get first linked child
+      let studentId = requestData.studentId;
+      if (!studentId) {
+        const linkedChildren = await db.select({ studentId: parentStudentRelations.studentId })
+          .from(parentStudentRelations)
+          .where(eq(parentStudentRelations.parentId, userId))
+          .limit(1);
+        studentId = linkedChildren.length > 0 ? linkedChildren[0].studentId : 0;
+      }
+      
+      // Insert into database
+      const newRequestResult = await db.insert(parentRequests).values({
+        parentId: userId,
+        studentId: studentId || 0,
+        requestType: requestData.type || requestData.requestType || 'general',
+        status: 'pending'
+      }).returning();
+      
       const newRequest = {
-        id: Date.now(),
+        id: newRequestResult[0].id,
         ...requestData,
         status: 'pending',
         submittedAt: new Date().toISOString(),
@@ -12065,15 +12064,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const notificationTitle = requestData.type === 'school_enrollment' 
           ? '🏫 Nouvelle Demande d\'Adhésion École' 
-          : `📥 Nouvelle Demande Parent - ${requestData.subject}`;
+          : `📥 Nouvelle Demande Parent - ${requestData.subject || requestData.type}`;
         
         const notificationMessage = requestData.type === 'school_enrollment'
           ? `Une nouvelle demande d'adhésion école a été soumise par un parent. Enfant: ${requestData.childFirstName} ${requestData.childLastName}. École demandée: ${requestData.schoolCode || 'Non spécifiée'}. Sujet: ${requestData.subject}`
-          : `Type: ${requestData.type}. Sujet: ${requestData.subject}. Description: ${requestData.description.substring(0, 100)}${requestData.description.length > 100 ? '...' : ''}`;
+          : `Type: ${requestData.type}. Sujet: ${requestData.subject || 'Sans sujet'}. Description: ${(requestData.description || '').substring(0, 100)}`;
 
-        // Create notification for director (assuming director has userId 1 or get from school admin)
+        // Create notification for director
         await storage.createNotification({
-          userId: 1, // In production, get actual director/admin userId from school
+          userId: 1,
           title: notificationTitle,
           message: notificationMessage,
           type: 'parent_request',
@@ -12094,9 +12093,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[PARENT_REQUESTS] ✅ Director notification created for:', requestData.type);
       } catch (notificationError) {
         console.error('[PARENT_REQUESTS] ❌ Failed to create director notification:', notificationError);
-        // Don't fail the request if notification fails
       }
 
+      console.log('[PARENT_REQUESTS] Request saved to database:', newRequestResult[0].id);
       res.json({ success: true, request: newRequest, message: 'Demande soumise avec succès' });
     } catch (error) {
       console.error('[PARENT_REQUESTS] Error:', error);
