@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,15 +27,20 @@ import {
   Calendar,
   Clock,
   BookOpen,
-  DollarSign
+  DollarSign,
+  Video,
+  MapPin,
+  Star
 } from 'lucide-react';
 
 interface TeacherInvitation {
   id: number;
   teacherId: number;
+  teacherName?: string;
   targetType: 'student' | 'parent';
   targetId: number;
   studentId?: number;
+  studentName?: string | null;
   subjects: string[];
   level?: string;
   message?: string;
@@ -55,13 +60,30 @@ interface PrivateSession {
   teacherName: string;
   title: string;
   subject: string;
+  description?: string;
   scheduledStart: string;
   scheduledEnd?: string;
+  actualStart?: string;
+  actualEnd?: string;
   sessionType: 'online' | 'in_person' | 'hybrid';
+  location?: string;
+  meetingUrl?: string;
   status: 'scheduled' | 'ongoing' | 'completed' | 'cancelled';
+  rating?: number;
+  createdAt: string;
 }
 
-const ParentPrivateCourses: React.FC = () => {
+interface InvitationsResponse {
+  success: boolean;
+  invitations: TeacherInvitation[];
+}
+
+interface SessionsResponse {
+  success: boolean;
+  sessions: PrivateSession[];
+}
+
+const ParentPrivateCourses = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -115,7 +137,13 @@ const ParentPrivateCourses: React.FC = () => {
       online: 'En ligne',
       inPerson: 'En présentiel',
       hybrid: 'Hybride',
-      sessionDetails: 'Détails de la session'
+      sessionDetails: 'Détails de la session',
+      joinSession: 'Rejoindre',
+      child: 'Enfant',
+      date: 'Date',
+      time: 'Heure',
+      location: 'Lieu',
+      rating: 'Note'
     },
     en: {
       title: 'My Children\'s Private Courses',
@@ -158,18 +186,26 @@ const ParentPrivateCourses: React.FC = () => {
       online: 'Online',
       inPerson: 'In Person',
       hybrid: 'Hybrid',
-      sessionDetails: 'Session Details'
+      sessionDetails: 'Session Details',
+      joinSession: 'Join',
+      child: 'Child',
+      date: 'Date',
+      time: 'Time',
+      location: 'Location',
+      rating: 'Rating'
     }
   };
 
   const t = text[language];
 
   // Fetch received invitations
-  const { data: invitationsData, isLoading: invitationsLoading } = useQuery({
-    queryKey: ['/api/teacher/independent/invitations/received'],
-    queryFn: async () => {
-      return await apiRequest('GET', '/api/teacher/independent/invitations/received');
-    }
+  const { data: invitationsData, isLoading: invitationsLoading } = useQuery<InvitationsResponse>({
+    queryKey: ['/api/teacher/independent/invitations/received']
+  });
+
+  // Fetch sessions for children
+  const { data: sessionsData, isLoading: sessionsLoading } = useQuery<SessionsResponse>({
+    queryKey: ['/api/teacher/independent/parent/sessions']
   });
 
   // Accept invitation mutation
@@ -188,6 +224,7 @@ const ParentPrivateCourses: React.FC = () => {
       setSelectedInvitation(null);
       setResponseMessage('');
       queryClient.invalidateQueries({ queryKey: ['/api/teacher/independent/invitations/received'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/independent/parent/sessions'] });
     },
     onError: (error: any) => {
       toast({
@@ -253,18 +290,67 @@ const ParentPrivateCourses: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusColors = {
+    const statusColors: Record<string, string> = {
       pending: 'bg-yellow-500',
       accepted: 'bg-green-500',
       rejected: 'bg-red-500',
-      expired: 'bg-gray-500'
+      expired: 'bg-gray-500',
+      scheduled: 'bg-blue-500',
+      ongoing: 'bg-purple-500',
+      completed: 'bg-green-600',
+      cancelled: 'bg-red-600'
+    };
+    
+    const statusText: Record<string, string> = {
+      pending: t.pending,
+      accepted: t.accepted,
+      rejected: t.rejected,
+      expired: t.expired,
+      scheduled: t.scheduled,
+      ongoing: t.ongoing,
+      completed: t.completed,
+      cancelled: t.cancelled
     };
     
     return (
-      <Badge className={statusColors[status as keyof typeof statusColors] || 'bg-gray-500'}>
-        {t[status as keyof typeof t] || status}
+      <Badge className={statusColors[status] || 'bg-gray-500'}>
+        {statusText[status] || status}
       </Badge>
     );
+  };
+
+  const getSessionTypeIcon = (type: string) => {
+    switch (type) {
+      case 'online': return <Video className="w-4 h-4 text-blue-500" />;
+      case 'in_person': return <MapPin className="w-4 h-4 text-green-500" />;
+      case 'hybrid': return <BookOpen className="w-4 h-4 text-purple-500" />;
+      default: return null;
+    }
+  };
+
+  const getSessionTypeText = (type: string) => {
+    switch (type) {
+      case 'online': return t.online;
+      case 'in_person': return t.inPerson;
+      case 'hybrid': return t.hybrid;
+      default: return type;
+    }
+  };
+
+  const formatDateTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return {
+      date: date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      }),
+      time: date.toLocaleTimeString(language === 'fr' ? 'fr-FR' : 'en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    };
   };
 
   // Invitations Section
@@ -273,7 +359,7 @@ const ParentPrivateCourses: React.FC = () => {
       return <div className="text-center py-8">{t.loading}</div>;
     }
 
-    const invitations = (invitationsData?.invitations || []) as TeacherInvitation[];
+    const invitations = invitationsData?.invitations || [];
 
     return (
       <div className="space-y-4">
@@ -294,14 +380,16 @@ const ParentPrivateCourses: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <GraduationCap className="w-5 h-5 text-blue-500" />
-                        <span className="font-semibold">{t.teacher} ID: {invitation.teacherId}</span>
+                        <span className="font-semibold">
+                          {invitation.teacherName || `${t.teacher} #${invitation.teacherId}`}
+                        </span>
                         {getStatusBadge(invitation.status)}
                       </div>
                       
-                      {invitation.studentId && (
+                      {invitation.studentName && (
                         <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                           <User className="w-4 h-4" />
-                          <span>{t.forChild}: Élève #{invitation.studentId}</span>
+                          <span>{t.forChild}: {invitation.studentName}</span>
                         </div>
                       )}
 
@@ -318,16 +406,18 @@ const ParentPrivateCourses: React.FC = () => {
                           <div className="flex items-center gap-3 mt-2 text-green-600 font-medium">
                             <DollarSign className="w-4 h-4" />
                             <span>
-                              {invitation.pricePerHour && `${invitation.pricePerHour} CFA/h`}
+                              {invitation.pricePerHour && `${invitation.pricePerHour.toLocaleString()} CFA/h`}
                               {invitation.pricePerHour && invitation.pricePerSession && ' • '}
-                              {invitation.pricePerSession && `${invitation.pricePerSession} CFA/session`}
+                              {invitation.pricePerSession && `${invitation.pricePerSession.toLocaleString()} CFA/session`}
                             </span>
                           </div>
                         )}
                         
-                        <p className="text-xs text-gray-500 mt-2">
-                          {t.expiresOn}: {new Date(invitation.expiresAt || '').toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
-                        </p>
+                        {invitation.expiresAt && (
+                          <p className="text-xs text-gray-500 mt-2">
+                            {t.expiresOn}: {new Date(invitation.expiresAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
+                          </p>
+                        )}
                       </div>
                     </div>
                     
@@ -364,16 +454,106 @@ const ParentPrivateCourses: React.FC = () => {
     );
   };
 
-  // Sessions Section (Placeholder for now)
+  // Sessions Section
   const SessionsSection = () => {
+    if (sessionsLoading) {
+      return <div className="text-center py-8">{t.loading}</div>;
+    }
+
+    const sessions = sessionsData?.sessions || [];
+
+    if (sessions.length === 0) {
+      return (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">{t.noSessions}</h3>
+            <p className="text-gray-600">{t.noSessionsDesc}</p>
+          </CardContent>
+        </Card>
+      );
+    }
+
     return (
-      <Card>
-        <CardContent className="text-center py-12">
-          <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-          <h3 className="text-lg font-semibold mb-2">{t.noSessions}</h3>
-          <p className="text-gray-600">{t.noSessionsDesc}</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        {sessions.map((session) => {
+          const { date, time } = formatDateTime(session.scheduledStart);
+          
+          return (
+            <Card key={session.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-primary" />
+                    {session.title}
+                  </CardTitle>
+                  {getStatusBadge(session.status)}
+                </div>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="w-4 h-4 text-gray-500" />
+                      <span><strong>{t.child}:</strong> {session.studentName}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <GraduationCap className="w-4 h-4 text-gray-500" />
+                      <span><strong>{t.teacher}:</strong> {session.teacherName}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <BookOpen className="w-4 h-4 text-gray-500" />
+                      <span><strong>{t.subjects}:</strong> {session.subject}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="w-4 h-4 text-gray-500" />
+                      <span><strong>{t.date}:</strong> {date}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="w-4 h-4 text-gray-500" />
+                      <span><strong>{t.time}:</strong> {time}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      {getSessionTypeIcon(session.sessionType)}
+                      <span>{getSessionTypeText(session.sessionType)}</span>
+                      {session.location && <span className="text-gray-500">- {session.location}</span>}
+                    </div>
+                  </div>
+                </div>
+
+                {session.description && (
+                  <p className="text-sm text-gray-600 mt-3 border-t pt-3">
+                    {session.description}
+                  </p>
+                )}
+
+                {session.rating && (
+                  <div className="flex items-center gap-1 mt-3">
+                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                    <span className="text-sm font-medium">{session.rating}/5</span>
+                  </div>
+                )}
+
+                {session.status === 'scheduled' && session.sessionType === 'online' && session.meetingUrl && (
+                  <div className="mt-4">
+                    <Button 
+                      onClick={() => window.open(session.meetingUrl, '_blank')}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      data-testid={`button-join-session-${session.id}`}
+                    >
+                      <Video className="w-4 h-4 mr-2" />
+                      {t.joinSession}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     );
   };
 
@@ -403,11 +583,13 @@ const ParentPrivateCourses: React.FC = () => {
 
       {/* Accept Dialog */}
       <Dialog open={showAcceptDialog} onOpenChange={setShowAcceptDialog}>
-        <DialogContent>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>{t.acceptInvitation}</DialogTitle>
             <DialogDescription>
-              Confirmer l'acceptation de cette invitation de cours privé
+              {language === 'fr' 
+                ? 'Confirmer l\'acceptation de cette invitation de cours privé'
+                : 'Confirm acceptance of this private lesson invitation'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -447,11 +629,13 @@ const ParentPrivateCourses: React.FC = () => {
 
       {/* Reject Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>{t.rejectInvitation}</DialogTitle>
             <DialogDescription>
-              Confirmer le rejet de cette invitation de cours privé
+              {language === 'fr'
+                ? 'Confirmer le rejet de cette invitation de cours privé'
+                : 'Confirm rejection of this private lesson invitation'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">

@@ -605,7 +605,7 @@ router.get('/invitations', requireAuth, requireIndependentActivation, async (req
   }
 });
 
-// Get invitations received by student/parent
+// Get invitations received by student/parent (with teacher and student names)
 router.get('/invitations/received', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
@@ -616,9 +616,34 @@ router.get('/invitations/received', requireAuth, async (req, res) => {
       .where(eq(teacherStudentInvitations.targetId, user.id))
       .orderBy(desc(teacherStudentInvitations.createdAt));
 
+    // Enrich with teacher and student names
+    const enrichedInvitations = await Promise.all(invitations.map(async (inv) => {
+      const [teacher] = await db
+        .select({ firstName: users.firstName, lastName: users.lastName })
+        .from(users)
+        .where(eq(users.id, inv.teacherId))
+        .limit(1);
+
+      let studentInfo = null;
+      if (inv.studentId) {
+        const [student] = await db
+          .select({ firstName: users.firstName, lastName: users.lastName })
+          .from(users)
+          .where(eq(users.id, inv.studentId))
+          .limit(1);
+        studentInfo = student;
+      }
+
+      return {
+        ...inv,
+        teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Inconnu',
+        studentName: studentInfo ? `${studentInfo.firstName} ${studentInfo.lastName}` : null
+      };
+    }));
+
     res.json({
       success: true,
-      invitations
+      invitations: enrichedInvitations
     });
   } catch (error) {
     console.error('[TEACHER_INDEPENDENT] Error fetching received invitations:', error);
@@ -728,6 +753,97 @@ router.post('/invitations/:id/accept', requireAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Erreur lors de l\'acceptation de l\'invitation'
+    });
+  }
+});
+
+// Get sessions for parent's children (for Cours Privés de mes Enfants)
+router.get('/parent/sessions', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+
+    if (user.role !== 'Parent') {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès réservé aux parents'
+      });
+    }
+
+    // Get parent's children
+    const { parentStudentRelations, students } = await import('../../shared/schema');
+    
+    const childRelations = await db
+      .select({
+        studentId: parentStudentRelations.studentId
+      })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, user.id));
+
+    const childIds = childRelations.map(r => r.studentId);
+
+    if (childIds.length === 0) {
+      return res.json({
+        success: true,
+        sessions: []
+      });
+    }
+
+    // Get sessions for all children
+    const { inArray } = await import('drizzle-orm');
+    
+    const sessions = await db
+      .select({
+        id: teacherIndependentSessions.id,
+        title: teacherIndependentSessions.title,
+        description: teacherIndependentSessions.description,
+        subject: teacherIndependentSessions.subject,
+        scheduledStart: teacherIndependentSessions.scheduledStart,
+        scheduledEnd: teacherIndependentSessions.scheduledEnd,
+        actualStart: teacherIndependentSessions.actualStart,
+        actualEnd: teacherIndependentSessions.actualEnd,
+        sessionType: teacherIndependentSessions.sessionType,
+        location: teacherIndependentSessions.location,
+        meetingUrl: teacherIndependentSessions.meetingUrl,
+        status: teacherIndependentSessions.status,
+        rating: teacherIndependentSessions.rating,
+        studentId: teacherIndependentSessions.studentId,
+        teacherId: teacherIndependentSessions.teacherId,
+        createdAt: teacherIndependentSessions.createdAt
+      })
+      .from(teacherIndependentSessions)
+      .where(inArray(teacherIndependentSessions.studentId, childIds))
+      .orderBy(desc(teacherIndependentSessions.scheduledStart));
+
+    // Get teacher and student names
+    const enrichedSessions = await Promise.all(sessions.map(async (session) => {
+      const [teacher] = await db
+        .select({ firstName: users.firstName, lastName: users.lastName })
+        .from(users)
+        .where(eq(users.id, session.teacherId))
+        .limit(1);
+
+      const [student] = await db
+        .select({ firstName: users.firstName, lastName: users.lastName })
+        .from(users)
+        .where(eq(users.id, session.studentId))
+        .limit(1);
+
+      return {
+        ...session,
+        teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Inconnu',
+        studentName: student ? `${student.firstName} ${student.lastName}` : 'Inconnu'
+      };
+    }));
+
+    res.json({
+      success: true,
+      sessions: enrichedSessions
+    });
+  } catch (error) {
+    console.error('[TEACHER_INDEPENDENT] Error fetching parent sessions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des sessions'
     });
   }
 });
