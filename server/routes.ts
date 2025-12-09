@@ -10807,7 +10807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= PARENT CHILDREN API =============
-  // GET /api/parent/children - Get all children for the parent
+  // GET /api/parent/children - Get all children for the parent - DATABASE ONLY (no mock data)
   app.get("/api/parent/children", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
@@ -10815,59 +10815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[PARENT_CHILDREN] 📊 Fetching children for parent ${parentId}`);
       
-      // Check if sandbox/demo parent - return mock data
-      const isSandbox = user.email?.includes('@test.educafric.com') || 
-                        user.email?.includes('sandbox@') || 
-                        user.email?.includes('demo@') ||
-                        user.email?.includes('.sandbox@') ||
-                        user.email?.includes('.demo@') ||
-                        user.email?.includes('.test@');
-      
-      if (isSandbox) {
-        console.log(`[PARENT_CHILDREN] 🧪 Sandbox parent detected, returning demo children`);
-        const demoChildren = [
-          {
-            id: 9001,
-            firstName: 'Emma',
-            lastName: 'Tall',
-            class: 'CM2 A',
-            level: 'Primaire',
-            schoolName: 'École Primaire Les Bambis',
-            schoolId: 1,
-            averageGrade: 16.5,
-            attendanceRate: 98,
-            totalAbsences: 2,
-            homeworkCompleted: 28,
-            totalHomework: 30,
-            nextExam: 'Mathématiques - 15 Décembre',
-            teacher: 'Mme Fouda',
-            status: 'excellent' as const,
-            profilePicture: null
-          },
-          {
-            id: 9002,
-            firstName: 'Paul',
-            lastName: 'Tall',
-            class: '6ème B',
-            level: 'Collège',
-            schoolName: 'Collège La Réussite',
-            schoolId: 2,
-            averageGrade: 14.2,
-            attendanceRate: 95,
-            totalAbsences: 4,
-            homeworkCompleted: 22,
-            totalHomework: 28,
-            nextExam: 'SVT - 18 Décembre',
-            teacher: 'M. Mbarga',
-            status: 'good' as const,
-            profilePicture: null
-          }
-        ];
-        
-        return res.json(demoChildren);
-      }
-      
-      // Real parent: fetch from database
+      // All parents use real database data - NO MOCK DATA
       // Get children linked to this parent via parent_student_relations
       // Note: studentId in parent_student_relations refers to users.id for Student role users
       const childRelations = await db
@@ -10880,7 +10828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (childRelations.length === 0) {
         console.log(`[PARENT_CHILDREN] No children found for parent ${parentId}`);
-        return res.json([]);
+        return res.json({ success: true, children: [] });
       }
       
       const childIds = childRelations.map(r => r.studentId);
@@ -10930,7 +10878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       console.log(`[PARENT_CHILDREN] ✅ Found ${childrenData.length} children for parent ${parentId}`);
-      res.json(childrenData);
+      res.json({ success: true, children: childrenData });
       
     } catch (error) {
       console.error('[PARENT_CHILDREN] ❌ Error:', error);
