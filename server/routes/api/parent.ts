@@ -3,7 +3,7 @@ import { storage } from '../../storage';
 import { requireAuth } from '../../middleware/auth';
 import { db } from '../../db';
 import { users, messages as messagesTable, parentStudentRelations, schools, classes, attendance } from '../../../shared/schema';
-import { geolocationDevices, locationTracking, geolocationAlerts } from '../../../shared/geolocationSchema';
+import { geolocationDevices, locationTracking, geolocationAlerts, safeZones } from '../../../shared/geolocationSchema';
 import { eq, or, and, desc, inArray } from 'drizzle-orm';
 
 // Extended request interface for authenticated routes
@@ -212,6 +212,52 @@ router.get('/geolocation/alerts', requireAuth, async (req: AuthenticatedRequest,
   } catch (error: any) {
     console.error('[PARENT_API] Error fetching geolocation alerts:', error);
     res.status(500).json({ message: 'Failed to fetch geolocation alerts' });
+  }
+});
+
+// Get geolocation safe zones for parent - REAL DATABASE QUERIES
+router.get('/geolocation/safe-zones', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    console.log('[PARENT_GEOLOCATION] Fetching safe zones for parent:', parentId);
+    
+    // Get children linked to this parent
+    const relations = await db.select({ studentId: parentStudentRelations.studentId })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, parentId));
+    
+    if (relations.length === 0) {
+      return res.json([]);
+    }
+    
+    const studentIds = relations.map(r => r.studentId);
+    
+    // Get school IDs from children
+    const childrenSchools = await db.select({ schoolId: users.schoolId })
+      .from(users)
+      .where(inArray(users.id, studentIds));
+    
+    const schoolIds = childrenSchools
+      .map(c => c.schoolId)
+      .filter((id): id is number => id !== null);
+    
+    if (schoolIds.length === 0) {
+      return res.json([]);
+    }
+    
+    // Get safe zones for children's schools
+    const zones = await db.select()
+      .from(safeZones)
+      .where(inArray(safeZones.schoolId, schoolIds));
+    
+    res.json(zones);
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching geolocation safe zones:', error);
+    res.status(500).json({ message: 'Failed to fetch geolocation safe zones' });
   }
 });
 
