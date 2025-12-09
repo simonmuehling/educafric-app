@@ -601,6 +601,56 @@ router.get('/grades', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/student/parents - Get student's parents - REAL DATABASE
+// BUSINESS RULE: Students can ONLY communicate with their parents
+router.get('/parents', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const studentId = user?.id;
+    
+    if (user.role !== 'Student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - students only'
+      });
+    }
+    
+    console.log('[STUDENT_API] Fetching parents for student:', studentId);
+    
+    // Get parents linked to this student via parent_student_relations
+    const parentRelations = await db.select({
+      parentId: parentStudentRelations.parentId,
+      relationship: parentStudentRelations.relationship,
+      parentFirstName: users.firstName,
+      parentLastName: users.lastName,
+      parentEmail: users.email,
+      parentPhone: users.phone
+    })
+      .from(parentStudentRelations)
+      .innerJoin(users, eq(users.id, parentStudentRelations.parentId))
+      .where(eq(parentStudentRelations.studentId, studentId));
+    
+    const parents = parentRelations.map(rel => ({
+      id: rel.parentId,
+      firstName: rel.parentFirstName || '',
+      lastName: rel.parentLastName || '',
+      email: rel.parentEmail || '',
+      phone: rel.parentPhone || '',
+      relationship: rel.relationship || 'Parent',
+      displayName: `${rel.parentFirstName || ''} ${rel.parentLastName || ''}`.trim() || 'Parent'
+    }));
+    
+    console.log('[STUDENT_API] Found', parents.length, 'parents for student', studentId);
+    res.json(parents);
+  } catch (error) {
+    console.error('[STUDENT_API] Error fetching parents:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching parents'
+    });
+  }
+});
+
 // GET /api/student/messages - Get student messages - REAL DATABASE
 router.get('/messages', requireAuth, async (req, res) => {
   try {
@@ -700,6 +750,96 @@ router.post('/messages/teacher', requireAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to send message to teacher'
+    });
+  }
+});
+
+// POST /api/student/messages/parent - Send message to parent - REAL DATABASE
+// BUSINESS RULE: Students can ONLY communicate with their parents
+router.post('/messages/parent', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const studentId = user?.id;
+    
+    if (user.role !== 'Student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - students only'
+      });
+    }
+
+    const { parentId, subject, message: messageContent, notificationChannels } = req.body;
+    
+    if (!parentId || !subject || !messageContent) {
+      return res.status(400).json({
+        success: false,
+        message: 'Parent ID, subject, and message are required'
+      });
+    }
+
+    // SECURITY: Verify this parent is actually linked to this student
+    const parentRelation = await db.select()
+      .from(parentStudentRelations)
+      .where(and(
+        eq(parentStudentRelations.studentId, studentId),
+        eq(parentStudentRelations.parentId, parseInt(parentId))
+      ))
+      .limit(1);
+
+    if (parentRelation.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - you can only message your own parents'
+      });
+    }
+
+    // Get parent info
+    const [parentUser] = await db.select()
+      .from(users)
+      .where(eq(users.id, parseInt(parentId)))
+      .limit(1);
+
+    // Import messages table
+    const { messages: messagesTable } = await import('../../shared/schema');
+
+    // Create message in database
+    const [newMessage] = await db.insert(messagesTable).values({
+      senderId: studentId,
+      senderName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Élève',
+      senderRole: 'Student',
+      recipientId: parseInt(parentId),
+      recipientName: `${parentUser?.firstName || ''} ${parentUser?.lastName || ''}`.trim() || 'Parent',
+      recipientRole: 'Parent',
+      subject: subject,
+      content: messageContent,
+      isRead: false,
+      status: 'sent',
+      createdAt: new Date()
+    }).returning();
+
+    console.log('[STUDENT_API] ✅ Message sent to parent:', {
+      messageId: newMessage?.id,
+      from: studentId,
+      to: parentId,
+      subject
+    });
+
+    // Send notifications (email + PWA only, no SMS)
+    const allowedChannels = notificationChannels ? 
+      notificationChannels.filter((channel: string) => ['pwa', 'email'].includes(channel)) : 
+      ['pwa', 'email'];
+
+    res.json({
+      success: true,
+      message: 'Message envoyé au parent avec succès',
+      data: newMessage,
+      notificationChannels: allowedChannels
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] Error sending message to parent:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send message to parent'
     });
   }
 });
