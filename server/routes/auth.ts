@@ -3,8 +3,10 @@ import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import rateLimit from 'express-rate-limit';
+import { eq } from 'drizzle-orm';
 import { storage } from '../storage';
 import { db } from '../db';
+import { schools } from '@shared/schema';
 import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordResetSchema, changePasswordSchema } from '@shared/schemas';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
@@ -478,44 +480,58 @@ router.post('/register', async (req, res) => {
       phone: validatedData.phoneNumber, // Map phoneNumber to phone field
     });
 
-    // If Director, create the school with the EDUCAFRIC number using a transaction
+    // If Director, create the school with the EDUCAFRIC number (sequential operations with manual rollback)
     if (validatedData.role === 'Director' && req.body.educafricNumber) {
+      let school: any = null;
+      
       try {
-        // Use database transaction to ensure atomicity - if Director linking fails, school creation is rolled back
-        await db.transaction(async (tx) => {
-          // Create school with EDUCAFRIC number
-          const school = await storage.createSchool({
-            name: `École de ${validatedData.firstName} ${validatedData.lastName}`, // Temporary name
-            type: 'private', // Default to private, can be changed later
-            educationalType: 'general',
-            address: '',
-            phone: validatedData.phoneNumber,
-            email: validatedData.email,
-            educafricNumber: req.body.educafricNumber,
-            academicYear: new Date().getFullYear().toString(),
-            currentTerm: 'trimestre1',
-            geolocationEnabled: false,
-            pwaEnabled: true,
-            whatsappEnabled: false,
-            smsEnabled: false,
-            emailEnabled: true
-          });
-
-          console.log('[AUTH_REGISTER] School created with ID:', school.id);
-
-          // Link Director to the school - if this fails, the entire transaction rolls back
-          await storage.updateUser(user.id, { schoolId: school.id });
-          console.log('[AUTH_REGISTER] ✅ Director linked to school ID:', school.id);
+        // Step 1: Create school with EDUCAFRIC number
+        school = await storage.createSchool({
+          name: `École de ${validatedData.firstName} ${validatedData.lastName}`, // Temporary name
+          type: 'private', // Default to private, can be changed later
+          educationalType: 'general',
+          address: '',
+          phone: validatedData.phoneNumber,
+          email: validatedData.email,
+          educafricNumber: req.body.educafricNumber,
+          academicYear: new Date().getFullYear().toString(),
+          currentTerm: 'trimestre1',
+          geolocationEnabled: false,
+          pwaEnabled: true,
+          whatsappEnabled: false,
+          smsEnabled: false,
+          emailEnabled: true
         });
 
-        console.log('[AUTH_REGISTER] ✅ Transaction complete - School and Director successfully linked');
+        console.log('[AUTH_REGISTER] School created with ID:', school.id);
+
+        // Step 2: Link Director to the school
+        await storage.updateUser(user.id, { schoolId: school.id });
+        console.log('[AUTH_REGISTER] ✅ Director linked to school ID:', school.id);
+
+        // Step 3: Assign the EDUCAFRIC number to the school
+        const { EducafricNumberService } = await import("../services/educafricNumberService");
+        await EducafricNumberService.assignToSchool(req.body.educafricNumber, school.id);
+        console.log('[AUTH_REGISTER] ✅ EDUCAFRIC number assigned to school:', req.body.educafricNumber);
+
+        console.log('[AUTH_REGISTER] ✅ Registration complete - School and Director successfully linked');
 
       } catch (schoolError: any) {
-        console.error('[AUTH_REGISTER] Transaction failed - rolling back school and Director:', schoolError);
+        console.error('[AUTH_REGISTER] School/Director linking failed:', schoolError);
         
-        // Transaction automatically rolled back, but we need to clean up the user and EDUCAFRIC number
+        // Manual rollback: Delete created resources in reverse order
         
-        // 1. Delete the user
+        // 1. Delete the school if created
+        if (school?.id) {
+          try {
+            await db.delete(schools).where(eq(schools.id, school.id));
+            console.log('[AUTH_REGISTER] ✅ Rolled back school creation');
+          } catch (rollbackError) {
+            console.error('[AUTH_REGISTER] ⚠️ Failed to rollback school creation:', rollbackError);
+          }
+        }
+        
+        // 2. Delete the user
         try {
           await storage.deleteUser(user.id);
           console.log('[AUTH_REGISTER] ✅ Rolled back user creation');
@@ -523,7 +539,7 @@ router.post('/register', async (req, res) => {
           console.error('[AUTH_REGISTER] ⚠️ Failed to rollback user creation:', rollbackError);
         }
 
-        // 2. Release EDUCAFRIC number
+        // 3. Release EDUCAFRIC number (in case it was partially assigned)
         try {
           const { EducafricNumberService } = await import("../services/educafricNumberService");
           await EducafricNumberService.releaseNumber(req.body.educafricNumber);
@@ -533,9 +549,9 @@ router.post('/register', async (req, res) => {
         }
 
         return res.status(500).json({ 
-          message: schoolError.message || 'Failed to create school with EDUCAFRIC number. Please try again or contact support.',
-          messageFr: schoolError.message || 'Échec de création de l\'école avec le numéro EDUCAFRIC. Veuillez réessayer ou contacter le support.',
-          messageEn: schoolError.message || 'Failed to create school with EDUCAFRIC number. Please try again or contact support.'
+          message: 'Échec de création de l\'école. ' + (schoolError.message || 'Veuillez réessayer ou contacter le support.'),
+          messageFr: 'Échec de création de l\'école. ' + (schoolError.message || 'Veuillez réessayer ou contacter le support.'),
+          messageEn: 'Failed to create school. ' + (schoolError.message || 'Please try again or contact support.')
         });
       }
     }
