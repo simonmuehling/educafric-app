@@ -320,6 +320,10 @@ app.use((req, res, next) => {
       feeNotificationService.initialize();
       console.log('[FEE_NOTIFICATIONS] ✅ Fee notification service started');
       
+      // Initialize login activity report service (daily summary at 11pm)
+      const { loginActivityReportService } = await import('./services/loginActivityReportService');
+      console.log('[LOGIN_ACTIVITY_REPORT] ✅ Login activity report service started (daily at 11pm Africa/Douala)');
+      
       console.log('[DEFERRED_INIT] ✅ All background services initialized');
     } catch (error) {
       console.error('[DEFERRED_INIT] ❌ Background service initialization error:', error);
