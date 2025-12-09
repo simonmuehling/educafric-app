@@ -74,6 +74,33 @@ const FunctionalParentMessages: React.FC = () => {
     enabled: !!user
   });
 
+  // Fetch real recipients from database (children, teachers, schools)
+  interface Recipient {
+    id: string;
+    name: string;
+    type: 'child' | 'teacher' | 'school';
+    details: string;
+    schoolId?: number;
+  }
+
+  const { data: recipientsData } = useQuery({
+    queryKey: ['/api/parent/communications/recipients'],
+    queryFn: async () => {
+      const response = await fetch('/api/parent/communications/recipients', {
+        credentials: 'include'
+      });
+      if (!response.ok) return { recipients: [] };
+      return response.json();
+    },
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5
+  });
+
+  const recipients: Recipient[] = (recipientsData as any)?.recipients || [];
+  const childRecipients = recipients.filter(r => r.type === 'child');
+  const teacherRecipients = recipients.filter(r => r.type === 'teacher');
+  const schoolRecipients = recipients.filter(r => r.type === 'school');
+
   // Create message mutation - unified system
   const createMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
@@ -362,9 +389,51 @@ const FunctionalParentMessages: React.FC = () => {
                       <SelectValue placeholder="Sélectionner un destinataire" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="director">Directeur</SelectItem>
-                      <SelectItem value="teacher">Enseignant de Junior</SelectItem>
-                      <SelectItem value="admin">Administration</SelectItem>
+                      {/* Écoles */}
+                      {schoolRecipients.length > 0 && (
+                        <>
+                          <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-gray-50">
+                            Écoles
+                          </div>
+                          {schoolRecipients.map((school) => (
+                            <SelectItem key={school.id} value={school.id}>
+                              {school.name} - {school.details}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {/* Enseignants */}
+                      {teacherRecipients.length > 0 && (
+                        <>
+                          <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-gray-50 border-t mt-1">
+                            Enseignants
+                          </div>
+                          {teacherRecipients.map((teacher) => (
+                            <SelectItem key={teacher.id} value={teacher.id}>
+                              {teacher.name} - {teacher.details}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {/* Enfants */}
+                      {childRecipients.length > 0 && (
+                        <>
+                          <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-gray-50 border-t mt-1">
+                            Mes Enfants
+                          </div>
+                          {childRecipients.map((child) => (
+                            <SelectItem key={child.id} value={child.id}>
+                              {child.name} - {child.details}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {/* Fallback if no recipients */}
+                      {recipients.length === 0 && (
+                        <div className="px-2 py-4 text-sm text-center text-gray-500">
+                          Aucun destinataire disponible
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
