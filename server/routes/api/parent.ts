@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
 import { requireAuth } from '../../middleware/auth';
 import { db } from '../../db';
-import { users, messages as messagesTable, parentStudentRelations, schools, classes, attendance } from '../../../shared/schema';
+import { users, messages as messagesTable, parentStudentRelations, schools, classes, attendance, enrollments } from '../../../shared/schema';
 import { geolocationDevices, locationTracking, geolocationAlerts, safeZones } from '../../../shared/geolocationSchema';
 import { eq, or, and, desc, inArray } from 'drizzle-orm';
 
@@ -1717,7 +1717,7 @@ router.post('/verify-bulletin', requireAuth, async (req: AuthenticatedRequest, r
   }
 });
 
-// Get authorized recipients for parent communications
+// Get authorized recipients for parent communications - REAL DATABASE QUERIES
 router.get('/communications/recipients', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user || !req.user.id) {
@@ -1725,147 +1725,126 @@ router.get('/communications/recipients', requireAuth, async (req: AuthenticatedR
     }
     
     const parentId = req.user.id;
+    console.log('[PARENT_COMMUNICATIONS] Fetching recipients for parent:', parentId);
     
-    // Get parent's children with their school and teacher information
-    let children: any[] = [];
-    let schools: any[] = [];
-    let teachers: any[] = [];
+    // 1. Get parent's children from database
+    const relations = await db.select({ studentId: parentStudentRelations.studentId })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, parentId));
     
-    if (parentId === 7) {
-      // Demo parent (parent.demo@test.educafric.com)
-      children = [
-        {
-          id: 1,
-          firstName: 'Marie',
-          lastName: 'Kouame',
-          class: '6ème A',
-          schoolId: 1,
-          schoolName: 'École Saint-Joseph Yaoundé',
-          classTeacherId: 101,
-          classTeacherName: 'Mme Marie Ntamack'
-        },
-        {
-          id: 2,
-          firstName: 'Paul',
-          lastName: 'Kouame', 
-          class: '3ème B',
-          schoolId: 1,
-          schoolName: 'École Saint-Joseph Yaoundé',
-          classTeacherId: 102,
-          classTeacherName: 'M. Paul Mbarga'
-        }
-      ];
-      
-      // Extract unique schools
-      schools = [
-        {
-          id: 1,
-          name: 'École Saint-Joseph Yaoundé',
-          type: 'school'
-        }
-      ];
-      
-      // Extract unique teachers
-      teachers = [
-        {
-          id: 101,
-          name: 'Mme Marie Ntamack',
-          subject: 'Mathématiques',
-          class: '6ème A',
-          schoolId: 1,
-          type: 'teacher'
-        },
-        {
-          id: 102,
-          name: 'M. Paul Mbarga', 
-          subject: 'Français',
-          class: '3ème B',
-          schoolId: 1,
-          type: 'teacher'
-        },
-        {
-          id: 103,
-          name: 'Mme Sophie Onana',
-          subject: 'Anglais',
-          class: '6ème A, 3ème B',
-          schoolId: 1,
-          type: 'teacher'
-        }
-      ];
-    } else if (parentId === 9001) {
-      // Sandbox parent
-      children = [
-        {
-          id: 9004,
-          firstName: 'Junior',
-          lastName: 'Kamga',
-          class: '3ème A',
-          schoolId: 9000,
-          schoolName: 'École Internationale de Yaoundé - Campus Sandbox',
-          classTeacherId: 9010,
-          classTeacherName: 'M. Jean Essono'
-        }
-      ];
-      
-      schools = [
-        {
-          id: 9000,
-          name: 'École Internationale de Yaoundé - Campus Sandbox',
-          type: 'school'
-        }
-      ];
-      
-      teachers = [
-        {
-          id: 9010,
-          name: 'M. Jean Essono',
-          subject: 'Mathématiques',
-          class: '3ème A',
-          schoolId: 9000,
-          type: 'teacher'
-        },
-        {
-          id: 9011,
-          name: 'Mme Claire Mballa',
-          subject: 'Français',
-          class: '3ème A',
-          schoolId: 9000,
-          type: 'teacher'
-        },
-        {
-          id: 9012,
-          name: 'M. Patrick Owona',
-          subject: 'Sciences Physiques',
-          class: '3ème A',
-          schoolId: 9000,
-          type: 'teacher'
-        }
-      ];
+    if (relations.length === 0) {
+      console.log('[PARENT_COMMUNICATIONS] No children found for parent:', parentId);
+      return res.json({
+        success: true,
+        recipients: [],
+        summary: { totalRecipients: 0, children: 0, schools: 0, teachers: 0 }
+      });
     }
     
+    const studentIds = relations.map(r => r.studentId);
+    
+    // 2. Get children details with school info
+    const childrenData = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      schoolId: users.schoolId
+    })
+    .from(users)
+    .where(inArray(users.id, studentIds));
+    
+    // 3. Get school details
+    const schoolIds = [...new Set(childrenData.map(c => c.schoolId).filter((id): id is number => id !== null))];
+    
+    let schoolsData: any[] = [];
+    if (schoolIds.length > 0) {
+      schoolsData = await db.select({
+        id: schools.id,
+        name: schools.name,
+        phone: schools.phone
+      })
+      .from(schools)
+      .where(inArray(schools.id, schoolIds));
+    }
+    
+    // Create school map for quick lookup
+    const schoolMap: { [key: number]: string } = {};
+    schoolsData.forEach(s => { schoolMap[s.id] = s.name; });
+    
+    // 4. Get enrollments to find classes
+    const enrollmentsData = await db.select({
+      studentId: enrollments.studentId,
+      classId: enrollments.classId
+    })
+    .from(enrollments)
+    .where(inArray(enrollments.studentId, studentIds));
+    
+    // Get class details
+    const classIds = enrollmentsData.map(e => e.classId).filter((id): id is number => id !== null);
+    let classesData: any[] = [];
+    if (classIds.length > 0) {
+      classesData = await db.select({
+        id: classes.id,
+        name: classes.name,
+        schoolId: classes.schoolId
+      })
+      .from(classes)
+      .where(inArray(classes.id, classIds));
+    }
+    
+    // Create class map
+    const classMap: { [key: number]: { name: string; schoolId: number | null } } = {};
+    classesData.forEach(c => { classMap[c.id] = { name: c.name, schoolId: c.schoolId }; });
+    
+    // Map enrollments to students
+    const studentClassMap: { [key: number]: string } = {};
+    enrollmentsData.forEach(e => {
+      if (e.classId && classMap[e.classId]) {
+        studentClassMap[e.studentId] = classMap[e.classId].name;
+      }
+    });
+    
+    // 5. Get teachers from children's schools
+    let teachersData: any[] = [];
+    if (schoolIds.length > 0) {
+      teachersData = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        schoolId: users.schoolId
+      })
+      .from(users)
+      .where(and(
+        inArray(users.schoolId, schoolIds),
+        eq(users.role, 'Teacher')
+      ));
+    }
+    
+    console.log('[PARENT_COMMUNICATIONS] Found', childrenData.length, 'children,', schoolsData.length, 'schools,', teachersData.length, 'teachers');
+    
     // Format children as potential recipients
-    const childrenRecipients = children.map(child => ({
+    const childrenRecipients = childrenData.map(child => ({
       id: `child_${child.id}`,
-      name: `${child.firstName} ${child.lastName}`,
+      name: `${child.firstName || ''} ${child.lastName || ''}`.trim() || 'Enfant',
       type: 'child',
-      details: `${child.class} - ${child.schoolName}`,
+      details: `${studentClassMap[child.id] || 'Non inscrit'} - ${child.schoolId ? (schoolMap[child.schoolId] || 'École') : 'École non définie'}`,
       schoolId: child.schoolId
     }));
     
     // Format schools as recipients  
-    const schoolRecipients = schools.map(school => ({
+    const schoolRecipients = schoolsData.map(school => ({
       id: `school_${school.id}`,
-      name: school.name,
+      name: school.name || 'École',
       type: 'school',
       details: 'Direction de l\'école'
     }));
     
     // Format teachers as recipients
-    const teacherRecipients = teachers.map(teacher => ({
+    const teacherRecipients = teachersData.map(teacher => ({
       id: `teacher_${teacher.id}`,
-      name: teacher.name,
+      name: `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || 'Enseignant',
       type: 'teacher',
-      details: `${teacher.subject} - ${teacher.class}`,
+      details: teacher.schoolId ? (schoolMap[teacher.schoolId] || 'École') : 'Enseignant',
       schoolId: teacher.schoolId
     }));
     
