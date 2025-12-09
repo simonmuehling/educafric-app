@@ -37,8 +37,8 @@ interface Child {
   id: number;
   firstName: string;
   lastName: string;
-  className?: string;
-  schoolName?: string;
+  class?: string;
+  school?: string;
 }
 
 const FunctionalParentAttendance: React.FC = () => {
@@ -471,7 +471,7 @@ const FunctionalParentAttendance: React.FC = () => {
                       {childrenData.length > 0 ? (
                         childrenData.map((child) => (
                           <SelectItem key={child.id} value={String(child.id)}>
-                            {child.firstName} {child.lastName} {child.className ? `- ${child.className}` : ''}
+                            {child.firstName} {child.lastName} {child.class ? `- ${child.class}` : ''} {child.school ? `(${child.school})` : ''}
                           </SelectItem>
                         ))
                       ) : (
