@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import rateLimit from 'express-rate-limit';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { storage } from '../storage';
 import { db } from '../db';
 import { schools } from '@shared/schema';
@@ -572,6 +572,49 @@ router.post('/register', async (req, res) => {
       }
     }
 
+    // Send email notification for new user registration (non-blocking)
+    try {
+      const userIP = req.ip || (req.connection as any).remoteAddress || 'Unknown';
+      const userName = `${validatedData.firstName || ''} ${validatedData.lastName || ''}`.trim();
+      
+      // Get country from IP (non-blocking)
+      let country = 'Unknown';
+      try {
+        const geoResponse = await fetch(`http://ip-api.com/json/${userIP.replace('::ffff:', '')}?fields=status,country`);
+        if (geoResponse.ok) {
+          const geoData = await geoResponse.json();
+          if (geoData.status === 'success') {
+            country = geoData.country || 'Unknown';
+          }
+        }
+      } catch (geoError) {
+        console.log('[AUTH_REGISTER] Geolocation lookup failed, using defaults');
+      }
+      
+      // Determine school name for Directors
+      let schoolName = undefined;
+      if (validatedData.role === 'Director' && req.body.educafricNumber) {
+        schoolName = `École de ${userName}`;
+      }
+      
+      await hostingerMailService.sendNewUserRegistrationAlert({
+        name: userName,
+        email: validatedData.email || undefined,
+        phone: validatedData.phoneNumber,
+        role: validatedData.role,
+        registrationTime: new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' }),
+        ip: userIP,
+        country: country,
+        schoolName: schoolName,
+        educafricNumber: req.body.educafricNumber || undefined
+      });
+      
+      console.log(`[AUTH_REGISTER] ✅ Registration email notification sent for: ${userName} (${validatedData.role})`);
+    } catch (emailError) {
+      console.error('[AUTH_REGISTER] Failed to send registration email notification:', emailError);
+      // Don't fail registration if email fails
+    }
+
     const { password, ...userWithoutPassword } = user;
     res.status(201).json(userWithoutPassword);
   } catch (error) {
@@ -829,6 +872,39 @@ router.post('/login', (req, res, next) => {
           }
         } catch (affError) {
           console.error('[AUTH_LOGIN] Error fetching role affiliations:', affError);
+        }
+        
+        // Track login activity for ALL users (with country detection)
+        try {
+          const userIP = req.ip || (req.connection as any).remoteAddress || 'Unknown';
+          const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.phone;
+          
+          // Get country from IP using free geolocation API (non-blocking)
+          let country = 'Unknown';
+          let city = 'Unknown';
+          try {
+            const geoResponse = await fetch(`http://ip-api.com/json/${userIP.replace('::ffff:', '')}?fields=status,country,city`);
+            if (geoResponse.ok) {
+              const geoData = await geoResponse.json();
+              if (geoData.status === 'success') {
+                country = geoData.country || 'Unknown';
+                city = geoData.city || 'Unknown';
+              }
+            }
+          } catch (geoError) {
+            console.log('[LOGIN_ACTIVITY] Geolocation lookup failed, using defaults');
+          }
+          
+          // Insert login activity into database
+          await db.execute(sql`
+            INSERT INTO login_activity (user_id, user_email, user_name, user_role, ip_address, country, city, login_time, school_id, school_name)
+            VALUES (${user.id}, ${user.email || null}, ${userName}, ${user.role}, ${userIP}, ${country}, ${city}, NOW(), ${user.schoolId || null}, ${null})
+          `);
+          
+          console.log(`[LOGIN_ACTIVITY] ✅ Tracked login: ${userName} (${user.role}) from ${country}`);
+        } catch (trackingError) {
+          console.error('[LOGIN_ACTIVITY] Failed to track login activity:', trackingError);
+          // Don't fail login if tracking fails
         }
         
         // Successfully authenticated and session created

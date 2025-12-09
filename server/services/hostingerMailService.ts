@@ -1084,6 +1084,247 @@ Email généré automatiquement le ${timestamp}
     `.trim();
   }
 
+  /**
+   * Send notification for new user registration
+   */
+  async sendNewUserRegistrationAlert(userData: {
+    name: string;
+    email?: string;
+    phone: string;
+    role: string;
+    registrationTime: string;
+    ip?: string;
+    country?: string;
+    schoolName?: string;
+    educafricNumber?: string;
+  }): Promise<boolean> {
+    try {
+      console.log(`[HOSTINGER_MAIL] Sending new user registration alert for ${userData.name} (${userData.role})`);
+      
+      const success = await this.sendEmail({
+        to: 'simonpmuehling@gmail.com',
+        subject: `🆕 Nouvelle Inscription - ${userData.name} (${userData.role})`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 10px;">
+              🆕 Nouvelle Inscription sur EDUCAFRIC
+            </h2>
+            
+            <div style="background-color: #f0fff4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #27ae60;">
+              <h3 style="color: #333; margin-top: 0;">Détails de l'inscription :</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">👤 Nom :</td>
+                  <td style="padding: 8px 0; color: #333;">${userData.name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">🎭 Rôle :</td>
+                  <td style="padding: 8px 0; color: #333; font-weight: bold;">${userData.role}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">📱 Téléphone :</td>
+                  <td style="padding: 8px 0; color: #333;">${userData.phone}</td>
+                </tr>
+                ${userData.email ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">📧 Email :</td>
+                  <td style="padding: 8px 0; color: #333;">${userData.email}</td>
+                </tr>
+                ` : ''}
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">🕐 Heure :</td>
+                  <td style="padding: 8px 0; color: #333;">${userData.registrationTime}</td>
+                </tr>
+                ${userData.country ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">🌍 Pays :</td>
+                  <td style="padding: 8px 0; color: #333;">${userData.country}</td>
+                </tr>
+                ` : ''}
+                ${userData.ip ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">🌐 IP :</td>
+                  <td style="padding: 8px 0; color: #333;">${userData.ip}</td>
+                </tr>
+                ` : ''}
+                ${userData.schoolName ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">🏫 École :</td>
+                  <td style="padding: 8px 0; color: #333;">${userData.schoolName}</td>
+                </tr>
+                ` : ''}
+                ${userData.educafricNumber ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">🎓 N° EDUCAFRIC :</td>
+                  <td style="padding: 8px 0; color: #333; font-family: monospace;">${userData.educafricNumber}</td>
+                </tr>
+                ` : ''}
+              </table>
+            </div>
+            
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+            
+            <footer style="text-align: center; color: #666; font-size: 12px;">
+              <p>EDUCAFRIC Platform - Système de Notifications</p>
+              <p>📧 support: info@educafric.com | ☎️ +237 656 200 472</p>
+            </footer>
+          </div>
+        `,
+        text: `NOUVELLE INSCRIPTION EDUCAFRIC
+
+Nom: ${userData.name}
+Rôle: ${userData.role}
+Téléphone: ${userData.phone}
+${userData.email ? `Email: ${userData.email}` : ''}
+Heure: ${userData.registrationTime}
+${userData.country ? `Pays: ${userData.country}` : ''}
+${userData.ip ? `IP: ${userData.ip}` : ''}
+${userData.schoolName ? `École: ${userData.schoolName}` : ''}
+${userData.educafricNumber ? `N° EDUCAFRIC: ${userData.educafricNumber}` : ''}
+
+EDUCAFRIC Platform
+support: info@educafric.com | +237 656 200 472`
+      });
+
+      console.log(`[HOSTINGER_MAIL] New user registration alert sent: ${success ? '✅' : '❌'}`);
+      return success;
+    } catch (error) {
+      console.error('[HOSTINGER_MAIL] Error sending new user registration alert:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Send daily login activity summary
+   */
+  async sendDailyLoginSummary(loginData: {
+    date: string;
+    totalLogins: number;
+    uniqueUsers: number;
+    loginsByRole: { role: string; count: number }[];
+    loginsByCountry: { country: string; count: number; users: string[] }[];
+    detailedLogins: { name: string; role: string; time: string; country: string; ip: string }[];
+  }): Promise<boolean> {
+    try {
+      console.log(`[HOSTINGER_MAIL] Sending daily login summary for ${loginData.date}`);
+      
+      const roleRows = loginData.loginsByRole.map(r => `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${r.role}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold;">${r.count}</td>
+        </tr>
+      `).join('');
+
+      const countryRows = loginData.loginsByCountry.map(c => `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">🌍 ${c.country}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold;">${c.count}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; font-size: 12px; color: #666;">${c.users.slice(0, 5).join(', ')}${c.users.length > 5 ? '...' : ''}</td>
+        </tr>
+      `).join('');
+
+      const detailRows = loginData.detailedLogins.slice(0, 50).map(l => `
+        <tr>
+          <td style="padding: 6px; border-bottom: 1px solid #eee; font-size: 12px;">${l.name}</td>
+          <td style="padding: 6px; border-bottom: 1px solid #eee; font-size: 12px;">${l.role}</td>
+          <td style="padding: 6px; border-bottom: 1px solid #eee; font-size: 12px;">${l.time}</td>
+          <td style="padding: 6px; border-bottom: 1px solid #eee; font-size: 12px;">${l.country}</td>
+          <td style="padding: 6px; border-bottom: 1px solid #eee; font-size: 11px; color: #666;">${l.ip}</td>
+        </tr>
+      `).join('');
+      
+      const success = await this.sendEmail({
+        to: 'simonpmuehling@gmail.com',
+        subject: `📊 Résumé Journalier Connexions - ${loginData.date} | ${loginData.totalLogins} connexions`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+            <h2 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+              📊 Résumé Journalier des Connexions EDUCAFRIC
+            </h2>
+            <p style="color: #666; font-size: 14px;">Date: <strong>${loginData.date}</strong></p>
+            
+            <div style="display: flex; gap: 20px; margin: 20px 0;">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; flex: 1;">
+                <div style="font-size: 36px; font-weight: bold;">${loginData.totalLogins}</div>
+                <div style="font-size: 14px; opacity: 0.9;">Connexions Totales</div>
+              </div>
+              <div style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; flex: 1;">
+                <div style="font-size: 36px; font-weight: bold;">${loginData.uniqueUsers}</div>
+                <div style="font-size: 14px; opacity: 0.9;">Utilisateurs Uniques</div>
+              </div>
+            </div>
+
+            <h3 style="color: #333; margin-top: 30px;">🎭 Connexions par Rôle</h3>
+            <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+              <thead>
+                <tr style="background: #f8f9fa;">
+                  <th style="padding: 10px; text-align: left;">Rôle</th>
+                  <th style="padding: 10px; text-align: center;">Nombre</th>
+                </tr>
+              </thead>
+              <tbody>${roleRows}</tbody>
+            </table>
+
+            <h3 style="color: #333; margin-top: 30px;">🌍 Connexions par Pays</h3>
+            <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+              <thead>
+                <tr style="background: #f8f9fa;">
+                  <th style="padding: 10px; text-align: left;">Pays</th>
+                  <th style="padding: 10px; text-align: center;">Nombre</th>
+                  <th style="padding: 10px; text-align: left;">Utilisateurs</th>
+                </tr>
+              </thead>
+              <tbody>${countryRows}</tbody>
+            </table>
+
+            <h3 style="color: #333; margin-top: 30px;">📋 Détails des Connexions (50 dernières)</h3>
+            <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+              <thead>
+                <tr style="background: #f8f9fa;">
+                  <th style="padding: 8px; text-align: left; font-size: 12px;">Nom</th>
+                  <th style="padding: 8px; text-align: left; font-size: 12px;">Rôle</th>
+                  <th style="padding: 8px; text-align: left; font-size: 12px;">Heure</th>
+                  <th style="padding: 8px; text-align: left; font-size: 12px;">Pays</th>
+                  <th style="padding: 8px; text-align: left; font-size: 12px;">IP</th>
+                </tr>
+              </thead>
+              <tbody>${detailRows}</tbody>
+            </table>
+            ${loginData.detailedLogins.length > 50 ? `<p style="color: #666; font-size: 12px;">...et ${loginData.detailedLogins.length - 50} autres connexions</p>` : ''}
+            
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+            
+            <footer style="text-align: center; color: #666; font-size: 12px;">
+              <p>EDUCAFRIC Platform - Rapport Automatique Journalier</p>
+              <p>📧 support: info@educafric.com | ☎️ +237 656 200 472</p>
+            </footer>
+          </div>
+        `,
+        text: `RÉSUMÉ JOURNALIER CONNEXIONS EDUCAFRIC
+Date: ${loginData.date}
+
+STATISTIQUES
+- Connexions Totales: ${loginData.totalLogins}
+- Utilisateurs Uniques: ${loginData.uniqueUsers}
+
+CONNEXIONS PAR RÔLE
+${loginData.loginsByRole.map(r => `${r.role}: ${r.count}`).join('\n')}
+
+CONNEXIONS PAR PAYS
+${loginData.loginsByCountry.map(c => `${c.country}: ${c.count} (${c.users.slice(0, 3).join(', ')})`).join('\n')}
+
+EDUCAFRIC Platform
+support: info@educafric.com | +237 656 200 472`
+      });
+
+      console.log(`[HOSTINGER_MAIL] Daily login summary sent: ${success ? '✅' : '❌'}`);
+      return success;
+    } catch (error) {
+      console.error('[HOSTINGER_MAIL] Error sending daily login summary:', error);
+      return false;
+    }
+  }
+
 }
 
 export const hostingerMailService = new HostingerMailService();
