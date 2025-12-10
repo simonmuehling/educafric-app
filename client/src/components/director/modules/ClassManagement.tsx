@@ -93,6 +93,7 @@ const ClassManagement: React.FC = () => {
     isRequired: true,
     bulletinSection: undefined as 'general' | 'scientific' | 'professional' | undefined
   });
+  const [editingSubjectIndex, setEditingSubjectIndex] = useState<number | null>(null);
   
   // Ref for triggering dialogs from quick actions
   const createClassTriggerRef = useRef<HTMLButtonElement>(null);
@@ -191,6 +192,73 @@ const ClassManagement: React.FC = () => {
       ...prev,
       subjects: prev?.subjects?.filter((_, i) => i !== index) || []
     }));
+  };
+
+  const startEditingSubject = (index: number) => {
+    const subject = selectedClass?.subjects?.[index];
+    if (subject) {
+      setEditSubject({
+        name: subject.name || subject.nameFr || subject.nameEn || '',
+        coefficient: Number(subject.coefficient) || 1,
+        category: subject.category || 'general',
+        hoursPerWeek: Number(subject.hoursPerWeek) || 2,
+        isRequired: subject.isRequired !== false,
+        bulletinSection: subject.bulletinSection || undefined
+      });
+      setEditingSubjectIndex(index);
+    }
+  };
+
+  const cancelEditingSubject = () => {
+    setEditingSubjectIndex(null);
+    setEditSubject({
+      name: '',
+      coefficient: 1,
+      category: 'general',
+      hoursPerWeek: 2,
+      isRequired: true,
+      bulletinSection: undefined
+    });
+  };
+
+  const saveEditingSubject = () => {
+    if (!editSubject.name.trim()) {
+      toast({
+        title: language === 'fr' ? "Nom requis" : "Name required",
+        description: language === 'fr' ? "Veuillez saisir le nom de la matière" : "Please enter the subject name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const updatedSubject = {
+      nameFr: editSubject.name,
+      nameEn: editSubject.name,
+      coefficient: editSubject.coefficient.toString(),
+      hoursPerWeek: editSubject.hoursPerWeek,
+      category: editSubject.category,
+      subjectType: editSubject.category,
+      bulletinSection: editSubject.bulletinSection || null,
+      isRequired: editSubject.isRequired,
+      name: editSubject.name
+    };
+
+    console.log('[CLASS_MANAGEMENT] ✏️ Updating subject at index:', editingSubjectIndex, updatedSubject);
+
+    setSelectedClass(prev => {
+      const updatedSubjects = [...(prev?.subjects || [])];
+      if (editingSubjectIndex !== null && editingSubjectIndex < updatedSubjects.length) {
+        updatedSubjects[editingSubjectIndex] = { ...updatedSubjects[editingSubjectIndex], ...updatedSubject };
+      }
+      return { ...prev, subjects: updatedSubjects };
+    });
+
+    toast({
+      title: language === 'fr' ? "✅ Matière modifiée" : "✅ Subject updated",
+      description: `${editSubject.name} (coeff. ${editSubject.coefficient}, ${editSubject.hoursPerWeek}h/sem)`,
+    });
+
+    cancelEditingSubject();
   };
 
   const text = {
@@ -1434,7 +1502,7 @@ const ClassManagement: React.FC = () => {
                         </div>
                         <div className="max-h-40 overflow-y-auto space-y-1">
                           {selectedClass.subjects.map((subject, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                            <div key={index} className={`flex items-center justify-between p-2 rounded-md ${editingSubjectIndex === index ? 'bg-amber-100 border-2 border-amber-400' : 'bg-gray-50'}`}>
                               <div className="flex-1">
                                 <span className="font-medium text-sm">{subject.name}</span>
                                 <div className="text-xs text-gray-500">
@@ -1446,25 +1514,41 @@ const ClassManagement: React.FC = () => {
                                   )}
                                 </div>
                               </div>
-                              <Button
-                                type="button"
-                                onClick={() => removeEditSubject(index)}
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-600 hover:bg-red-50"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              <div className="flex gap-1">
+                                <Button
+                                  type="button"
+                                  onClick={() => startEditingSubject(index)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-amber-600 hover:bg-amber-50"
+                                  data-testid={`button-edit-subject-${index}`}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  onClick={() => removeEditSubject(index)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-600 hover:bg-red-50"
+                                  data-testid={`button-delete-subject-${index}`}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                           ))}
                         </div>
                       </div>
                     )}
                     
-                    {/* Formulaire ajout de matière */}
-                    <div className="border rounded-md p-3 bg-blue-50">
-                      <div className="text-sm font-medium mb-2 text-blue-800">
-                        {String(t?.form?.addSubject) || (language === 'fr' ? "Ajouter Matière" : "Add Subject")}
+                    {/* Formulaire ajout/modification de matière */}
+                    <div className={`border rounded-md p-3 ${editingSubjectIndex !== null ? 'bg-amber-50 border-amber-300' : 'bg-blue-50'}`}>
+                      <div className={`text-sm font-medium mb-2 ${editingSubjectIndex !== null ? 'text-amber-800' : 'text-blue-800'}`}>
+                        {editingSubjectIndex !== null 
+                          ? (language === 'fr' ? "✏️ Modifier Matière" : "✏️ Edit Subject")
+                          : (String(t?.form?.addSubject) || (language === 'fr' ? "Ajouter Matière" : "Add Subject"))
+                        }
                       </div>
                       <div className="grid grid-cols-2 gap-2 mb-3">
                         <div>
@@ -1473,6 +1557,7 @@ const ClassManagement: React.FC = () => {
                             value={editSubject.name}
                             onChange={(e) => setEditSubject(prev => ({ ...prev, name: e.target.value }))}
                             className="bg-white text-sm"
+                            data-testid="input-subject-name"
                           />
                         </div>
                         <div className="flex gap-1">
@@ -1484,6 +1569,7 @@ const ClassManagement: React.FC = () => {
                             className="bg-white text-sm"
                             min="1"
                             max="10"
+                            data-testid="input-subject-coefficient"
                           />
                           <Input
                             type="number"
@@ -1493,6 +1579,7 @@ const ClassManagement: React.FC = () => {
                             className="bg-white text-sm"
                             min="1"
                             max="15"
+                            data-testid="input-subject-hours"
                           />
                         </div>
                       </div>
@@ -1516,15 +1603,41 @@ const ClassManagement: React.FC = () => {
                         </Select>
                       </div>
                       <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          onClick={addEditSubject}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          {language === 'fr' ? 'Ajouter' : 'Add'}
-                        </Button>
+                        {editingSubjectIndex !== null ? (
+                          <>
+                            <Button
+                              type="button"
+                              onClick={saveEditingSubject}
+                              size="sm"
+                              className="bg-amber-600 hover:bg-amber-700 text-white flex-1"
+                              data-testid="button-save-subject"
+                            >
+                              <Edit className="w-4 h-4 mr-1" />
+                              {language === 'fr' ? 'Sauvegarder' : 'Save'}
+                            </Button>
+                            <Button
+                              type="button"
+                              onClick={cancelEditingSubject}
+                              size="sm"
+                              variant="outline"
+                              className="flex-1"
+                              data-testid="button-cancel-edit-subject"
+                            >
+                              {language === 'fr' ? 'Annuler' : 'Cancel'}
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            type="button"
+                            onClick={addEditSubject}
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                            data-testid="button-add-subject"
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            {language === 'fr' ? 'Ajouter' : 'Add'}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
