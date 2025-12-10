@@ -46,15 +46,28 @@ export class ClassStorage {
             // Generate code from subject name if not provided (required field)
             const code = subject.code || `${nameFr.substring(0, 3).toUpperCase()}${Math.random().toString(36).substr(2, 3).toUpperCase()}`;
             
+            // Parse coefficient properly - handle both number and string inputs
+            const coeffValue = subject.coefficient !== undefined && subject.coefficient !== null 
+              ? String(subject.coefficient) 
+              : '1';
+            
+            // Parse hoursPerWeek properly - handle both number and string inputs
+            const hoursValue = subject.hoursPerWeek !== undefined && subject.hoursPerWeek !== null
+              ? parseInt(String(subject.hoursPerWeek)) || 2
+              : 2;
+            
             return {
               nameFr,
               nameEn,
               code,
-              coefficient: subject.coefficient?.toString() || '1',
+              coefficient: coeffValue,
+              hoursPerWeek: hoursValue,
+              category: subject.category || 'general',
               schoolId: classData.schoolId,
               classId: newClass.id,
               subjectType: subject.category || subject.subjectType || 'general',
-              bulletinSection: subject.bulletinSection || null
+              bulletinSection: subject.bulletinSection || null,
+              isRequired: subject.isRequired !== undefined ? subject.isRequired : true
             };
           });
           
@@ -161,15 +174,28 @@ export class ClassStorage {
             // Generate code from subject name if not provided (required field)
             const code = subject.code || `${nameFr.substring(0, 3).toUpperCase()}${Math.random().toString(36).substr(2, 3).toUpperCase()}`;
             
+            // Parse coefficient properly - handle both number and string inputs
+            const coeffValue = subject.coefficient !== undefined && subject.coefficient !== null 
+              ? String(subject.coefficient) 
+              : '1';
+            
+            // Parse hoursPerWeek properly - handle both number and string inputs
+            const hoursValue = subject.hoursPerWeek !== undefined && subject.hoursPerWeek !== null
+              ? parseInt(String(subject.hoursPerWeek)) || 2
+              : 2;
+            
             return {
               nameFr,
               nameEn,
               code,
-              coefficient: subject.coefficient?.toString() || '1',
+              coefficient: coeffValue,
+              hoursPerWeek: hoursValue,
+              category: subject.category || 'general',
               schoolId: updatedClass.schoolId,
               classId: classId,
               subjectType: subject.category || subject.subjectType || 'general',
-              bulletinSection: subject.bulletinSection || null
+              bulletinSection: subject.bulletinSection || null,
+              isRequired: subject.isRequired !== undefined ? subject.isRequired : true
             };
           });
           

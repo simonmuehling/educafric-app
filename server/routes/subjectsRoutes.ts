@@ -42,11 +42,23 @@ const subjectSchema = z.object({
   name: z.string().min(2, 'Le nom de la matière doit contenir au moins 2 caractères'),
   nameFr: z.string().min(2, 'Le nom français est requis'),
   nameEn: z.string().min(2, 'Le nom anglais est requis'),
-  coefficient: z.number().min(1, 'Le coefficient doit être au moins 1').max(10, 'Le coefficient ne peut pas dépasser 10'),
-  classLevel: z.string().min(1, 'Le niveau de classe est requis'),
+  coefficient: z.union([z.number(), z.string()]).transform((val) => {
+    const num = typeof val === 'string' ? parseFloat(val) : val;
+    return isNaN(num) ? 1 : Math.max(1, Math.min(10, num));
+  }),
+  hoursPerWeek: z.union([z.number(), z.string()]).transform((val) => {
+    const num = typeof val === 'string' ? parseInt(val) : val;
+    return isNaN(num) ? 2 : Math.max(1, num);
+  }).optional().default(2),
+  classLevel: z.string().min(1, 'Le niveau de classe est requis').optional(),
+  classId: z.number().optional(),
   department: z.string().optional(),
+  category: z.string().optional(),
+  subjectType: z.string().optional(),
+  bulletinSection: z.string().optional(),
   description: z.string().optional(),
   isActive: z.boolean().default(true),
+  isRequired: z.boolean().default(true),
 });
 
 // Helper function to parse file data
@@ -79,11 +91,14 @@ function normalizeSubjectData(rawData: any[]): any[] {
     name: row['Nom'] || row['name'] || row['Name'] || '',
     nameFr: row['Nom français'] || row['nameFr'] || row['Nom'] || row['name'] || '',
     nameEn: row['Nom anglais'] || row['nameEn'] || row['Name'] || row['name'] || '',
-    coefficient: parseInt(row['Coefficient'] || row['coefficient'] || row['Coef'] || '1') || 1,
+    coefficient: parseFloat(row['Coefficient'] || row['coefficient'] || row['Coef'] || '1') || 1,
+    hoursPerWeek: parseInt(row['Heures'] || row['hoursPerWeek'] || row['Hours'] || row['H/sem'] || row['hours_per_week'] || '2') || 2,
     classLevel: row['Niveau'] || row['classLevel'] || row['Class Level'] || row['Class'] || '',
     department: row['Département'] || row['department'] || row['Department'] || 'Général',
+    category: row['Catégorie'] || row['category'] || row['Category'] || 'general',
     description: row['Description'] || row['description'] || '',
-    isActive: row['Actif'] !== 'false' && row['isActive'] !== 'false'
+    isActive: row['Actif'] !== 'false' && row['isActive'] !== 'false',
+    isRequired: row['Obligatoire'] !== 'false' && row['isRequired'] !== 'false'
   }));
 }
 

@@ -100,11 +100,13 @@ export const subjects = pgTable("subjects", {
   nameEn: text("name_en").notNull(),
   code: text("code"),
   coefficient: decimal("coefficient"),
+  hoursPerWeek: integer("hours_per_week").default(2),
   category: text("category").default('general'),
   schoolId: integer("school_id").notNull(),
   classId: integer("class_id"),
   subjectType: text("subject_type").default('general'),
-  bulletinSection: text("bulletin_section")
+  bulletinSection: text("bulletin_section"),
+  isRequired: boolean("is_required").default(true)
 });
 
 export const educationalContent = pgTable("educational_content", {
