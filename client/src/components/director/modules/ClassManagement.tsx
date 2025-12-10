@@ -904,6 +904,54 @@ const ClassManagement: React.FC = () => {
     });
   };
 
+  // Export rooms to Excel
+  const [isExportingRooms, setIsExportingRooms] = useState(false);
+  
+  const exportRoomsToExcel = async () => {
+    setIsExportingRooms(true);
+    try {
+      const XLSX = await import('xlsx');
+      
+      const roomsExportData = (roomsData || []).map((room: any) => ({
+        [language === 'fr' ? 'Nom' : 'Name']: room.name || '',
+        [language === 'fr' ? 'Type' : 'Type']: room.type || '',
+        [language === 'fr' ? 'Capacité' : 'Capacity']: room.capacity || '',
+        [language === 'fr' ? 'Bâtiment' : 'Building']: room.building || '',
+        [language === 'fr' ? 'Étage' : 'Floor']: room.floor || '',
+        [language === 'fr' ? 'Équipement' : 'Equipment']: room.equipment || '',
+        [language === 'fr' ? 'Statut' : 'Status']: room.isOccupied 
+          ? (language === 'fr' ? 'Occupée' : 'Occupied')
+          : (language === 'fr' ? 'Libre' : 'Free')
+      }));
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(roomsExportData);
+      worksheet['!cols'] = [
+        { wch: 20 }, { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 10 }, { wch: 30 }, { wch: 12 }
+      ];
+      XLSX.utils.book_append_sheet(workbook, worksheet, language === 'fr' ? 'Salles' : 'Rooms');
+      
+      const fileName = `salles_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+      
+      toast({
+        title: language === 'fr' ? '✅ Export réussi' : '✅ Export successful',
+        description: language === 'fr' 
+          ? `${roomsExportData.length} salles exportées`
+          : `${roomsExportData.length} rooms exported`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: language === 'fr' ? '❌ Erreur d\'export' : '❌ Export error',
+        description: language === 'fr' ? 'Impossible d\'exporter les données' : 'Unable to export data',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsExportingRooms(false);
+    }
+  };
+
   const handleCreateClass = async () => {
     if (!newClass.name) {
       toast({
@@ -2389,9 +2437,22 @@ const ClassManagement: React.FC = () => {
                       : `${roomsData.length} Total`}
                   </Badge>
                 </div>
-                <Button variant="outline" onClick={() => setIsRoomManagementOpen(false)}>
-                  {language === 'fr' ? 'Fermer' : 'Close'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={exportRoomsToExcel}
+                    disabled={isExportingRooms || roomsData.length === 0}
+                    data-testid="button-export-rooms"
+                  >
+                    <Download className={`w-4 h-4 mr-2 ${isExportingRooms ? 'animate-spin' : ''}`} />
+                    {isExportingRooms 
+                      ? (language === 'fr' ? 'Export...' : 'Exporting...') 
+                      : (language === 'fr' ? 'Exporter' : 'Export')}
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsRoomManagementOpen(false)}>
+                    {language === 'fr' ? 'Fermer' : 'Close'}
+                  </Button>
+                </div>
               </div>
             </div>
           </DialogContent>
