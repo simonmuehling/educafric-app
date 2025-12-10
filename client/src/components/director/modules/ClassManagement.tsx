@@ -1504,9 +1504,9 @@ const ClassManagement: React.FC = () => {
                           {selectedClass.subjects.map((subject, index) => (
                             <div key={index} className={`flex items-center justify-between p-2 rounded-md ${editingSubjectIndex === index ? 'bg-amber-100 border-2 border-amber-400' : 'bg-gray-50'}`}>
                               <div className="flex-1">
-                                <span className="font-medium text-sm">{subject.name}</span>
+                                <span className="font-medium text-sm">{subject.name || subject.nameFr || subject.nameEn || 'N/A'}</span>
                                 <div className="text-xs text-gray-500">
-                                  Coeff. {subject.coefficient} • {subject.hoursPerWeek}h/sem • {subject.category}
+                                  Coeff. {subject.coefficient || 1} • {subject.hoursPerWeek || 2}h/sem • {subject.category || 'general'}
                                   {isTechnicalSchool && subject.bulletinSection && (
                                     <span className="ml-2 text-blue-600 font-medium">
                                       → {language === 'fr' ? 'Bulletin' : 'Report'}: {subject.bulletinSection}
