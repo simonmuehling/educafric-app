@@ -601,6 +601,58 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     bulkDeleteTeachersMutation.mutate(Array.from(selectedTeachers));
   };
 
+  // Export teachers to Excel
+  const [isExporting, setIsExporting] = useState(false);
+  
+  const exportTeachersToExcel = async () => {
+    setIsExporting(true);
+    try {
+      const XLSX = await import('xlsx');
+      
+      const teachersData = (Array.isArray(teachers) ? teachers : []).map((teacher: Teacher) => ({
+        [language === 'fr' ? 'Nom' : 'Name']: teacher.name || '',
+        [language === 'fr' ? 'Email' : 'Email']: teacher.email || '',
+        [language === 'fr' ? 'Téléphone' : 'Phone']: teacher.phone || '',
+        [language === 'fr' ? 'Genre' : 'Gender']: teacher.gender || '',
+        [language === 'fr' ? 'Matricule' : 'ID Number']: teacher.matricule || '',
+        [language === 'fr' ? 'Matières' : 'Subjects']: (teacher.teachingSubjects || teacher.subjects || []).join(', '),
+        [language === 'fr' ? 'Classes' : 'Classes']: (teacher.classes || []).join(', '),
+        [language === 'fr' ? 'Statut' : 'Status']: teacher.status === 'active' 
+          ? (language === 'fr' ? 'Actif' : 'Active')
+          : teacher.status === 'on_leave' 
+            ? (language === 'fr' ? 'En congé' : 'On Leave')
+            : (language === 'fr' ? 'Inactif' : 'Inactive')
+      }));
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(teachersData);
+      worksheet['!cols'] = [
+        { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 12 }, 
+        { wch: 15 }, { wch: 30 }, { wch: 30 }, { wch: 12 }
+      ];
+      XLSX.utils.book_append_sheet(workbook, worksheet, language === 'fr' ? 'Enseignants' : 'Teachers');
+      
+      const fileName = `enseignants_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+      
+      toast({
+        title: language === 'fr' ? '✅ Export réussi' : '✅ Export successful',
+        description: language === 'fr' 
+          ? `${teachersData.length} enseignants exportés`
+          : `${teachersData.length} teachers exported`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: language === 'fr' ? '❌ Erreur d\'export' : '❌ Export error',
+        description: language === 'fr' ? 'Impossible d\'exporter les données' : 'Unable to export data',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // Upload photo mutation
   const uploadPhotoMutation = useMutation({
     mutationFn: async ({ teacherId, formData }: { teacherId: number, formData: FormData }) => {
@@ -862,6 +914,17 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
           >
             <Upload className="w-4 h-4 mr-2" />
             {language === 'fr' ? 'Importer' : 'Import'}
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={exportTeachersToExcel}
+            disabled={isExporting}
+            data-testid="button-export-teachers"
+          >
+            <Download className={`w-4 h-4 mr-2 ${isExporting ? 'animate-spin' : ''}`} />
+            {isExporting 
+              ? (language === 'fr' ? 'Export...' : 'Exporting...') 
+              : (language === 'fr' ? 'Exporter' : 'Export')}
           </Button>
           <Button 
             onClick={() => {

@@ -771,6 +771,69 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     input.click();
   };
 
+  // Export students to Excel
+  const [isExporting, setIsExporting] = useState(false);
+  
+  const exportStudentsToExcel = async () => {
+    setIsExporting(true);
+    try {
+      const XLSX = await import('xlsx');
+      
+      const studentsData = (Array.isArray(students) ? students : []).map((student: Student) => ({
+        [language === 'fr' ? 'Nom' : 'Last Name']: student.lastName || '',
+        [language === 'fr' ? 'Prénom' : 'First Name']: student.firstName || '',
+        [language === 'fr' ? 'Email' : 'Email']: student.email || '',
+        [language === 'fr' ? 'Téléphone' : 'Phone']: student.phone || '',
+        [language === 'fr' ? 'Classe' : 'Class']: student.className || '',
+        [language === 'fr' ? 'Genre' : 'Gender']: student.gender === 'M' 
+          ? (language === 'fr' ? 'Masculin' : 'Male') 
+          : student.gender === 'F' 
+            ? (language === 'fr' ? 'Féminin' : 'Female') 
+            : '',
+        [language === 'fr' ? 'Date Naissance' : 'Date of Birth']: student.dateOfBirth || '',
+        [language === 'fr' ? 'Lieu Naissance' : 'Place of Birth']: student.placeOfBirth || '',
+        [language === 'fr' ? 'Matricule' : 'ID Number']: student.matricule || '',
+        [language === 'fr' ? 'Moyenne' : 'Average']: student.average || '',
+        [language === 'fr' ? 'Présence %' : 'Attendance %']: student.attendance || '',
+        [language === 'fr' ? 'Statut' : 'Status']: student.status === 'active' 
+          ? (language === 'fr' ? 'Actif' : 'Active')
+          : student.status === 'suspended' 
+            ? (language === 'fr' ? 'Suspendu' : 'Suspended')
+            : (language === 'fr' ? 'Diplômé' : 'Graduated'),
+        [language === 'fr' ? 'Nom Parent' : 'Parent Name']: student.parentName || '',
+        [language === 'fr' ? 'Téléphone Parent' : 'Parent Phone']: student.parentPhone || ''
+      }));
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(studentsData);
+      worksheet['!cols'] = [
+        { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 15 }, { wch: 15 },
+        { wch: 12 }, { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 10 },
+        { wch: 12 }, { wch: 12 }, { wch: 20 }, { wch: 15 }
+      ];
+      XLSX.utils.book_append_sheet(workbook, worksheet, language === 'fr' ? 'Élèves' : 'Students');
+      
+      const fileName = `eleves_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+      
+      toast({
+        title: language === 'fr' ? '✅ Export réussi' : '✅ Export successful',
+        description: language === 'fr' 
+          ? `${studentsData.length} élèves exportés`
+          : `${studentsData.length} students exported`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: language === 'fr' ? '❌ Erreur d\'export' : '❌ Export error',
+        description: language === 'fr' ? 'Impossible d\'exporter les données' : 'Unable to export data',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const filteredStudents = sortByMultiple(
     (Array.isArray(students) ? students : []).filter(student => {
       if (!student) return false;
@@ -1001,6 +1064,17 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           >
             <Upload className="w-4 h-4 mr-2" />
             {text.import}
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={exportStudentsToExcel}
+            disabled={isExporting}
+            data-testid="button-export-students"
+          >
+            <Download className={`w-4 h-4 mr-2 ${isExporting ? 'animate-spin' : ''}`} />
+            {isExporting 
+              ? (language === 'fr' ? 'Export...' : 'Exporting...') 
+              : text.export}
           </Button>
           <Button 
             onClick={() => setIsAddStudentOpen(true)}
