@@ -1080,6 +1080,90 @@ const ClassManagement: React.FC = () => {
     bulkDeleteClassesMutation.mutate({ classIds: Array.from(selectedClasses), force: true });
   };
 
+  // Export classes to Excel
+  const [isExporting, setIsExporting] = useState(false);
+  
+  const exportClassesToExcel = async () => {
+    setIsExporting(true);
+    try {
+      const XLSX = await import('xlsx');
+      
+      // Prepare classes data
+      const classesData = (Array.isArray(finalClasses) ? finalClasses : []).map((classItem: any) => ({
+        [language === 'fr' ? 'Nom Classe' : 'Class Name']: classItem.name || '',
+        [language === 'fr' ? 'Niveau' : 'Level']: classItem.level || '',
+        [language === 'fr' ? 'Élèves Inscrits' : 'Enrolled Students']: classItem.currentStudents || 0,
+        [language === 'fr' ? 'Capacité' : 'Capacity']: classItem.capacity || 0,
+        [language === 'fr' ? 'Enseignant Principal' : 'Main Teacher']: classItem.teacher || '',
+        [language === 'fr' ? 'Salle' : 'Room']: classItem.room || '',
+        [language === 'fr' ? 'Statut' : 'Status']: classItem.status === 'active' 
+          ? (language === 'fr' ? 'Active' : 'Active')
+          : classItem.status === 'full' 
+            ? (language === 'fr' ? 'Complet' : 'Full')
+            : (language === 'fr' ? 'Inactive' : 'Inactive'),
+        [language === 'fr' ? 'Nombre Matières' : 'Subjects Count']: classItem.subjects?.length || 0
+      }));
+
+      // Prepare subjects data (all subjects from all classes)
+      const subjectsData: any[] = [];
+      (Array.isArray(finalClasses) ? finalClasses : []).forEach((classItem: any) => {
+        (classItem.subjects || []).forEach((subject: any) => {
+          subjectsData.push({
+            [language === 'fr' ? 'Classe' : 'Class']: classItem.name || '',
+            [language === 'fr' ? 'Matière' : 'Subject']: subject.name || subject.nameFr || subject.nameEn || '',
+            [language === 'fr' ? 'Coefficient' : 'Coefficient']: subject.coefficient || 1,
+            [language === 'fr' ? 'Heures/Semaine' : 'Hours/Week']: subject.hoursPerWeek || 2,
+            [language === 'fr' ? 'Catégorie' : 'Category']: subject.category || 'general',
+            [language === 'fr' ? 'Obligatoire' : 'Required']: subject.isRequired !== false 
+              ? (language === 'fr' ? 'Oui' : 'Yes') 
+              : (language === 'fr' ? 'Non' : 'No')
+          });
+        });
+      });
+
+      // Create workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Add classes sheet
+      const classesSheet = XLSX.utils.json_to_sheet(classesData);
+      classesSheet['!cols'] = [
+        { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, 
+        { wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 15 }
+      ];
+      XLSX.utils.book_append_sheet(workbook, classesSheet, language === 'fr' ? 'Classes' : 'Classes');
+      
+      // Add subjects sheet
+      if (subjectsData.length > 0) {
+        const subjectsSheet = XLSX.utils.json_to_sheet(subjectsData);
+        subjectsSheet['!cols'] = [
+          { wch: 20 }, { wch: 25 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 12 }
+        ];
+        XLSX.utils.book_append_sheet(workbook, subjectsSheet, language === 'fr' ? 'Matières' : 'Subjects');
+      }
+
+      // Download file
+      const fileName = `classes_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+      
+      toast({
+        title: language === 'fr' ? '✅ Export réussi' : '✅ Export successful',
+        description: language === 'fr' 
+          ? `${classesData.length} classes et ${subjectsData.length} matières exportées`
+          : `${classesData.length} classes and ${subjectsData.length} subjects exported`,
+      });
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: language === 'fr' ? '❌ Erreur d\'export' : '❌ Export error',
+        description: language === 'fr' ? 'Impossible d\'exporter les données' : 'Unable to export data',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -1762,9 +1846,16 @@ const ClassManagement: React.FC = () => {
               <Download className="w-4 h-4 mr-2" />
               {String(t?.actions?.import) || "N/A"}
             </Button>
-            <Button variant="outline" onClick={() => toast({ title: language === 'fr' ? 'Export à venir' : 'Export coming soon' })}>
-              <Download className="w-4 h-4 mr-2" />
-              {String(t?.actions?.export) || "N/A"}
+            <Button 
+              variant="outline" 
+              onClick={exportClassesToExcel}
+              disabled={isExporting}
+              data-testid="button-export-classes"
+            >
+              <Download className={`w-4 h-4 mr-2 ${isExporting ? 'animate-spin' : ''}`} />
+              {isExporting 
+                ? (language === 'fr' ? 'Export...' : 'Exporting...') 
+                : (String(t?.actions?.export) || "Exporter")}
             </Button>
           </div>
           </div>
