@@ -1152,17 +1152,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // If school fields are being updated and user has a schoolId, update the school table
-      if (user.schoolId && (profileUpdates.schoolName || profileUpdates.slogan !== undefined)) {
+      if (user.schoolId) {
         const schoolUpdates: any = {};
+        
+        // Map all school fields from the request
         if (profileUpdates.schoolName) schoolUpdates.name = profileUpdates.schoolName;
+        if (profileUpdates.name) schoolUpdates.name = profileUpdates.name;
         if (profileUpdates.slogan !== undefined) schoolUpdates.slogan = profileUpdates.slogan;
+        if (profileUpdates.phone !== undefined) schoolUpdates.phone = profileUpdates.phone;
+        if (profileUpdates.email !== undefined) schoolUpdates.email = profileUpdates.email;
+        if (profileUpdates.website !== undefined) schoolUpdates.website = profileUpdates.website;
+        if (profileUpdates.address !== undefined) schoolUpdates.address = profileUpdates.address;
+        if (profileUpdates.description !== undefined) schoolUpdates.description = profileUpdates.description;
+        if (profileUpdates.establishedYear !== undefined) schoolUpdates.establishedYear = profileUpdates.establishedYear;
+        if (profileUpdates.principalName !== undefined) schoolUpdates.principalName = profileUpdates.principalName;
+        if (profileUpdates.studentCapacity !== undefined) schoolUpdates.studentCapacity = profileUpdates.studentCapacity;
+        if (profileUpdates.logoUrl !== undefined) schoolUpdates.logoUrl = profileUpdates.logoUrl;
+        if (profileUpdates.regionalDelegation !== undefined) schoolUpdates.regionalDelegation = profileUpdates.regionalDelegation;
+        if (profileUpdates.delegationDepartementale !== undefined) schoolUpdates.delegationDepartementale = profileUpdates.delegationDepartementale;
+        if (profileUpdates.boitePostale !== undefined) schoolUpdates.boitePostale = profileUpdates.boitePostale;
+        if (profileUpdates.arrondissement !== undefined) schoolUpdates.arrondissement = profileUpdates.arrondissement;
         
         if (Object.keys(schoolUpdates).length > 0) {
           await db.update(schools)
             .set(schoolUpdates)
             .where(eq(schools.id, user.schoolId));
           
-          console.log('[DIRECTOR_SETTINGS] ✅ School updated:', schoolUpdates, 'for school:', user.schoolId);
+          console.log('[DIRECTOR_SETTINGS] ✅ School updated:', Object.keys(schoolUpdates), 'for school:', user.schoolId);
         }
       }
       
