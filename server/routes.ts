@@ -9914,7 +9914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== STUDENT COMMUNICATIONS API - RESTRICTION ÉCOLE/ENSEIGNANTS DE LA CLASSE ASSIGNÉE =====
+  // ===== STUDENT COMMUNICATIONS API - RECEIVE FROM ALL, SEND TO PARENTS ONLY =====
   
   app.get("/api/student/messages", requireAuth, async (req, res) => {
     try {
@@ -9922,90 +9922,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const studentId = user.id;
       const studentSchoolId = user.schoolId;
       
-      console.log('[STUDENT_MESSAGES] 📡 DATABASE-ONLY: Fetching messages for student:', studentId);
+      console.log('[STUDENT_MESSAGES] 📡 DATABASE-ONLY: Fetching ALL messages for student:', studentId);
       
-      if (!studentSchoolId) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'School access required' 
-        });
-      }
+      // STEP 1: Get parent IDs for this student
+      const parentRelations = await db
+        .select({ parentId: parentStudentRelations.parentId })
+        .from(parentStudentRelations)
+        .where(eq(parentStudentRelations.studentId, studentId));
       
-      // STEP 1: Get student's assigned class from enrollments
-      const [studentEnrollment] = await db
-        .select({
-          classId: enrollments.classId,
-          className: classes.name
-        })
-        .from(enrollments)
-        .leftJoin(classes, eq(enrollments.classId, classes.id))
-        .where(and(
-          eq(enrollments.studentId, studentId),
-          eq(enrollments.status, 'active'),
-          eq(classes.schoolId, studentSchoolId)
-        ))
-        .limit(1);
+      const parentIds = parentRelations.map(p => p.parentId);
+      console.log(`[STUDENT_MESSAGES] 👨‍👩‍👧 Parents found: ${parentIds.length}`);
       
-      const studentClassId = studentEnrollment?.classId;
-      const studentClassName = studentEnrollment?.className || 'Non assigné';
-      
-      console.log(`[STUDENT_MESSAGES] 🏫 School: ${studentSchoolId}, Class: ${studentClassName} (ID: ${studentClassId})`);
-      
-      // STEP 2: Get teachers assigned to this class from timetables
-      let classTeacherIds: number[] = [];
-      if (studentClassId) {
-        const classTeachers = await db
-          .selectDistinct({ teacherId: timetables.teacherId })
-          .from(timetables)
-          .where(and(
-            eq(timetables.classId, studentClassId),
-            eq(timetables.schoolId, studentSchoolId),
-            eq(timetables.isActive, true),
-            isNotNull(timetables.teacherId)
-          ));
-        
-        classTeacherIds = classTeachers.map(t => t.teacherId!).filter(Boolean);
-        console.log(`[STUDENT_MESSAGES] 👨‍🏫 Class teachers found: ${classTeacherIds.length}`);
-      }
-      
-      // STEP 3: Fetch messages from notifications table - only from class teachers and school directors
+      // STEP 2: Fetch ALL messages sent TO this student from the messages table
       const dbMessages = await db
         .select({
-          id: notifications.id,
-          title: notifications.title,
-          message: notifications.message,
-          type: notifications.type,
-          priority: notifications.priority,
-          isRead: notifications.isRead,
-          createdAt: notifications.createdAt,
-          senderId: notifications.senderId,
-          senderFirstName: users.firstName,
-          senderLastName: users.lastName,
-          senderRole: users.role
+          id: messages.id,
+          senderId: messages.senderId,
+          senderName: messages.senderName,
+          senderRole: messages.senderRole,
+          subject: messages.subject,
+          content: messages.content,
+          messageType: messages.messageType,
+          isRead: messages.isRead,
+          status: messages.status,
+          createdAt: messages.createdAt
         })
-        .from(notifications)
-        .leftJoin(users, eq(notifications.senderId, users.id))
-        .where(and(
-          eq(notifications.userId, studentId),
-          eq(notifications.schoolId, studentSchoolId),
-          or(
-            // Messages from class teachers only
-            classTeacherIds.length > 0 
-              ? inArray(notifications.senderId, classTeacherIds)
-              : sql`false`,
-            // Messages from directors/admin of the school
-            and(
-              isNotNull(notifications.senderId),
-              eq(users.role, 'Director')
-            ),
-            // School-wide announcements (no specific sender)
-            isNull(notifications.senderId)
-          )
-        ))
-        .orderBy(desc(notifications.createdAt))
+        .from(messages)
+        .where(eq(messages.recipientId, studentId))
+        .orderBy(desc(messages.createdAt))
         .limit(50);
       
-      // STEP 4: Format messages for frontend
+      console.log(`[STUDENT_MESSAGES] 📧 Found ${dbMessages.length} messages in database`);
+      
+      // STEP 3: Format messages for frontend
       const now = new Date();
       const recentThreshold = 2 * 60 * 60 * 1000; // 2 hours
       
@@ -10013,67 +9962,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const createdAt = msg.createdAt ? new Date(msg.createdAt) : new Date();
         const isRecent = (now.getTime() - createdAt.getTime()) < recentThreshold;
         
-        const isTeacher = classTeacherIds.includes(msg.senderId || 0);
+        const isParent = parentIds.includes(msg.senderId || 0) || msg.senderRole === 'Parent';
+        const isTeacher = msg.senderRole === 'Teacher';
         const isAdmin = msg.senderRole === 'Director' || msg.senderRole === 'Admin';
+        
+        // Determine fromRole based on sender
+        let fromRole = 'School';
+        if (isParent) {
+          fromRole = 'Parent';
+        } else if (isTeacher) {
+          fromRole = 'Teacher';
+        } else if (isAdmin) {
+          fromRole = 'Director';
+        }
         
         return {
           id: msg.id,
-          from: msg.senderFirstName && msg.senderLastName 
-            ? `${msg.senderFirstName} ${msg.senderLastName}`
-            : isAdmin ? 'Direction École' : 'Système',
-          fromRole: isTeacher ? 'Teacher' : isAdmin ? 'Admin' : 'System',
+          from: msg.senderName || 'Système',
+          fromRole,
           fromId: msg.senderId,
-          subject: msg.title || 'Message',
-          message: msg.message || '',
+          subject: msg.subject || 'Message',
+          message: msg.content || '',
+          content: msg.content || '',
           date: createdAt.toISOString(),
           read: msg.isRead || false,
-          type: isTeacher ? 'teacher' : 'admin',
-          priority: msg.priority || 'normal',
-          studentClass: studentClassName,
-          isClassTeacher: isTeacher,
+          isRead: msg.isRead || false,
+          type: isParent ? 'family' : (isTeacher ? 'teacher' : 'school'),
+          priority: 'normal',
+          status: msg.isRead ? 'read' : 'unread',
+          isParent,
           isNew: isRecent,
-          lastUpdated: createdAt.toISOString(),
-          filteredCorrectly: true
+          lastUpdated: createdAt.toISOString()
         };
       });
       
       // 📊 Statistics
-      const teacherMessages = processedMessages.filter(m => m.type === 'teacher').length;
-      const adminMessages = processedMessages.filter(m => m.type === 'admin').length;
+      const parentMsgCount = processedMessages.filter(m => m.fromRole === 'Parent').length;
+      const teacherMsgCount = processedMessages.filter(m => m.fromRole === 'Teacher').length;
+      const schoolMsgCount = processedMessages.filter(m => m.fromRole === 'Director' || m.fromRole === 'School').length;
       const unreadMessages = processedMessages.filter(m => !m.read).length;
       const recentMessages = processedMessages.filter(m => m.isNew).length;
       
-      console.log(`[STUDENT_MESSAGES] ✅ DATABASE: ${processedMessages.length} messages (teachers: ${teacherMessages}, admin: ${adminMessages})`);
+      console.log(`[STUDENT_MESSAGES] ✅ DATABASE: ${processedMessages.length} messages (parents: ${parentMsgCount}, teachers: ${teacherMsgCount}, school: ${schoolMsgCount})`);
       console.log(`[STUDENT_MESSAGES] 📬 Unread: ${unreadMessages}, Recent: ${recentMessages}`);
       
-      res.json({ 
-        success: true, 
-        messages: processedMessages,
-        stats: {
-          total: processedMessages.length,
-          teachers: teacherMessages,
-          admin: adminMessages,
-          unread: unreadMessages,
-          recent: recentMessages
-        },
-        filter: {
-          studentClass: studentClassName,
-          studentClassId,
-          studentSchoolId,
-          classTeacherCount: classTeacherIds.length,
-          onlyClassTeachers: true,
-          onlySchoolAdmin: true,
-          noParents: true
-        },
-        syncTime: new Date().toISOString(),
-        message: 'Messages filtered by assigned class teachers and school administration only'
-      });
+      res.json(processedMessages);
     } catch (error) {
       console.error('[STUDENT_MESSAGES] Error:', error);
       res.status(500).json({ 
         success: false, 
         message: 'Failed to fetch student messages',
         error: 'Impossible de récupérer les messages'
+      });
+    }
+  });
+
+  // Student send message to parent ONLY
+  app.post("/api/student/messages/parent", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const studentId = user.id;
+      const { parentId, subject, message: messageContent } = req.body;
+      
+      console.log(`[STUDENT_MESSAGE_PARENT] 📤 Student ${studentId} sending message to parent ${parentId}`);
+      
+      if (!parentId || !subject || !messageContent) {
+        return res.status(400).json({
+          success: false,
+          message: 'Parent ID, subject and message are required'
+        });
+      }
+      
+      // Verify parent is linked to this student
+      const [parentRelation] = await db
+        .select()
+        .from(parentStudentRelations)
+        .where(and(
+          eq(parentStudentRelations.studentId, studentId),
+          eq(parentStudentRelations.parentId, parseInt(parentId))
+        ))
+        .limit(1);
+      
+      if (!parentRelation) {
+        console.log(`[STUDENT_MESSAGE_PARENT] ❌ Parent ${parentId} not linked to student ${studentId}`);
+        return res.status(403).json({
+          success: false,
+          message: 'You can only send messages to your linked parents'
+        });
+      }
+      
+      // Get parent info
+      const [parentUser] = await db
+        .select({ firstName: users.firstName, lastName: users.lastName })
+        .from(users)
+        .where(eq(users.id, parseInt(parentId)))
+        .limit(1);
+      
+      // Insert message into messages table
+      const [newMessage] = await db.insert(messages).values({
+        senderId: studentId,
+        senderName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Élève',
+        senderRole: 'Student',
+        recipientId: parseInt(parentId),
+        recipientName: parentUser ? `${parentUser.firstName || ''} ${parentUser.lastName || ''}`.trim() : 'Parent',
+        recipientRole: 'Parent',
+        schoolId: user.schoolId,
+        subject,
+        content: messageContent,
+        messageType: 'family',
+        isRead: false,
+        status: 'sent'
+      }).returning();
+      
+      console.log(`[STUDENT_MESSAGE_PARENT] ✅ Message sent successfully, ID: ${newMessage?.id}`);
+      
+      res.json({
+        success: true,
+        message: 'Message sent to parent successfully',
+        data: {
+          messageId: newMessage?.id,
+          recipientName: parentUser ? `${parentUser.firstName} ${parentUser.lastName}` : 'Parent'
+        }
+      });
+    } catch (error) {
+      console.error('[STUDENT_MESSAGE_PARENT] Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send message to parent'
       });
     }
   });
