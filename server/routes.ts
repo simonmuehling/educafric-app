@@ -2408,7 +2408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             eq(usersTable.schoolId, userSchoolId)
           )
         )
-        .orderBy(asc(usersTable.firstName), asc(usersTable.lastName));
+        .orderBy(asc(usersTable.lastName), asc(usersTable.firstName));
       
       // ✅ STEP 4: FILTER - Only pure students (exclude teacher-students), match sandbox status, AND filter by classId if provided
       const dbStudents = dbStudentsRaw.filter((student: any) => {
