@@ -11,7 +11,7 @@ import { ModernStatsCard } from '@/components/ui/ModernCard';
 import { 
   MessageSquare, Send, Users, Bell, Phone, Mail, 
   AlertTriangle, Calendar, CheckCircle, Plus, Eye, Clock, History,
-  Shield, MapPin, FileText, Flame, UserX, CloudLightning, CheckSquare, Download
+  Shield, MapPin, FileText, Flame, UserX, CheckSquare, Download
 } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -85,19 +85,6 @@ const CommunicationsCenter: React.FC = () => {
         { id: 'i6', labelFr: 'Attendre le signal de sécurité', labelEn: 'Wait for safety signal' },
       ]
     },
-    {
-      id: 'natural_disaster',
-      type: 'natural_disaster' as const,
-      items: [
-        { id: 'n1', labelFr: 'Alerter tout le personnel', labelEn: 'Alert all staff' },
-        { id: 'n2', labelFr: 'Se mettre sous les tables/bureaux', labelEn: 'Get under tables/desks' },
-        { id: 'n3', labelFr: 'S\'éloigner des fenêtres', labelEn: 'Move away from windows' },
-        { id: 'n4', labelFr: 'Couper l\'électricité et le gaz', labelEn: 'Cut electricity and gas' },
-        { id: 'n5', labelFr: 'Évacuer vers zone sûre', labelEn: 'Evacuate to safe zone' },
-        { id: 'n6', labelFr: 'Vérifier les blessés', labelEn: 'Check for injuries' },
-        { id: 'n7', labelFr: 'Contacter les secours (119)', labelEn: 'Contact emergency services (119)' },
-      ]
-    }
   ], []);
   
   // Get label based on current language
@@ -659,7 +646,6 @@ const CommunicationsCenter: React.FC = () => {
     switch (type) {
       case 'fire': return <Flame className="w-5 h-5 text-orange-500" />;
       case 'intrusion': return <UserX className="w-5 h-5 text-red-500" />;
-      case 'natural_disaster': return <CloudLightning className="w-5 h-5 text-purple-500" />;
       default: return <Shield className="w-5 h-5 text-blue-500" />;
     }
   };
@@ -668,7 +654,6 @@ const CommunicationsCenter: React.FC = () => {
     switch (type) {
       case 'fire': return language === 'fr' ? 'Incendie' : 'Fire';
       case 'intrusion': return language === 'fr' ? 'Intrusion' : 'Intrusion';
-      case 'natural_disaster': return language === 'fr' ? 'Catastrophe Naturelle' : 'Natural Disaster';
       default: return type;
     }
   };
@@ -708,53 +693,58 @@ const CommunicationsCenter: React.FC = () => {
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Panic Button */}
-            <div className="flex flex-col items-center p-6 bg-gradient-to-br from-red-50 to-orange-50 rounded-xl border border-red-200">
+          <CardContent className="space-y-4">
+            {/* Panic Button - Compact & Mobile-friendly */}
+            <div className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${panicMode ? 'bg-red-100 border-red-500 animate-pulse' : 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200'}`}>
               {!panicMode ? (
                 <>
                   <Button
                     onClick={() => setShowPanicConfirmDialog(true)}
                     disabled={gettingLocation}
-                    className="w-32 h-32 rounded-full bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-600 hover:bg-red-700 shadow-lg flex-shrink-0"
                     data-testid="button-panic"
                   >
                     <div className="text-center">
-                      <AlertTriangle className="w-12 h-12 mx-auto mb-2" />
-                      <span className="text-sm font-bold">
-                        {gettingLocation 
-                          ? (language === 'fr' ? 'GPS...' : 'GPS...') 
-                          : (language === 'fr' ? 'PANIQUE' : 'PANIC')}
-                      </span>
+                      <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 mx-auto" />
                     </div>
                   </Button>
-                  <p className="mt-4 text-sm text-gray-600 text-center max-w-md">
-                    {language === 'fr' 
-                      ? 'Appuyez pour déclencher une alerte d\'urgence. Votre position GPS sera envoyée à tous les parents et enseignants.'
-                      : 'Press to trigger an emergency alert. Your GPS position will be sent to all parents and teachers.'}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-red-700 text-sm sm:text-base">
+                      {language === 'fr' ? '🚨 Bouton Panique' : '🚨 Panic Button'}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                      {language === 'fr' 
+                        ? 'Alerte urgente avec position GPS à tous les contacts'
+                        : 'Emergency alert with GPS location to all contacts'}
+                    </p>
+                  </div>
                 </>
               ) : (
-                <div className="text-center space-y-4">
-                  <div className="animate-bounce">
-                    <AlertTriangle className="w-16 h-16 text-red-600 mx-auto" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-red-600">
-                    {language === 'fr' ? '🚨 ALERTE ACTIVE' : '🚨 ALERT ACTIVE'}
-                  </h3>
-                  {currentLocation && (
-                    <div className="flex items-center justify-center gap-2 text-sm text-gray-700">
-                      <MapPin className="w-4 h-4" />
-                      <span>GPS: {currentLocation.lat.toFixed(6)}, {currentLocation.lng.toFixed(6)}</span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-bounce">
+                      <AlertTriangle className="w-10 h-10 text-red-600" />
                     </div>
-                  )}
+                    <div>
+                      <h3 className="font-bold text-red-600">
+                        {language === 'fr' ? '🚨 ALERTE ACTIVE' : '🚨 ALERT ACTIVE'}
+                      </h3>
+                      {currentLocation && (
+                        <p className="text-xs text-gray-600 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                   <Button
                     onClick={cancelPanicMode}
+                    size="sm"
                     variant="outline"
                     className="border-red-500 text-red-600 hover:bg-red-100"
                     data-testid="button-cancel-panic"
                   >
-                    {language === 'fr' ? 'Annuler l\'alerte' : 'Cancel Alert'}
+                    {language === 'fr' ? 'Annuler' : 'Cancel'}
                   </Button>
                 </div>
               )}
@@ -762,26 +752,26 @@ const CommunicationsCenter: React.FC = () => {
 
             {/* Evacuation Checklists */}
             <div>
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <CheckSquare className="w-5 h-5 text-blue-500" />
+              <h3 className="font-semibold mb-2 flex items-center gap-2 text-sm">
+                <CheckSquare className="w-4 h-4 text-blue-500" />
                 {language === 'fr' ? 'Procédures d\'Évacuation' : 'Evacuation Procedures'}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-2">
                 {evacuationChecklistsData.map((checklist) => (
                   <Card 
                     key={checklist.id}
-                    className={`p-4 cursor-pointer transition-all hover:shadow-md ${activeChecklist === checklist.id ? 'ring-2 ring-blue-500' : ''}`}
+                    className={`p-3 cursor-pointer transition-all hover:shadow-md ${activeChecklist === checklist.id ? 'ring-2 ring-blue-500 bg-blue-50' : 'bg-white'}`}
                     onClick={() => setActiveChecklist(activeChecklist === checklist.id ? null : checklist.id)}
                     data-testid={`card-checklist-${checklist.type}`}
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
                       {getChecklistIcon(checklist.type)}
-                      <Badge variant="outline">
+                      <span className="font-medium text-xs sm:text-sm">{getChecklistTitle(checklist.type)}</span>
+                      <Badge variant="outline" className="ml-auto text-xs">
                         {getChecklistProgress(checklist.id)}%
                       </Badge>
                     </div>
-                    <h4 className="font-medium text-sm md:text-base">{getChecklistTitle(checklist.type)}</h4>
-                    <Progress value={getChecklistProgress(checklist.id)} className="mt-2 h-2" />
+                    <Progress value={getChecklistProgress(checklist.id)} className="mt-2 h-1.5" />
                   </Card>
                 ))}
               </div>
