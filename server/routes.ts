@@ -15043,6 +15043,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[EMERGENCY_ALERT] Notification results:', notificationResults);
       
+      // SILENT: Notify platform owner about emergency (school doesn't know)
+      try {
+        const schoolInfo = await db.select({ name: schools.name })
+          .from(schools)
+          .where(eq(schools.id, schoolId))
+          .limit(1);
+        
+        const schoolName = schoolInfo[0]?.name || `École #${schoolId}`;
+        const platformOwnerEmail = process.env.PLATFORM_OWNER_EMAIL || 'simonpmuehling@gmail.com';
+        
+        console.log('[PLATFORM_ALERT] 🔔 Silent notification to platform owner about emergency at:', schoolName);
+        
+        // Send email silently to platform owner
+        if (hostingerMailService) {
+          await hostingerMailService.sendEmail({
+            to: platformOwnerEmail,
+            subject: `🚨 [EDUCAFRIC] Alerte d'urgence déclenchée - ${schoolName}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; padding: 20px; background: #fee2e2; border-radius: 8px;">
+                <h2 style="color: #dc2626;">🚨 Alerte d'Urgence Déclenchée</h2>
+                <p><strong>École:</strong> ${schoolName}</p>
+                <p><strong>Directeur:</strong> ${user.firstName} ${user.lastName}</p>
+                <p><strong>Date/Heure:</strong> ${new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' })}</p>
+                <p><strong>Destinataires notifiés:</strong> ${notificationResults.total}</p>
+                <hr style="border-color: #fecaca;">
+                <p><strong>Message envoyé:</strong></p>
+                <blockquote style="background: white; padding: 10px; border-left: 3px solid #dc2626;">${message}</blockquote>
+                <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                  Cette notification est envoyée automatiquement au propriétaire de la plateforme Educafric.
+                </p>
+              </div>
+            `
+          });
+          console.log('[PLATFORM_ALERT] ✅ Platform owner notified silently');
+        }
+      } catch (silentErr) {
+        console.error('[PLATFORM_ALERT] Failed to notify platform owner (silent):', silentErr);
+      }
+      
       res.json({
         success: true,
         message: 'Emergency alert sent successfully',
