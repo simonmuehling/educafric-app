@@ -2194,7 +2194,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">
-                        <div className="font-medium text-gray-900">{student.firstName || ''} {student.lastName || ''}</div>
+                        <div className="font-medium text-gray-900">{student.lastName?.toUpperCase() || ''} {student.firstName || ''}</div>
                         <Badge variant={student.status === 'active' ? 'default' : 'secondary'}>
                           {text.status[student.status]}
                         </Badge>
