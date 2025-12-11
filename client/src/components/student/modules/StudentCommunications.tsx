@@ -10,9 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  MessageSquare, Eye, Reply, RefreshCw, 
-  AlertCircle, CheckCircle, Clock, Users, Send, Heart
+  MessageSquare, Eye, RefreshCw, 
+  AlertCircle, CheckCircle, Clock, Users, Send, Heart,
+  GraduationCap, Building2, Inbox
 } from 'lucide-react';
 
 interface Parent {
@@ -47,6 +49,7 @@ const StudentCommunications: React.FC = () => {
   const queryClient = useQueryClient();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isParentMessageOpen, setIsParentMessageOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
   const [parentForm, setParentForm] = useState({
     parentId: '',
     subject: '',
@@ -55,8 +58,8 @@ const StudentCommunications: React.FC = () => {
 
   const text = {
     fr: {
-      title: 'Messages Famille',
-      subtitle: 'Communiquer avec mes parents',
+      title: 'Mes Messages',
+      subtitle: 'Recevez des messages de toute l\'école, répondez à vos parents',
       loading: 'Chargement des messages...',
       error: 'Erreur lors du chargement des messages',
       noMessages: 'Aucun message',
@@ -64,7 +67,6 @@ const StudentCommunications: React.FC = () => {
       noParentsInfo: 'Contactez l\'administration de votre école pour lier vos parents à votre compte.',
       refresh: 'Actualiser',
       markRead: 'Marquer comme lu',
-      reply: 'Répondre',
       from: 'De',
       subject: 'Objet',
       date: 'Date',
@@ -80,6 +82,11 @@ const StudentCommunications: React.FC = () => {
       messageSent: 'Message envoyé',
       messageSentDesc: 'Votre message a été envoyé à votre parent',
       cancel: 'Annuler',
+      allMessages: 'Tous',
+      fromParents: 'Parents',
+      fromTeachers: 'Enseignants',
+      fromSchool: 'École',
+      sendInfo: 'Vous pouvez uniquement envoyer des messages à vos parents',
       priority: {
         urgent: 'Urgent',
         high: 'Important',
@@ -96,11 +103,18 @@ const StudentCommunications: React.FC = () => {
         mother: 'Mère',
         guardian: 'Tuteur',
         Parent: 'Parent'
+      },
+      roles: {
+        Parent: 'Parent',
+        Teacher: 'Enseignant',
+        Director: 'Directeur',
+        Admin: 'Administration',
+        School: 'École'
       }
     },
     en: {
-      title: 'Family Messages',
-      subtitle: 'Communicate with my parents',
+      title: 'My Messages',
+      subtitle: 'Receive messages from everyone, reply only to your parents',
       loading: 'Loading messages...',
       error: 'Error loading messages',
       noMessages: 'No messages',
@@ -108,7 +122,6 @@ const StudentCommunications: React.FC = () => {
       noParentsInfo: 'Contact your school administration to link your parents to your account.',
       refresh: 'Refresh',
       markRead: 'Mark as read',
-      reply: 'Reply',
       from: 'From',
       subject: 'Subject',
       date: 'Date',
@@ -124,6 +137,11 @@ const StudentCommunications: React.FC = () => {
       messageSent: 'Message sent',
       messageSentDesc: 'Your message has been sent to your parent',
       cancel: 'Cancel',
+      allMessages: 'All',
+      fromParents: 'Parents',
+      fromTeachers: 'Teachers',
+      fromSchool: 'School',
+      sendInfo: 'You can only send messages to your parents',
       priority: {
         urgent: 'Urgent',
         high: 'Important',
@@ -140,6 +158,13 @@ const StudentCommunications: React.FC = () => {
         mother: 'Mother',
         guardian: 'Guardian',
         Parent: 'Parent'
+      },
+      roles: {
+        Parent: 'Parent',
+        Teacher: 'Teacher',
+        Director: 'Director',
+        Admin: 'Administration',
+        School: 'School'
       }
     }
   };
@@ -152,18 +177,37 @@ const StudentCommunications: React.FC = () => {
     enabled: !!user
   });
 
-  // Fetch messages from API - REAL DATABASE
+  // Fetch ALL messages from API - REAL DATABASE (from all senders)
   const { data: messages = [], isLoading: messagesLoading, error, refetch } = useQuery<Message[]>({
     queryKey: ['/api/student/messages'],
     enabled: !!user
   });
 
-  // Filter messages to show only parent messages
-  const parentMessages = (messages || []).filter((msg: Message) => 
+  // Filter messages by sender type for tabs
+  const allMessages = messages || [];
+  const parentMessages = allMessages.filter((msg: Message) => 
     msg.fromRole === 'Parent' || msg.type === 'family'
   );
+  const teacherMessages = allMessages.filter((msg: Message) => 
+    msg.fromRole === 'Teacher'
+  );
+  const schoolMessages = allMessages.filter((msg: Message) => 
+    msg.fromRole === 'Director' || msg.fromRole === 'Admin' || msg.fromRole === 'School' || msg.type === 'school'
+  );
 
-  // Send message to parent mutation
+  // Get messages for current tab
+  const getFilteredMessages = () => {
+    switch (activeTab) {
+      case 'parents': return parentMessages;
+      case 'teachers': return teacherMessages;
+      case 'school': return schoolMessages;
+      default: return allMessages;
+    }
+  };
+
+  const filteredMessages = getFilteredMessages();
+
+  // Send message to parent mutation (ONLY TO PARENTS)
   const sendParentMessageMutation = useMutation({
     mutationFn: async (messageData: { parentId: string; subject: string; message: string }) => {
       const response = await fetch('/api/student/messages/parent', {
@@ -221,6 +265,22 @@ const StudentCommunications: React.FC = () => {
     }
   };
 
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'Parent': return <Heart className="w-4 h-4 text-pink-500" />;
+      case 'Teacher': return <GraduationCap className="w-4 h-4 text-blue-500" />;
+      case 'Director':
+      case 'Admin':
+      case 'School': return <Building2 className="w-4 h-4 text-purple-500" />;
+      default: return <MessageSquare className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getRoleLabel = (role: string) => {
+    const key = role as keyof typeof t.roles;
+    return t.roles[key] || role;
+  };
+
   const handleRefresh = () => {
     refetch();
     toast({
@@ -229,25 +289,19 @@ const StudentCommunications: React.FC = () => {
     });
   };
 
-  const handleMarkRead = (messageId: number) => {
-    toast({
-      title: t.markRead,
-      description: language === 'fr' ? 'Message marqué comme lu' : 'Message marked as read'
-    });
-  };
-
-  const handleReply = (message: Message) => {
-    // Pre-fill form with parent info for reply
-    const parentMatch = parents.find(p => 
-      message.from.includes(p.firstName) || message.from.includes(p.lastName)
-    );
-    if (parentMatch) {
-      setParentForm({
-        parentId: parentMatch.id.toString(),
-        subject: `Re: ${message.subject}`,
-        message: ''
+  const handleMarkRead = async (messageId: number) => {
+    try {
+      await fetch(`/api/student/messages/${messageId}/read`, {
+        method: 'POST',
+        credentials: 'include'
       });
-      setIsParentMessageOpen(true);
+      queryClient.invalidateQueries({ queryKey: ['/api/student/messages'] });
+      toast({
+        title: t.markRead,
+        description: language === 'fr' ? 'Message marqué comme lu' : 'Message marked as read'
+      });
+    } catch {
+      // Silent fail - already attempted
     }
   };
 
@@ -294,11 +348,10 @@ const StudentCommunications: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <Heart className="w-8 h-8 text-pink-500" />
+            <Inbox className="w-8 h-8 text-blue-500" />
             <h1 className="text-2xl md:text-3xl font-bold">{t.title}</h1>
           </div>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
-          <p className="text-xs text-blue-600 mt-1">{t.notificationInfo}</p>
         </div>
         <Button onClick={handleRefresh} variant="outline" size="sm">
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -306,12 +359,17 @@ const StudentCommunications: React.FC = () => {
         </Button>
       </div>
 
-      {/* Write to Parents Section */}
+      {/* Write to Parents Section - ONLY SEND TO PARENTS */}
       <Card className="mb-6 border-pink-200 bg-gradient-to-r from-pink-50 to-white">
         <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-pink-500" />
-            <h3 className="text-lg font-semibold text-pink-700">{t.writeToParent}</h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Heart className="w-5 h-5 text-pink-500" />
+              <h3 className="text-lg font-semibold text-pink-700">{t.writeToParent}</h3>
+            </div>
+            <Badge variant="outline" className="text-xs text-pink-600 border-pink-300">
+              {t.sendInfo}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent>
@@ -402,43 +460,76 @@ const StudentCommunications: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Messages List - Only from Parents */}
+      {/* Messages List - FROM ALL PROFILES */}
       <Card>
         <CardHeader>
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
-            {language === 'fr' ? 'Messages de mes parents' : 'Messages from my parents'}
+            {language === 'fr' ? 'Messages reçus' : 'Received messages'}
           </h3>
         </CardHeader>
         <CardContent>
-          {parentMessages.length === 0 ? (
+          {/* Filter Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all" className="flex items-center gap-1">
+                <Inbox className="w-4 h-4" />
+                <span className="hidden sm:inline">{t.allMessages}</span>
+                <Badge variant="secondary" className="ml-1">{allMessages.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="parents" className="flex items-center gap-1">
+                <Heart className="w-4 h-4 text-pink-500" />
+                <span className="hidden sm:inline">{t.fromParents}</span>
+                <Badge variant="secondary" className="ml-1">{parentMessages.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="teachers" className="flex items-center gap-1">
+                <GraduationCap className="w-4 h-4 text-blue-500" />
+                <span className="hidden sm:inline">{t.fromTeachers}</span>
+                <Badge variant="secondary" className="ml-1">{teacherMessages.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="school" className="flex items-center gap-1">
+                <Building2 className="w-4 h-4 text-purple-500" />
+                <span className="hidden sm:inline">{t.fromSchool}</span>
+                <Badge variant="secondary" className="ml-1">{schoolMessages.length}</Badge>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {filteredMessages.length === 0 ? (
             <div className="text-center py-12">
               <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg">{t.noMessages}</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {parentMessages.map((message: Message) => (
+              {filteredMessages.map((message: Message) => (
                 <div 
                   key={message.id} 
-                  className={`p-4 rounded-lg border transition-all hover:shadow-md ${
-                    !message.isRead ? 'border-l-4 border-l-pink-500 bg-pink-50' : 'bg-white'
+                  className={`p-4 rounded-lg border transition-all hover:shadow-md cursor-pointer ${
+                    !message.isRead ? 'border-l-4 border-l-blue-500 bg-blue-50' : 'bg-white'
                   }`}
+                  onClick={() => setSelectedMessage(message)}
+                  data-testid={`message-item-${message.id}`}
                 >
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                     <div className="flex-1">
                       {/* Message Header */}
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <div className="flex items-center gap-1">
-                          <Heart className="w-4 h-4 text-pink-500" />
+                          {getRoleIcon(message.fromRole)}
                           <span className="font-semibold text-gray-900">{message.from}</span>
                         </div>
-                        <Badge variant="outline" className={`${getPriorityColor(message.priority)} text-white text-xs`}>
-                          {t.priority[message.priority as keyof typeof t.priority]}
-                        </Badge>
                         <Badge variant="outline" className="text-xs">
-                          {message.isRead ? t.status.read : t.status.unread}
+                          {getRoleLabel(message.fromRole)}
                         </Badge>
+                        <Badge variant="outline" className={`${getPriorityColor(message.priority)} text-white text-xs`}>
+                          {t.priority[message.priority as keyof typeof t.priority] || message.priority}
+                        </Badge>
+                        {!message.isRead && (
+                          <Badge className="bg-blue-500 text-white text-xs">
+                            {t.status.unread}
+                          </Badge>
+                        )}
                       </div>
 
                       {/* Subject */}
@@ -448,9 +539,9 @@ const StudentCommunications: React.FC = () => {
 
                       {/* Message Preview */}
                       <p className="text-gray-600 text-sm mb-2">
-                        {message.message?.length > 100 
-                          ? `${message.message.substring(0, 100)}...` 
-                          : message.message
+                        {(message.message || message.content)?.length > 100 
+                          ? `${(message.message || message.content).substring(0, 100)}...` 
+                          : (message.message || message.content)
                         }
                       </p>
 
@@ -467,8 +558,12 @@ const StudentCommunications: React.FC = () => {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => handleMarkRead(message.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMarkRead(message.id);
+                          }}
                           className="text-xs"
+                          data-testid={`button-mark-read-${message.id}`}
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
                           {t.markRead}
@@ -477,17 +572,12 @@ const StudentCommunications: React.FC = () => {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => handleReply(message)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedMessage(message);
+                        }}
                         className="text-xs"
-                      >
-                        <Reply className="w-3 h-3 mr-1" />
-                        {t.reply}
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => setSelectedMessage(message)}
-                        className="text-xs"
+                        data-testid={`button-view-${message.id}`}
                       >
                         <Eye className="w-3 h-3 mr-1" />
                         {language === 'fr' ? 'Voir' : 'View'}
@@ -507,7 +597,7 @@ const StudentCommunications: React.FC = () => {
           <DialogContent className="sm:max-w-[600px] bg-white">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Heart className="w-5 h-5 text-pink-500" />
+                {getRoleIcon(selectedMessage.fromRole)}
                 {selectedMessage.subject}
               </DialogTitle>
             </DialogHeader>
@@ -515,6 +605,9 @@ const StudentCommunications: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">{t.from}:</span> {selectedMessage.from}
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    {getRoleLabel(selectedMessage.fromRole)}
+                  </Badge>
                 </div>
                 <div>
                   <span className="font-medium">{t.date}:</span> {selectedMessage.date}
@@ -524,13 +617,30 @@ const StudentCommunications: React.FC = () => {
                 <p className="whitespace-pre-wrap">{selectedMessage.message || selectedMessage.content}</p>
               </div>
               <div className="flex justify-end gap-2 pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleReply(selectedMessage)}
-                >
-                  <Reply className="w-4 h-4 mr-2" />
-                  {t.reply}
-                </Button>
+                {/* Only show reply for parent messages */}
+                {selectedMessage.fromRole === 'Parent' && parents.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      const parentMatch = parents.find(p => 
+                        selectedMessage.from.includes(p.firstName) || selectedMessage.from.includes(p.lastName)
+                      );
+                      if (parentMatch) {
+                        setParentForm({
+                          parentId: parentMatch.id.toString(),
+                          subject: `Re: ${selectedMessage.subject}`,
+                          message: ''
+                        });
+                        setSelectedMessage(null);
+                        setIsParentMessageOpen(true);
+                      }
+                    }}
+                    className="bg-pink-500 hover:bg-pink-600 text-white"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Répondre' : 'Reply'}
+                  </Button>
+                )}
                 <Button onClick={() => setSelectedMessage(null)}>
                   {language === 'fr' ? 'Fermer' : 'Close'}
                 </Button>
