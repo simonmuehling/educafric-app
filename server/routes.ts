@@ -3239,10 +3239,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_TEACHERS_API] 📊 Fetching teachers from DATABASE for school:', userSchoolId);
       
-      // Get all teachers for this school from database
+      // Get all teachers for this school from database (sorted by lastName, firstName)
       const schoolTeachers = await db.select()
         .from(users)
-        .where(and(eq(users.role, 'Teacher'), eq(users.schoolId, userSchoolId)));
+        .where(and(eq(users.role, 'Teacher'), eq(users.schoolId, userSchoolId)))
+        .orderBy(asc(users.lastName), asc(users.firstName));
       
       console.log('[DIRECTOR_TEACHERS_API] 📊 Found', schoolTeachers.length, 'teachers');
       

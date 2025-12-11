@@ -151,7 +151,7 @@ export function FunctionalDirectorTeachers() {
                 </div>
 
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {teacher.firstName || ''} {teacher.lastName || ''}
+                  {teacher.lastName?.toUpperCase() || ''} {teacher.firstName || ''}
                 </h3>
 
                 <div className="space-y-2 mb-4">

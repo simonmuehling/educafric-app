@@ -27,6 +27,8 @@ import { sortBy, sortStrings } from '@/utils/sort';
 interface Teacher {
   id: number;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   phone: string;
   gender?: string;
@@ -1722,7 +1724,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">
-                        <div className="font-medium text-gray-900">{teacher.name || ''}</div>
+                        <div className="font-medium text-gray-900">{teacher.lastName?.toUpperCase() || ''} {teacher.firstName || ''}</div>
                         <Badge variant={teacher.status === 'active' ? 'default' : 'secondary'}>
                           {text.status[teacher.status]}
                         </Badge>

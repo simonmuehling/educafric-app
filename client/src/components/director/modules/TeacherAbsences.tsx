@@ -386,7 +386,7 @@ const TeacherAbsences = () => {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">
-                        {teacher.firstName || ''} {teacher.lastName || ''}
+                        {teacher.lastName?.toUpperCase() || ''} {teacher.firstName || ''}
                       </p>
                       <p className="text-sm text-gray-600">
                         {teacher.subjects?.join(', ') || t.versatile}
