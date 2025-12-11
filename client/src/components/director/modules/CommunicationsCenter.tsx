@@ -53,6 +53,7 @@ const CommunicationsCenter: React.FC = () => {
   const [activeChecklist, setActiveChecklist] = useState<string | null>(null);
   const [emergencyIncidents, setEmergencyIncidents] = useState<EmergencyIncident[]>([]);
   const [showIncidentHistory, setShowIncidentHistory] = useState(false);
+  const [showPanicConfirmDialog, setShowPanicConfirmDialog] = useState(false);
   
   // Evacuation checklists data - using state to track checked status only
   const [checklistStates, setChecklistStates] = useState<Record<string, boolean>>({});
@@ -810,7 +811,7 @@ const CommunicationsCenter: React.FC = () => {
               {!panicMode ? (
                 <>
                   <Button
-                    onClick={handlePanicButton}
+                    onClick={() => setShowPanicConfirmDialog(true)}
                     disabled={gettingLocation}
                     className="w-32 h-32 rounded-full bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
                     data-testid="button-panic"
@@ -1204,6 +1205,60 @@ const CommunicationsCenter: React.FC = () => {
               ) : (
                 language === 'fr' ? 'Confirmer l\'envoi' : 'Confirm Send'
               )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Panic Button Confirmation Dialog */}
+      <AlertDialog open={showPanicConfirmDialog} onOpenChange={setShowPanicConfirmDialog}>
+        <AlertDialogContent className="bg-white border-2 border-red-500">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+              <AlertTriangle className="w-6 h-6" />
+              {language === 'fr' ? '⚠️ Confirmation d\'Alerte d\'Urgence' : '⚠️ Emergency Alert Confirmation'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              <div className="space-y-3 mt-2">
+                <p className="font-semibold text-gray-800">
+                  {language === 'fr' 
+                    ? 'Êtes-vous sûr de vouloir déclencher une alerte d\'urgence ?' 
+                    : 'Are you sure you want to trigger an emergency alert?'}
+                </p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
+                  <p className="text-red-800">
+                    {language === 'fr' 
+                      ? '⚠️ Cette action va :' 
+                      : '⚠️ This action will:'}
+                  </p>
+                  <ul className="list-disc ml-5 mt-2 text-red-700 space-y-1">
+                    <li>{language === 'fr' ? 'Capturer votre position GPS' : 'Capture your GPS location'}</li>
+                    <li>{language === 'fr' ? 'Envoyer une notification urgente à TOUS les parents' : 'Send an urgent notification to ALL parents'}</li>
+                    <li>{language === 'fr' ? 'Envoyer une notification urgente à TOUS les enseignants' : 'Send an urgent notification to ALL teachers'}</li>
+                  </ul>
+                </div>
+                <p className="text-gray-600 text-sm italic">
+                  {language === 'fr' 
+                    ? 'Utilisez cette fonction uniquement en cas d\'urgence réelle.' 
+                    : 'Use this function only in case of a real emergency.'}
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="flex-1">
+              {language === 'fr' ? 'Annuler' : 'Cancel'}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                setShowPanicConfirmDialog(false);
+                handlePanicButton();
+              }}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              data-testid="button-confirm-panic"
+            >
+              <AlertTriangle className="w-4 h-4 mr-2" />
+              {language === 'fr' ? 'OUI, Déclencher l\'Alerte' : 'YES, Trigger Alert'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
