@@ -14993,10 +14993,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(users.schoolId, schoolId));
         
         recipients = schoolUsers.filter(u => 
-          u.role === 'Teacher' || u.role === 'Parent' || u.role === 'Student'
+          u.role === 'Teacher' || u.role === 'Parent' || u.role === 'Student' || u.role === 'SiteAdmin'
         );
         
-        console.log('[EMERGENCY_ALERT] Found', recipients.length, 'recipients (teachers, parents, students)');
+        console.log('[EMERGENCY_ALERT] Found', recipients.length, 'recipients (teachers, parents, students, siteadmins)');
       }
       
       // Send notifications via all channels
