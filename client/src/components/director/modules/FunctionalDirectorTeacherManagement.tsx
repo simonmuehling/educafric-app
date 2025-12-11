@@ -405,9 +405,27 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
         }
       }
       
-      // ✅ IMMEDIATE VISUAL FEEDBACK - User sees updated teacher
-      queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
-      queryClient.refetchQueries({ queryKey: ['/api/director/teachers'] });
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL related queries
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && (
+            key.startsWith('/api/director/teachers') ||
+            key.startsWith('/api/director/classes') ||
+            key.startsWith('/api/school') ||
+            key.startsWith('/api/teacher')
+          );
+        }
+      });
+      await queryClient.refetchQueries({ queryKey: ['/api/director/teachers'] });
+      
+      // ✅ UPDATE VIEWING STATE if this teacher is being viewed
+      if (viewingTeacher && viewingTeacher.id === selectedTeacher?.id) {
+        setViewingTeacher({
+          ...viewingTeacher,
+          ...data.teacher
+        });
+      }
       
       setIsEditTeacherOpen(false);
       const editedTeacherName = selectedTeacher ? selectedTeacher.name : 'L\'enseignant';

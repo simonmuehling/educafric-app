@@ -367,7 +367,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       console.log('[STUDENT_UPDATE] Response data:', data);
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log('[STUDENT_UPDATE] ✅ Success:', data);
       // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL student AND class queries
       queryClient.invalidateQueries({ 
@@ -376,12 +376,21 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           return typeof key === 'string' && (
             key.startsWith('/api/director/students') ||
             key.startsWith('/api/director/classes') ||
-            key.startsWith('/api/classes')
+            key.startsWith('/api/classes') ||
+            key.startsWith('/api/school')
           );
         }
       });
-      queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
-      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
+      
+      // ✅ UPDATE VIEWING STATE if this student is being viewed
+      if (viewingStudent && viewingStudent.id === selectedStudent?.id && data?.student) {
+        setViewingStudent({
+          ...viewingStudent,
+          ...data.student
+        });
+      }
       
       setIsEditStudentOpen(false);
       const editedStudentName = selectedStudent ? `${selectedStudent.firstName} ${selectedStudent.lastName}` : 'L\'élève';

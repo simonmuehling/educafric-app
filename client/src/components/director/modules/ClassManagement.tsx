@@ -709,13 +709,32 @@ const ClassManagement: React.FC = () => {
       if (!response.ok) throw new Error('Failed to edit class');
       return response.json();
     },
-    onSuccess: async () => {
-      // Wait for refetch to complete before showing success
+    onSuccess: async (data) => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Invalidate ALL related queries
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && (
+            key.startsWith('/api/director/classes') ||
+            key.startsWith('/api/director/students') ||
+            key.startsWith('/api/classes') ||
+            key.startsWith('/api/school')
+          );
+        }
+      });
       await queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
+      
+      // ✅ UPDATE VIEWING STATE if this class is being viewed
+      if (selectedClass && data?.class) {
+        setSelectedClass({
+          ...selectedClass,
+          ...data.class
+        });
+      }
       
       toast({
         title: language === 'fr' ? 'Classe modifiée' : 'Class updated',
-        description: language === 'fr' ? 'La classe a été modifiée avec succès.' : 'Class has been updated successfully.'
+        description: language === 'fr' ? 'La classe a été modifiée avec succès. Tous les modules affectés sont mis à jour.' : 'Class has been updated successfully. All affected modules are updated.'
       });
       setShowEditModal(false);
       setSelectedClass(null);
