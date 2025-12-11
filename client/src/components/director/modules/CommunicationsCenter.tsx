@@ -10,9 +10,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ModernStatsCard } from '@/components/ui/ModernCard';
 import { 
   MessageSquare, Send, Users, Bell, Phone, Mail, 
-  AlertTriangle, Calendar, CheckCircle, Plus, Eye, Clock, History
+  AlertTriangle, Calendar, CheckCircle, Plus, Eye, Clock, History,
+  Shield, MapPin, FileText, Flame, UserX, CloudLightning, CheckSquare, Download
 } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+
+// Types for emergency features
+interface EvacuationChecklist {
+  id: string;
+  type: 'fire' | 'intrusion' | 'natural_disaster';
+  items: { id: string; label: string; checked: boolean }[];
+}
+
+interface EmergencyIncident {
+  id: number;
+  type: string;
+  description: string;
+  location?: { lat: number; lng: number };
+  timestamp: string;
+  status: 'active' | 'resolved';
+  reportedBy: string;
+}
 
 const CommunicationsCenter: React.FC = () => {
   const { language } = useLanguage();
@@ -31,6 +51,56 @@ const CommunicationsCenter: React.FC = () => {
   const [parents, setParents] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [loadingRecipients, setLoadingRecipients] = useState(true);
+  
+  // Emergency & Security states
+  const [panicMode, setPanicMode] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [gettingLocation, setGettingLocation] = useState(false);
+  const [activeChecklist, setActiveChecklist] = useState<string | null>(null);
+  const [emergencyIncidents, setEmergencyIncidents] = useState<EmergencyIncident[]>([]);
+  const [showIncidentHistory, setShowIncidentHistory] = useState(false);
+  
+  // Evacuation checklists data
+  const [evacuationChecklists, setEvacuationChecklists] = useState<EvacuationChecklist[]>([
+    {
+      id: 'fire',
+      type: 'fire',
+      items: [
+        { id: 'f1', label: language === 'fr' ? 'Déclencher l\'alarme incendie' : 'Trigger fire alarm', checked: false },
+        { id: 'f2', label: language === 'fr' ? 'Appeler les pompiers (118)' : 'Call fire department (118)', checked: false },
+        { id: 'f3', label: language === 'fr' ? 'Évacuer les élèves calmement' : 'Evacuate students calmly', checked: false },
+        { id: 'f4', label: language === 'fr' ? 'Vérifier les toilettes et salles vides' : 'Check toilets and empty rooms', checked: false },
+        { id: 'f5', label: language === 'fr' ? 'Rassembler au point de rencontre' : 'Gather at meeting point', checked: false },
+        { id: 'f6', label: language === 'fr' ? 'Faire l\'appel de chaque classe' : 'Take attendance for each class', checked: false },
+        { id: 'f7', label: language === 'fr' ? 'Notifier les parents' : 'Notify parents', checked: false },
+      ]
+    },
+    {
+      id: 'intrusion',
+      type: 'intrusion',
+      items: [
+        { id: 'i1', label: language === 'fr' ? 'Verrouiller toutes les portes' : 'Lock all doors', checked: false },
+        { id: 'i2', label: language === 'fr' ? 'Appeler la police (117)' : 'Call police (117)', checked: false },
+        { id: 'i3', label: language === 'fr' ? 'Mettre les élèves à l\'abri' : 'Shelter students', checked: false },
+        { id: 'i4', label: language === 'fr' ? 'Éteindre les lumières' : 'Turn off lights', checked: false },
+        { id: 'i5', label: language === 'fr' ? 'Garder le silence' : 'Keep silent', checked: false },
+        { id: 'i6', label: language === 'fr' ? 'Attendre le signal de sécurité' : 'Wait for safety signal', checked: false },
+      ]
+    },
+    {
+      id: 'natural_disaster',
+      type: 'natural_disaster',
+      items: [
+        { id: 'n1', label: language === 'fr' ? 'Alerter tout le personnel' : 'Alert all staff', checked: false },
+        { id: 'n2', label: language === 'fr' ? 'Se mettre sous les tables/bureaux' : 'Get under tables/desks', checked: false },
+        { id: 'n3', label: language === 'fr' ? 'S\'éloigner des fenêtres' : 'Move away from windows', checked: false },
+        { id: 'n4', label: language === 'fr' ? 'Couper l\'électricité et le gaz' : 'Cut electricity and gas', checked: false },
+        { id: 'n5', label: language === 'fr' ? 'Évacuer vers zone sûre' : 'Evacuate to safe zone', checked: false },
+        { id: 'n6', label: language === 'fr' ? 'Vérifier les blessés' : 'Check for injuries', checked: false },
+        { id: 'n7', label: language === 'fr' ? 'Contacter les secours (119)' : 'Contact emergency services (119)', checked: false },
+      ]
+    }
+  ]);
 
   // Load recipients data from API
   useEffect(() => {
@@ -421,6 +491,192 @@ const CommunicationsCenter: React.FC = () => {
     return <Clock className="w-4 h-4 text-yellow-500" />;
   };
 
+  // Emergency & Security Handlers
+  const handlePanicButton = async () => {
+    setPanicMode(true);
+    setGettingLocation(true);
+    
+    try {
+      // Get current location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const location = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            setCurrentLocation(location);
+            setGettingLocation(false);
+            
+            // Create emergency incident
+            const incident: EmergencyIncident = {
+              id: Date.now(),
+              type: 'panic',
+              description: language === 'fr' ? 'Alerte panique déclenchée' : 'Panic alert triggered',
+              location,
+              timestamp: new Date().toISOString(),
+              status: 'active',
+              reportedBy: 'Director'
+            };
+            
+            setEmergencyIncidents(prev => [incident, ...prev]);
+            
+            // Send emergency notification to all parents and teachers
+            try {
+              await fetch('/api/director/communications', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  recipient: 'everyone',
+                  type: 'urgent',
+                  message: language === 'fr' 
+                    ? `🚨 ALERTE URGENCE - L'école a déclenché une alerte de sécurité. Position GPS: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}. Veuillez rester en contact.`
+                    : `🚨 EMERGENCY ALERT - The school has triggered a security alert. GPS Position: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}. Please stay in contact.`
+                })
+              });
+              
+              toast({
+                title: language === 'fr' ? '🚨 Alerte Envoyée' : '🚨 Alert Sent',
+                description: language === 'fr' 
+                  ? 'Tous les parents et enseignants ont été notifiés avec votre position GPS'
+                  : 'All parents and teachers have been notified with your GPS position',
+              });
+            } catch (error) {
+              console.error('Failed to send emergency notification:', error);
+            }
+          },
+          (error) => {
+            setGettingLocation(false);
+            console.error('Geolocation error:', error);
+            toast({
+              title: language === 'fr' ? '⚠️ Position non disponible' : '⚠️ Location unavailable',
+              description: language === 'fr' 
+                ? 'Impossible d\'obtenir votre position. L\'alerte sera envoyée sans coordonnées GPS.'
+                : 'Unable to get your location. Alert will be sent without GPS coordinates.',
+              variant: 'destructive'
+            });
+          },
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      }
+    } catch (error) {
+      setGettingLocation(false);
+      console.error('Panic button error:', error);
+    }
+  };
+
+  const cancelPanicMode = () => {
+    setPanicMode(false);
+    setCurrentLocation(null);
+    
+    // Mark last incident as resolved
+    setEmergencyIncidents(prev => 
+      prev.map((inc, idx) => idx === 0 ? { ...inc, status: 'resolved' as const } : inc)
+    );
+    
+    toast({
+      title: language === 'fr' ? '✅ Alerte Annulée' : '✅ Alert Cancelled',
+      description: language === 'fr' 
+        ? 'Le mode urgence a été désactivé'
+        : 'Emergency mode has been deactivated',
+    });
+  };
+
+  const toggleChecklistItem = (checklistId: string, itemId: string) => {
+    setEvacuationChecklists(prev => 
+      prev.map(checklist => 
+        checklist.id === checklistId
+          ? {
+              ...checklist,
+              items: checklist.items.map(item =>
+                item.id === itemId ? { ...item, checked: !item.checked } : item
+              )
+            }
+          : checklist
+      )
+    );
+  };
+
+  const getChecklistProgress = (checklistId: string): number => {
+    const checklist = evacuationChecklists.find(c => c.id === checklistId);
+    if (!checklist) return 0;
+    const checked = checklist.items.filter(i => i.checked).length;
+    return Math.round((checked / checklist.items.length) * 100);
+  };
+
+  const resetChecklist = (checklistId: string) => {
+    setEvacuationChecklists(prev =>
+      prev.map(checklist =>
+        checklist.id === checklistId
+          ? { ...checklist, items: checklist.items.map(item => ({ ...item, checked: false })) }
+          : checklist
+      )
+    );
+    setActiveChecklist(null);
+  };
+
+  const generateIncidentReport = async () => {
+    try {
+      const XLSX = await import('xlsx');
+      
+      const reportData = emergencyIncidents.map(incident => ({
+        [language === 'fr' ? 'Date/Heure' : 'Date/Time']: new Date(incident.timestamp).toLocaleString(),
+        [language === 'fr' ? 'Type' : 'Type']: incident.type,
+        [language === 'fr' ? 'Description' : 'Description']: incident.description,
+        [language === 'fr' ? 'Position GPS' : 'GPS Position']: incident.location 
+          ? `${incident.location.lat.toFixed(6)}, ${incident.location.lng.toFixed(6)}` 
+          : 'N/A',
+        [language === 'fr' ? 'Statut' : 'Status']: incident.status === 'active' 
+          ? (language === 'fr' ? 'Actif' : 'Active') 
+          : (language === 'fr' ? 'Résolu' : 'Resolved'),
+        [language === 'fr' ? 'Signalé par' : 'Reported by']: incident.reportedBy
+      }));
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(reportData);
+      worksheet['!cols'] = [
+        { wch: 20 }, { wch: 15 }, { wch: 40 }, { wch: 25 }, { wch: 12 }, { wch: 15 }
+      ];
+      XLSX.utils.book_append_sheet(workbook, worksheet, language === 'fr' ? 'Incidents' : 'Incidents');
+      
+      const fileName = `rapport_incidents_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+      
+      toast({
+        title: language === 'fr' ? '✅ Rapport généré' : '✅ Report generated',
+        description: language === 'fr' 
+          ? `${reportData.length} incidents exportés`
+          : `${reportData.length} incidents exported`,
+      });
+    } catch (error) {
+      console.error('Report generation error:', error);
+      toast({
+        title: language === 'fr' ? '❌ Erreur' : '❌ Error',
+        description: language === 'fr' ? 'Impossible de générer le rapport' : 'Unable to generate report',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const getChecklistIcon = (type: string) => {
+    switch (type) {
+      case 'fire': return <Flame className="w-5 h-5 text-orange-500" />;
+      case 'intrusion': return <UserX className="w-5 h-5 text-red-500" />;
+      case 'natural_disaster': return <CloudLightning className="w-5 h-5 text-purple-500" />;
+      default: return <Shield className="w-5 h-5 text-blue-500" />;
+    }
+  };
+
+  const getChecklistTitle = (type: string) => {
+    switch (type) {
+      case 'fire': return language === 'fr' ? 'Incendie' : 'Fire';
+      case 'intrusion': return language === 'fr' ? 'Intrusion' : 'Intrusion';
+      case 'natural_disaster': return language === 'fr' ? 'Catastrophe Naturelle' : 'Natural Disaster';
+      default: return type;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
@@ -528,6 +784,194 @@ const CommunicationsCenter: React.FC = () => {
                 }
               ]}
             />
+          </CardContent>
+        </Card>
+
+        {/* Emergency & Security Section */}
+        <Card className={`border-2 shadow-sm transition-all ${panicMode ? 'bg-red-50 border-red-500 animate-pulse' : 'bg-white border-gray-200'}`}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Shield className="w-5 h-5 text-red-500" />
+                {language === 'fr' ? 'Sécurité & Urgence' : 'Security & Emergency'}
+              </h2>
+              {emergencyIncidents.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowIncidentHistory(!showIncidentHistory)}
+                  data-testid="button-incident-history"
+                >
+                  <History className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? `Historique (${emergencyIncidents.length})` : `History (${emergencyIncidents.length})`}
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Panic Button */}
+            <div className="flex flex-col items-center p-6 bg-gradient-to-br from-red-50 to-orange-50 rounded-xl border border-red-200">
+              {!panicMode ? (
+                <>
+                  <Button
+                    onClick={handlePanicButton}
+                    disabled={gettingLocation}
+                    className="w-32 h-32 rounded-full bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                    data-testid="button-panic"
+                  >
+                    <div className="text-center">
+                      <AlertTriangle className="w-12 h-12 mx-auto mb-2" />
+                      <span className="text-sm font-bold">
+                        {gettingLocation 
+                          ? (language === 'fr' ? 'GPS...' : 'GPS...') 
+                          : (language === 'fr' ? 'PANIQUE' : 'PANIC')}
+                      </span>
+                    </div>
+                  </Button>
+                  <p className="mt-4 text-sm text-gray-600 text-center max-w-md">
+                    {language === 'fr' 
+                      ? 'Appuyez pour déclencher une alerte d\'urgence. Votre position GPS sera envoyée à tous les parents et enseignants.'
+                      : 'Press to trigger an emergency alert. Your GPS position will be sent to all parents and teachers.'}
+                  </p>
+                </>
+              ) : (
+                <div className="text-center space-y-4">
+                  <div className="animate-bounce">
+                    <AlertTriangle className="w-16 h-16 text-red-600 mx-auto" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-red-600">
+                    {language === 'fr' ? '🚨 ALERTE ACTIVE' : '🚨 ALERT ACTIVE'}
+                  </h3>
+                  {currentLocation && (
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-700">
+                      <MapPin className="w-4 h-4" />
+                      <span>GPS: {currentLocation.lat.toFixed(6)}, {currentLocation.lng.toFixed(6)}</span>
+                    </div>
+                  )}
+                  <Button
+                    onClick={cancelPanicMode}
+                    variant="outline"
+                    className="border-red-500 text-red-600 hover:bg-red-100"
+                    data-testid="button-cancel-panic"
+                  >
+                    {language === 'fr' ? 'Annuler l\'alerte' : 'Cancel Alert'}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Evacuation Checklists */}
+            <div>
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <CheckSquare className="w-5 h-5 text-blue-500" />
+                {language === 'fr' ? 'Procédures d\'Évacuation' : 'Evacuation Procedures'}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {evacuationChecklists.map((checklist) => (
+                  <Card 
+                    key={checklist.id}
+                    className={`p-4 cursor-pointer transition-all hover:shadow-md ${activeChecklist === checklist.id ? 'ring-2 ring-blue-500' : ''}`}
+                    onClick={() => setActiveChecklist(activeChecklist === checklist.id ? null : checklist.id)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      {getChecklistIcon(checklist.type)}
+                      <Badge variant="outline">
+                        {getChecklistProgress(checklist.id)}%
+                      </Badge>
+                    </div>
+                    <h4 className="font-medium">{getChecklistTitle(checklist.type)}</h4>
+                    <Progress value={getChecklistProgress(checklist.id)} className="mt-2 h-2" />
+                  </Card>
+                ))}
+              </div>
+
+              {/* Active Checklist Details */}
+              {activeChecklist && (
+                <Card className="mt-4 p-4 bg-blue-50 border-blue-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      {getChecklistIcon(activeChecklist)}
+                      {getChecklistTitle(activeChecklist)}
+                    </h4>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => resetChecklist(activeChecklist)}
+                    >
+                      {language === 'fr' ? 'Réinitialiser' : 'Reset'}
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {evacuationChecklists
+                      .find(c => c.id === activeChecklist)
+                      ?.items.map((item) => (
+                        <div 
+                          key={item.id}
+                          className={`flex items-center gap-3 p-2 rounded transition-colors ${item.checked ? 'bg-green-100' : 'bg-white'}`}
+                        >
+                          <Checkbox
+                            checked={item.checked}
+                            onCheckedChange={() => toggleChecklistItem(activeChecklist, item.id)}
+                          />
+                          <span className={item.checked ? 'line-through text-gray-500' : ''}>
+                            {item.label}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </Card>
+              )}
+            </div>
+
+            {/* Incident History */}
+            {showIncidentHistory && emergencyIncidents.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-gray-500" />
+                    {language === 'fr' ? 'Historique des Incidents' : 'Incident History'}
+                  </h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={generateIncidentReport}
+                    data-testid="button-generate-report"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Exporter' : 'Export'}
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {emergencyIncidents.map((incident) => (
+                    <div 
+                      key={incident.id}
+                      className={`p-3 rounded-lg border ${incident.status === 'active' ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className={`w-4 h-4 ${incident.status === 'active' ? 'text-red-500' : 'text-gray-400'}`} />
+                          <span className="font-medium">{incident.description}</span>
+                        </div>
+                        <Badge variant={incident.status === 'active' ? 'destructive' : 'secondary'}>
+                          {incident.status === 'active' 
+                            ? (language === 'fr' ? 'Actif' : 'Active') 
+                            : (language === 'fr' ? 'Résolu' : 'Resolved')}
+                        </Badge>
+                      </div>
+                      <div className="mt-1 text-sm text-gray-500 flex items-center gap-4">
+                        <span>{new Date(incident.timestamp).toLocaleString()}</span>
+                        {incident.location && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {incident.location.lat.toFixed(4)}, {incident.location.lng.toFixed(4)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
