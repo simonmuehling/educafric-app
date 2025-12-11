@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -18,12 +18,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 
 // Types for emergency features
-interface EvacuationChecklist {
-  id: string;
-  type: 'fire' | 'intrusion' | 'natural_disaster';
-  items: { id: string; label: string; checked: boolean }[];
-}
-
 interface EmergencyIncident {
   id: number;
   type: string;
@@ -60,47 +54,55 @@ const CommunicationsCenter: React.FC = () => {
   const [emergencyIncidents, setEmergencyIncidents] = useState<EmergencyIncident[]>([]);
   const [showIncidentHistory, setShowIncidentHistory] = useState(false);
   
-  // Evacuation checklists data
-  const [evacuationChecklists, setEvacuationChecklists] = useState<EvacuationChecklist[]>([
+  // Evacuation checklists data - using state to track checked status only
+  const [checklistStates, setChecklistStates] = useState<Record<string, boolean>>({});
+  
+  // Bilingual checklist definitions (reactive to language changes)
+  const evacuationChecklistsData = useMemo(() => [
     {
       id: 'fire',
-      type: 'fire',
+      type: 'fire' as const,
       items: [
-        { id: 'f1', label: language === 'fr' ? 'Déclencher l\'alarme incendie' : 'Trigger fire alarm', checked: false },
-        { id: 'f2', label: language === 'fr' ? 'Appeler les pompiers (118)' : 'Call fire department (118)', checked: false },
-        { id: 'f3', label: language === 'fr' ? 'Évacuer les élèves calmement' : 'Evacuate students calmly', checked: false },
-        { id: 'f4', label: language === 'fr' ? 'Vérifier les toilettes et salles vides' : 'Check toilets and empty rooms', checked: false },
-        { id: 'f5', label: language === 'fr' ? 'Rassembler au point de rencontre' : 'Gather at meeting point', checked: false },
-        { id: 'f6', label: language === 'fr' ? 'Faire l\'appel de chaque classe' : 'Take attendance for each class', checked: false },
-        { id: 'f7', label: language === 'fr' ? 'Notifier les parents' : 'Notify parents', checked: false },
+        { id: 'f1', labelFr: 'Déclencher l\'alarme incendie', labelEn: 'Trigger fire alarm' },
+        { id: 'f2', labelFr: 'Appeler les pompiers (118)', labelEn: 'Call fire department (118)' },
+        { id: 'f3', labelFr: 'Évacuer les élèves calmement', labelEn: 'Evacuate students calmly' },
+        { id: 'f4', labelFr: 'Vérifier les toilettes et salles vides', labelEn: 'Check toilets and empty rooms' },
+        { id: 'f5', labelFr: 'Rassembler au point de rencontre', labelEn: 'Gather at meeting point' },
+        { id: 'f6', labelFr: 'Faire l\'appel de chaque classe', labelEn: 'Take attendance for each class' },
+        { id: 'f7', labelFr: 'Notifier les parents', labelEn: 'Notify parents' },
       ]
     },
     {
       id: 'intrusion',
-      type: 'intrusion',
+      type: 'intrusion' as const,
       items: [
-        { id: 'i1', label: language === 'fr' ? 'Verrouiller toutes les portes' : 'Lock all doors', checked: false },
-        { id: 'i2', label: language === 'fr' ? 'Appeler la police (117)' : 'Call police (117)', checked: false },
-        { id: 'i3', label: language === 'fr' ? 'Mettre les élèves à l\'abri' : 'Shelter students', checked: false },
-        { id: 'i4', label: language === 'fr' ? 'Éteindre les lumières' : 'Turn off lights', checked: false },
-        { id: 'i5', label: language === 'fr' ? 'Garder le silence' : 'Keep silent', checked: false },
-        { id: 'i6', label: language === 'fr' ? 'Attendre le signal de sécurité' : 'Wait for safety signal', checked: false },
+        { id: 'i1', labelFr: 'Verrouiller toutes les portes', labelEn: 'Lock all doors' },
+        { id: 'i2', labelFr: 'Appeler la police (117)', labelEn: 'Call police (117)' },
+        { id: 'i3', labelFr: 'Mettre les élèves à l\'abri', labelEn: 'Shelter students' },
+        { id: 'i4', labelFr: 'Éteindre les lumières', labelEn: 'Turn off lights' },
+        { id: 'i5', labelFr: 'Garder le silence', labelEn: 'Keep silent' },
+        { id: 'i6', labelFr: 'Attendre le signal de sécurité', labelEn: 'Wait for safety signal' },
       ]
     },
     {
       id: 'natural_disaster',
-      type: 'natural_disaster',
+      type: 'natural_disaster' as const,
       items: [
-        { id: 'n1', label: language === 'fr' ? 'Alerter tout le personnel' : 'Alert all staff', checked: false },
-        { id: 'n2', label: language === 'fr' ? 'Se mettre sous les tables/bureaux' : 'Get under tables/desks', checked: false },
-        { id: 'n3', label: language === 'fr' ? 'S\'éloigner des fenêtres' : 'Move away from windows', checked: false },
-        { id: 'n4', label: language === 'fr' ? 'Couper l\'électricité et le gaz' : 'Cut electricity and gas', checked: false },
-        { id: 'n5', label: language === 'fr' ? 'Évacuer vers zone sûre' : 'Evacuate to safe zone', checked: false },
-        { id: 'n6', label: language === 'fr' ? 'Vérifier les blessés' : 'Check for injuries', checked: false },
-        { id: 'n7', label: language === 'fr' ? 'Contacter les secours (119)' : 'Contact emergency services (119)', checked: false },
+        { id: 'n1', labelFr: 'Alerter tout le personnel', labelEn: 'Alert all staff' },
+        { id: 'n2', labelFr: 'Se mettre sous les tables/bureaux', labelEn: 'Get under tables/desks' },
+        { id: 'n3', labelFr: 'S\'éloigner des fenêtres', labelEn: 'Move away from windows' },
+        { id: 'n4', labelFr: 'Couper l\'électricité et le gaz', labelEn: 'Cut electricity and gas' },
+        { id: 'n5', labelFr: 'Évacuer vers zone sûre', labelEn: 'Evacuate to safe zone' },
+        { id: 'n6', labelFr: 'Vérifier les blessés', labelEn: 'Check for injuries' },
+        { id: 'n7', labelFr: 'Contacter les secours (119)', labelEn: 'Contact emergency services (119)' },
       ]
     }
-  ]);
+  ], []);
+  
+  // Get label based on current language
+  const getChecklistItemLabel = (item: { labelFr: string; labelEn: string }) => {
+    return language === 'fr' ? item.labelFr : item.labelEn;
+  };
 
   // Load recipients data from API
   useEffect(() => {
@@ -583,36 +585,29 @@ const CommunicationsCenter: React.FC = () => {
     });
   };
 
-  const toggleChecklistItem = (checklistId: string, itemId: string) => {
-    setEvacuationChecklists(prev => 
-      prev.map(checklist => 
-        checklist.id === checklistId
-          ? {
-              ...checklist,
-              items: checklist.items.map(item =>
-                item.id === itemId ? { ...item, checked: !item.checked } : item
-              )
-            }
-          : checklist
-      )
-    );
+  const toggleChecklistItem = (itemId: string) => {
+    setChecklistStates(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId]
+    }));
   };
 
   const getChecklistProgress = (checklistId: string): number => {
-    const checklist = evacuationChecklists.find(c => c.id === checklistId);
+    const checklist = evacuationChecklistsData.find(c => c.id === checklistId);
     if (!checklist) return 0;
-    const checked = checklist.items.filter(i => i.checked).length;
+    const checked = checklist.items.filter(i => checklistStates[i.id]).length;
     return Math.round((checked / checklist.items.length) * 100);
   };
 
   const resetChecklist = (checklistId: string) => {
-    setEvacuationChecklists(prev =>
-      prev.map(checklist =>
-        checklist.id === checklistId
-          ? { ...checklist, items: checklist.items.map(item => ({ ...item, checked: false })) }
-          : checklist
-      )
-    );
+    const checklist = evacuationChecklistsData.find(c => c.id === checklistId);
+    if (checklist) {
+      const newStates = { ...checklistStates };
+      checklist.items.forEach(item => {
+        newStates[item.id] = false;
+      });
+      setChecklistStates(newStates);
+    }
     setActiveChecklist(null);
   };
 
@@ -790,8 +785,8 @@ const CommunicationsCenter: React.FC = () => {
         {/* Emergency & Security Section */}
         <Card className={`border-2 shadow-sm transition-all ${panicMode ? 'bg-red-50 border-red-500 animate-pulse' : 'bg-white border-gray-200'}`}>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
                 <Shield className="w-5 h-5 text-red-500" />
                 {language === 'fr' ? 'Sécurité & Urgence' : 'Security & Emergency'}
               </h2>
@@ -801,6 +796,7 @@ const CommunicationsCenter: React.FC = () => {
                   size="sm"
                   onClick={() => setShowIncidentHistory(!showIncidentHistory)}
                   data-testid="button-incident-history"
+                  className="w-full sm:w-auto"
                 >
                   <History className="w-4 h-4 mr-2" />
                   {language === 'fr' ? `Historique (${emergencyIncidents.length})` : `History (${emergencyIncidents.length})`}
@@ -867,11 +863,12 @@ const CommunicationsCenter: React.FC = () => {
                 {language === 'fr' ? 'Procédures d\'Évacuation' : 'Evacuation Procedures'}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {evacuationChecklists.map((checklist) => (
+                {evacuationChecklistsData.map((checklist) => (
                   <Card 
                     key={checklist.id}
                     className={`p-4 cursor-pointer transition-all hover:shadow-md ${activeChecklist === checklist.id ? 'ring-2 ring-blue-500' : ''}`}
                     onClick={() => setActiveChecklist(activeChecklist === checklist.id ? null : checklist.id)}
+                    data-testid={`card-checklist-${checklist.type}`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       {getChecklistIcon(checklist.type)}
@@ -879,7 +876,7 @@ const CommunicationsCenter: React.FC = () => {
                         {getChecklistProgress(checklist.id)}%
                       </Badge>
                     </div>
-                    <h4 className="font-medium">{getChecklistTitle(checklist.type)}</h4>
+                    <h4 className="font-medium text-sm md:text-base">{getChecklistTitle(checklist.type)}</h4>
                     <Progress value={getChecklistProgress(checklist.id)} className="mt-2 h-2" />
                   </Card>
                 ))}
@@ -888,7 +885,7 @@ const CommunicationsCenter: React.FC = () => {
               {/* Active Checklist Details */}
               {activeChecklist && (
                 <Card className="mt-4 p-4 bg-blue-50 border-blue-200">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                     <h4 className="font-semibold flex items-center gap-2">
                       {getChecklistIcon(activeChecklist)}
                       {getChecklistTitle(activeChecklist)}
@@ -897,27 +894,32 @@ const CommunicationsCenter: React.FC = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => resetChecklist(activeChecklist)}
+                      data-testid="button-reset-checklist"
                     >
                       {language === 'fr' ? 'Réinitialiser' : 'Reset'}
                     </Button>
                   </div>
                   <div className="space-y-2">
-                    {evacuationChecklists
+                    {evacuationChecklistsData
                       .find(c => c.id === activeChecklist)
-                      ?.items.map((item) => (
-                        <div 
-                          key={item.id}
-                          className={`flex items-center gap-3 p-2 rounded transition-colors ${item.checked ? 'bg-green-100' : 'bg-white'}`}
-                        >
-                          <Checkbox
-                            checked={item.checked}
-                            onCheckedChange={() => toggleChecklistItem(activeChecklist, item.id)}
-                          />
-                          <span className={item.checked ? 'line-through text-gray-500' : ''}>
-                            {item.label}
-                          </span>
-                        </div>
-                      ))}
+                      ?.items.map((item) => {
+                        const isChecked = checklistStates[item.id] || false;
+                        return (
+                          <div 
+                            key={item.id}
+                            className={`flex items-center gap-3 p-2 rounded transition-colors ${isChecked ? 'bg-green-100' : 'bg-white'}`}
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={() => toggleChecklistItem(item.id)}
+                              data-testid={`checkbox-${item.id}`}
+                            />
+                            <span className={`text-sm md:text-base ${isChecked ? 'line-through text-gray-500' : ''}`}>
+                              {getChecklistItemLabel(item)}
+                            </span>
+                          </div>
+                        );
+                      })}
                   </div>
                 </Card>
               )}
