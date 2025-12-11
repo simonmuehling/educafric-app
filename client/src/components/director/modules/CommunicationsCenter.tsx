@@ -46,6 +46,15 @@ const CommunicationsCenter: React.FC = () => {
   const [classes, setClasses] = useState<any[]>([]);
   const [loadingRecipients, setLoadingRecipients] = useState(true);
   
+  // Communication stats from API (no mock data)
+  const [statsData, setStatsData] = useState({
+    totalMessages: 0,
+    unreadMessages: 0,
+    sentToday: 0,
+    totalRecipients: 0
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+  
   // Emergency & Security states
   const [panicMode, setPanicMode] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -177,28 +186,8 @@ const CommunicationsCenter: React.FC = () => {
             setCommunicationsHistory([]);
           }
         } else {
-          console.warn('[COMMUNICATIONS_CENTER] ❌ Failed to load history, using mock data:', response.status);
-          // Données mock pour que le module s'affiche
-          setCommunicationsHistory([
-            {
-              id: 1,
-              type: 'announcement',
-              subject: 'Réunion parents-professeurs',
-              content: 'Réunion programmée le 30 août à 15h.',
-              recipients: 'Tous les parents',
-              sentAt: '2025-08-25T14:00:00Z',
-              status: 'sent'
-            },
-            {
-              id: 2,
-              type: 'emergency',
-              subject: 'Fermeture exceptionnelle',
-              content: 'École fermée demain pour raisons techniques.',
-              recipients: 'Communauté scolaire',
-              sentAt: '2025-08-24T16:30:00Z',
-              status: 'sent'
-            }
-          ]);
+          console.warn('[COMMUNICATIONS_CENTER] ❌ Failed to load history:', response.status);
+          setCommunicationsHistory([]);
         }
       } catch (error: any) {
         console.error('[COMMUNICATIONS_CENTER] ❌ History API error:', error);
@@ -209,6 +198,43 @@ const CommunicationsCenter: React.FC = () => {
     };
 
     loadCommunicationsHistory();
+  }, []);
+
+  // Load communication stats from API - NO MOCK DATA
+  useEffect(() => {
+    const loadCommunicationStats = async () => {
+      setLoadingStats(true);
+      try {
+        console.log('[COMMUNICATIONS_CENTER] 📊 Loading communication stats...');
+        
+        const response = await fetch('/api/director/communications/stats', {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            console.log('[COMMUNICATIONS_CENTER] ✅ Stats loaded:', result);
+            setStatsData({
+              totalMessages: result.totalMessages || 0,
+              unreadMessages: result.unreadMessages || 0,
+              sentToday: result.sentToday || 0,
+              totalRecipients: result.totalRecipients || 0
+            });
+          }
+        } else {
+          console.warn('[COMMUNICATIONS_CENTER] ⚠️ Stats API returned:', response.status);
+        }
+      } catch (error) {
+        console.error('[COMMUNICATIONS_CENTER] ❌ Stats API error:', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    loadCommunicationStats();
   }, []);
 
   const text = {
@@ -282,33 +308,30 @@ const CommunicationsCenter: React.FC = () => {
 
   const t = text[language as keyof typeof text];
 
+  // Stats from real database data - NO MOCK VALUES
   const communicationStats = [
     {
       title: t?.stats?.totalMessages,
-      value: '1,247',
+      value: loadingStats ? '...' : statsData.totalMessages.toLocaleString(),
       icon: <MessageSquare className="w-5 h-5" />,
-      trend: { value: 15, isPositive: true },
       gradient: 'blue' as const
     },
     {
       title: t?.stats?.unreadMessages,
-      value: '34',
+      value: loadingStats ? '...' : statsData.unreadMessages.toLocaleString(),
       icon: <Bell className="w-5 h-5" />,
-      trend: { value: 8, isPositive: false },
       gradient: 'orange' as const
     },
     {
       title: t?.stats?.sentToday,
-      value: '89',
+      value: loadingStats ? '...' : statsData.sentToday.toLocaleString(),
       icon: <Send className="w-5 h-5" />,
-      trend: { value: 12, isPositive: true },
       gradient: 'green' as const
     },
     {
       title: t?.stats?.recipients,
-      value: '456',
+      value: loadingStats ? '...' : statsData.totalRecipients.toLocaleString(),
       icon: <Users className="w-5 h-5" />,
-      trend: { value: 3, isPositive: true },
       gradient: 'purple' as const
     }
   ];

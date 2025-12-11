@@ -14884,6 +14884,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Communication Statistics - REAL DATA ONLY, NO MOCK
+  app.get('/api/director/communications/stats', requireAuth, requireAnyRole(['Director', 'Admin', 'SiteAdmin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const userId = user?.id;
+      const schoolId = user?.schoolId;
+      
+      console.log('[COMMUNICATIONS_STATS] Fetching stats for school:', schoolId);
+      
+      // Get today's date range
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      // Total messages for this school
+      const allMessages = await db.select()
+        .from(messages)
+        .where(eq(messages.schoolId, schoolId));
+      
+      // Unread messages for the director
+      const unreadMessages = allMessages.filter(m => 
+        m.recipientId === userId && !m.isRead
+      );
+      
+      // Messages sent today by school staff
+      const sentToday = allMessages.filter(m => {
+        const msgDate = new Date(m.createdAt || 0);
+        return msgDate >= today && msgDate < tomorrow;
+      });
+      
+      // Count unique recipients (teachers + parents + students in school)
+      const teacherCount = await db.select({ count: sql`count(*)` })
+        .from(users)
+        .where(and(
+          eq(users.schoolId, schoolId),
+          eq(users.role, 'Teacher')
+        ));
+      
+      const parentCount = await db.select({ count: sql`count(*)` })
+        .from(users)
+        .where(and(
+          eq(users.schoolId, schoolId),
+          eq(users.role, 'Parent')
+        ));
+      
+      const studentCount = await db.select({ count: sql`count(*)` })
+        .from(students)
+        .where(eq(students.schoolId, schoolId));
+      
+      const totalRecipients = 
+        Number(teacherCount[0]?.count || 0) + 
+        Number(parentCount[0]?.count || 0) + 
+        Number(studentCount[0]?.count || 0);
+      
+      console.log('[COMMUNICATIONS_STATS] Stats:', {
+        totalMessages: allMessages.length,
+        unreadMessages: unreadMessages.length,
+        sentToday: sentToday.length,
+        totalRecipients
+      });
+      
+      res.json({
+        success: true,
+        totalMessages: allMessages.length,
+        unreadMessages: unreadMessages.length,
+        sentToday: sentToday.length,
+        totalRecipients
+      });
+    } catch (error) {
+      console.error('[COMMUNICATIONS_STATS] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        totalMessages: 0,
+        unreadMessages: 0,
+        sentToday: 0,
+        totalRecipients: 0
+      });
+    }
+  });
+
   // ============= DIRECTOR ARCHIVE API ROUTES =============
   
   // Get archived bulletins and mastersheets with filtering
