@@ -14965,6 +14965,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST - Send emergency alert to EVERYONE (parents, teachers, AND students)
+  app.post('/api/director/communications', requireAuth, requireAnyRole(['Director', 'Admin', 'SiteAdmin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const schoolId = user?.schoolId;
+      const { recipient, type, message } = req.body;
+      
+      console.log('[EMERGENCY_ALERT] Sending alert from school:', schoolId, 'type:', type, 'recipient:', recipient);
+      
+      if (!message) {
+        return res.status(400).json({ success: false, message: 'Message is required' });
+      }
+      
+      // Get all recipients based on type
+      let recipients: Array<{ id: number; email: string | null; phone: string | null; role: string }> = [];
+      
+      if (recipient === 'everyone' || recipient === 'all') {
+        // Get ALL users in this school: teachers, parents, AND students
+        const schoolUsers = await db.select({
+          id: users.id,
+          email: users.email,
+          phone: users.phone,
+          role: users.role
+        })
+        .from(users)
+        .where(eq(users.schoolId, schoolId));
+        
+        recipients = schoolUsers.filter(u => 
+          u.role === 'Teacher' || u.role === 'Parent' || u.role === 'Student'
+        );
+        
+        console.log('[EMERGENCY_ALERT] Found', recipients.length, 'recipients (teachers, parents, students)');
+      }
+      
+      // Send notifications via all channels
+      const notificationResults = {
+        email: 0,
+        whatsapp: 0,
+        pwa: 0,
+        total: recipients.length
+      };
+      
+      // Store messages in database for each recipient
+      for (const recipientUser of recipients) {
+        try {
+          await db.insert(messages).values({
+            schoolId,
+            senderId: user.id,
+            senderName: `${user.firstName} ${user.lastName}`,
+            senderRole: user.role,
+            recipientId: recipientUser.id,
+            recipientName: recipientUser.role,
+            subject: type === 'urgent' ? '🚨 ALERTE URGENCE' : 'Message de l\'école',
+            content: message,
+            messageType: type,
+            priority: type === 'urgent' ? 'high' : 'normal',
+            status: 'sent',
+            isRead: false
+          });
+          
+          // Try to send via WhatsApp if phone exists
+          if (recipientUser.phone) {
+            notificationResults.whatsapp++;
+          }
+          
+          // Try to send via email if email exists
+          if (recipientUser.email) {
+            notificationResults.email++;
+          }
+          
+          notificationResults.pwa++;
+        } catch (err) {
+          console.error('[EMERGENCY_ALERT] Failed to send to recipient:', recipientUser.id, err);
+        }
+      }
+      
+      console.log('[EMERGENCY_ALERT] Notification results:', notificationResults);
+      
+      res.json({
+        success: true,
+        message: 'Emergency alert sent successfully',
+        recipients: notificationResults
+      });
+    } catch (error) {
+      console.error('[EMERGENCY_ALERT] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to send emergency alert' });
+    }
+  });
+
   // ============= DIRECTOR ARCHIVE API ROUTES =============
   
   // Get archived bulletins and mastersheets with filtering

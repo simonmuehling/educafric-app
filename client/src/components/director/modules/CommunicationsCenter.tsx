@@ -552,8 +552,8 @@ const CommunicationsCenter: React.FC = () => {
               toast({
                 title: language === 'fr' ? '🚨 Alerte Envoyée' : '🚨 Alert Sent',
                 description: language === 'fr' 
-                  ? 'Tous les parents et enseignants ont été notifiés avec votre position GPS'
-                  : 'All parents and teachers have been notified with your GPS position',
+                  ? 'Tous les parents, enseignants et élèves ont été notifiés avec votre position GPS'
+                  : 'All parents, teachers and students have been notified with your GPS position',
               });
             } catch (error) {
               console.error('Failed to send emergency notification:', error);
