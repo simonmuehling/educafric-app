@@ -2842,6 +2842,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ BULK CLASS ASSIGNMENT: Assign multiple students to a class at once
+  app.post("/api/director/students/bulk-assign-class", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { studentIds, classId } = req.body;
+      const userSchoolId = user.schoolId || user.school_id;
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (!Array.isArray(studentIds) || studentIds.length === 0) {
+        return res.status(400).json({ success: false, message: 'Student IDs array is required' });
+      }
+      
+      if (!classId || isNaN(parseInt(classId))) {
+        return res.status(400).json({ success: false, message: 'Valid class ID is required' });
+      }
+      
+      const parsedClassId = parseInt(classId);
+      
+      // Verify class belongs to user's school
+      const [targetClass] = await db.select({ id: classes.id, name: classes.name })
+        .from(classes)
+        .where(and(eq(classes.id, parsedClassId), eq(classes.schoolId, userSchoolId)))
+        .limit(1);
+      
+      if (!targetClass) {
+        return res.status(404).json({ success: false, message: 'Class not found in your school' });
+      }
+      
+      console.log('[BULK_ASSIGN_CLASS] Assigning', studentIds.length, 'students to class:', targetClass.name, '(ID:', parsedClassId, ')');
+      
+      // Get current academic year
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth();
+      const academicYear = currentMonth >= 8 ? `${currentYear}-${currentYear + 1}` : `${currentYear - 1}-${currentYear}`;
+      
+      // Get or create academic year record
+      let academicYearId = 1;
+      try {
+        const { academicYears } = await import('@shared/schema');
+        const [existingYear] = await db.select().from(academicYears)
+          .where(and(eq(academicYears.year, academicYear), eq(academicYears.schoolId, userSchoolId)))
+          .limit(1);
+        
+        if (existingYear) {
+          academicYearId = existingYear.id;
+        }
+      } catch (e) {
+        console.log('[BULK_ASSIGN_CLASS] Using default academic year ID');
+      }
+      
+      let successCount = 0;
+      let errorCount = 0;
+      
+      for (const studentId of studentIds) {
+        try {
+          const parsedStudentId = parseInt(studentId);
+          
+          // Verify student belongs to user's school
+          const [student] = await db.select().from(users)
+            .where(and(eq(users.id, parsedStudentId), eq(users.role, 'Student'), eq(users.schoolId, userSchoolId)))
+            .limit(1);
+          
+          if (!student) {
+            console.log('[BULK_ASSIGN_CLASS] ⚠️ Student', studentId, 'not found or not in school');
+            errorCount++;
+            continue;
+          }
+          
+          // Delete existing enrollment for this student in current academic year
+          await db.delete(enrollments).where(and(
+            eq(enrollments.studentId, parsedStudentId),
+            eq(enrollments.academicYearId, academicYearId)
+          ));
+          
+          // Create new enrollment
+          await db.insert(enrollments).values({
+            studentId: parsedStudentId,
+            classId: parsedClassId,
+            academicYearId: academicYearId,
+            status: 'active'
+          });
+          
+          successCount++;
+          console.log('[BULK_ASSIGN_CLASS] ✅ Student', parsedStudentId, 'assigned to class', targetClass.name);
+        } catch (studentError) {
+          console.error('[BULK_ASSIGN_CLASS] Error assigning student', studentId, ':', studentError);
+          errorCount++;
+        }
+      }
+      
+      console.log('[BULK_ASSIGN_CLASS] ✅ Completed: Success:', successCount, 'Errors:', errorCount);
+      
+      res.json({ 
+        success: true, 
+        message: `${successCount} student(s) assigned to ${targetClass.name}`,
+        successCount,
+        errorCount,
+        className: targetClass.name
+      });
+    } catch (error) {
+      console.error('[BULK_ASSIGN_CLASS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to assign students to class' });
+    }
+  });
+
   // ✅ DATABASE-ONLY: Get student transcript data (all terms/years for specific student)
   app.get("/api/director/student-transcript", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {

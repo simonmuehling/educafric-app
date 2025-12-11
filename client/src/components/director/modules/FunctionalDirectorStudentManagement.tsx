@@ -97,6 +97,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Bulk selection states
   const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [bulkAssignClassDialogOpen, setBulkAssignClassDialogOpen] = useState(false);
+  const [bulkAssignTargetClassId, setBulkAssignTargetClassId] = useState<string>('');
   
   // Student ID Card printing state
   const [idCardStudent, setIdCardStudent] = useState<Student | null>(null);
@@ -483,6 +485,51 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     }
   });
 
+  // Bulk assign class mutation
+  const bulkAssignClassMutation = useMutation({
+    mutationFn: async ({ studentIds, classId }: { studentIds: number[], classId: string }) => {
+      const res = await apiRequest('POST', '/api/director/students/bulk-assign-class', {
+        studentIds,
+        classId: parseInt(classId)
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return typeof key === 'string' && (
+            key.startsWith('/api/director/students') ||
+            key.startsWith('/api/director/classes') ||
+            key.startsWith('/api/classes')
+          );
+        }
+      });
+      queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
+      
+      setSelectedStudents(new Set());
+      setBulkAssignClassDialogOpen(false);
+      setBulkAssignTargetClassId('');
+      
+      toast({
+        title: language === 'fr' ? '✅ Assignation réussie' : '✅ Assignment Successful',
+        description: data.message || (language === 'fr' 
+          ? `${data.successCount} élève(s) assigné(s) à la classe` 
+          : `${data.successCount} student(s) assigned to class`)
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? '❌ Erreur' : '❌ Error',
+        description: language === 'fr' 
+          ? 'Impossible d\'assigner les élèves à la classe' 
+          : 'Failed to assign students to class',
+        variant: 'destructive'
+      });
+    }
+  });
+
   const handleCreateStudent = async () => {
     // Validate: Name is required
     if (!studentForm.name || !studentForm.name.trim()) {
@@ -697,6 +744,21 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
 
   const confirmBulkDelete = () => {
     bulkDeleteStudentsMutation.mutate(Array.from(selectedStudents));
+  };
+
+  const handleBulkAssignClass = () => {
+    if (selectedStudents.size > 0) {
+      setBulkAssignClassDialogOpen(true);
+    }
+  };
+
+  const confirmBulkAssignClass = () => {
+    if (bulkAssignTargetClassId) {
+      bulkAssignClassMutation.mutate({
+        studentIds: Array.from(selectedStudents),
+        classId: bulkAssignTargetClassId
+      });
+    }
   };
 
   // Upload photo mutation
@@ -1048,14 +1110,24 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         </div>
         <div className="flex gap-2">
           {selectedStudents.size > 0 && (
-            <Button 
-              onClick={handleBulkDelete}
-              className="bg-red-600 hover:bg-red-700"
-              data-testid="button-bulk-delete-students"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {language === 'fr' ? `Supprimer (${selectedStudents.size})` : `Delete (${selectedStudents.size})`}
-            </Button>
+            <>
+              <Button 
+                onClick={handleBulkAssignClass}
+                className="bg-green-600 hover:bg-green-700"
+                data-testid="button-bulk-assign-class"
+              >
+                <GraduationCap className="w-4 h-4 mr-2" />
+                {language === 'fr' ? `Assigner à classe (${selectedStudents.size})` : `Assign to class (${selectedStudents.size})`}
+              </Button>
+              <Button 
+                onClick={handleBulkDelete}
+                className="bg-red-600 hover:bg-red-700"
+                data-testid="button-bulk-delete-students"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {language === 'fr' ? `Supprimer (${selectedStudents.size})` : `Delete (${selectedStudents.size})`}
+              </Button>
+            </>
           )}
           <Button 
             onClick={() => setIsImportModalOpen(true)}
@@ -2485,6 +2557,60 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         confirmText={language === 'fr' ? 'Supprimer tout' : 'Delete All'}
         cancelText={language === 'fr' ? 'Annuler' : 'Cancel'}
       />
+
+      {/* Bulk Assign to Class Dialog */}
+      {bulkAssignClassDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-green-600" />
+              {language === 'fr' ? 'Assigner à une classe' : 'Assign to a class'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {language === 'fr' 
+                ? `Sélectionnez la classe pour les ${selectedStudents.size} élève(s) sélectionné(s) :`
+                : `Select the class for the ${selectedStudents.size} selected student(s):`}
+            </p>
+            <div className="mb-6">
+              <Label htmlFor="bulk-assign-class">{language === 'fr' ? 'Classe de destination' : 'Target Class'}</Label>
+              <Select value={bulkAssignTargetClassId} onValueChange={setBulkAssignTargetClassId}>
+                <SelectTrigger className="w-full mt-2">
+                  <SelectValue placeholder={language === 'fr' ? 'Sélectionner une classe...' : 'Select a class...'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableClasses.map((cls: any) => (
+                    <SelectItem key={cls.id} value={cls.id.toString()}>
+                      {cls.name} {cls.level ? `(${cls.level})` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                onClick={confirmBulkAssignClass}
+                disabled={!bulkAssignTargetClassId || bulkAssignClassMutation.isPending}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+                data-testid="button-confirm-bulk-assign"
+              >
+                {bulkAssignClassMutation.isPending 
+                  ? (language === 'fr' ? 'Assignation...' : 'Assigning...') 
+                  : (language === 'fr' ? 'Confirmer' : 'Confirm')}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setBulkAssignClassDialogOpen(false);
+                  setBulkAssignTargetClassId('');
+                }}
+                data-testid="button-cancel-bulk-assign"
+              >
+                {language === 'fr' ? 'Annuler' : 'Cancel'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Student ID Card Print Dialog */}
       {idCardStudent && (
