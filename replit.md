@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed to digitalize education in Africa. Its core purpose is to reduce school costs, enhance educational outcomes, and provide a scalable, culturally relevant solution. The platform delivers comprehensive academic management, communication tools, financial features, offline access, African-style grade management, real-time attendance, flexible timetables, multi-channel notifications, and centralized document management. This aims to ensure accessible and affordable quality education across the African continent.
+Educafric is a bilingual, mobile-first EdTech platform designed to digitalize education in Africa. Its primary purpose is to reduce costs, enhance educational outcomes, and provide a scalable, culturally relevant solution. The platform offers comprehensive academic management, communication tools, financial features, and offline access, aiming to make quality education accessible and affordable across the continent. The project aims to achieve significant market penetration and improve educational infrastructure across Africa.
 
 # User Preferences
 - EXEMPTION PREMIUM PERMANENTE: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -42,7 +42,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 
 # System Architecture
-- **UI/UX Decisions**: The platform features a custom African-themed, mobile-first, and PWA-enabled UI, built using Radix UI and Shadcn/UI with Tailwind CSS. All alert and confirmation dialogs must consistently use a `bg-white` background for optimal readability. A standardized Student ID Card template, optimized for mobile-friendly color printing, digital signatures, and QR codes, is uniformly applied across all schools. A dedicated sandbox environment provides realistic demo data.
+- **UI/UX Decisions**: The platform features a custom African-themed, mobile-first, and PWA-enabled UI, built using Radix UI and Shadcn/UI with Tailwind CSS. All alert and confirmation dialogs must consistently use a `bg-white` background. A standardized Student ID Card template, optimized for mobile-friendly color printing, digital signatures, and QR codes, is uniformly applied across all schools. A dedicated sandbox environment provides realistic demo data.
 - **Technical Implementations**:
     - **Frontend**: Developed with React (TypeScript), using Wouter for routing and TanStack Query for efficient data fetching. It is PWA-enabled, with a React Native application for Android.
     - **Backend**: Powered by an Express.js RESTful API.
@@ -51,7 +51,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
     - **Route Architecture**: Express.js route registration prioritizes direct routes (Settings, API Modules, System Routes) over external routers to prevent conflicts and ensure consistent routing behavior.
     - **Cache Management**: `queryClient.ts` incorporates `serializeQueryKey()` to prevent query key collisions and ensure data integrity.
     - **Module Loading**: `fastModuleLoader.ts` includes `validateMappings()` for automatic conflict detection and resolution in module mappings.
-    - **Document Management**: A centralized system manages documents with digital signatures, PDF generation, and ensures instant document appearance. All documents adhere to a standardized `/public/documents/` directory structure with lowercase kebab-case naming.
+    - **Document Management**: A centralized system manages documents with digital signatures, PDF generation, and ensures instant appearance. All documents adhere to a standardized `/public/documents/` directory structure with lowercase kebab-case naming.
 - **Feature Specifications**: Key features include real-time attendance tracking (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment methods, GPS tracking, iCal/ICS export, bulk Excel import capabilities, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes.
 
 # External Dependencies

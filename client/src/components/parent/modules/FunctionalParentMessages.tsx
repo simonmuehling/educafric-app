@@ -29,10 +29,12 @@ interface ParentMessage {
   priority: string;
   status: string;
   sentAt: string;
-  readAt: string;
+  readAt: string | null;
   category: string;
   hasAttachment: boolean;
   requiresResponse: boolean;
+  isRead: boolean;
+  read: boolean;
 }
 
 const FunctionalParentMessages: React.FC = () => {
@@ -43,6 +45,11 @@ const FunctionalParentMessages: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<ParentMessage | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [newMessage, setNewMessage] = useState({
     subject: '',
     recipient: '',
@@ -152,6 +159,93 @@ const FunctionalParentMessages: React.FC = () => {
     if (newMessage.subject && newMessage.recipient && newMessage.content) {
       createMessageMutation.mutate(newMessage);
     }
+  };
+
+  // Mark message as read mutation
+  const markReadMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      const response = await fetch(`/api/parent/messages/${messageId}/read`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to mark as read');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parent/messages'] });
+    }
+  });
+
+  // Reply to message mutation
+  const replyMutation = useMutation({
+    mutationFn: async ({ messageId, content }: { messageId: number; content: string }) => {
+      const response = await fetch('/api/parent/messages/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ originalMessageId: messageId, content })
+      });
+      if (!response.ok) throw new Error('Failed to send reply');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parent/messages'] });
+      setIsReplyDialogOpen(false);
+      setReplyContent('');
+      setSelectedMessage(null);
+      toast({
+        title: language === 'fr' ? 'Réponse envoyée' : 'Reply sent',
+        description: language === 'fr' ? 'Votre réponse a été envoyée avec succès.' : 'Your reply was sent successfully.'
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'envoyer la réponse.' : 'Could not send reply.',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Handle view message
+  const handleViewMessage = (message: ParentMessage) => {
+    setSelectedMessage(message);
+    setIsViewDialogOpen(true);
+    if (!message.isRead) {
+      markReadMutation.mutate(message.id);
+    }
+  };
+
+  // Handle reply
+  const handleReply = (message: ParentMessage) => {
+    setSelectedMessage(message);
+    setIsReplyDialogOpen(true);
+  };
+
+  // Handle send reply
+  const handleSendReply = () => {
+    if (selectedMessage && replyContent.trim()) {
+      replyMutation.mutate({ messageId: selectedMessage.id, content: replyContent });
+    }
+  };
+
+  // Handle toggle favorite
+  const handleToggleFavorite = (messageId: number) => {
+    setFavoriteIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
+    toast({
+      title: favoriteIds.has(messageId) 
+        ? (language === 'fr' ? 'Retiré des favoris' : 'Removed from favorites')
+        : (language === 'fr' ? 'Ajouté aux favoris' : 'Added to favorites')
+    });
   };
 
   const text = {
@@ -646,28 +740,49 @@ const FunctionalParentMessages: React.FC = () => {
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewMessage(message)}
+                            data-testid={`button-view-message-${message.id}`}
+                          >
                             <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
-                            Lire
+                            {language === 'fr' ? 'Lire' : 'Read'}
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleReply(message)}
+                            data-testid={`button-reply-message-${message.id}`}
+                          >
                             <Reply className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
                             {t?.actions?.reply}
                           </Button>
                           {message.requiresResponse && (
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                            <Button 
+                              size="sm" 
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => handleReply(message)}
+                              data-testid={`button-reply-required-${message.id}`}
+                            >
                               <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
-                              Répondre
+                              {language === 'fr' ? 'Répondre' : 'Reply'}
                             </Button>
                           )}
-                          <Button variant="outline" size="sm">
-                            <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
+                          <Button 
+                            variant={favoriteIds.has(message.id) ? "default" : "outline"} 
+                            size="sm"
+                            onClick={() => handleToggleFavorite(message.id)}
+                            className={favoriteIds.has(message.id) ? "bg-yellow-500 hover:bg-yellow-600" : ""}
+                            data-testid={`button-favorite-message-${message.id}`}
+                          >
+                            <Star className={`h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 ${favoriteIds.has(message.id) ? 'fill-white' : ''}`} />
                             {t?.actions?.star}
                           </Button>
                           {message.senderRole === 'teacher' && (
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" data-testid={`button-call-teacher-${message.id}`}>
                               <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
-                              Appeler
+                              {language === 'fr' ? 'Appeler' : 'Call'}
                             </Button>
                           )}
                         </div>
@@ -680,6 +795,82 @@ const FunctionalParentMessages: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* View Message Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="bg-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{selectedMessage?.subject || 'Message'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm text-gray-500">
+              <p><strong>{language === 'fr' ? 'De' : 'From'}:</strong> {selectedMessage?.senderName} ({selectedMessage?.senderRole})</p>
+              <p><strong>{language === 'fr' ? 'Date' : 'Date'}:</strong> {selectedMessage?.sentAt ? new Date(selectedMessage.sentAt).toLocaleDateString() : '-'}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="whitespace-pre-wrap">{selectedMessage?.content}</p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                {language === 'fr' ? 'Fermer' : 'Close'}
+              </Button>
+              <Button onClick={() => {
+                setIsViewDialogOpen(false);
+                if (selectedMessage) handleReply(selectedMessage);
+              }} className="bg-green-600 hover:bg-green-700 text-white">
+                <Reply className="h-4 w-4 mr-2" />
+                {language === 'fr' ? 'Répondre' : 'Reply'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reply Dialog */}
+      <Dialog open={isReplyDialogOpen} onOpenChange={setIsReplyDialogOpen}>
+        <DialogContent className="bg-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{language === 'fr' ? 'Répondre au message' : 'Reply to message'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg">
+              <p className="font-medium">{selectedMessage?.subject}</p>
+              <p className="text-xs mt-1">{language === 'fr' ? 'De' : 'From'}: {selectedMessage?.senderName}</p>
+              <p className="mt-2 line-clamp-2">{selectedMessage?.content}</p>
+            </div>
+            <Textarea
+              placeholder={language === 'fr' ? 'Tapez votre réponse...' : 'Type your reply...'}
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+              rows={4}
+              data-testid="textarea-reply-content"
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => {
+                setIsReplyDialogOpen(false);
+                setReplyContent('');
+              }}>
+                {language === 'fr' ? 'Annuler' : 'Cancel'}
+              </Button>
+              <Button 
+                onClick={handleSendReply}
+                disabled={!replyContent.trim() || replyMutation.isPending}
+                className="bg-green-600 hover:bg-green-700 text-white"
+                data-testid="button-send-reply"
+              >
+                {replyMutation.isPending ? (
+                  <span className="animate-pulse">{language === 'fr' ? 'Envoi...' : 'Sending...'}</span>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    {language === 'fr' ? 'Envoyer' : 'Send'}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

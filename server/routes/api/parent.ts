@@ -498,19 +498,29 @@ router.get('/messages', requireAuth, async (req: AuthenticatedRequest, res: Resp
       .orderBy(desc(messagesTable.createdAt))
       .limit(50);
     
-    // Format messages for frontend
+    // Format messages for frontend - include both date and sentAt for compatibility
     const formattedMessages = parentMessages.map(msg => ({
       id: msg.id,
       from: msg.senderName || 'Utilisateur',
+      senderName: msg.senderName || 'Utilisateur',
       fromRole: msg.senderRole || 'Unknown',
+      senderRole: msg.senderRole || 'Unknown',
+      recipientName: msg.recipientName || 'Destinataire',
       subject: msg.subject || 'Sans objet',
       message: msg.content,
       content: msg.content,
+      childName: msg.senderRole === 'Student' ? msg.senderName : 'Votre enfant',
       date: msg.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+      sentAt: msg.createdAt?.toISOString() || new Date().toISOString(),
+      readAt: msg.isRead ? msg.createdAt?.toISOString() : null,
       read: msg.isRead || false,
+      isRead: msg.isRead || false,
       type: msg.messageType || 'general',
+      category: msg.messageType || 'general',
       priority: 'normal',
-      status: msg.status || 'sent'
+      status: msg.isRead ? 'read' : 'unread',
+      hasAttachment: false,
+      requiresResponse: msg.senderRole === 'Student'
     }));
     
     const formattedSentMessages = sentMessages.map(msg => ({
@@ -601,6 +611,106 @@ router.post('/messages', requireAuth, async (req: AuthenticatedRequest, res: Res
   } catch (error: any) {
     console.error('[PARENT_API] Error sending message:', error);
     res.status(500).json({ message: 'Failed to send message' });
+  }
+});
+
+// Mark message as read - REAL DATABASE QUERIES
+router.patch('/messages/:id/read', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const messageId = parseInt(req.params.id);
+    
+    if (isNaN(messageId)) {
+      return res.status(400).json({ message: 'Invalid message ID' });
+    }
+    
+    // Update message as read
+    const result = await db.update(messagesTable)
+      .set({ isRead: true, status: 'read' })
+      .where(and(
+        eq(messagesTable.id, messageId),
+        eq(messagesTable.recipientId, parentId)
+      ))
+      .returning();
+    
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Message not found' });
+    }
+    
+    console.log('[PARENT_MESSAGES] Message marked as read:', messageId);
+    res.json({ success: true, message: 'Message marked as read' });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error marking message as read:', error);
+    res.status(500).json({ message: 'Failed to mark message as read' });
+  }
+});
+
+// Reply to a message - REAL DATABASE QUERIES with WhatsApp notification
+router.post('/messages/reply', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const { originalMessageId, content } = req.body;
+    
+    if (!originalMessageId || !content) {
+      return res.status(400).json({ message: 'Original message ID and content are required' });
+    }
+    
+    // Get original message to find the sender
+    const [originalMessage] = await db.select()
+      .from(messagesTable)
+      .where(eq(messagesTable.id, originalMessageId));
+    
+    if (!originalMessage) {
+      return res.status(404).json({ message: 'Original message not found' });
+    }
+    
+    // Get parent info
+    const [parentInfo] = await db.select({ 
+      firstName: users.firstName, 
+      lastName: users.lastName,
+      phone: users.phone 
+    })
+      .from(users)
+      .where(eq(users.id, parentId));
+    
+    const parentName = parentInfo 
+      ? `${parentInfo.firstName || ''} ${parentInfo.lastName || ''}`.trim() 
+      : 'Parent';
+    
+    // Insert reply message
+    const [newMessage] = await db.insert(messagesTable).values({
+      senderId: parentId,
+      senderName: parentName,
+      senderRole: 'Parent',
+      recipientId: originalMessage.senderId,
+      recipientName: originalMessage.senderName || 'Destinataire',
+      recipientRole: originalMessage.senderRole || 'Unknown',
+      schoolId: originalMessage.schoolId,
+      subject: `RE: ${originalMessage.subject || 'Sans objet'}`,
+      content: content,
+      messageType: 'reply',
+      isRead: false,
+      status: 'sent'
+    }).returning();
+    
+    console.log('[PARENT_MESSAGES] Reply sent:', newMessage?.id);
+    
+    res.json({ 
+      success: true, 
+      message: 'Reply sent successfully',
+      data: newMessage
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error sending reply:', error);
+    res.status(500).json({ message: 'Failed to send reply' });
   }
 });
 

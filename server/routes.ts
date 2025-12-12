@@ -151,6 +151,7 @@ import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes"
 import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
 import { registerSubscriptionRoutes } from "./routes/subscriptionRoutes";
 import { autoscaleRoutes } from "./services/sandboxAutoscaleService";
+import { whatsappDirectService } from "./services/whatsappDirectNotificationService";
 
 // Configure multer for file uploads
 const logoStorage = multer.diskStorage({
@@ -10051,9 +10052,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get parent info
+      // Get parent info including phone for WhatsApp notification
       const [parentUser] = await db
-        .select({ firstName: users.firstName, lastName: users.lastName })
+        .select({ firstName: users.firstName, lastName: users.lastName, phone: users.phone })
         .from(users)
         .where(eq(users.id, parseInt(parentId)))
         .limit(1);
@@ -10075,6 +10076,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }).returning();
       
       console.log(`[STUDENT_MESSAGE_PARENT] ✅ Message sent successfully, ID: ${newMessage?.id}`);
+      
+      // Send WhatsApp notification to parent if phone is available
+      if (parentUser?.phone) {
+        try {
+          const studentName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Votre enfant';
+          await whatsappDirectService.sendDirectMessage({
+            recipientPhone: parentUser.phone,
+            senderName: studentName,
+            senderRole: 'Student',
+            messagePreview: messageContent.substring(0, 100) + (messageContent.length > 100 ? '...' : ''),
+            language: 'fr'
+          });
+          console.log(`[STUDENT_MESSAGE_PARENT] 📱 WhatsApp notification sent to parent: ${parentUser.phone}`);
+        } catch (whatsappError) {
+          console.error('[STUDENT_MESSAGE_PARENT] ⚠️ WhatsApp notification failed (message still sent):', whatsappError);
+        }
+      }
       
       res.json({
         success: true,
