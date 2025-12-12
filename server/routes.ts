@@ -10601,40 +10601,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/student/messages", requireAuth, async (req, res) => {
-    try {
-      // SECURITY FIX: Validate message data with Zod schema
-      const validationResult = messageCreationSchema.safeParse(req.body);
-      if (!validationResult.success) {
-        return res.status(400).json({ 
-          success: false,
-          message: 'Invalid message data',
-          errors: validationResult.error.errors.map(err => `${err.path.join('.')}: ${err.message}`)
-        });
-      }
-      
-      const { to, toRole, subject, message, priority } = validationResult.data;
-      
-      const newMessage = {
-        id: Date.now(),
-        from: req.user?.firstName ? `${req.user.firstName} ${req.user.lastName || ''}` : 'Élève',
-        fromRole: 'Student',
-        to,
-        toRole,
-        subject,
-        message,
-        priority,
-        date: new Date().toISOString(),
-        status: 'sent'
-      };
-      
-      console.log('[STUDENT_MESSAGES] Message sent:', newMessage);
-      res.json({ success: true, message: 'Message sent successfully', data: newMessage });
-    } catch (error) {
-      console.error('[STUDENT_MESSAGES] Error sending message:', error);
-      res.status(500).json({ success: false, message: 'Failed to send message' });
-    }
-  });
+  // REMOVED: Duplicate POST /api/student/messages - Use POST /api/student/messages/parent instead (line ~10021)
+  // This old route was NOT saving to database, causing data loss and inconsistencies
 
   // ============= STUDENT LIBRARY API =============
   

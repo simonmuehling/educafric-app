@@ -820,30 +820,8 @@ router.post('/attendance/excuse', requireAuth, async (req: AuthenticatedRequest,
 });
 
 
-// Send message
-router.post('/messages', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: 'Authentication required' });
-    }
-    
-    const { recipientId, subject, content } = req.body;
-    
-    if (!recipientId || !subject || !content) {
-      return res.status(400).json({ message: 'Recipient, subject, and content are required' });
-    }
-    
-    // Process message sending - placeholder implementation
-    res.json({
-      success: true,
-      message: 'Message sent successfully',
-      messageId: Date.now()
-    });
-  } catch (error: any) {
-    console.error('[PARENT_API] Error sending message:', error);
-    res.status(500).json({ message: 'Failed to send message' });
-  }
-});
+// REMOVED: Duplicate POST /messages - The real implementation is at line ~543 above
+// This duplicate was NOT saving to database, causing data loss and inconsistencies
 
 // Get payments data for parent
 router.get('/payments', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
