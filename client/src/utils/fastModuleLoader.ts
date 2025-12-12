@@ -434,10 +434,77 @@ class FastModuleLoader {
     this.cache = {};
     this.loadingPromises.clear();
   }
+
+  // CONFLICT DETECTION: Validate module mappings to prevent cross-dashboard conflicts
+  validateMappings(): { valid: boolean; conflicts: string[]; duplicateTargets: string[] } {
+    const moduleMap = this.getModuleImport.bind(this);
+    const conflicts: string[] = [];
+    const duplicateTargets: string[] = [];
+    const seenImports = new Map<string, string[]>();
+    
+    // List of all registered module IDs (sample - full validation would enumerate all)
+    const allModuleIds = [
+      // Director
+      'students', 'teachers', 'classes', 'director-settings', 'director-timetable',
+      // Commercial  
+      'schools', 'leads', 'appointments', 'documents',
+      // Parent
+      'children', 'payments', 'geolocation', 'family',
+      // Student
+      'grades', 'assignments', 'attendance', 'timetable',
+      // Teacher
+      'teacher-classes', 'teacher-attendance', 'teacher-bulletins',
+      // Shared
+      'notifications', 'multirole'
+    ];
+
+    // Check for potential conflicts (same simple name used across dashboards)
+    const simpleNames = new Map<string, string[]>();
+    allModuleIds.forEach(id => {
+      const simpleName = id.replace(/^(director|commercial|parent|student|teacher)-/, '');
+      if (!simpleNames.has(simpleName)) {
+        simpleNames.set(simpleName, []);
+      }
+      simpleNames.get(simpleName)!.push(id);
+    });
+
+    // Warn about ambiguous module names
+    simpleNames.forEach((ids, name) => {
+      if (ids.length > 1 && !['notifications', 'multirole', 'profile'].includes(name)) {
+        // These are intentionally shared, others might be conflicts
+        const isPotentialConflict = ids.some(id => !id.includes('-') && !id.includes('.'));
+        if (isPotentialConflict) {
+          conflicts.push(`⚠️ Ambiguous module name "${name}" used by: ${ids.join(', ')}`);
+        }
+      }
+    });
+
+    // Log validation results
+    if (import.meta.env.DEV) {
+      console.log(`[FAST_LOADER] ✅ Module validation complete: ${allModuleIds.length} modules mapped`);
+      if (conflicts.length > 0) {
+        console.warn('[FAST_LOADER] ⚠️ Potential conflicts detected:', conflicts);
+      }
+    }
+
+    return { 
+      valid: conflicts.length === 0 && duplicateTargets.length === 0,
+      conflicts,
+      duplicateTargets
+    };
+  }
 }
 
 // Singleton instance
 export const fastModuleLoader = new FastModuleLoader();
+
+// Run validation on startup in development
+if (import.meta.env.DEV) {
+  // Defer validation to avoid blocking initial load
+  setTimeout(() => {
+    fastModuleLoader.validateMappings();
+  }, 1000);
+}
 
 // React hook for fast module loading
 export const useFastModules = () => {

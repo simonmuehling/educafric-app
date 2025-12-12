@@ -56,12 +56,51 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
+
+// FIXED: Properly serialize query keys to avoid cache collisions
+// Previous implementation used join("/") which caused [object Object] issues
+function serializeQueryKey(queryKey: readonly unknown[]): string {
+  const parts: string[] = [];
+  
+  for (const segment of queryKey) {
+    if (typeof segment === 'string') {
+      parts.push(segment);
+    } else if (typeof segment === 'number') {
+      parts.push(String(segment));
+    } else if (segment && typeof segment === 'object') {
+      // Convert objects to URL query params to preserve uniqueness
+      const params = new URLSearchParams();
+      for (const [key, value] of Object.entries(segment)) {
+        if (value !== undefined && value !== null) {
+          params.append(key, String(value));
+        }
+      }
+      const paramString = params.toString();
+      if (paramString) {
+        // Append as query string if we already have a base URL
+        const hasBase = parts.length > 0 && parts[0].startsWith('/');
+        if (hasBase && !parts[parts.length - 1].includes('?')) {
+          parts[parts.length - 1] += '?' + paramString;
+        } else if (hasBase) {
+          parts[parts.length - 1] += '&' + paramString;
+        } else {
+          parts.push(paramString);
+        }
+      }
+    }
+  }
+  
+  // Join with "/" but avoid double slashes
+  return parts.join('/').replace(/\/+/g, '/');
+}
+
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const url = queryKey.join("/") as string;
+    // Use proper serialization to avoid cache collisions
+    const url = serializeQueryKey(queryKey);
     
     // Minimal logging to improve performance
     const res = await fetch(url, {

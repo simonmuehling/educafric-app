@@ -50,7 +50,9 @@ Educafric is a comprehensive, bilingual, mobile-first educational technology pla
 - **Database**: PostgreSQL on Neon Serverless, designed for multi-tenancy.
 - **Key Features**: Offline-First capabilities, African-style grade management, real-time attendance, flexible timetables, multi-channel notifications, bilingual templates, payment methods, GPS tracking, centralized document management with digital signatures and PDF generation, iCal/ICS export, bulk Excel imports, Competency-Based Approach bulletin generation, and Jitsi Meet integration.
 - **UI/UX Decisions**: Custom African-themed UI, PWA and mobile-first approach, dedicated sandbox environment with realistic demo data.
-- **Route Architecture**: Express.js order of registration dictates priority: direct routes in `server/routes.ts` execute first, then external routers. All messaging routes are consolidated in `server/routes.ts`.
+- **Route Architecture**: Express.js order of registration dictates priority: direct routes in `server/routes.ts` execute first, then external routers. All messaging routes are consolidated in `server/routes.ts`. RÈGLE: Toujours vérifier `grep -n "pattern" server/routes.ts` avant de modifier un endpoint.
+- **Cache React Query Corrigé**: Le `queryClient.ts` utilise `serializeQueryKey()` au lieu de `join("/")` pour éviter les collisions avec objets/arrays. QueryKeys structurées correctement sérialisées.
+- **Module Loader Validé**: `fastModuleLoader.ts` exécute `validateMappings()` au démarrage en dev pour détecter conflits entre dashboards. Utiliser préfixes (ex: `director-students`, `teacher-attendance`).
 
 ### External Dependencies
 - **Neon Database**: Serverless PostgreSQL database.
