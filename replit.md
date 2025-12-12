@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first educational technology platform aimed at digitalizing education in Africa. It seeks to reduce school costs, improve educational outcomes, and support a large user base through a scalable and culturally relevant solution. The platform provides academic management, communication tools, financial features, offline access, African-style grade management, real-time attendance, flexible timetables, multi-channel notifications, and centralized document management. The project's ambition is to offer accessible and affordable quality education across Africa, addressing critical needs and tapping into significant market potential.
+Educafric is a bilingual, mobile-first educational technology platform aimed at digitalizing education in Africa. Its core purpose is to reduce school costs, enhance educational outcomes, and support a large user base through a scalable and culturally relevant solution. The platform provides academic management, communication tools, financial features, offline access, African-style grade management, real-time attendance, flexible timetables, multi-channel notifications, and centralized document management. The project seeks to offer accessible and affordable quality education across Africa, addressing critical educational needs and leveraging significant market potential.
 
 # User Preferences
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -42,18 +42,16 @@ Educafric is a bilingual, mobile-first educational technology platform aimed at 
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 
 # System Architecture
-- **Frontend**: React (TypeScript) with Wouter, TanStack Query, Radix UI + Shadcn/UI (Tailwind CSS) for an African-themed, PWA, mobile-optimized design. React Native for Android.
-- **Backend**: Express.js (RESTful API) with Drizzle ORM and PostgreSQL.
-- **Authentication**: Session-based with `express-session` and `Passport.js`, Firebase Google OAuth, featuring role-based access control (8 roles), enhanced security, and IDS.
-- **Database**: PostgreSQL on Neon Serverless, designed for multi-tenancy.
-- **UI/UX Decisions**: Custom African-themed UI, PWA and mobile-first approach, dedicated sandbox environment with realistic demo data. All alert/confirmation dialogs must have a white background (`bg-white`). Standardized Student ID Card template.
+- **UI/UX Decisions**: Custom African-themed UI, PWA and mobile-first approach. All alert/confirmation dialogs must have a white background (`bg-white`). Standardized Student ID Card template with specific print functionalities. Dedicated sandbox environment with realistic demo data.
 - **Technical Implementations**:
-    - **Route Architecture**: Express.js order of registration prioritizes direct routes over external routers. All messaging routes are consolidated in `server/routes.ts`.
+    - **Frontend**: React (TypeScript) with Wouter, TanStack Query, Radix UI + Shadcn/UI (Tailwind CSS) for PWA and mobile optimization. React Native for Android.
+    - **Backend**: Express.js (RESTful API) with Drizzle ORM and PostgreSQL.
+    - **Authentication**: Session-based with `express-session` and `Passport.js`, Firebase Google OAuth, featuring role-based access control (8 roles) and IDS. Multi-role system with `role_affiliations` table.
+    - **Database**: PostgreSQL on Neon Serverless, designed for multi-tenancy with strict isolation using `user.schoolId`. All storage modules use Drizzle ORM for database-only operations.
+    - **Route Architecture**: Express.js order of registration prioritizes direct routes over external routers.
     - **Cache Management**: `queryClient.ts` uses `serializeQueryKey()` to prevent query key collisions.
     - **Module Loading**: `fastModuleLoader.ts` includes `validateMappings()` for conflict detection.
     - **Document Management**: Centralized document management with digital signatures, PDF generation, instant appearance, and standard directory (`/public/documents/`).
-    - **Data Handling**: Strict multi-tenant isolation using `user.schoolId`. All storage modules use Drizzle ORM and PostgreSQL for database-only operations, with no hardcoded or mock data for real schools.
-    - **Multi-role System**: Comprehensive multi-role system with `role_affiliations` table for managing primary and secondary roles.
 - **Feature Specifications**: Real-time attendance (3 statuses), flexible timetables, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, payment methods, GPS tracking, iCal/ICS export, bulk Excel imports, Competency-Based Approach bulletin generation, and Jitsi Meet integration.
 
 # External Dependencies
