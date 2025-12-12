@@ -203,7 +203,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       color: 'bg-gradient-to-r from-yellow-500 to-orange-500'
     },
     {
-      id: 'messages',
+      id: 'student-messages',
       label: t.messages,
       icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-indigo-500'
