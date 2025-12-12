@@ -371,6 +371,7 @@ export const parentStudentRelations = pgTable("parent_student_relations", {
   parentId: integer("parent_id").notNull(),
   studentId: integer("student_id").notNull(),
   relationship: text("relationship"),
+  isPrimary: boolean("is_primary").default(false),
   createdAt: timestamp("created_at").defaultNow()
 });
 
