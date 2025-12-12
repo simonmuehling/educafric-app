@@ -1,9 +1,7 @@
-# Educafric
+# Overview
+Educafric is a comprehensive, bilingual, mobile-first educational technology platform designed to digitalize education across Africa. Its primary goals are to reduce school costs, enhance educational outcomes, and support high user volumes. The platform integrates academic management, communication, and financial features, offering a robust, scalable, and culturally relevant solution with an ambition to make quality education accessible and affordable throughout Africa. Key capabilities include offline-first functionality, African-style grade management, real-time attendance, flexible timetables, multi-channel notifications, and centralized document management.
 
-### Overview
-Educafric is a comprehensive, bilingual, mobile-first educational technology platform aimed at digitalizing education across Africa. Its core purpose is to reduce school costs, improve educational outcomes, and support high user volumes by integrating academic management, communication, and financial features. The platform offers a robust, scalable, and culturally relevant solution with significant market potential, featuring offline-first functionality, African-style grade management, real-time attendance, flexible timetables, multi-channel notifications, and centralized document management. The business vision is to transform education across Africa by making quality education accessible and affordable.
-
-### User Preferences
+# User Preferences
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
 - **PROTECTION ANTI-CONFLIT MODULES**: Système de mapping des modules réorganisé avec séparation stricte par dashboard. Validation automatique des mappings pour détecter les conflits et doublons. Le module 'students' DOIT pointer vers FunctionalDirectorStudentManagement. Structure organisée : Director → Commercial → Parent → Student → Teacher → Freelancer → Shared. NE JAMAIS mélanger les mappings de modules entre dashboards différents.
 - **RÉSOLUTION CONFLITS ROUTES PARAMÈTRES**: Problème de conflits entre routes settings résolu par réorganisation de l'ordre d'enregistrement. Routes settings définies AVANT routers externes. Ordre prioritaire : Settings → API Modules → System Routes → Services. Toujours maintenir l'ordre d'enregistrement des routes.
@@ -30,20 +28,20 @@ Educafric is a comprehensive, bilingual, mobile-first educational technology pla
 - **NOTIFICATIONS 3 CANAUX ACTIFS**: Système de notifications automatiques avec 3 canaux: Email (Hostinger SMTP), WhatsApp (Direct API), PWA (Push notifications). Configuration dans `[AUTO_NOTIFICATIONS]`. Événements notifiés: attendance (absences/retards), grades, payments, geolocation, onlineClasses, subscriptions.
 - **EMPLOI DU TEMPS SIMPLIFIÉ**: Module TeacherTimetable simplifié - onglets "Demandes" et "Réponses Admin" supprimés. Les enseignants voient uniquement leur planning sans workflow de demande de changement.
 - **CARTE D'IDENTITÉ ÉTUDIANTE - MODÈLE STANDARD**: Le design de la carte d'identité étudiant (StudentIDCard.tsx) est le modèle OFFICIEL pour TOUTES les écoles Educafric. Fonctionnalités: impression mobile-friendly (détection automatique smartphone + instructions PDF), impression COULEUR garantie (`-webkit-print-color-adjust: exact !important`), signature digitale du directeur depuis `/api/signatures/principal`, QR code de vérification, format carte crédit (85.6mm x 54mm), recto/verso avec contacts urgence. Sur mobile: approche blob URL + fallback iframe avec bouton fermer. TOUJOURS utiliser ce composant pour les cartes d'identité.
-- **MESSAGES ÉLÈVE - ENVOI PARENTS / RÉCEPTION TOUS**: RÈGLE MÉTIER - Les élèves peuvent ENVOYER des messages UNIQUEMENT à leurs parents, mais peuvent RECEVOIR des messages de TOUS les profils (parents, enseignants, directeur, école). L'endpoint `POST /api/student/messages/parent` est réservé aux envois vers parents liés via `parent_student_relations`. L'endpoint `GET /api/student/messages` retourne TOUS les messages reçus. Interface avec onglets de filtrage (Tous, Parents, Enseignants, École) et bouton de réponse visible uniquement pour messages parents.
+- **MESSAGES ÉLÈVE - ENVOI PARENTS / RÉCEPTION TOUS**: RÈGLE MÉTIER - Les élèves peuvent ENVOYER des messages UNIQUEMENT à leurs parents, mais peuvent RECEVOIR des messages de TOUS les profils (parents, enseignants, directeur, école). L'endpoint `POST /api/student/messages/parent` est réservé aux envois vers envois vers parents liés via `parent_student_relations`. L'endpoint `GET /api/student/messages` retourne TOUS les messages reçus. Interface avec onglets de filtrage (Tous, Parents, Enseignants, École) et bouton de réponse visible uniquement pour messages parents.
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes.
 - NEVER make partial updates to only some dashboards.
 - ALWAYS preserve button functionality when making changes - buttons must remain functional.
-- **DOCUMENTS MUST APPEAR INSTANTLY:** User is frustrated that document creation takes hours - streamline to work immediately.
-- **DOCUMENT DIRECTORY STANDARD:** ALL documents MUST be placed in `/public/documents/` directory with lowercase kebab-case naming.
-- **DOCUMENT CREATION METHOD:** Use consolidated EDUCAFRIC system:
+- **DOCUMENTS MUST APPEAR INSTANTLY**: User is frustrated that document creation takes hours - streamline to work immediately.
+- **DOCUMENT DIRECTORY STANDARD**: ALL documents MUST be placed in `/public/documents/` directory with lowercase kebab-case naming.
+- **DOCUMENT CREATION METHOD**: Use consolidated EDUCAFRIC system:
   1. Create specialized PDF generator method in `server/services/pdfGenerator.ts`.
   2. Add document to commercial docs list in `server/routes.ts` (both view and download routes).
   3. Create HTML version in `/public/documents/` for web viewing.
   4. Update alphabetical index in `00-index-documents-alphabetique.html`.
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 
-### System Architecture
+# System Architecture
 - **Frontend**: React (TypeScript) with Wouter, TanStack Query, Radix UI + Shadcn/UI (Tailwind CSS) for an African-themed, PWA, mobile-optimized design. React Native for Android.
 - **Backend**: Express.js (RESTful API) with Drizzle ORM and PostgreSQL.
 - **Authentication**: Session-based with `express-session` and `Passport.js`, Firebase Google OAuth, featuring role-based access control (8 roles), enhanced security, and IDS.
@@ -55,7 +53,7 @@ Educafric is a comprehensive, bilingual, mobile-first educational technology pla
     - **Module Loading**: `fastModuleLoader.ts` includes `validateMappings()` for conflict detection during development using prefixed module names.
 - **Feature Specifications**: Real-time attendance, flexible timetables, multi-channel notifications, bilingual templates, payment methods, GPS tracking, centralized document management with digital signatures and PDF generation, iCal/ICS export, bulk Excel imports, Competency-Based Approach bulletin generation, and Jitsi Meet integration.
 
-### External Dependencies
+# External Dependencies
 - **Neon Database**: Serverless PostgreSQL database.
 - **Stripe**: Payment processing gateway.
 - **Firebase**: Google OAuth for authentication.

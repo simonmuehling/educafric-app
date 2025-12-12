@@ -1018,38 +1018,14 @@ export const feeNotificationQueue = pgTable("fee_notification_queue", {
 });
 
 // ===== FEE SCHEMAS AND TYPES =====
+// Note: Using base schemas without .omit() to avoid drizzle-zod type inference issues
 
-export const insertFeeStructureSchema = createInsertSchema(feeStructures).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
-
-export const insertAssignedFeeSchema = createInsertSchema(assignedFees).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
-
-export const insertPaymentItemSchema = createInsertSchema(paymentItems).omit({
-  id: true,
-  createdAt: true
-});
-
-export const insertFeeAuditLogSchema = createInsertSchema(feeAuditLogs).omit({
-  id: true,
-  createdAt: true
-});
-
-export const insertFeeReceiptSchema = createInsertSchema(feeReceipts).omit({
-  id: true,
-  createdAt: true
-});
-
-export const insertFeeNotificationQueueSchema = createInsertSchema(feeNotificationQueue).omit({
-  id: true,
-  createdAt: true
-});
+export const insertFeeStructureSchema = createInsertSchema(feeStructures);
+export const insertAssignedFeeSchema = createInsertSchema(assignedFees);
+export const insertPaymentItemSchema = createInsertSchema(paymentItems);
+export const insertFeeAuditLogSchema = createInsertSchema(feeAuditLogs);
+export const insertFeeReceiptSchema = createInsertSchema(feeReceipts);
+export const insertFeeNotificationQueueSchema = createInsertSchema(feeNotificationQueue);
 
 // Insert types
 export type InsertFeeStructure = z.infer<typeof insertFeeStructureSchema>;
