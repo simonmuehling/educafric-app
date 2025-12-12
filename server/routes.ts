@@ -10194,53 +10194,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/student/parents", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      
-      // 🔄 PARENTS DE L'ÉTUDIANT UNIQUEMENT  
       const studentId = user.id;
       
-      console.log(`[STUDENT_PARENTS] 👨‍👩‍👧‍👦 Fetching parents for student: ${studentId}`);
+      console.log(`[STUDENT_PARENTS] 👨‍👩‍👧‍👦 DATABASE-ONLY: Fetching parents for student: ${studentId}`);
       
-      // Parents filtrés selon l'étudiant connecté
-      const studentParents = [
-        {
-          id: 25,
-          name: 'Papa Kouame',
-          firstName: 'André',
-          lastName: 'Kouame',
-          email: 'andre.kouame@parent.edu',
-          phone: '+237698123456',
-          relation: 'Père',
-          studentId: studentId,
-          isStudentParent: true,
-          canReceiveMessages: true,
-          isEmergencyContact: true
-        },
-        {
-          id: 26,
-          name: 'Maman Kouame',
-          firstName: 'Marie',
-          lastName: 'Kouame',
-          email: 'marie.kouame@parent.edu',
-          phone: '+237698654321',
-          relation: 'Mère',
-          studentId: studentId,
-          isStudentParent: true,
-          canReceiveMessages: true,
-          isEmergencyContact: true
-        }
-      ];
+      // DATABASE QUERY: Get parents linked to this student via parent_student_relations
+      const parentRelations = await db
+        .select({
+          relationId: parentStudentRelations.id,
+          parentId: parentStudentRelations.parentId,
+          relationship: parentStudentRelations.relationship,
+          isPrimary: parentStudentRelations.isPrimary,
+          createdAt: parentStudentRelations.createdAt,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone
+        })
+        .from(parentStudentRelations)
+        .innerJoin(users, eq(parentStudentRelations.parentId, users.id))
+        .where(eq(parentStudentRelations.studentId, studentId));
       
-      console.log(`[STUDENT_PARENTS] ✅ Found ${studentParents.length} parents for student ${studentId}`);
+      const studentParents = parentRelations.map(p => ({
+        id: p.parentId,
+        firstName: p.firstName || '',
+        lastName: p.lastName || '',
+        displayName: `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Parent',
+        email: p.email || '',
+        phone: p.phone || '',
+        relationship: p.relationship || 'Parent',
+        relation: p.relationship || 'Parent',
+        studentId: studentId,
+        isStudentParent: true,
+        canReceiveMessages: true,
+        isEmergencyContact: p.isPrimary || false,
+        isPrimary: p.isPrimary || false
+      }));
       
-      res.json({
-        success: true,
-        parents: studentParents,
-        filter: {
-          studentId,
-          onlyStudentParents: true
-        },
-        message: 'Student parents only'
-      });
+      console.log(`[STUDENT_PARENTS] ✅ DATABASE: Found ${studentParents.length} parents for student ${studentId}`);
+      
+      res.json(studentParents);
     } catch (error) {
       console.error('[STUDENT_API] Error fetching parents:', error);
       res.status(500).json({ error: 'Failed to fetch parents' });
@@ -10254,67 +10247,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const studentId = user.id;
-      console.log('[STUDENT_PARENT_CONNECTIONS] 📡 Getting parent connections for student:', studentId);
+      console.log('[STUDENT_PARENT_CONNECTIONS] 📡 DATABASE-ONLY: Getting parent connections for student:', studentId);
       
-      // 🔄 CONNEXIONS PARENTS EXISTANTES POUR L'ÉTUDIANT
-      const parentConnections = [
-        {
-          id: 1,
-          parentName: 'Papa Kouame',
-          parentEmail: 'andre.kouame@parent.edu',
-          parentPhone: '+237698123456',
-          relationship: 'Père',
-          status: 'verified',
-          studentId: studentId,
-          connectedAt: '2025-08-15T10:00:00Z',
-          verifiedAt: '2025-08-15T10:30:00Z',
-          connectionMethod: 'email_verification',
-          isActive: true,
-          canReceiveMessages: true,
-          isEmergencyContact: true
-        },
-        {
-          id: 2,
-          parentName: 'Maman Kouame',
-          parentEmail: 'marie.kouame@parent.edu', 
-          parentPhone: '+237698654321',
-          relationship: 'Mère',
-          status: 'verified',
-          studentId: studentId,
-          connectedAt: '2025-08-10T14:00:00Z',
-          verifiedAt: '2025-08-10T14:15:00Z',
-          connectionMethod: 'qr_code',
-          isActive: true,
-          canReceiveMessages: true,
-          isEmergencyContact: true
-        },
-        {
-          id: 3,
-          parentName: 'Oncle Martin',
-          parentEmail: 'martin.kouame@parent.edu',
-          parentPhone: '+237698777888',
-          relationship: 'Guardian',
-          status: 'pending',
-          studentId: studentId,
-          connectedAt: '2025-09-05T16:00:00Z',
-          verifiedAt: null,
-          connectionMethod: 'manual_request',
-          isActive: false,
-          canReceiveMessages: false,
-          isEmergencyContact: false
-        }
-      ];
+      // DATABASE QUERY: Get parent connections from parent_student_relations
+      const parentRelations = await db
+        .select({
+          relationId: parentStudentRelations.id,
+          parentId: parentStudentRelations.parentId,
+          relationship: parentStudentRelations.relationship,
+          isPrimary: parentStudentRelations.isPrimary,
+          createdAt: parentStudentRelations.createdAt,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone
+        })
+        .from(parentStudentRelations)
+        .innerJoin(users, eq(parentStudentRelations.parentId, users.id))
+        .where(eq(parentStudentRelations.studentId, studentId));
       
-      console.log(`[STUDENT_PARENT_CONNECTIONS] ✅ Found ${parentConnections.length} parent connections`);
+      const parentConnections = parentRelations.map(p => ({
+        id: p.relationId,
+        parentId: p.parentId,
+        parentName: `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Parent',
+        parentEmail: p.email || '',
+        parentPhone: p.phone || '',
+        relationship: p.relationship || 'Parent',
+        status: 'verified',
+        studentId: studentId,
+        connectedAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
+        verifiedAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
+        connectionMethod: 'database',
+        isActive: true,
+        canReceiveMessages: true,
+        isEmergencyContact: p.isPrimary || false
+      }));
+      
+      console.log(`[STUDENT_PARENT_CONNECTIONS] ✅ DATABASE: Found ${parentConnections.length} parent connections`);
       
       res.json({
         success: true,
         connections: parentConnections,
         total: parentConnections.length,
         stats: {
-          verified: parentConnections.filter(c => c.status === 'verified').length,
-          pending: parentConnections.filter(c => c.status === 'pending').length,
-          active: parentConnections.filter(c => c.isActive).length
+          verified: parentConnections.length,
+          pending: 0,
+          active: parentConnections.length
         },
         lastSync: new Date().toISOString()
       });
@@ -10328,12 +10306,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API 2: /api/student-parent/search-parents - Search for parents
+  // API 2: /api/student-parent/search-parents - Search for parents in database
   app.post("/api/student-parent/search-parents", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
       const { searchValue, searchType } = req.body;
-      console.log('[STUDENT_PARENT_SEARCH] 🔍 Searching parents:', { searchValue, searchType, studentId: user.id });
+      console.log('[STUDENT_PARENT_SEARCH] 🔍 DATABASE-ONLY: Searching parents:', { searchValue, searchType, studentId: user.id });
       
       if (!searchValue || searchValue.length < 3) {
         return res.json({
@@ -10343,77 +10321,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // 🔍 RECHERCHE PARENTS PAR EMAIL/TÉLÉPHONE/NOM
-      let foundParents = [];
+      // DATABASE QUERY: Search parents by email, phone, or name
+      const searchPattern = `%${searchValue.toLowerCase()}%`;
       
-      const allParents = [
-        {
-          id: 27,
-          firstName: 'Jean',
-          lastName: 'Mballa',
-          email: 'jean.mballa@educafric.com',
-          phone: '+237655111222',
-          role: 'parent',
-          isVerifiedParent: true,
-          hasChildren: true,
-          school: 'École Saint-Joseph Yaoundé',
-          city: 'Yaoundé'
-        },
-        {
-          id: 28,
-          firstName: 'Grace',
-          lastName: 'Foning',
-          email: 'grace.foning@educafric.com',
-          phone: '+237655333444',
-          role: 'parent',
-          isVerifiedParent: true,
-          hasChildren: true,
-          school: 'Collège Vogt Yaoundé',
-          city: 'Yaoundé'
-        },
-        {
-          id: 29,
-          firstName: 'Paul',
-          lastName: 'Biya',
-          email: 'paul.biya@educafric.com',
-          phone: '+237655555666',
-          role: 'parent',
-          isVerifiedParent: true,
-          hasChildren: true,
-          school: 'Lycée Général Leclerc',
-          city: 'Yaoundé'
-        },
-        {
-          id: 30,
-          firstName: 'Marie',
-          lastName: 'Ongolo',
-          email: 'marie.ongolo@educafric.com',
-          phone: '+237655777888',
-          role: 'parent',
-          isVerifiedParent: true,
-          hasChildren: false,
-          school: 'École Publique Mfandena',
-          city: 'Yaoundé'
-        }
-      ];
+      const dbParents = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          role: users.role,
+          schoolId: users.schoolId
+        })
+        .from(users)
+        .where(
+          and(
+            eq(users.role, 'Parent'),
+            or(
+              sql`LOWER(${users.email}) LIKE ${searchPattern}`,
+              sql`LOWER(${users.firstName}) LIKE ${searchPattern}`,
+              sql`LOWER(${users.lastName}) LIKE ${searchPattern}`,
+              sql`${users.phone} LIKE ${searchPattern}`
+            )
+          )
+        )
+        .limit(10);
       
-      // Filtrage selon le type de recherche
-      if (searchType === 'universal' || searchType === 'email') {
-        foundParents = allParents.filter(parent => 
-          parent.email.toLowerCase().includes(searchValue.toLowerCase()) ||
-          parent.firstName.toLowerCase().includes(searchValue.toLowerCase()) ||
-          parent.lastName.toLowerCase().includes(searchValue.toLowerCase())
-        );
-      } else if (searchType === 'phone') {
-        foundParents = allParents.filter(parent => 
-          parent.phone.includes(searchValue)
-        );
-      }
+      const foundParents = dbParents.map(parent => ({
+        id: parent.id,
+        firstName: parent.firstName || '',
+        lastName: parent.lastName || '',
+        email: parent.email || '',
+        phone: parent.phone || '',
+        role: 'parent',
+        isVerifiedParent: true,
+        hasChildren: true
+      }));
       
-      // Limiter à 5 résultats
-      foundParents = foundParents.slice(0, 5);
-      
-      console.log(`[STUDENT_PARENT_SEARCH] ✅ Found ${foundParents.length} parents matching "${searchValue}"`);
+      console.log(`[STUDENT_PARENT_SEARCH] ✅ DATABASE: Found ${foundParents.length} parents matching "${searchValue}"`);
       
       res.json({
         success: true,
