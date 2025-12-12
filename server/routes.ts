@@ -10592,16 +10592,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Student Settings
-  app.get("/api/student/settings", async (req, res) => {
+  app.get("/api/student/settings", requireAuth, async (req, res) => {
     try {
+      const user = req.user as any;
+      const studentId = user.id;
+      const studentSchoolId = user.schoolId;
+      
+      console.log(`[STUDENT_SETTINGS] 📡 DATABASE-ONLY: Fetching settings for student: ${studentId}`);
+      
+      // DATABASE QUERY: Get student profile from users table
+      const [studentData] = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone,
+          role: users.role,
+          schoolId: users.schoolId,
+          createdAt: users.createdAt
+        })
+        .from(users)
+        .where(eq(users.id, studentId));
+      
+      if (!studentData) {
+        return res.status(404).json({ success: false, message: 'Student not found' });
+      }
+      
+      // Get student class from enrollments
+      const enrollmentData = await db
+        .select({
+          classId: enrollments.classId,
+          className: classes.name
+        })
+        .from(enrollments)
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
+        .where(eq(enrollments.studentId, studentId))
+        .limit(1);
+      
+      const studentClass = enrollmentData[0]?.className || 'Non assigné';
+      
+      // Get parent contact from parent_student_relations
+      const parentData = await db
+        .select({
+          parentPhone: users.phone,
+          parentEmail: users.email
+        })
+        .from(parentStudentRelations)
+        .innerJoin(users, eq(parentStudentRelations.parentId, users.id))
+        .where(eq(parentStudentRelations.studentId, studentId))
+        .limit(1);
+      
+      const parentContact = parentData[0]?.parentPhone || parentData[0]?.parentEmail || '';
+      
       const settings = {
         profile: {
-          firstName: 'Jean',
-          lastName: 'Kamga',
-          email: 'jean.kamga@student.saintjoseph.edu',
-          class: 'Terminale C',
-          studentId: 'STU2024001',
-          parentContact: '+237657005678'
+          firstName: studentData.firstName || '',
+          lastName: studentData.lastName || '',
+          email: studentData.email || '',
+          phone: studentData.phone || '',
+          class: studentClass,
+          studentId: `STU${studentData.id}`,
+          parentContact: parentContact
         },
         preferences: {
           language: 'fr',
@@ -10614,10 +10666,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           displayMode: 'detailed'
         },
         academic: {
-          currentAverage: 14.5,
-          currentRank: 8,
-          totalStudents: 45,
-          lastUpdate: '2024-08-20'
+          currentAverage: 0,
+          currentRank: 0,
+          totalStudents: 0,
+          lastUpdate: new Date().toISOString().split('T')[0]
         },
         privacy: {
           profileVisibility: 'school_only',
@@ -10627,10 +10679,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         security: {
           twoFactorEnabled: false,
-          lastPasswordChange: '2024-07-20',
+          lastPasswordChange: studentData.createdAt ? new Date(studentData.createdAt).toISOString().split('T')[0] : '',
           sessionTimeout: 30
         }
       };
+      
+      console.log(`[STUDENT_SETTINGS] ✅ DATABASE: Returning settings for ${studentData.firstName} ${studentData.lastName}`);
+      
       res.json({ success: true, settings });
     } catch (error) {
       console.error('[STUDENT_SETTINGS] Error:', error);
@@ -10640,8 +10695,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/student/settings", requireAuth, async (req, res) => {
     try {
-      const updatedSettings = req.body;
-      console.log('[STUDENT_SETTINGS_UPDATE] Updating settings:', updatedSettings);
+      const user = req.user as any;
+      const studentId = user.id;
+      const { profile } = req.body;
+      
+      console.log(`[STUDENT_SETTINGS_UPDATE] 📝 DATABASE: Updating settings for student: ${studentId}`);
+      
+      if (profile) {
+        // Update user profile in database
+        await db
+          .update(users)
+          .set({
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            email: profile.email || null,
+            phone: profile.phone
+          })
+          .where(eq(users.id, studentId));
+        
+        console.log(`[STUDENT_SETTINGS_UPDATE] ✅ DATABASE: Profile updated for student ${studentId}`);
+      }
+      
       res.json({ success: true, message: 'Student settings updated successfully' });
     } catch (error) {
       console.error('[STUDENT_SETTINGS_UPDATE] Error:', error);
@@ -10652,11 +10726,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Student Password Change
   app.post("/api/student/change-password", requireAuth, async (req, res) => {
     try {
+      const user = req.user as any;
+      const studentId = user.id;
       const { currentPassword, newPassword } = req.body;
-      console.log('[STUDENT_PASSWORD_CHANGE] Password change request for user:', (req.session as any)?.authenticated);
       
-      // Here you would verify current password and update with new one
-      // For demo purposes, we'll just return success
+      console.log(`[STUDENT_PASSWORD_CHANGE] 🔐 DATABASE: Password change for student: ${studentId}`);
+      
+      // Get current user from database
+      const [userData] = await db
+        .select({ password: users.password })
+        .from(users)
+        .where(eq(users.id, studentId));
+      
+      if (!userData) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+      
+      // Verify current password
+      const bcrypt = await import('bcrypt');
+      const isValidPassword = await bcrypt.compare(currentPassword, userData.password || '');
+      
+      if (!isValidPassword) {
+        return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+      }
+      
+      // Hash new password and update
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await db
+        .update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, studentId));
+      
+      console.log(`[STUDENT_PASSWORD_CHANGE] ✅ DATABASE: Password updated for student ${studentId}`);
+      
       res.json({ success: true, message: 'Password changed successfully' });
     } catch (error) {
       console.error('[STUDENT_PASSWORD_CHANGE] Error:', error);
