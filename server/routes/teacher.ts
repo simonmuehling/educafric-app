@@ -455,7 +455,9 @@ router.get('/subjects', requireAuth, async (req, res) => {
   }
 });
 
-// Get teacher messages - REAL API implementation
+// NOTE: GET /api/teacher/messages - This route MAY BE OVERRIDDEN by server/routes.ts line ~8762
+// Express uses first matching route. If routes.ts defines the same endpoint before mounting this router,
+// that implementation runs instead. Check routes.ts for the active implementation.
 router.get('/messages', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
@@ -515,7 +517,9 @@ router.get('/messages', requireAuth, async (req, res) => {
   }
 });
 
-// Send teacher message to administration
+// NOTE: POST /api/teacher/messages - This route MAY BE OVERRIDDEN by server/routes.ts line ~5033
+// Express uses first matching route. If routes.ts defines the same endpoint before mounting this router,
+// that implementation runs instead. Check routes.ts for the active implementation.
 router.post('/messages', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;

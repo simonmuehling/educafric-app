@@ -651,50 +651,10 @@ router.get('/parents', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/student/messages - Get student messages - REAL DATABASE
-router.get('/messages', requireAuth, async (req, res) => {
-  try {
-    const studentId = req.user?.id;
-    console.log('[STUDENT_API] Fetching messages for student:', studentId);
-    
-    // Import database dependencies
-    const { db } = await import('../db');
-    const { messages: messagesTable } = await import('../../shared/schema');
-    const { eq, desc } = await import('drizzle-orm');
-    
-    // Get all messages where this student is the recipient (from parents, teachers, admin)
-    const studentMessages = await db.select()
-      .from(messagesTable)
-      .where(eq(messagesTable.recipientId, studentId))
-      .orderBy(desc(messagesTable.createdAt))
-      .limit(50);
-    
-    // Format messages for frontend
-    const formattedMessages = studentMessages.map(msg => ({
-      id: msg.id,
-      from: msg.senderName || 'Expéditeur',
-      fromRole: msg.senderRole || 'Unknown',
-      subject: msg.subject || 'Sans objet',
-      message: msg.content || '',
-      content: msg.content || '',
-      date: msg.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
-      read: msg.isRead || false,
-      isRead: msg.isRead || false,
-      type: msg.senderRole === 'Parent' ? 'family' : (msg.senderRole === 'Teacher' ? 'teacher' : 'admin'),
-      priority: 'normal',
-      status: msg.status || 'sent'
-    }));
-
-    console.log('[STUDENT_API] Found', formattedMessages.length, 'messages for student', studentId);
-    res.json(formattedMessages);
-  } catch (error) {
-    console.error('[STUDENT_API] Error fetching messages:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching messages'
-    });
-  }
-});
+// REMOVED: GET /api/student/messages - DUPLICATE of server/routes.ts line ~9919
+// The active implementation is in server/routes.ts, registered BEFORE this router
+// This route was never executed because Express uses first matching route
+// See: server/routes.ts app.get("/api/student/messages", ...) for the active implementation
 
 // POST /api/student/messages/teacher - Send message to teacher
 router.post('/messages/teacher', requireAuth, async (req, res) => {
@@ -754,95 +714,10 @@ router.post('/messages/teacher', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/student/messages/parent - Send message to parent - REAL DATABASE
-// BUSINESS RULE: Students can ONLY communicate with their parents
-router.post('/messages/parent', requireAuth, async (req, res) => {
-  try {
-    const user = req.user as any;
-    const studentId = user?.id;
-    
-    if (user.role !== 'Student') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied - students only'
-      });
-    }
-
-    const { parentId, subject, message: messageContent, notificationChannels } = req.body;
-    
-    if (!parentId || !subject || !messageContent) {
-      return res.status(400).json({
-        success: false,
-        message: 'Parent ID, subject, and message are required'
-      });
-    }
-
-    // SECURITY: Verify this parent is actually linked to this student
-    const parentRelation = await db.select()
-      .from(parentStudentRelations)
-      .where(and(
-        eq(parentStudentRelations.studentId, studentId),
-        eq(parentStudentRelations.parentId, parseInt(parentId))
-      ))
-      .limit(1);
-
-    if (parentRelation.length === 0) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied - you can only message your own parents'
-      });
-    }
-
-    // Get parent info
-    const [parentUser] = await db.select()
-      .from(users)
-      .where(eq(users.id, parseInt(parentId)))
-      .limit(1);
-
-    // Import messages table
-    const { messages: messagesTable } = await import('../../shared/schema');
-
-    // Create message in database
-    const [newMessage] = await db.insert(messagesTable).values({
-      senderId: studentId,
-      senderName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Élève',
-      senderRole: 'Student',
-      recipientId: parseInt(parentId),
-      recipientName: `${parentUser?.firstName || ''} ${parentUser?.lastName || ''}`.trim() || 'Parent',
-      recipientRole: 'Parent',
-      subject: subject,
-      content: messageContent,
-      isRead: false,
-      status: 'sent',
-      createdAt: new Date()
-    }).returning();
-
-    console.log('[STUDENT_API] ✅ Message sent to parent:', {
-      messageId: newMessage?.id,
-      from: studentId,
-      to: parentId,
-      subject
-    });
-
-    // Send notifications (email + PWA only, no SMS)
-    const allowedChannels = notificationChannels ? 
-      notificationChannels.filter((channel: string) => ['pwa', 'email'].includes(channel)) : 
-      ['pwa', 'email'];
-
-    res.json({
-      success: true,
-      message: 'Message envoyé au parent avec succès',
-      data: newMessage,
-      notificationChannels: allowedChannels
-    });
-  } catch (error) {
-    console.error('[STUDENT_API] Error sending message to parent:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to send message to parent'
-    });
-  }
-});
+// REMOVED: POST /api/student/messages/parent - DUPLICATE of server/routes.ts line ~10021
+// The active implementation is in server/routes.ts, registered BEFORE this router
+// This route was never executed because Express uses first matching route
+// See: server/routes.ts app.post("/api/student/messages/parent", ...) for the active implementation
 
 // POST /api/student/messages/school - Send message to school administration
 router.post('/messages/school', requireAuth, async (req, res) => {
