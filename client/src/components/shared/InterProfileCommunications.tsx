@@ -195,13 +195,13 @@ const InterProfileCommunications = () => {
   const t = text[language as keyof typeof text];
 
   // DATABASE-ONLY: Fetch real messages from API
-  const { data: messagesData, isLoading: messagesLoading } = useQuery<any[]>({
+  const { data: messagesResponse, isLoading: messagesLoading } = useQuery<{ success: boolean; messages: any[] }>({
     queryKey: ['/api/student/messages'],
     enabled: !!user
   });
 
   // Transform API data to component format
-  const realMessages: Message[] = (messagesData || []).map((msg: any) => ({
+  const realMessages: Message[] = (messagesResponse?.messages || []).map((msg: any) => ({
     id: msg.id,
     sender: { 
       role: msg.fromRole?.toLowerCase() || 'school', 

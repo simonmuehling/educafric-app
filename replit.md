@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first educational technology platform designed to digitalize education in Africa. It aims to reduce school costs, improve educational outcomes, and support a large user base through a scalable, culturally relevant solution. The platform offers academic management, communication tools, financial features, offline access, African-style grade management, real-time attendance, flexible timetables, multi-channel notifications, and centralized document management. The project's ambition is to deliver accessible and affordable quality education across Africa.
+Educafric is a bilingual, mobile-first educational technology platform dedicated to digitalizing education in Africa. Its primary goals are to reduce school costs, enhance educational outcomes, and support a large user base through a scalable and culturally relevant solution. The platform offers comprehensive features such as academic management, communication tools, financial functionalities, offline access, African-style grade management, real-time attendance tracking, flexible timetables, multi-channel notifications, and centralized document management. The ultimate ambition is to provide accessible and affordable quality education across the African continent.
 
 # User Preferences
 - **EXEMPTION PREMIUM PERMANENTE**: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -42,22 +42,22 @@ Educafric is a bilingual, mobile-first educational technology platform designed 
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 
 # System Architecture
-- **UI/UX Decisions**: Custom African-themed UI, PWA and mobile-first approach. All alert/confirmation dialogs must have a white background (`bg-white`). Standardized Student ID Card template with specific print functionalities. Dedicated sandbox environment with realistic demo data.
+- **UI/UX Decisions**: Custom African-themed UI, PWA and mobile-first approach using Radix UI + Shadcn/UI (Tailwind CSS). All alert/confirmation dialogs must have a white background (`bg-white`). A standardized Student ID Card template is used for all schools, optimized for mobile-friendly color printing with digital signatures and QR codes. A dedicated sandbox environment provides realistic demo data.
 - **Technical Implementations**:
-    - **Frontend**: React (TypeScript) with Wouter, TanStack Query, Radix UI + Shadcn/UI (Tailwind CSS) for PWA and mobile optimization. React Native for Android.
-    - **Backend**: Express.js (RESTful API) with Drizzle ORM and PostgreSQL.
-    - **Authentication**: Session-based with `express-session` and `Passport.js`, Firebase Google OAuth, featuring role-based access control (8 roles) and IDS. Multi-role system with `role_affiliations` table.
-    - **Database**: PostgreSQL on Neon Serverless, designed for multi-tenancy with strict isolation using `user.schoolId`. All storage modules use Drizzle ORM for database-only operations.
-    - **Route Architecture**: Express.js order of registration prioritizes direct routes over external routers.
+    - **Frontend**: React (TypeScript) with Wouter, TanStack Query for a responsive and PWA-enabled interface. React Native is used for the Android application.
+    - **Backend**: Express.js powers the RESTful API, utilizing Drizzle ORM for database interactions.
+    - **Authentication**: Session-based authentication with `express-session` and `Passport.js`, including Firebase Google OAuth. Features a robust role-based access control system with 8 distinct roles and an Intrusion Detection System (IDS). A multi-role system is supported via the `role_affiliations` table.
+    - **Database**: PostgreSQL on Neon Serverless, designed for strict multi-tenancy isolation using `user.schoolId`. All data storage modules exclusively use Drizzle ORM for database operations.
+    - **Route Architecture**: Express.js route registration prioritizes direct routes (Settings, API Modules, System Routes) over external routers to prevent conflicts.
     - **Cache Management**: `queryClient.ts` uses `serializeQueryKey()` to prevent query key collisions.
-    - **Module Loading**: `fastModuleLoader.ts` includes `validateMappings()` for conflict detection.
-    - **Document Management**: Centralized document management with digital signatures, PDF generation, instant appearance, and standard directory (`/public/documents/`).
-- **Feature Specifications**: Real-time attendance (3 statuses), flexible timetables, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, payment methods, GPS tracking, iCal/ICS export, bulk Excel imports, Competency-Based Approach bulletin generation, and Jitsi Meet integration.
+    - **Module Loading**: `fastModuleLoader.ts` incorporates `validateMappings()` for automatic conflict detection and resolution in module organization.
+    - **Document Management**: Centralized system with digital signatures, PDF generation, instant document appearance, and a standardized `/public/documents/` directory structure using lowercase kebab-case naming.
+- **Feature Specifications**: Includes real-time attendance with three statuses (Present, Late, Absent), flexible timetables, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment methods, GPS tracking, iCal/ICS export, bulk Excel import capabilities, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes.
 
 # External Dependencies
-- **Neon Database**: Serverless PostgreSQL database.
+- **Neon Database**: Serverless PostgreSQL database solution.
 - **Stripe**: Payment processing gateway.
-- **Firebase**: Google OAuth for authentication.
-- **WhatsApp**: Click-to-Chat integration.
-- **Hostinger**: SMTP services for email notifications.
-- **Jitsi Meet**: Video conferencing for online classes.
+- **Firebase**: Used for Google OAuth authentication.
+- **WhatsApp**: Integrated for direct messaging and notifications.
+- **Hostinger**: Provides SMTP services for email notifications.
+- **Jitsi Meet**: Video conferencing platform for online classes.
