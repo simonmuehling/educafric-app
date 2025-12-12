@@ -232,7 +232,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
         role: users.role,
         schoolId: users.schoolId,
         createdAt: users.createdAt,
-        lastLogin: users.lastLogin,
+        lastLoginAt: users.lastLoginAt,
         isActive: users.isActive
       })
       .from(users)
@@ -264,7 +264,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
           role: user.role,
           schoolName: schoolName,
           status: user.isActive === false ? 'inactive' : 'active',
-          lastLogin: user.lastLogin || 'Jamais',
+          lastLogin: user.lastLoginAt || 'Jamais',
           createdAt: user.createdAt
         };
       }));
@@ -306,7 +306,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
 
       // Update user status in database
       await db.update(users)
-        .set({ isActive })
+        .set({ isActive } as any)
         .where(eq(users.id, parseInt(userId)));
 
       console.log('[SITE_ADMIN_API] ✅ User status updated successfully');
@@ -320,27 +320,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
-  // Delete user
-  app.delete("/api/siteadmin/users/:userId", requireAuth, requireSiteAdminAccess, async (req, res) => {
-    try {
-      const { userId } = req.params;
-
-      console.log('[SITE_ADMIN_API] Deleting user:', userId);
-
-      // Delete user from database
-      await db.delete(users)
-        .where(eq(users.id, parseInt(userId)));
-
-      console.log('[SITE_ADMIN_API] ✅ User deleted successfully');
-      res.json({ 
-        success: true, 
-        message: 'Utilisateur supprimé avec succès' 
-      });
-    } catch (error: any) {
-      console.error('[SITE_ADMIN_API] Error deleting user:', error);
-      res.status(500).json({ message: 'Failed to delete user' });
-    }
-  });
+  // ⚠️ DELETE /api/siteadmin/users/:userId déjà défini à la ligne 97 - SUPPRIMÉ pour éviter duplication
 
   // School statistics
   app.get("/api/siteadmin/school-stats", requireAuth, requireSiteAdminAccess, async (req, res) => {
@@ -2663,7 +2643,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       const { paymentId } = req.params;
       console.log(`[SITE_ADMIN_API] Confirming payment ${paymentId}`);
       
-      await db.update(payments).set({ status: 'completed' }).where(eq(payments.id, parseInt(paymentId)));
+      await db.update(payments).set({ status: 'completed' } as any).where(eq(payments.id, parseInt(paymentId)));
       
       console.log(`[SITE_ADMIN_API] ✅ Payment ${paymentId} confirmed successfully`);
       res.json({ 
@@ -2683,7 +2663,7 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
       const { paymentId } = req.params;
       console.log(`[SITE_ADMIN_API] Rejecting payment ${paymentId}`);
       
-      await db.update(payments).set({ status: 'failed' }).where(eq(payments.id, parseInt(paymentId)));
+      await db.update(payments).set({ status: 'failed' } as any).where(eq(payments.id, parseInt(paymentId)));
       
       console.log(`[SITE_ADMIN_API] ✅ Payment ${paymentId} rejected successfully`);
       res.json({ 
