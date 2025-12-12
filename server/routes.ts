@@ -15152,16 +15152,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, message: 'Message is required' });
       }
       
-      // Get all recipients based on type
-      let recipients: Array<{ id: number; email: string | null; phone: string | null; role: string }> = [];
+      // Parse emergency type from request (default to 'general')
+      const validAlertTypes = ['evacuation', 'lockdown', 'medical', 'weather', 'security', 'general'];
+      const alertType = validAlertTypes.includes(req.body.alertType) ? req.body.alertType : 
+                        (type === 'urgent' ? 'security' : 'general');
+      
+      // Get all recipients based on type with full names
+      let recipients: Array<{ id: number; email: string | null; phone: string | null; role: string; firstName: string | null; lastName: string | null }> = [];
       
       if (recipient === 'everyone' || recipient === 'all') {
-        // Get ALL users in this school: teachers, parents, AND students
+        // Get ALL users in this school: teachers, parents, AND students with names
         const schoolUsers = await db.select({
           id: users.id,
           email: users.email,
           phone: users.phone,
-          role: users.role
+          role: users.role,
+          firstName: users.firstName,
+          lastName: users.lastName
         })
         .from(users)
         .where(eq(users.schoolId, schoolId));
@@ -15173,6 +15180,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[EMERGENCY_ALERT] Found', recipients.length, 'recipients (teachers, parents, students, siteadmins)');
       }
       
+      // For parents, get their children's names from parent_student_relations
+      const parentChildrenMap = new Map<number, string>();
+      const parentIds = recipients.filter(r => r.role === 'Parent').map(r => r.id);
+      
+      if (parentIds.length > 0) {
+        // Get children for each parent
+        const parentRelations = await db.select({
+          parentId: parentStudentRelations.parentId,
+          studentId: parentStudentRelations.studentId
+        })
+        .from(parentStudentRelations)
+        .where(inArray(parentStudentRelations.parentId, parentIds));
+        
+        // Get student names
+        const studentIds = parentRelations.map(r => r.studentId);
+        if (studentIds.length > 0) {
+          const studentUsers = await db.select({
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName
+          })
+          .from(users)
+          .where(inArray(users.id, studentIds));
+          
+          const studentNamesMap = new Map(studentUsers.map(s => [s.id, `${s.firstName || ''} ${s.lastName || ''}`.trim()]));
+          
+          // Map parent to children names
+          for (const rel of parentRelations) {
+            const childName = studentNamesMap.get(rel.studentId) || 'Votre enfant';
+            const existing = parentChildrenMap.get(rel.parentId);
+            if (existing) {
+              parentChildrenMap.set(rel.parentId, `${existing}, ${childName}`);
+            } else {
+              parentChildrenMap.set(rel.parentId, childName);
+            }
+          }
+        }
+      }
+      
       // Send notifications via all channels
       const notificationResults = {
         email: 0,
@@ -15180,6 +15226,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pwa: 0,
         total: recipients.length
       };
+      
+      // Get school name for WhatsApp alerts
+      const schoolInfo = await db.select({ name: schools.name })
+        .from(schools)
+        .where(eq(schools.id, schoolId))
+        .limit(1);
+      const schoolName = schoolInfo[0]?.name || `École #${schoolId}`;
+      
+      // Prepare WhatsApp recipients for bulk send
+      const whatsappRecipients: Array<{ phone: string; studentName: string }> = [];
       
       // Store messages in database for each recipient
       for (const recipientUser of recipients) {
@@ -15199,9 +15255,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
             isRead: false
           });
           
-          // Try to send via WhatsApp if phone exists
+          // Collect WhatsApp recipients with real names only
           if (recipientUser.phone) {
-            notificationResults.whatsapp++;
+            let personName: string | null = null;
+            if (recipientUser.role === 'Parent') {
+              // Use children's names for parents - ONLY if real child relation exists
+              const childrenNames = parentChildrenMap.get(recipientUser.id);
+              if (childrenNames) {
+                personName = childrenNames;
+              } else {
+                // Skip parents without real child relationships - log for visibility
+                console.log(`[EMERGENCY_ALERT] ⚠️ Skipping parent ${recipientUser.id} - no child relations found in database`);
+              }
+            } else {
+              // Use recipient's own name for teachers, students, staff - must have real name
+              const fullName = `${recipientUser.firstName || ''} ${recipientUser.lastName || ''}`.trim();
+              if (fullName) {
+                personName = fullName;
+              } else {
+                console.log(`[EMERGENCY_ALERT] ⚠️ Skipping user ${recipientUser.id} - no name in database`);
+              }
+            }
+            
+            // Only add if we have a real name from database
+            if (personName) {
+              whatsappRecipients.push({
+                phone: recipientUser.phone,
+                studentName: personName
+              });
+            }
           }
           
           // Try to send via email if email exists
@@ -15215,16 +15297,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Send bulk WhatsApp emergency alerts
+      if (whatsappRecipients.length > 0) {
+        console.log(`[EMERGENCY_ALERT] 🚨 Sending WhatsApp alerts to ${whatsappRecipients.length} recipients with type: ${alertType}`);
+        try {
+          const bulkResult = await whatsappDirectService.sendBulkEmergencyAlerts({
+            recipients: whatsappRecipients,
+            alertType: alertType as 'evacuation' | 'lockdown' | 'medical' | 'weather' | 'security' | 'general',
+            alertMessage: message,
+            schoolName: schoolName,
+            instructions: 'Consultez l\'application Educafric pour plus d\'informations.',
+            language: 'fr'
+          });
+          
+          notificationResults.whatsapp = bulkResult.sent;
+          console.log(`[EMERGENCY_ALERT] ✅ WhatsApp bulk send complete: ${bulkResult.sent} sent, ${bulkResult.failed} failed`);
+        } catch (whatsappError) {
+          console.error('[EMERGENCY_ALERT] ❌ WhatsApp bulk send error:', whatsappError);
+        }
+      }
+      
       console.log('[EMERGENCY_ALERT] Notification results:', notificationResults);
       
       // SILENT: Notify platform owner about emergency (school doesn't know)
       try {
-        const schoolInfo = await db.select({ name: schools.name })
-          .from(schools)
-          .where(eq(schools.id, schoolId))
-          .limit(1);
-        
-        const schoolName = schoolInfo[0]?.name || `École #${schoolId}`;
         const platformOwnerEmail = process.env.PLATFORM_OWNER_EMAIL || 'simonpmuehling@gmail.com';
         
         console.log('[PLATFORM_ALERT] 🔔 Silent notification to platform owner about emergency at:', schoolName);

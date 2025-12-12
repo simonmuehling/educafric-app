@@ -36,7 +36,8 @@ class WhatsAppDirectNotificationService {
       message: 0,
       geolocation: 0,
       online_class: 0,
-      timetable: 0
+      timetable: 0,
+      emergency: 0
     }
   };
 
@@ -270,6 +271,126 @@ Support: ${getSupportPhone()}`;
   }
 
   /**
+   * Send EMERGENCY ALERT to parents
+   */
+  async sendEmergencyAlert(params: {
+    recipientPhone: string;
+    studentName: string;
+    alertType: 'evacuation' | 'lockdown' | 'medical' | 'weather' | 'security' | 'general';
+    alertMessage: string;
+    schoolName: string;
+    instructions?: string;
+    language?: 'fr' | 'en';
+  }): Promise<WhatsAppSendResult> {
+    console.log(`[WHATSAPP_DIRECT] 🚨 Sending EMERGENCY alert to ${params.recipientPhone}`);
+    
+    const alertTypesFr: Record<string, string> = {
+      evacuation: '🚨 ÉVACUATION',
+      lockdown: '🔒 CONFINEMENT',
+      medical: '🏥 URGENCE MÉDICALE',
+      weather: '⛈️ ALERTE MÉTÉO',
+      security: '🛡️ ALERTE SÉCURITÉ',
+      general: '⚠️ ALERTE GÉNÉRALE'
+    };
+    
+    const alertTypesEn: Record<string, string> = {
+      evacuation: '🚨 EVACUATION',
+      lockdown: '🔒 LOCKDOWN',
+      medical: '🏥 MEDICAL EMERGENCY',
+      weather: '⛈️ WEATHER ALERT',
+      security: '🛡️ SECURITY ALERT',
+      general: '⚠️ GENERAL ALERT'
+    };
+
+    const alertLabel = params.language === 'en' ? alertTypesEn[params.alertType] : alertTypesFr[params.alertType];
+
+    const messageFr = `${alertLabel}
+
+🏫 ${params.schoolName}
+👤 Concernant: ${params.studentName}
+
+📢 ${params.alertMessage}
+${params.instructions ? `\n📋 Instructions: ${params.instructions}` : ''}
+
+⏰ ${new Date().toLocaleString('fr-FR')}
+
+❗ Ceci est une alerte officielle de l'école.
+📞 Contact: ${getSupportPhone()}`;
+
+    const messageEn = `${alertLabel}
+
+🏫 ${params.schoolName}
+👤 Regarding: ${params.studentName}
+
+📢 ${params.alertMessage}
+${params.instructions ? `\n📋 Instructions: ${params.instructions}` : ''}
+
+⏰ ${new Date().toLocaleString('en-US')}
+
+❗ This is an official school alert.
+📞 Contact: ${getSupportPhone()}`;
+
+    const message = params.language === 'en' ? messageEn : messageFr;
+
+    return await this.sendCustomMessage(params.recipientPhone, message);
+  }
+
+  /**
+   * Send BULK emergency alerts to multiple parents
+   */
+  async sendBulkEmergencyAlerts(params: {
+    recipients: Array<{ phone: string; studentName: string }>;
+    alertType: 'evacuation' | 'lockdown' | 'medical' | 'weather' | 'security' | 'general';
+    alertMessage: string;
+    schoolName: string;
+    instructions?: string;
+    language?: 'fr' | 'en';
+  }): Promise<{ sent: number; failed: number; results: WhatsAppSendResult[] }> {
+    console.log(`[WHATSAPP_DIRECT] 🚨 Sending BULK emergency alert to ${params.recipients.length} parents`);
+    
+    const results: WhatsAppSendResult[] = [];
+    let sent = 0;
+    let failed = 0;
+
+    // Process in batches of 10 to avoid overwhelming network
+    const batchSize = 10;
+    for (let i = 0; i < params.recipients.length; i += batchSize) {
+      const batch = params.recipients.slice(i, i + batchSize);
+      
+      const batchPromises = batch.map(recipient => 
+        this.sendEmergencyAlert({
+          recipientPhone: recipient.phone,
+          studentName: recipient.studentName,
+          alertType: params.alertType,
+          alertMessage: params.alertMessage,
+          schoolName: params.schoolName,
+          instructions: params.instructions,
+          language: params.language
+        })
+      );
+
+      const batchResults = await Promise.all(batchPromises);
+      
+      for (const result of batchResults) {
+        results.push(result);
+        if (result.success) {
+          sent++;
+        } else {
+          failed++;
+        }
+      }
+
+      // Small delay between batches for African network stability
+      if (i + batchSize < params.recipients.length) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+
+    console.log(`[WHATSAPP_DIRECT] 🚨 Bulk emergency complete: ${sent} sent, ${failed} failed`);
+    return { sent, failed, results };
+  }
+
+  /**
    * Send notification for MESSAGES BETWEEN PROFILES
    */
   async sendDirectMessage(params: {
@@ -412,7 +533,8 @@ Support: ${getSupportPhone()}`;
         message: 0,
         geolocation: 0,
         online_class: 0,
-        timetable: 0
+        timetable: 0,
+        emergency: 0
       }
     };
   }
