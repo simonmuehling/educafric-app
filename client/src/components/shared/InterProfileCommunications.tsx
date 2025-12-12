@@ -8,10 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   MessageSquare, Phone, Mail, Bell, Send, Users, School, BookOpen,
-  Eye, Clock, AlertTriangle, CheckCircle, User, Settings, Target
+  Eye, Clock, AlertTriangle, CheckCircle, User, Settings, Target, Loader2
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 
 interface Message {
   id: number;
@@ -193,78 +194,28 @@ const InterProfileCommunications = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Messages d'exemple selon les différents flux de communication
-  const sampleMessages: Message[] = [
-    // École → Parents/Étudiants
-    {
-      id: 1,
-      sender: { role: 'director', name: 'M. Directeur Tchamba' },
-      recipient: { role: 'parents', name: 'Tous les Parents' },
-      category: 'urgent',
-      subject: 'Réunion Parents-Enseignants - 25 Janvier',
-      content: 'Chers parents, nous organisons une réunion importante le vendredi 25 janvier à 15h en salle polyvalente. Présence obligatoire pour discuter des résultats du trimestre.',
-      channel: 'sms+email',
-      priority: 'high',
-      sentAt: '2025-01-24 14:30',
-      isRead: false
+  // DATABASE-ONLY: Fetch real messages from API
+  const { data: messagesData, isLoading: messagesLoading } = useQuery<any[]>({
+    queryKey: ['/api/student/messages'],
+    enabled: !!user
+  });
+
+  // Transform API data to component format
+  const realMessages: Message[] = (messagesData || []).map((msg: any) => ({
+    id: msg.id,
+    sender: { 
+      role: msg.fromRole?.toLowerCase() || 'school', 
+      name: msg.from || 'Système' 
     },
-    
-    // Teacher → Students/Parents
-    {
-      id: 2,
-      sender: { role: 'teacher', name: 'Mme Martin (Français)' },
-      recipient: { role: 'parents', name: 'Parents 6ème A' },
-      category: 'academic',
-      subject: 'Résultats Contrôle Français - 6ème A',
-      content: 'Bonjour, les résultats du contrôle de français du 22 janvier sont disponibles. Moyenne de la classe: 13.5/20. Félicitations aux élèves qui se sont améliorés!',
-      channel: 'app',
-      priority: 'normal',
-      sentAt: '2025-01-24 16:15',
-      isRead: true
-    },
-    
-    // Freelancer → Students/Parents
-    {
-      id: 3,
-      sender: { role: 'freelancer', name: 'M. Ngom (Mathématiques)' },
-      recipient: { role: 'students', name: 'Élèves Cours Particuliers' },
-      category: 'academic',
-      subject: 'Rapport Session - Mathématiques Avancées',
-      content: 'Session du 24/01: Révision équations du second degré. Progrès notable chez tous les élèves. Exercices supplémentaires recommandés pour consolider.',
-      channel: 'sms',
-      priority: 'normal',
-      sentAt: '2025-01-24 18:00',
-      isRead: false
-    },
-    
-    // Parent → École
-    {
-      id: 4,
-      sender: { role: 'parent', name: 'Mme Kouam (Parent)' },
-      recipient: { role: 'admin', name: 'Administration' },
-      category: 'administrative',
-      subject: 'Demande Certificat Scolarité',
-      content: 'Bonjour, je souhaiterais obtenir un certificat de scolarité pour mon fils Paul Kouam (6ème A) pour constituer un dossier administratif.',
-      channel: 'email',
-      priority: 'normal',
-      sentAt: '2025-01-24 09:30',
-      isRead: true
-    },
-    
-    // Commercial → Prospects
-    {
-      id: 5,
-      sender: { role: 'commercial', name: 'M. Djomo (Commercial)' },
-      recipient: { role: 'directors', name: 'École Sainte-Marie' },
-      category: 'general',
-      subject: 'Proposition Partenariat Educafric',
-      content: 'Bonjour M. le Directeur, suite à notre entretien téléphonique, voici notre proposition de partenariat pour la digitalisation de votre établissement.',
-      channel: 'email',
-      priority: 'high',
-      sentAt: '2025-01-24 11:45',
-      isRead: false
-    }
-  ];
+    recipient: { role: 'student', name: user?.firstName || 'Élève' },
+    category: (msg.type === 'family' ? 'general' : msg.type === 'teacher' ? 'academic' : 'administrative') as Message['category'],
+    subject: msg.subject || 'Message',
+    content: msg.content || msg.message || '',
+    channel: 'app' as Message['channel'],
+    priority: (msg.priority || 'normal') as Message['priority'],
+    sentAt: msg.date ? new Date(msg.date).toLocaleString('fr-FR') : '',
+    isRead: msg.isRead || msg.read || false
+  }));
 
   const getMessageIcon = (channel: string) => {
     switch (channel) {
@@ -321,7 +272,19 @@ const InterProfileCommunications = () => {
         </div>
       </div>
 
-      {(Array.isArray(sampleMessages) ? sampleMessages : []).map((message) => (
+      {messagesLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+          <span className="ml-2 text-gray-500">Chargement des messages...</span>
+        </div>
+      ) : realMessages.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+          <p>Aucun message pour le moment</p>
+        </div>
+      ) : null}
+      
+      {(Array.isArray(realMessages) ? realMessages : []).map((message) => (
         <Card key={message.id} className={`cursor-pointer hover:bg-gray-50 ${!message.isRead ? 'border-l-4 border-l-blue-500' : ''}`}>
           <CardContent className="p-4">
             <div className="flex justify-between items-start">
