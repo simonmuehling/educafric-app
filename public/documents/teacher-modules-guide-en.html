@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modules Guide - Teacher Dashboard | EDUCAFRIC</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.2rem; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        .logo { font-size: 3rem; margin-bottom: 15px; }
+        .content { padding: 40px; }
+        .intro { background: #ecfdf5; border-left: 4px solid #10b981; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0; }
+        .module-section { margin-bottom: 30px; }
+        .module-section h2 { color: #065f46; font-size: 1.4rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; }
+        .module-card { background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .module-card h3 { color: #047857; font-size: 1.1rem; margin-bottom: 8px; }
+        .module-card p { color: #64748b; line-height: 1.6; }
+        .module-card ul { margin-top: 10px; padding-left: 20px; color: #475569; }
+        .module-card li { margin-bottom: 5px; }
+        .tag { display: inline-block; background: #d1fae5; color: #065f46; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; }
+        .tag.premium { background: #fef3c7; color: #92400e; }
+        .footer { background: #f1f5f9; padding: 30px; text-align: center; color: #64748b; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">👨‍🏫</div>
+            <h1>Modules Guide - Teacher Dashboard</h1>
+            <p>Complete documentation for teachers</p>
+        </div>
+        
+        <div class="content">
+            <div class="intro">
+                <strong>Welcome to your EDUCAFRIC teacher space!</strong><br><br>
+                This guide presents all the modules available to manage your classes, track your students, and communicate effectively.
+            </div>
+
+            <div class="module-section">
+                <h2>📚 Class Management</h2>
+                
+                <div class="module-card">
+                    <h3>🏛️ My Classes</h3>
+                    <p>View all your assigned classes and their information.</p>
+                    <ul>
+                        <li>List of classes you teach</li>
+                        <li>Class size and information</li>
+                        <li>Quick access to student lists</li>
+                        <li>Subjects you teach per class</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📅 Timetable</h3>
+                    <p>View your weekly teaching schedule.</p>
+                    <ul>
+                        <li>Day/week view of your classes</li>
+                        <li>Details: subject, class, room, times</li>
+                        <li>PDF export for printing</li>
+                        <li>iCal export for your calendar</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>✅ Student Tracking</h2>
+
+                <div class="module-card">
+                    <h3>📋 Attendance</h3>
+                    <p>Mark student attendance for each class.</p>
+                    <ul>
+                        <li>3 statuses: Present, Late, Absent</li>
+                        <li>Quick interface by class</li>
+                        <li>Automatic parent notification</li>
+                        <li>Attendance history</li>
+                    </ul>
+                    <span class="tag">WhatsApp Notification</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>📝 Homework & Assignments</h3>
+                    <p>Create and track homework assigned to your students.</p>
+                    <ul>
+                        <li>Create homework with deadline</li>
+                        <li>Priority (high, medium, low)</li>
+                        <li>Submission tracking</li>
+                        <li>Grading and comments</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📊 Grades & Report Cards</h2>
+
+                <div class="module-card">
+                    <h3>📈 Subject Grades</h3>
+                    <p>Enter student grades for your subjects.</p>
+                    <ul>
+                        <li>Enter assessment grades</li>
+                        <li>Automatic average calculation</li>
+                        <li>Comments per student</li>
+                        <li>Submit to administration for validation</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📄 CBA Report Cards</h3>
+                    <p>Generate report cards in official Cameroonian CBA format.</p>
+                    <ul>
+                        <li>Fill in grades and comments</li>
+                        <li>Preview before printing</li>
+                        <li>Send to school for validation</li>
+                        <li>Track status (pending, approved, rejected)</li>
+                    </ul>
+                    <span class="tag">Ministry Format</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📖 Educational Content</h2>
+
+                <div class="module-card">
+                    <h3>📚 Create Content</h3>
+                    <p>Develop educational resources for your students.</p>
+                    <ul>
+                        <li>Create lessons</li>
+                        <li>Interactive exercises</li>
+                        <li>Downloadable resources</li>
+                        <li>Share with school</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📚 Library</h3>
+                    <p>Access available resources and books.</p>
+                    <ul>
+                        <li>Recommended books by level</li>
+                        <li>Shared educational resources</li>
+                        <li>Recommendations to students</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>💬 Communication</h2>
+
+                <div class="module-card">
+                    <h3>📨 Messages</h3>
+                    <p>Communicate with parents, students, and administration.</p>
+                    <ul>
+                        <li>Send messages to parents</li>
+                        <li>Receive school messages</li>
+                        <li>Communicate with students</li>
+                        <li>Exchange history</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>🎥 Online Teaching</h2>
+
+                <div class="module-card">
+                    <h3>📹 Online Classes</h3>
+                    <p>Host virtual classes via Jitsi Meet.</p>
+                    <ul>
+                        <li>Create a class session</li>
+                        <li>Join a scheduled class</li>
+                        <li>Screen sharing and whiteboard</li>
+                        <li>Recording (if authorized)</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>👤 Personal Management</h2>
+
+                <div class="module-card">
+                    <h3>🏥 Absence Declaration</h3>
+                    <p>Report your absences to the school.</p>
+                    <ul>
+                        <li>Declare an absence with reason</li>
+                        <li>Specify duration</li>
+                        <li>Automatic school notification</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>👨‍🏫 Private Tutoring</h3>
+                    <p>Manage your independent tutoring activities.</p>
+                    <ul>
+                        <li>Invite students for tutoring</li>
+                        <li>Schedule sessions</li>
+                        <li>Track lessons given</li>
+                        <li>Payment management</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>⚙️ Settings</h3>
+                    <p>Manage your profile and preferences.</p>
+                    <ul>
+                        <li>Personal information</li>
+                        <li>Profile photo</li>
+                        <li>Notification preferences</li>
+                        <li>Account security</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>EDUCAFRIC</strong> - School Management Platform</p>
+            <p>For assistance: support@educafric.com</p>
+            <p style="margin-top: 10px; font-size: 0.85rem;">Automatically generated document - Version 2024</p>
+        </div>
+    </div>
+</body>
+</html>

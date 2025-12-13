@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modules Guide - School Dashboard | EDUCAFRIC</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.2rem; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        .logo { font-size: 3rem; margin-bottom: 15px; }
+        .content { padding: 40px; }
+        .intro { background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0; }
+        .module-section { margin-bottom: 30px; }
+        .module-section h2 { color: #1e3a5f; font-size: 1.4rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; gap: 10px; }
+        .module-card { background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .module-card h3 { color: #1e40af; font-size: 1.1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .module-card p { color: #64748b; line-height: 1.6; }
+        .module-card ul { margin-top: 10px; padding-left: 20px; color: #475569; }
+        .module-card li { margin-bottom: 5px; }
+        .tag { display: inline-block; background: #dbeafe; color: #1e40af; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; }
+        .tag.premium { background: #fef3c7; color: #92400e; }
+        .footer { background: #f1f5f9; padding: 30px; text-align: center; color: #64748b; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫</div>
+            <h1>Modules Guide - School Dashboard</h1>
+            <p>Complete documentation for school administrators</p>
+        </div>
+        
+        <div class="content">
+            <div class="intro">
+                <strong>Welcome to your EDUCAFRIC school management platform!</strong><br><br>
+                This guide presents all the modules available in your director dashboard. Each module is designed to simplify the daily management of your institution.
+            </div>
+
+            <div class="module-section">
+                <h2>👥 People Management</h2>
+                
+                <div class="module-card">
+                    <h3>👨‍🏫 Teachers</h3>
+                    <p>Manage all teaching staff at your institution.</p>
+                    <ul>
+                        <li>Add, edit and remove teachers</li>
+                        <li>Assign subjects and classes</li>
+                        <li>View profiles and qualifications</li>
+                        <li>Bulk import via Excel</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>👨‍🎓 Students</h3>
+                    <p>Complete student and enrollment management.</p>
+                    <ul>
+                        <li>Student registration and re-enrollment</li>
+                        <li>Class assignment</li>
+                        <li>School ID card generation</li>
+                        <li>Academic progress tracking</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>👨‍👩‍👧 Parents</h3>
+                    <p>View and manage parent accounts linked to your students.</p>
+                    <ul>
+                        <li>List of registered parents</li>
+                        <li>Parent-child connection validation</li>
+                        <li>Direct communication</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>🔐 Delegated Administrators</h3>
+                    <p>Delegate certain responsibilities to other staff members.</p>
+                    <ul>
+                        <li>Create administrator accounts</li>
+                        <li>Define permissions per module</li>
+                        <li>Monitor activities</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📚 Academic Management</h2>
+
+                <div class="module-card">
+                    <h3>🏛️ Classes</h3>
+                    <p>Create and organize your institution's classes.</p>
+                    <ul>
+                        <li>Create classes with custom levels</li>
+                        <li>Assign main teachers</li>
+                        <li>Manage enrollment and capacity</li>
+                        <li>Excel class import</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📅 Timetable</h3>
+                    <p>Configure class schedules for all classes.</p>
+                    <ul>
+                        <li>Create time slots</li>
+                        <li>Assign subjects/teachers/rooms</li>
+                        <li>Conflict detection</li>
+                        <li>PDF and iCal export</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📝 Report Cards</h3>
+                    <p>Generate report cards in official Cameroonian CBA format.</p>
+                    <ul>
+                        <li>Enter grades by subject</li>
+                        <li>Automatic average calculation</li>
+                        <li>Ranking and comments</li>
+                        <li>Print with QR verification code</li>
+                    </ul>
+                    <span class="tag">CBA Format</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>📊 Reports & Analytics</h3>
+                    <p>Detailed statistics on institution performance.</p>
+                    <ul>
+                        <li>Success rate by class/subject</li>
+                        <li>Grade evolution</li>
+                        <li>Attendance reports</li>
+                        <li>Data export</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>✅ Daily Tracking</h2>
+
+                <div class="module-card">
+                    <h3>📋 Attendance</h3>
+                    <p>Daily student attendance tracking.</p>
+                    <ul>
+                        <li>Overview by class</li>
+                        <li>Absenteeism statistics</li>
+                        <li>Automatic parent alerts</li>
+                        <li>Attendance history</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>🏥 Teacher Absences</h3>
+                    <p>Manage teacher absences and find substitutes.</p>
+                    <ul>
+                        <li>Absence declaration</li>
+                        <li>Substitute search</li>
+                        <li>Notification to affected parents</li>
+                        <li>Statistics tracking</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>💬 Communication</h2>
+
+                <div class="module-card">
+                    <h3>📨 Communications Center</h3>
+                    <p>Unified messaging with all school stakeholders.</p>
+                    <ul>
+                        <li>Messages to parents (individual or by class)</li>
+                        <li>Communications to teachers</li>
+                        <li>School-wide announcements</li>
+                        <li>Exchange history</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📩 Parent Requests</h3>
+                    <p>Process parent requests and complaints.</p>
+                    <ul>
+                        <li>Absence requests</li>
+                        <li>Document requests</li>
+                        <li>Complaints and suggestions</li>
+                        <li>Integrated response system</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>🚨 Emergency Alerts</h3>
+                    <p>Send instant alerts to all parents in case of emergency.</p>
+                    <ul>
+                        <li>6 alert types: Evacuation, Lockdown, Medical, Weather, Security, General</li>
+                        <li>Automatic WhatsApp notification</li>
+                        <li>Personalized message with child's name</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>💰 Financial Management</h2>
+
+                <div class="module-card">
+                    <h3>💳 School Fees</h3>
+                    <p>Complete payment and fee management.</p>
+                    <ul>
+                        <li>Configure fees by class</li>
+                        <li>Payment tracking</li>
+                        <li>Automatic reminders</li>
+                        <li>Receipts and certificates</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>🎥 Digital Teaching</h2>
+
+                <div class="module-card">
+                    <h3>📹 Online Classes</h3>
+                    <p>Schedule and manage virtual classes via Jitsi Meet.</p>
+                    <ul>
+                        <li>Create one-time sessions</li>
+                        <li>Recurring scheduling</li>
+                        <li>Automatic connection link</li>
+                        <li>Participant notification</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📍 Premium Services</h2>
+
+                <div class="module-card">
+                    <h3>🗺️ Geolocation</h3>
+                    <p>Student location tracking for subscribed parents.</p>
+                    <ul>
+                        <li>Safe zone configuration</li>
+                        <li>Zone exit alerts</li>
+                        <li>Emergency button</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>⚙️ School Settings</h3>
+                    <p>Configure your institution's information.</p>
+                    <ul>
+                        <li>Logo and school information</li>
+                        <li>Academic year</li>
+                        <li>Custom school levels</li>
+                        <li>Notification settings</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>EDUCAFRIC</strong> - School Management Platform</p>
+            <p>For assistance: support@educafric.com</p>
+            <p style="margin-top: 10px; font-size: 0.85rem;">Automatically generated document - Version 2024</p>
+        </div>
+    </div>
+</body>
+</html>

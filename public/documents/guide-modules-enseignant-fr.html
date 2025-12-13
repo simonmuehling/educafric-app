@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide des Modules - Tableau de Bord Enseignant | EDUCAFRIC</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.2rem; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        .logo { font-size: 3rem; margin-bottom: 15px; }
+        .content { padding: 40px; }
+        .intro { background: #ecfdf5; border-left: 4px solid #10b981; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0; }
+        .module-section { margin-bottom: 30px; }
+        .module-section h2 { color: #065f46; font-size: 1.4rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; }
+        .module-card { background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .module-card h3 { color: #047857; font-size: 1.1rem; margin-bottom: 8px; }
+        .module-card p { color: #64748b; line-height: 1.6; }
+        .module-card ul { margin-top: 10px; padding-left: 20px; color: #475569; }
+        .module-card li { margin-bottom: 5px; }
+        .tag { display: inline-block; background: #d1fae5; color: #065f46; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; }
+        .tag.premium { background: #fef3c7; color: #92400e; }
+        .footer { background: #f1f5f9; padding: 30px; text-align: center; color: #64748b; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">👨‍🏫</div>
+            <h1>Guide des Modules - Tableau de Bord Enseignant</h1>
+            <p>Documentation complète pour les enseignants</p>
+        </div>
+        
+        <div class="content">
+            <div class="intro">
+                <strong>Bienvenue dans votre espace enseignant EDUCAFRIC!</strong><br><br>
+                Ce guide présente tous les modules disponibles pour gérer vos classes, suivre vos élèves et communiquer efficacement.
+            </div>
+
+            <div class="module-section">
+                <h2>📚 Gestion des Classes</h2>
+                
+                <div class="module-card">
+                    <h3>🏛️ Mes Classes</h3>
+                    <p>Visualisez toutes vos classes assignées et leurs informations.</p>
+                    <ul>
+                        <li>Liste des classes où vous enseignez</li>
+                        <li>Effectifs et informations de classe</li>
+                        <li>Accès rapide aux listes d'élèves</li>
+                        <li>Matières que vous enseignez par classe</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📅 Emploi du Temps</h3>
+                    <p>Consultez votre planning hebdomadaire de cours.</p>
+                    <ul>
+                        <li>Vue jour/semaine de vos cours</li>
+                        <li>Détails: matière, classe, salle, horaires</li>
+                        <li>Export PDF pour impression</li>
+                        <li>Export iCal pour votre calendrier</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>✅ Suivi des Élèves</h2>
+
+                <div class="module-card">
+                    <h3>📋 Présences</h3>
+                    <p>Marquez les présences de vos élèves à chaque cours.</p>
+                    <ul>
+                        <li>3 statuts: Présent, Retard, Absent</li>
+                        <li>Interface rapide par classe</li>
+                        <li>Notification automatique aux parents</li>
+                        <li>Historique des présences</li>
+                    </ul>
+                    <span class="tag">Notification WhatsApp</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>📝 Devoirs & Exercices</h3>
+                    <p>Créez et suivez les devoirs assignés à vos élèves.</p>
+                    <ul>
+                        <li>Création de devoirs avec date limite</li>
+                        <li>Priorité (haute, moyenne, basse)</li>
+                        <li>Suivi des soumissions</li>
+                        <li>Notation et commentaires</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📊 Notes & Bulletins</h2>
+
+                <div class="module-card">
+                    <h3>📈 Notes par Matière</h3>
+                    <p>Saisissez les notes de vos élèves pour vos matières.</p>
+                    <ul>
+                        <li>Saisie des notes d'évaluation</li>
+                        <li>Calcul automatique des moyennes</li>
+                        <li>Commentaires par élève</li>
+                        <li>Soumission à la direction pour validation</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📄 Bulletins CBA</h3>
+                    <p>Générez les bulletins au format officiel CBA camerounais.</p>
+                    <ul>
+                        <li>Remplissage des notes et appréciations</li>
+                        <li>Visualisation avant impression</li>
+                        <li>Envoi à l'école pour validation</li>
+                        <li>Suivi du statut (en attente, approuvé, rejeté)</li>
+                    </ul>
+                    <span class="tag">Format Ministère</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📖 Contenu Pédagogique</h2>
+
+                <div class="module-card">
+                    <h3>📚 Créer du Contenu</h3>
+                    <p>Développez des ressources pédagogiques pour vos élèves.</p>
+                    <ul>
+                        <li>Création de leçons</li>
+                        <li>Exercices interactifs</li>
+                        <li>Ressources téléchargeables</li>
+                        <li>Partage avec l'école</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📚 Bibliothèque</h3>
+                    <p>Accédez aux ressources et livres disponibles.</p>
+                    <ul>
+                        <li>Livres recommandés par niveau</li>
+                        <li>Ressources pédagogiques partagées</li>
+                        <li>Recommandations aux élèves</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>💬 Communication</h2>
+
+                <div class="module-card">
+                    <h3>📨 Messages</h3>
+                    <p>Communiquez avec les parents, élèves et la direction.</p>
+                    <ul>
+                        <li>Envoi de messages aux parents</li>
+                        <li>Réception des messages de l'école</li>
+                        <li>Communication avec les élèves</li>
+                        <li>Historique des échanges</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>🎥 Enseignement en Ligne</h2>
+
+                <div class="module-card">
+                    <h3>📹 Cours en Ligne</h3>
+                    <p>Animez des cours virtuels via Jitsi Meet.</p>
+                    <ul>
+                        <li>Créer une session de cours</li>
+                        <li>Rejoindre un cours planifié</li>
+                        <li>Partage d'écran et tableau blanc</li>
+                        <li>Enregistrement (si autorisé)</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>👤 Gestion Personnelle</h2>
+
+                <div class="module-card">
+                    <h3>🏥 Déclaration d'Absence</h3>
+                    <p>Signalez vos absences à l'école.</p>
+                    <ul>
+                        <li>Déclarer une absence avec motif</li>
+                        <li>Spécifier la durée</li>
+                        <li>Notification automatique à l'école</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>👨‍🏫 Cours Privés</h3>
+                    <p>Gérez vos activités de tutorat indépendant.</p>
+                    <ul>
+                        <li>Inviter des élèves pour du tutorat</li>
+                        <li>Planifier des sessions</li>
+                        <li>Suivi des cours donnés</li>
+                        <li>Gestion des paiements</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>⚙️ Paramètres</h3>
+                    <p>Gérez votre profil et vos préférences.</p>
+                    <ul>
+                        <li>Informations personnelles</li>
+                        <li>Photo de profil</li>
+                        <li>Préférences de notification</li>
+                        <li>Sécurité du compte</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>EDUCAFRIC</strong> - Plateforme de Gestion Scolaire</p>
+            <p>Pour toute assistance: support@educafric.com</p>
+            <p style="margin-top: 10px; font-size: 0.85rem;">Document généré automatiquement - Version 2024</p>
+        </div>
+    </div>
+</body>
+</html>
