@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modules Guide - Parent Dashboard | EDUCAFRIC</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #be185d 0%, #ec4899 100%); color: white; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.2rem; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        .logo { font-size: 3rem; margin-bottom: 15px; }
+        .content { padding: 40px; }
+        .intro { background: #fdf2f8; border-left: 4px solid #ec4899; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0; }
+        .module-section { margin-bottom: 30px; }
+        .module-section h2 { color: #be185d; font-size: 1.4rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; gap: 10px; }
+        .module-card { background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .module-card h3 { color: #db2777; font-size: 1.1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .module-card p { color: #64748b; line-height: 1.6; }
+        .module-card ul { margin-top: 10px; padding-left: 20px; color: #475569; }
+        .module-card li { margin-bottom: 5px; }
+        .tag { display: inline-block; background: #fce7f3; color: #be185d; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; }
+        .tag.premium { background: #fef3c7; color: #92400e; }
+        .footer { background: #f1f5f9; padding: 30px; text-align: center; color: #64748b; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">👨‍👩‍👧‍👦</div>
+            <h1>Modules Guide - Parent Dashboard</h1>
+            <p>Complete documentation for parents</p>
+        </div>
+        
+        <div class="content">
+            <div class="intro">
+                <strong>Welcome to your EDUCAFRIC parent space!</strong><br><br>
+                This guide presents all the modules available in your dashboard. Each tool is designed to help you effectively monitor your children's education.
+            </div>
+
+            <div class="module-section">
+                <h2>👶 Children Monitoring</h2>
+                
+                <div class="module-card">
+                    <h3>👨‍👩‍👧 My Children</h3>
+                    <p>Overview of all your children registered on the platform.</p>
+                    <ul>
+                        <li>Recent grades overview</li>
+                        <li>Today's attendance status</li>
+                        <li>Important alerts and notifications</li>
+                        <li>Quick access to each child's details</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>🔗 Child Connection</h3>
+                    <p>Link your child's account to yours.</p>
+                    <ul>
+                        <li>Scan the child's QR code</li>
+                        <li>Enter the 6-digit code</li>
+                        <li>Use the connection link</li>
+                        <li>Define the relationship (father, mother, guardian)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📊 Academic Results</h2>
+
+                <div class="module-card">
+                    <h3>📋 Report Cards</h3>
+                    <p>View your children's school report cards.</p>
+                    <ul>
+                        <li>Grades by subject and term</li>
+                        <li>Averages and rankings</li>
+                        <li>Teacher comments</li>
+                        <li>PDF download with verification QR</li>
+                    </ul>
+                    <span class="tag">Official CBA format</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>✅ Attendance</h3>
+                    <p>Track your children's daily attendance.</p>
+                    <ul>
+                        <li>Attendance history</li>
+                        <li>Absences and tardiness</li>
+                        <li>Absence justification</li>
+                        <li>Monthly statistics</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📅 Timetable</h3>
+                    <p>View your children's class schedule.</p>
+                    <ul>
+                        <li>Daily or weekly view</li>
+                        <li>Subjects, teachers, rooms</li>
+                        <li>Export to personal calendar</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>💬 Communication</h2>
+
+                <div class="module-card">
+                    <h3>📨 Messages</h3>
+                    <p>Exchange with the school and teachers.</p>
+                    <ul>
+                        <li>Messages with teachers</li>
+                        <li>Administration communications</li>
+                        <li>Messages from your children</li>
+                        <li>Conversation history</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>💰 Financial Management</h2>
+
+                <div class="module-card">
+                    <h3>💳 Payments</h3>
+                    <p>Manage school fees and track your payments.</p>
+                    <ul>
+                        <li>Tuition fees per child</li>
+                        <li>Payment deadlines</li>
+                        <li>Secure online payment</li>
+                        <li>History and receipts</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📱 Subscription</h3>
+                    <p>Manage your EDUCAFRIC parent subscription.</p>
+                    <ul>
+                        <li>Current plan and benefits</li>
+                        <li>Premium upgrade</li>
+                        <li>Invoice history</li>
+                        <li>Renewal management</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>🎥 Digital Learning</h2>
+
+                <div class="module-card">
+                    <h3>📹 Online Classes</h3>
+                    <p>Access your children's virtual sessions.</p>
+                    <ul>
+                        <li>Scheduled sessions</li>
+                        <li>Access to replays</li>
+                        <li>Reminder notifications</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>👨‍🏫 Private Lessons</h3>
+                    <p>Manage private tutoring sessions.</p>
+                    <ul>
+                        <li>Tutor invitations</li>
+                        <li>Session calendar</li>
+                        <li>Progress tracking</li>
+                        <li>Tutor payment</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📍 Premium Services</h2>
+
+                <div class="module-card">
+                    <h3>🗺️ Geolocation</h3>
+                    <p>Track your children's location in real time.</p>
+                    <ul>
+                        <li>Real-time position</li>
+                        <li>Customized safety zones</li>
+                        <li>Zone exit alerts</li>
+                        <li>Movement history</li>
+                        <li>Emergency button</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>🍽️ Cafeteria</h3>
+                    <p>Manage your children's cafeteria meals.</p>
+                    <ul>
+                        <li>Weekly menu</li>
+                        <li>Dietary preferences</li>
+                        <li>Meal payment</li>
+                        <li>Consumption history</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>🚌 Transport (Bus)</h3>
+                    <p>Track your children's school bus.</p>
+                    <ul>
+                        <li>Real-time bus position</li>
+                        <li>Arrival schedules</li>
+                        <li>Arrival alerts</li>
+                        <li>Driver contacts</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>⚙️ Configuration</h2>
+
+                <div class="module-card">
+                    <h3>🔧 Settings</h3>
+                    <p>Customize your account and alerts.</p>
+                    <ul>
+                        <li>Profile and photo</li>
+                        <li>Notification preferences</li>
+                        <li>WhatsApp/Email alerts</li>
+                        <li>Interface language</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>EDUCAFRIC</strong> - School Management Platform</p>
+            <p>For assistance: support@educafric.com</p>
+            <p style="margin-top: 10px; font-size: 0.85rem;">Automatically generated document - Version 2024</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide des Modules - Tableau de Bord Parents | EDUCAFRIC</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #be185d 0%, #ec4899 100%); color: white; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.2rem; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        .logo { font-size: 3rem; margin-bottom: 15px; }
+        .content { padding: 40px; }
+        .intro { background: #fdf2f8; border-left: 4px solid #ec4899; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0; }
+        .module-section { margin-bottom: 30px; }
+        .module-section h2 { color: #be185d; font-size: 1.4rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; gap: 10px; }
+        .module-card { background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .module-card h3 { color: #db2777; font-size: 1.1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .module-card p { color: #64748b; line-height: 1.6; }
+        .module-card ul { margin-top: 10px; padding-left: 20px; color: #475569; }
+        .module-card li { margin-bottom: 5px; }
+        .tag { display: inline-block; background: #fce7f3; color: #be185d; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; }
+        .tag.premium { background: #fef3c7; color: #92400e; }
+        .footer { background: #f1f5f9; padding: 30px; text-align: center; color: #64748b; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">👨‍👩‍👧‍👦</div>
+            <h1>Guide des Modules - Tableau de Bord Parents</h1>
+            <p>Documentation complète pour les parents d'élèves</p>
+        </div>
+        
+        <div class="content">
+            <div class="intro">
+                <strong>Bienvenue dans votre espace parents EDUCAFRIC!</strong><br><br>
+                Ce guide présente tous les modules disponibles dans votre tableau de bord. Chaque outil est conçu pour vous permettre de suivre efficacement la scolarité de vos enfants.
+            </div>
+
+            <div class="module-section">
+                <h2>👶 Suivi des Enfants</h2>
+                
+                <div class="module-card">
+                    <h3>👨‍👩‍👧 Mes Enfants</h3>
+                    <p>Vue d'ensemble de tous vos enfants inscrits sur la plateforme.</p>
+                    <ul>
+                        <li>Aperçu des notes récentes</li>
+                        <li>Statut de présence du jour</li>
+                        <li>Alertes et notifications importantes</li>
+                        <li>Accès rapide aux détails de chaque enfant</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>🔗 Connexion Enfants</h3>
+                    <p>Liez le compte de votre enfant au vôtre.</p>
+                    <ul>
+                        <li>Scanner le QR code de l'enfant</li>
+                        <li>Saisir le code à 6 chiffres</li>
+                        <li>Utiliser le lien de connexion</li>
+                        <li>Définir la relation (père, mère, tuteur)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📊 Résultats Académiques</h2>
+
+                <div class="module-card">
+                    <h3>📋 Bulletins</h3>
+                    <p>Consultez les bulletins scolaires de vos enfants.</p>
+                    <ul>
+                        <li>Notes par matière et par trimestre</li>
+                        <li>Moyennes et classements</li>
+                        <li>Appréciations des enseignants</li>
+                        <li>Téléchargement PDF avec QR de vérification</li>
+                    </ul>
+                    <span class="tag">Format CBA officiel</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>✅ Présences</h3>
+                    <p>Suivez l'assiduité de vos enfants au quotidien.</p>
+                    <ul>
+                        <li>Historique des présences</li>
+                        <li>Absences et retards</li>
+                        <li>Justification des absences</li>
+                        <li>Statistiques mensuelles</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📅 Emploi du Temps</h3>
+                    <p>Consultez le planning de cours de vos enfants.</p>
+                    <ul>
+                        <li>Vue par jour ou par semaine</li>
+                        <li>Matières, enseignants, salles</li>
+                        <li>Export vers calendrier personnel</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>💬 Communication</h2>
+
+                <div class="module-card">
+                    <h3>📨 Messages</h3>
+                    <p>Échangez avec l'école et les enseignants.</p>
+                    <ul>
+                        <li>Messages avec les enseignants</li>
+                        <li>Communications de l'administration</li>
+                        <li>Messages de vos enfants</li>
+                        <li>Historique des conversations</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>💰 Gestion Financière</h2>
+
+                <div class="module-card">
+                    <h3>💳 Paiements</h3>
+                    <p>Gérez les frais scolaires et suivez vos paiements.</p>
+                    <ul>
+                        <li>Frais de scolarité par enfant</li>
+                        <li>Échéances de paiement</li>
+                        <li>Paiement en ligne sécurisé</li>
+                        <li>Historique et reçus</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>📱 Abonnement</h3>
+                    <p>Gérez votre abonnement parent EDUCAFRIC.</p>
+                    <ul>
+                        <li>Plan actuel et avantages</li>
+                        <li>Mise à niveau Premium</li>
+                        <li>Historique des factures</li>
+                        <li>Gestion du renouvellement</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>🎥 Enseignement Numérique</h2>
+
+                <div class="module-card">
+                    <h3>📹 Cours en Ligne</h3>
+                    <p>Accédez aux sessions virtuelles de vos enfants.</p>
+                    <ul>
+                        <li>Sessions programmées</li>
+                        <li>Accès aux replays</li>
+                        <li>Notifications de rappel</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>👨‍🏫 Cours Privés</h3>
+                    <p>Gérez les sessions de tutorat privé.</p>
+                    <ul>
+                        <li>Invitations de tuteurs</li>
+                        <li>Calendrier des sessions</li>
+                        <li>Suivi des progrès</li>
+                        <li>Paiement des tuteurs</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📍 Services Premium</h2>
+
+                <div class="module-card">
+                    <h3>🗺️ Géolocalisation</h3>
+                    <p>Suivez la position de vos enfants en temps réel.</p>
+                    <ul>
+                        <li>Position en temps réel</li>
+                        <li>Zones de sécurité personnalisées</li>
+                        <li>Alertes de sortie de zone</li>
+                        <li>Historique des déplacements</li>
+                        <li>Bouton d'urgence</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>🍽️ Cantine</h3>
+                    <p>Gérez les repas de vos enfants à la cantine.</p>
+                    <ul>
+                        <li>Menu de la semaine</li>
+                        <li>Préférences alimentaires</li>
+                        <li>Paiement des repas</li>
+                        <li>Historique de consommation</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>🚌 Transport (Bus)</h3>
+                    <p>Suivez le bus scolaire de vos enfants.</p>
+                    <ul>
+                        <li>Position du bus en temps réel</li>
+                        <li>Horaires de passage</li>
+                        <li>Alertes d'arrivée</li>
+                        <li>Contacts du chauffeur</li>
+                    </ul>
+                    <span class="tag premium">Premium</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>⚙️ Configuration</h2>
+
+                <div class="module-card">
+                    <h3>🔧 Paramètres</h3>
+                    <p>Personnalisez votre compte et vos alertes.</p>
+                    <ul>
+                        <li>Profil et photo</li>
+                        <li>Préférences de notification</li>
+                        <li>Alertes WhatsApp/Email</li>
+                        <li>Langue de l'interface</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>EDUCAFRIC</strong> - Plateforme de Gestion Scolaire</p>
+            <p>Pour toute assistance: support@educafric.com</p>
+            <p style="margin-top: 10px; font-size: 0.85rem;">Document généré automatiquement - Version 2024</p>
+        </div>
+    </div>
+</body>
+</html>
