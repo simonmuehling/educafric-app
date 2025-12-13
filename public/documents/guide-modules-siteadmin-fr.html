@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide des Modules - Tableau de Bord Site Admin | EDUCAFRIC</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #64748b 0%, #475569 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #334155 0%, #64748b 100%); color: white; padding: 40px; text-align: center; }
+        .header h1 { font-size: 2.2rem; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        .logo { font-size: 3rem; margin-bottom: 15px; }
+        .content { padding: 40px; }
+        .intro { background: #f8fafc; border-left: 4px solid #64748b; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0; }
+        .module-section { margin-bottom: 30px; }
+        .module-section h2 { color: #334155; font-size: 1.4rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; gap: 10px; }
+        .module-card { background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .module-card h3 { color: #475569; font-size: 1.1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .module-card p { color: #64748b; line-height: 1.6; }
+        .module-card ul { margin-top: 10px; padding-left: 20px; color: #475569; }
+        .module-card li { margin-bottom: 5px; }
+        .tag { display: inline-block; background: #e2e8f0; color: #334155; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; }
+        .tag.critical { background: #fee2e2; color: #991b1b; }
+        .tag.admin { background: #dbeafe; color: #1e40af; }
+        .footer { background: #f1f5f9; padding: 30px; text-align: center; color: #64748b; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🛡️</div>
+            <h1>Guide des Modules - Site Admin</h1>
+            <p>Documentation complète pour les administrateurs de la plateforme</p>
+        </div>
+        
+        <div class="content">
+            <div class="intro">
+                <strong>Bienvenue dans l'espace d'administration EDUCAFRIC!</strong><br><br>
+                Ce guide présente tous les modules disponibles dans votre tableau de bord administrateur. Chaque outil est conçu pour gérer efficacement la plateforme et ses utilisateurs.
+            </div>
+
+            <div class="module-section">
+                <h2>👥 Gestion des Utilisateurs</h2>
+                
+                <div class="module-card">
+                    <h3>👤 Utilisateurs</h3>
+                    <p>Gestion complète de tous les utilisateurs de la plateforme.</p>
+                    <ul>
+                        <li>Liste de tous les utilisateurs (directeurs, enseignants, parents, élèves)</li>
+                        <li>Recherche et filtrage avancés</li>
+                        <li>Création et modification de comptes</li>
+                        <li>Activation/désactivation de comptes</li>
+                        <li>Réinitialisation des mots de passe</li>
+                    </ul>
+                    <span class="tag admin">Accès Admin</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>👔 Équipe Commerciale</h3>
+                    <p>Gestion des commerciaux et de leurs activités.</p>
+                    <ul>
+                        <li>Liste des commerciaux actifs</li>
+                        <li>Affectation des zones géographiques</li>
+                        <li>Suivi des contrats signés</li>
+                        <li>Statistiques de performance</li>
+                        <li>Gestion des commissions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>🏫 Gestion des Écoles</h2>
+
+                <div class="module-card">
+                    <h3>🏛️ Écoles</h3>
+                    <p>Administration de toutes les écoles partenaires.</p>
+                    <ul>
+                        <li>Liste des écoles enregistrées</li>
+                        <li>Création de nouvelles écoles</li>
+                        <li>Gestion des abonnements par école</li>
+                        <li>Configuration des modules activés</li>
+                        <li>Statistiques par établissement</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>🔢 Numéros EDUCAFRIC</h3>
+                    <p>Attribution et gestion des numéros d'identification uniques.</p>
+                    <ul>
+                        <li>Génération de numéros écoles (EDU-CM-SC-###)</li>
+                        <li>Attribution aux commerciaux</li>
+                        <li>Suivi des numéros utilisés/disponibles</li>
+                        <li>Historique des attributions</li>
+                    </ul>
+                    <span class="tag">Format standardisé</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>💰 Gestion Financière</h2>
+
+                <div class="module-card">
+                    <h3>💳 Paiements</h3>
+                    <p>Supervision financière de la plateforme.</p>
+                    <ul>
+                        <li>Vue d'ensemble des transactions</li>
+                        <li>Confirmation manuelle des paiements</li>
+                        <li>Gestion des remboursements</li>
+                        <li>Rapports financiers</li>
+                        <li>Export comptable</li>
+                    </ul>
+                    <span class="tag critical">Données sensibles</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>📄 Gestion Documentaire</h2>
+
+                <div class="module-card">
+                    <h3>📁 Documents</h3>
+                    <p>Gestion du contenu et des ressources de la plateforme.</p>
+                    <ul>
+                        <li>Guides d'utilisation par profil</li>
+                        <li>Documents commerciaux</li>
+                        <li>Modèles et templates</li>
+                        <li>Téléchargements et statistiques</li>
+                    </ul>
+                </div>
+
+                <div class="module-card">
+                    <h3>🔐 Permissions Documents</h3>
+                    <p>Contrôle d'accès aux documents commerciaux.</p>
+                    <ul>
+                        <li>Définition des niveaux d'accès</li>
+                        <li>Attribution par profil utilisateur</li>
+                        <li>Audit des téléchargements</li>
+                        <li>Protection des documents sensibles</li>
+                    </ul>
+                    <span class="tag admin">Contrôle d'accès</span>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>🔒 Sécurité & Monitoring</h2>
+
+                <div class="module-card">
+                    <h3>🛡️ Sécurité</h3>
+                    <p>Surveillance et protection de la plateforme.</p>
+                    <ul>
+                        <li>Logs d'audit des actions</li>
+                        <li>Détection d'intrusion (IDS)</li>
+                        <li>Alertes de sécurité</li>
+                        <li>Tentatives de connexion suspectes</li>
+                        <li>Blocage d'adresses IP</li>
+                    </ul>
+                    <span class="tag critical">Sécurité critique</span>
+                </div>
+
+                <div class="module-card">
+                    <h3>💚 Santé Système</h3>
+                    <p>État et performance de la plateforme.</p>
+                    <ul>
+                        <li>Statut des services (API, Base de données, etc.)</li>
+                        <li>Métriques de performance</li>
+                        <li>Utilisation des ressources</li>
+                        <li>Temps de réponse</li>
+                        <li>Alertes de dysfonctionnement</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="module-section">
+                <h2>⚙️ Configuration</h2>
+
+                <div class="module-card">
+                    <h3>🔧 Paramètres</h3>
+                    <p>Configuration globale de la plateforme EDUCAFRIC.</p>
+                    <ul>
+                        <li>Paramètres généraux</li>
+                        <li>Configuration des notifications</li>
+                        <li>Intégrations tierces (Stripe, WhatsApp, etc.)</li>
+                        <li>Gestion des clés API</li>
+                        <li>Paramètres de sécurité</li>
+                    </ul>
+                    <span class="tag critical">Configuration sensible</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>EDUCAFRIC</strong> - Plateforme de Gestion Scolaire</p>
+            <p>Pour toute assistance technique: admin@educafric.com</p>
+            <p style="margin-top: 10px; font-size: 0.85rem;">Document réservé aux administrateurs - Version 2024</p>
+        </div>
+    </div>
+</body>
+</html>
