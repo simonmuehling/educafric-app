@@ -13317,7 +13317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as { schoolId: number; role: string };
       const schoolId = user.schoolId || 999; // Fallback to sandbox for demo
       
-      // Fetch real school data from database (select only existing columns including settings for cardColors)
+      // Fetch real school data from database (select ALL columns for complete settings)
       const schoolQuery = await db.select({
         id: schools.id,
         name: schools.name,
@@ -13326,6 +13326,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phone: schools.phone,
         email: schools.email,
         logoUrl: schools.logoUrl,
+        website: schools.website,
+        slogan: schools.slogan,
+        description: schools.description,
+        establishedYear: schools.establishedYear,
+        principalName: schools.principalName,
+        studentCapacity: schools.studentCapacity,
         regionaleMinisterielle: schools.regionaleMinisterielle,
         delegationDepartementale: schools.delegationDepartementale,
         boitePostale: schools.boitePostale,
@@ -13372,6 +13378,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: school.phone,
           email: school.email,
           logoUrl: school.logoUrl,
+          website: school.website,
+          slogan: school.slogan,
+          description: school.description,
+          establishedYear: school.establishedYear,
+          principalName: school.principalName,
+          studentCapacity: school.studentCapacity,
           regionaleMinisterielle: school.regionaleMinisterielle,
           delegationDepartementale: school.delegationDepartementale,
           boitePostale: school.boitePostale,
@@ -13427,11 +13439,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (hasField('academicYear') && settings.academicYear) schoolUpdates.academicYear = settings.academicYear;
       if (hasField('currentTerm') && settings.currentTerm) schoolUpdates.currentTerm = settings.currentTerm;
       
-      // Logo
-      if (settings.logoUrl) {
-        schoolUpdates.logo = settings.logoUrl;
+      // Logo - use correct column name logoUrl
+      if (hasField('logoUrl')) {
+        schoolUpdates.logoUrl = settings.logoUrl || null;
         (req.session as any).schoolLogo = settings.logoUrl;
       }
+      
+      // Slogan
+      if (hasField('slogan')) schoolUpdates.slogan = settings.slogan || null;
       
       console.log('[SCHOOL_SETTINGS] Fields to update:', Object.keys(schoolUpdates));
       
