@@ -38,6 +38,8 @@ interface SchoolData {
   email?: string;
   principalName?: string;
   principalSignature?: string;
+  poBox?: string;
+  city?: string;
   settings?: {
     cardColors?: {
       primaryColor?: string;
@@ -916,7 +918,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
         <div className="flex flex-col items-center py-6 bg-gray-100 rounded-lg">
           <div ref={printRef} className="print-container" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
             
-            {/* FRONT SIDE */}
+            {/* FRONT SIDE - NEW OFFICIAL DESIGN */}
             <div 
               className="id-card front-card"
               style={{
@@ -938,9 +940,9 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%) rotate(-30deg)',
-                fontSize: '18mm',
+                fontSize: '14mm',
                 fontWeight: 800,
-                color: `${cardColors.primary}08`,
+                color: `${cardColors.primary}06`,
                 whiteSpace: 'nowrap',
                 pointerEvents: 'none',
                 zIndex: 1,
@@ -953,164 +955,136 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
               <div style={{
                 position: 'absolute',
                 top: 0, left: 0, right: 0, bottom: 0,
-                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 2mm, ${cardColors.primary}05 2mm, ${cardColors.primary}05 4mm), repeating-linear-gradient(-45deg, transparent, transparent 2mm, ${cardColors.primary}05 2mm, ${cardColors.primary}05 4mm)`,
+                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 2mm, ${cardColors.primary}03 2mm, ${cardColors.primary}03 4mm)`,
                 pointerEvents: 'none',
                 zIndex: 0
               }} />
               
-              <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '2mm' }}>
-                {/* Header Strip - Compact */}
+              <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '1.5mm' }}>
+                
+                {/* TOP: Official Bilingual Headers with Flag */}
                 <div style={{
-                  background: `linear-gradient(90deg, ${cardColors.primary} 0%, ${cardColors.primary}dd 50%, ${cardColors.primary}aa 100%)`,
-                  height: '7mm',
-                  margin: '-2mm -2mm 1.5mm -2mm',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: '1mm',
+                  gap: '2mm'
+                }}>
+                  {/* Left - French */}
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.6mm', fontWeight: 700, color: '#1f2937', lineHeight: 1.1 }}>RÉPUBLIQUE DU CAMEROUN</div>
+                    <div style={{ fontSize: '1.2mm', color: '#6b7280', fontStyle: 'italic', lineHeight: 1.1 }}>Paix - Travail - Patrie</div>
+                    <div style={{ fontSize: '1.1mm', color: '#4b5563', lineHeight: 1.2, marginTop: '0.3mm' }}>MINISTÈRE DES ENSEIGNEMENTS<br/>SECONDAIRES</div>
+                  </div>
+                  
+                  {/* Center - Flag */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '6mm' }}>
+                    🇨🇲
+                  </div>
+                  
+                  {/* Right - English */}
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.6mm', fontWeight: 700, color: '#1f2937', lineHeight: 1.1 }}>REPUBLIC OF CAMEROON</div>
+                    <div style={{ fontSize: '1.2mm', color: '#6b7280', fontStyle: 'italic', lineHeight: 1.1 }}>Peace - Work - Fatherland</div>
+                    <div style={{ fontSize: '1.1mm', color: '#4b5563', lineHeight: 1.2, marginTop: '0.3mm' }}>MINISTRY OF SECONDARY<br/>EDUCATION</div>
+                  </div>
+                </div>
+                
+                {/* MIDDLE: School Name Centered */}
+                <div style={{
+                  background: `linear-gradient(90deg, ${cardColors.primary} 0%, ${cardColors.primary}dd 100%)`,
+                  padding: '1.2mm 2mm',
+                  margin: '0 -1.5mm',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '2.8mm', fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: '0.3mm', textShadow: '0 0.5mm 1mm rgba(0,0,0,0.2)' }}>
+                    {school.name}
+                  </div>
+                </div>
+                
+                {/* ROW WITH LOGO: Validity texts + Logo */}
+                <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '0 2mm',
-                  gap: '1.5mm'
+                  justifyContent: 'space-between',
+                  margin: '1.5mm 0',
+                  gap: '2mm'
                 }}>
-                  {school.logoUrl ? (
-                    <img 
-                      src={school.logoUrl} 
-                      alt="Logo" 
-                      style={{ width: '5mm', height: '5mm', borderRadius: '0.8mm', objectFit: 'contain', background: 'white', padding: '0.2mm' }}
-                      onError={(e) => {
-                        console.error('[ID_CARD] Logo failed to load:', school.logoUrl);
-                        e.currentTarget.style.display = 'none';
-                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                        if (fallback) fallback.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  <div style={{ 
-                    width: '5mm', height: '5mm', background: 'white', borderRadius: '0.8mm', 
-                    display: school.logoUrl ? 'none' : 'flex', 
-                    alignItems: 'center', justifyContent: 'center', 
-                    fontSize: '3mm', fontWeight: 800, color: cardColors.primary 
-                  }}>
-                    E
+                  {/* Left - Validity French */}
+                  <div style={{ flex: 1, textAlign: 'center', fontSize: '1.1mm', color: '#6b7280', lineHeight: 1.2 }}>
+                    Validité: 1 an à compter<br/>de la date de signature
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '2.2mm', fontWeight: 700, color: 'white', lineHeight: 1.1, textShadow: '0 0.5mm 1mm rgba(0,0,0,0.2)' }}>{school.name}</div>
-                    <div style={{ fontSize: '1.3mm', color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontStyle: 'italic' }}>{school.slogan || school.tagline || 'Excellence • Discipline • Intégrité'}</div>
-                  </div>
-                  <div style={{
-                    background: 'rgba(255,255,255,0.95)',
-                    color: cardColors.primary,
-                    fontSize: '1.4mm',
-                    fontWeight: 700,
-                    padding: '0.8mm 1.5mm',
-                    borderRadius: '0.8mm',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.2mm'
-                  }}>
-                    {text.studentCard}
-                  </div>
-                </div>
-                
-                {/* Main Content - Compact */}
-                <div style={{ display: 'flex', gap: '2mm', flex: 1 }}>
-                  {/* Photo - Smaller */}
-                  <div>
-                    {photoSrc ? (
+                  
+                  {/* Center - School Logo */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {school.logoUrl ? (
                       <img 
-                        src={photoSrc} 
-                        alt={fullName}
-                        style={{ width: '18mm', height: '24mm', borderRadius: '1.5mm', objectFit: 'cover', border: '0.4mm solid #d1d5db', boxShadow: '0 0.5mm 2mm rgba(0,0,0,0.1)' }}
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        src={school.logoUrl} 
+                        alt="Logo" 
+                        style={{ width: '10mm', height: '10mm', borderRadius: '1mm', objectFit: 'contain', background: 'white', padding: '0.3mm', border: '0.2mm solid #e5e7eb' }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
                       />
-                    ) : (
-                      <div style={{ width: '18mm', height: '24mm', background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)', borderRadius: '1.5mm', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '0.4mm solid #d1d5db', gap: '0.5mm' }}>
-                        <svg width="6mm" height="6mm" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                          <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                        <span style={{ fontSize: '1.2mm', color: '#9ca3af', fontWeight: 500 }}>{text.photo}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Info Panel - Compact */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', gap: '0.8mm' }}>
-                    <div style={{ fontSize: '2.8mm', fontWeight: 800, color: '#111827', lineHeight: 1.1, textTransform: 'uppercase', maxWidth: '32mm' }}>{fullName}</div>
-                    
-                    <div style={{ display: 'grid', gap: '0.3mm' }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.studentId}:</span>
-                        <span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span>
-                      </div>
-                      {formattedBirthDate && (
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
-                          <span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.birthDate}</span>
-                          <span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 600 }}>{formattedBirthDate}</span>
-                        </div>
-                      )}
-                      {birthPlaceValue && (
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
-                          <span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.birthPlace}</span>
-                          <span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '18mm' }}>{birthPlaceValue}</span>
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.class}:</span>
-                        <span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '20mm' }}>{student.className}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5mm', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '1.3mm', color: '#6b7280', fontWeight: 600 }}>{text.academicYear}:</span>
-                        <span style={{ fontSize: '1.5mm', color: '#1f2937', fontWeight: 700 }}>{academicYear}</span>
-                      </div>
-                    </div>
-                    
-                    <div style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.3mm',
-                      background: 'linear-gradient(90deg, #dcfce7 0%, #bbf7d0 100%)',
-                      color: '#166534',
-                      fontSize: '1.3mm',
-                      fontWeight: 600,
-                      padding: '0.5mm 1mm',
-                      borderRadius: '0.6mm',
-                      border: '0.2mm solid #86efac',
-                      width: 'fit-content',
-                      whiteSpace: 'nowrap',
-                      marginTop: '0.5mm'
+                    ) : null}
+                    <div style={{ 
+                      width: '10mm', height: '10mm', background: 'white', borderRadius: '1mm', 
+                      display: school.logoUrl ? 'none' : 'flex', 
+                      alignItems: 'center', justifyContent: 'center', 
+                      fontSize: '5mm', fontWeight: 800, color: cardColors.primary,
+                      border: '0.2mm solid #e5e7eb'
                     }}>
-                      ✓ {text.validThru}: {validityDate}
+                      E
                     </div>
                   </div>
                   
-                  {/* QR Code & Signature Column - Compact */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', minWidth: '16mm' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <canvas ref={qrCanvasFrontRef} style={{ width: '14mm', height: '14mm', border: '0.2mm solid #e5e7eb', borderRadius: '0.8mm', padding: '0.3mm', background: 'white' }} />
-                      <span style={{ fontSize: '1.1mm', color: '#9ca3af', marginTop: '0.2mm', fontWeight: 500 }}>SCAN</span>
-                    </div>
-                    {/* Principal Signature on Front */}
-                    <div style={{ textAlign: 'center', marginTop: '0.5mm' }}>
-                      {principalSignature ? (
-                        <img 
-                          src={principalSignature} 
-                          alt="Signature Directeur" 
-                          style={{ maxHeight: '5mm', maxWidth: '14mm', objectFit: 'contain' }}
-                        />
-                      ) : (
-                        <div style={{ width: '12mm', borderBottom: '0.2mm solid #94a3b8', height: '3mm' }}></div>
-                      )}
-                      <span style={{ fontSize: '1mm', color: '#6b7280', display: 'block' }}>Directeur</span>
-                    </div>
+                  {/* Right - Validity English */}
+                  <div style={{ flex: 1, textAlign: 'center', fontSize: '1.1mm', color: '#6b7280', lineHeight: 1.2 }}>
+                    Validity: 1 year from<br/>the date of signature
                   </div>
                 </div>
                 
-                {/* Footer Strip - Compact */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '0.5mm', borderTop: '0.15mm solid #e5e7eb' }}>
-                  <span style={{ fontSize: '1.2mm', color: '#9ca3af', fontFamily: "'Courier New', monospace", fontWeight: 600 }}>{cardId}</span>
-                  <span style={{ fontSize: '1.2mm', color: '#6b7280' }}>{issueDate}</span>
+                {/* SCHOOL INFO ROW */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '3mm',
+                  fontSize: '1.3mm',
+                  color: '#4b5563',
+                  flexWrap: 'wrap',
+                  marginBottom: '1mm'
+                }}>
+                  {school.poBox && <span>📮 {school.poBox}</span>}
+                  {school.city && <span>📍 {school.city}</span>}
+                  {school.address && !school.city && <span>📍 {school.address}</span>}
+                  {school.phone && <span>📞 {school.phone}</span>}
+                  {school.email && <span>✉ {school.email}</span>}
+                </div>
+                
+                {/* BOTTOM: Card Type Labels */}
+                <div style={{
+                  marginTop: 'auto',
+                  textAlign: 'center',
+                  borderTop: '0.2mm solid #e5e7eb',
+                  paddingTop: '1mm'
+                }}>
+                  <div style={{ fontSize: '2mm', fontWeight: 700, color: cardColors.primary, textTransform: 'uppercase', letterSpacing: '0.3mm' }}>
+                    SCHOOL IDENTITY CARD - {academicYear}
+                  </div>
+                  <div style={{ fontSize: '1.8mm', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase' }}>
+                    CARTE D'IDENTITÉ SCOLAIRE
+                  </div>
+                  <div style={{ fontSize: '1mm', color: '#9ca3af', marginTop: '0.3mm' }}>
+                    edited by educafric.com
+                  </div>
                 </div>
               </div>
             </div>
             
-            {/* BACK SIDE */}
+            {/* BACK SIDE - SIMPLIFIED WITH STUDENT INFO */}
             <div 
               className="id-card back-card"
               style={{
@@ -1130,87 +1104,143 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
               <div style={{
                 position: 'absolute',
                 top: 0, left: 0, right: 0, bottom: 0,
-                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 2mm, ${cardColors.secondary}05 2mm, ${cardColors.secondary}05 4mm)`,
+                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 2mm, ${cardColors.secondary}03 2mm, ${cardColors.secondary}03 4mm)`,
                 pointerEvents: 'none',
                 zIndex: 0
               }} />
               
-              <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '2.5mm' }}>
+              <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '2mm' }}>
                 {/* Back Header */}
                 <div style={{
                   background: `linear-gradient(90deg, ${cardColors.secondary} 0%, ${cardColors.secondary}cc 100%)`,
-                  height: '6mm',
-                  margin: '-2.5mm -2.5mm 2mm -2.5mm',
+                  height: '5mm',
+                  margin: '-2mm -2mm 1.5mm -2mm',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <span style={{ fontSize: '2.5mm', fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.5mm' }}>{text.verification}</span>
+                  <span style={{ fontSize: '2mm', fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.3mm' }}>
+                    {language === 'fr' ? 'INFORMATIONS ÉLÈVE' : 'STUDENT INFORMATION'}
+                  </span>
                 </div>
                 
-                {/* Back Main Content */}
+                {/* Back Main Content - Student Photo + Info + QR */}
                 <div style={{ display: 'flex', gap: '3mm', flex: 1 }}>
-                  {/* Verification Panel */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1mm' }}>
-                    <canvas ref={qrCanvasBackRef} style={{ width: '20mm', height: '20mm', border: '0.3mm solid #e5e7eb', borderRadius: '1.5mm', padding: '0.5mm', background: 'white' }} />
-                    <span style={{ fontSize: '1.8mm', color: '#6b7280', textAlign: 'center', fontWeight: 500 }}>{text.scanToVerify}</span>
-                    <span style={{ fontSize: '1.4mm', color: cardColors.secondary, fontFamily: "'Courier New', monospace" }}>{text.verifyAt}</span>
+                  
+                  {/* LEFT: Student Photo */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {photoSrc ? (
+                      <img 
+                        src={photoSrc} 
+                        alt={fullName}
+                        style={{ width: '20mm', height: '26mm', borderRadius: '1.5mm', objectFit: 'cover', border: '0.4mm solid #d1d5db', boxShadow: '0 0.5mm 2mm rgba(0,0,0,0.1)' }}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div style={{ width: '20mm', height: '26mm', background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)', borderRadius: '1.5mm', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '0.4mm solid #d1d5db', gap: '0.5mm' }}>
+                        <svg width="7mm" height="7mm" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                          <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <span style={{ fontSize: '1.2mm', color: '#9ca3af', fontWeight: 500 }}>{text.photo}</span>
+                      </div>
+                    )}
                   </div>
                   
-                  {/* Info Panel Back */}
-                  <div style={{ flex: 1.2, display: 'flex', flexDirection: 'column', gap: '2mm' }}>
-                    {/* Emergency Contact */}
-                    <div style={{
-                      background: `linear-gradient(90deg, ${cardColors.accent}22 0%, ${cardColors.accent}44 100%)`,
-                      border: `0.3mm solid ${cardColors.accent}`,
-                      borderRadius: '1.5mm',
-                      padding: '2mm'
-                    }}>
-                      <div style={{ fontSize: '2mm', fontWeight: 700, color: cardColors.accent, marginBottom: '0.8mm', display: 'flex', alignItems: 'center', gap: '1mm', filter: 'brightness(0.7)' }}>
-                        ⚠ {text.emergencyContact}
-                      </div>
-                      <div style={{ fontSize: '1.8mm', color: cardColors.accent, lineHeight: 1.3, filter: 'brightness(0.6)' }}>
-                        {student.parentName || 'Parent/Tuteur'}<br/>
-                        {student.parentPhone || '+237 XXX XXX XXX'}
-                      </div>
+                  {/* CENTER: Student Information */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.2mm' }}>
+                    {/* Full Name */}
+                    <div style={{ fontSize: '3mm', fontWeight: 800, color: '#111827', lineHeight: 1.1, textTransform: 'uppercase' }}>
+                      {fullName}
                     </div>
                     
-                    {/* School Contact */}
-                    <div style={{ background: '#f1f5f9', borderRadius: '1.5mm', padding: '1.5mm', flex: 1 }}>
-                      <div style={{ fontSize: '1.8mm', fontWeight: 700, color: '#475569', marginBottom: '0.8mm' }}>{text.schoolContact}</div>
-                      <div style={{ fontSize: '1.6mm', color: '#64748b', lineHeight: 1.4 }}>
-                        {school.address || 'Adresse école'}<br/>
-                        {school.phone || '+237 XXX XXX XXX'}<br/>
-                        {school.email || 'contact@ecole.cm'}
+                    {/* Student Details */}
+                    <div style={{ display: 'grid', gap: '0.6mm' }}>
+                      {/* Matricule */}
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
+                        <span style={{ fontSize: '1.4mm', color: '#6b7280', fontWeight: 600 }}>{text.studentId}:</span>
+                        <span style={{ fontSize: '1.6mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span>
+                      </div>
+                      
+                      {/* Class */}
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
+                        <span style={{ fontSize: '1.4mm', color: '#6b7280', fontWeight: 600 }}>{text.class}:</span>
+                        <span style={{ fontSize: '1.6mm', color: '#1f2937', fontWeight: 700 }}>{student.className}</span>
+                      </div>
+                      
+                      {/* Birth Date */}
+                      {formattedBirthDate && (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
+                          <span style={{ fontSize: '1.4mm', color: '#6b7280', fontWeight: 600 }}>{text.birthDate}</span>
+                          <span style={{ fontSize: '1.6mm', color: '#1f2937', fontWeight: 600 }}>{formattedBirthDate}</span>
+                        </div>
+                      )}
+                      
+                      {/* Birth Place */}
+                      {birthPlaceValue && (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
+                          <span style={{ fontSize: '1.4mm', color: '#6b7280', fontWeight: 600 }}>{text.birthPlace}</span>
+                          <span style={{ fontSize: '1.6mm', color: '#1f2937', fontWeight: 600 }}>{birthPlaceValue}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Emergency Contact Box */}
+                    <div style={{
+                      background: `linear-gradient(90deg, ${cardColors.accent}15 0%, ${cardColors.accent}25 100%)`,
+                      border: `0.2mm solid ${cardColors.accent}88`,
+                      borderRadius: '1mm',
+                      padding: '1.2mm',
+                      marginTop: '0.5mm'
+                    }}>
+                      <div style={{ fontSize: '1.4mm', fontWeight: 700, color: cardColors.accent, marginBottom: '0.4mm', display: 'flex', alignItems: 'center', gap: '0.5mm', filter: 'brightness(0.7)' }}>
+                        ⚠ {text.emergencyContact}
+                      </div>
+                      <div style={{ fontSize: '1.4mm', color: cardColors.accent, lineHeight: 1.2, filter: 'brightness(0.6)' }}>
+                        {student.parentName || 'Parent/Tuteur'} • {student.parentPhone || '+237 XXX XXX XXX'}
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* RIGHT: QR Code (smaller) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5mm' }}>
+                    <canvas ref={qrCanvasBackRef} style={{ width: '14mm', height: '14mm', border: '0.2mm solid #e5e7eb', borderRadius: '1mm', padding: '0.3mm', background: 'white' }} />
+                    <span style={{ fontSize: '1.1mm', color: '#6b7280', textAlign: 'center', fontWeight: 500 }}>{text.scanToVerify}</span>
+                    <span style={{ fontSize: '1mm', color: cardColors.secondary, fontFamily: "'Courier New', monospace" }}>{text.verifyAt}</span>
                   </div>
                 </div>
                 
                 {/* Signature Section */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '1.5mm', borderTop: '0.2mm solid #e5e7eb' }}>
-                  <div style={{ textAlign: 'center', width: '25mm' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '1mm', borderTop: '0.15mm solid #e5e7eb' }}>
+                  <div style={{ textAlign: 'center', width: '22mm' }}>
                     {principalSignature ? (
-                      <div style={{ height: '4mm', marginBottom: '0.5mm', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                      <div style={{ height: '4mm', marginBottom: '0.3mm', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
                         <img 
                           src={principalSignature} 
                           alt="Signature" 
-                          style={{ maxHeight: '4mm', maxWidth: '20mm', objectFit: 'contain' }}
+                          style={{ maxHeight: '4mm', maxWidth: '18mm', objectFit: 'contain' }}
                         />
                       </div>
                     ) : (
-                      <div style={{ borderBottom: '0.3mm solid #94a3b8', height: '4mm', marginBottom: '0.5mm' }}></div>
+                      <div style={{ borderBottom: '0.2mm solid #94a3b8', height: '3mm', marginBottom: '0.3mm' }}></div>
                     )}
-                    <span style={{ fontSize: '1.5mm', color: '#64748b', fontWeight: 500 }}>{text.principalSignature}</span>
+                    <span style={{ fontSize: '1.2mm', color: '#64748b', fontWeight: 500 }}>{text.principalSignature}</span>
                   </div>
-                  <div style={{ textAlign: 'center', width: '25mm' }}>
-                    <div style={{ borderBottom: '0.3mm solid #94a3b8', height: '4mm', marginBottom: '0.5mm' }}></div>
-                    <span style={{ fontSize: '1.5mm', color: '#64748b', fontWeight: 500 }}>{text.studentSignature}</span>
+                  
+                  {/* Card ID and Issue Date */}
+                  <div style={{ textAlign: 'center' }}>
+                    <span style={{ fontSize: '1.1mm', color: '#9ca3af', fontFamily: "'Courier New', monospace", display: 'block' }}>{cardId}</span>
+                    <span style={{ fontSize: '1mm', color: '#6b7280' }}>{issueDate}</span>
+                  </div>
+                  
+                  <div style={{ textAlign: 'center', width: '22mm' }}>
+                    <div style={{ borderBottom: '0.2mm solid #94a3b8', height: '3mm', marginBottom: '0.3mm' }}></div>
+                    <span style={{ fontSize: '1.2mm', color: '#64748b', fontWeight: 500 }}>{text.studentSignature}</span>
                   </div>
                 </div>
                 
                 {/* Security Notice */}
-                <div style={{ position: 'absolute', bottom: '1mm', left: '50%', transform: 'translateX(-50%)', fontSize: '1.2mm', color: '#94a3b8', textAlign: 'center', fontStyle: 'italic' }}>
+                <div style={{ position: 'absolute', bottom: '0.8mm', left: '50%', transform: 'translateX(-50%)', fontSize: '1mm', color: '#94a3b8', textAlign: 'center', fontStyle: 'italic' }}>
                   {text.securityNotice}
                 </div>
               </div>
