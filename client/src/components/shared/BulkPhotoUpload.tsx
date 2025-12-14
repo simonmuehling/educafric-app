@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Upload, CheckCircle, XCircle, AlertTriangle, FileArchive, Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Upload, CheckCircle, XCircle, AlertTriangle, FileArchive, HelpCircle, FolderArchive, Image, UserCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface BulkPhotoUploadProps {
@@ -44,7 +45,18 @@ export function BulkPhotoUpload({ lang = 'fr', onComplete }: BulkPhotoUploadProp
       matchedList: 'Photos associées',
       unmatchedList: 'Fichiers non correspondus',
       retry: 'Nouvel import',
-      downloadTemplate: 'Télécharger la liste des matricules'
+      downloadTemplate: 'Télécharger la liste des matricules',
+      helpTitle: 'Comment utiliser l\'import de photos en lot ?',
+      helpBtn: 'Aide',
+      helpStep1Title: 'Étape 1: Préparez vos photos',
+      helpStep1Desc: 'Rassemblez toutes les photos des élèves dans un dossier. Chaque photo doit être au format JPG, PNG, GIF ou WEBP (max 5MB).',
+      helpStep2Title: 'Étape 2: Renommez les fichiers',
+      helpStep2Desc: 'Renommez chaque photo avec le matricule de l\'élève. Exemples: STU-2025-001.jpg, EDU-CM-ST-ABC123.png',
+      helpStep3Title: 'Étape 3: Créez le fichier ZIP',
+      helpStep3Desc: 'Sélectionnez toutes les photos, clic droit → "Compresser" ou "Envoyer vers → Dossier compressé" pour créer un fichier .zip',
+      helpStep4Title: 'Étape 4: Téléversez le ZIP',
+      helpStep4Desc: 'Cliquez sur "Sélectionner un fichier ZIP" et choisissez votre fichier. Le système associera automatiquement chaque photo à l\'élève correspondant.',
+      helpTip: 'Astuce: Les matricules sont insensibles à la casse. STU-2025-001.jpg et stu-2025-001.jpg fonctionnent tous les deux.'
     },
     en: {
       title: 'Bulk Photo Upload',
@@ -62,7 +74,18 @@ export function BulkPhotoUpload({ lang = 'fr', onComplete }: BulkPhotoUploadProp
       matchedList: 'Matched photos',
       unmatchedList: 'Unmatched files',
       retry: 'New upload',
-      downloadTemplate: 'Download student ID list'
+      downloadTemplate: 'Download student ID list',
+      helpTitle: 'How to use bulk photo upload?',
+      helpBtn: 'Help',
+      helpStep1Title: 'Step 1: Prepare your photos',
+      helpStep1Desc: 'Gather all student photos in a folder. Each photo must be in JPG, PNG, GIF or WEBP format (max 5MB).',
+      helpStep2Title: 'Step 2: Rename the files',
+      helpStep2Desc: 'Rename each photo with the student ID. Examples: STU-2025-001.jpg, EDU-CM-ST-ABC123.png',
+      helpStep3Title: 'Step 3: Create the ZIP file',
+      helpStep3Desc: 'Select all photos, right-click → "Compress" or "Send to → Compressed folder" to create a .zip file',
+      helpStep4Title: 'Step 4: Upload the ZIP',
+      helpStep4Desc: 'Click "Select ZIP file" and choose your file. The system will automatically match each photo to the corresponding student.',
+      helpTip: 'Tip: Student IDs are case-insensitive. STU-2025-001.jpg and stu-2025-001.jpg both work.'
     }
   }[lang];
 
@@ -137,10 +160,62 @@ export function BulkPhotoUpload({ lang = 'fr', onComplete }: BulkPhotoUploadProp
   return (
     <Card data-testid="bulk-photo-upload-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileArchive className="h-5 w-5" />
-          {t.title}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <FileArchive className="h-5 w-5" />
+            {t.title}
+          </CardTitle>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" data-testid="button-help-bulk-photo">
+                <HelpCircle className="h-4 w-4 mr-1" />
+                {t.helpBtn}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5 text-primary" />
+                  {t.helpTitle}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div className="flex gap-3 p-3 bg-blue-50 rounded-lg">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                  <div>
+                    <h4 className="font-semibold text-sm">{t.helpStep1Title}</h4>
+                    <p className="text-sm text-muted-foreground">{t.helpStep1Desc}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3 p-3 bg-green-50 rounded-lg">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                  <div>
+                    <h4 className="font-semibold text-sm">{t.helpStep2Title}</h4>
+                    <p className="text-sm text-muted-foreground">{t.helpStep2Desc}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3 p-3 bg-orange-50 rounded-lg">
+                  <div className="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                  <div>
+                    <h4 className="font-semibold text-sm">{t.helpStep3Title}</h4>
+                    <p className="text-sm text-muted-foreground">{t.helpStep3Desc}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3 p-3 bg-purple-50 rounded-lg">
+                  <div className="flex-shrink-0 w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold">4</div>
+                  <div>
+                    <h4 className="font-semibold text-sm">{t.helpStep4Title}</h4>
+                    <p className="text-sm text-muted-foreground">{t.helpStep4Desc}</p>
+                  </div>
+                </div>
+                <Alert className="bg-amber-50 border-amber-200">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-sm">{t.helpTip}</AlertDescription>
+                </Alert>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
         <CardDescription>{t.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
