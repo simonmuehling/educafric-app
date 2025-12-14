@@ -1661,6 +1661,7 @@ const UnifiedSchoolSettings: React.FC = () => {
                       id="frontBgColor"
                       value={cardColors.frontBgColor}
                       onChange={(e) => setCardColors(prev => ({ ...prev, frontBgColor: e.target.value }))}
+                      onInput={(e) => setCardColors(prev => ({ ...prev, frontBgColor: (e.target as HTMLInputElement).value }))}
                       className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
                       data-testid="input-front-bg-color"
                     />
@@ -1681,6 +1682,7 @@ const UnifiedSchoolSettings: React.FC = () => {
                       id="backBgColor"
                       value={cardColors.backBgColor}
                       onChange={(e) => setCardColors(prev => ({ ...prev, backBgColor: e.target.value }))}
+                      onInput={(e) => setCardColors(prev => ({ ...prev, backBgColor: (e.target as HTMLInputElement).value }))}
                       className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
                       data-testid="input-back-bg-color"
                     />
