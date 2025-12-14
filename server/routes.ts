@@ -2568,7 +2568,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      console.log('[CREATE_STUDENT] Creating student:', { firstName: fName, lastName: lName, phone, schoolId: userSchoolId, classId: resolvedClassId });
+      console.log('[CREATE_STUDENT] Creating student:', { firstName: fName, lastName: lName, phone, email, schoolId: userSchoolId, classId: resolvedClassId });
+      
+      // ✅ MULTIROLE SYSTEM: Check if user already exists by email OR phone
+      let existingUser = null;
+      if (email) {
+        const [foundByEmail] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        existingUser = foundByEmail;
+      }
+      if (!existingUser && phone) {
+        const [foundByPhone] = await db.select().from(users).where(eq(users.phone, phone)).limit(1);
+        existingUser = foundByPhone;
+      }
+      
+      if (existingUser) {
+        // Check if already a student in THIS school
+        if (existingUser.schoolId === userSchoolId && (existingUser.role === 'Student' || (existingUser.secondaryRoles && existingUser.secondaryRoles.includes('Student')))) {
+          return res.status(400).json({ 
+            success: false, 
+            message: `Cet utilisateur (${email || phone}) est déjà élève dans votre école.` 
+          });
+        }
+        
+        // User exists - add Student role via multirole system
+        const currentSecondaryRoles = existingUser.secondaryRoles || [];
+        const updatedSecondaryRoles = currentSecondaryRoles.includes('Student') 
+          ? currentSecondaryRoles 
+          : [...currentSecondaryRoles, 'Student'];
+        
+        await db.update(users)
+          .set({ 
+            secondaryRoles: updatedSecondaryRoles,
+            roleHistory: [...(existingUser.roleHistory || []), { role: 'Student', addedAt: new Date().toISOString(), schoolId: userSchoolId }]
+          })
+          .where(eq(users.id, existingUser.id));
+        
+        // Create role_affiliation for new school
+        try {
+          await db.insert(roleAffiliations).values({
+            userId: existingUser.id,
+            role: 'Student',
+            schoolId: userSchoolId,
+            isActive: true,
+            isPrimary: false,
+            createdAt: new Date()
+          });
+          console.log('[CREATE_STUDENT] ✅ Role affiliation created for existing user');
+        } catch (affiliationError: any) {
+          if (!affiliationError.message?.includes('duplicate')) {
+            console.error('[CREATE_STUDENT] ⚠️ Affiliation creation error:', affiliationError);
+          }
+        }
+        
+        // Create enrollment if classId provided
+        if (resolvedClassId) {
+          try {
+            await db.insert(enrollments).values({
+              studentId: existingUser.id,
+              classId: resolvedClassId,
+              enrollmentDate: new Date().toISOString().split('T')[0],
+              status: 'active'
+            });
+            console.log('[CREATE_STUDENT] ✅ Enrollment created for existing user in class:', resolvedClassId);
+          } catch (enrollmentError) {
+            console.error('[CREATE_STUDENT] ⚠️ Enrollment creation failed:', enrollmentError);
+          }
+        }
+        
+        console.log('[CREATE_STUDENT] ✅ Existing user added as student in school', userSchoolId);
+        return res.json({ 
+          success: true, 
+          student: {
+            ...existingUser,
+            className: null,
+            level: null
+          },
+          isExistingUser: true,
+          message: `${fName} ${lName || ''} (utilisateur existant) a été ajouté comme élève dans votre école.`
+        });
+      }
       
       // Handle photo upload if provided (base64 data URL from camera)
       let profilePictureUrl: string | null = null;
@@ -3240,13 +3318,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_TEACHERS_API] 📊 Fetching teachers from DATABASE for school:', userSchoolId);
       
-      // Get all teachers for this school from database (sorted by lastName, firstName)
-      const schoolTeachers = await db.select()
+      // Get teachers for this school: primary teachers + affiliated teachers (multirole system)
+      // 1. Primary teachers: role='Teacher' AND schoolId=userSchoolId
+      const primaryTeachers = await db.select()
         .from(users)
         .where(and(eq(users.role, 'Teacher'), eq(users.schoolId, userSchoolId)))
         .orderBy(asc(users.lastName), asc(users.firstName));
       
-      console.log('[DIRECTOR_TEACHERS_API] 📊 Found', schoolTeachers.length, 'teachers');
+      // 2. Affiliated teachers: users with Teacher role_affiliation for this school
+      const affiliatedTeacherIds = await db.select({ userId: roleAffiliations.userId })
+        .from(roleAffiliations)
+        .where(and(
+          eq(roleAffiliations.role, 'Teacher'),
+          eq(roleAffiliations.schoolId, userSchoolId),
+          eq(roleAffiliations.isActive, true)
+        ));
+      
+      // Get affiliated teacher details (excluding those already in primary list)
+      const primaryTeacherIds = new Set(primaryTeachers.map(t => t.id));
+      const uniqueAffiliatedIds = affiliatedTeacherIds
+        .map(a => a.userId)
+        .filter(id => id && !primaryTeacherIds.has(id));
+      
+      let affiliatedTeachers: typeof primaryTeachers = [];
+      if (uniqueAffiliatedIds.length > 0) {
+        affiliatedTeachers = await db.select()
+          .from(users)
+          .where(inArray(users.id, uniqueAffiliatedIds))
+          .orderBy(asc(users.lastName), asc(users.firstName));
+      }
+      
+      // Combine both lists
+      const schoolTeachers = [...primaryTeachers, ...affiliatedTeachers];
+      
+      console.log('[DIRECTOR_TEACHERS_API] 📊 Found', primaryTeachers.length, 'primary +', affiliatedTeachers.length, 'affiliated =', schoolTeachers.length, 'total teachers');
       
       // Get teacher assignments from teacherSubjectAssignments table (NOT timetables)
       let teacherAssignmentsData: Array<{ teacherId: number; classId: number; className: string | null; subjectId: number; subjectName: string | null }> = [];
@@ -3740,6 +3845,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log('[CREATE_TEACHER] Creating teacher:', { firstName, lastName, email, phone, schoolId: userSchoolId });
+      
+      // ✅ MULTIROLE SYSTEM: Check if user already exists by email OR phone
+      let existingUser = null;
+      if (email) {
+        const [foundByEmail] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        existingUser = foundByEmail;
+      }
+      if (!existingUser && phone) {
+        const [foundByPhone] = await db.select().from(users).where(eq(users.phone, phone)).limit(1);
+        existingUser = foundByPhone;
+      }
+      
+      if (existingUser) {
+        if (existingUser.schoolId === userSchoolId && (existingUser.role === 'Teacher' || (existingUser.secondaryRoles && existingUser.secondaryRoles.includes('Teacher')))) {
+          return res.status(400).json({ success: false, message: `Cet utilisateur est déjà enseignant dans votre école.` });
+        }
+        
+        const currentSecondaryRoles = existingUser.secondaryRoles || [];
+        const updatedSecondaryRoles = currentSecondaryRoles.includes('Teacher') ? currentSecondaryRoles : [...currentSecondaryRoles, 'Teacher'];
+        
+        await db.update(users).set({ 
+          secondaryRoles: updatedSecondaryRoles,
+          roleHistory: [...(existingUser.roleHistory || []), { role: 'Teacher', addedAt: new Date().toISOString(), schoolId: userSchoolId }]
+        }).where(eq(users.id, existingUser.id));
+        
+        try {
+          await db.insert(roleAffiliations).values({ userId: existingUser.id, role: 'Teacher', schoolId: userSchoolId, isActive: true, isPrimary: false, createdAt: new Date() });
+        } catch (e: any) { if (!e.message?.includes('duplicate')) console.error('[CREATE_TEACHER] Affiliation error:', e); }
+        
+        return res.json({ success: true, teacher: existingUser, isExistingUser: true, message: `${firstName} ${lastName} ajouté comme enseignant.` });
+      }
       
       // Generate default password (should be changed on first login)
       const defaultPassword = `${lastName.toLowerCase()}${new Date().getFullYear()}`;
