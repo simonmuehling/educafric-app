@@ -11,6 +11,12 @@ function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
+// Helper to check user role including activeRole for multirole support
+function hasDirectorAccess(user: any): boolean {
+  const effectiveRole = user.activeRole || user.role;
+  return ['Admin', 'Director', 'SiteAdmin'].includes(effectiveRole);
+}
+
 // Get teachers for a school
 router.get('/school', requireAuth, async (req, res) => {
   try {
@@ -70,8 +76,8 @@ router.post('/', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
     
-    // Only admins and directors can create teachers
-    if (!['Admin', 'Director'].includes(user.role)) {
+    // Only admins and directors can create teachers (supports multirole activeRole)
+    if (!hasDirectorAccess(user)) {
       return res.status(403).json({
         success: false,
         message: 'Insufficient permissions'
@@ -106,8 +112,8 @@ router.put('/:id', requireAuth, async (req, res) => {
     const teacherId = parseInt(req.params.id);
     const user = req.user as any;
     
-    // Only admins and directors can update teachers
-    if (!['Admin', 'Director'].includes(user.role)) {
+    // Only admins and directors can update teachers (supports multirole activeRole)
+    if (!hasDirectorAccess(user)) {
       return res.status(403).json({
         success: false,
         message: 'Insufficient permissions'
@@ -142,8 +148,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
     const teacherId = parseInt(req.params.id);
     const user = req.user as any;
     
-    // Only admins and directors can remove teachers from school
-    if (!['Admin', 'Director'].includes(user.role)) {
+    // Only admins and directors can remove teachers from school (supports multirole activeRole)
+    if (!hasDirectorAccess(user)) {
       return res.status(403).json({
         success: false,
         message: 'Insufficient permissions'
