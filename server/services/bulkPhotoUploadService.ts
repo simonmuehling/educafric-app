@@ -161,9 +161,13 @@ export class BulkPhotoUploadService {
             UPDATE users SET profile_picture_url = ${photoUrl} WHERE id = ${matchedUser.id}
           `);
           
+          const formattedName = lang === 'en' 
+            ? `${matchedUser.firstName} ${matchedUser.lastName}`
+            : `${(matchedUser.lastName || '').toUpperCase()} ${matchedUser.firstName}`;
+          
           const matchedEntry: MatchedUser = {
             filename,
-            userName: `${matchedUser.firstName} ${matchedUser.lastName}`,
+            userName: formattedName,
             matricule: matchedUser.educafricNumber || '',
             photoUrl
           };

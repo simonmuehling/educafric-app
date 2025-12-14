@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Printer, RotateCcw, Smartphone, Download } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatName } from '@/utils/formatName';
 
 interface StudentData {
   id: number;
@@ -86,7 +87,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
   // Use stored signature or prop
   const principalSignature = signatureData?.signatureData || school.principalSignature;
   
-  const fullName = `${student.firstName} ${student.lastName}`;
+  const fullName = formatName(student.firstName, student.lastName, language);
   const studentId = student.matricule || student.educafricNumber || `STD-${String(student.id).padStart(6, '0')}`;
   const cardId = `EDU-${new Date().getFullYear()}-${String(student.id).padStart(6, '0')}`;
   const issueDate = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });

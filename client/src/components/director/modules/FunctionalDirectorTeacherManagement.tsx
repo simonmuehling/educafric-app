@@ -24,6 +24,7 @@ import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
 import { OfflineDataNotReadyModal, useOfflineDataCheck } from '@/components/offline/OfflineDataNotReadyModal';
 import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 import { sortBy, sortStrings } from '@/utils/sort';
+import { formatName } from '@/utils/formatName';
 
 interface Teacher {
   id: number;
@@ -262,7 +263,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       'Name,Email,Phone,Subjects,Classes,Gender';
     
     const csvData = teachers.map(teacher => 
-      `"${teacher.firstName} ${teacher.lastName}","${teacher.email}","${teacher.phone}","${teacher.teachingSubjects}","${teacher.classes}","${teacher.gender}"`
+      `"${formatName(teacher.firstName, teacher.lastName, language)}","${teacher.email}","${teacher.phone}","${teacher.teachingSubjects}","${teacher.classes}","${teacher.gender}"`
     ).join('\n');
     
     const csv = `${csvHeaders}\n${csvData}`;
@@ -1753,7 +1754,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">
-                        <div className="font-medium text-gray-900">{teacher.lastName?.toUpperCase() || ''} {teacher.firstName || ''}</div>
+                        <div className="font-medium text-gray-900">{formatName(teacher.firstName, teacher.lastName, language)}</div>
                         <Badge variant={teacher.status === 'active' ? 'default' : 'secondary'}>
                           {text.status[teacher.status]}
                         </Badge>

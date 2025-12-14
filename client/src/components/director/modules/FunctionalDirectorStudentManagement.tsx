@@ -26,6 +26,7 @@ import { OfflineDataNotReadyModal, useOfflineDataCheck } from '@/components/offl
 import { useOfflineStudents } from '@/hooks/offline/useOfflineStudents';
 import { useOfflinePremium } from '@/contexts/offline/OfflinePremiumContext';
 import { sortByMultiple, sortBy } from '@/utils/sort';
+import { formatName } from '@/utils/formatName';
 
 interface Student {
   id: number;
@@ -394,7 +395,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       }
       
       setIsEditStudentOpen(false);
-      const editedStudentName = selectedStudent ? `${selectedStudent.firstName} ${selectedStudent.lastName}` : 'L\'élève';
+      const editedStudentName = selectedStudent ? formatName(selectedStudent.firstName, selectedStudent.lastName, language) : 'L\'élève';
       setSelectedStudent(null);
       
       toast({
@@ -2214,7 +2215,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">
-                        <div className="font-medium text-gray-900">{student.lastName?.toUpperCase() || ''} {student.firstName || ''}</div>
+                        <div className="font-medium text-gray-900">{formatName(student.firstName, student.lastName, language)}</div>
                         <Badge variant={student.status === 'active' ? 'default' : 'secondary'}>
                           {text.status[student.status]}
                         </Badge>
@@ -2259,7 +2260,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => handleDeleteStudent(student.id, `${student.firstName} ${student.lastName}`)}
+                          onClick={() => handleDeleteStudent(student.id, formatName(student.firstName, student.lastName, language))}
                           className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                           data-testid={`button-delete-student-${student.id}`}
                         >
@@ -2346,7 +2347,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                     <div className="w-24 h-28 rounded-lg overflow-hidden border-2 border-green-200 shadow-md flex-shrink-0">
                       <img 
                         src={photoSrc}
-                        alt={`${viewingStudent.firstName} ${viewingStudent.lastName}`}
+                        alt={formatName(viewingStudent.firstName, viewingStudent.lastName, language)}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.currentTarget;
@@ -2365,7 +2366,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                 })()}
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                    {viewingStudent.firstName} {viewingStudent.lastName}
+                    {formatName(viewingStudent.firstName, viewingStudent.lastName, language)}
                   </h3>
                   <div className="flex flex-wrap gap-3 mb-4">
                     <Badge variant={viewingStudent.status === 'active' ? 'default' : 'secondary'}>
