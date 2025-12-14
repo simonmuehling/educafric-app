@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { formatName } from '@/utils/formatName';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -374,7 +375,7 @@ const ReportsAnalytics: React.FC = () => {
     // Generation de rapport basé sur vraies données
     setTimeout(() => {
       const filterInfo = filtersActive ? 
-        `\nFILTRES APPLIQUÉS:\n${selectedClass !== 'all' ? `- Classe: ${classes.classes?.find((c: any) => c.id.toString() === selectedClass)?.name}\n` : ''}${selectedTeacher !== 'all' ? `- Enseignant: ${teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName} ${teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.lastName}\n` : ''}` : '';
+        `\nFILTRES APPLIQUÉS:\n${selectedClass !== 'all' ? `- Classe: ${classes.classes?.find((c: any) => c.id.toString() === selectedClass)?.name}\n` : ''}${selectedTeacher !== 'all' ? `- Enseignant: ${(() => { const t2 = teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher); return t2 ? formatName(t2.firstName, t2.lastName, language as 'fr' | 'en') : ''; })()}\n` : ''}` : '';
       
       const reportData = `${t.reports[reportType as keyof typeof t.reports]} - ${new Date().toLocaleDateString()}
 
@@ -561,7 +562,7 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                     <SelectItem value="all">{t.filters?.allTeachers}</SelectItem>
                     {(teachers.teachers || []).map((teacher: any) => (
                       <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                        {teacher.firstName} {teacher.lastName}
+                        {formatName(teacher.firstName, teacher.lastName, language as 'fr' | 'en')}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -701,7 +702,7 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                   )}
                   {selectedTeacher !== 'all' && (
                     <span className="ml-2">
-                      {language === 'fr' ? 'Enseignant:' : 'Teacher:'} {teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName} {teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.lastName}
+                      {language === 'fr' ? 'Enseignant:' : 'Teacher:'} {(() => { const t2 = teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher); return t2 ? formatName(t2.firstName, t2.lastName, language as 'fr' | 'en') : ''; })()}
                     </span>
                   )}
                   {selectedPeriod !== 'all' && (

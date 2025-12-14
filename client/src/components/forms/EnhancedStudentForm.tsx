@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatName } from '@/utils/formatName';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -511,7 +512,7 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
                         </Badge>
                         <span className="font-medium">
                           {parent.firstName || parent.lastName 
-                            ? `${parent.firstName || ''} ${parent.lastName || ''}`.trim()
+                            ? formatName(parent.firstName, parent.lastName, language as 'fr' | 'en')
                             : `Parent ${index + 1}`
                           }
                         </span>

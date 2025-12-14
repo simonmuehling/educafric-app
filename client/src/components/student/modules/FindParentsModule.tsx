@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatName } from '@/utils/formatName';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -217,7 +218,7 @@ const FindParentsModule: React.FC = () => {
       const connectionData = {
         type: 'EDUCAFRIC_STUDENT_CONNECT',
         studentId: user.id,
-        studentName: `${user.firstName} ${user.lastName}`,
+        studentName: formatName(user.firstName, user.lastName, language as 'fr' | 'en'),
         studentEmail: user.email,
         schoolName: 'École Saint-Joseph Yaoundé',
         className: '3ème A',
@@ -227,7 +228,7 @@ const FindParentsModule: React.FC = () => {
       };
       
       // Créer le lien magique
-      const magicUrl = `https://educafric.com/parent-connect/${user.id}?name=${encodeURIComponent(user.firstName + ' ' + user.lastName)}&school=${encodeURIComponent('École Saint-Joseph Yaoundé')}&class=${encodeURIComponent('3ème A')}`;
+      const magicUrl = `https://educafric.com/parent-connect/${user.id}?name=${encodeURIComponent(formatName(user.firstName, user.lastName, language as 'fr' | 'en'))}&school=${encodeURIComponent('École Saint-Joseph Yaoundé')}&class=${encodeURIComponent('3ème A')}`;
       setMagicLink(magicUrl);
       
       // Générer le QR code avec les vraies données
@@ -270,7 +271,7 @@ const FindParentsModule: React.FC = () => {
     if (!qrDataUrl) return;
     
     const link = document.createElement('a');
-    link.download = `EDUCAFRIC_QR_${user?.firstName}_${user?.lastName}.png`;
+    link.download = `EDUCAFRIC_QR_${formatName(user?.firstName, user?.lastName, language as 'fr' | 'en').replace(/\s+/g, '_')}.png`;
     link.href = qrDataUrl;
     link.click();
     
@@ -430,7 +431,7 @@ const FindParentsModule: React.FC = () => {
       parentPhone: parent.phone || '',
       searchMethod: parent.email ? 'email' : 'phone'
     });
-    setSearchQuery(`${parent.firstName} ${parent.lastName}`);
+    setSearchQuery(formatName(parent.firstName, parent.lastName, language as 'fr' | 'en'));
     setSearchResults([]);
   };
 

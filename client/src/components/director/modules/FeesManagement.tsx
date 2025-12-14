@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatName } from '@/utils/formatName';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -954,7 +955,7 @@ export default function FeesManagement() {
                       <Label className="mb-2 block">{t.selectStudents} ({feeForm.selectedStudentIds.length} {t.selectedCount})</Label>
                       <ScrollArea className="h-48 border rounded-md p-2">
                         {filteredStudentsByClass.length > 0 ? filteredStudentsByClass.map((student) => {
-                          const name = `${student.firstName || student.first_name || ''} ${student.lastName || student.last_name || ''}`.trim();
+                          const name = formatName(student.firstName || student.first_name || '', student.lastName || student.last_name || '', language as 'fr' | 'en');
                           return (
                             <div key={student.id} className="flex items-center justify-between py-2 px-2 hover:bg-gray-50 rounded">
                               <div className="flex items-center gap-2">

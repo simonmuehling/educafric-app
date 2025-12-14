@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import StandardFormHeader from '@/components/shared/StandardFormHeader';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatName } from '@/utils/formatName';
 import { 
   CalendarDays, 
   Clock, 
@@ -603,7 +604,7 @@ const TeacherAbsenceManager: React.FC = () => {
                   setFormData(prev => ({ 
                     ...prev, 
                     teacherId: value,
-                    teacherName: selectedTeacher ? `${selectedTeacher.firstName} ${selectedTeacher.lastName}` : ''
+                    teacherName: selectedTeacher ? formatName(selectedTeacher.firstName, selectedTeacher.lastName, language as 'fr' | 'en') : ''
                   }));
                 }}
               >
@@ -622,7 +623,7 @@ const TeacherAbsenceManager: React.FC = () => {
                   ) : (
                     schoolTeachersData.map((teacher) => (
                       <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                        {teacher.firstName} {teacher.lastName} - {teacher.subject || t.notSpecified}
+                        {formatName(teacher.firstName, teacher.lastName, language as 'fr' | 'en')} - {teacher.subject || t.notSpecified}
                       </SelectItem>
                     ))
                   )}

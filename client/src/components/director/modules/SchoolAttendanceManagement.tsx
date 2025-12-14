@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatName } from '@/utils/formatName';
 import { ModernCard, ModernStatsCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -207,7 +208,7 @@ const SchoolAttendanceManagement = () => {
     try {
       const notificationData = {
         studentId: student.id,
-        studentName: `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+        studentName: formatName(student.firstName, student.lastName, language as 'fr' | 'en'),
         status: status,
         date: selectedDate,
         className: classes.find((c: any) => c.id.toString() === selectedClass)?.name,
@@ -358,7 +359,7 @@ const SchoolAttendanceManagement = () => {
                         </div>
                         <div>
                           <p className="font-medium text-gray-900">
-                            {student.firstName || ''} {student.lastName || ''}
+                            {formatName(student.firstName, student.lastName, language as 'fr' | 'en')}
                           </p>
                           <p className="text-sm text-gray-600">ID: {student.id}</p>
                         </div>

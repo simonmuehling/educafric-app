@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatName } from '@/utils/formatName';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 // Removed apiRequest import - using fetch with credentials instead
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
@@ -125,9 +126,9 @@ const FunctionalTeacherCommunications: React.FC = () => {
     (classItem.students || []).flatMap((student: any) => 
       (student.parents || []).map((parent: any) => ({
         id: parent.id,
-        name: parent.name || `${parent.firstName} ${parent.lastName}`,
+        name: parent.name || formatName(parent.firstName, parent.lastName, language as 'fr' | 'en'),
         email: parent.email,
-        studentName: student.name || `${student.firstName} ${student.lastName}`,
+        studentName: student.name || formatName(student.firstName, student.lastName, language as 'fr' | 'en'),
         className: classItem.name
       }))
     )

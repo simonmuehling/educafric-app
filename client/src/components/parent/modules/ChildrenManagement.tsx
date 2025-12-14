@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatName } from '@/utils/formatName';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ModernCard, ModernStatsCard } from '@/components/ui/ModernCard';
@@ -373,7 +374,7 @@ const ChildrenManagement = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
                       <h4 className="text-xl font-bold text-gray-800">
-                        {child.fullName || `${child.firstName} ${child.lastName}`}
+                        {child.fullName || formatName(child.firstName, child.lastName, language as 'fr' | 'en')}
                       </h4>
                       <Badge className={getStatusColor(child.status)}>
                         {getStatusText(child.status)}

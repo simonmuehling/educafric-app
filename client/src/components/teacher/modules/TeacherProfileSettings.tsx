@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { formatName } from '@/utils/formatName';
 import { 
   User, Mail, Phone, MapPin, Calendar, 
   Save, Edit, Eye, EyeOff, Lock, Shield, BookOpen, GraduationCap, Users, Plus, X, Check, Loader2
@@ -307,7 +308,7 @@ const TeacherProfileSettings = () => {
 
     try {
       await apiRequest('PUT', '/api/auth/profile', {
-        username: `${profile.firstName || ''} ${profile.lastName || ''}`,
+        username: formatName(profile.firstName || '', profile.lastName || '', language as 'fr' | 'en'),
         email: profile.email,
         phone: profile.phone,
         address: profile.address,

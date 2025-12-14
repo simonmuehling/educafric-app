@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatName } from '@/utils/formatName';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import ManualBulletinForm from '../ManualBulletinForm';
@@ -118,10 +119,10 @@ const ReportCardManagement: React.FC = () => {
   const filteredStudents = useMemo(() => {
     if (!searchQuery) return students;
     return students.filter((student: any) => 
-      `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      formatName(student.firstName, student.lastName, language as 'fr' | 'en').toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.matricule?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [students, searchQuery]);
+  }, [students, searchQuery, language]);
 
   // Event handlers 
   const handleClassChange = useCallback((classId: string) => {
@@ -291,7 +292,7 @@ const ReportCardManagement: React.FC = () => {
                       <SelectItem value="none">-- {t.selectStudentForEntry} --</SelectItem>
                       {filteredStudents.map((student: any) => (
                         <SelectItem key={student.id} value={student.id.toString()}>
-                          {student.firstName} {student.lastName} - {student.matricule}
+                          {formatName(student.firstName, student.lastName, language as 'fr' | 'en')} - {student.matricule}
                         </SelectItem>
                       ))}
                     </SelectContent>

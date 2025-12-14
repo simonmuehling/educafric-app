@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { User, Mail, Phone, Briefcase } from "lucide-react";
+import { formatName } from '@/utils/formatName';
 
 interface DuplicateDetectionDialogProps {
   open: boolean;
@@ -42,7 +43,7 @@ export function DuplicateDetectionDialog({
   if (!existingUser) return null;
 
   const userDisplayName = existingUser.firstName && existingUser.lastName
-    ? `${existingUser.firstName} ${existingUser.lastName}`
+    ? formatName(existingUser.firstName, existingUser.lastName, language as 'fr' | 'en')
     : existingUser.email;
 
   const duplicateType = emailMatch && phoneMatch 

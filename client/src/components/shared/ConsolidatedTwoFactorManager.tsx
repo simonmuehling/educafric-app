@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatName } from '@/utils/formatName';
 import { BilingualTwoFactorSetup } from './BilingualTwoFactorSetup';
 import { UniversalSecuritySettings } from './UniversalSecuritySettings';
 import { ModernCard } from '@/components/ui/ModernCard';
@@ -103,7 +104,7 @@ ${t.backupMethods}:
 3. Contact administrateur
 4. Support EDUCAFRIC
 
-Utilisateur: ${user?.firstName} ${user?.lastName}
+Utilisateur: ${formatName(user?.firstName, user?.lastName, language as 'fr' | 'en')}
 Email: ${user?.email}
 Rôle: ${userRole}
 Date: ${new Date().toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}

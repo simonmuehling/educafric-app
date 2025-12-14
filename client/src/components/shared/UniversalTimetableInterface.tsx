@@ -12,6 +12,7 @@ import {
   MessageSquare, Phone, Mail, Bell, Eye, User, Settings, Copy
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatName } from '@/utils/formatName';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -572,8 +573,8 @@ const UniversalTimetableInterface: React.FC<UniversalTimetableProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {(Array.isArray(teachers) ? teachers : []).map((teacher: any) => (
-                      <SelectItem key={teacher.id} value={`${teacher.firstName || 'Prénom'} ${teacher.lastName || 'Nom'}`}>
-                        {teacher.firstName || 'Prénom'} {teacher.lastName || 'Nom'}
+                      <SelectItem key={teacher.id} value={formatName(teacher.firstName || 'Prénom', teacher.lastName || 'Nom', language as 'fr' | 'en')}>
+                        {formatName(teacher.firstName || 'Prénom', teacher.lastName || 'Nom', language as 'fr' | 'en')}
                       </SelectItem>
                     ))}
                   </SelectContent>

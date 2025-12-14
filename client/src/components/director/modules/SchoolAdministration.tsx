@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { formatName } from '@/utils/formatName';
 import { 
   Card, CardContent, CardDescription, CardHeader, CardTitle 
 } from '@/components/ui/card';
@@ -591,7 +592,7 @@ const SchoolAdministration: React.FC = () => {
                         <GraduationCap className="w-5 h-5 text-blue-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900">{String(teacher?.firstName) || "N/A"} {String(teacher?.lastName) || "N/A"}</h4>
+                        <h4 className="font-medium text-gray-900">{formatName(teacher?.firstName, teacher?.lastName, language as 'fr' | 'en') || "N/A"}</h4>
                         <p className="text-sm text-gray-600 mb-2">{String(teacher?.email) || "N/A"}</p>
                         
                         {/* Matières enseignées */}

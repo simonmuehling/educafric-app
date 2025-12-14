@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatName } from '@/utils/formatName';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -512,7 +513,7 @@ const ClassManagement: React.FC = () => {
     if (classItem.teacherId && teachersData.length > 0) {
       const foundTeacher = teachersData.find((t: any) => t.id === classItem.teacherId);
       if (foundTeacher) {
-        teacherName = `${foundTeacher.firstName || ''} ${foundTeacher.lastName || ''}`.trim();
+        teacherName = formatName(foundTeacher.firstName, foundTeacher.lastName, language as 'fr' | 'en');
       }
     } else if (classItem.teacherName) {
       teacherName = classItem.teacherName;
