@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import ReportCardPreview from './ReportCardPreview';
 import AnnualReportSheet from './AnnualReportSheet';
 import BulletinPrint from './BulletinPrint';
+import { formatName } from '@/utils/formatName';
 
 // Real school data fetching (useQuery already imported above)
 
@@ -699,7 +700,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   // Auto-fill teacher name for initial empty subject when teacher is logged in
   useEffect(() => {
     if (effectiveRole === 'teacher' && user && subjects.length === 1 && !subjects[0].name && !subjects[0].teacher) {
-      const teacherFullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+      const teacherFullName = formatName(user.firstName, user.lastName, language);
       if (teacherFullName) {
         setSubjects(prev => prev.map(s => ({
           ...s,
@@ -787,7 +788,7 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
   const addSubject = () => {
     // Auto-populate teacher name from authenticated user for teachers
     const teacherName = effectiveRole === 'teacher' && user
-      ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+      ? formatName(user.firstName, user.lastName, language)
       : '';
     
     const newSubject: Subject = {

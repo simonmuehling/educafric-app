@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { formatName } from '@/utils/formatName';
 
 interface BulletinValidationViewerProps {
   bulletinId?: number;
@@ -244,7 +245,7 @@ export default function BulletinValidationViewer({
 
                 {verificationResult.isValid && verificationResult.bulletinData && (
                   <div className="space-y-2 text-sm">
-                    <p><strong>Étudiant:</strong> {verificationResult.bulletinData.student?.firstName} {verificationResult.bulletinData.student?.lastName}</p>
+                    <p><strong>Étudiant:</strong> {formatName(verificationResult.bulletinData.student?.firstName, verificationResult.bulletinData.student?.lastName, 'fr')}</p>
                     <p><strong>Classe:</strong> {verificationResult.bulletinData.student?.className}</p>
                     <p><strong>École:</strong> {verificationResult.bulletinData.school?.name}</p>
                     <p><strong>Validé le:</strong> {new Date(verificationResult.validationInfo?.validatedAt).toLocaleDateString()}</p>
