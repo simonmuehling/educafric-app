@@ -650,11 +650,11 @@ const UnifiedSchoolSettings: React.FC = () => {
   
   // Color presets for ID cards
   const colorPresets = [
-    { name: t.presetClassic, primary: '#059669', secondary: '#1e40af', accent: '#f59e0b' },
-    { name: t.presetRoyal, primary: '#7c3aed', secondary: '#d97706', accent: '#dc2626' },
-    { name: t.presetNature, primary: '#166534', secondary: '#78350f', accent: '#ca8a04' },
-    { name: t.presetModern, primary: '#2563eb', secondary: '#475569', accent: '#0891b2' },
-    { name: t.presetAfrican, primary: '#dc2626', secondary: '#166534', accent: '#d97706' }
+    { name: t.presetClassic, primary: '#059669', secondary: '#1e40af', accent: '#f59e0b', frontBg: '#ffffff', backBg: '#f8fafc' },
+    { name: t.presetRoyal, primary: '#7c3aed', secondary: '#d97706', accent: '#dc2626', frontBg: '#fefce8', backBg: '#faf5ff' },
+    { name: t.presetNature, primary: '#166534', secondary: '#78350f', accent: '#ca8a04', frontBg: '#f0fdf4', backBg: '#fef3c7' },
+    { name: t.presetModern, primary: '#2563eb', secondary: '#475569', accent: '#0891b2', frontBg: '#f8fafc', backBg: '#f1f5f9' },
+    { name: t.presetAfrican, primary: '#dc2626', secondary: '#166534', accent: '#d97706', frontBg: '#fffbeb', backBg: '#fef2f2' }
   ];
   
   // Save card colors mutation
@@ -1569,7 +1569,9 @@ const UnifiedSchoolSettings: React.FC = () => {
                         onClick={() => setCardColors({
                           primaryColor: preset.primary,
                           secondaryColor: preset.secondary,
-                          accentColor: preset.accent
+                          accentColor: preset.accent,
+                          frontBgColor: preset.frontBg,
+                          backBgColor: preset.backBg
                         })}
                         data-testid={`button-preset-${index}`}
                       >
