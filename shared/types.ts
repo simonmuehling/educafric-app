@@ -87,7 +87,6 @@ export type UserRole =
   | 'Teacher' 
   | 'Parent' 
   | 'Student' 
-  | 'Freelancer' 
   | 'Commercial';
 
 export interface AuthenticatedUser {

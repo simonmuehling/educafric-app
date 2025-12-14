@@ -404,13 +404,6 @@ export default function Login() {
     { value: 'Teacher', label: language === 'fr' ? 'Enseignant' : 'Teacher', disabled: false },
     { value: 'Director', label: language === 'fr' ? 'Directeur d\'École' : 'School Director', disabled: false },
     { value: 'Commercial', label: 'Commercial', disabled: false },
-    { 
-      value: 'Freelancer', 
-      label: language === 'fr' 
-        ? 'Freelancer (Indisponible jusqu\'à septembre 2026)' 
-        : 'Freelancer (Unavailable until September 2026)', 
-      disabled: true 
-    },
   ];
 
   return (
