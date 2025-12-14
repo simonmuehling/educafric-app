@@ -3347,24 +3347,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[CREATE_TEACHER_DIRECTOR] Creating teacher:', { firstName, lastName, email, phone, schoolId: userSchoolId, subjects: allSubjects, classes: assignedClasses });
       
-      // Generate default password (should be changed on first login)
-      const defaultPassword = `${lastName.toLowerCase()}${new Date().getFullYear()}`;
-      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+      // ✅ MULTIROLE SYSTEM: Check if user already exists by email OR phone
+      let existingUser = null;
+      if (email) {
+        const [foundByEmail] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+        existingUser = foundByEmail;
+      }
+      if (!existingUser && phone) {
+        const [foundByPhone] = await db.select().from(users).where(eq(users.phone, phone)).limit(1);
+        existingUser = foundByPhone;
+      }
       
-      // Create teacher in database
-      const [newTeacher] = await db.insert(users).values({
-        role: 'Teacher',
-        firstName,
-        lastName,
-        phone: phone || null,
-        password: hashedPassword,
-        schoolId: userSchoolId,
-        email: email || null,
-        gender: gender || null,
-        educafricNumber: matricule || null
-      }).returning();
+      let newTeacher;
+      let isExistingUserAddedAsTeacher = false;
       
-      console.log('[CREATE_TEACHER_DIRECTOR] ✅ Teacher created:', { id: newTeacher.id, name: `${firstName} ${lastName}` });
+      if (existingUser) {
+        console.log('[CREATE_TEACHER_DIRECTOR] 🔍 User already exists:', { id: existingUser.id, email: existingUser.email, phone: existingUser.phone, currentRole: existingUser.role, currentSchoolId: existingUser.schoolId });
+        
+        // Check if already a teacher in THIS school
+        if (existingUser.schoolId === userSchoolId && (existingUser.role === 'Teacher' || (existingUser.secondaryRoles && existingUser.secondaryRoles.includes('Teacher')))) {
+          return res.status(400).json({ 
+            success: false, 
+            message: `Cet utilisateur (${email || phone}) est déjà enseignant dans votre école.` 
+          });
+        }
+        
+        // User exists - add Teacher role via multirole system
+        const currentSecondaryRoles = existingUser.secondaryRoles || [];
+        const updatedSecondaryRoles = currentSecondaryRoles.includes('Teacher') 
+          ? currentSecondaryRoles 
+          : [...currentSecondaryRoles, 'Teacher'];
+        
+        // Update user with Teacher as secondary role
+        await db.update(users)
+          .set({ 
+            secondaryRoles: updatedSecondaryRoles,
+            roleHistory: [...(existingUser.roleHistory || []), { role: 'Teacher', addedAt: new Date().toISOString(), schoolId: userSchoolId }]
+          })
+          .where(eq(users.id, existingUser.id));
+        
+        // Create role_affiliation for new school
+        try {
+          await db.insert(roleAffiliations).values({
+            userId: existingUser.id,
+            role: 'Teacher',
+            schoolId: userSchoolId,
+            isActive: true,
+            isPrimary: false,
+            createdAt: new Date()
+          });
+          console.log('[CREATE_TEACHER_DIRECTOR] ✅ Role affiliation created for existing user');
+        } catch (affiliationError: any) {
+          // If affiliation already exists, ignore
+          if (!affiliationError.message?.includes('duplicate')) {
+            console.error('[CREATE_TEACHER_DIRECTOR] ⚠️ Affiliation creation error:', affiliationError);
+          }
+        }
+        
+        newTeacher = existingUser;
+        isExistingUserAddedAsTeacher = true;
+        console.log('[CREATE_TEACHER_DIRECTOR] ✅ Existing user added as teacher in school', userSchoolId);
+      } else {
+        // Generate default password (should be changed on first login)
+        const defaultPassword = `${lastName.toLowerCase()}${new Date().getFullYear()}`;
+        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+        
+        // Create NEW teacher in database
+        const [createdTeacher] = await db.insert(users).values({
+          role: 'Teacher',
+          firstName,
+          lastName,
+          phone: phone || null,
+          password: hashedPassword,
+          schoolId: userSchoolId,
+          email: email || null,
+          gender: gender || null,
+          educafricNumber: matricule || null
+        }).returning();
+        
+        newTeacher = createdTeacher;
+        console.log('[CREATE_TEACHER_DIRECTOR] ✅ New teacher created:', { id: newTeacher.id, name: `${firstName} ${lastName}` });
+      }
       
       // ✅ CRITICAL FIX: Create teacher-subject-class assignments if provided
       let assignmentsCreated = 0;
@@ -3419,6 +3482,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[CREATE_TEACHER_DIRECTOR] ✅ Created', assignmentsCreated, 'assignments');
       }
       
+      const responseMessage = isExistingUserAddedAsTeacher
+        ? `${firstName} ${lastName} (utilisateur existant) a été ajouté comme enseignant dans votre école.`
+        : `Enseignant ${firstName} ${lastName} créé avec succès. Mot de passe par défaut: ${lastName.toLowerCase()}${new Date().getFullYear()}`;
+      
       res.json({ 
         success: true, 
         teacher: {
@@ -3427,11 +3494,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           teachingSubjects: allSubjects || []
         },
         assignmentsCreated,
-        message: `Teacher ${firstName} ${lastName} created successfully. Default password: ${defaultPassword}`
+        isExistingUser: isExistingUserAddedAsTeacher,
+        message: responseMessage
       });
     } catch (error) {
       console.error('[CREATE_TEACHER_DIRECTOR] Error:', error);
-      res.status(500).json({ success: false, message: 'Failed to create teacher' });
+      res.status(500).json({ success: false, message: 'Échec de la création de l\'enseignant. Veuillez réessayer.' });
     }
   });
 
