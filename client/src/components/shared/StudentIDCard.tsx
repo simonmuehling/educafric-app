@@ -1068,19 +1068,32 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                   {school.email && <span>✉ {school.email}</span>}
                 </div>
                 
-                {/* BOTTOM: Card Type Labels */}
+                {/* BOTTOM: Card Type Labels - Primary language based on page language */}
                 <div style={{
                   marginTop: 'auto',
                   textAlign: 'center',
                   borderTop: '0.2mm solid #e5e7eb',
                   paddingTop: '1mm'
                 }}>
-                  <div style={{ fontSize: '2mm', fontWeight: 700, color: cardColors.primary, textTransform: 'uppercase', letterSpacing: '0.3mm' }}>
-                    SCHOOL IDENTITY CARD - {academicYear}
-                  </div>
-                  <div style={{ fontSize: '1.8mm', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase' }}>
-                    CARTE D'IDENTITÉ SCOLAIRE
-                  </div>
+                  {language === 'fr' ? (
+                    <>
+                      <div style={{ fontSize: '2mm', fontWeight: 700, color: cardColors.primary, textTransform: 'uppercase', letterSpacing: '0.3mm' }}>
+                        CARTE D'IDENTITÉ SCOLAIRE - {academicYear}
+                      </div>
+                      <div style={{ fontSize: '1.6mm', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase' }}>
+                        SCHOOL IDENTITY CARD
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: '2mm', fontWeight: 700, color: cardColors.primary, textTransform: 'uppercase', letterSpacing: '0.3mm' }}>
+                        SCHOOL IDENTITY CARD - {academicYear}
+                      </div>
+                      <div style={{ fontSize: '1.6mm', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase' }}>
+                        CARTE D'IDENTITÉ SCOLAIRE
+                      </div>
+                    </>
+                  )}
                   <div style={{ fontSize: '1mm', color: '#9ca3af', marginTop: '0.3mm' }}>
                     edited by educafric.com
                   </div>
