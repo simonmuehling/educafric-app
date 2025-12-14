@@ -465,22 +465,38 @@ export class ExcelImportService {
           continue;
         }
         
-        // Find class by name using Drizzle
+        // Find class by name using Drizzle (case-insensitive, whitespace-tolerant)
         let classId = null;
+        let foundClass = null;
         if (studentData.className) {
-          const [existingClass] = await db.select().from(classes).where(
-            and(
-              eq(classes.schoolId, schoolId),
-              eq(classes.name, studentData.className)
-            )
-          ).limit(1);
+          const normalizedClassName = studentData.className.trim().toLowerCase();
           
-          if (existingClass) {
-            classId = existingClass.id;
+          // Get all classes for the school and find the best match
+          const schoolClasses = await db.select().from(classes).where(
+            eq(classes.schoolId, schoolId)
+          );
+          
+          // Try exact match first (case-insensitive)
+          foundClass = schoolClasses.find(c => 
+            c.name.trim().toLowerCase() === normalizedClassName
+          );
+          
+          // If no exact match, try partial match (class name contains or is contained)
+          if (!foundClass) {
+            foundClass = schoolClasses.find(c => 
+              c.name.trim().toLowerCase().includes(normalizedClassName) ||
+              normalizedClassName.includes(c.name.trim().toLowerCase())
+            );
+          }
+          
+          if (foundClass) {
+            classId = foundClass.id;
           } else {
             result.warnings.push({
               row: row._row || index + 2,
-              message: `${t.fields.className} "${studentData.className}" ${t.errors.notFound}`
+              message: lang === 'fr' 
+                ? `Classe "${studentData.className}" introuvable. Vérifiez que la classe existe dans le système. Classes disponibles: ${schoolClasses.map(c => c.name).join(', ')}`
+                : `Class "${studentData.className}" not found. Make sure the class exists in the system. Available classes: ${schoolClasses.map(c => c.name).join(', ')}`
             });
           }
         }
@@ -509,6 +525,46 @@ export class ExcelImportService {
           parentPhone: studentData.parentPhone || null,
           isRepeater: studentData.isRepeater === 'Oui' || studentData.isRepeater === 'Yes' ? true : false
         } as any).returning();
+        
+        // Create enrollment record if class was found
+        if (classId && newStudent) {
+          try {
+            // Get current academic year (September to August)
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            const academicYearStart = currentMonth >= 8 ? currentYear : currentYear - 1;
+            const academicYear = `${academicYearStart}-${academicYearStart + 1}`;
+            
+            // Check if enrollment already exists
+            const { enrollments } = await import('../../shared/schema');
+            const existingEnrollment = await db.select().from(enrollments).where(
+              and(
+                eq(enrollments.studentId, newStudent.id),
+                eq(enrollments.classId, classId)
+              )
+            ).limit(1);
+            
+            if (existingEnrollment.length === 0) {
+              await db.insert(enrollments).values({
+                studentId: newStudent.id,
+                classId: classId,
+                academicYearId: null, // Will be linked when academic year system is fully implemented
+                enrollmentDate: new Date(),
+                status: 'active'
+              } as any);
+              console.log(`[IMPORT_STUDENTS] ✅ Created enrollment for student ${newStudent.id} in class ${classId}`);
+            }
+          } catch (enrollError) {
+            console.error(`[IMPORT_STUDENTS] ⚠️ Failed to create enrollment:`, enrollError);
+            // Don't fail the import, just log warning
+            result.warnings.push({
+              row: row._row || index + 2,
+              message: lang === 'fr' 
+                ? `Élève créé mais inscription à la classe a échoué: ${enrollError.message}`
+                : `Student created but class enrollment failed: ${enrollError.message}`
+            });
+          }
+        }
         
         result.created++;
         
