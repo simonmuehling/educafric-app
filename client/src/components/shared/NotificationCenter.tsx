@@ -194,7 +194,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
       return data || [];
     },
     enabled: !!userId,
-    refetchInterval: 10000 // Poll every 10 seconds like a real PWA
+    refetchInterval: 15000 // Poll every 15 seconds
   });
 
   // Combine real-time and fetched notifications

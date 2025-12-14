@@ -83,7 +83,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       return data || [];
     },
     enabled: !!user?.id,
-    refetchInterval: 10000, // Poll every 10 seconds
+    refetchInterval: 15000, // Poll every 15 seconds
   });
 
   // Calculate unread count
