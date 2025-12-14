@@ -1148,39 +1148,39 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                   </div>
                   
                   {/* CENTER: Student Information */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.2mm' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5mm' }}>
                     {/* Full Name */}
-                    <div style={{ fontSize: '3mm', fontWeight: 800, color: '#111827', lineHeight: 1.1, textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '3.5mm', fontWeight: 800, color: '#111827', lineHeight: 1.1, textTransform: 'uppercase' }}>
                       {fullName}
                     </div>
                     
                     {/* Student Details */}
-                    <div style={{ display: 'grid', gap: '0.6mm' }}>
+                    <div style={{ display: 'grid', gap: '1mm' }}>
                       {/* Matricule */}
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
-                        <span style={{ fontSize: '1.4mm', color: '#6b7280', fontWeight: 600 }}>{text.studentId}:</span>
-                        <span style={{ fontSize: '1.6mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span>
+                        <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600 }}>{text.studentId}:</span>
+                        <span style={{ fontSize: '2mm', color: '#1f2937', fontWeight: 700 }}>{studentId}</span>
                       </div>
                       
                       {/* Class */}
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
-                        <span style={{ fontSize: '1.4mm', color: '#6b7280', fontWeight: 600 }}>{text.class}:</span>
-                        <span style={{ fontSize: '1.6mm', color: '#1f2937', fontWeight: 700 }}>{student.className}</span>
+                        <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600 }}>{text.class}:</span>
+                        <span style={{ fontSize: '2mm', color: '#1f2937', fontWeight: 700 }}>{student.className}</span>
                       </div>
                       
                       {/* Birth Date */}
                       {formattedBirthDate && (
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
-                          <span style={{ fontSize: '1.4mm', color: '#6b7280', fontWeight: 600 }}>{text.birthDate}</span>
-                          <span style={{ fontSize: '1.6mm', color: '#1f2937', fontWeight: 600 }}>{formattedBirthDate}</span>
+                          <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600 }}>{text.birthDate}</span>
+                          <span style={{ fontSize: '2mm', color: '#1f2937', fontWeight: 600 }}>{formattedBirthDate}</span>
                         </div>
                       )}
                       
                       {/* Birth Place */}
                       {birthPlaceValue && (
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '1mm' }}>
-                          <span style={{ fontSize: '1.4mm', color: '#6b7280', fontWeight: 600 }}>{text.birthPlace}</span>
-                          <span style={{ fontSize: '1.6mm', color: '#1f2937', fontWeight: 600 }}>{birthPlaceValue}</span>
+                          <span style={{ fontSize: '1.8mm', color: '#6b7280', fontWeight: 600 }}>{text.birthPlace}</span>
+                          <span style={{ fontSize: '2mm', color: '#1f2937', fontWeight: 600 }}>{birthPlaceValue}</span>
                         </div>
                       )}
                     </div>
@@ -1190,23 +1190,22 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                       background: `linear-gradient(90deg, ${cardColors.accent}15 0%, ${cardColors.accent}25 100%)`,
                       border: `0.2mm solid ${cardColors.accent}88`,
                       borderRadius: '1mm',
-                      padding: '1.2mm',
-                      marginTop: '0.5mm'
+                      padding: '1.5mm',
+                      marginTop: 'auto'
                     }}>
-                      <div style={{ fontSize: '1.4mm', fontWeight: 700, color: cardColors.accent, marginBottom: '0.4mm', display: 'flex', alignItems: 'center', gap: '0.5mm', filter: 'brightness(0.7)' }}>
+                      <div style={{ fontSize: '1.8mm', fontWeight: 700, color: cardColors.accent, marginBottom: '0.5mm', display: 'flex', alignItems: 'center', gap: '0.5mm', filter: 'brightness(0.7)' }}>
                         ⚠ {text.emergencyContact}
                       </div>
-                      <div style={{ fontSize: '1.4mm', color: cardColors.accent, lineHeight: 1.2, filter: 'brightness(0.6)' }}>
+                      <div style={{ fontSize: '1.8mm', color: cardColors.accent, lineHeight: 1.3, filter: 'brightness(0.6)' }}>
                         {student.parentName || 'Parent/Tuteur'} • {student.parentPhone || '+237 XXX XXX XXX'}
                       </div>
                     </div>
                   </div>
                   
-                  {/* RIGHT: QR Code (smaller) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5mm' }}>
-                    <canvas ref={qrCanvasBackRef} style={{ width: '14mm', height: '14mm', border: '0.2mm solid #e5e7eb', borderRadius: '1mm', padding: '0.3mm', background: 'white' }} />
-                    <span style={{ fontSize: '1.1mm', color: '#6b7280', textAlign: 'center', fontWeight: 500 }}>{text.scanToVerify}</span>
-                    <span style={{ fontSize: '1mm', color: cardColors.secondary, fontFamily: "'Courier New', monospace" }}>{text.verifyAt}</span>
+                  {/* RIGHT: QR Code (small) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: '0.3mm', paddingTop: '1mm' }}>
+                    <canvas ref={qrCanvasBackRef} style={{ width: '10mm', height: '10mm', border: '0.15mm solid #e5e7eb', borderRadius: '0.8mm', padding: '0.2mm', background: 'white' }} />
+                    <span style={{ fontSize: '0.9mm', color: '#6b7280', textAlign: 'center', fontWeight: 500 }}>{text.scanToVerify}</span>
                   </div>
                 </div>
                 
