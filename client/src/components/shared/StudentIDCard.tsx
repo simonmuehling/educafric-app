@@ -45,6 +45,8 @@ interface SchoolData {
       primaryColor?: string;
       secondaryColor?: string;
       accentColor?: string;
+      frontBgColor?: string;
+      backBgColor?: string;
     };
   };
 }
@@ -70,7 +72,9 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
   const cardColors = {
     primary: school.settings?.cardColors?.primaryColor || '#059669',
     secondary: school.settings?.cardColors?.secondaryColor || '#1e40af',
-    accent: school.settings?.cardColors?.accentColor || '#f59e0b'
+    accent: school.settings?.cardColors?.accentColor || '#f59e0b',
+    frontBg: school.settings?.cardColors?.frontBgColor || '#ffffff',
+    backBg: school.settings?.cardColors?.backBgColor || '#f8fafc'
   };
   
   // Fetch principal's digital signature for the school
@@ -249,7 +253,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
       
       /* FRONT CARD STYLES - FULL COLOR */
       .front-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%) !important;
+        background: linear-gradient(135deg, ${cardColors.frontBg} 0%, ${cardColors.frontBg}f5 50%, ${cardColors.frontBg}ee 100%) !important;
         border: 0.5mm solid #e2e8f0 !important;
       }
       
@@ -512,7 +516,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
       
       /* BACK CARD STYLES - FULL COLOR */
       .back-card {
-        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%) !important;
+        background: linear-gradient(135deg, ${cardColors.backBg} 0%, ${cardColors.backBg}f5 50%, ${cardColors.backBg}ee 100%) !important;
         border: 0.5mm solid #e2e8f0 !important;
       }
       
@@ -928,7 +932,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                 position: 'relative',
                 overflow: 'hidden',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
+                background: `linear-gradient(135deg, ${cardColors.frontBg} 0%, ${cardColors.frontBg}f5 50%, ${cardColors.frontBg}ee 100%)`,
                 border: '0.5mm solid #e2e8f0',
                 fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
                 display: showBack ? 'none' : 'block'
@@ -1094,7 +1098,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                 position: 'relative',
                 overflow: 'hidden',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
-                background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)',
+                background: `linear-gradient(135deg, ${cardColors.backBg} 0%, ${cardColors.backBg}f5 50%, ${cardColors.backBg}ee 100%)`,
                 border: '0.5mm solid #e2e8f0',
                 fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
                 display: showBack ? 'block' : 'none'
@@ -1256,7 +1260,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                   borderRadius: '3mm',
                   position: 'relative',
                   overflow: 'hidden',
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
+                  background: `linear-gradient(135deg, ${cardColors.frontBg} 0%, ${cardColors.frontBg}f5 50%, ${cardColors.frontBg}ee 100%)`,
                   border: '0.5mm solid #e2e8f0',
                   fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
                 }}
@@ -1268,7 +1272,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                   transform: 'translate(-50%, -50%) rotate(-30deg)',
                   fontSize: '18mm',
                   fontWeight: 800,
-                  color: 'rgba(16, 185, 129, 0.03)',
+                  color: `${cardColors.primary}08`,
                   whiteSpace: 'nowrap',
                   pointerEvents: 'none',
                   zIndex: 1,
@@ -1280,14 +1284,14 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                 <div style={{
                   position: 'absolute',
                   top: 0, left: 0, right: 0, bottom: 0,
-                  backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2mm, rgba(16, 185, 129, 0.02) 2mm, rgba(16, 185, 129, 0.02) 4mm), repeating-linear-gradient(-45deg, transparent, transparent 2mm, rgba(16, 185, 129, 0.02) 2mm, rgba(16, 185, 129, 0.02) 4mm)',
+                  backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 2mm, ${cardColors.primary}05 2mm, ${cardColors.primary}05 4mm), repeating-linear-gradient(-45deg, transparent, transparent 2mm, ${cardColors.primary}05 2mm, ${cardColors.primary}05 4mm)`,
                   pointerEvents: 'none',
                   zIndex: 0
                 }} />
                 
                 <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', padding: '2.5mm' }}>
                   <div style={{
-                    background: 'linear-gradient(90deg, #059669 0%, #10b981 50%, #34d399 100%)',
+                    background: `linear-gradient(90deg, ${cardColors.primary} 0%, ${cardColors.primary}dd 50%, ${cardColors.primary}aa 100%)`,
                     height: '8mm',
                     margin: '-2.5mm -2.5mm 2mm -2.5mm',
                     display: 'flex',
@@ -1298,13 +1302,13 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
                     {school.logoUrl ? (
                       <img src={school.logoUrl} alt="Logo" style={{ width: '6mm', height: '6mm', borderRadius: '1mm', objectFit: 'contain', background: 'white', padding: '0.3mm' }} />
                     ) : (
-                      <div style={{ width: '6mm', height: '6mm', background: 'white', borderRadius: '1mm', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3.5mm', fontWeight: 800, color: '#059669' }}>E</div>
+                      <div style={{ width: '6mm', height: '6mm', background: 'white', borderRadius: '1mm', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3.5mm', fontWeight: 800, color: cardColors.primary }}>E</div>
                     )}
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '2.8mm', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{school.name}</div>
                       <div style={{ fontSize: '1.6mm', color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontStyle: 'italic' }}>{school.slogan || school.tagline || 'Excellence • Discipline • Intégrité'}</div>
                     </div>
-                    <div style={{ background: 'rgba(255,255,255,0.95)', color: '#059669', fontSize: '1.8mm', fontWeight: 700, padding: '1mm 2mm', borderRadius: '1mm', textTransform: 'uppercase' }}>{text.studentCard}</div>
+                    <div style={{ background: 'rgba(255,255,255,0.95)', color: cardColors.primary, fontSize: '1.8mm', fontWeight: 700, padding: '1mm 2mm', borderRadius: '1mm', textTransform: 'uppercase' }}>{text.studentCard}</div>
                   </div>
                   
                   <div style={{ display: 'flex', gap: '3mm', flex: 1 }}>

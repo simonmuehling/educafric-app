@@ -1198,13 +1198,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/director/school-settings/card-colors", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      const { primaryColor, secondaryColor, accentColor } = req.body;
+      const { primaryColor, secondaryColor, accentColor, frontBgColor, backBgColor } = req.body;
       
       if (!user.schoolId) {
         return res.status(403).json({ success: false, message: 'School access required' });
       }
       
-      console.log('[CARD_COLORS] Saving colors for school:', user.schoolId, { primaryColor, secondaryColor, accentColor });
+      console.log('[CARD_COLORS] Saving colors for school:', user.schoolId, { primaryColor, secondaryColor, accentColor, frontBgColor, backBgColor });
       
       // Get current settings and merge with new card colors
       const [schoolInfo] = await db.select({ settings: schools.settings }).from(schools).where(eq(schools.id, user.schoolId)).limit(1);
@@ -1215,7 +1215,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cardColors: {
           primaryColor: primaryColor || '#059669',
           secondaryColor: secondaryColor || '#1e40af',
-          accentColor: accentColor || '#f59e0b'
+          accentColor: accentColor || '#f59e0b',
+          frontBgColor: frontBgColor || '#ffffff',
+          backBgColor: backBgColor || '#f8fafc'
         }
       };
       
