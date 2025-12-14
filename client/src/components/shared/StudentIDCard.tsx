@@ -135,7 +135,7 @@ export function StudentIDCard({ student, school, isOpen, onClose, validUntil, sc
         try {
           const verificationUrl = `${window.location.origin}/verify?type=student&id=${student.id}&code=${cardId}&year=${academicYear}`;
           await QRCode.toCanvas(qrCanvasBackRef.current, verificationUrl, {
-            width: 150,
+            width: 60,
             margin: 1,
             color: { dark: '#1e40af', light: '#ffffff' },
             errorCorrectionLevel: 'M'
