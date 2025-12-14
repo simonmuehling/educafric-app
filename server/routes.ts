@@ -13317,7 +13317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as { schoolId: number; role: string };
       const schoolId = user.schoolId || 999; // Fallback to sandbox for demo
       
-      // Fetch real school data from database (select only existing columns)
+      // Fetch real school data from database (select only existing columns including settings for cardColors)
       const schoolQuery = await db.select({
         id: schools.id,
         name: schools.name,
@@ -13331,7 +13331,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         boitePostale: schools.boitePostale,
         arrondissement: schools.arrondissement,
         academicYear: schools.academicYear,
-        currentTerm: schools.currentTerm
+        currentTerm: schools.currentTerm,
+        settings: schools.settings
       }).from(schools).where(eq(schools.id, schoolId)).limit(1);
       
       if (schoolQuery.length === 0) {
@@ -13376,7 +13377,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           boitePostale: school.boitePostale,
           arrondissement: school.arrondissement,
           academicYear: school.academicYear,
-          currentTerm: school.currentTerm
+          currentTerm: school.currentTerm,
+          settings: school.settings || {}
         }
       });
     } catch (error) {

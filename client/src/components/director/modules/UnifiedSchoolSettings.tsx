@@ -1597,14 +1597,23 @@ const UnifiedSchoolSettings: React.FC = () => {
                       type="color"
                       id="primaryColor"
                       value={cardColors.primaryColor}
-                      onChange={(e) => setCardColors(prev => ({ ...prev, primaryColor: e.target.value }))}
+                      onChange={(e) => {
+                        const newColor = e.target.value;
+                        setCardColors(prev => ({ ...prev, primaryColor: newColor }));
+                      }}
+                      onInput={(e) => {
+                        const newColor = (e.target as HTMLInputElement).value;
+                        setCardColors(prev => ({ ...prev, primaryColor: newColor }));
+                      }}
                       className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
+                      style={{ backgroundColor: cardColors.primaryColor }}
                       data-testid="input-primary-color"
                     />
                     <Input
                       value={cardColors.primaryColor}
                       onChange={(e) => setCardColors(prev => ({ ...prev, primaryColor: e.target.value }))}
                       className="flex-1 font-mono"
+                      placeholder="#059669"
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">{t.primaryColorHint}</p>
@@ -1617,14 +1626,23 @@ const UnifiedSchoolSettings: React.FC = () => {
                       type="color"
                       id="secondaryColor"
                       value={cardColors.secondaryColor}
-                      onChange={(e) => setCardColors(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                      onChange={(e) => {
+                        const newColor = e.target.value;
+                        setCardColors(prev => ({ ...prev, secondaryColor: newColor }));
+                      }}
+                      onInput={(e) => {
+                        const newColor = (e.target as HTMLInputElement).value;
+                        setCardColors(prev => ({ ...prev, secondaryColor: newColor }));
+                      }}
                       className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
+                      style={{ backgroundColor: cardColors.secondaryColor }}
                       data-testid="input-secondary-color"
                     />
                     <Input
                       value={cardColors.secondaryColor}
                       onChange={(e) => setCardColors(prev => ({ ...prev, secondaryColor: e.target.value }))}
                       className="flex-1 font-mono"
+                      placeholder="#1e40af"
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">{t.secondaryColorHint}</p>
@@ -1637,14 +1655,23 @@ const UnifiedSchoolSettings: React.FC = () => {
                       type="color"
                       id="accentColor"
                       value={cardColors.accentColor}
-                      onChange={(e) => setCardColors(prev => ({ ...prev, accentColor: e.target.value }))}
+                      onChange={(e) => {
+                        const newColor = e.target.value;
+                        setCardColors(prev => ({ ...prev, accentColor: newColor }));
+                      }}
+                      onInput={(e) => {
+                        const newColor = (e.target as HTMLInputElement).value;
+                        setCardColors(prev => ({ ...prev, accentColor: newColor }));
+                      }}
                       className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
+                      style={{ backgroundColor: cardColors.accentColor }}
                       data-testid="input-accent-color"
                     />
                     <Input
                       value={cardColors.accentColor}
                       onChange={(e) => setCardColors(prev => ({ ...prev, accentColor: e.target.value }))}
                       className="flex-1 font-mono"
+                      placeholder="#f59e0b"
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">{t.accentColorHint}</p>
@@ -1660,15 +1687,23 @@ const UnifiedSchoolSettings: React.FC = () => {
                       type="color"
                       id="frontBgColor"
                       value={cardColors.frontBgColor}
-                      onChange={(e) => setCardColors(prev => ({ ...prev, frontBgColor: e.target.value }))}
-                      onInput={(e) => setCardColors(prev => ({ ...prev, frontBgColor: (e.target as HTMLInputElement).value }))}
+                      onChange={(e) => {
+                        const newColor = e.target.value;
+                        setCardColors(prev => ({ ...prev, frontBgColor: newColor }));
+                      }}
+                      onInput={(e) => {
+                        const newColor = (e.target as HTMLInputElement).value;
+                        setCardColors(prev => ({ ...prev, frontBgColor: newColor }));
+                      }}
                       className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
+                      style={{ backgroundColor: cardColors.frontBgColor }}
                       data-testid="input-front-bg-color"
                     />
                     <Input
                       value={cardColors.frontBgColor}
                       onChange={(e) => setCardColors(prev => ({ ...prev, frontBgColor: e.target.value }))}
                       className="flex-1 font-mono"
+                      placeholder="#ffffff"
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">{t.frontBgColorHint}</p>
@@ -1681,15 +1716,23 @@ const UnifiedSchoolSettings: React.FC = () => {
                       type="color"
                       id="backBgColor"
                       value={cardColors.backBgColor}
-                      onChange={(e) => setCardColors(prev => ({ ...prev, backBgColor: e.target.value }))}
-                      onInput={(e) => setCardColors(prev => ({ ...prev, backBgColor: (e.target as HTMLInputElement).value }))}
+                      onChange={(e) => {
+                        const newColor = e.target.value;
+                        setCardColors(prev => ({ ...prev, backBgColor: newColor }));
+                      }}
+                      onInput={(e) => {
+                        const newColor = (e.target as HTMLInputElement).value;
+                        setCardColors(prev => ({ ...prev, backBgColor: newColor }));
+                      }}
                       className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
+                      style={{ backgroundColor: cardColors.backBgColor }}
                       data-testid="input-back-bg-color"
                     />
                     <Input
                       value={cardColors.backBgColor}
                       onChange={(e) => setCardColors(prev => ({ ...prev, backBgColor: e.target.value }))}
                       className="flex-1 font-mono"
+                      placeholder="#f8fafc"
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">{t.backBgColorHint}</p>
@@ -1705,8 +1748,9 @@ const UnifiedSchoolSettings: React.FC = () => {
                   
                   {/* Front Card Preview - NEW DESIGN */}
                   <div 
+                    key={`front-preview-${cardColors.frontBgColor}-${cardColors.primaryColor}`}
                     className="w-[320px] h-[200px] rounded-xl shadow-lg overflow-hidden border relative"
-                    style={{ background: cardColors.frontBgColor }}
+                    style={{ backgroundColor: cardColors.frontBgColor }}
                   >
                     {/* TOP: Bilingual Headers with Flag */}
                     <div className="flex justify-between items-start px-2 pt-1.5 gap-1">
@@ -1767,8 +1811,9 @@ const UnifiedSchoolSettings: React.FC = () => {
 
                   {/* Back Card Preview - NEW DESIGN */}
                   <div 
+                    key={`back-preview-${cardColors.backBgColor}-${cardColors.secondaryColor}`}
                     className="w-[320px] h-[200px] rounded-xl shadow-lg overflow-hidden border"
-                    style={{ background: cardColors.backBgColor }}
+                    style={{ backgroundColor: cardColors.backBgColor }}
                   >
                     {/* Header */}
                     <div 
