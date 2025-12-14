@@ -88,9 +88,11 @@ const UnifiedSchoolSettings: React.FC = () => {
   
   // ID Card color customization state
   const [cardColors, setCardColors] = useState({
-    primaryColor: '#059669', // Default emerald/green
-    secondaryColor: '#1e40af', // Default blue
-    accentColor: '#f59e0b' // Default amber for emergency section
+    primaryColor: '#059669', // Default emerald/green - school name banner
+    secondaryColor: '#1e40af', // Default blue - back header
+    accentColor: '#f59e0b', // Default amber for emergency section
+    frontBgColor: '#ffffff', // Front card background
+    backBgColor: '#f8fafc' // Back card background
   });
   
   // Manual ID Card creation state
@@ -215,12 +217,16 @@ const UnifiedSchoolSettings: React.FC = () => {
       idCardTab: 'Carte d\'Identité',
       idCardTitle: 'Personnalisation Carte d\'Identité',
       idCardDescription: 'Personnalisez les couleurs de la carte d\'identité de vos élèves',
-      primaryColor: 'Couleur Principale',
-      primaryColorHint: 'Couleur de l\'en-tête et des accents (par défaut: vert)',
-      secondaryColor: 'Couleur Secondaire',
-      secondaryColorHint: 'Couleur du dos de la carte (par défaut: bleu)',
-      accentColor: 'Couleur d\'Accent',
+      primaryColor: 'Couleur Bannière École',
+      primaryColorHint: 'Couleur du bandeau nom école sur le recto (par défaut: vert)',
+      secondaryColor: 'Couleur En-tête Verso',
+      secondaryColorHint: 'Couleur de l\'en-tête du verso (par défaut: bleu)',
+      accentColor: 'Couleur Contact Urgence',
       accentColorHint: 'Couleur de la section urgence (par défaut: orange)',
+      frontBgColor: 'Arrière-plan Recto',
+      frontBgColorHint: 'Couleur de fond de la carte recto (par défaut: blanc)',
+      backBgColor: 'Arrière-plan Verso',
+      backBgColorHint: 'Couleur de fond de la carte verso (par défaut: gris clair)',
       previewCard: 'Aperçu de la Carte',
       resetColors: 'Réinitialiser les couleurs',
       saveColors: 'Enregistrer les couleurs',
@@ -348,12 +354,16 @@ const UnifiedSchoolSettings: React.FC = () => {
       idCardTab: 'ID Card',
       idCardTitle: 'ID Card Customization',
       idCardDescription: 'Customize the colors of your students\' ID cards',
-      primaryColor: 'Primary Color',
-      primaryColorHint: 'Header and accent color (default: green)',
-      secondaryColor: 'Secondary Color',
-      secondaryColorHint: 'Back of card color (default: blue)',
-      accentColor: 'Accent Color',
+      primaryColor: 'School Banner Color',
+      primaryColorHint: 'School name banner on front (default: green)',
+      secondaryColor: 'Back Header Color',
+      secondaryColorHint: 'Back card header color (default: blue)',
+      accentColor: 'Emergency Color',
       accentColorHint: 'Emergency section color (default: orange)',
+      frontBgColor: 'Front Background',
+      frontBgColorHint: 'Front card background color (default: white)',
+      backBgColor: 'Back Background',
+      backBgColorHint: 'Back card background color (default: light gray)',
       previewCard: 'Card Preview',
       resetColors: 'Reset colors',
       saveColors: 'Save colors',
@@ -439,7 +449,9 @@ const UnifiedSchoolSettings: React.FC = () => {
         setCardColors({
           primaryColor: schoolProfile.settings.cardColors.primaryColor || '#059669',
           secondaryColor: schoolProfile.settings.cardColors.secondaryColor || '#1e40af',
-          accentColor: schoolProfile.settings.cardColors.accentColor || '#f59e0b'
+          accentColor: schoolProfile.settings.cardColors.accentColor || '#f59e0b',
+          frontBgColor: schoolProfile.settings.cardColors.frontBgColor || '#ffffff',
+          backBgColor: schoolProfile.settings.cardColors.backBgColor || '#f8fafc'
         });
       }
     }
@@ -1637,36 +1649,139 @@ const UnifiedSchoolSettings: React.FC = () => {
                 </div>
               </div>
 
+              {/* Background Colors Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="frontBgColor">{t.frontBgColor}</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      id="frontBgColor"
+                      value={cardColors.frontBgColor}
+                      onChange={(e) => setCardColors(prev => ({ ...prev, frontBgColor: e.target.value }))}
+                      className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
+                      data-testid="input-front-bg-color"
+                    />
+                    <Input
+                      value={cardColors.frontBgColor}
+                      onChange={(e) => setCardColors(prev => ({ ...prev, frontBgColor: e.target.value }))}
+                      className="flex-1 font-mono"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t.frontBgColorHint}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="backBgColor">{t.backBgColor}</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      id="backBgColor"
+                      value={cardColors.backBgColor}
+                      onChange={(e) => setCardColors(prev => ({ ...prev, backBgColor: e.target.value }))}
+                      className="w-12 h-12 rounded-lg cursor-pointer border border-gray-300"
+                      data-testid="input-back-bg-color"
+                    />
+                    <Input
+                      value={cardColors.backBgColor}
+                      onChange={(e) => setCardColors(prev => ({ ...prev, backBgColor: e.target.value }))}
+                      className="flex-1 font-mono"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t.backBgColorHint}</p>
+                </div>
+              </div>
+
               <Separator />
 
-              {/* Live Preview */}
+              {/* Live Preview - NEW OFFICIAL DESIGN */}
               <div className="space-y-3">
                 <Label className="text-base font-semibold">{t.previewCard}</Label>
                 <div className="flex flex-col md:flex-row gap-6 justify-center items-center p-6 bg-gray-100 rounded-lg">
-                  {/* Front Card Preview */}
+                  
+                  {/* Front Card Preview - NEW DESIGN */}
+                  <div 
+                    className="w-[320px] h-[200px] rounded-xl shadow-lg overflow-hidden border relative"
+                    style={{ background: cardColors.frontBgColor }}
+                  >
+                    {/* TOP: Bilingual Headers with Flag */}
+                    <div className="flex justify-between items-start px-2 pt-1.5 gap-1">
+                      <div className="text-center flex-1">
+                        <div className="text-[6px] font-bold text-gray-800">RÉPUBLIQUE DU CAMEROUN</div>
+                        <div className="text-[5px] text-gray-500 italic">Paix - Travail - Patrie</div>
+                        <div className="text-[4px] text-gray-600">MIN. ENS. SECONDAIRES</div>
+                      </div>
+                      <div className="text-lg">🇨🇲</div>
+                      <div className="text-center flex-1">
+                        <div className="text-[6px] font-bold text-gray-800">REPUBLIC OF CAMEROON</div>
+                        <div className="text-[5px] text-gray-500 italic">Peace - Work - Fatherland</div>
+                        <div className="text-[4px] text-gray-600">MIN. SEC. EDUCATION</div>
+                      </div>
+                    </div>
+                    
+                    {/* School Name Banner */}
+                    <div 
+                      className="mx-0 py-1.5 text-center mt-1"
+                      style={{ background: `linear-gradient(90deg, ${cardColors.primaryColor} 0%, ${cardColors.primaryColor}dd 100%)` }}
+                    >
+                      <div className="text-[10px] font-bold text-white uppercase tracking-wide truncate px-2">
+                        {schoolProfile?.name || 'NOM DE L\'ÉCOLE'}
+                      </div>
+                    </div>
+                    
+                    {/* Logo + Validity Row */}
+                    <div className="flex items-center justify-between px-2 py-1.5">
+                      <div className="text-[5px] text-gray-500 text-center flex-1">
+                        Validité: 1 an à compter<br/>de la date de signature
+                      </div>
+                      <div className="w-8 h-8 bg-white rounded border flex items-center justify-center text-lg font-bold" style={{ color: cardColors.primaryColor }}>
+                        {schoolProfile?.logoUrl ? (
+                          <img src={schoolProfile.logoUrl} alt="Logo" className="w-7 h-7 object-contain" />
+                        ) : 'E'}
+                      </div>
+                      <div className="text-[5px] text-gray-500 text-center flex-1">
+                        Validity: 1 year from<br/>the date of signature
+                      </div>
+                    </div>
+                    
+                    {/* School Info Row */}
+                    <div className="flex justify-center gap-2 text-[5px] text-gray-600 px-2">
+                      <span>📮 B.P. XXX</span>
+                      <span>📍 Ville</span>
+                      <span>📞 {schoolProfile?.phone || '+237 XXX'}</span>
+                    </div>
+                    
+                    {/* Bottom: Card Type */}
+                    <div className="absolute bottom-0 left-0 right-0 text-center border-t py-1 bg-white/50">
+                      <div className="text-[8px] font-bold uppercase" style={{ color: cardColors.primaryColor }}>
+                        SCHOOL IDENTITY CARD - 2024-2025
+                      </div>
+                      <div className="text-[6px] text-gray-600 uppercase">CARTE D'IDENTITÉ SCOLAIRE</div>
+                      <div className="text-[4px] text-gray-400">edited by educafric.com</div>
+                    </div>
+                  </div>
+
+                  {/* Back Card Preview - NEW DESIGN */}
                   <div 
                     className="w-[320px] h-[200px] rounded-xl shadow-lg overflow-hidden border"
-                    style={{ background: `linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)` }}
+                    style={{ background: cardColors.backBgColor }}
                   >
                     {/* Header */}
                     <div 
-                      className="h-[30px] flex items-center px-3 gap-2"
-                      style={{ background: `linear-gradient(90deg, ${cardColors.primaryColor} 0%, ${cardColors.primaryColor}dd 100%)` }}
+                      className="h-[20px] flex items-center justify-center"
+                      style={{ background: `linear-gradient(90deg, ${cardColors.secondaryColor} 0%, ${cardColors.secondaryColor}dd 100%)` }}
                     >
-                      <div className="w-5 h-5 bg-white rounded flex items-center justify-center text-xs font-bold" style={{ color: cardColors.primaryColor }}>E</div>
-                      <div className="flex-1">
-                        <div className="text-[10px] font-bold text-white truncate">{schoolProfile?.name || 'ÉCOLE EXAMPLE'}</div>
-                        <div className="text-[7px] text-white/80">{schoolProfile?.slogan || 'Excellence et Discipline'}</div>
-                      </div>
-                      <div className="bg-white/90 px-2 py-0.5 rounded text-[7px] font-bold" style={{ color: cardColors.primaryColor }}>
-                        ÉLÈVE
+                      <div className="text-[8px] font-bold text-white uppercase tracking-wider">
+                        {language === 'fr' ? 'INFORMATIONS ÉLÈVE' : 'STUDENT INFORMATION'}
                       </div>
                     </div>
                     {/* Content */}
-                    <div className="p-3 flex gap-3">
-                      <div className="w-[70px] h-[85px] bg-gray-200 rounded flex items-center justify-center">
-                        <Users className="w-8 h-8 text-gray-400" />
+                    <div className="p-2 flex gap-3">
+                      {/* Photo */}
+                      <div className="w-[60px] h-[75px] bg-gray-200 rounded flex items-center justify-center">
+                        <Users className="w-6 h-6 text-gray-400" />
                       </div>
+                      {/* Info */}
                       <div className="flex-1">
                         <div className="font-bold text-sm text-gray-900">NOM PRÉNOM</div>
                         <div className="text-[9px] text-gray-600 space-y-0.5 mt-1">
@@ -1674,65 +1789,43 @@ const UnifiedSchoolSettings: React.FC = () => {
                           <div>Classe: 3ème A</div>
                           <div>Matricule: EDU-2024-001</div>
                         </div>
-                        <div 
-                          className="mt-2 inline-block px-2 py-0.5 rounded text-[8px] font-medium"
-                          style={{ 
-                            background: `${cardColors.primaryColor}20`,
-                            color: cardColors.primaryColor,
-                            border: `1px solid ${cardColors.primaryColor}40`
-                          }}
-                        >
-                          Valide jusqu'au: 31 Août 2025
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Back Card Preview */}
-                  <div 
-                    className="w-[320px] h-[200px] rounded-xl shadow-lg overflow-hidden border"
-                    style={{ background: `linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)` }}
-                  >
-                    {/* Header */}
-                    <div 
-                      className="h-[24px] flex items-center justify-center"
-                      style={{ background: `linear-gradient(90deg, ${cardColors.secondaryColor} 0%, ${cardColors.secondaryColor}dd 100%)` }}
-                    >
-                      <div className="text-[9px] font-bold text-white uppercase tracking-wider">Informations & Vérification</div>
-                    </div>
-                    {/* Content */}
-                    <div className="p-3 flex gap-3">
-                      <div className="flex-1 space-y-2">
                         {/* Emergency Contact */}
                         <div 
-                          className="p-2 rounded-lg"
+                          className="mt-1 p-1 rounded text-[7px]"
                           style={{ 
                             background: `${cardColors.accentColor}15`,
                             border: `1px solid ${cardColors.accentColor}40`
                           }}
                         >
-                          <div className="text-[8px] font-bold" style={{ color: cardColors.accentColor }}>
-                            CONTACT D'URGENCE
-                          </div>
-                          <div className="text-[7px] text-gray-600 mt-0.5">
-                            Parent: +237 6XX XXX XXX
-                          </div>
-                        </div>
-                        {/* School Contact */}
-                        <div className="p-2 bg-gray-100 rounded-lg">
-                          <div className="text-[8px] font-bold text-gray-700">COORDONNÉES ÉCOLE</div>
-                          <div className="text-[7px] text-gray-500 mt-0.5">{schoolProfile?.phone || '+237 XXX XXX XXX'}</div>
+                          <div className="font-bold" style={{ color: cardColors.accentColor }}>⚠ Contact Urgence</div>
+                          <div className="text-gray-600">Parent • +237 6XX XXX XXX</div>
                         </div>
                       </div>
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 bg-white border rounded flex items-center justify-center">
-                          <div className="grid grid-cols-4 gap-0.5">
-                            {[...Array(16)].map((_, i) => (
-                              <div key={i} className="w-1.5 h-1.5 bg-gray-800 rounded-sm" />
+                      {/* Small QR */}
+                      <div className="flex flex-col items-center justify-start">
+                        <div className="w-10 h-10 bg-white border rounded flex items-center justify-center">
+                          <div className="grid grid-cols-3 gap-0.5">
+                            {[...Array(9)].map((_, i) => (
+                              <div key={i} className="w-1 h-1 bg-blue-800 rounded-sm" />
                             ))}
                           </div>
                         </div>
-                        <div className="text-[7px] text-gray-400 mt-1">Scanner pour vérifier</div>
+                        <div className="text-[5px] text-gray-400 mt-0.5">SCAN</div>
+                      </div>
+                    </div>
+                    {/* Signatures */}
+                    <div className="flex justify-between px-3 pt-1 border-t text-[6px] text-gray-500">
+                      <div className="text-center">
+                        <div className="w-12 border-b mb-0.5"></div>
+                        <div>Directeur</div>
+                      </div>
+                      <div className="text-center text-[5px]">
+                        <div>EDU-2024-001</div>
+                        <div>14 déc. 2025</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 border-b mb-0.5"></div>
+                        <div>Élève</div>
                       </div>
                     </div>
                   </div>
@@ -1744,7 +1837,7 @@ const UnifiedSchoolSettings: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setCardColors({ primaryColor: '#059669', secondaryColor: '#1e40af', accentColor: '#f59e0b' });
+                    setCardColors({ primaryColor: '#059669', secondaryColor: '#1e40af', accentColor: '#f59e0b', frontBgColor: '#ffffff', backBgColor: '#f8fafc' });
                     toast({ description: t.colorsReset });
                   }}
                   data-testid="button-reset-colors"
