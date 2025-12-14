@@ -2455,6 +2455,7 @@ export class ExcelImportService {
     const isRepeaterCol = headers.findIndex(h => h && (h.includes('Redoublant') || h.includes('Repeater')));
     const phoneCol = headers.findIndex(h => h && h.includes('Téléphone') && !h.includes('Parent'));
     const parentPhoneCol = headers.findIndex(h => h && (h.includes('TéléphoneParent') || h.includes('ParentPhone')));
+    const photoUrlCol = headers.findIndex(h => h && (h.includes('URLPhoto') || h.includes('PhotoURL') || h.includes('Photo')));
     
     for (let i = 1; i < jsonData.length; i++) {
       const row = jsonData[i] as any[];
@@ -2515,6 +2516,23 @@ export class ExcelImportService {
         const normalized = this.normalizePhone(original);
         if (normalized !== original) {
           row[parentPhoneCol] = normalized;
+          fixCount++;
+        }
+      }
+      
+      // Normalize photo URL (trim whitespace, add https:// if missing)
+      if (photoUrlCol !== -1 && row[photoUrlCol]) {
+        const original = String(row[photoUrlCol]);
+        let normalized = original.trim();
+        // Add https:// if URL doesn't have protocol
+        if (normalized && !normalized.startsWith('http://') && !normalized.startsWith('https://')) {
+          if (normalized.startsWith('www.') || normalized.includes('.')) {
+            normalized = 'https://' + normalized;
+          }
+        }
+        // Always write back if trimmed or protocol added
+        if (normalized !== original) {
+          row[photoUrlCol] = normalized;
           fixCount++;
         }
       }
