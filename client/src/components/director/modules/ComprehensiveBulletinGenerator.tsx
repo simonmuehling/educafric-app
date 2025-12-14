@@ -35,6 +35,7 @@ import {
 } from '@shared/schemas/sanctionsSchema';
 import { useStudentSanctions, useCreateSanction, useDeleteSanction, useRevokeSanction } from '@/hooks/useSanctions';
 import { cn } from '@/lib/utils';
+import { formatName } from '@/utils/formatName';
 import { 
   FileText, 
   Download, 
@@ -1735,7 +1736,7 @@ export default function ComprehensiveBulletinGenerator() {
         const student = filteredStudents.find(s => s.id === selectedStudentForEntry);
         return {
           key,
-          studentName: student ? `${student.firstName} ${student.lastName}` : 'Élève inconnu',
+          studentName: student ? formatName(student.firstName, student.lastName, language) : 'Élève inconnu',
           date: draft.savedAt ? new Date(draft.savedAt).toLocaleString('fr-FR') : 'Date inconnue',
           classId: selectedClass || '',
           term: selectedTerm
@@ -2025,7 +2026,7 @@ export default function ComprehensiveBulletinGenerator() {
   const extractEmailDataFromBulletin = (bulletin: any) => {
     return {
       bulletinId: bulletin.id,
-      studentName: bulletin.studentName || bulletin.student?.firstName + ' ' + bulletin.student?.lastName,
+      studentName: bulletin.studentName || formatName(bulletin.student?.firstName, bulletin.student?.lastName, language),
       studentClass: bulletin.className || bulletin.class?.name || 'Non spécifiée',
       term: bulletin.term || selectedTerm,
       academicYear: bulletin.academicYear || academicYear,
@@ -3239,7 +3240,7 @@ export default function ComprehensiveBulletinGenerator() {
                                   "text-sm font-medium",
                                   hasApprovedGrades ? "text-gray-900" : "text-gray-500"
                                 )}>
-                                  {student.firstName} {student.lastName}
+                                  {formatName(student.firstName, student.lastName, language)}
                                 </p>
                                 {qualityStatus.icon && (
                                   <div className={cn("text-xs px-2 py-0.5 rounded-full", qualityStatus.color)}>
@@ -3333,7 +3334,7 @@ export default function ComprehensiveBulletinGenerator() {
                     <SelectItem value="none">-- {language === 'fr' ? 'Sélectionner un élève' : 'Select a student'} --</SelectItem>
                     {filteredStudents.map((student) => (
                       <SelectItem key={student.id} value={student.id.toString()}>
-                        {student.firstName} {student.lastName} - {student.matricule}
+                        {formatName(student.firstName, student.lastName, language)} - {student.matricule}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -4530,7 +4531,7 @@ export default function ComprehensiveBulletinGenerator() {
                                 data-testid={`select-student-${student.id}`}
                               />
                               <Label htmlFor={`student-${student.id}`} className="cursor-pointer">
-                                {student.firstName} {student.lastName}
+                                {formatName(student.firstName, student.lastName, language)}
                               </Label>
                             </div>
                             <Button
@@ -4637,7 +4638,7 @@ export default function ComprehensiveBulletinGenerator() {
                     <SelectContent>
                       {eligibleStudentsForGeneration?.map((student) => (
                         <SelectItem key={student.id} value={student.id.toString()}>
-                          {student.firstName} {student.lastName}
+                          {formatName(student.firstName, student.lastName, language)}
                         </SelectItem>
                       ))}
                     </SelectContent>

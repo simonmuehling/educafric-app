@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Minus, Save, Archive, Send } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatName } from '@/utils/formatName';
 
 // Ministry-required Teacher Comments - EXACT from academic interface
 export const TEACHER_COMMENTS = {
@@ -714,7 +715,7 @@ export default function ManualBulletinForm({
       // Adapter les données de notre API au format attendu pour eleve (legacy format)
       setEleve({
         id: (studentProfile as any).id || studentId,
-        nom: `${(studentProfile as any).firstName || ''} ${(studentProfile as any).lastName || ''}`,
+        nom: formatName((studentProfile as any).firstName, (studentProfile as any).lastName, language),
         sexe: "M", // TODO: récupérer depuis l'API
         identifiantUnique: (studentProfile as any).matricule || studentId,
         redoublant: false,
@@ -734,7 +735,7 @@ export default function ManualBulletinForm({
 
       // Also populate extended student info (matching director interface)
       setExtendedStudent({
-        name: `${(studentProfile as any).firstName || ''} ${(studentProfile as any).lastName || ''}`,
+        name: formatName((studentProfile as any).firstName, (studentProfile as any).lastName, language),
         id: (studentProfile as any).matricule || studentId || '',
         className: (studentProfile as any).className || '',
         classSize: 58, // TODO: récupérer depuis l'API

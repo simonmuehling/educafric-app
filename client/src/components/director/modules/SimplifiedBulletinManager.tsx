@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
+import { formatName } from '@/utils/formatName';
 import { 
   FileText, 
   Download, 
@@ -589,7 +590,7 @@ export default function SimplifiedBulletinManager() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Bulletin-${studentInfo.firstName}-${studentInfo.lastName}-${selectedTerm}.pdf`;
+        a.download = `Bulletin-${formatName(studentInfo.firstName, studentInfo.lastName, language, { uppercaseLastName: false })}-${selectedTerm}.pdf`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

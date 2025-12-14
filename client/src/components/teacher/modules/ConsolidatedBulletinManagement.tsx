@@ -13,6 +13,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { formatName } from '@/utils/formatName';
 import BulletinCreationInterface from '@/components/academic/BulletinCreationInterface';
 import { 
   FileText, 
@@ -253,7 +254,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
   const filteredStudents = useMemo(() => {
     if (!searchQuery) return students;
     return students.filter((student: any) => 
-      `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      formatName(student.firstName, student.lastName, language).toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.matricule?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [students, searchQuery]);
@@ -637,7 +638,7 @@ const ConsolidatedBulletinManagement: React.FC = () => {
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="font-medium text-sm sm:text-base truncate">
-                              {student.firstName} {student.lastName}
+                              {formatName(student.firstName, student.lastName, language)}
                             </p>
                             <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                               <span className="truncate">{student.matricule}</span>

@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { formatName } from '@/utils/formatName';
 // Preview functionality removed - only Academic Management bulletins should be previewed
 
 // Ministry-required Teacher Comments - LISTE DES COMMENTAIRES POUR L'ENSEIGNANT
@@ -289,14 +290,14 @@ const TeacherBulletinInterface: React.FC = () => {
       const selectedStudentData = students.find((s: any) => s.id.toString() === selectedStudent);
       if (selectedStudentData) {
         setStudent({
-          name: `${selectedStudentData.firstName} ${selectedStudentData.lastName}`,
+          name: formatName(selectedStudentData.firstName, selectedStudentData.lastName, language),
           id: selectedStudentData.matricule || selectedStudentData.id,
           classLabel: selectedStudentData.className || selectedStudentData.classLabel || '',
           classSize: 30,
           birthDate: selectedStudentData.dateOfBirth || '',
           birthPlace: selectedStudentData.placeOfBirth || '',
           gender: selectedStudentData.gender || '',
-          headTeacher: user?.firstName ? `${user.firstName} ${user.lastName}` : '',
+          headTeacher: user?.firstName ? formatName(user.firstName, user.lastName, language) : '',
           guardian: selectedStudentData.parentName || '',
           isRepeater: false,
           numberOfSubjects: 0,
