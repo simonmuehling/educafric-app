@@ -42,7 +42,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 
 # System Architecture
-- **UI/UX Decisions**: The platform features a custom African-themed, mobile-first, and PWA-enabled UI, built using Radix UI and Shadcn/UI with Tailwind CSS. All alert and confirmation dialogs must consistently use a `bg-white` background. A standardized Student ID Card template, optimized for mobile-friendly color printing, digital signatures, and QR codes, is uniformly applied across all schools. A dedicated sandbox environment provides realistic demo data.
+- **UI/UX Decisions**: The platform features a custom African-themed, mobile-first, and PWA-enabled UI, built using Radix UI and Shadcn/UI with Tailwind CSS. All alert and confirmation dialogs must consistently use a `bg-white` background. A standardized Student ID Card template, optimized for mobile-friendly color printing, digital signatures, and QR codes, is uniformly applied across all schools.
 - **Technical Implementations**:
     - **Frontend**: Developed with React (TypeScript), using Wouter for routing and TanStack Query for efficient data fetching. It is PWA-enabled, with a React Native application for Android.
     - **Backend**: Powered by an Express.js RESTful API.
