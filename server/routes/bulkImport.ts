@@ -697,6 +697,7 @@ router.post('/:importType/fix', requireAuth, upload.single('file'), async (req, 
 router.post('/photos/upload-zip', requireAuth, uploadZip.single('file'), async (req, res) => {
   try {
     const lang = (req.query.lang as 'fr' | 'en') || 'fr';
+    const userType = (req.query.userType as 'students' | 'teachers') || 'students';
     const schoolId = req.user?.schoolId;
     
     if (!req.file) {
@@ -723,19 +724,24 @@ router.post('/photos/upload-zip', requireAuth, uploadZip.single('file'), async (
       });
     }
     
-    console.log(`[BULK_PHOTO_API] Processing ZIP upload for school ${schoolId}, size: ${req.file.size} bytes`);
+    console.log(`[BULK_PHOTO_API] Processing ZIP upload for school ${schoolId}, userType: ${userType}, size: ${req.file.size} bytes`);
     
     const result = await bulkPhotoUploadService.processZipUpload(
       req.file.buffer,
       schoolId,
-      lang
+      lang,
+      userType
     );
+    
+    const userLabel = userType === 'teachers' 
+      ? (lang === 'fr' ? 'enseignants' : 'teachers')
+      : (lang === 'fr' ? 'élèves' : 'students');
     
     res.json({
       success: result.success,
       message: lang === 'fr'
-        ? `${result.matched} photos associées aux élèves, ${result.notMatched} non correspondues`
-        : `${result.matched} photos matched to students, ${result.notMatched} not matched`,
+        ? `${result.matched} photos associées aux ${userLabel}, ${result.notMatched} non correspondues`
+        : `${result.matched} photos matched to ${userLabel}, ${result.notMatched} not matched`,
       ...result
     });
     

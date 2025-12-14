@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed to digitalize education in Africa. Its primary goals are to reduce costs, improve educational outcomes, and provide a scalable, culturally relevant solution. The platform offers comprehensive academic management, communication tools, financial features, and offline access, aiming to make quality education accessible and affordable across Africa. The business vision is to make quality education accessible and affordable across Africa, leveraging technology to overcome geographical and economic barriers.
+Educafric is a bilingual, mobile-first EdTech platform designed to digitalize education in Africa. Its core purpose is to reduce educational costs, improve learning outcomes, and provide a scalable, culturally relevant solution. The platform offers comprehensive academic management, communication tools, financial features, and offline access, with the overarching vision of making quality education accessible and affordable across the African continent.
 
 # User Preferences
 - EXEMPTION PREMIUM PERMANENTE: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -42,16 +42,16 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 
 # System Architecture
-- **UI/UX Decisions**: The platform features a custom African-themed, mobile-first, and PWA-enabled UI, built using Radix UI and Shadcn/UI with Tailwind CSS. All alert and confirmation dialogs must consistently use a `bg-white` background. A standardized Student ID Card template, optimized for mobile-friendly color printing, digital signatures, and QR codes, is uniformly applied across all schools.
+- **UI/UX Decisions**: The platform uses a custom African-themed, mobile-first, and PWA-enabled UI, built with Radix UI and Shadcn/UI, styled with Tailwind CSS. All alert and confirmation dialogs must use a `bg-white` background. A standardized Student ID Card template, optimized for mobile-friendly color printing, digital signatures, and QR codes, is uniformly applied.
 - **Technical Implementations**:
-    - **Frontend**: Developed with React (TypeScript), using Wouter for routing and TanStack Query for efficient data fetching. It is PWA-enabled, with a React Native application for Android.
+    - **Frontend**: Developed with React (TypeScript), using Wouter for routing and TanStack Query for data fetching. It is PWA-enabled and has a React Native application for Android.
     - **Backend**: Powered by an Express.js RESTful API.
-    - **Database & ORM**: Utilizes PostgreSQL on Neon Serverless, with Drizzle ORM managing all database interactions, ensuring strict multi-tenancy isolation through `user.schoolId`.
-    - **Authentication**: Implements session-based authentication using `express-session` and `Passport.js`, including Firebase Google OAuth. The system features robust role-based access control (8 roles) and an Intrusion Detection System (IDS), supporting multi-role users via the `role_affiliations` table.
-    - **Route Architecture**: Express.js route registration prioritizes direct routes (Settings, API Modules, System Routes) over external routers to prevent conflicts and ensure consistent routing behavior.
-    - **Cache Management**: `queryClient.ts` incorporates `serializeQueryKey()` to prevent query key collisions and ensure data integrity.
-    - **Module Loading**: `fastModuleLoader.ts` includes `validateMappings()` for automatic conflict detection and resolution in module mappings.
-    - **Document Management**: A centralized system manages documents with digital signatures, PDF generation, and ensures instant appearance. All documents adhere to a standardized `/public/documents/` directory structure with lowercase kebab-case naming.
+    - **Database & ORM**: Utilizes PostgreSQL on Neon Serverless, with Drizzle ORM managing all database interactions and enforcing strict multi-tenancy isolation via `user.schoolId`.
+    - **Authentication**: Implements session-based authentication with `express-session` and `Passport.js`, including Firebase Google OAuth. Features robust role-based access control (8 roles), an Intrusion Detection System (IDS), and multi-role user support via the `role_affiliations` table.
+    - **Route Architecture**: Express.js route registration prioritizes direct routes (Settings, API Modules, System Routes) over external routers to prevent conflicts.
+    - **Cache Management**: `queryClient.ts` incorporates `serializeQueryKey()` to prevent query key collisions.
+    - **Module Loading**: `fastModuleLoader.ts` includes `validateMappings()` for automatic conflict detection in module mappings.
+    - **Document Management**: A centralized system manages documents with digital signatures and PDF generation, ensuring instant appearance. All documents adhere to a standardized `/public/documents/` directory structure with lowercase kebab-case naming.
 - **Feature Specifications**: Key features include real-time attendance tracking (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment methods, GPS tracking, iCal/ICS export, bulk Excel import capabilities, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes.
 
 # External Dependencies

@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface BulkPhotoUploadProps {
   lang?: 'fr' | 'en';
+  userType?: 'students' | 'teachers';
   onComplete?: () => void;
 }
 
@@ -18,28 +19,40 @@ interface UploadResult {
   notMatched: number;
   errors: Array<{ filename: string; message: string }>;
   matchedStudents: Array<{ filename: string; studentName: string; matricule: string; photoUrl: string }>;
+  matchedUsers?: Array<{ filename: string; userName: string; matricule: string; photoUrl: string }>;
   unmatchedFiles: string[];
   message: string;
 }
 
-export function BulkPhotoUpload({ lang = 'fr', onComplete }: BulkPhotoUploadProps) {
+export function BulkPhotoUpload({ lang = 'fr', userType = 'students', onComplete }: BulkPhotoUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<UploadResult | null>(null);
   const { toast } = useToast();
 
+  const isTeachers = userType === 'teachers';
+  const userLabel = {
+    fr: isTeachers ? 'enseignants' : 'élèves',
+    en: isTeachers ? 'teachers' : 'students'
+  }[lang];
+  const userLabelSingular = {
+    fr: isTeachers ? 'enseignant' : 'élève',
+    en: isTeachers ? 'teacher' : 'student'
+  }[lang];
+  const matriculeExample = isTeachers ? 'TCH-2025-001.jpg' : 'STU-2025-001.jpg';
+  
   const t = {
     fr: {
-      title: 'Import de photos en lot',
-      description: 'Téléversez un fichier ZIP contenant les photos des élèves nommées par leur matricule',
+      title: `Import de photos en lot - ${isTeachers ? 'Enseignants' : 'Élèves'}`,
+      description: `Téléversez un fichier ZIP contenant les photos des ${userLabel} nommées par leur matricule`,
       instructions: 'Instructions:',
-      step1: '1. Créez un fichier ZIP contenant les photos des élèves',
-      step2: '2. Nommez chaque photo avec le matricule de l\'élève (ex: STU-2025-001.jpg)',
+      step1: `1. Créez un fichier ZIP contenant les photos des ${userLabel}`,
+      step2: `2. Nommez chaque photo avec le matricule (ex: ${matriculeExample})`,
       step3: '3. Formats acceptés: JPG, PNG, GIF, WEBP (max 5MB par image)',
       selectFile: 'Sélectionner un fichier ZIP',
       uploading: 'Traitement en cours...',
       success: 'Import réussi',
-      matched: 'photos associées aux élèves',
+      matched: `photos associées aux ${userLabel}`,
       notMatched: 'fichiers non correspondus',
       errors: 'Erreurs',
       matchedList: 'Photos associées',
@@ -49,43 +62,43 @@ export function BulkPhotoUpload({ lang = 'fr', onComplete }: BulkPhotoUploadProp
       helpTitle: 'Comment utiliser l\'import de photos en lot ?',
       helpBtn: 'Aide',
       helpStep1Title: 'Étape 1: Préparez vos photos',
-      helpStep1Desc: 'Rassemblez toutes les photos des élèves dans un dossier. Chaque photo doit être au format JPG, PNG, GIF ou WEBP (max 5MB).',
+      helpStep1Desc: `Rassemblez toutes les photos des ${userLabel} dans un dossier. Chaque photo doit être au format JPG, PNG, GIF ou WEBP (max 5MB).`,
       helpStep2Title: 'Étape 2: Renommez les fichiers',
-      helpStep2Desc: 'Renommez chaque photo avec le matricule de l\'élève. Exemples: STU-2025-001.jpg, EDU-CM-ST-ABC123.png',
+      helpStep2Desc: `Renommez chaque photo avec le matricule. Exemples: ${matriculeExample}, EDU-CM-${isTeachers ? 'TC' : 'ST'}-ABC123.png`,
       helpStep3Title: 'Étape 3: Créez le fichier ZIP',
       helpStep3Desc: 'Sélectionnez toutes les photos, clic droit → "Compresser" ou "Envoyer vers → Dossier compressé" pour créer un fichier .zip',
       helpStep4Title: 'Étape 4: Téléversez le ZIP',
-      helpStep4Desc: 'Cliquez sur "Sélectionner un fichier ZIP" et choisissez votre fichier. Le système associera automatiquement chaque photo à l\'élève correspondant.',
-      helpTip: 'Astuce: Les matricules sont insensibles à la casse. STU-2025-001.jpg et stu-2025-001.jpg fonctionnent tous les deux.'
+      helpStep4Desc: `Cliquez sur "Sélectionner un fichier ZIP" et choisissez votre fichier. Le système associera automatiquement chaque photo au ${userLabelSingular} correspondant.`,
+      helpTip: `Astuce: Les matricules sont insensibles à la casse. ${matriculeExample} et ${matriculeExample.toLowerCase()} fonctionnent tous les deux.`
     },
     en: {
-      title: 'Bulk Photo Upload',
-      description: 'Upload a ZIP file containing student photos named by their student ID',
+      title: `Bulk Photo Upload - ${isTeachers ? 'Teachers' : 'Students'}`,
+      description: `Upload a ZIP file containing ${userLabel} photos named by their ID`,
       instructions: 'Instructions:',
-      step1: '1. Create a ZIP file containing student photos',
-      step2: '2. Name each photo with the student ID (e.g., STU-2025-001.jpg)',
+      step1: `1. Create a ZIP file containing ${userLabel} photos`,
+      step2: `2. Name each photo with the ID (e.g., ${matriculeExample})`,
       step3: '3. Accepted formats: JPG, PNG, GIF, WEBP (max 5MB per image)',
       selectFile: 'Select ZIP file',
       uploading: 'Processing...',
       success: 'Upload successful',
-      matched: 'photos matched to students',
+      matched: `photos matched to ${userLabel}`,
       notMatched: 'unmatched files',
       errors: 'Errors',
       matchedList: 'Matched photos',
       unmatchedList: 'Unmatched files',
       retry: 'New upload',
-      downloadTemplate: 'Download student ID list',
+      downloadTemplate: 'Download ID list',
       helpTitle: 'How to use bulk photo upload?',
       helpBtn: 'Help',
       helpStep1Title: 'Step 1: Prepare your photos',
-      helpStep1Desc: 'Gather all student photos in a folder. Each photo must be in JPG, PNG, GIF or WEBP format (max 5MB).',
+      helpStep1Desc: `Gather all ${userLabel} photos in a folder. Each photo must be in JPG, PNG, GIF or WEBP format (max 5MB).`,
       helpStep2Title: 'Step 2: Rename the files',
-      helpStep2Desc: 'Rename each photo with the student ID. Examples: STU-2025-001.jpg, EDU-CM-ST-ABC123.png',
+      helpStep2Desc: `Rename each photo with the ID. Examples: ${matriculeExample}, EDU-CM-${isTeachers ? 'TC' : 'ST'}-ABC123.png`,
       helpStep3Title: 'Step 3: Create the ZIP file',
       helpStep3Desc: 'Select all photos, right-click → "Compress" or "Send to → Compressed folder" to create a .zip file',
       helpStep4Title: 'Step 4: Upload the ZIP',
-      helpStep4Desc: 'Click "Select ZIP file" and choose your file. The system will automatically match each photo to the corresponding student.',
-      helpTip: 'Tip: Student IDs are case-insensitive. STU-2025-001.jpg and stu-2025-001.jpg both work.'
+      helpStep4Desc: `Click "Select ZIP file" and choose your file. The system will automatically match each photo to the corresponding ${userLabelSingular}.`,
+      helpTip: `Tip: IDs are case-insensitive. ${matriculeExample} and ${matriculeExample.toLowerCase()} both work.`
     }
   }[lang];
 
@@ -112,7 +125,7 @@ export function BulkPhotoUpload({ lang = 'fr', onComplete }: BulkPhotoUploadProp
 
       setProgress(30);
 
-      const response = await fetch(`/api/bulk-import/photos/upload-zip?lang=${lang}`, {
+      const response = await fetch(`/api/bulk-import/photos/upload-zip?lang=${lang}&userType=${userType}`, {
         method: 'POST',
         body: formData,
         credentials: 'include'

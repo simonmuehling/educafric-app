@@ -5,6 +5,13 @@ import { users } from '../../shared/schema';
 import { eq, and, or, like, sql } from 'drizzle-orm';
 import { objectStorageClient } from '../objectStorage';
 
+interface MatchedUser {
+  filename: string;
+  userName: string;
+  matricule: string;
+  photoUrl: string;
+}
+
 interface PhotoUploadResult {
   success: boolean;
   matched: number;
@@ -13,12 +20,8 @@ interface PhotoUploadResult {
     filename: string;
     message: string;
   }>;
-  matchedStudents: Array<{
-    filename: string;
-    studentName: string;
-    matricule: string;
-    photoUrl: string;
-  }>;
+  matchedStudents: MatchedUser[];
+  matchedUsers: MatchedUser[];
   unmatchedFiles: string[];
 }
 
@@ -49,7 +52,8 @@ export class BulkPhotoUploadService {
   async processZipUpload(
     zipBuffer: Buffer, 
     schoolId: number, 
-    lang: 'fr' | 'en' = 'fr'
+    lang: 'fr' | 'en' = 'fr',
+    userType: 'students' | 'teachers' = 'students'
   ): Promise<PhotoUploadResult> {
     const result: PhotoUploadResult = {
       success: true,
@@ -57,16 +61,21 @@ export class BulkPhotoUploadService {
       notMatched: 0,
       errors: [],
       matchedStudents: [],
+      matchedUsers: [],
       unmatchedFiles: []
     };
+
+    const role = userType === 'teachers' ? 'Teacher' : 'Student';
+    const userLabel = userType === 'teachers' ? 'teachers' : 'students';
+    const photoFolder = userType === 'teachers' ? 'teacher-photos' : 'student-photos';
 
     try {
       const zip = new AdmZip(zipBuffer);
       const zipEntries = zip.getEntries();
       
-      console.log(`[BULK_PHOTO] Processing ZIP with ${zipEntries.length} entries for school ${schoolId}`);
+      console.log(`[BULK_PHOTO] Processing ZIP with ${zipEntries.length} entries for school ${schoolId}, userType: ${userType}`);
 
-      const schoolStudents = await db.select({
+      const schoolUsers = await db.select({
         id: users.id,
         firstName: users.firstName,
         lastName: users.lastName,
@@ -75,20 +84,20 @@ export class BulkPhotoUploadService {
       }).from(users).where(
         and(
           eq(users.schoolId, schoolId),
-          eq(users.role, 'Student')
+          eq(users.role, role)
         )
       );
 
-      console.log(`[BULK_PHOTO] Found ${schoolStudents.length} students in school ${schoolId}`);
+      console.log(`[BULK_PHOTO] Found ${schoolUsers.length} ${userLabel} in school ${schoolId}`);
 
-      const studentsByMatricule = new Map<string, typeof schoolStudents[0]>();
-      for (const student of schoolStudents) {
-        if (student.educafricNumber) {
-          const normalizedMatricule = student.educafricNumber.toLowerCase().replace(/[^a-z0-9]/g, '');
-          studentsByMatricule.set(normalizedMatricule, student);
+      const usersByMatricule = new Map<string, typeof schoolUsers[0]>();
+      for (const user of schoolUsers) {
+        if (user.educafricNumber) {
+          const normalizedMatricule = user.educafricNumber.toLowerCase().replace(/[^a-z0-9]/g, '');
+          usersByMatricule.set(normalizedMatricule, user);
           
-          const shortMatricule = student.educafricNumber.replace(/^EDU-CM-/i, '').toLowerCase().replace(/[^a-z0-9]/g, '');
-          studentsByMatricule.set(shortMatricule, student);
+          const shortMatricule = user.educafricNumber.replace(/^EDU-CM-/i, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          usersByMatricule.set(shortMatricule, user);
         }
       }
 
@@ -121,9 +130,9 @@ export class BulkPhotoUploadService {
         }
         
         const normalizedBaseName = baseName.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const student = studentsByMatricule.get(normalizedBaseName);
+        const matchedUser = usersByMatricule.get(normalizedBaseName);
         
-        if (!student) {
+        if (!matchedUser) {
           result.unmatchedFiles.push(filename);
           result.notMatched++;
           continue;
@@ -131,7 +140,7 @@ export class BulkPhotoUploadService {
         
         try {
           const timestamp = Date.now();
-          const uniqueFilename = `student-photos/${schoolId}/${student.id}-${timestamp}${ext}`;
+          const uniqueFilename = `${photoFolder}/${schoolId}/${matchedUser.id}-${timestamp}${ext}`;
           const bucketName = this.getBucketName();
           const bucket = objectStorageClient.bucket(bucketName);
           const file = bucket.file(`public/${uniqueFilename}`);
@@ -139,8 +148,9 @@ export class BulkPhotoUploadService {
           await file.save(fileData, {
             contentType: this.getMimeType(ext),
             metadata: {
-              studentId: String(student.id),
+              userId: String(matchedUser.id),
               schoolId: String(schoolId),
+              userType: userType,
               originalFilename: filename
             }
           });
@@ -148,18 +158,20 @@ export class BulkPhotoUploadService {
           const photoUrl = `/api/objects/public/${uniqueFilename}`;
           
           await db.execute(sql`
-            UPDATE users SET profile_picture_url = ${photoUrl} WHERE id = ${student.id}
+            UPDATE users SET profile_picture_url = ${photoUrl} WHERE id = ${matchedUser.id}
           `);
           
-          result.matchedStudents.push({
+          const matchedEntry: MatchedUser = {
             filename,
-            studentName: `${student.firstName} ${student.lastName}`,
-            matricule: student.educafricNumber || '',
+            userName: `${matchedUser.firstName} ${matchedUser.lastName}`,
+            matricule: matchedUser.educafricNumber || '',
             photoUrl
-          });
+          };
+          result.matchedStudents.push(matchedEntry);
+          result.matchedUsers.push(matchedEntry);
           result.matched++;
           
-          console.log(`[BULK_PHOTO] ✅ Uploaded photo for ${student.firstName} ${student.lastName} (${student.educafricNumber})`);
+          console.log(`[BULK_PHOTO] ✅ Uploaded photo for ${matchedUser.firstName} ${matchedUser.lastName} (${matchedUser.educafricNumber})`);
           
         } catch (uploadError: any) {
           result.errors.push({

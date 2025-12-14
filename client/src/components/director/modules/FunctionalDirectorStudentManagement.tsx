@@ -19,6 +19,7 @@ import {
 import { StudentIDCard } from '@/components/shared/StudentIDCard';
 import ImportModal from '../ImportModal';
 import { ExcelImportButton } from '@/components/common/ExcelImportButton';
+import { BulkPhotoUpload } from '@/components/shared/BulkPhotoUpload';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog';
 import { OfflineSyncStatus } from '@/components/offline/OfflineSyncStatus';
 import { OfflineDataNotReadyModal, useOfflineDataCheck } from '@/components/offline/OfflineDataNotReadyModal';
@@ -1266,6 +1267,16 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           />
         </div>
       </Card>
+
+      {/* Bulk Photo Upload Section */}
+      <BulkPhotoUpload 
+        lang={language as 'fr' | 'en'} 
+        userType="students"
+        onComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/students'] });
+        }}
+      />
 
       {/* Filters */}
       <Card>
