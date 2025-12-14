@@ -31,6 +31,7 @@ interface StudentImportData {
   parentEmail?: string;
   parentPhone?: string;
   isRepeater?: string; // Redoublant: Oui/Non (isRepeating in Excel, isRepeater in DB)
+  photoURL?: string; // URL de la photo de l'élève
 }
 
 interface ParentImportData {
@@ -439,7 +440,8 @@ export class ExcelImportService {
           guardian: row[t.fields.parentName] || row['NomParent'] || row['ParentName'] || '',
           parentEmail: row[t.fields.parentEmail] || row['EmailParent'] || row['ParentEmail'] || '',
           parentPhone: row[t.fields.parentPhone] || row['TéléphoneParent'] || row['ParentPhone'] || '',
-          isRepeater: row[t.fields.isRepeating] || row['Redoublant'] || row['IsRepeating'] || ''
+          isRepeater: row[t.fields.isRepeating] || row['Redoublant'] || row['IsRepeating'] || '',
+          photoURL: row['URLPhoto'] || row['PhotoURL'] || row['Photo'] || ''
         };
         
         // Validate required fields
@@ -523,7 +525,8 @@ export class ExcelImportService {
           guardian: studentData.guardian || null,
           parentEmail: studentData.parentEmail || null,
           parentPhone: studentData.parentPhone || null,
-          isRepeater: studentData.isRepeater === 'Oui' || studentData.isRepeater === 'Yes' ? true : false
+          isRepeater: studentData.isRepeater === 'Oui' || studentData.isRepeater === 'Yes' ? true : false,
+          profilePictureUrl: studentData.photoURL || null
         } as any).returning();
         
         // Create enrollment record if class was found
@@ -1328,18 +1331,19 @@ export class ExcelImportService {
           t.fields.parentName,
           t.fields.parentEmail, 
           t.fields.parentPhone,
-          t.fields.isRepeating
+          t.fields.isRepeating,
+          lang === 'fr' ? 'URLPhoto' : 'PhotoURL'
         ];
         sampleData = lang === 'fr' ? [
-          ['Amina', 'Bello', 'amina.bello@educafric.cm', '+237690123456', 'Féminin', '2012-05-15', 'Yaoundé, Cameroun', 'STU-2025-001', '6ème A', 'Ibrahim Bello', 'ibrahim.bello@gmail.com', '+237677234567', 'Non'],
-          ['Kevin', 'Ndi', '', '', 'Masculin', '2011-08-22', 'Douala, Cameroun', 'STU-2025-002', '5ème B', 'Grace Ndi', 'grace.ndi@yahoo.fr', '+237655345678', 'Oui'],
-          ['Sophie', 'Kamga', 'sophie.kamga@educafric.cm', '+237699456789', 'Féminin', '2013-03-10', 'Bamenda, Cameroun', 'STU-2025-003', 'CM2', 'Joseph Kamga', 'joseph.kamga@outlook.com', '+237678456789', 'Non'],
-          ['Lucas', 'Njoya', '', '', 'Masculin', '2012-11-05', 'Bafoussam, Cameroun', 'STU-2025-004', '6ème A', '', '', '', 'Non']
+          ['Amina', 'Bello', 'amina.bello@educafric.cm', '+237690123456', 'Féminin', '2012-05-15', 'Yaoundé, Cameroun', 'STU-2025-001', '6ème A', 'Ibrahim Bello', 'ibrahim.bello@gmail.com', '+237677234567', 'Non', 'https://example.com/photos/amina.jpg'],
+          ['Kevin', 'Ndi', '', '', 'Masculin', '2011-08-22', 'Douala, Cameroun', 'STU-2025-002', '5ème B', 'Grace Ndi', 'grace.ndi@yahoo.fr', '+237655345678', 'Oui', ''],
+          ['Sophie', 'Kamga', 'sophie.kamga@educafric.cm', '+237699456789', 'Féminin', '2013-03-10', 'Bamenda, Cameroun', 'STU-2025-003', 'CM2', 'Joseph Kamga', 'joseph.kamga@outlook.com', '+237678456789', 'Non', 'https://example.com/photos/sophie.jpg'],
+          ['Lucas', 'Njoya', '', '', 'Masculin', '2012-11-05', 'Bafoussam, Cameroun', 'STU-2025-004', '6ème A', '', '', '', 'Non', '']
         ] : [
-          ['Amina', 'Bello', 'amina.bello@educafric.cm', '+237690123456', 'Female', '2012-05-15', 'Yaounde, Cameroon', 'STU-2025-001', 'Form 1A', 'Ibrahim Bello', 'ibrahim.bello@gmail.com', '+237677234567', 'No'],
-          ['Kevin', 'Ndi', '', '', 'Male', '2011-08-22', 'Douala, Cameroon', 'STU-2025-002', 'Form 2B', 'Grace Ndi', 'grace.ndi@yahoo.fr', '+237655345678', 'Yes'],
-          ['Sophie', 'Kamga', 'sophie.kamga@educafric.cm', '+237699456789', 'Female', '2013-03-10', 'Bamenda, Cameroon', 'STU-2025-003', 'Class 6', 'Joseph Kamga', 'joseph.kamga@outlook.com', '+237678456789', 'No'],
-          ['Lucas', 'Njoya', '', '', 'Male', '2012-11-05', 'Bafoussam, Cameroon', 'STU-2025-004', 'Form 1A', '', '', '', 'No']
+          ['Amina', 'Bello', 'amina.bello@educafric.cm', '+237690123456', 'Female', '2012-05-15', 'Yaounde, Cameroon', 'STU-2025-001', 'Form 1A', 'Ibrahim Bello', 'ibrahim.bello@gmail.com', '+237677234567', 'No', 'https://example.com/photos/amina.jpg'],
+          ['Kevin', 'Ndi', '', '', 'Male', '2011-08-22', 'Douala, Cameroon', 'STU-2025-002', 'Form 2B', 'Grace Ndi', 'grace.ndi@yahoo.fr', '+237655345678', 'Yes', ''],
+          ['Sophie', 'Kamga', 'sophie.kamga@educafric.cm', '+237699456789', 'Female', '2013-03-10', 'Bamenda, Cameroon', 'STU-2025-003', 'Class 6', 'Joseph Kamga', 'joseph.kamga@outlook.com', '+237678456789', 'No', 'https://example.com/photos/sophie.jpg'],
+          ['Lucas', 'Njoya', '', '', 'Male', '2012-11-05', 'Bafoussam, Cameroon', 'STU-2025-004', 'Form 1A', '', '', '', 'No', '']
         ];
         break;
         
