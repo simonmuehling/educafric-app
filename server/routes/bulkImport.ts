@@ -6,10 +6,11 @@ import { storage } from '../storage';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { excelImportService } from '../services/excelImportService';
+import { bulkPhotoUploadService } from '../services/bulkPhotoUploadService';
 
 const router = Router();
 
-// Configure multer for file uploads
+// Configure multer for file uploads (Excel/CSV)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -26,6 +27,27 @@ const upload = multer({
       cb(null, true);
     } else {
       cb(new Error('Format de fichier non supporté. Utilisez Excel (.xlsx, .xls) ou CSV (.csv)'));
+    }
+  }
+});
+
+// Configure multer for ZIP uploads (photos)
+const uploadZip = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit for ZIP files
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/zip',
+      'application/x-zip-compressed',
+      'application/x-zip'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype) || file.originalname.endsWith('.zip')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Format de fichier non supporté. Utilisez un fichier ZIP (.zip)'));
     }
   }
 });
@@ -667,6 +689,64 @@ router.post('/:importType/fix', requireAuth, upload.single('file'), async (req, 
       message: error instanceof Error 
         ? error.message 
         : (lang === 'fr' ? 'Erreur lors de la correction automatique du fichier' : 'Error auto-fixing file')
+    });
+  }
+});
+
+// Bulk photo upload via ZIP file
+router.post('/photos/upload-zip', requireAuth, uploadZip.single('file'), async (req, res) => {
+  try {
+    const lang = (req.query.lang as 'fr' | 'en') || 'fr';
+    const schoolId = req.user?.schoolId;
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: lang === 'fr' ? 'Aucun fichier fourni' : 'No file provided'
+      });
+    }
+    
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: lang === 'fr' ? 'ID école requis' : 'School ID required'
+      });
+    }
+    
+    // Validate it's a ZIP file
+    if (!req.file.mimetype.includes('zip') && !req.file.originalname.endsWith('.zip')) {
+      return res.status(400).json({
+        success: false,
+        message: lang === 'fr' 
+          ? 'Format invalide. Veuillez téléverser un fichier ZIP (.zip)'
+          : 'Invalid format. Please upload a ZIP file (.zip)'
+      });
+    }
+    
+    console.log(`[BULK_PHOTO_API] Processing ZIP upload for school ${schoolId}, size: ${req.file.size} bytes`);
+    
+    const result = await bulkPhotoUploadService.processZipUpload(
+      req.file.buffer,
+      schoolId,
+      lang
+    );
+    
+    res.json({
+      success: result.success,
+      message: lang === 'fr'
+        ? `${result.matched} photos associées aux élèves, ${result.notMatched} non correspondues`
+        : `${result.matched} photos matched to students, ${result.notMatched} not matched`,
+      ...result
+    });
+    
+  } catch (error) {
+    const lang = (req.query.lang as 'fr' | 'en') || 'fr';
+    console.error('[BULK_PHOTO_API] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error
+        ? error.message
+        : (lang === 'fr' ? 'Erreur lors du traitement du fichier ZIP' : 'Error processing ZIP file')
     });
   }
 });
