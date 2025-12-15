@@ -1216,30 +1216,20 @@ router.get('/parent-connections', requireAuth, async (req, res) => {
 
 // DUPLICATE REMOVED - Using first definition above
 
-// GET /api/student/geolocation/device-status - Get device tracking status
+// GET /api/student/geolocation/device-status - Get device tracking status (DATABASE-ONLY)
 router.get('/geolocation/device-status', requireAuth, async (req, res) => {
   try {
     const studentId = req.user?.id;
     
-    // Mock device status
-    const deviceStatus = {
-      isTracking: true,
-      lastUpdate: new Date().toISOString(),
-      batteryLevel: 85,
-      location: {
-        lat: 3.848,
-        lng: 11.502,
-        accuracy: 10
-      },
-      connectionStatus: 'online'
-    };
-
-    console.log(`[STUDENT_API] ✅ Device status retrieved for student:`, studentId);
+    // No device tracking table exists yet - return null
+    // The frontend handles this with "No device registered" message
+    // When device tracking is implemented, this will query the database
+    console.log(`[STUDENT_API] Device status requested for student:`, studentId, '- No device tracking configured');
 
     res.json({
       success: true,
-      deviceStatus: deviceStatus,
-      message: 'Device status retrieved successfully'
+      deviceStatus: null,
+      message: 'No device tracking configured'
     });
   } catch (error) {
     console.error('[STUDENT_API] ❌ Error fetching device status:', error);
