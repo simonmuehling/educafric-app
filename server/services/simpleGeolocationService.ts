@@ -184,8 +184,42 @@ export class SimpleGeolocationService {
       const newZone = (result.rows || [])[0];
       console.log(`[GEOLOCATION_SERVICE] ✅ Safe zone created in database with ID: ${newZone?.id}`);
       
+      // Send notification to children when zone is created
       if (zoneData.childrenIds?.length > 0) {
         console.log(`[GEOLOCATION_SERVICE] 👶 Zone "${zoneData.name}" will track ${zoneData.childrenIds.length} children`);
+        
+        // Create notifications for each child
+        for (const childId of zoneData.childrenIds) {
+          try {
+            await db.execute(sql`
+              INSERT INTO notifications (
+                user_id, type, title, title_fr, title_en, 
+                message, message_fr, message_en, priority, is_read, metadata
+              ) VALUES (
+                ${childId},
+                'security',
+                'Nouvelle zone de sécurité créée',
+                'Nouvelle zone de sécurité créée',
+                'New safety zone created',
+                'Vos parents ont créé une nouvelle zone de sécurité: ${zoneData.name}',
+                'Vos parents ont créé une nouvelle zone de sécurité: ${zoneData.name}',
+                'Your parents created a new safety zone: ${zoneData.name}',
+                'medium',
+                false,
+                ${JSON.stringify({ 
+                  category: 'geolocation', 
+                  zoneId: newZone?.id, 
+                  zoneName: zoneData.name,
+                  actionUrl: '/geolocation',
+                  actionText: 'Voir'
+                })}
+              )
+            `);
+            console.log(`[GEOLOCATION_SERVICE] 🔔 Notification sent to child ${childId} for new zone`);
+          } catch (notifError) {
+            console.error(`[GEOLOCATION_SERVICE] ⚠️ Failed to notify child ${childId}:`, notifError);
+          }
+        }
       }
       
       return newZone;

@@ -1092,7 +1092,7 @@ router.get('/geolocation/safe-zones', requireAuth, async (req, res) => {
       return res.json({ success: true, safeZones: [], message: 'No school assigned' });
     }
     
-    // Get safe zones from database
+    // Get all active safe zones from the student's school
     const zones = await db.select()
       .from(safeZones)
       .where(and(
@@ -1100,19 +1100,35 @@ router.get('/geolocation/safe-zones', requireAuth, async (req, res) => {
         eq(safeZones.isActive, true)
       ));
     
-    const formattedZones = zones.map(zone => ({
+    // Filter zones that include this student in children_ids
+    const studentZones = zones.filter(zone => {
+      if (!zone.childrenIds) return false;
+      try {
+        const childrenIds = typeof zone.childrenIds === 'string' 
+          ? JSON.parse(zone.childrenIds) 
+          : zone.childrenIds;
+        return Array.isArray(childrenIds) && childrenIds.includes(studentId);
+      } catch {
+        return false;
+      }
+    });
+    
+    const formattedZones = studentZones.map(zone => ({
       id: zone.id,
       name: zone.name,
+      type: zone.type || 'custom',
       address: zone.description || '',
       radius: zone.radius,
-      isActive: zone.isActive,
+      active: zone.isActive,
+      createdBy: zone.parentId,
+      updatedAt: zone.updatedAt || zone.createdAt,
       coordinates: {
         lat: parseFloat(zone.latitude as string),
         lng: parseFloat(zone.longitude as string)
       }
     }));
 
-    console.log('[STUDENT_API] Found', formattedZones.length, 'safe zones');
+    console.log('[STUDENT_API] Found', formattedZones.length, 'safe zones for student', studentId);
 
     res.json({
       success: true,
