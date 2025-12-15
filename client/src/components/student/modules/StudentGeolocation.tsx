@@ -142,7 +142,7 @@ const StudentGeolocation: React.FC = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch device status');
       const data = await response.json();
-      return data.deviceStatus || {};
+      return data.deviceStatus || null;
     },
     retry: false,
   });
@@ -201,7 +201,10 @@ const StudentGeolocation: React.FC = () => {
 
   // Use real database data from API queries
   const activeSafeZones = (safeZones || []).filter((zone: SafeZone) => zone.active);
-  const currentDevice = deviceStatus as DeviceStatus || null;
+  // Only consider as valid device if it has required properties
+  const currentDevice = (deviceStatus && typeof deviceStatus === 'object' && 'id' in deviceStatus) 
+    ? deviceStatus as DeviceStatus 
+    : null;
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
