@@ -5278,7 +5278,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               await db.insert(notifications).values({
                 userId: directorId,
                 title: '📋 Rapport d\'enseignant',
+                titleFr: `📋 Nouveau rapport de ${teacherName}`,
+                titleEn: `📋 New report from ${teacherName}`,
                 message: `${teacherName} vous a envoyé un rapport: "${subject}"`,
+                messageFr: `${teacherName} vous a envoyé un rapport: "${subject}"`,
+                messageEn: `${teacherName} sent you a report: "${subject}"`,
                 type: 'teacher_report',
                 priority: priority === 'urgent' ? 'high' : 'normal',
                 isRead: false,
@@ -5287,7 +5291,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   teacherName,
                   subject,
                   messageType: 'director-report',
-                  schoolId: parseInt(schoolId)
+                  schoolId: parseInt(schoolId),
+                  category: 'communication',
+                  actionUrl: '/director?module=messages'
                 }
               } as any);
             } catch (err) {
@@ -5310,7 +5316,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await db.insert(notifications).values({
               userId: parseInt(parentId),
               title: '✉️ Message de l\'enseignant',
+              titleFr: `✉️ Nouveau message de ${teacherName}`,
+              titleEn: `✉️ New message from ${teacherName}`,
               message: `${teacherName} vous a envoyé un message: "${subject}"`,
+              messageFr: `${teacherName} vous a envoyé un message: "${subject}"`,
+              messageEn: `${teacherName} sent you a message: "${subject}"`,
               type: 'teacher_message',
               priority: priority === 'urgent' ? 'high' : 'normal',
               isRead: false,
@@ -5318,7 +5328,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 teacherId: user.id,
                 teacherName,
                 subject,
-                messageType: 'parent-message'
+                messageType: 'parent-message',
+                category: 'communication',
+                actionUrl: '/parent?module=messages'
               }
             } as any);
             console.log('[TEACHER_MESSAGES] ✅ Notification sent to parent:', parentId);
@@ -10298,6 +10310,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (whatsappError) {
           console.error('[STUDENT_MESSAGE_PARENT] ⚠️ WhatsApp notification failed (message still sent):', whatsappError);
         }
+      }
+      
+      // Send in-app notification to parent (bilingual)
+      try {
+        const studentName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Élève';
+        const messagePreview = messageContent.substring(0, 100) + (messageContent.length > 100 ? '...' : '');
+        
+        await db.insert(notifications).values({
+          userId: parseInt(parentId),
+          title: `Message de ${studentName}`,
+          titleFr: `Nouveau message de ${studentName}`,
+          titleEn: `New message from ${studentName}`,
+          message: messagePreview,
+          messageFr: `Votre enfant vous a envoyé un message: ${messagePreview}`,
+          messageEn: `Your child sent you a message: ${messagePreview}`,
+          type: 'message',
+          priority: 'medium',
+          isRead: false,
+          metadata: {
+            senderId: studentId,
+            senderName: studentName,
+            senderRole: 'Student',
+            category: 'communication',
+            actionUrl: '/parent?module=messages',
+            actionText: 'Voir'
+          }
+        } as any);
+        console.log(`[STUDENT_MESSAGE_PARENT] 🔔 In-app notification sent to parent: ${parentId}`);
+      } catch (notifError) {
+        console.error('[STUDENT_MESSAGE_PARENT] ⚠️ In-app notification failed:', notifError);
       }
       
       res.json({

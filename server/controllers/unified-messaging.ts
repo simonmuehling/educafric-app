@@ -11,7 +11,7 @@ import { getRecipientById } from '../services/waClickToChat';
 import { renderTemplate } from '../templates/waTemplates';
 import { buildWaUrl } from '../utils/waLink';
 import { db } from '../db';
-import { connections } from '../../shared/schema';
+import { connections, notifications } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 
 // Unified connection types
@@ -137,6 +137,11 @@ export class UnifiedMessagingController {
       // Send WhatsApp notification to recipient (async, don't block response)
       this.sendWhatsAppNotification(messageData, userId, userRole, connectionType).catch(error => {
         console.error('[UNIFIED_MESSAGING] WhatsApp notification failed:', error);
+      });
+
+      // Send in-app notification to recipient (async, don't block response)
+      this.createInAppNotification(messageData, userId, userRole, connectionType).catch(error => {
+        console.error('[UNIFIED_MESSAGING] In-app notification failed:', error);
       });
 
       res.status(201).json({
@@ -331,6 +336,83 @@ export class UnifiedMessagingController {
       'Commercial': { fr: 'Commercial', en: 'Sales' }
     };
     return translations[role]?.[lang] || role;
+  }
+
+  /**
+   * Create in-app notification for message recipient
+   */
+  private async createInAppNotification(
+    messageData: any,
+    senderId: number,
+    senderRole: string,
+    connectionType: ConnectionType
+  ): Promise<void> {
+    try {
+      // Get connection to find recipient
+      const [connection] = await db
+        .select()
+        .from(connections)
+        .where(eq(connections.id, messageData.connectionId))
+        .limit(1);
+
+      if (!connection) {
+        console.log('[UNIFIED_MESSAGING] Connection not found, skipping in-app notification');
+        return;
+      }
+
+      // Determine recipient ID (the person who didn't send the message)
+      const recipientId = connection.initiatorId === senderId ? connection.targetId : connection.initiatorId;
+      
+      // Get sender info
+      const sender = await getRecipientById(senderId);
+      if (!sender) {
+        console.log(`[UNIFIED_MESSAGING] Sender ${senderId} not found, skipping notification`);
+        return;
+      }
+
+      const senderName = `${sender.firstName} ${sender.lastName}`;
+      
+      // Truncate message preview
+      const messagePreview = messageData.message.length > 100 
+        ? messageData.message.substring(0, 100) + '...'
+        : messageData.message;
+
+      // Create bilingual notification content
+      const titleFr = `Nouveau message de ${senderName}`;
+      const titleEn = `New message from ${senderName}`;
+      const messageFr = `${this.translateRole(senderRole, 'fr')}: ${messagePreview}`;
+      const messageEn = `${this.translateRole(senderRole, 'en')}: ${messagePreview}`;
+
+      // Insert notification into database
+      await db.insert(notifications).values({
+        userId: recipientId,
+        title: titleFr,
+        titleFr: titleFr,
+        titleEn: titleEn,
+        message: messageFr,
+        messageFr: messageFr,
+        messageEn: messageEn,
+        type: 'message',
+        priority: messageData.emergencyLevel === 'high' ? 'high' : 'medium',
+        isRead: false,
+        metadata: {
+          senderId: senderId,
+          senderName: senderName,
+          senderRole: senderRole,
+          connectionType: connectionType,
+          connectionId: messageData.connectionId,
+          messageType: messageData.messageType,
+          category: 'communication',
+          actionUrl: `/messages`,
+          actionText: 'Voir'
+        }
+      });
+
+      console.log(`[UNIFIED_MESSAGING] 🔔 In-app notification created for user ${recipientId}`);
+
+    } catch (error) {
+      console.error('[UNIFIED_MESSAGING] In-app notification error:', error);
+    }
   }
 }
 
