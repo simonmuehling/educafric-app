@@ -106,10 +106,22 @@ export function validateEnvironment() {
     'VITE_FIREBASE_APP_ID'
   ];
   
+  console.log('[ENV_VALIDATION] Starting environment validation...');
+  console.log('[ENV_VALIDATION] NODE_ENV:', process.env.NODE_ENV);
+  console.log('[ENV_VALIDATION] PORT:', process.env.PORT || '5000 (default)');
+  
   const missing = required.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    console.error('[ENV_VALIDATION] ❌ Missing required environment variables:', missing.join(', '));
+    // In production, log but don't crash immediately - allow health checks to work
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[ENV_VALIDATION] ⚠️ Production mode - will attempt to continue with warnings');
+    } else {
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    }
+  } else {
+    console.log('[ENV_VALIDATION] ✅ All required environment variables present');
   }
   
   // Warn about missing optional variables

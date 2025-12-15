@@ -260,13 +260,24 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Log startup information for debugging deployment issues
+  console.log('[STARTUP] ============================================');
+  console.log('[STARTUP] Educafric Server Starting...');
+  console.log('[STARTUP] Node Version:', process.version);
+  console.log('[STARTUP] Environment:', process.env.NODE_ENV || 'development');
+  console.log('[STARTUP] Port:', process.env.PORT || '5000');
+  console.log('[STARTUP] ============================================');
+  
   // Validate environment variables first
   try {
     validateEnvironment();
     console.log('[SECURITY] Environment validation passed');
   } catch (error) {
     console.error('[SECURITY] Environment validation failed:', error);
-    process.exit(1);
+    // In production, log but try to continue for health checks
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
   }
   
   // Setup automatic error fixing system
