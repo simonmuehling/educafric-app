@@ -1240,6 +1240,274 @@ router.get('/geolocation/device-status', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/student/geolocation/update-location - Update student's GPS position and check zone exits
+router.post('/geolocation/update-location', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const studentId = user?.id;
+    const schoolId = user?.schoolId;
+    const { latitude, longitude, accuracy, batteryLevel, timestamp } = req.body;
+    
+    console.log(`[STUDENT_API] 📍 Updating location for student ${studentId}:`, { latitude, longitude });
+    
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        message: 'Latitude and longitude are required'
+      });
+    }
+    
+    // Haversine formula to calculate distance between two points
+    const getDistanceFromLatLng = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+      const R = 6371e3; // Earth radius in meters
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c; // Distance in meters
+    };
+    
+    // Save location to location_tracking table
+    try {
+      await db.execute(sql`
+        INSERT INTO location_tracking (device_id, latitude, longitude, accuracy, battery_level, timestamp)
+        VALUES (${studentId}, ${latitude}, ${longitude}, ${accuracy || null}, ${batteryLevel || null}, NOW())
+      `);
+      console.log(`[STUDENT_API] ✅ Location saved to history`);
+    } catch (saveError) {
+      console.error(`[STUDENT_API] ⚠️ Error saving location to history:`, saveError);
+    }
+    
+    // Get active safe zones for this student
+    const zones = await db.select()
+      .from(safeZones)
+      .where(and(
+        eq(safeZones.schoolId, schoolId),
+        eq(safeZones.isActive, true)
+      ));
+    
+    // Filter zones that include this student
+    const studentZones = zones.filter(zone => {
+      if (!zone.childrenIds) return false;
+      try {
+        const childrenIds = typeof zone.childrenIds === 'string' 
+          ? JSON.parse(zone.childrenIds) 
+          : zone.childrenIds;
+        return Array.isArray(childrenIds) && childrenIds.some((id: any) => 
+          Number(id) === Number(studentId) || String(id) === String(studentId)
+        );
+      } catch {
+        return false;
+      }
+    });
+    
+    console.log(`[STUDENT_API] 🛡️ Found ${studentZones.length} active safe zones for student ${studentId}`);
+    
+    // Check if student is inside any safe zone
+    let isInsideAnyZone = false;
+    let insideZoneName = '';
+    const zoneExits: { zone: typeof zones[0]; distance: number }[] = [];
+    
+    for (const zone of studentZones) {
+      const zoneLat = parseFloat(zone.latitude as string);
+      const zoneLng = parseFloat(zone.longitude as string);
+      const zoneRadius = zone.radius;
+      
+      const distance = getDistanceFromLatLng(latitude, longitude, zoneLat, zoneLng);
+      console.log(`[STUDENT_API] 📏 Distance to zone "${zone.name}": ${distance.toFixed(0)}m (radius: ${zoneRadius}m)`);
+      
+      if (distance <= zoneRadius) {
+        isInsideAnyZone = true;
+        insideZoneName = zone.name;
+        console.log(`[STUDENT_API] ✅ Student is inside zone "${zone.name}"`);
+      } else if (zone.alertOnExit) {
+        // Student is outside this zone and alerts are enabled
+        zoneExits.push({ zone, distance });
+      }
+    }
+    
+    // If student is outside all zones and there are zones with exit alerts
+    const alertsCreated: any[] = [];
+    
+    if (!isInsideAnyZone && zoneExits.length > 0) {
+      console.log(`[STUDENT_API] 🚨 Student is OUTSIDE all safe zones! Creating alerts...`);
+      
+      // Check for recent alerts to avoid spam (within last 5 minutes)
+      const recentAlerts = await db.execute(sql`
+        SELECT id FROM geolocation_alerts 
+        WHERE student_id = ${studentId} 
+        AND alert_type = 'zone_exit'
+        AND is_resolved = false
+        AND created_at > NOW() - INTERVAL '5 minutes'
+        LIMIT 1
+      `);
+      
+      if ((recentAlerts.rows || []).length === 0) {
+        // Create alert for each zone the student exited
+        for (const { zone, distance } of zoneExits) {
+          // Get parent info for this zone
+          const parentId = zone.parentId;
+          
+          // Create alert in database
+          const alertResult = await db.execute(sql`
+            INSERT INTO geolocation_alerts (
+              student_id, device_id, school_id, alert_type, priority,
+              message, latitude, longitude, safe_zone_id, notifications_sent
+            ) VALUES (
+              ${studentId}, ${studentId}, ${schoolId}, 'zone_exit', 'warning',
+              ${`L'élève a quitté la zone "${zone.name}" - Distance: ${distance.toFixed(0)}m`},
+              ${latitude}, ${longitude}, ${zone.id},
+              ${JSON.stringify({ pwa: false, whatsapp: false, email: false })}
+            )
+            RETURNING id
+          `);
+          
+          const alertId = ((alertResult.rows || [])[0] as any)?.id;
+          console.log(`[STUDENT_API] 🚨 Alert created with ID: ${alertId}`);
+          
+          // Get parent(s) for this student to send notifications
+          if (parentId) {
+            const parentData = await db.execute(sql`
+              SELECT id, first_name, last_name, phone, email FROM users WHERE id = ${parentId}
+            `);
+            
+            const parent = (parentData.rows || [])[0] as any;
+            if (parent) {
+              // Create PWA notification for parent
+              await db.execute(sql`
+                INSERT INTO notifications (
+                  user_id, type, title, title_fr, title_en,
+                  message, message_fr, message_en, priority, is_read, metadata
+                ) VALUES (
+                  ${parent.id},
+                  'geolocation',
+                  'Alerte Géolocalisation',
+                  'Alerte Géolocalisation',
+                  'Geolocation Alert',
+                  ${`Votre enfant a quitté la zone de sécurité "${zone.name}"`},
+                  ${`Votre enfant a quitté la zone de sécurité "${zone.name}"`},
+                  ${`Your child has left the safe zone "${zone.name}"`},
+                  'high',
+                  false,
+                  ${JSON.stringify({
+                    category: 'security',
+                    alertId: alertId,
+                    zoneName: zone.name,
+                    distance: Math.round(distance),
+                    latitude: latitude,
+                    longitude: longitude,
+                    actionUrl: '/geolocation',
+                    actionText: 'Voir la position'
+                  })}
+                )
+              `);
+              console.log(`[STUDENT_API] 🔔 PWA notification sent to parent ${parent.id}`);
+              
+              // Send WhatsApp notification if phone available
+              if (parent.phone) {
+                try {
+                  const { whatsappDirectService } = await import('../services/whatsappDirectNotificationService');
+                  await whatsappDirectService.sendGeolocationAlert({
+                    recipientPhone: parent.phone,
+                    studentName: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Votre enfant',
+                    alertType: 'Sortie de zone',
+                    location: `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`,
+                    timestamp: new Date().toLocaleTimeString('fr-FR'),
+                    zoneName: zone.name,
+                    language: 'fr'
+                  });
+                  console.log(`[STUDENT_API] 📱 WhatsApp notification sent to ${parent.phone}`);
+                } catch (whatsappError) {
+                  console.error(`[STUDENT_API] ⚠️ WhatsApp notification failed:`, whatsappError);
+                }
+              }
+              
+              alertsCreated.push({
+                alertId,
+                zoneName: zone.name,
+                parentNotified: parent.id,
+                distance: Math.round(distance)
+              });
+            }
+          } else {
+            // No specific parent on zone - notify all parents of this student
+            const allParents = await db.execute(sql`
+              SELECT u.id, u.first_name, u.last_name, u.phone, u.email
+              FROM parent_student_relations psr
+              JOIN users u ON psr.parent_id = u.id
+              WHERE psr.student_id = ${studentId}
+            `);
+            
+            for (const parent of (allParents.rows || []) as any[]) {
+              await db.execute(sql`
+                INSERT INTO notifications (
+                  user_id, type, title, message, priority, is_read, metadata
+                ) VALUES (
+                  ${parent.id},
+                  'geolocation',
+                  'Alerte Géolocalisation',
+                  ${`Votre enfant a quitté la zone de sécurité "${zone.name}"`},
+                  'high',
+                  false,
+                  ${JSON.stringify({
+                    category: 'security',
+                    alertId: alertId,
+                    zoneName: zone.name,
+                    distance: Math.round(distance)
+                  })}
+                )
+              `);
+              console.log(`[STUDENT_API] 🔔 PWA notification sent to parent ${parent.id}`);
+            }
+            
+            alertsCreated.push({
+              alertId,
+              zoneName: zone.name,
+              parentsNotified: (allParents.rows || []).length,
+              distance: Math.round(distance)
+            });
+          }
+        }
+      } else {
+        console.log(`[STUDENT_API] ⏸️ Skipping alert - recent alert already exists`);
+      }
+    }
+    
+    res.json({
+      success: true,
+      location: {
+        latitude,
+        longitude,
+        accuracy,
+        timestamp: timestamp || new Date().toISOString()
+      },
+      status: {
+        isInsideSafeZone: isInsideAnyZone,
+        currentZone: insideZoneName || null,
+        activeZonesCount: studentZones.length,
+        alertsCreated: alertsCreated.length
+      },
+      alerts: alertsCreated,
+      message: isInsideAnyZone 
+        ? `Position enregistrée - Dans la zone "${insideZoneName}"`
+        : studentZones.length > 0 
+          ? `Position enregistrée - Hors des zones de sécurité (${alertsCreated.length} alertes créées)`
+          : 'Position enregistrée - Aucune zone de sécurité définie'
+    });
+    
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error updating location:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating location'
+    });
+  }
+});
+
 // GET /api/student/events - Get available events for registration
 router.get('/events', requireAuth, async (req, res) => {
   try {
