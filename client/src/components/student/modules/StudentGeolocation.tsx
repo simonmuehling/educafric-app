@@ -4,7 +4,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { backgroundLocationService } from '@/services/BackgroundLocationService';
 import { 
   MapPin, 
   Shield, 
@@ -368,6 +367,103 @@ const StudentGeolocation: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Quick Actions - Check-in & SOS */}
+      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              size="lg"
+              className="h-20 bg-green-600 hover:bg-green-700 text-white flex flex-col items-center justify-center gap-2"
+              data-testid="button-checkin"
+              onClick={async () => {
+                if (!navigator.geolocation) {
+                  alert(language === 'fr' ? 'GPS non disponible' : 'GPS not available');
+                  return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                  async (position) => {
+                    try {
+                      const response = await fetch('/api/student/geolocation/update-location', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          latitude: position.coords.latitude,
+                          longitude: position.coords.longitude,
+                          accuracy: position.coords.accuracy,
+                          timestamp: new Date().toISOString(),
+                          type: 'checkin'
+                        })
+                      });
+                      if (response.ok) {
+                        alert(language === 'fr' ? '✅ Position envoyée!' : '✅ Location sent!');
+                      }
+                    } catch (error) {
+                      console.error('Check-in error:', error);
+                    }
+                  },
+                  (error) => alert(error.message),
+                  { enableHighAccuracy: true }
+                );
+              }}
+            >
+              <CheckCircle className="w-8 h-8" />
+              <span className="font-bold">{language === 'fr' ? 'Je suis arrivé(e)' : 'I arrived'}</span>
+            </Button>
+            
+            <Button
+              size="lg"
+              variant="destructive"
+              className="h-20 bg-red-600 hover:bg-red-700 text-white flex flex-col items-center justify-center gap-2"
+              data-testid="button-sos"
+              onClick={async () => {
+                if (!navigator.geolocation) {
+                  alert(language === 'fr' ? 'GPS non disponible' : 'GPS not available');
+                  return;
+                }
+                if (!confirm(language === 'fr' ? '🚨 Envoyer une alerte SOS à vos parents?' : '🚨 Send SOS alert to your parents?')) {
+                  return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                  async (position) => {
+                    try {
+                      const response = await fetch('/api/student/geolocation/update-location', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          latitude: position.coords.latitude,
+                          longitude: position.coords.longitude,
+                          accuracy: position.coords.accuracy,
+                          timestamp: new Date().toISOString(),
+                          type: 'sos'
+                        })
+                      });
+                      if (response.ok) {
+                        alert(language === 'fr' ? '🚨 Alerte SOS envoyée à vos parents!' : '🚨 SOS alert sent to your parents!');
+                        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+                      }
+                    } catch (error) {
+                      console.error('SOS error:', error);
+                    }
+                  },
+                  (error) => alert(error.message),
+                  { enableHighAccuracy: true }
+                );
+              }}
+            >
+              <AlertTriangle className="w-8 h-8" />
+              <span className="font-bold">SOS</span>
+            </Button>
+          </div>
+          <p className="text-center text-xs text-gray-500 mt-3">
+            {language === 'fr' 
+              ? 'Appuyez pour envoyer votre position actuelle à vos parents'
+              : 'Press to send your current location to your parents'}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Recent Notifications - Only show if there are unread geolocation notifications */}
       {Array.isArray(notifications) && notifications.length > 0 && (
