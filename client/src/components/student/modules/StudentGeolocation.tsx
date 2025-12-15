@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-// NotificationCenter now loaded dynamically via fastModuleLoader
+import { backgroundLocationService } from '@/services/BackgroundLocationService';
 import { 
   MapPin, 
   Shield, 
@@ -17,7 +17,9 @@ import {
   Home,
   Users,
   Activity,
-  Bell
+  Bell,
+  Power,
+  Smartphone
 } from 'lucide-react';
 
 interface SafeZone {
@@ -53,6 +55,8 @@ const StudentGeolocation: React.FC = () => {
   const [trackingStatus, setTrackingStatus] = useState<'idle' | 'tracking' | 'error'>('idle');
   const [lastPosition, setLastPosition] = useState<{ lat: number; lng: number; time: string } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [backgroundTrackingEnabled, setBackgroundTrackingEnabled] = useState(false);
+  const [isEnablingBackground, setIsEnablingBackground] = useState(false);
   const queryClient = useQueryClient();
 
   const t = {
@@ -85,7 +89,14 @@ const StudentGeolocation: React.FC = () => {
       notifications: 'Notifications Récentes',
       noNotifications: 'Aucune nouvelle notification',
       zoneModifiedAlert: 'Vos parents ont modifié vos zones de sécurité',
-      viewNotifications: 'Voir toutes les notifications'
+      viewNotifications: 'Voir toutes les notifications',
+      backgroundTracking: 'Suivi en arrière-plan',
+      backgroundDesc: 'Active le suivi GPS même quand l\'application est fermée',
+      enableBackground: 'Activer le suivi permanent',
+      disableBackground: 'Désactiver',
+      backgroundActive: 'Suivi permanent actif',
+      backgroundInactive: 'Suivi permanent inactif',
+      enabling: 'Activation...'
     },
     en: {
       title: 'My Geolocation',
@@ -116,7 +127,14 @@ const StudentGeolocation: React.FC = () => {
       notifications: 'Recent Notifications',
       noNotifications: 'No new notifications',
       zoneModifiedAlert: 'Your parents have modified your safety zones',
-      viewNotifications: 'View all notifications'
+      viewNotifications: 'View all notifications',
+      backgroundTracking: 'Background Tracking',
+      backgroundDesc: 'Enable GPS tracking even when app is closed',
+      enableBackground: 'Enable permanent tracking',
+      disableBackground: 'Disable',
+      backgroundActive: 'Permanent tracking active',
+      backgroundInactive: 'Permanent tracking inactive',
+      enabling: 'Enabling...'
     }
   };
 
