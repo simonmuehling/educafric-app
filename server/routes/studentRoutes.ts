@@ -1101,14 +1101,29 @@ router.get('/geolocation/safe-zones', requireAuth, async (req, res) => {
       ));
     
     // Filter zones that include this student in children_ids
+    console.log('[STUDENT_API] Total zones found for school:', zones.length);
+    
     const studentZones = zones.filter(zone => {
-      if (!zone.childrenIds) return false;
+      if (!zone.childrenIds) {
+        console.log('[STUDENT_API] Zone', zone.id, 'has no childrenIds');
+        return false;
+      }
       try {
         const childrenIds = typeof zone.childrenIds === 'string' 
           ? JSON.parse(zone.childrenIds) 
           : zone.childrenIds;
-        return Array.isArray(childrenIds) && childrenIds.includes(studentId);
-      } catch {
+        
+        console.log('[STUDENT_API] Zone', zone.id, 'childrenIds:', childrenIds, 'looking for studentId:', studentId, 'type:', typeof studentId);
+        
+        // Compare with type coercion (number or string comparison)
+        const found = Array.isArray(childrenIds) && childrenIds.some((id: any) => 
+          Number(id) === Number(studentId) || String(id) === String(studentId)
+        );
+        
+        console.log('[STUDENT_API] Zone', zone.id, 'match:', found);
+        return found;
+      } catch (err) {
+        console.error('[STUDENT_API] Error parsing childrenIds for zone', zone.id, ':', err);
         return false;
       }
     });
