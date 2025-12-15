@@ -93,9 +93,21 @@ router.patch('/devices/:deviceId/emergency', async (req, res) => {
 router.post('/safe-zones', async (req, res) => {
   try {
     const parentId = (req.user as any)?.id;
-    const schoolId = (req.user as any)?.schoolId || 1;
+    const schoolId = (req.user as any)?.schoolId;
+    
+    // Validate parent authentication
+    if (!parentId) {
+      console.error('[GEOLOCATION_API] ❌ Cannot create zone - parent ID missing');
+      return res.status(401).json({ error: 'Authentication required - parent ID missing' });
+    }
+    
+    if (!schoolId) {
+      console.error('[GEOLOCATION_API] ❌ Cannot create zone - school ID missing for parent:', parentId);
+      return res.status(400).json({ error: 'School ID required - user not associated with a school' });
+    }
+    
     const zoneData = { ...req.body, parentId, schoolId };
-    console.log('[GEOLOCATION_API] Creating safe zone for parent:', parentId, zoneData);
+    console.log('[GEOLOCATION_API] Creating safe zone for parent:', parentId, 'school:', schoolId, zoneData);
     const zone = await simpleGeolocationService.createSafeZone(zoneData);
     res.json(zone);
   } catch (error) {
