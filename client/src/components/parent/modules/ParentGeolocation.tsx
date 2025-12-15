@@ -51,7 +51,10 @@ interface GeolocationAlert {
   message: string;
   timestamp: string;
   severity: 'info' | 'warning' | 'critical';
-  resolved: boolean;
+  resolved?: boolean;
+  isResolved?: boolean;
+  latitude?: number | string;
+  longitude?: number | string;
 }
 
 export const ParentGeolocation = () => {
@@ -272,55 +275,112 @@ export const ParentGeolocation = () => {
 
   const handleViewAlertLocation = useStableCallback((alert: GeolocationAlert) => {
     console.log(`[PARENT_GEOLOCATION] 🗺️ View alert location for ${alert.childName}`);
-    fetch(`/api/geolocation/parent/alerts/${alert.id}/location`, {
+    
+    // Check if alert already has coordinates
+    if (alert.latitude && alert.longitude) {
+      const lat = typeof alert.latitude === 'string' ? parseFloat(alert.latitude) : alert.latitude;
+      const lng = typeof alert.longitude === 'string' ? parseFloat(alert.longitude) : alert.longitude;
+      const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}&z=17`;
+      console.log(`[PARENT_GEOLOCATION] 🗺️ Opening Google Maps with coordinates:`, lat, lng);
+      window.open(googleMapsUrl, '_blank');
+      toast({
+        title: language === 'fr' ? '🗺️ Carte ouverte' : '🗺️ Map opened',
+        description: language === 'fr' ? 'Google Maps s\'ouvre dans un nouvel onglet' : 'Google Maps is opening in a new tab'
+      });
+      return;
+    }
+    
+    // Get alert location from API if no coordinates in alert
+    fetch(`/api/parent/geolocation/alerts/${alert.id}`, {
       method: 'GET',
       credentials: 'include'
     }).then(async response => {
       if (response.ok) {
-        const alertLocationData = await response.json();
-        console.log(`[PARENT_GEOLOCATION] ✅ Alert location data:`, alertLocationData);
-        window.dispatchEvent(new CustomEvent('openAlertMap', { 
-          detail: { alert, alertLocationData } 
-        }));
+        const alertData = await response.json();
+        console.log(`[PARENT_GEOLOCATION] ✅ Alert data:`, alertData);
+        
+        // Open Google Maps with the coordinates
+        const lat = alertData.latitude || 4.0511; // Default Douala
+        const lng = alertData.longitude || 9.7679;
+        const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}&z=17`;
+        window.open(googleMapsUrl, '_blank');
+      } else {
+        // Fallback: use default Douala location
+        const googleMapsUrl = `https://www.google.com/maps?q=4.0511,9.7679&z=15`;
+        window.open(googleMapsUrl, '_blank');
       }
+      toast({
+        title: language === 'fr' ? '🗺️ Carte ouverte' : '🗺️ Map opened',
+        description: language === 'fr' ? 'Google Maps s\'ouvre dans un nouvel onglet' : 'Google Maps is opening in a new tab'
+      });
     }).catch(error => {
       console.error('[PARENT_GEOLOCATION] View alert location error:', error);
+      // Fallback: open Google Maps with Douala default
+      const googleMapsUrl = `https://www.google.com/maps?q=4.0511,9.7679&z=15`;
+      window.open(googleMapsUrl, '_blank');
+      
+      toast({
+        title: language === 'fr' ? '🗺️ Carte ouverte' : '🗺️ Map opened',
+        description: language === 'fr' ? 'Google Maps s\'ouvre dans un nouvel onglet' : 'Google Maps is opening in a new tab'
+      });
     });
   });
 
   const handleAcknowledgeAlert = useStableCallback((alert: GeolocationAlert) => {
     console.log(`[PARENT_GEOLOCATION] ✅ Acknowledging alert ${alert.id}: ${alert.message}`);
-    csrfFetch(`/api/geolocation/parent/alerts/${alert.id}/acknowledge`, {
-      method: 'PATCH',
+    csrfFetch(`/api/parent/geolocation/alerts/${alert.id}/acknowledge`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'acknowledge' })
-    }).then(response => {
+      body: JSON.stringify({ acknowledged: true })
+    }).then(async response => {
       if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/alerts'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/alerts'] });
         console.log(`[PARENT_GEOLOCATION] ✅ Successfully acknowledged alert ${alert.id}`);
+        toast({
+          title: language === 'fr' ? '✅ Alerte accusée' : '✅ Alert acknowledged',
+          description: language === 'fr' ? 'L\'alerte a été marquée comme vue' : 'The alert has been marked as seen'
+        });
+      } else {
+        throw new Error('Failed to acknowledge');
       }
     }).catch(error => {
       console.error('[PARENT_GEOLOCATION] Acknowledge alert error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'accuser réception' : 'Could not acknowledge alert',
+        variant: 'destructive'
+      });
     });
   });
 
   const handleResolveAlert = useStableCallback((alert: GeolocationAlert) => {
     console.log(`[PARENT_GEOLOCATION] 🔧 Resolving alert ${alert.id}: ${alert.message}`);
-    csrfFetch(`/api/geolocation/parent/alerts/${alert.id}/resolve`, {
-      method: 'PATCH',
+    csrfFetch(`/api/parent/geolocation/alerts/${alert.id}/resolve`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        action: 'resolve', 
+        resolved: true,
         resolution: 'Resolved by parent',
         resolvedAt: new Date().toISOString()
       })
-    }).then(response => {
+    }).then(async response => {
       if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/alerts'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/alerts'] });
         console.log(`[PARENT_GEOLOCATION] ✅ Successfully resolved alert ${alert.id}`);
+        toast({
+          title: language === 'fr' ? '✅ Alerte résolue' : '✅ Alert resolved',
+          description: language === 'fr' ? 'L\'alerte a été marquée comme résolue' : 'The alert has been marked as resolved'
+        });
+      } else {
+        throw new Error('Failed to resolve');
       }
     }).catch(error => {
       console.error('[PARENT_GEOLOCATION] Resolve alert error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de résoudre l\'alerte' : 'Could not resolve alert',
+        variant: 'destructive'
+      });
     });
   });
 
@@ -650,60 +710,73 @@ export const ParentGeolocation = () => {
               {alerts.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">{t.noAlerts}</p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {alerts.map(alert => (
-                    <div key={alert.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                      <div className="mt-1">
-                        {getAlertIcon(alert.type)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-gray-800">{alert.childName}</h4>
-                          <div className="flex items-center gap-2">
-                            <Badge 
-                              variant={alert.severity === 'critical' ? 'destructive' : alert.severity === 'warning' ? 'secondary' : 'outline'}
-                              className="text-xs"
+                    <div key={alert.id} className="p-4 border rounded-lg bg-white shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1 shrink-0">
+                          {getAlertIcon(alert.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <h4 className="font-medium text-gray-800 truncate">{alert.childName}</h4>
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant={alert.severity === 'critical' ? 'destructive' : alert.severity === 'warning' ? 'secondary' : 'outline'}
+                                className="text-xs whitespace-nowrap"
+                              >
+                                {alert.severity === 'critical' ? '🔴 Critique' : alert.severity === 'warning' ? '🟠 Attention' : '🔵 Info'}
+                              </Badge>
+                              {(alert.resolved || alert.isResolved) && (
+                                <Badge className="bg-green-100 text-green-700 text-xs">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  {language === 'fr' ? 'Résolu' : 'Resolved'}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-2 break-words">{alert.message}</p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            <Clock className="w-3 h-3 inline mr-1" />
+                            {new Date(alert.timestamp).toLocaleString()}
+                          </p>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="w-full"
+                              onClick={() => handleViewAlertLocation(alert)}
+                              data-testid={`btn-view-map-${alert.id}`}
                             >
-                              {alert.severity}
-                            </Badge>
-                            {alert.resolved && (
-                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              <MapPin className="w-4 h-4 mr-2" />
+                              {language === 'fr' ? 'Voir sur carte' : 'View on map'}
+                            </Button>
+                            {!(alert.resolved || alert.isResolved) && (
+                              <>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="w-full border-orange-200 text-orange-700 hover:bg-orange-50"
+                                  onClick={() => handleAcknowledgeAlert(alert)}
+                                  data-testid={`btn-acknowledge-${alert.id}`}
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  {language === 'fr' ? 'Accusé' : 'Acknowledge'}
+                                </Button>
+                                <Button 
+                                  variant="default" 
+                                  size="sm"
+                                  className="w-full bg-green-600 hover:bg-green-700"
+                                  onClick={() => handleResolveAlert(alert)}
+                                  data-testid={`btn-resolve-${alert.id}`}
+                                >
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  {language === 'fr' ? 'Résoudre' : 'Resolve'}
+                                </Button>
+                              </>
                             )}
                           </div>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">{alert.message}</p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          {new Date(alert.timestamp).toLocaleString()}
-                        </p>
-                        <div className="flex gap-2 mt-3">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleViewAlertLocation(alert)}
-                          >
-                            <MapPin className="w-3 h-3 mr-1" />
-                            {t.viewMap}
-                          </Button>
-                          {!alert.resolved && (
-                            <>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleAcknowledgeAlert(alert)}
-                              >
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Accuser réception
-                              </Button>
-                              <Button 
-                                variant="default" 
-                                size="sm"
-                                onClick={() => handleResolveAlert(alert)}
-                              >
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Résoudre
-                              </Button>
-                            </>
-                          )}
                         </div>
                       </div>
                     </div>

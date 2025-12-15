@@ -215,6 +215,147 @@ router.get('/geolocation/alerts', requireAuth, async (req: AuthenticatedRequest,
   }
 });
 
+// Get single geolocation alert by ID for parent
+router.get('/geolocation/alerts/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const alertId = parseInt(req.params.id);
+    const parentId = req.user.id;
+    console.log('[PARENT_GEOLOCATION] Fetching alert', alertId, 'for parent:', parentId);
+    
+    // Get children linked to this parent
+    const relations = await db.select({ studentId: parentStudentRelations.studentId })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, parentId));
+    
+    if (relations.length === 0) {
+      return res.status(404).json({ message: 'No children found' });
+    }
+    
+    const studentIds = relations.map(r => r.studentId);
+    
+    // Get the specific alert
+    const [alert] = await db.select()
+      .from(geolocationAlerts)
+      .where(
+        and(
+          eq(geolocationAlerts.id, alertId),
+          inArray(geolocationAlerts.studentId, studentIds)
+        )
+      );
+    
+    if (!alert) {
+      return res.status(404).json({ message: 'Alert not found' });
+    }
+    
+    res.json(alert);
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching geolocation alert:', error);
+    res.status(500).json({ message: 'Failed to fetch geolocation alert' });
+  }
+});
+
+// Acknowledge geolocation alert for parent
+router.post('/geolocation/alerts/:id/acknowledge', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const alertId = parseInt(req.params.id);
+    const parentId = req.user.id;
+    console.log('[PARENT_GEOLOCATION] Acknowledging alert', alertId, 'for parent:', parentId);
+    
+    // Get children linked to this parent
+    const relations = await db.select({ studentId: parentStudentRelations.studentId })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, parentId));
+    
+    if (relations.length === 0) {
+      return res.status(404).json({ message: 'No children found' });
+    }
+    
+    const studentIds = relations.map(r => r.studentId);
+    
+    // Verify alert belongs to parent's child and update it (mark as acknowledged by updating)
+    const [updatedAlert] = await db.update(geolocationAlerts)
+      .set({ 
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(geolocationAlerts.id, alertId),
+          inArray(geolocationAlerts.studentId, studentIds)
+        )
+      )
+      .returning();
+    
+    if (!updatedAlert) {
+      return res.status(404).json({ message: 'Alert not found or not authorized' });
+    }
+    
+    console.log('[PARENT_GEOLOCATION] Alert acknowledged successfully:', updatedAlert.id);
+    res.json({ success: true, alert: updatedAlert, acknowledged: true });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error acknowledging geolocation alert:', error);
+    res.status(500).json({ message: 'Failed to acknowledge alert' });
+  }
+});
+
+// Resolve geolocation alert for parent
+router.post('/geolocation/alerts/:id/resolve', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const alertId = parseInt(req.params.id);
+    const parentId = req.user.id;
+    const { resolution } = req.body;
+    console.log('[PARENT_GEOLOCATION] Resolving alert', alertId, 'for parent:', parentId);
+    
+    // Get children linked to this parent
+    const relations = await db.select({ studentId: parentStudentRelations.studentId })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, parentId));
+    
+    if (relations.length === 0) {
+      return res.status(404).json({ message: 'No children found' });
+    }
+    
+    const studentIds = relations.map(r => r.studentId);
+    
+    // Verify alert belongs to parent's child and update it
+    const [updatedAlert] = await db.update(geolocationAlerts)
+      .set({ 
+        isResolved: true,
+        resolvedBy: parentId,
+        resolvedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(geolocationAlerts.id, alertId),
+          inArray(geolocationAlerts.studentId, studentIds)
+        )
+      )
+      .returning();
+    
+    if (!updatedAlert) {
+      return res.status(404).json({ message: 'Alert not found or not authorized' });
+    }
+    
+    console.log('[PARENT_GEOLOCATION] Alert resolved successfully:', updatedAlert.id);
+    res.json({ success: true, alert: updatedAlert });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error resolving geolocation alert:', error);
+    res.status(500).json({ message: 'Failed to resolve alert' });
+  }
+});
+
 // Get geolocation safe zones for parent - REAL DATABASE QUERIES
 router.get('/geolocation/safe-zones', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
