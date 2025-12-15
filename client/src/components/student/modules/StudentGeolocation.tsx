@@ -50,6 +50,9 @@ interface DeviceStatus {
 const StudentGeolocation: React.FC = () => {
   const { language } = useLanguage();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [trackingStatus, setTrackingStatus] = useState<'idle' | 'tracking' | 'error'>('idle');
+  const [lastPosition, setLastPosition] = useState<{ lat: number; lng: number; time: string } | null>(null);
+  const [gpsError, setGpsError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const t = {
@@ -167,6 +170,105 @@ const StudentGeolocation: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // GPS Tracking - Only active when safe zones are defined
+  useEffect(() => {
+    const activeSafeZones = (safeZones || []).filter((zone: SafeZone) => zone.active);
+    
+    // Only start tracking if there are active safe zones
+    if (activeSafeZones.length === 0) {
+      setTrackingStatus('idle');
+      console.log('[GPS_TRACKING] No active safe zones - GPS tracking disabled');
+      return;
+    }
+
+    // Check if geolocation is supported
+    if (!navigator.geolocation) {
+      setGpsError(language === 'fr' ? 'Géolocalisation non supportée' : 'Geolocation not supported');
+      setTrackingStatus('error');
+      return;
+    }
+
+    console.log('[GPS_TRACKING] Starting GPS tracking - Found', activeSafeZones.length, 'active safe zones');
+    setTrackingStatus('tracking');
+    setGpsError(null);
+
+    // Function to send position to server
+    const sendPositionToServer = async (position: GeolocationPosition) => {
+      const { latitude, longitude, accuracy } = position.coords;
+      
+      try {
+        const response = await fetch('/api/student/geolocation/update-location', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            latitude,
+            longitude,
+            accuracy,
+            batteryLevel: (navigator as any).getBattery ? await (navigator as any).getBattery().then((b: any) => Math.round(b.level * 100)) : null,
+            timestamp: new Date().toISOString()
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setLastPosition({
+            lat: latitude,
+            lng: longitude,
+            time: new Date().toLocaleTimeString()
+          });
+          console.log('[GPS_TRACKING] Position sent:', data.message);
+          
+          // Refresh notifications if alerts were created
+          if (data.alerts?.length > 0) {
+            queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+          }
+        }
+      } catch (error) {
+        console.error('[GPS_TRACKING] Error sending position:', error);
+      }
+    };
+
+    // Get initial position
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        sendPositionToServer(position);
+      },
+      (error) => {
+        console.error('[GPS_TRACKING] Initial position error:', error.message);
+        setGpsError(error.message);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+
+    // Watch position changes and send updates every 30 seconds
+    let lastSentTime = 0;
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const now = Date.now();
+        // Only send every 30 seconds to avoid excessive API calls
+        if (now - lastSentTime >= 30000) {
+          sendPositionToServer(position);
+          lastSentTime = now;
+        }
+      },
+      (error) => {
+        console.error('[GPS_TRACKING] Watch error:', error.message);
+        if (error.code === error.PERMISSION_DENIED) {
+          setGpsError(language === 'fr' ? 'Permission GPS refusée' : 'GPS permission denied');
+          setTrackingStatus('error');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+
+    // Cleanup on unmount
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      console.log('[GPS_TRACKING] GPS tracking stopped');
+    };
+  }, [safeZones, language, queryClient]);
+
   const getZoneIcon = (type: string) => {
     switch(type) {
       case 'home': return <Home className="w-5 h-5 text-blue-500" />;
@@ -219,6 +321,34 @@ const StudentGeolocation: React.FC = () => {
           <CheckCircle className="w-4 h-4" />
           {translations.autoTracking}
         </div>
+        
+        {/* GPS Tracking Status Indicator */}
+        {trackingStatus === 'tracking' && (
+          <div className="flex items-center justify-center gap-2 text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full mt-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            {language === 'fr' ? 'GPS actif' : 'GPS active'}
+            {lastPosition && (
+              <span className="text-xs text-green-600">
+                ({lastPosition.time})
+              </span>
+            )}
+          </div>
+        )}
+        {trackingStatus === 'error' && gpsError && (
+          <div className="flex items-center justify-center gap-2 text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full mt-2">
+            <AlertTriangle className="w-4 h-4" />
+            {gpsError}
+          </div>
+        )}
+        {trackingStatus === 'idle' && (
+          <div className="flex items-center justify-center gap-2 text-sm bg-gray-100 text-gray-600 px-3 py-1 rounded-full mt-2">
+            <MapPin className="w-4 h-4" />
+            {language === 'fr' ? 'GPS inactif (aucune zone définie)' : 'GPS inactive (no zones defined)'}
+          </div>
+        )}
       </div>
 
       {/* Recent Notifications - Only show if there are unread geolocation notifications */}
