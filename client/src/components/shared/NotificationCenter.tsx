@@ -37,7 +37,11 @@ import PWANotificationManager from './PWANotificationManager';
 interface Notification {
   id: number;
   title: string;
+  titleFr?: string;
+  titleEn?: string;
   message: string;
+  messageFr?: string;
+  messageEn?: string;
   type: string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
   category: string;
@@ -477,7 +481,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
                           <h4 className="font-semibold text-gray-900 dark:text-gray-100 truncate">
-                            {notification.title}
+                            {language === 'fr' 
+                              ? (notification.titleFr || notification.title)
+                              : (notification.titleEn || notification.title)}
                           </h4>
                           <div className="flex items-center space-x-2 ml-2">
                             <Badge className={getPriorityColor(notification.priority)}>
@@ -487,7 +493,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                         </div>
                         
                         <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm line-clamp-2 sm:line-clamp-none">
-                          {notification.message}
+                          {language === 'fr' 
+                            ? (notification.messageFr || notification.message)
+                            : (notification.messageEn || notification.message)}
                         </p>
                         
                         <div className="flex items-center justify-between mt-3">
