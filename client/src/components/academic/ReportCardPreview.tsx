@@ -399,16 +399,32 @@ export default function ReportCardPreview({
           {/* EXACT Ministry Header - Bilingual 3-Column Layout (EN - Logo - FR) - PRINT OPTIMIZED */}
           <div className="text-center mb-2 relative ministry-header">
             <div className="grid grid-cols-3 gap-2">
-              {/* Left Column: English */}
+              {/* Left Column: English - Using actual school data with English fallbacks */}
               <div className="ministry-header-text text-[10px] text-center leading-snug">
                 <div className="ministry-header-title font-bold">{MINISTRY_HEADER.line1.en}</div>
                 <div className="italic text-[9px]">{MINISTRY_HEADER.line2.en}</div>
                 <div className="text-[8px]">***</div>
                 <div className="font-semibold text-[9px]">{MINISTRY_HEADER.line3.en}</div>
                 <div className="text-[8px]">***</div>
-                <div className="font-semibold text-[9px]">{MINISTRY_HEADER.line4.en}</div>
-                <div className="font-semibold text-[9px]">{MINISTRY_HEADER.line5.en}</div>
-                <div className="font-bold text-[10px]">{MINISTRY_HEADER.line6.en}</div>
+                <div className="font-semibold text-[9px]">
+                  {(() => {
+                    const region = student.school?.officialInfo?.regionaleMinisterielle;
+                    if (!region) return MINISTRY_HEADER.line4.en;
+                    // If data already contains DÉLÉGATION, extract just the region name and translate
+                    const match = region.match(/(?:DÉLÉGATION RÉGIONALE|REGIONAL DELEGATION)\s*(?:DU|DE|OF)?\s*(.+)/i);
+                    return match ? `REGIONAL DELEGATION OF ${match[1]}` : `REGIONAL DELEGATION OF ${region}`;
+                  })()}
+                </div>
+                <div className="font-semibold text-[9px]">
+                  {(() => {
+                    const dept = student.school?.officialInfo?.delegationDepartementale;
+                    if (!dept) return MINISTRY_HEADER.line5.en;
+                    // If data already contains DÉLÉGATION, extract just the department name and translate
+                    const match = dept.match(/(?:DÉLÉGATION DÉPARTEMENTALE|DIVISIONAL DELEGATION)\s*(?:DU|DE|OF)?\s*(.+)/i);
+                    return match ? `DIVISIONAL DELEGATION OF ${match[1]}` : `DIVISIONAL DELEGATION OF ${dept}`;
+                  })()}
+                </div>
+                <div className="font-bold text-[10px]">{student.school?.name || MINISTRY_HEADER.line6.en}</div>
               </div>
 
               {/* Center Column: School Logo and Registration Number */}
@@ -434,15 +450,35 @@ export default function ReportCardPreview({
                 )}
               </div>
 
-              {/* Right Column: French */}
+              {/* Right Column: French - Using actual school data with French fallbacks */}
               <div className="ministry-header-text text-[10px] text-center leading-snug">
                 <div className="ministry-header-title font-bold">{MINISTRY_HEADER.line1.fr}</div>
                 <div className="italic text-[9px]">{MINISTRY_HEADER.line2.fr}</div>
                 <div className="text-[8px]">***</div>
                 <div className="font-semibold text-[9px]">{MINISTRY_HEADER.line3.fr}</div>
                 <div className="text-[8px]">***</div>
-                <div className="font-semibold text-[9px]">{student.school?.officialInfo?.regionaleMinisterielle || MINISTRY_HEADER.line4.fr}</div>
-                <div className="font-semibold text-[9px]">{student.school?.officialInfo?.delegationDepartementale || MINISTRY_HEADER.line5.fr}</div>
+                <div className="font-semibold text-[9px]">
+                  {(() => {
+                    const region = student.school?.officialInfo?.regionaleMinisterielle;
+                    if (!region) return MINISTRY_HEADER.line4.fr;
+                    // If data already contains prefix, use as-is; otherwise add prefix
+                    if (region.toUpperCase().startsWith('DÉLÉGATION') || region.toUpperCase().startsWith('DELEGATION')) {
+                      return region;
+                    }
+                    return `DÉLÉGATION RÉGIONALE DU ${region}`;
+                  })()}
+                </div>
+                <div className="font-semibold text-[9px]">
+                  {(() => {
+                    const dept = student.school?.officialInfo?.delegationDepartementale;
+                    if (!dept) return MINISTRY_HEADER.line5.fr;
+                    // If data already contains prefix, use as-is; otherwise add prefix
+                    if (dept.toUpperCase().startsWith('DÉLÉGATION') || dept.toUpperCase().startsWith('DELEGATION')) {
+                      return dept;
+                    }
+                    return `DÉLÉGATION DÉPARTEMENTALE DU ${dept}`;
+                  })()}
+                </div>
                 <div className="font-bold text-[10px]">{student.school?.name || MINISTRY_HEADER.line6.fr}</div>
               </div>
             </div>
