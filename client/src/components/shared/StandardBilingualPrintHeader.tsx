@@ -43,8 +43,46 @@ export const StandardBilingualPrintHeader: React.FC<StandardBilingualPrintHeader
   });
 
   const school: SchoolInfo = schoolOverride || schoolData?.settings?.school || schoolData?.school || {};
-  const regionale = school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '…';
-  const departementale = school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '…';
+  const regionaleRaw = school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '';
+  const departementaleRaw = school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '';
+
+  // Helper function to format delegation text - handles both FR and EN input
+  const formatDelegation = (value: string, type: 'regional' | 'departmental', lang: 'fr' | 'en'): string => {
+    if (!value) return lang === 'fr' ? '…' : '….';
+    
+    // Check if already contains prefix
+    const hasPrefix = value.toUpperCase().startsWith('DÉLÉGATION') || 
+                      value.toUpperCase().startsWith('DELEGATION') ||
+                      value.toUpperCase().startsWith('REGIONAL') ||
+                      value.toUpperCase().startsWith('DIVISIONAL');
+    
+    if (hasPrefix) {
+      // Extract just the location name
+      const match = value.match(/(?:DÉLÉGATION\s+(?:RÉGIONALE|DÉPARTEMENTALE)|REGIONAL\s+DELEGATION|DIVISIONAL\s+DELEGATION)\s*(?:DU|DE|OF)?\s*(.+)/i);
+      const locationName = match ? match[1] : value;
+      
+      if (lang === 'fr') {
+        return type === 'regional' 
+          ? `DÉLÉGATION RÉGIONALE DU ${locationName}`
+          : `DÉLÉGATION DÉPARTEMENTALE DU ${locationName}`;
+      } else {
+        return type === 'regional'
+          ? `REGIONAL DELEGATION OF ${locationName}`
+          : `DIVISIONAL DELEGATION OF ${locationName}`;
+      }
+    }
+    
+    // No prefix - just add appropriate prefix
+    if (lang === 'fr') {
+      return type === 'regional' 
+        ? `DÉLÉGATION RÉGIONALE DU ${value}`
+        : `DÉLÉGATION DÉPARTEMENTALE DU ${value}`;
+    } else {
+      return type === 'regional'
+        ? `REGIONAL DELEGATION OF ${value}`
+        : `DIVISIONAL DELEGATION OF ${value}`;
+    }
+  };
 
   return (
     <div className="hidden print:block p-4 border-b-2 border-black">
@@ -60,14 +98,15 @@ export const StandardBilingualPrintHeader: React.FC<StandardBilingualPrintHeader
         )}
         
         <div className="grid grid-cols-3 gap-2 text-xs font-bold uppercase">
+          {/* French Column (Left) */}
           <div className="text-left">
             <div>RÉPUBLIQUE DU CAMEROUN</div>
             <div className="italic font-normal">Paix – Travail – Patrie</div>
             <div className="text-[10px] mt-1">***</div>
             <div className="mt-1">MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
             <div className="text-[10px] mt-1">***</div>
-            <div>DÉLÉGATION RÉGIONALE DE {regionale}</div>
-            <div>DÉLÉGATION DÉPARTEMENTALE DE {departementale}</div>
+            <div>{formatDelegation(regionaleRaw, 'regional', 'fr')}</div>
+            <div>{formatDelegation(departementaleRaw, 'departmental', 'fr')}</div>
             <div className="mt-1 font-bold">{school?.name || 'ÉTABLISSEMENT'}</div>
           </div>
           
@@ -77,14 +116,15 @@ export const StandardBilingualPrintHeader: React.FC<StandardBilingualPrintHeader
             )}
           </div>
           
+          {/* English Column (Right) */}
           <div className="text-right">
             <div>REPUBLIC OF CAMEROON</div>
             <div className="italic font-normal">Peace – Work – Fatherland</div>
             <div className="text-[10px] mt-1">***</div>
             <div className="mt-1">MINISTRY OF SECONDARY EDUCATION</div>
             <div className="text-[10px] mt-1">***</div>
-            <div>REGIONAL DELEGATION OF {regionale}</div>
-            <div>DIVISIONAL DELEGATION OF {departementale}</div>
+            <div>{formatDelegation(regionaleRaw, 'regional', 'en')}</div>
+            <div>{formatDelegation(departementaleRaw, 'departmental', 'en')}</div>
             <div className="mt-1 font-bold">{school?.name || 'SCHOOL'}</div>
           </div>
         </div>
@@ -104,13 +144,48 @@ export const StandardBilingualPrintHeader: React.FC<StandardBilingualPrintHeader
   );
 };
 
+// Helper function for HTML generation - same logic as React component
+function formatDelegationHtml(value: string, type: 'regional' | 'departmental', lang: 'fr' | 'en'): string {
+  if (!value) return lang === 'fr' ? '…' : '….';
+  
+  const hasPrefix = value.toUpperCase().startsWith('DÉLÉGATION') || 
+                    value.toUpperCase().startsWith('DELEGATION') ||
+                    value.toUpperCase().startsWith('REGIONAL') ||
+                    value.toUpperCase().startsWith('DIVISIONAL');
+  
+  if (hasPrefix) {
+    const match = value.match(/(?:DÉLÉGATION\s+(?:RÉGIONALE|DÉPARTEMENTALE)|REGIONAL\s+DELEGATION|DIVISIONAL\s+DELEGATION)\s*(?:DU|DE|OF)?\s*(.+)/i);
+    const locationName = match ? match[1] : value;
+    
+    if (lang === 'fr') {
+      return type === 'regional' 
+        ? `DÉLÉGATION RÉGIONALE DU ${locationName}`
+        : `DÉLÉGATION DÉPARTEMENTALE DU ${locationName}`;
+    } else {
+      return type === 'regional'
+        ? `REGIONAL DELEGATION OF ${locationName}`
+        : `DIVISIONAL DELEGATION OF ${locationName}`;
+    }
+  }
+  
+  if (lang === 'fr') {
+    return type === 'regional' 
+      ? `DÉLÉGATION RÉGIONALE DU ${value}`
+      : `DÉLÉGATION DÉPARTEMENTALE DU ${value}`;
+  } else {
+    return type === 'regional'
+      ? `REGIONAL DELEGATION OF ${value}`
+      : `DIVISIONAL DELEGATION OF ${value}`;
+  }
+}
+
 export function generateBilingualPrintHeaderHtml(
   school: SchoolInfo | null,
   title: { fr: string; en: string },
   subtitle?: { fr: string; en: string }
 ): string {
-  const regionale = school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '…';
-  const departementale = school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '…';
+  const regionaleRaw = school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '';
+  const departementaleRaw = school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '';
   const logoHtml = school?.logoUrl 
     ? `<img src="${school.logoUrl}" alt="Logo" style="width:70px;height:70px;object-fit:contain;">`
     : '<div style="color:#999;font-size:12px;">LOGO</div>';
@@ -125,8 +200,8 @@ export function generateBilingualPrintHeaderHtml(
             <div style="font-size:9px;margin:3px 0;">***</div>
             <div>MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
             <div style="font-size:9px;margin:3px 0;">***</div>
-            <div>DÉLÉGATION RÉGIONALE DE ${regionale}</div>
-            <div>DÉLÉGATION DÉPARTEMENTALE DE ${departementale}</div>
+            <div>${formatDelegationHtml(regionaleRaw, 'regional', 'fr')}</div>
+            <div>${formatDelegationHtml(departementaleRaw, 'departmental', 'fr')}</div>
             <div style="margin-top:5px;font-weight:bold;">${school?.name || 'ÉTABLISSEMENT'}</div>
           </td>
           <td style="width:20%;text-align:center;vertical-align:middle;">
@@ -138,8 +213,8 @@ export function generateBilingualPrintHeaderHtml(
             <div style="font-size:9px;margin:3px 0;">***</div>
             <div>MINISTRY OF SECONDARY EDUCATION</div>
             <div style="font-size:9px;margin:3px 0;">***</div>
-            <div>REGIONAL DELEGATION OF ${regionale}</div>
-            <div>DIVISIONAL DELEGATION OF ${departementale}</div>
+            <div>${formatDelegationHtml(regionaleRaw, 'regional', 'en')}</div>
+            <div>${formatDelegationHtml(departementaleRaw, 'departmental', 'en')}</div>
             <div style="margin-top:5px;font-weight:bold;">${school?.name || 'SCHOOL'}</div>
           </td>
         </tr>
