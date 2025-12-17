@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { type CountryCode, COUNTRY_CONFIGS, getCountryConfig } from '@shared/countryConfig';
 
 interface SchoolInfo {
   name?: string;
@@ -7,6 +8,7 @@ interface SchoolInfo {
   email?: string;
   logoUrl?: string;
   directorName?: string;
+  countryCode?: CountryCode;
   regionaleMinisterielle?: string;
   delegationDepartementale?: string;
   officialInfo?: {
@@ -20,13 +22,15 @@ interface StandardBilingualPrintHeaderProps {
   subtitle?: { fr: string; en: string };
   schoolOverride?: SchoolInfo;
   showLogo?: boolean;
+  countryCode?: CountryCode;
 }
 
 export const StandardBilingualPrintHeader: React.FC<StandardBilingualPrintHeaderProps> = ({
   title,
   subtitle,
   schoolOverride,
-  showLogo = true
+  showLogo = true,
+  countryCode: countryCodeProp
 }) => {
   const { data: schoolData } = useQuery({
     queryKey: ['/api/director/settings'],
@@ -45,43 +49,30 @@ export const StandardBilingualPrintHeader: React.FC<StandardBilingualPrintHeader
   const school: SchoolInfo = schoolOverride || schoolData?.settings?.school || schoolData?.school || {};
   const regionaleRaw = school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '';
   const departementaleRaw = school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '';
+  
+  // Get country config - priority: prop > school data > default (CM)
+  const countryCode: CountryCode = countryCodeProp || (school?.countryCode as CountryCode) || (schoolData?.school?.countryCode as CountryCode) || 'CM';
+  const countryConfig = getCountryConfig(countryCode);
 
-  // Helper function to format delegation text - handles both FR and EN input
+  // Helper function to format delegation text - uses country-specific prefixes
   const formatDelegation = (value: string, type: 'regional' | 'departmental', lang: 'fr' | 'en'): string => {
-    if (!value) return lang === 'fr' ? '…' : '….';
+    if (!value) return '…';
     
-    // Check if already contains prefix
-    const hasPrefix = value.toUpperCase().startsWith('DÉLÉGATION') || 
-                      value.toUpperCase().startsWith('DELEGATION') ||
-                      value.toUpperCase().startsWith('REGIONAL') ||
-                      value.toUpperCase().startsWith('DIVISIONAL');
+    // Check if already contains any known prefix
+    const hasPrefixPattern = /^(DÉLÉGATION|DELEGATION|REGIONAL|DIVISIONAL|DIRECTION|INSPECTION|ACADÉMIE|ACADEMY|IEF)/i;
+    const hasPrefix = hasPrefixPattern.test(value.trim());
     
     if (hasPrefix) {
       // Extract just the location name
-      const match = value.match(/(?:DÉLÉGATION\s+(?:RÉGIONALE|DÉPARTEMENTALE)|REGIONAL\s+DELEGATION|DIVISIONAL\s+DELEGATION)\s*(?:DU|DE|OF)?\s*(.+)/i);
+      const match = value.match(/(?:DÉLÉGATION\s+(?:RÉGIONALE|DÉPARTEMENTALE)|REGIONAL\s+DELEGATION|DIVISIONAL\s+DELEGATION|DIRECTION\s+RÉGIONALE|INSPECTION\s+(?:D'ACADÉMIE|DE\s+L'ENSEIGNEMENT|DE\s+L'ÉDUCATION))\s*(?:DU|DE|D'|OF|ET\s+DE\s+LA\s+FORMATION)?\s*(.+)/i);
       const locationName = match ? match[1] : value;
       
-      if (lang === 'fr') {
-        return type === 'regional' 
-          ? `DÉLÉGATION RÉGIONALE DU ${locationName}`
-          : `DÉLÉGATION DÉPARTEMENTALE DU ${locationName}`;
-      } else {
-        return type === 'regional'
-          ? `REGIONAL DELEGATION OF ${locationName}`
-          : `DIVISIONAL DELEGATION OF ${locationName}`;
-      }
+      return `${countryConfig.ministry[type === 'regional' ? 'regionalDelegation' : 'divisionalDelegation'][lang]} ${locationName}`;
     }
     
-    // No prefix - just add appropriate prefix
-    if (lang === 'fr') {
-      return type === 'regional' 
-        ? `DÉLÉGATION RÉGIONALE DU ${value}`
-        : `DÉLÉGATION DÉPARTEMENTALE DU ${value}`;
-    } else {
-      return type === 'regional'
-        ? `REGIONAL DELEGATION OF ${value}`
-        : `DIVISIONAL DELEGATION OF ${value}`;
-    }
+    // No prefix - add country-specific prefix
+    const prefix = countryConfig.ministry[type === 'regional' ? 'regionalDelegation' : 'divisionalDelegation'][lang];
+    return `${prefix} ${value}`;
   };
 
   return (
@@ -98,30 +89,31 @@ export const StandardBilingualPrintHeader: React.FC<StandardBilingualPrintHeader
         )}
         
         <div className="grid grid-cols-3 gap-2 text-xs font-bold uppercase">
-          {/* French Column (Left) */}
+          {/* French Column (Left) - Country-specific headers */}
           <div className="text-left">
-            <div>RÉPUBLIQUE DU CAMEROUN</div>
-            <div className="italic font-normal">Paix – Travail – Patrie</div>
+            <div>{countryConfig.ministry.country.fr}</div>
+            <div className="italic font-normal">{countryConfig.ministry.motto.fr}</div>
             <div className="text-[10px] mt-1">***</div>
-            <div className="mt-1">MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
+            <div className="mt-1">{countryConfig.ministry.ministryName.fr}</div>
             <div className="text-[10px] mt-1">***</div>
             <div>{formatDelegation(regionaleRaw, 'regional', 'fr')}</div>
             <div>{formatDelegation(departementaleRaw, 'departmental', 'fr')}</div>
             <div className="mt-1 font-bold">{school?.name || 'ÉTABLISSEMENT'}</div>
           </div>
           
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center flex-col gap-1">
             {showLogo && !school?.logoUrl && (
               <div className="text-gray-400 text-sm">LOGO</div>
             )}
+            <span className="text-2xl">{countryConfig.flag}</span>
           </div>
           
-          {/* English Column (Right) */}
+          {/* English Column (Right) - Country-specific headers */}
           <div className="text-right">
-            <div>REPUBLIC OF CAMEROON</div>
-            <div className="italic font-normal">Peace – Work – Fatherland</div>
+            <div>{countryConfig.ministry.country.en}</div>
+            <div className="italic font-normal">{countryConfig.ministry.motto.en}</div>
             <div className="text-[10px] mt-1">***</div>
-            <div className="mt-1">MINISTRY OF SECONDARY EDUCATION</div>
+            <div className="mt-1">{countryConfig.ministry.ministryName.en}</div>
             <div className="text-[10px] mt-1">***</div>
             <div>{formatDelegation(regionaleRaw, 'regional', 'en')}</div>
             <div>{formatDelegation(departementaleRaw, 'departmental', 'en')}</div>
