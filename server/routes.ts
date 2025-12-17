@@ -3333,7 +3333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(and(
           eq(roleAffiliations.role, 'Teacher'),
           eq(roleAffiliations.schoolId, userSchoolId),
-          eq(roleAffiliations.isActive, true)
+          eq(roleAffiliations.status, 'active')
         ));
       
       // Get affiliated teacher details (excluding those already in primary list)
