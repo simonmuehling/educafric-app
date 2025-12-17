@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EDUCAFRIC - Pitch Investisseurs | Investor Pitch</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #fff;
+      min-height: 100vh;
+    }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 60px 0;
+      border-bottom: 2px solid rgba(255,255,255,0.1);
+    }
+    
+    .logo {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #00d4aa 0%, #00b894 50%, #55efc4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    
+    .tagline {
+      font-size: 1.3rem;
+      color: #a0a0a0;
+      margin-bottom: 30px;
+    }
+    
+    .countries {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      font-size: 2rem;
+    }
+    
+    .country-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .country-badge span:last-child {
+      font-size: 0.8rem;
+      color: #888;
+    }
+    
+    /* Sections */
+    .section {
+      padding: 60px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #00d4aa;
+    }
+    
+    .section-subtitle {
+      font-size: 1rem;
+      color: #888;
+      margin-bottom: 40px;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+    
+    .stat-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,212,170,0.2);
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #00d4aa;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: #a0a0a0;
+      margin-top: 10px;
+    }
+    
+    /* Module Cards */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+    }
+    
+    .module-card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 20px;
+      padding: 35px;
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: all 0.3s;
+    }
+    
+    .module-card:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: #00d4aa;
+    }
+    
+    .module-icon {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    
+    .module-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    
+    .module-features {
+      list-style: none;
+    }
+    
+    .module-features li {
+      padding: 8px 0;
+      color: #c0c0c0;
+      font-size: 0.95rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .module-features li:last-child { border-bottom: none; }
+    
+    .feature-icon { color: #00d4aa; }
+    
+    /* Highlight Features */
+    .highlight-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+    }
+    
+    .highlight-card {
+      background: linear-gradient(135deg, rgba(0,212,170,0.1) 0%, rgba(0,184,148,0.05) 100%);
+      border-radius: 20px;
+      padding: 40px;
+      border: 2px solid rgba(0,212,170,0.3);
+    }
+    
+    .highlight-badge {
+      display: inline-block;
+      background: #00d4aa;
+      color: #000;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    
+    .highlight-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    
+    .highlight-description {
+      color: #c0c0c0;
+      line-height: 1.7;
+    }
+    
+    /* Business Model */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+    }
+    
+    .pricing-card {
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .pricing-card.featured {
+      border-color: #00d4aa;
+      background: rgba(0,212,170,0.1);
+    }
+    
+    .pricing-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    
+    .pricing-price {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #00d4aa;
+    }
+    
+    .pricing-period {
+      color: #888;
+      font-size: 0.9rem;
+    }
+    
+    /* Payment Methods */
+    .payment-methods {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+    
+    .payment-badge {
+      background: rgba(255,255,255,0.05);
+      padding: 15px 25px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+    }
+    
+    /* CTA */
+    .cta-section {
+      text-align: center;
+      padding: 80px 0;
+    }
+    
+    .cta-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+    
+    .cta-subtitle {
+      font-size: 1.2rem;
+      color: #a0a0a0;
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
+      color: #000;
+      padding: 18px 50px;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(0,212,170,0.4);
+    }
+    
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 40px 0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    /* Bilingual Toggle */
+    .lang-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .lang-btn {
+      padding: 10px 25px;
+      border-radius: 25px;
+      border: 2px solid #00d4aa;
+      background: transparent;
+      color: #00d4aa;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .lang-btn.active {
+      background: #00d4aa;
+      color: #000;
+    }
+    
+    /* Print styles */
+    @media print {
+      body { background: #fff; color: #000; }
+      .module-card, .stat-card, .highlight-card, .pricing-card { 
+        border: 1px solid #ddd; 
+        break-inside: avoid;
+      }
+      .stat-number, .section-title, .logo { color: #00b894; }
+      .cta-section { display: none; }
+    }
+    
+    @media (max-width: 768px) {
+      .logo { font-size: 2.5rem; }
+      .section-title { font-size: 1.5rem; }
+      .stat-number { font-size: 2rem; }
+      .highlight-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">EDUCAFRIC</div>
+      <p class="tagline">La plateforme EdTech qui digitalise l'Afrique | The EdTech Platform Digitalizing Africa</p>
+      <div class="countries">
+        <div class="country-badge">
+          <span>🇨🇲</span>
+          <span>Cameroun</span>
+        </div>
+        <div class="country-badge">
+          <span>🇨🇮</span>
+          <span>Côte d'Ivoire</span>
+        </div>
+        <div class="country-badge">
+          <span>🇸🇳</span>
+          <span>Sénégal</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Problem & Solution -->
+    <section class="section">
+      <h2 class="section-title">Le Problème | The Problem</h2>
+      <p class="section-subtitle">Un défi de 400 millions d'élèves | A challenge of 400 million students</p>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">60%</div>
+          <div class="stat-label">Des écoles sans outils digitaux<br>Schools without digital tools</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">45%</div>
+          <div class="stat-label">Taux d'abandon scolaire<br>School dropout rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">3h/jour</div>
+          <div class="stat-label">Tâches admin manuelles<br>Manual admin tasks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">70%</div>
+          <div class="stat-label">Parents déconnectés<br>Disconnected parents</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modules -->
+    <section class="section">
+      <h2 class="section-title">4 Modules Intégrés | 4 Integrated Modules</h2>
+      <p class="section-subtitle">Une solution complète pour tout l'écosystème éducatif | A complete solution for the entire educational ecosystem</p>
+      
+      <div class="modules-grid">
+        <!-- School Module -->
+        <div class="module-card">
+          <div class="module-icon">🏫</div>
+          <h3 class="module-title">Module École | School Module</h3>
+          <ul class="module-features">
+            <li><span class="feature-icon">✓</span> Gestion complète des élèves et enseignants</li>
+            <li><span class="feature-icon">✓</span> Bulletins format CBA conformes au ministère</li>
+            <li><span class="feature-icon">✓</span> Emplois du temps automatisés</li>
+            <li><span class="feature-icon">✓</span> Gestion financière et frais de scolarité</li>
+            <li><span class="feature-icon">✓</span> Communications multi-canaux</li>
+            <li><span class="feature-icon">✓</span> Rapports analytiques détaillés</li>
+            <li><span class="feature-icon">✓</span> Import Excel en masse</li>
+            <li><span class="feature-icon">✓</span> Cartes d'identité avec QR Code</li>
+          </ul>
+        </div>
+
+        <!-- Teacher Module -->
+        <div class="module-card">
+          <div class="module-icon">👨‍🏫</div>
+          <h3 class="module-title">Module Enseignant | Teacher Module</h3>
+          <ul class="module-features">
+            <li><span class="feature-icon">✓</span> Saisie des notes avec envoi auto à l'école</li>
+            <li><span class="feature-icon">✓</span> Gestion des devoirs et évaluations</li>
+            <li><span class="feature-icon">✓</span> Présences en temps réel (3 statuts)</li>
+            <li><span class="feature-icon">✓</span> Création de contenu éducatif</li>
+            <li><span class="feature-icon">✓</span> Classes virtuelles via Jitsi Meet</li>
+            <li><span class="feature-icon">✓</span> Communication parents/élèves</li>
+            <li><span class="feature-icon">✓</span> Cours particuliers (Freelancer)</li>
+            <li><span class="feature-icon">✓</span> Profil et planning personnalisé</li>
+          </ul>
+        </div>
+
+        <!-- Student Module -->
+        <div class="module-card">
+          <div class="module-icon">👨‍🎓</div>
+          <h3 class="module-title">Module Élève | Student Module</h3>
+          <ul class="module-features">
+            <li><span class="feature-icon">✓</span> Suivi des notes en temps réel</li>
+            <li><span class="feature-icon">✓</span> Devoirs avec soumission en ligne</li>
+            <li><span class="feature-icon">✓</span> Emploi du temps personnel</li>
+            <li><span class="feature-icon">✓</span> Messagerie sécurisée</li>
+            <li><span class="feature-icon">✓</span> Bibliothèque de ressources</li>
+            <li><span class="feature-icon">✓</span> Classes en ligne interactives</li>
+            <li><span class="feature-icon">✓</span> Système de badges et récompenses</li>
+            <li><span class="feature-icon">✓</span> Connexion parents par QR Code</li>
+          </ul>
+        </div>
+
+        <!-- Parent Module -->
+        <div class="module-card">
+          <div class="module-icon">👨‍👩‍👧</div>
+          <h3 class="module-title">Module Parent | Parent Module</h3>
+          <ul class="module-features">
+            <li><span class="feature-icon">✓</span> Suivi multi-enfants</li>
+            <li><span class="feature-icon">✓</span> Notes et bulletins en temps réel</li>
+            <li><span class="feature-icon">✓</span> Présences et absences notifiées</li>
+            <li><span class="feature-icon">✓</span> Géolocalisation GPS temps réel</li>
+            <li><span class="feature-icon">✓</span> Zones de sécurité personnalisées</li>
+            <li><span class="feature-icon">✓</span> Messagerie bidirectionnelle</li>
+            <li><span class="feature-icon">✓</span> Suivi cantine et bus scolaire</li>
+            <li><span class="feature-icon">✓</span> Paiements scolaires intégrés</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Differentiators -->
+    <section class="section">
+      <h2 class="section-title">Avantages Compétitifs | Competitive Advantages</h2>
+      <p class="section-subtitle">Ce qui nous distingue | What sets us apart</p>
+      
+      <div class="highlight-grid">
+        <div class="highlight-card">
+          <span class="highlight-badge">RÉVOLUTIONNAIRE</span>
+          <h3 class="highlight-title">Mode Offline Premium 📴</h3>
+          <p class="highlight-description">
+            <strong>FR:</strong> Fonctionnement complet sans internet. Les enseignants saisissent notes et présences hors-ligne. Synchronisation automatique dès reconnexion. Idéal pour les zones rurales à faible connectivité.<br><br>
+            <strong>EN:</strong> Full functionality without internet. Teachers enter grades and attendance offline. Automatic sync upon reconnection. Ideal for rural areas with low connectivity.
+          </p>
+        </div>
+        
+        <div class="highlight-card">
+          <span class="highlight-badge">SÉCURITÉ</span>
+          <h3 class="highlight-title">Géolocalisation Temps Réel 📍</h3>
+          <p class="highlight-description">
+            <strong>FR:</strong> Suivi GPS des enfants pour la tranquillité des parents. Zones de sécurité configurables avec alertes instantanées. Historique des trajets et notifications batterie faible.<br><br>
+            <strong>EN:</strong> GPS tracking of children for parental peace of mind. Configurable safety zones with instant alerts. Journey history and low battery notifications.
+          </p>
+        </div>
+        
+        <div class="highlight-card">
+          <span class="highlight-badge">AUTOMATISATION</span>
+          <h3 class="highlight-title">Notes Auto → École 📊</h3>
+          <p class="highlight-description">
+            <strong>FR:</strong> Les enseignants saisissent les notes depuis leur téléphone. Transmission automatique à l'administration scolaire. Génération automatique des bulletins conformes CBA. Zéro paperasse, zéro erreur.<br><br>
+            <strong>EN:</strong> Teachers enter grades from their phone. Automatic transmission to school administration. Automatic generation of CBA-compliant report cards. Zero paperwork, zero errors.
+          </p>
+        </div>
+        
+        <div class="highlight-card">
+          <span class="highlight-badge">COMMUNICATION</span>
+          <h3 class="highlight-title">Notifications 3 Canaux 🔔</h3>
+          <p class="highlight-description">
+            <strong>FR:</strong> Alertes automatiques par Email, WhatsApp et PWA Push. Notifications: absences, retards, notes, paiements, géolocalisation. Les parents restent informés en permanence.<br><br>
+            <strong>EN:</strong> Automatic alerts via Email, WhatsApp and PWA Push. Notifications: absences, tardiness, grades, payments, geolocation. Parents stay informed at all times.
+          </p>
+        </div>
+        
+        <div class="highlight-card">
+          <span class="highlight-badge">MULTI-PAYS</span>
+          <h3 class="highlight-title">Expansion Panafricaine 🌍</h3>
+          <p class="highlight-description">
+            <strong>FR:</strong> Support multi-pays avec numéros EDUCAFRIC locaux (EDU-CM, EDU-CI, EDU-SN). Entêtes ministériels adaptés par pays. Paiements Mobile Money locaux: Orange Money, MTN MoMo, Wave.<br><br>
+            <strong>EN:</strong> Multi-country support with local EDUCAFRIC numbers (EDU-CM, EDU-CI, EDU-SN). Country-adapted ministry headers. Local Mobile Money payments: Orange Money, MTN MoMo, Wave.
+          </p>
+        </div>
+        
+        <div class="highlight-card">
+          <span class="highlight-badge">ENSEIGNEMENT</span>
+          <h3 class="highlight-title">Classes Virtuelles 🎥</h3>
+          <p class="highlight-description">
+            <strong>FR:</strong> Intégration Jitsi Meet pour classes en ligne sécurisées. Planification de sessions récurrentes. Partage d'écran et enregistrement. Cours en direct accessible depuis tout appareil.<br><br>
+            <strong>EN:</strong> Jitsi Meet integration for secure online classes. Recurring session scheduling. Screen sharing and recording. Live classes accessible from any device.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Business Model -->
+    <section class="section">
+      <h2 class="section-title">Modèle Économique | Business Model</h2>
+      <p class="section-subtitle">Revenus récurrents SaaS B2B2C | Recurring SaaS B2B2C Revenue</p>
+      
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="pricing-name">Démarrage | Starter</div>
+          <div class="pricing-price">15,000</div>
+          <div class="pricing-period">FCFA/mois | per month</div>
+          <p style="margin-top: 15px; color: #888; font-size: 0.9rem;">Jusqu'à 100 élèves<br>Up to 100 students</p>
+        </div>
+        
+        <div class="pricing-card featured">
+          <div class="pricing-name">Professionnel | Professional</div>
+          <div class="pricing-price">35,000</div>
+          <div class="pricing-period">FCFA/mois | per month</div>
+          <p style="margin-top: 15px; color: #fff; font-size: 0.9rem;">Jusqu'à 500 élèves<br>Up to 500 students</p>
+        </div>
+        
+        <div class="pricing-card">
+          <div class="pricing-name">Entreprise | Enterprise</div>
+          <div class="pricing-price">75,000</div>
+          <div class="pricing-period">FCFA/mois | per month</div>
+          <p style="margin-top: 15px; color: #888; font-size: 0.9rem;">Élèves illimités<br>Unlimited students</p>
+        </div>
+      </div>
+      
+      <div class="payment-methods">
+        <div class="payment-badge">🟠 Orange Money</div>
+        <div class="payment-badge">🟡 MTN MoMo</div>
+        <div class="payment-badge">🌊 Wave</div>
+        <div class="payment-badge">💳 Stripe</div>
+      </div>
+    </section>
+
+    <!-- Market Opportunity -->
+    <section class="section">
+      <h2 class="section-title">Opportunité de Marché | Market Opportunity</h2>
+      <p class="section-subtitle">Un marché en pleine explosion | A booming market</p>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">$15B</div>
+          <div class="stat-label">Marché EdTech Afrique 2030<br>Africa EdTech Market 2030</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">35%</div>
+          <div class="stat-label">Croissance annuelle<br>Annual growth</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">1.4B</div>
+          <div class="stat-label">Population africaine 2030<br>African population 2030</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">54</div>
+          <div class="stat-label">Pays à conquérir<br>Countries to conquer</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technology Stack -->
+    <section class="section">
+      <h2 class="section-title">Stack Technique | Technology Stack</h2>
+      <p class="section-subtitle">Infrastructure moderne et évolutive | Modern and scalable infrastructure</p>
+      
+      <div class="modules-grid">
+        <div class="module-card">
+          <div class="module-icon">⚛️</div>
+          <h3 class="module-title">Frontend</h3>
+          <ul class="module-features">
+            <li><span class="feature-icon">✓</span> React + TypeScript</li>
+            <li><span class="feature-icon">✓</span> Progressive Web App (PWA)</li>
+            <li><span class="feature-icon">✓</span> React Native (Android)</li>
+            <li><span class="feature-icon">✓</span> Tailwind CSS + Shadcn/UI</li>
+          </ul>
+        </div>
+        
+        <div class="module-card">
+          <div class="module-icon">🖥️</div>
+          <h3 class="module-title">Backend</h3>
+          <ul class="module-features">
+            <li><span class="feature-icon">✓</span> Node.js + Express.js</li>
+            <li><span class="feature-icon">✓</span> PostgreSQL (Neon Serverless)</li>
+            <li><span class="feature-icon">✓</span> Drizzle ORM</li>
+            <li><span class="feature-icon">✓</span> WebSocket temps réel</li>
+          </ul>
+        </div>
+        
+        <div class="module-card">
+          <div class="module-icon">🔒</div>
+          <h3 class="module-title">Sécurité | Security</h3>
+          <ul class="module-features">
+            <li><span class="feature-icon">✓</span> Authentification session + OAuth</li>
+            <li><span class="feature-icon">✓</span> Système de détection d'intrusion</li>
+            <li><span class="feature-icon">✓</span> Isolation multi-tenant stricte</li>
+            <li><span class="feature-icon">✓</span> 8 rôles avec permissions granulaires</li>
+          </ul>
+        </div>
+        
+        <div class="module-card">
+          <div class="module-icon">📱</div>
+          <h3 class="module-title">Intégrations</h3>
+          <ul class="module-features">
+            <li><span class="feature-icon">✓</span> WhatsApp Direct API</li>
+            <li><span class="feature-icon">✓</span> Stripe + Mobile Money</li>
+            <li><span class="feature-icon">✓</span> Firebase (OAuth)</li>
+            <li><span class="feature-icon">✓</span> Jitsi Meet (Vidéo)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <h2 class="cta-title">Rejoignez la Révolution | Join the Revolution</h2>
+      <p class="cta-subtitle">
+        Investissez dans l'avenir de l'éducation africaine. 400 millions d'élèves attendent une solution digitale adaptée à leurs réalités.
+        <br><br>
+        Invest in the future of African education. 400 million students are waiting for a digital solution adapted to their realities.
+      </p>
+      <a href="mailto:contact@educafric.com" class="cta-button">Contactez-nous | Contact Us</a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>© 2025 EDUCAFRIC - Digitalizing Education Across Africa</p>
+      <p style="margin-top: 10px;">🇨🇲 Cameroun | 🇨🇮 Côte d'Ivoire | 🇸🇳 Sénégal</p>
+    </footer>
+  </div>
+</body>
+</html>
