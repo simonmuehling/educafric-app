@@ -9,6 +9,10 @@ export const schools = pgTable("schools", {
   type: text("type").notNull(), // public, private
   educationalType: text("educational_type").notNull().default('general'), // general, technical
   useCBAFormat: boolean("use_cba_format").default(false), // Enable CBA (Competency-Based Approach) bulletin format
+  
+  // Multi-country support: CM (Cameroon), CI (Côte d'Ivoire), SN (Senegal)
+  countryCode: text("country_code").notNull().default('CM'), // ISO 3166-1 alpha-2: CM, CI, SN
+  
   address: text("address"),
   phone: text("phone"),
   email: text("email"),
@@ -27,11 +31,16 @@ export const schools = pgTable("schools", {
   principalName: text("principal_name"),
   studentCapacity: integer("student_capacity"),
   
-  // Champs officiels du gouvernement camerounais pour documents
-  regionaleMinisterielle: text("regionale_ministerielle"), // Ex: "Délégation Régionale du Centre"
-  delegationDepartementale: text("delegation_departementale"), // Ex: "Délégation Départementale du Mfoundi"
+  // Champs officiels pour documents (adaptables par pays)
+  // Cameroun: "Délégation Régionale du Centre" / Côte d'Ivoire: "Direction Régionale" / Sénégal: "Inspection d'Académie"
+  regionaleMinisterielle: text("regionale_ministerielle"),
+  // Cameroun: "Délégation Départementale du Mfoundi" / CI: "Inspection de l'Enseignement" / SN: "IEF"
+  delegationDepartementale: text("delegation_departementale"),
   boitePostale: text("boite_postale"), // Ex: "B.P. 1234 Yaoundé"
   arrondissement: text("arrondissement"), // Ex: "Yaoundé 1er"
+  
+  // Currency for payment processing (derived from country but can be overridden)
+  currency: text("currency").default('XAF'), // XAF for Cameroon, XOF for CI/Senegal
   
   geolocationEnabled: boolean("geolocation_enabled").default(false),
   pwaEnabled: boolean("pwa_enabled").default(true),

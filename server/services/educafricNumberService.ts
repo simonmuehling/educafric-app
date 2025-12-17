@@ -1,13 +1,15 @@
 // ===== EDUCAFRIC NUMBER MANAGEMENT SERVICE =====
 // Handles generation, validation, and management of EDUCAFRIC numbers
-// Format: EDU-CM-XX-### where XX = SC/TE/ST/PA/CO and ### = 3-digit counter
+// Format: EDU-{CC}-XX-### where CC = CM/CI/SN, XX = SC/TE/ST/PA/CO, ### = 3-digit counter
 
 import { db } from "../db";
 import { educafricNumbers, educafricNumberCounters, schools, users } from "@shared/schema";
 import { eq, and, sql, isNull } from "drizzle-orm";
+import { type CountryCode, COUNTRY_CONFIGS, getCountryConfig } from "@shared/countryConfig";
 
 export interface EducafricNumberConfig {
   type: 'SC' | 'TE' | 'ST' | 'PA' | 'CO'; // School, Teacher, Student, Parent, Commercial
+  countryCode?: CountryCode; // CM, CI, SN - defaults to CM
   entityType: 'school' | 'user';
   entityId?: number;
   issuedBy?: number;
@@ -16,11 +18,19 @@ export interface EducafricNumberConfig {
 
 export class EducafricNumberService {
   
+  // Supported country codes
+  static readonly SUPPORTED_COUNTRIES: CountryCode[] = ['CM', 'CI', 'SN'];
+  
   /**
-   * Generate next EDUCAFRIC number for a given type
-   * Format: EDU-CM-{type}-{counter}
+   * Generate next EDUCAFRIC number for a given type and country
+   * Format: EDU-{CC}-{type}-{counter} where CC = CM/CI/SN
    */
-  static async generateNumber(type: 'SC' | 'TE' | 'ST' | 'PA' | 'CO'): Promise<string> {
+  static async generateNumber(type: 'SC' | 'TE' | 'ST' | 'PA' | 'CO', countryCode: CountryCode = 'CM'): Promise<string> {
+    // Validate country code
+    if (!this.SUPPORTED_COUNTRIES.includes(countryCode)) {
+      throw new Error(`Unsupported country code: ${countryCode}. Supported: ${this.SUPPORTED_COUNTRIES.join(', ')}`);
+    }
+    
     // Get current counter and increment atomically using raw SQL for atomic operation
     const [counter] = await db
       .update(educafricNumberCounters)
@@ -36,7 +46,7 @@ export class EducafricNumberService {
 
     // Format number with leading zeros (e.g., 001, 002, etc.)
     const paddedCounter = counter.currentCounter.toString().padStart(3, '0');
-    const educafricNumber = `EDU-CM-${type}-${paddedCounter}`;
+    const educafricNumber = `EDU-${countryCode}-${type}-${paddedCounter}`;
 
     // Update last generated in a separate query
     await db
@@ -51,7 +61,8 @@ export class EducafricNumberService {
    * Create and assign EDUCAFRIC number
    */
   static async createNumber(config: EducafricNumberConfig): Promise<typeof educafricNumbers.$inferSelect> {
-    const educafricNumber = await this.generateNumber(config.type);
+    const countryCode = config.countryCode || 'CM';
+    const educafricNumber = await this.generateNumber(config.type, countryCode);
 
     const [record] = await db
       .insert(educafricNumbers)
@@ -70,11 +81,19 @@ export class EducafricNumberService {
   }
 
   /**
-   * Validate EDUCAFRIC number format
+   * Validate EDUCAFRIC number format (supports all countries: CM, CI, SN)
    */
   static validateFormat(number: string): boolean {
-    const regex = /^EDU-CM-(SC|TE|ST|PA)-\d{3}$/;
+    const regex = /^EDU-(CM|CI|SN)-(SC|TE|ST|PA|CO)-\d{3}$/;
     return regex.test(number);
+  }
+  
+  /**
+   * Extract country code from EDUCAFRIC number
+   */
+  static extractCountryCode(number: string): CountryCode | null {
+    const match = number.match(/^EDU-(CM|CI|SN)-/);
+    return match ? (match[1] as CountryCode) : null;
   }
 
   /**
@@ -98,27 +117,32 @@ export class EducafricNumberService {
     message: string;
     messageFr: string;
     messageEn: string;
+    countryCode?: CountryCode;
     record?: typeof educafricNumbers.$inferSelect;
   }> {
-    // Check format
+    // Check format (now supports CM, CI, SN)
     if (!this.validateFormat(educafricNumber)) {
       return { 
         valid: false, 
-        message: 'Format du numéro EDUCAFRIC invalide. Format attendu: EDU-CM-SC-XXX (ex: EDU-CM-SC-001)',
-        messageFr: 'Format du numéro EDUCAFRIC invalide. Format attendu: EDU-CM-SC-XXX (ex: EDU-CM-SC-001)',
-        messageEn: 'Invalid EDUCAFRIC number format. Expected format: EDU-CM-SC-XXX (e.g., EDU-CM-SC-001)'
+        message: 'Format du numéro EDUCAFRIC invalide. Formats attendus: EDU-CM-SC-XXX, EDU-CI-SC-XXX, EDU-SN-SC-XXX',
+        messageFr: 'Format du numéro EDUCAFRIC invalide. Formats attendus: EDU-CM-SC-XXX, EDU-CI-SC-XXX, EDU-SN-SC-XXX',
+        messageEn: 'Invalid EDUCAFRIC number format. Expected formats: EDU-CM-SC-XXX, EDU-CI-SC-XXX, EDU-SN-SC-XXX'
       };
     }
 
-    // Check if it's a school number
-    if (!educafricNumber.startsWith('EDU-CM-SC-')) {
+    // Check if it's a school number (supports all countries)
+    const schoolPattern = /^EDU-(CM|CI|SN)-SC-/;
+    if (!schoolPattern.test(educafricNumber)) {
       return { 
         valid: false, 
-        message: 'Ce numéro n\'est pas un numéro EDUCAFRIC pour école. Les numéros école commencent par EDU-CM-SC-',
-        messageFr: 'Ce numéro n\'est pas un numéro EDUCAFRIC pour école. Les numéros école commencent par EDU-CM-SC-',
-        messageEn: 'This is not a school EDUCAFRIC number. School numbers start with EDU-CM-SC-'
+        message: 'Ce numéro n\'est pas un numéro EDUCAFRIC pour école. Les numéros école contiennent -SC-',
+        messageFr: 'Ce numéro n\'est pas un numéro EDUCAFRIC pour école. Les numéros école contiennent -SC-',
+        messageEn: 'This is not a school EDUCAFRIC number. School numbers contain -SC-'
       };
     }
+    
+    // Extract country code
+    const countryCode = this.extractCountryCode(educafricNumber);
 
     // Check if exists
     const [record] = await db
@@ -179,6 +203,7 @@ export class EducafricNumberService {
       message: 'Numéro EDUCAFRIC valide', 
       messageFr: 'Numéro EDUCAFRIC valide',
       messageEn: 'EDUCAFRIC number is valid',
+      countryCode: countryCode || 'CM',
       record 
     };
   }
@@ -214,7 +239,7 @@ export class EducafricNumberService {
    * Auto-generate and assign EDUCAFRIC number to user (Teacher/Student/Parent only)
    * Note: School and Commercial get numbers from admins, not auto-generated
    */
-  static async autoAssignToUser(userId: number, userRole: string): Promise<string | null> {
+  static async autoAssignToUser(userId: number, userRole: string, countryCode: CountryCode = 'CM'): Promise<string | null> {
     // Determine type based on role
     let type: 'TE' | 'ST' | 'PA' | null = null;
     
@@ -224,9 +249,10 @@ export class EducafricNumberService {
 
     if (!type) return null; // Only auto-generate for Teacher, Student, Parent
 
-    // Generate and create number
+    // Generate and create number with country code
     const record = await this.createNumber({
       type,
+      countryCode,
       entityType: 'user',
       entityId: userId
     });
@@ -350,7 +376,7 @@ export class EducafricNumberService {
   }
 
   /**
-   * Get counter statistics
+   * Get counter statistics (shows next numbers for all countries)
    */
   static async getCounterStats() {
     const counters = await db
@@ -363,6 +389,13 @@ export class EducafricNumberService {
       label: this.getTypeLabel(counter.type),
       currentCounter: counter.currentCounter,
       lastGenerated: counter.lastGenerated,
+      // Show next numbers for all supported countries
+      nextNumbers: {
+        CM: `EDU-CM-${counter.type}-${(counter.currentCounter + 1).toString().padStart(3, '0')}`,
+        CI: `EDU-CI-${counter.type}-${(counter.currentCounter + 1).toString().padStart(3, '0')}`,
+        SN: `EDU-SN-${counter.type}-${(counter.currentCounter + 1).toString().padStart(3, '0')}`
+      },
+      // Backward compatibility
       nextNumber: `EDU-CM-${counter.type}-${(counter.currentCounter + 1).toString().padStart(3, '0')}`
     }));
   }
