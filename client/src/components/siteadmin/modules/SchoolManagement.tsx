@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { CountrySelector } from '@/components/shared/CountrySelector';
+import { type CountryCode, COUNTRY_CONFIGS } from '@shared/countryConfig';
 import { 
   School, 
   Building2, 
@@ -102,12 +104,14 @@ const SchoolManagement = () => {
     address: '',
     city: '',
     country: 'Cameroun',
+    countryCode: 'CM' as CountryCode,
     phone: '',
     email: '',
     website: '',
     type: 'public' as 'public' | 'private',
     level: 'mixed',
-    educafricNumber: ''
+    educafricNumber: '',
+    currency: 'XAF'
   });
   const [subscriptionData, setSubscriptionData] = useState({
     planId: '',
@@ -377,12 +381,14 @@ const SchoolManagement = () => {
         address: '',
         city: '',
         country: 'Cameroun',
+        countryCode: 'CM' as CountryCode,
         phone: '',
         email: '',
         website: '',
         type: 'public',
         level: 'mixed',
-        educafricNumber: ''
+        educafricNumber: '',
+        currency: 'XAF'
       });
       queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/schools'] });
       queryClient.invalidateQueries({ queryKey: ['/api/siteadmin/school-stats'] });
@@ -696,6 +702,28 @@ const SchoolManagement = () => {
                     <span>Un numéro sera généré automatiquement si vous laissez ce champ vide</span>
                   </p>
                 </div>
+                
+                {/* Country Selection with Flags */}
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <CountrySelector
+                    value={newSchoolData.countryCode}
+                    onChange={(code) => {
+                      const config = COUNTRY_CONFIGS[code];
+                      setNewSchoolData({
+                        ...newSchoolData, 
+                        countryCode: code,
+                        country: config.name.fr,
+                        currency: config.currency.code
+                      });
+                    }}
+                    showCurrency
+                    showPhone
+                  />
+                  <p className="text-xs text-blue-600 mt-2">
+                    Le numéro EDUCAFRIC sera préfixé: EDU-{newSchoolData.countryCode}-SC-XXX
+                  </p>
+                </div>
+                
                 <div>
                   <Label htmlFor="name">Nom de l'école</Label>
                   <Input
@@ -732,10 +760,12 @@ const SchoolManagement = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Cameroun">Cameroun</SelectItem>
-                        <SelectItem value="Gabon">Gabon</SelectItem>
-                        <SelectItem value="République Centrafricaine">République Centrafricaine</SelectItem>
-                        <SelectItem value="Tchad">Tchad</SelectItem>
+                        <SelectItem value="Cameroun">🇨🇲 Cameroun</SelectItem>
+                        <SelectItem value="Côte d'Ivoire">🇨🇮 Côte d'Ivoire</SelectItem>
+                        <SelectItem value="Sénégal">🇸🇳 Sénégal</SelectItem>
+                        <SelectItem value="Gabon">🇬🇦 Gabon</SelectItem>
+                        <SelectItem value="République Centrafricaine">🇨🇫 RCA</SelectItem>
+                        <SelectItem value="Tchad">🇹🇩 Tchad</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

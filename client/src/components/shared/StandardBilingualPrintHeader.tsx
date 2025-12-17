@@ -136,77 +136,65 @@ export const StandardBilingualPrintHeader: React.FC<StandardBilingualPrintHeader
   );
 };
 
-// Helper function for HTML generation - same logic as React component
-function formatDelegationHtml(value: string, type: 'regional' | 'departmental', lang: 'fr' | 'en'): string {
-  if (!value) return lang === 'fr' ? '…' : '….';
+// Helper function for HTML generation with country support
+function formatDelegationHtml(value: string, type: 'regional' | 'departmental', lang: 'fr' | 'en', countryCode: CountryCode = 'CM'): string {
+  if (!value) return '…';
   
-  const hasPrefix = value.toUpperCase().startsWith('DÉLÉGATION') || 
-                    value.toUpperCase().startsWith('DELEGATION') ||
-                    value.toUpperCase().startsWith('REGIONAL') ||
-                    value.toUpperCase().startsWith('DIVISIONAL');
+  const config = COUNTRY_CONFIGS[countryCode];
+  const hasPrefixPattern = /^(DÉLÉGATION|DELEGATION|REGIONAL|DIVISIONAL|DIRECTION|INSPECTION|ACADÉMIE|ACADEMY|IEF)/i;
+  const hasPrefix = hasPrefixPattern.test(value.trim());
   
   if (hasPrefix) {
-    const match = value.match(/(?:DÉLÉGATION\s+(?:RÉGIONALE|DÉPARTEMENTALE)|REGIONAL\s+DELEGATION|DIVISIONAL\s+DELEGATION)\s*(?:DU|DE|OF)?\s*(.+)/i);
+    const match = value.match(/(?:DÉLÉGATION\s+(?:RÉGIONALE|DÉPARTEMENTALE)|REGIONAL\s+DELEGATION|DIVISIONAL\s+DELEGATION|DIRECTION\s+RÉGIONALE|INSPECTION\s+(?:D'ACADÉMIE|DE\s+L'ENSEIGNEMENT|DE\s+L'ÉDUCATION))\s*(?:DU|DE|D'|OF|ET\s+DE\s+LA\s+FORMATION)?\s*(.+)/i);
     const locationName = match ? match[1] : value;
-    
-    if (lang === 'fr') {
-      return type === 'regional' 
-        ? `DÉLÉGATION RÉGIONALE DU ${locationName}`
-        : `DÉLÉGATION DÉPARTEMENTALE DU ${locationName}`;
-    } else {
-      return type === 'regional'
-        ? `REGIONAL DELEGATION OF ${locationName}`
-        : `DIVISIONAL DELEGATION OF ${locationName}`;
-    }
+    const prefix = config.ministry[type === 'regional' ? 'regionalDelegation' : 'divisionalDelegation'][lang];
+    return `${prefix} ${locationName}`;
   }
   
-  if (lang === 'fr') {
-    return type === 'regional' 
-      ? `DÉLÉGATION RÉGIONALE DU ${value}`
-      : `DÉLÉGATION DÉPARTEMENTALE DU ${value}`;
-  } else {
-    return type === 'regional'
-      ? `REGIONAL DELEGATION OF ${value}`
-      : `DIVISIONAL DELEGATION OF ${value}`;
-  }
+  const prefix = config.ministry[type === 'regional' ? 'regionalDelegation' : 'divisionalDelegation'][lang];
+  return `${prefix} ${value}`;
 }
 
 export function generateBilingualPrintHeaderHtml(
-  school: SchoolInfo | null,
+  school: (SchoolInfo & { countryCode?: CountryCode }) | null,
   title: { fr: string; en: string },
-  subtitle?: { fr: string; en: string }
+  subtitle?: { fr: string; en: string },
+  countryCodeOverride?: CountryCode
 ): string {
   const regionaleRaw = school?.regionaleMinisterielle || school?.officialInfo?.regionaleMinisterielle || '';
   const departementaleRaw = school?.delegationDepartementale || school?.officialInfo?.delegationDepartementale || '';
+  const countryCode: CountryCode = countryCodeOverride || school?.countryCode || 'CM';
+  const config = COUNTRY_CONFIGS[countryCode];
+  
   const logoHtml = school?.logoUrl 
     ? `<img src="${school.logoUrl}" alt="Logo" style="width:70px;height:70px;object-fit:contain;">`
-    : '<div style="color:#999;font-size:12px;">LOGO</div>';
+    : `<div style="font-size:24px;">${config.flag}</div>`;
 
   return `
     <div style="border-bottom:2px solid #000;padding-bottom:15px;margin-bottom:20px;">
       <table style="width:100%;border-collapse:collapse;font-size:11px;text-transform:uppercase;">
         <tr>
           <td style="width:40%;text-align:left;vertical-align:top;font-weight:bold;">
-            <div>RÉPUBLIQUE DU CAMEROUN</div>
-            <div style="font-style:italic;font-weight:normal;">Paix – Travail – Patrie</div>
+            <div>${config.ministry.country.fr}</div>
+            <div style="font-style:italic;font-weight:normal;">${config.ministry.motto.fr}</div>
             <div style="font-size:9px;margin:3px 0;">***</div>
-            <div>MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
+            <div>${config.ministry.ministryName.fr}</div>
             <div style="font-size:9px;margin:3px 0;">***</div>
-            <div>${formatDelegationHtml(regionaleRaw, 'regional', 'fr')}</div>
-            <div>${formatDelegationHtml(departementaleRaw, 'departmental', 'fr')}</div>
+            <div>${formatDelegationHtml(regionaleRaw, 'regional', 'fr', countryCode)}</div>
+            <div>${formatDelegationHtml(departementaleRaw, 'departmental', 'fr', countryCode)}</div>
             <div style="margin-top:5px;font-weight:bold;">${school?.name || 'ÉTABLISSEMENT'}</div>
           </td>
           <td style="width:20%;text-align:center;vertical-align:middle;">
             ${logoHtml}
           </td>
           <td style="width:40%;text-align:right;vertical-align:top;font-weight:bold;">
-            <div>REPUBLIC OF CAMEROON</div>
-            <div style="font-style:italic;font-weight:normal;">Peace – Work – Fatherland</div>
+            <div>${config.ministry.country.en}</div>
+            <div style="font-style:italic;font-weight:normal;">${config.ministry.motto.en}</div>
             <div style="font-size:9px;margin:3px 0;">***</div>
-            <div>MINISTRY OF SECONDARY EDUCATION</div>
+            <div>${config.ministry.ministryName.en}</div>
             <div style="font-size:9px;margin:3px 0;">***</div>
-            <div>${formatDelegationHtml(regionaleRaw, 'regional', 'en')}</div>
-            <div>${formatDelegationHtml(departementaleRaw, 'departmental', 'en')}</div>
+            <div>${formatDelegationHtml(regionaleRaw, 'regional', 'en', countryCode)}</div>
+            <div>${formatDelegationHtml(departementaleRaw, 'departmental', 'en', countryCode)}</div>
             <div style="margin-top:5px;font-weight:bold;">${school?.name || 'SCHOOL'}</div>
           </td>
         </tr>
