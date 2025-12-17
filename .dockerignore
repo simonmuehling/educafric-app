@@ -1,0 +1,66 @@
+# Development files
+node_modules
+.git
+.gitignore
+*.log
+*.md
+README.md
+CHANGELOG.md
+
+# Build artifacts (will be rebuilt)
+dist
+
+# Development dependencies
+.replit
+replit.nix
+.upm
+
+# Test and backup files
+tests/
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+backups/
+*.backup
+
+# Large assets that should be in object storage
+attached_assets/
+public/uploads/
+public/documents/*.pdf
+client/public/documents/
+
+# Scripts not needed in production
+scripts/
+generate-investor-pdf.mjs
+
+# Android build files (not needed for web deployment)
+android/
+.expo/
+capacitor/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Migration metadata
+migrations/meta/
+
+# Documentation
+docs/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Cache directories
+.cache/
+.npm/
+.eslintcache
+
+# Puppeteer cache (can be downloaded at runtime if needed)
+.cache/puppeteer/
