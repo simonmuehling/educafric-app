@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform aimed at digitizing education in Africa. Its core purpose is to enhance accessibility, affordability, and learning outcomes through a scalable and culturally relevant solution. The platform integrates academic management, communication tools, financial services, and offline access, with the ambition of becoming the leading EdTech solution across the African continent.
+Educafric is a bilingual, mobile-first EdTech platform designed to digitize education in Africa. Its primary goal is to improve accessibility, affordability, and learning outcomes through a scalable and culturally relevant solution. The platform integrates academic management, communication tools, financial services, and offline access, aspiring to be the leading EdTech solution across the African continent.
 
 # User Preferences
 - EXEMPTION PREMIUM PERMANENTE: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -61,4 +61,3 @@ Educafric is a bilingual, mobile-first EdTech platform aimed at digitizing educa
 - **WhatsApp**: Direct messaging API for automated notifications.
 - **Hostinger**: SMTP services for email notifications.
 - **Jitsi Meet**: Video conferencing integration for online classes.
-```
