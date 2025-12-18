@@ -11032,6 +11032,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= STUDENT BULLETINS API =============
+  // GET /api/student/bulletins - Get all bulletins for the logged-in student
+  app.get("/api/student/bulletins", requireAuth, requireAnyRole(['Student']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const studentUserId = user.id;
+      
+      console.log(`[STUDENT_BULLETINS] 📊 Fetching bulletins for student user: ${studentUserId}`);
+      
+      // Get student's school for multi-tenant isolation
+      const userSchoolId = user.schoolId;
+      
+      // bulletinComprehensive.studentId stores the users.id directly
+      // So we query directly with the student's user ID
+      // Add schoolId filter for multi-tenant security
+      const bulletinsData = await db
+        .select({
+          id: bulletinComprehensive.id,
+          studentId: bulletinComprehensive.studentId,
+          classId: bulletinComprehensive.classId,
+          term: bulletinComprehensive.term,
+          academicYear: bulletinComprehensive.academicYear,
+          overallAverage: bulletinComprehensive.overallAverage,
+          rank: bulletinComprehensive.studentRank,
+          status: bulletinComprehensive.status,
+          createdAt: bulletinComprehensive.createdAt,
+          subjectGrades: bulletinComprehensive.subjectGrades,
+          conductScore: bulletinComprehensive.conductScore,
+          absences: bulletinComprehensive.totalAbsences,
+          generalAppreciation: bulletinComprehensive.generalAppreciation,
+          verificationCode: bulletinComprehensive.verificationCode,
+          className: classes.name,
+          totalStudents: classes.capacity
+        })
+        .from(bulletinComprehensive)
+        .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
+        .where(
+          and(
+            eq(bulletinComprehensive.studentId, studentUserId),
+            userSchoolId ? eq(bulletinComprehensive.schoolId, userSchoolId) : sql`1=1`,
+            inArray(bulletinComprehensive.status, ['published', 'finalized', 'approved'])
+          )
+        )
+        .orderBy(desc(bulletinComprehensive.createdAt));
+      
+      // Format bulletins for frontend
+      const formattedBulletins = bulletinsData.map(b => ({
+        id: b.id,
+        period: b.term || 'Trimestre 1',
+        year: b.academicYear || '2024-2025',
+        overallGrade: parseFloat(b.overallAverage?.toString() || '0'),
+        rank: b.rank || 0,
+        totalStudents: b.totalStudents || 30,
+        status: b.status === 'published' || b.status === 'finalized' ? 'published' : b.status,
+        publishedAt: b.createdAt ? new Date(b.createdAt).toISOString() : new Date().toISOString(),
+        grades: Array.isArray(b.subjectGrades) ? b.subjectGrades : [],
+        teacherComments: b.generalAppreciation || '',
+        conduct: b.conductScore ? `${b.conductScore}/20` : 'N/A',
+        absences: b.absences || 0,
+        delays: 0,
+        verificationCode: b.verificationCode || ''
+      }));
+      
+      console.log(`[STUDENT_BULLETINS] ✅ Found ${formattedBulletins.length} bulletins for student ${studentUserId}`);
+      res.json(formattedBulletins);
+      
+    } catch (error) {
+      console.error('[STUDENT_BULLETINS] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch student bulletins' });
+    }
+  });
+
   // Student Account Deletion Request
   app.post("/api/student/request-account-deletion", requireAuth, async (req, res) => {
     try {
@@ -11305,6 +11377,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[PARENT_CHILDREN] ❌ Error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch children data' });
+    }
+  });
+
+  // ============= PARENT CHILDREN BULLETINS API =============
+  // GET /api/parent/children/bulletins - Get all bulletins for the parent's children
+  app.get("/api/parent/children/bulletins", requireAuth, requireAnyRole(['Parent']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const parentId = user.id;
+      
+      console.log(`[PARENT_BULLETINS] 📊 Fetching bulletins for parent: ${parentId}`);
+      
+      // Get children linked to this parent via parent_student_relations
+      // Note: parentStudentRelations.studentId stores the users.id of students
+      const childRelations = await db
+        .select({
+          studentId: parentStudentRelations.studentId
+        })
+        .from(parentStudentRelations)
+        .where(eq(parentStudentRelations.parentId, parentId));
+      
+      if (childRelations.length === 0) {
+        console.log(`[PARENT_BULLETINS] No children found for parent ${parentId}`);
+        return res.json([]);
+      }
+      
+      const childUserIds = childRelations.map(r => r.studentId);
+      
+      // Get the student user records (students are users with role='Student')
+      const studentUsers = await db
+        .select({ 
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName
+        })
+        .from(users)
+        .where(
+          and(
+            inArray(users.id, childUserIds),
+            eq(users.role, 'Student')
+          )
+        );
+      
+      if (studentUsers.length === 0) {
+        console.log(`[PARENT_BULLETINS] No student users found for children`);
+        return res.json([]);
+      }
+      
+      const studentIds = studentUsers.map(s => s.id);
+      const studentMap = new Map(studentUsers.map(s => [s.id, s]));
+      
+      // Fetch bulletins for all children (bulletinComprehensive.studentId = users.id)
+      const bulletinsData = await db
+        .select({
+          id: bulletinComprehensive.id,
+          studentId: bulletinComprehensive.studentId,
+          classId: bulletinComprehensive.classId,
+          schoolId: bulletinComprehensive.schoolId,
+          term: bulletinComprehensive.term,
+          academicYear: bulletinComprehensive.academicYear,
+          overallAverage: bulletinComprehensive.overallAverage,
+          rank: bulletinComprehensive.studentRank,
+          status: bulletinComprehensive.status,
+          createdAt: bulletinComprehensive.createdAt,
+          subjectGrades: bulletinComprehensive.subjectGrades,
+          conductScore: bulletinComprehensive.conductScore,
+          absences: bulletinComprehensive.totalAbsences,
+          generalAppreciation: bulletinComprehensive.generalAppreciation,
+          verificationCode: bulletinComprehensive.verificationCode,
+          className: classes.name,
+          totalStudents: classes.capacity
+        })
+        .from(bulletinComprehensive)
+        .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
+        .where(
+          and(
+            inArray(bulletinComprehensive.studentId, studentIds),
+            inArray(bulletinComprehensive.status, ['published', 'finalized', 'approved'])
+          )
+        )
+        .orderBy(desc(bulletinComprehensive.createdAt));
+      
+      // Format bulletins for frontend with child info
+      const formattedBulletins = bulletinsData.map(b => {
+        const student = studentMap.get(b.studentId);
+        return {
+          id: b.id,
+          childId: b.studentId,
+          childName: student ? `${student.firstName} ${student.lastName}` : 'Unknown',
+          childClass: b.className || 'Unknown',
+          period: b.term || 'Trimestre 1',
+          year: b.academicYear || '2024-2025',
+          overallGrade: parseFloat(b.overallAverage?.toString() || '0'),
+          rank: b.rank || 0,
+          totalStudents: b.totalStudents || 30,
+          status: b.status === 'published' || b.status === 'finalized' ? 'published' : b.status,
+          publishedAt: b.createdAt ? new Date(b.createdAt).toISOString() : new Date().toISOString(),
+          grades: Array.isArray(b.subjectGrades) ? b.subjectGrades : [],
+          teacherComments: b.generalAppreciation || '',
+          conduct: b.conductScore ? `${b.conductScore}/20` : 'N/A',
+          absences: b.absences || 0,
+          delays: 0,
+          verificationCode: b.verificationCode || ''
+        };
+      });
+      
+      console.log(`[PARENT_BULLETINS] ✅ Found ${formattedBulletins.length} bulletins for ${studentIds.length} children`);
+      res.json(formattedBulletins);
+      
+    } catch (error) {
+      console.error('[PARENT_BULLETINS] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch children bulletins' });
     }
   });
 
@@ -12936,6 +13120,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         console.log(`[DIRECTOR_BULLETINS] 📧 Teacher ${bulletin.teacherId} notified of bulletin ${reviewStatus}`);
+        
+        // Send notifications to student and parents when bulletin is approved
+        if (isApproved) {
+          try {
+            const { default: StudentParentBulletinNotifications } = await import('./services/studentParentBulletinNotifications');
+            const bulletinNotificationService = new StudentParentBulletinNotifications();
+            
+            // Get student email and parent contacts
+            const [studentUser] = await db.select({
+              id: users.id,
+              firstName: users.firstName,
+              lastName: users.lastName,
+              email: users.email,
+              phone: users.phone,
+              preferredLanguage: users.preferredLanguage
+            }).from(users).where(eq(users.id, bulletin.studentId)).limit(1);
+            
+            // Get parents linked to student
+            const parentRelations = await db.select({
+              parentId: parentStudentRelations.parentId
+            }).from(parentStudentRelations).where(eq(parentStudentRelations.studentId, bulletin.studentId));
+            
+            const parentIds = parentRelations.map(p => p.parentId);
+            const parentUsers = parentIds.length > 0 ? await db.select({
+              id: users.id,
+              firstName: users.firstName,
+              lastName: users.lastName,
+              email: users.email,
+              phone: users.phone,
+              preferredLanguage: users.preferredLanguage
+            }).from(users).where(inArray(users.id, parentIds)) : [];
+            
+            // Build recipients list
+            const recipients = [];
+            if (studentUser && studentUser.email) {
+              recipients.push({
+                id: studentUser.id,
+                name: `${studentUser.firstName} ${studentUser.lastName}`,
+                email: studentUser.email,
+                phone: studentUser.phone || undefined,
+                role: 'student' as const,
+                preferredLanguage: (studentUser.preferredLanguage as 'en' | 'fr') || 'fr'
+              });
+            }
+            for (const parent of parentUsers) {
+              if (parent.email) {
+                recipients.push({
+                  id: parent.id,
+                  name: `${parent.firstName} ${parent.lastName}`,
+                  email: parent.email,
+                  phone: parent.phone || undefined,
+                  role: 'parent' as const,
+                  preferredLanguage: (parent.preferredLanguage as 'en' | 'fr') || 'fr'
+                });
+              }
+            }
+            
+            if (recipients.length > 0) {
+              // Calculate average from subjects - safely parse subjects
+              let subjectsArray: any[] = [];
+              try {
+                if (Array.isArray(bulletin.subjects)) {
+                  subjectsArray = bulletin.subjects;
+                } else if (typeof bulletin.subjects === 'string') {
+                  subjectsArray = JSON.parse(bulletin.subjects);
+                }
+              } catch (parseError) {
+                console.log('[DIRECTOR_BULLETINS] ⚠️ Could not parse subjects, using empty array');
+                subjectsArray = [];
+              }
+              
+              let average = 0;
+              if (Array.isArray(subjectsArray) && subjectsArray.length > 0) {
+                const totalGrade = subjectsArray.reduce((sum, s) => sum + (parseFloat(s.moyenneFinale) || parseFloat(s.grade) || 0), 0);
+                average = totalGrade / subjectsArray.length;
+              }
+              
+              // Get class info for better notification context
+              let className = bulletin.className || 'Unknown Class';
+              if (!className || className === 'Unknown Class') {
+                try {
+                  const [classInfo] = await db.select({ name: classes.name })
+                    .from(classes)
+                    .where(eq(classes.id, bulletin.classId))
+                    .limit(1);
+                  if (classInfo) className = classInfo.name;
+                } catch (classError) {
+                  console.log('[DIRECTOR_BULLETINS] ⚠️ Could not fetch class info');
+                }
+              }
+              
+              const bulletinData = {
+                studentId: bulletin.studentId,
+                studentName: studentName,
+                className: className,
+                period: bulletin.term,
+                academicYear: bulletin.academicYear,
+                average: average,
+                rank: bulletin.rank || 0,
+                totalStudents: 30,
+                downloadUrl: `/api/director/teacher-bulletins/${bulletinId}/download`,
+                verificationCode: bulletin.verificationCode || `EDU-${bulletinId}`
+              };
+              
+              const notifResult = await bulletinNotificationService.sendBulletinNotifications(bulletinData, recipients, 'fr');
+              console.log(`[DIRECTOR_BULLETINS] 📬 Student/Parent notifications sent:`, notifResult.summary);
+            }
+          } catch (studentParentNotifError) {
+            console.error('[DIRECTOR_BULLETINS] ❌ Failed to notify students/parents:', studentParentNotifError);
+          }
+        }
       } catch (notificationError) {
         console.error('[DIRECTOR_BULLETINS] ❌ Failed to notify teacher:', notificationError);
         // Don't fail the request if notification fails
