@@ -5,7 +5,7 @@ import Stripe from "stripe";
 // Initialize Stripe with safe fallback
 const stripeKey = process.env.STRIPE_SECRET_KEY || '';
 const stripe = stripeKey ? new Stripe(stripeKey, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2025-08-27.basil",
 }) : null;
 
 if (!stripe) {

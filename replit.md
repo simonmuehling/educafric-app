@@ -56,7 +56,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitize educ
 
 # External Dependencies
 - **Neon Database**: Serverless PostgreSQL database.
-- **Stripe**: Payment processing gateway.
+- **Stripe**: Payment processing gateway (graceful fallback if not configured).
 - **Firebase**: Google OAuth authentication.
 - **WhatsApp**: Direct messaging API for automated notifications.
 - **Hostinger**: SMTP services for email notifications.
