@@ -11,10 +11,19 @@ const logger = {
 
 const router = Router();
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Initialize Stripe with safe fallback
+const stripeKey = process.env.STRIPE_SECRET_KEY || '';
+const stripe = stripeKey ? new Stripe(stripeKey, {
   apiVersion: '2025-07-30.basil',
-});
+}) : null;
+
+// Helper to check if Stripe is available
+const requireStripe = () => {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please add STRIPE_SECRET_KEY.');
+  }
+  return stripe;
+};
 
 // Validation schemas
 const createPaymentIntentSchema = z.object({

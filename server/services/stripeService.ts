@@ -1,13 +1,24 @@
 import Stripe from 'stripe';
 import { storage } from '../storage';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+// Initialize Stripe with safe fallback - don't crash if key is missing
+const stripeKey = process.env.STRIPE_SECRET_KEY || '';
+const stripe = stripeKey ? new Stripe(stripeKey, {
+  apiVersion: '2025-08-27.basil',
+}) : null;
+
+// Log warning if Stripe is not configured
+if (!stripe) {
+  console.warn('[STRIPE_SERVICE] ⚠️ STRIPE_SECRET_KEY not configured - payment features disabled');
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-08-27.basil',
-});
+// Helper to get Stripe instance or throw
+const getStripe = (): Stripe => {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please add STRIPE_SECRET_KEY.');
+  }
+  return stripe;
+};
 
 export interface SubscriptionPlan {
   id: string;
@@ -136,11 +147,11 @@ export class StripeService {
       
       if (user && user.stripeCustomerId) {
         console.log(`[STRIPE] Retrieving existing customer: ${user.stripeCustomerId}`);
-        return await stripe.customers.retrieve(user.stripeCustomerId) as Stripe.Customer;
+        return await getStripe().customers.retrieve(user.stripeCustomerId) as Stripe.Customer;
       }
       
       console.log(`[STRIPE] Creating new customer for ${email}`);
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         email,
         name,
         metadata: {
@@ -181,7 +192,7 @@ export class StripeService {
       
       console.log(`[STRIPE_DEBUG] PaymentIntent: Plan=${plan.price} ${plan.currency} -> Stripe=${stripeAmount} ${stripeCurrency} (NO CONVERSION)`);
       
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await getStripe().paymentIntents.create({
         amount: stripeAmount, // Direct XAF amount
         currency: stripeCurrency, // Keep XAF currency
         customer: customer.id,
@@ -222,7 +233,7 @@ export class StripeService {
       // Créer un prix Stripe si nécessaire
       const price = await this.getOrCreatePrice(plan);
       
-      const subscription = await stripe.subscriptions.create({
+      const subscription = await getStripe().subscriptions.create({
         customer: customer.id,
         items: [{
           price: price.id
@@ -255,7 +266,7 @@ export class StripeService {
     
     try {
       // Rechercher un prix existant
-      const existingPrices = await stripe.prices.list({
+      const existingPrices = await getStripe().prices.list({
         product: plan.id,
         active: true,
         limit: 1
@@ -267,7 +278,7 @@ export class StripeService {
       }
       
       // Créer un nouveau produit et prix
-      const product = await stripe.products.create({
+      const product = await getStripe().products.create({
         id: plan.id,
         name: plan.name,
         description: `EDUCAFRIC - ${plan.name}`,
@@ -284,7 +295,7 @@ export class StripeService {
       
       console.log(`[STRIPE_DEBUG] Price creation: Plan=${plan.price} ${plan.currency} -> Stripe=${stripeAmount} ${stripeCurrency} (NO CONVERSION)`);
       
-      const price = await stripe.prices.create({
+      const price = await getStripe().prices.create({
         product: product.id,
         unit_amount: stripeAmount, // Direct XAF amount
         currency: stripeCurrency, // Keep XAF currency
@@ -318,7 +329,7 @@ export class StripeService {
     console.log(`[STRIPE] Confirming payment and activating subscription: ${paymentIntentId}`);
     
     try {
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
       
       if (paymentIntent.status !== 'succeeded') {
         throw new Error(`Payment not successful: ${paymentIntent.status}`);
@@ -372,7 +383,7 @@ export class StripeService {
       
       if (user.stripeCustomerId) {
         // Vérifier avec Stripe
-        const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+        const subscription = await getStripe().subscriptions.retrieve(user.stripeSubscriptionId);
         
         const isActive = subscription.status === 'active' || subscription.status === 'trialing';
         
@@ -404,7 +415,7 @@ export class StripeService {
       const user = await storage.getUserById(userId);
       
       if (user.stripeSubscriptionId) {
-        await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+        await getStripe().subscriptions.cancel(user.stripeSubscriptionId);
       }
       
       // TODO: Implement updateUserSubscription in new storage - cancel
@@ -428,7 +439,7 @@ export class StripeService {
         throw new Error('Missing STRIPE_WEBHOOK_SECRET');
       }
       
-      const event = stripe.webhooks.constructEvent(payload, signature, endpointSecret);
+      const event = getStripe().webhooks.constructEvent(payload, signature, endpointSecret);
       
       console.log(`[STRIPE] Webhook event type: ${event.type}`);
       
@@ -483,7 +494,7 @@ export class StripeService {
     console.log(`[STRIPE] Invoice payment succeeded: ${invoice.id}`);
     
     if ((invoice as any).subscription) {
-      const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string);
+      const subscription = await getStripe().subscriptions.retrieve((invoice as any).subscription as string);
       await this.handleSubscriptionUpdated(subscription);
     }
   }

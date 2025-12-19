@@ -10,13 +10,15 @@ import { mtnService, ValidationError } from '../../services/mtnMobileMoneyServic
 import { onlineClassActivationService } from '../../services/onlineClassActivationService';
 import { z } from 'zod';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing STRIPE_SECRET_KEY');
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+// Initialize Stripe with safe fallback
+const stripeKey = process.env.STRIPE_SECRET_KEY || '';
+const stripe = stripeKey ? new Stripe(stripeKey, {
   apiVersion: '2023-10-16',
-});
+}) : null;
+
+if (!stripe) {
+  console.warn('[ONLINE_CLASS_PAYMENTS] ⚠️ STRIPE_SECRET_KEY not configured - Stripe payments disabled');
+}
 
 const router = Router();
 

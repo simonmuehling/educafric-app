@@ -2,13 +2,15 @@ import type { Express } from "express";
 import { SubscriptionService } from "../services/subscriptionService";
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+// Initialize Stripe with safe fallback
+const stripeKey = process.env.STRIPE_SECRET_KEY || '';
+const stripe = stripeKey ? new Stripe(stripeKey, {
   apiVersion: "2023-10-16",
-});
+}) : null;
+
+if (!stripe) {
+  console.warn('[SUBSCRIPTION_ROUTES] ⚠️ STRIPE_SECRET_KEY not configured - Stripe payments disabled');
+}
 
 export function registerSubscriptionRoutes(app: Express): void {
   
