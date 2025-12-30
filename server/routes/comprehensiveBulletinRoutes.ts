@@ -25,6 +25,7 @@ import { archivedDocuments } from '../../shared/schemas/archiveSchema.js';
 import { teacherClassSubjects, classSubjects } from '../../shared/schemas/classSubjectsSchema.js';
 import { enrollments } from '../../shared/schemas/classEnrollmentSchema.js';
 import { insertTeacherGradeSubmissionSchema } from '../../shared/schemas/bulletinSchema.js';
+import { BulletinAutoSyncService } from '../services/bulletinAutoSyncService';
 import { 
   bulletinComprehensiveValidationSchema,
   insertBulletinSubjectCodesSchema,
@@ -908,6 +909,28 @@ router.post('/approve-submission/:id', requireAuth, requireDirectorAuth, async (
         eq(teacherGradeSubmissions.reviewStatus, 'pending')
       ));
 
+    // AUTO-SYNC: Update bulletin with newly approved grades
+    let syncResult = null;
+    try {
+      console.log('[APPROVE_SUBMISSION] 🔄 Auto-syncing approved grades to bulletin...');
+      syncResult = await BulletinAutoSyncService.syncApprovedGradesToBulletin(
+        sub.studentId,
+        sub.classId,
+        sub.term as 'T1' | 'T2' | 'T3',
+        sub.academicYear,
+        schoolId
+      );
+      if (syncResult) {
+        console.log('[APPROVE_SUBMISSION] ✅ Bulletin auto-synced:', {
+          bulletinId: syncResult.bulletinId,
+          gradesAdded: syncResult.gradesAdded,
+          newAverage: syncResult.newAverage
+        });
+      }
+    } catch (syncError) {
+      console.error('[APPROVE_SUBMISSION] ⚠️ Auto-sync failed (non-blocking):', syncError);
+    }
+
     // Send notification to teacher(s)
     try {
       const teachers = await db.select({
@@ -937,7 +960,9 @@ router.post('/approve-submission/:id', requireAuth, requireDirectorAuth, async (
             classId: sub.classId,
             term: sub.term,
             academicYear: sub.academicYear,
-            status: 'approved'
+            status: 'approved',
+            bulletinId: syncResult?.bulletinId,
+            newAverage: syncResult?.newAverage
           },
           isRead: false,
           createdAt: new Date(),
@@ -955,7 +980,13 @@ router.post('/approve-submission/:id', requireAuth, requireDirectorAuth, async (
       message: 'Submission approved successfully',
       data: {
         submissionId,
-        status: 'director_approved'
+        status: 'director_approved',
+        bulletinSync: syncResult ? {
+          bulletinId: syncResult.bulletinId,
+          gradesAdded: syncResult.gradesAdded,
+          newAverage: syncResult.newAverage,
+          bulletinUpdated: syncResult.updated
+        } : null
       }
     });
 
