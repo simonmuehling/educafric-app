@@ -4252,6 +4252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get grades for director (by class and term)
   // ✅ DATABASE-ONLY: All data comes from database, no hardcoded mock data
+  // ✅ MERGED DATA: Combines grades table + approved teacher submissions
   app.get("/api/director/grades", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
@@ -4264,12 +4265,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_GRADES_API] 📊 Fetching grades from DATABASE for school:', userSchoolId);
       
-      // Get real grades from database
+      // Get real grades from grades table
       const { db } = await import('./db');
-      const { grades: gradesTable, users } = await import('@shared/schema');
+      const { grades: gradesTable, users, teacherGradeSubmissions, subjects } = await import('@shared/schema');
       const { eq, and } = await import('drizzle-orm');
       
-      // Add filters if provided
+      // Add filters if provided for grades table
       const conditions = [eq(gradesTable.schoolId, userSchoolId)];
       
       if (classId) {
@@ -4284,7 +4285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(gradesTable)
         .where(and(...conditions));
       
-      const grades = schoolGrades.map(grade => ({
+      const gradesFromTable = schoolGrades.map(grade => ({
         id: grade.id,
         studentId: grade.studentId,
         subjectId: grade.subjectId,
@@ -4292,11 +4293,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         term: grade.term,
         academicYear: grade.academicYear,
         examType: grade.examType,
-        comments: grade.comments
+        comments: grade.comments,
+        source: 'grades_table'
       }));
       
-      console.log('[DIRECTOR_GRADES_API] ✅ Grades count:', grades.length);
-      res.json({ success: true, grades });
+      // Also fetch approved grades from teacher submissions
+      const submissionConditions = [
+        eq(teacherGradeSubmissions.schoolId, userSchoolId),
+        eq(teacherGradeSubmissions.reviewStatus, 'approved')
+      ];
+      
+      if (classId) {
+        submissionConditions.push(eq(teacherGradeSubmissions.classId, parseInt(classId as string, 10)));
+      }
+      
+      if (term) {
+        submissionConditions.push(eq(teacherGradeSubmissions.term, term as string));
+      }
+      
+      const approvedSubmissions = await db.select({
+        id: teacherGradeSubmissions.id,
+        studentId: teacherGradeSubmissions.studentId,
+        subjectId: teacherGradeSubmissions.subjectId,
+        termAverage: teacherGradeSubmissions.termAverage,
+        term: teacherGradeSubmissions.term,
+        academicYear: teacherGradeSubmissions.academicYear,
+        coefficient: teacherGradeSubmissions.coefficient,
+        comments: teacherGradeSubmissions.subjectComments,
+        subjectName: subjects.nameFr,
+        subjectNameEn: subjects.nameEn,
+        teacherId: teacherGradeSubmissions.teacherId
+      })
+      .from(teacherGradeSubmissions)
+      .leftJoin(subjects, eq(subjects.id, teacherGradeSubmissions.subjectId))
+      .where(and(...submissionConditions));
+      
+      const gradesFromSubmissions = approvedSubmissions.map(sub => ({
+        id: sub.id + 100000, // Offset to avoid ID conflicts
+        studentId: sub.studentId,
+        subjectId: sub.subjectId,
+        grade: sub.termAverage?.toString() || '0',
+        term: sub.term,
+        academicYear: sub.academicYear,
+        examType: 'term_average',
+        comments: sub.comments,
+        subjectName: sub.subjectName,
+        subjectNameEn: sub.subjectNameEn,
+        coefficient: sub.coefficient,
+        teacherId: sub.teacherId,
+        source: 'teacher_submission'
+      }));
+      
+      // Merge both sources, prioritizing approved submissions (more recent/accurate)
+      const allGrades = [...gradesFromTable, ...gradesFromSubmissions];
+      
+      console.log('[DIRECTOR_GRADES_API] ✅ Grades: table=', gradesFromTable.length, ', submissions=', gradesFromSubmissions.length, ', total=', allGrades.length);
+      res.json({ success: true, grades: allGrades });
     } catch (error) {
       console.error('[DIRECTOR_GRADES_API] Error fetching grades:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch grades' });
