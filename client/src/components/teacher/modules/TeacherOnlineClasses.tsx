@@ -1191,6 +1191,15 @@ const TeacherOnlineClasses: React.FC = () => {
             </div>
           </div>
         </Card>
+
+        {/* Payment Modal - Required for purchase flow when no access */}
+        <OnlineClassPayment
+          isOpen={isPaymentOpen}
+          onClose={() => setIsPaymentOpen(false)}
+          durationType={purchaseDuration}
+          amount={calculatePrice(purchaseDuration)}
+          language={language}
+        />
       </div>
     );
   }
