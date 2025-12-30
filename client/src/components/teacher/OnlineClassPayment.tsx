@@ -99,7 +99,7 @@ function StripePaymentForm({ durationType, amount, onSuccess, language }: any) {
 }
 
 export function OnlineClassPayment({ isOpen, onClose, durationType: initialDurationType, amount: initialAmount, language }: OnlineClassPaymentProps) {
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mtn' | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mtn' | 'orange' | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoadingIntent, setIsLoadingIntent] = useState(false);
   
@@ -111,6 +111,13 @@ export function OnlineClassPayment({ isOpen, onClose, durationType: initialDurat
   const [isMtnProcessing, setIsMtnProcessing] = useState(false);
   const [mtnStatus, setMtnStatus] = useState<'idle' | 'pending' | 'success' | 'failed'>('idle');
   const [mtnMessage, setMtnMessage] = useState('');
+
+  // Orange Money state
+  const [orangePhone, setOrangePhone] = useState('');
+  const [isOrangeProcessing, setIsOrangeProcessing] = useState(false);
+  const [orangeStatus, setOrangeStatus] = useState<'idle' | 'pending' | 'success' | 'failed'>('idle');
+  const [orangeMessage, setOrangeMessage] = useState('');
+  const [orangeUssdCode, setOrangeUssdCode] = useState('');
 
   const { toast } = useToast();
 
@@ -243,6 +250,58 @@ export function OnlineClassPayment({ isOpen, onClose, durationType: initialDurat
     }
   };
 
+  const handleOrangePayment = async () => {
+    if (!orangePhone.trim()) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' 
+          ? 'Veuillez entrer votre numéro Orange Money' 
+          : 'Please enter your Orange Money number',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsOrangeProcessing(true);
+    setOrangeStatus('pending');
+
+    try {
+      const response = await apiRequest('POST', '/api/online-class-payments/create-orange-payment', {
+        durationType: selectedDuration,
+        phoneNumber: orangePhone
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setOrangeStatus('pending');
+        setOrangeUssdCode(data.ussdCode || '#150*50#');
+        setOrangeMessage(data.instructions || (language === 'fr' 
+          ? `Composez ${data.ussdCode || '#150*50#'} sur votre téléphone Orange pour confirmer le paiement.` 
+          : `Dial ${data.ussdCode || '#150*50#'} on your Orange phone to confirm the payment.`));
+        
+        toast({
+          title: language === 'fr' ? 'Demande envoyée' : 'Request Sent',
+          description: data.instructions,
+        });
+
+        // Poll for activation status
+        pollForActivation();
+      } else {
+        throw new Error(data.error || 'Échec de la création du paiement Orange Money');
+      }
+    } catch (error: any) {
+      setOrangeStatus('failed');
+      setOrangeMessage(error.message);
+      toast({
+        title: language === 'fr' ? 'Erreur Orange Money' : 'Orange Money Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsOrangeProcessing(false);
+    }
+  };
+
   // Poll for activation status after MTN payment
   const pollForActivation = async () => {
     let attempts = 0;
@@ -299,6 +358,10 @@ export function OnlineClassPayment({ isOpen, onClose, durationType: initialDurat
     setMtnStatus('idle');
     setMtnMessage('');
     setMtnPhone('');
+    setOrangeStatus('idle');
+    setOrangeMessage('');
+    setOrangePhone('');
+    setOrangeUssdCode('');
   };
 
   return (
@@ -382,16 +445,42 @@ export function OnlineClassPayment({ isOpen, onClose, durationType: initialDurat
                 </Card>
 
                 <Card 
-                  className="p-4 cursor-pointer hover:border-orange-500 transition-colors"
-                  onClick={() => handlePaymentMethodSelect('mtn')}
+                  className="p-4 cursor-pointer hover:border-yellow-500 transition-colors opacity-50"
+                  onClick={() => {
+                    toast({
+                      title: language === 'fr' ? 'Service en maintenance' : 'Service under maintenance',
+                      description: language === 'fr' 
+                        ? 'MTN Mobile Money est temporairement désactivé. Veuillez utiliser Orange Money ou carte bancaire.' 
+                        : 'MTN Mobile Money is temporarily disabled. Please use Orange Money or credit card.',
+                      variant: 'destructive',
+                    });
+                  }}
                   data-testid="card-select-mtn"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow-100 rounded-lg">
+                      <Smartphone className="h-5 w-5 text-yellow-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-400">MTN Mobile Money</h4>
+                      <p className="text-sm text-gray-400">
+                        {language === 'fr' ? '⚠️ En maintenance' : '⚠️ Under maintenance'}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card 
+                  className="p-4 cursor-pointer hover:border-orange-500 transition-colors"
+                  onClick={() => handlePaymentMethodSelect('orange')}
+                  data-testid="card-select-orange"
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-orange-100 rounded-lg">
                       <Smartphone className="h-5 w-5 text-orange-600" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium">MTN Mobile Money</h4>
+                      <h4 className="font-medium">Orange Money</h4>
                       <p className="text-sm text-gray-600">
                         {language === 'fr' ? 'Paiement mobile sécurisé' : 'Secure mobile payment'}
                       </p>
@@ -547,6 +636,122 @@ export function OnlineClassPayment({ isOpen, onClose, durationType: initialDurat
                     onClick={handleBack}
                     className="w-full"
                     data-testid="button-retry-payment"
+                  >
+                    {language === 'fr' ? 'Réessayer' : 'Try Again'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {paymentMethod === 'orange' && (
+            <div className="space-y-4">
+              {orangeStatus === 'idle' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="orange-phone">
+                      {language === 'fr' ? 'Numéro Orange Money' : 'Orange Money Number'}
+                    </Label>
+                    <Input
+                      id="orange-phone"
+                      type="tel"
+                      placeholder="+237 6XX XXX XXX"
+                      value={orangePhone}
+                      onChange={(e) => setOrangePhone(e.target.value)}
+                      data-testid="input-orange-phone"
+                    />
+                    <p className="text-xs text-gray-500">
+                      {language === 'fr' 
+                        ? 'Format: +237 6XX XXX XXX (Orange Cameroun uniquement)' 
+                        : 'Format: +237 6XX XXX XXX (Orange Cameroon only)'}
+                    </p>
+                  </div>
+
+                  <Button 
+                    onClick={handleOrangePayment}
+                    disabled={isOrangeProcessing}
+                    className="w-full bg-orange-600 hover:bg-orange-700"
+                    data-testid="button-confirm-orange-payment"
+                  >
+                    {isOrangeProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {language === 'fr' ? 'Envoi...' : 'Sending...'}
+                      </>
+                    ) : (
+                      <>
+                        {language === 'fr' 
+                          ? `Payer ${currentAmount.toLocaleString('fr-FR')} CFA` 
+                          : `Pay ${currentAmount.toLocaleString('fr-FR')} CFA`}
+                      </>
+                    )}
+                  </Button>
+
+                  <Button 
+                    variant="outline" 
+                    onClick={handleBack}
+                    className="w-full"
+                    data-testid="button-back-to-methods"
+                  >
+                    {language === 'fr' ? 'Retour' : 'Back'}
+                  </Button>
+                </>
+              )}
+
+              {orangeStatus === 'pending' && (
+                <div className="text-center py-6 space-y-4">
+                  <Loader2 className="h-12 w-12 animate-spin text-orange-600 mx-auto" />
+                  <div>
+                    <h4 className="font-medium mb-2">
+                      {language === 'fr' ? 'En attente de confirmation' : 'Awaiting Confirmation'}
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {orangeMessage}
+                    </p>
+                    {orangeUssdCode && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-2">
+                        <p className="text-sm font-medium text-orange-800">
+                          {language === 'fr' ? 'Composez ce code USSD:' : 'Dial this USSD code:'}
+                        </p>
+                        <p className="text-2xl font-bold text-orange-600">{orangeUssdCode}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {orangeStatus === 'success' && (
+                <div className="text-center py-6 space-y-4">
+                  <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto" />
+                  <div>
+                    <h4 className="font-medium text-green-600 mb-2">
+                      {language === 'fr' ? 'Paiement réussi!' : 'Payment Successful!'}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {language === 'fr' 
+                        ? 'Votre accès aux cours en ligne a été activé.' 
+                        : 'Your online classes access has been activated.'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {orangeStatus === 'failed' && (
+                <div className="text-center py-6 space-y-4">
+                  <XCircle className="h-12 w-12 text-red-600 mx-auto" />
+                  <div>
+                    <h4 className="font-medium text-red-600 mb-2">
+                      {language === 'fr' ? 'Paiement échoué' : 'Payment Failed'}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {orangeMessage}
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleBack}
+                    className="w-full"
+                    data-testid="button-retry-orange-payment"
                   >
                     {language === 'fr' ? 'Réessayer' : 'Try Again'}
                   </Button>
