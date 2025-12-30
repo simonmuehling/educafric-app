@@ -3,12 +3,32 @@ import { bulletinComprehensive, teacherGradeSubmissions, classes, subjects, user
 import { eq, and, sql } from 'drizzle-orm';
 import { enrollments } from '../../shared/schemas/classEnrollmentSchema';
 
+interface TeacherInfo {
+  id: number;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+}
+
+interface StudentInfo {
+  id: number;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  className: string;
+  classLevel?: string;
+}
+
 interface SyncResult {
   bulletinId: number;
   studentId: number;
   updated: boolean;
   gradesAdded: number;
   newAverage?: number;
+  student: StudentInfo;
+  teachers: TeacherInfo[];
+  term: string;
+  academicYear: string;
 }
 
 export class BulletinAutoSyncService {
@@ -52,6 +72,50 @@ export class BulletinAutoSyncService {
       }
 
       console.log('[BULLETIN_AUTO_SYNC] 📊 Found', approvedGrades.length, 'approved grades');
+
+      // Get student info
+      const [studentData] = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName
+      })
+      .from(users)
+      .where(eq(users.id, studentId))
+      .limit(1);
+
+      // Get class info
+      const [classInfo] = await db.select({
+        name: classes.name,
+        level: classes.level
+      })
+      .from(classes)
+      .where(eq(classes.id, classId))
+      .limit(1);
+
+      // Extract unique teachers from grades
+      const teacherMap = new Map<number, TeacherInfo>();
+      for (const g of approvedGrades) {
+        if (g.teacherId && g.teacherFirstName && g.teacherLastName && !teacherMap.has(g.teacherId)) {
+          teacherMap.set(g.teacherId, {
+            id: g.teacherId,
+            firstName: g.teacherFirstName,
+            lastName: g.teacherLastName,
+            fullName: `${g.teacherFirstName} ${g.teacherLastName}`
+          });
+        }
+      }
+      const teachers = Array.from(teacherMap.values());
+
+      const studentInfo: StudentInfo = {
+        id: studentId,
+        firstName: studentData?.firstName || 'Unknown',
+        lastName: studentData?.lastName || 'Unknown',
+        fullName: studentData ? `${studentData.firstName} ${studentData.lastName}` : 'Unknown',
+        className: classInfo?.name || 'Unknown',
+        classLevel: classInfo?.level || undefined
+      };
+
+      console.log('[BULLETIN_AUTO_SYNC] 👤 Student:', studentInfo.fullName, '| 👨‍🏫 Teachers:', teachers.length);
 
       const [existingBulletin] = await db.select()
         .from(bulletinComprehensive)
@@ -107,26 +171,14 @@ export class BulletinAutoSyncService {
           studentId,
           updated: true,
           gradesAdded: subjectsData.length,
-          newAverage: generalAverage
+          newAverage: generalAverage,
+          student: studentInfo,
+          teachers,
+          term,
+          academicYear
         };
       } else {
         console.log('[BULLETIN_AUTO_SYNC] 🆕 Creating new bulletin for student:', studentId);
-        
-        const [student] = await db.select({
-          firstName: users.firstName,
-          lastName: users.lastName
-        })
-        .from(users)
-        .where(eq(users.id, studentId))
-        .limit(1);
-
-        const [classInfo] = await db.select({
-          name: classes.name,
-          level: classes.level
-        })
-        .from(classes)
-        .where(eq(classes.id, classId))
-        .limit(1);
 
         const [newBulletin] = await db.insert(bulletinComprehensive)
           .values({
@@ -135,8 +187,8 @@ export class BulletinAutoSyncService {
             schoolId,
             term,
             academicYear,
-            studentName: student ? `${student.firstName} ${student.lastName}` : 'Unknown',
-            className: classInfo?.name || 'Unknown',
+            studentName: studentInfo.fullName,
+            className: studentInfo.className,
             subjectsData: JSON.stringify(subjectsData),
             generalAverage,
             totalSubjects: subjectsData.length,
@@ -153,7 +205,11 @@ export class BulletinAutoSyncService {
           studentId,
           updated: false,
           gradesAdded: subjectsData.length,
-          newAverage: generalAverage
+          newAverage: generalAverage,
+          student: studentInfo,
+          teachers,
+          term,
+          academicYear
         };
       }
     } catch (error) {

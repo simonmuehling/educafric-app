@@ -985,7 +985,11 @@ router.post('/approve-submission/:id', requireAuth, requireDirectorAuth, async (
           bulletinId: syncResult.bulletinId,
           gradesAdded: syncResult.gradesAdded,
           newAverage: syncResult.newAverage,
-          bulletinUpdated: syncResult.updated
+          bulletinUpdated: syncResult.updated,
+          student: syncResult.student,
+          teachers: syncResult.teachers,
+          term: syncResult.term,
+          academicYear: syncResult.academicYear
         } : null
       }
     });
