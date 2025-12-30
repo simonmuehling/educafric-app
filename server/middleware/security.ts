@@ -169,6 +169,12 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
   (p, m) => p.startsWith('/api/facebook/webhook') && (m === 'GET' || m === 'POST'),
   (p, m) => p.startsWith('/api/whatsapp/webhook') && (m === 'GET' || m === 'POST'),
   
+  // Orange Money payment routes (USSD flow - specific endpoints only)
+  (p) => p === '/api/online-class-payments/create-orange-payment',
+  (p) => p === '/api/online-class-payments/orange-callback',
+  (p) => p === '/api/teacher-payments/orange-money/initiate',
+  (p) => p === '/api/teacher-payments/orange-money/callback',
+  
   // Public authentication routes (no session yet)
   (p) => p === '/api/auth/login',
   (p) => p === '/api/auth/register',
