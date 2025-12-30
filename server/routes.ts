@@ -3630,17 +3630,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[UPDATE_TEACHER_DIRECTOR] Updating teacher:', teacherId, { name, firstName, lastName, teachingSubjects, assignedClasses });
       
-      // Verify teacher belongs to user's school
+      // Verify teacher belongs to user's school - check both primary role and secondary roles
       const [existingTeacher] = await db.select().from(users)
-        .where(and(eq(users.id, teacherId), eq(users.role, 'Teacher')))
+        .where(eq(users.id, teacherId))
         .limit(1);
       
       if (!existingTeacher) {
         return res.status(404).json({ success: false, message: 'Teacher not found' });
       }
       
-      if (existingTeacher.schoolId !== userSchoolId) {
-        return res.status(403).json({ success: false, message: 'Access denied - teacher belongs to another school' });
+      // Verify user is a teacher (primary or secondary role)
+      const isTeacher = existingTeacher.role === 'Teacher' || 
+        (existingTeacher.secondaryRoles && existingTeacher.secondaryRoles.includes('Teacher'));
+      
+      if (!isTeacher) {
+        return res.status(404).json({ success: false, message: 'User is not a teacher' });
+      }
+      
+      // For multi-role users, check if they have a Teacher affiliation with this school
+      let teacherBelongsToSchool = existingTeacher.schoolId === userSchoolId;
+      
+      if (!teacherBelongsToSchool) {
+        // Check role_affiliations table for Teacher role at this school
+        const [teacherAffiliation] = await db.select().from(roleAffiliations)
+          .where(and(
+            eq(roleAffiliations.userId, teacherId),
+            eq(roleAffiliations.role, 'Teacher'),
+            eq(roleAffiliations.schoolId, userSchoolId),
+            eq(roleAffiliations.isActive, true)
+          ))
+          .limit(1);
+        teacherBelongsToSchool = !!teacherAffiliation;
+      }
+      
+      if (!teacherBelongsToSchool) {
+        return res.status(403).json({ success: false, message: 'Access denied - teacher not affiliated with your school' });
       }
       
       // Handle name field - split into firstName and lastName if needed
