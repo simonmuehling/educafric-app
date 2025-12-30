@@ -49,20 +49,20 @@ router.post('/initiate', async (req: Request, res: Response) => {
     if (result.success) {
       try {
         await db.insert(payments).values({
-          userId: userId || null,
+          studentId: userId || null,
           amount: amount.toString(),
-          currency: 'XAF',
           paymentMethod: 'orange_money',
-          paymentProvider: 'paynote',
-          transactionId: result.orderId,
-          externalTransactionId: result.transactionId,
+          orderId: result.orderId,
+          transactionId: result.transactionId,
+          phoneNumber: phoneNumber,
           status: 'pending',
-          metadata: JSON.stringify({
-            phoneNumber,
+          metadata: {
             payToken: result.payToken,
             paymentType,
+            provider: 'paynote',
+            currency: 'XAF',
             ...metadata
-          })
+          }
         });
       } catch (dbError) {
         console.error('[ORANGE_MONEY] Database insert error:', dbError);
@@ -104,11 +104,8 @@ router.get('/check/:orderId', async (req: Request, res: Response) => {
     if (result.status === 'SUCCESSFULL') {
       try {
         await db.update(payments)
-          .set({ 
-            status: 'completed',
-            updatedAt: new Date()
-          })
-          .where(eq(payments.transactionId, orderId));
+          .set({ status: 'completed' })
+          .where(eq(payments.orderId, orderId));
       } catch (dbError) {
         console.error('[ORANGE_MONEY] Database update error:', dbError);
       }
@@ -140,10 +137,9 @@ router.post('/webhook', async (req: Request, res: Response) => {
         await db.update(payments)
           .set({ 
             status: 'completed',
-            externalTransactionId: result.transactionId,
-            updatedAt: new Date()
+            transactionId: result.transactionId
           })
-          .where(eq(payments.transactionId, result.orderId));
+          .where(eq(payments.orderId, result.orderId));
         
         console.log(`[ORANGE_MONEY] ✅ Payment ${result.orderId} marked as completed`);
       } catch (dbError) {
@@ -154,9 +150,9 @@ router.post('/webhook', async (req: Request, res: Response) => {
         await db.update(payments)
           .set({ 
             status: 'failed',
-            updatedAt: new Date()
+            failureReason: result.status
           })
-          .where(eq(payments.transactionId, result.orderId));
+          .where(eq(payments.orderId, result.orderId));
       } catch (dbError) {
         console.error('[ORANGE_MONEY] Database update error:', dbError);
       }

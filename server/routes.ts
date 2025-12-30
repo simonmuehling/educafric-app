@@ -96,6 +96,7 @@ import currencyRoutes from "./routes/currency";
 import stripeRoutes from "./routes/stripe";
 import manualPaymentRoutes from "./routes/manual-payments";
 import mtnPaymentRoutes from "./routes/mtnPayments";
+import orangeMoneyRoutes from "./routes/orangeMoneyPayments";
 import uploadsRoutes from "./routes/uploads";
 // bulletinRoutes removed - using unified comprehensive bulletin system
 import bulletinVerificationRoutes from "./routes/bulletinVerificationRoutes";
@@ -12751,6 +12752,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/stripe', stripeRoutes);
   app.use('/api/manual-payments', manualPaymentRoutes);
   app.use('/api/mtn-payments', mtnPaymentRoutes);
+  app.use('/api/payments/orange-money', orangeMoneyRoutes);
   
   // School canteen management (menus, reservations, balances)
   app.use('/api/canteen', canteenRoutes);
