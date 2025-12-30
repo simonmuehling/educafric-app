@@ -3691,20 +3691,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Only update if there's data to update
       let updatedTeacher = existingTeacher;
       if (Object.keys(updateData).length > 0) {
+        // For multi-role users, just update by ID (we already verified affiliation above)
         const [result] = await db.update(users)
           .set(updateData)
-          .where(and(
-            eq(users.id, teacherId),
-            eq(users.role, 'Teacher'),
-            eq(users.schoolId, userSchoolId)
-          ))
+          .where(eq(users.id, teacherId))
           .returning();
-        updatedTeacher = result;
+        updatedTeacher = result || existingTeacher;
       }
       
       // Update teacher-class-subject assignments via teacherSubjectAssignments table
-      if (Array.isArray(assignedClasses) && assignedClasses.length > 0 && Array.isArray(teachingSubjects)) {
-        console.log('[UPDATE_TEACHER_DIRECTOR] 📚 Updating assignments for classes:', assignedClasses, 'subjects:', teachingSubjects);
+      // Handle case where classes are assigned but no subjects specified - preserve existing subjects
+      let effectiveSubjects = teachingSubjects;
+      if (Array.isArray(assignedClasses) && assignedClasses.length > 0 && (!Array.isArray(teachingSubjects) || teachingSubjects.length === 0)) {
+        // Get existing subjects for this teacher
+        const existingAssignments = await db.select({
+          subjectName: subjects.nameFr,
+          subjectNameEn: subjects.nameEn
+        })
+        .from(teacherSubjectAssignments)
+        .innerJoin(subjects, eq(subjects.id, teacherSubjectAssignments.subjectId))
+        .where(and(
+          eq(teacherSubjectAssignments.teacherId, teacherId),
+          eq(teacherSubjectAssignments.schoolId, userSchoolId),
+          eq(teacherSubjectAssignments.active, true)
+        ));
+        
+        effectiveSubjects = [...new Set(existingAssignments.map(a => a.subjectName || a.subjectNameEn).filter(Boolean))];
+        console.log('[UPDATE_TEACHER_DIRECTOR] 📚 Preserving existing subjects:', effectiveSubjects);
+      }
+      
+      if (Array.isArray(assignedClasses) && assignedClasses.length > 0 && Array.isArray(effectiveSubjects) && effectiveSubjects.length > 0) {
+        console.log('[UPDATE_TEACHER_DIRECTOR] 📚 Updating assignments for classes:', assignedClasses, 'subjects:', effectiveSubjects);
         
         // First, deactivate all existing assignments for this teacher
         await db.update(teacherSubjectAssignments)
@@ -3726,7 +3743,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .limit(1);
           
           if (classData) {
-            for (const subjectName of teachingSubjects) {
+            for (const subjectName of effectiveSubjects) {
               // Find the subject ID
               const [subjectData] = await db.select()
                 .from(subjects)
