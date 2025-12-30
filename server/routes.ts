@@ -3657,7 +3657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             eq(roleAffiliations.userId, teacherId),
             eq(roleAffiliations.role, 'Teacher'),
             eq(roleAffiliations.schoolId, userSchoolId),
-            eq(roleAffiliations.isActive, true)
+            eq(roleAffiliations.status, 'active')
           ))
           .limit(1);
         teacherBelongsToSchool = !!teacherAffiliation;
