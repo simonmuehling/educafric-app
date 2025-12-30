@@ -56,58 +56,42 @@ import { fastModuleLoader } from "@/utils/fastModuleLoader";
 // HOOK ERROR PREVENTION - Prevents "Rendered fewer hooks than expected" forever
 import { setupGlobalHookErrorPrevention, HookErrorBoundary } from "@/utils/hooksErrorPrevention";
 
-// Light components - Regular imports OK
-import Subscribe from "@/pages/Subscribe";
-import Demo from "@/pages/Demo";
-import GeolocationPricing from "@/pages/GeolocationPricing";
-import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
-import SandboxLogin from "@/pages/SandboxLogin";
-import SandboxDemo from "@/pages/SandboxDemo";
-import CurrencyDemo from "@/pages/CurrencyDemo";
-import Schools from "@/pages/Schools";
-import TermsOfService from "@/pages/TermsOfService";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import BulkManagement from "@/pages/BulkManagement";
-import ProfileFeatures from "@/pages/ProfileFeatures";
-import ModernFormDemo from "@/pages/ModernFormDemo";
-import UnauthorizedPage from "@/pages/UnauthorizedPage";
-import Verify from "@/pages/Verify";
-import BulletinVerification from "@/pages/BulletinVerification";
-import About from "@/pages/About";
-import Services from "@/pages/Services";
-// PWA Install Prompt déjà importé dans les composants PWA
-import DebugInspector from "@/pages/DebugInspector";
-import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
-import EducationalConnections from "@/pages/EducationalConnections";
-import { WebSocketTest } from "@/components/testing/WebSocketTest";
-import SubscriptionManagement from "@/pages/SubscriptionManagement";
-import SignatureTest from "@/pages/SignatureTest";
-import TestBulletinPDF from "@/pages/TestBulletinPDF";
-import FCMTestPage from "@/pages/FCMTestPage";
-import MTNPaymentTest from "@/components/payments/MTNPaymentTest";
-import MTNTestPage from "@/pages/MTNTestPage";
-import WhatsAppTest from "@/pages/WhatsAppTest";
-import WhatsAppConfig from "@/pages/WhatsAppConfig";
+// Lazy loaded pages - Reduces initial bundle size significantly
+const Subscribe = lazy(() => import("@/pages/Subscribe"));
+const Demo = lazy(() => import("@/pages/Demo"));
+const GeolocationPricing = lazy(() => import("@/pages/GeolocationPricing"));
+const SubscriptionSuccess = lazy(() => import("@/pages/SubscriptionSuccess"));
+const SandboxLogin = lazy(() => import("@/pages/SandboxLogin"));
+const SandboxDemo = lazy(() => import("@/pages/SandboxDemo"));
+const CurrencyDemo = lazy(() => import("@/pages/CurrencyDemo"));
+const Schools = lazy(() => import("@/pages/Schools"));
+const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const BulkManagement = lazy(() => import("@/pages/BulkManagement"));
+const ProfileFeatures = lazy(() => import("@/pages/ProfileFeatures"));
+const ModernFormDemo = lazy(() => import("@/pages/ModernFormDemo"));
+const UnauthorizedPage = lazy(() => import("@/pages/UnauthorizedPage"));
+const Verify = lazy(() => import("@/pages/Verify"));
+const BulletinVerification = lazy(() => import("@/pages/BulletinVerification"));
+const About = lazy(() => import("@/pages/About"));
+const Services = lazy(() => import("@/pages/Services"));
+const DebugInspector = lazy(() => import("@/pages/DebugInspector"));
+const PWAAnalyticsDemo = lazy(() => import("@/pages/PWAAnalyticsDemo"));
+const EducationalConnections = lazy(() => import("@/pages/EducationalConnections"));
+const WebSocketTest = lazy(() => import("@/components/testing/WebSocketTest").then(m => ({ default: m.WebSocketTest })));
+const SubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement"));
+const SignatureTest = lazy(() => import("@/pages/SignatureTest"));
+const TestBulletinPDF = lazy(() => import("@/pages/TestBulletinPDF"));
+const FCMTestPage = lazy(() => import("@/pages/FCMTestPage"));
+const MTNPaymentTest = lazy(() => import("@/components/payments/MTNPaymentTest"));
+const MTNTestPage = lazy(() => import("@/pages/MTNTestPage"));
+const WhatsAppTest = lazy(() => import("@/pages/WhatsAppTest"));
+const WhatsAppConfig = lazy(() => import("@/pages/WhatsAppConfig"));
 
-// Deferred module preloader - Only load when user is about to need dashboard access
+// DISABLED: Automatic preloading causes 2MB+ bundle - now interaction-driven only
 const useGlobalModulePreloader = () => {
-  useEffect(() => {
-    const startDeferredPreload = async () => {
-      // Defer preloading until after home page is fully loaded (3 seconds delay)
-      setTimeout(async () => {
-        if (import.meta.env.DEV) {
-          console.log('[GLOBAL_PRELOADER] 🚀 Starting deferred module preloading...');
-        }
-        await fastModuleLoader.preloadCriticalModules();
-        if (import.meta.env.DEV) {
-          console.log('[GLOBAL_PRELOADER] ✅ Critical modules ready for instant access');
-        }
-      }, 3000);
-    };
-    
-    // Only start preloading after initial page render is complete
-    startDeferredPreload();
-  }, []);
+  // Preloading disabled to reduce initial bundle size
+  // Modules load on-demand when user navigates
 };
 const BulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
 const BulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
@@ -131,12 +115,13 @@ import { WhatsAppChatLauncher } from "@/components/support/WhatsAppChatLauncher"
 // WebInspector disabled to prevent fetch override interference with PWA analytics
 // import WebInspector from "@/components/developer/WebInspector";
 import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
-import RoleBasedDashboard from "@/components/RoleBasedDashboard";
+// RoleBasedDashboard lazy loaded - largest component
+const RoleBasedDashboard = lazy(() => import("@/components/RoleBasedDashboard"));
 
-// Demo components - Non critiques, lazy si nécessaire
-import MicroInteractionsDemo from "@/components/demo/MicroInteractionsDemo";
-import BilingualSandboxDashboard from "@/components/sandbox/BilingualSandboxDashboard";
-import UpdatedSandboxDashboard from "@/components/sandbox/UpdatedSandboxDashboard";
+// Demo components - Lazy loaded for bundle optimization
+const MicroInteractionsDemo = lazy(() => import("@/components/demo/MicroInteractionsDemo"));
+const BilingualSandboxDashboard = lazy(() => import("@/components/sandbox/BilingualSandboxDashboard"));
+const UpdatedSandboxDashboard = lazy(() => import("@/components/sandbox/UpdatedSandboxDashboard"));
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -237,9 +222,22 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Page loading fallback for Suspense
+const PageLoading = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="flex flex-col items-center space-y-4">
+      <BookOpen className="w-8 h-8 text-primary animate-pulse" />
+      <div className="w-48 bg-gray-200 rounded-lg h-2">
+        <div className="bg-primary h-2 rounded-lg animate-pulse" style={{ width: '60%' }}></div>
+      </div>
+    </div>
+  </div>
+);
+
 // Router Component
 function Router() {
   return (
+    <Suspense fallback={<PageLoading />}>
     <Switch>
       {/* Public Routes */}
       <Route path="/" component={Home} />
@@ -506,6 +504,7 @@ function Router() {
       <Route path="/parent-connect" component={lazy(() => import('./pages/ParentConnect'))} />
       <Route component={NotFound} />
     </Switch>
+    </Suspense>
   );
 }
 
