@@ -1,5 +1,5 @@
 /**
- * TEACHER INDEPENDENT ACTIVATION PAYMENTS - STRIPE & MTN MOBILE MONEY
+ * TEACHER INDEPENDENT ACTIVATION PAYMENTS - STRIPE, MTN & ORANGE MONEY
  * Routes de paiement pour l'activation du mode répétiteur indépendant (25,000 CFA/an)
  */
 
@@ -7,6 +7,7 @@ import { Router } from 'express';
 import Stripe from 'stripe';
 import { requireAuth } from '../../middleware/auth';
 import { mtnService, ValidationError } from '../../services/mtnMobileMoneyService';
+import { orangeMoneyService } from '../../services/orangeMoneyService';
 import { db } from '../../db';
 import { teacherIndependentActivations, users } from '../../../shared/schema';
 import { eq, and, gte } from 'drizzle-orm';
@@ -30,6 +31,10 @@ const ACTIVATION_PRICE = 25000; // 25,000 XAF
 // Validation schemas
 const createMtnPaymentSchema = z.object({
   phoneNumber: z.string()
+});
+
+const createOrangePaymentSchema = z.object({
+  phoneNumber: z.string().min(9, 'Numéro de téléphone invalide')
 });
 
 /**
@@ -211,6 +216,184 @@ router.post('/create-mtn-payment',
         success: false,
         error: error.message || 'Erreur lors de la création du paiement MTN'
       });
+    }
+  }
+);
+
+/**
+ * POST /api/teacher-independent-payments/create-orange-payment
+ * Create an Orange Money payment for teacher independent activation
+ */
+router.post('/create-orange-payment',
+  requireAuth,
+  async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      if (user.role !== 'Teacher') {
+        return res.status(403).json({
+          success: false,
+          error: 'Seuls les enseignants peuvent acheter cette activation'
+        });
+      }
+
+      const existingActivation = await db
+        .select()
+        .from(teacherIndependentActivations)
+        .where(
+          and(
+            eq(teacherIndependentActivations.teacherId, user.id),
+            eq(teacherIndependentActivations.status, 'active'),
+            gte(teacherIndependentActivations.endDate, new Date())
+          )
+        )
+        .limit(1);
+
+      if (existingActivation.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Vous avez déjà une activation active'
+        });
+      }
+
+      const validated = createOrangePaymentSchema.parse(req.body);
+      const orderId = `TEACHER_IND_${user.id}_${Date.now()}`;
+
+      console.log(`[INDEPENDENT_PAYMENT] 🍊 Creating Orange Money payment for teacher ${user.id}:`, {
+        amount: ACTIVATION_PRICE,
+        phoneNumber: validated.phoneNumber
+      });
+
+      const paymentData = await orangeMoneyService.initiatePayment({
+        phoneNumber: validated.phoneNumber,
+        amount: ACTIVATION_PRICE,
+        description: `Educafric - Activation Répétiteur Indépendant (25,000 CFA/an)`,
+        orderId
+      });
+
+      if (paymentData.success) {
+        console.log(`[INDEPENDENT_PAYMENT] ✅ Orange Money payment created:`, {
+          orderId: paymentData.orderId,
+          transactionId: paymentData.transactionId
+        });
+
+        res.json({
+          success: true,
+          orderId: paymentData.orderId,
+          transactionId: paymentData.transactionId,
+          payToken: paymentData.payToken,
+          instructions: 'Validez le paiement sur votre téléphone Orange Money (#150*50#)',
+          amount: ACTIVATION_PRICE,
+          currency: 'XAF'
+        });
+      } else {
+        throw new Error(paymentData.error || 'Erreur lors de la création du paiement Orange Money');
+      }
+    } catch (error: any) {
+      console.error('[INDEPENDENT_PAYMENT] ❌ Orange Money payment creation error:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          error: 'Données invalides',
+          details: error.errors
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur lors de la création du paiement Orange Money'
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/teacher-independent-payments/orange-webhook
+ * Orange Money webhook to handle payment confirmations
+ */
+router.post('/orange-webhook',
+  async (req, res) => {
+    try {
+      console.log('[INDEPENDENT_PAYMENT] 🍊 Orange webhook received:', req.body);
+
+      const result = await orangeMoneyService.processWebhook(req.body);
+
+      if (!result.success || !result.orderId) {
+        console.log(`[INDEPENDENT_PAYMENT] ℹ️ Orange webhook - not successful: ${result.status}`);
+        return res.json({ received: true });
+      }
+
+      const parts = result.orderId.split('_');
+      if (parts[0] !== 'TEACHER' || parts[1] !== 'IND') {
+        console.log(`[INDEPENDENT_PAYMENT] ℹ️ Orange webhook - not a teacher activation order`);
+        return res.json({ received: true });
+      }
+
+      const teacherId = parseInt(parts[2]);
+      const amountReceived = result.amount || ACTIVATION_PRICE;
+
+      console.log(`[INDEPENDENT_PAYMENT] 💰 Orange Payment successful:`, {
+        orderId: result.orderId,
+        teacherId,
+        amount: amountReceived
+      });
+
+      const existingActivation = await db
+        .select()
+        .from(teacherIndependentActivations)
+        .where(
+          and(
+            eq(teacherIndependentActivations.teacherId, teacherId),
+            eq(teacherIndependentActivations.notes, `Paiement Orange Money confirmé - Order: ${result.orderId}`)
+          )
+        )
+        .limit(1);
+
+      if (existingActivation.length > 0) {
+        console.log(`[INDEPENDENT_PAYMENT] ℹ️ Payment already processed (Order: ${result.orderId})`);
+        return res.json({ success: true, alreadyProcessed: true });
+      }
+
+      const [teacher] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, teacherId))
+        .limit(1);
+
+      if (!teacher || teacher.role !== 'Teacher') {
+        console.error(`[INDEPENDENT_PAYMENT] ❌ Invalid teacher: ${teacherId}`);
+        return res.status(400).json({ error: 'Invalid teacher' });
+      }
+
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setFullYear(endDate.getFullYear() + 1);
+
+      await db.insert(teacherIndependentActivations).values({
+        teacherId,
+        durationType: 'yearly',
+        startDate,
+        endDate,
+        status: 'active',
+        activatedBy: 'self_purchase',
+        paymentMethod: 'orange_money',
+        amountPaid: amountReceived,
+        notes: `Paiement Orange Money confirmé - Order: ${result.orderId}`
+      });
+
+      if (teacher.workMode === 'school') {
+        await db
+          .update(users)
+          .set({ workMode: 'hybrid' })
+          .where(eq(users.id, teacherId));
+      }
+
+      console.log(`[INDEPENDENT_PAYMENT] ✅ Activation created for teacher ${teacherId} via Orange Money`);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('[INDEPENDENT_PAYMENT] ❌ Orange webhook error:', error);
+      res.status(500).json({ error: 'Webhook processing failed' });
     }
   }
 );
