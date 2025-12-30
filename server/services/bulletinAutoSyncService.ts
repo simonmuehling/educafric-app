@@ -1,6 +1,7 @@
 import { db } from '../db';
-import { bulletinComprehensive, teacherGradeSubmissions, students, classes, subjects, users } from '../../shared/schema';
+import { bulletinComprehensive, teacherGradeSubmissions, classes, subjects, users } from '../../shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
+import { enrollments } from '../../shared/schemas/classEnrollmentSchema';
 
 interface SyncResult {
   bulletinId: number;
@@ -112,11 +113,11 @@ export class BulletinAutoSyncService {
         console.log('[BULLETIN_AUTO_SYNC] 🆕 Creating new bulletin for student:', studentId);
         
         const [student] = await db.select({
-          firstName: students.firstName,
-          lastName: students.lastName
+          firstName: users.firstName,
+          lastName: users.lastName
         })
-        .from(students)
-        .where(eq(students.id, studentId))
+        .from(users)
+        .where(eq(users.id, studentId))
         .limit(1);
 
         const [classInfo] = await db.select({
