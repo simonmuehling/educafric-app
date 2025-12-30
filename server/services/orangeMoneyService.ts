@@ -1,14 +1,15 @@
 /**
- * SERVICE PAYNOTE ORANGE MONEY - API OFFICIELLE
+ * SERVICE ORANGE MONEY CAMEROUN - API USSD DIRECTE
  * 
- * Fonctionnalités:
- * - API PayNote pour Orange Money Cameroun
- * - Authentification OAuth2 avec client credentials
- * - Support des paiements Cashin (réception)
- * - Webhook pour notifications de paiement
- * - Vérification de statut des transactions
+ * Credentials requis:
+ * - ORANGE_MONEY_API_URL: URL API Production
+ * - ORANGE_MONEY_USERNAME: Username API
+ * - ORANGE_MONEY_PASSWORD: Password API
+ * - ORANGE_MONEY_CHANNEL_MSISDN: Numéro du marchand
+ * - ORANGE_MONEY_PIN: PIN marchand
+ * - ORANGE_MONEY_X_AUTH_TOKEN: Token d'authentification
  * 
- * Documentation: https://www.paynote.africa/documentation-paynote.html
+ * Documentation: https://developer.orange.com/apis/om-webpay
  */
 
 import axios, { AxiosResponse } from 'axios';
@@ -29,90 +30,51 @@ export class ValidationError extends Error {
   }
 }
 
-interface PayNoteAccessToken {
+interface OrangeMoneyConfig {
+  apiUrl: string;
+  username: string;
+  password: string;
+  channelUserMsisdn: string;
+  pin: string;
+  xAuthToken: string;
+}
+
+interface AccessToken {
   access_token: string;
   token_type: string;
   expires_in: number;
   created_at: number;
 }
 
-interface PayNotePaymentRequest {
-  amount: string;
-  subscriberMsisdn: string;
-  notifUrl: string;
-  description: string;
-  order_id: string;
-  customerkey: string;
-  customersecret: string;
-}
-
-interface PayNotePaymentResponse {
-  status: string;
-  message: string;
-  data?: {
-    payToken?: string;
-    payment_url?: string;
-    order_id: string;
-    transaction_id?: string;
-  };
-  error?: string;
-}
-
-interface PayNoteStatusResponse {
-  status: string;
-  message: string;
-  data?: {
-    transaction_id: string;
-    order_id: string;
-    amount: string;
-    subscriberMsisdn: string;
-    payment_status: 'PENDING' | 'SUCCESSFULL' | 'FAILED' | 'CANCELLED';
-    payment_date?: string;
-  };
-}
-
-interface PayNoteEnvironmentConfig {
-  CLIENT_ID: string;
-  CLIENT_SECRET: string;
-  CUSTOMER_KEY: string;
-  CUSTOMER_SECRET: string;
-  TOKEN_URL: string;
-  PAYMENT_URL: string;
-  STATUS_URL: string;
-}
-
 export class OrangeMoneyService {
   private static instance: OrangeMoneyService;
-  private token: PayNoteAccessToken | null = null;
-  private readonly environment: string;
-  private readonly config: PayNoteEnvironmentConfig;
+  private token: AccessToken | null = null;
+  private readonly config: OrangeMoneyConfig;
   private readonly callbackBase: string;
   private isEnabled: boolean = false;
 
   private constructor() {
-    this.environment = process.env.ORANGE_MONEY_ENV || 'sandbox';
-    this.callbackBase = process.env.BASE_URL || 'https://educafric.com';
-    
-    const clientId = process.env.ORANGE_MONEY_CLIENT_ID || '';
-    const clientSecret = process.env.ORANGE_MONEY_CLIENT_SECRET || '';
-    const customerKey = process.env.ORANGE_MONEY_CUSTOMER_KEY || '';
-    const customerSecret = process.env.ORANGE_MONEY_CUSTOMER_SECRET || '';
-    
-    this.isEnabled = !!(clientId && clientSecret && customerKey && customerSecret);
+    this.callbackBase = process.env.BASE_URL || 'https://educafric.replit.app';
     
     this.config = {
-      CLIENT_ID: clientId,
-      CLIENT_SECRET: clientSecret,
-      CUSTOMER_KEY: customerKey,
-      CUSTOMER_SECRET: customerSecret,
-      TOKEN_URL: 'https://omapi-token.ynote.africa/oauth2/token',
-      PAYMENT_URL: 'https://api-s1.orange.cm/omcoreapis/1.0.2/mp/push/ussd',
-      STATUS_URL: 'https://api-s1.orange.cm/omcoreapis/1.0.2/mp/paymentstatus'
+      apiUrl: process.env.ORANGE_MONEY_API_URL || 'https://api-s1.orange.cm/omcoreapis/1.0.2',
+      username: process.env.ORANGE_MONEY_USERNAME || '',
+      password: process.env.ORANGE_MONEY_PASSWORD || '',
+      channelUserMsisdn: process.env.ORANGE_MONEY_CHANNEL_MSISDN || '',
+      pin: process.env.ORANGE_MONEY_PIN || '',
+      xAuthToken: process.env.ORANGE_MONEY_X_AUTH_TOKEN || ''
     };
     
+    this.isEnabled = !!(
+      this.config.username && 
+      this.config.password && 
+      this.config.xAuthToken &&
+      this.config.channelUserMsisdn
+    );
+    
     if (this.isEnabled) {
-      console.log('[ORANGE_MONEY] ✅ Service initialized');
-      console.log(`[ORANGE_MONEY] Environment: ${this.environment}`);
+      console.log('[ORANGE_MONEY] ✅ Service initialized with direct API');
+      console.log(`[ORANGE_MONEY] API URL: ${this.config.apiUrl}`);
     } else {
       console.log('[ORANGE_MONEY] ⚠️ Service disabled - missing credentials');
     }
@@ -142,11 +104,11 @@ export class OrangeMoneyService {
       console.log('[ORANGE_MONEY] Requesting new access token...');
       
       const credentials = Buffer.from(
-        `${this.config.CLIENT_ID}:${this.config.CLIENT_SECRET}`
+        `${this.config.username}:${this.config.password}`
       ).toString('base64');
 
       const response: AxiosResponse = await axios.post(
-        this.config.TOKEN_URL,
+        'https://api.orange.com/oauth/v3/token',
         'grant_type=client_credentials',
         {
           headers: {
@@ -178,6 +140,32 @@ export class OrangeMoneyService {
     return Date.now() < expirationTime;
   }
 
+  private async getPayToken(accessToken: string): Promise<string> {
+    try {
+      console.log('[ORANGE_MONEY] Requesting payToken...');
+      
+      const response: AxiosResponse = await axios.post(
+        `${this.config.apiUrl}/mp/init`,
+        { channelUserMsisdn: this.config.channelUserMsisdn },
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'X-AUTH-TOKEN': this.config.xAuthToken,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        }
+      );
+
+      const payToken = response.data.data?.payToken || response.data.payToken;
+      console.log('[ORANGE_MONEY] ✅ PayToken obtained');
+      return payToken;
+    } catch (error: any) {
+      console.error('[ORANGE_MONEY] ❌ PayToken request failed:', error.response?.data || error.message);
+      throw new Error('Échec de l\'obtention du payToken');
+    }
+  }
+
   public validatePhoneNumber(phone: string): { valid: boolean; formatted: string; error?: string } {
     try {
       const cleanPhone = phone.replace(/\s+/g, '').replace(/-/g, '');
@@ -197,8 +185,7 @@ export class OrangeMoneyService {
         };
       }
 
-      const formatted = `237${nationalNumber}`;
-      return { valid: true, formatted };
+      return { valid: true, formatted: nationalNumber };
     } catch (error) {
       return { valid: false, formatted: '', error: 'Format de numéro invalide' };
     }
@@ -207,7 +194,7 @@ export class OrangeMoneyService {
   public generateOrderId(): string {
     const timestamp = Date.now().toString(36);
     const random = crypto.randomBytes(4).toString('hex');
-    return `OM-${timestamp}-${random}`.toUpperCase();
+    return `EDU-OM-${timestamp}-${random}`.toUpperCase();
   }
 
   public async initiatePayment(params: {
@@ -251,23 +238,28 @@ export class OrangeMoneyService {
 
     try {
       const accessToken = await this.getAccessToken();
+      const payToken = await this.getPayToken(accessToken);
 
       console.log(`[ORANGE_MONEY] Initiating payment: ${orderId} - ${params.amount} FCFA`);
 
+      const paymentPayload = {
+        subscriberMsisdn: validation.formatted,
+        channelUserMsisdn: this.config.channelUserMsisdn,
+        amount: params.amount.toString(),
+        orderId: orderId,
+        payToken: payToken,
+        pin: this.config.pin,
+        description: params.description || 'Paiement Educafric',
+        notifUrl: notifUrl
+      };
+
       const response: AxiosResponse = await axios.post(
-        this.config.PAYMENT_URL,
-        {
-          subscriberMsisdn: validation.formatted,
-          amount: params.amount.toString(),
-          description: params.description || 'Paiement Educafric',
-          order_id: orderId,
-          notifUrl: notifUrl,
-          customerkey: this.config.CUSTOMER_KEY,
-          customersecret: this.config.CUSTOMER_SECRET
-        },
+        `${this.config.apiUrl}/mp/pay`,
+        paymentPayload,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
+            'X-AUTH-TOKEN': this.config.xAuthToken,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           },
@@ -277,20 +269,23 @@ export class OrangeMoneyService {
 
       console.log('[ORANGE_MONEY] Payment response:', JSON.stringify(response.data));
 
-      if (response.data.status === 'PENDING' || response.data.status === 'INITIATED') {
+      const status = response.data.data?.status || response.data.status;
+      const transactionId = response.data.data?.txnId || response.data.txnId;
+
+      if (status === 'PENDING' || status === 'INITIATED' || status === 'SUCCESS') {
         return {
           success: true,
           orderId: orderId,
-          transactionId: response.data.data?.transaction_id,
-          payToken: response.data.data?.payToken,
-          message: 'Paiement initié. Validez sur votre téléphone Orange Money.'
+          transactionId: transactionId,
+          payToken: payToken,
+          message: 'Paiement initié. Validez sur votre téléphone (#150*50#).'
         };
       } else {
         return {
           success: false,
           orderId: orderId,
           message: response.data.message || 'Échec de l\'initiation du paiement',
-          error: response.data.error || 'PAYMENT_FAILED'
+          error: response.data.error || status || 'PAYMENT_FAILED'
         };
       }
     } catch (error: any) {
@@ -300,13 +295,13 @@ export class OrangeMoneyService {
         success: false,
         orderId: orderId,
         message: 'Erreur lors de l\'initiation du paiement Orange Money',
-        error: error.response?.data?.error || error.message
+        error: error.response?.data?.message || error.message
       };
     }
   }
 
-  public async checkPaymentStatus(orderId: string): Promise<{
-    status: 'PENDING' | 'SUCCESSFULL' | 'FAILED' | 'CANCELLED' | 'UNKNOWN';
+  public async checkPaymentStatus(payTokenOrOrderId: string): Promise<{
+    status: 'PENDING' | 'SUCCESSFULL' | 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'UNKNOWN';
     message: string;
     transactionId?: string;
     amount?: string;
@@ -319,29 +314,27 @@ export class OrangeMoneyService {
     try {
       const accessToken = await this.getAccessToken();
 
-      const response: AxiosResponse<PayNoteStatusResponse> = await axios.get(
-        `${this.config.STATUS_URL}/${orderId}`,
+      const response: AxiosResponse = await axios.get(
+        `${this.config.apiUrl}/mp/paymentstatus/${payTokenOrOrderId}`,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
+            'X-AUTH-TOKEN': this.config.xAuthToken,
             'Content-Type': 'application/json'
-          },
-          params: {
-            customerkey: this.config.CUSTOMER_KEY,
-            customersecret: this.config.CUSTOMER_SECRET
           },
           timeout: 30000
         }
       );
 
-      const data = response.data.data;
+      const data = response.data.data || response.data;
+      const status = data.status || 'UNKNOWN';
       
       return {
-        status: data?.payment_status || 'UNKNOWN',
+        status: status,
         message: response.data.message || 'Statut récupéré',
-        transactionId: data?.transaction_id,
-        amount: data?.amount,
-        paymentDate: data?.payment_date
+        transactionId: data.txnId || data.transaction_id,
+        amount: data.amount,
+        paymentDate: data.paymentDate || data.payment_date
       };
     } catch (error: any) {
       console.error('[ORANGE_MONEY] Status check error:', error.message);
@@ -350,11 +343,11 @@ export class OrangeMoneyService {
   }
 
   public verifyWebhookSignature(payload: any, signature: string): boolean {
-    if (!this.isEnabled) return false;
+    if (!this.isEnabled || !signature) return false;
     
     try {
       const expectedSignature = crypto
-        .createHmac('sha256', this.config.CUSTOMER_SECRET)
+        .createHmac('sha256', this.config.xAuthToken)
         .update(JSON.stringify(payload))
         .digest('hex');
       
@@ -377,10 +370,10 @@ export class OrangeMoneyService {
   }> {
     console.log('[ORANGE_MONEY] Processing webhook:', JSON.stringify(payload));
 
-    const orderId = payload.order_id || payload.orderId || payload.data?.order_id;
-    const status = payload.status || payload.payment_status || payload.data?.status;
+    const orderId = payload.orderId || payload.order_id || payload.data?.orderId;
+    const status = payload.status || payload.data?.status;
     const amount = parseInt(payload.amount || payload.data?.amount || '0', 10);
-    const transactionId = payload.transaction_id || payload.data?.transaction_id;
+    const transactionId = payload.txnId || payload.transaction_id || payload.data?.txnId;
 
     return {
       success: status === 'SUCCESSFULL' || status === 'SUCCESS',
