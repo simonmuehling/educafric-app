@@ -46,9 +46,9 @@ export class BulletinAutoSyncService {
       const approvedGrades = await db.select({
         id: teacherGradeSubmissions.id,
         subjectId: teacherGradeSubmissions.subjectId,
-        grade: teacherGradeSubmissions.grade,
+        termAverage: teacherGradeSubmissions.termAverage,
         coefficient: teacherGradeSubmissions.coefficient,
-        appreciation: teacherGradeSubmissions.teacherAppreciation,
+        appreciation: teacherGradeSubmissions.subjectComments,
         teacherId: teacherGradeSubmissions.teacherId,
         subjectName: subjects.nameFr,
         subjectNameEn: subjects.nameEn,
@@ -117,7 +117,11 @@ export class BulletinAutoSyncService {
 
       console.log('[BULLETIN_AUTO_SYNC] 👤 Student:', studentInfo.fullName, '| 👨‍🏫 Teachers:', teachers.length);
 
-      const [existingBulletin] = await db.select()
+      const [existingBulletin] = await db.select({
+        id: bulletinComprehensive.id,
+        status: bulletinComprehensive.status,
+        generalAverage: bulletinComprehensive.generalAverage
+      })
         .from(bulletinComprehensive)
         .where(and(
           eq(bulletinComprehensive.studentId, studentId),
@@ -131,7 +135,7 @@ export class BulletinAutoSyncService {
       const subjectsData = approvedGrades.map(g => ({
         subjectId: g.subjectId,
         subjectName: g.subjectName || g.subjectNameEn || 'Unknown',
-        grade: g.grade,
+        grade: g.termAverage ? parseFloat(String(g.termAverage)) : 0,
         coefficient: g.coefficient || 1,
         appreciation: g.appreciation || '',
         teacherName: g.teacherFirstName && g.teacherLastName 
@@ -156,9 +160,8 @@ export class BulletinAutoSyncService {
         
         await db.update(bulletinComprehensive)
           .set({
-            subjectsData: JSON.stringify(subjectsData),
-            generalAverage: generalAverage,
-            totalSubjects: subjectsData.length,
+            generalAverage: String(generalAverage),
+            numberOfAverages: subjectsData.length,
             updatedAt: new Date(),
             status: existingBulletin.status === 'draft' ? 'pending_review' : existingBulletin.status
           })
@@ -180,28 +183,18 @@ export class BulletinAutoSyncService {
       } else {
         console.log('[BULLETIN_AUTO_SYNC] 🆕 Creating new bulletin for student:', studentId);
 
-        const [newBulletin] = await db.insert(bulletinComprehensive)
-          .values({
-            studentId,
-            classId,
-            schoolId,
-            term,
-            academicYear,
-            studentName: studentInfo.fullName,
-            className: studentInfo.className,
-            subjectsData: JSON.stringify(subjectsData),
-            generalAverage,
-            totalSubjects: subjectsData.length,
-            status: 'pending_review',
-            createdAt: new Date(),
-            updatedAt: new Date()
-          })
-          .returning();
+        const insertResult = await db.execute(sql`
+          INSERT INTO bulletin_comprehensive 
+          (student_id, class_id, school_id, term, academic_year, general_average, number_of_averages, status, data_source, created_at, updated_at)
+          VALUES (${studentId}, ${classId}, ${schoolId}, ${term}, ${academicYear}, ${generalAverage}, ${subjectsData.length}, 'pending_review', 'generated', NOW(), NOW())
+          RETURNING id
+        `);
+        const newBulletinId = insertResult.rows?.[0]?.id || insertResult[0]?.id;
 
-        console.log('[BULLETIN_AUTO_SYNC] ✅ New bulletin created:', newBulletin.id);
+        console.log('[BULLETIN_AUTO_SYNC] ✅ New bulletin created:', newBulletinId);
 
         return {
-          bulletinId: newBulletin.id,
+          bulletinId: newBulletinId,
           studentId,
           updated: false,
           gradesAdded: subjectsData.length,
