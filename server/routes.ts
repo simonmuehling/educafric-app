@@ -4265,53 +4265,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DIRECTOR_GRADES_API] 📊 Fetching grades from DATABASE for school:', userSchoolId);
       
-      // Get real grades from grades table
       const { db } = await import('./db');
-      const { grades: gradesTable, users, teacherGradeSubmissions, subjects } = await import('@shared/schema');
+      const { teacherGradeSubmissions, subjects, users } = await import('@shared/schema');
       const { eq, and } = await import('drizzle-orm');
       
-      // Add filters if provided for grades table
-      const conditions = [eq(gradesTable.schoolId, userSchoolId)];
-      
-      if (classId) {
-        conditions.push(eq(gradesTable.classId, parseInt(classId as string, 10)));
-      }
-      
-      if (term) {
-        conditions.push(eq(gradesTable.term, term as string));
-      }
-      
-      const schoolGrades = await db.select({
-        id: gradesTable.id,
-        studentId: gradesTable.studentId,
-        subjectId: gradesTable.subjectId,
-        grade: gradesTable.grade,
-        term: gradesTable.term,
-        academicYear: gradesTable.academicYear,
-        examType: gradesTable.examType,
-        comments: gradesTable.comments,
-        coefficient: gradesTable.coefficient,
-        subjectName: subjects.nameFr,
-        subjectNameEn: subjects.nameEn
-      })
-        .from(gradesTable)
-        .leftJoin(subjects, eq(subjects.id, gradesTable.subjectId))
-        .where(and(...conditions));
-      
-      const gradesFromTable = schoolGrades.map(grade => ({
-        id: grade.id,
-        studentId: grade.studentId,
-        subjectId: grade.subjectId,
-        grade: grade.grade,
-        term: grade.term,
-        academicYear: grade.academicYear,
-        examType: grade.examType,
-        comments: grade.comments,
-        coefficient: grade.coefficient || 1,
-        subjectName: grade.subjectName,
-        subjectNameEn: grade.subjectNameEn,
-        source: 'grades_table'
-      }));
+      // Note: grades table has schema mismatch - prioritize teacherGradeSubmissions
+      const gradesFromTable: any[] = [];
       
       // Also fetch approved grades from teacher submissions
       const submissionConditions = [
@@ -4327,6 +4286,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         submissionConditions.push(eq(teacherGradeSubmissions.term, term as string));
       }
       
+      // Alias for teacher join
+      const teacherAlias = users;
+      
       const approvedSubmissions = await db.select({
         id: teacherGradeSubmissions.id,
         studentId: teacherGradeSubmissions.studentId,
@@ -4338,10 +4300,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comments: teacherGradeSubmissions.subjectComments,
         subjectName: subjects.nameFr,
         subjectNameEn: subjects.nameEn,
-        teacherId: teacherGradeSubmissions.teacherId
+        teacherId: teacherGradeSubmissions.teacherId,
+        teacherFirstName: users.firstName,
+        teacherLastName: users.lastName
       })
       .from(teacherGradeSubmissions)
       .leftJoin(subjects, eq(subjects.id, teacherGradeSubmissions.subjectId))
+      .leftJoin(users, eq(users.id, teacherGradeSubmissions.teacherId))
       .where(and(...submissionConditions));
       
       const gradesFromSubmissions = approvedSubmissions.map(sub => ({
@@ -4355,8 +4320,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         comments: sub.comments,
         subjectName: sub.subjectName,
         subjectNameEn: sub.subjectNameEn,
-        coefficient: sub.coefficient,
+        coefficient: sub.coefficient || 1,
         teacherId: sub.teacherId,
+        teacherName: sub.teacherFirstName && sub.teacherLastName 
+          ? `${sub.teacherFirstName} ${sub.teacherLastName}` 
+          : null,
         source: 'teacher_submission'
       }));
       
