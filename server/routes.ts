@@ -4281,8 +4281,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conditions.push(eq(gradesTable.term, term as string));
       }
       
-      const schoolGrades = await db.select()
+      const schoolGrades = await db.select({
+        id: gradesTable.id,
+        studentId: gradesTable.studentId,
+        subjectId: gradesTable.subjectId,
+        grade: gradesTable.grade,
+        term: gradesTable.term,
+        academicYear: gradesTable.academicYear,
+        examType: gradesTable.examType,
+        comments: gradesTable.comments,
+        coefficient: gradesTable.coefficient,
+        subjectName: subjects.nameFr,
+        subjectNameEn: subjects.nameEn
+      })
         .from(gradesTable)
+        .leftJoin(subjects, eq(subjects.id, gradesTable.subjectId))
         .where(and(...conditions));
       
       const gradesFromTable = schoolGrades.map(grade => ({
@@ -4294,6 +4307,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         academicYear: grade.academicYear,
         examType: grade.examType,
         comments: grade.comments,
+        coefficient: grade.coefficient || 1,
+        subjectName: grade.subjectName,
+        subjectNameEn: grade.subjectNameEn,
         source: 'grades_table'
       }));
       
