@@ -9,7 +9,8 @@ import { requireAuth } from '../../middleware/auth';
 import { mtnService, ValidationError } from '../../services/mtnMobileMoneyService';
 import { orangeMoneyService } from '../../services/orangeMoneyService';
 import { db } from '../../db';
-import { teacherIndependentActivations, users } from '../../../shared/schema';
+import { teacherIndependentActivations } from '../../../shared/schemas/teacherIndependentSchema';
+import { users } from '../../../shared/schemas/userSchema';
 import { eq, and, gte } from 'drizzle-orm';
 import { z } from 'zod';
 
