@@ -883,9 +883,36 @@ export function MasterSheet({ selectedClass, selectedTerm, className }: { select
   });
 
   const students = studentsData?.students || [];
-  const subjects = subjectsData?.subjects || [];
+  const subjectsFromApi = subjectsData?.subjects || [];
   const grades = gradesData?.grades || [];
   const school = schoolData?.settings?.school || schoolData?.school || {};
+  
+  // Merge subjects from API and from grades (teacher submissions include subject info)
+  const subjects = useMemo(() => {
+    const subjectMap = new Map<string, any>();
+    
+    // First, add subjects from the API
+    for (const subject of subjectsFromApi) {
+      subjectMap.set(subject.name || subject.nameFr, subject);
+    }
+    
+    // Then, add subjects from grades that aren't already in the list
+    for (const grade of grades) {
+      const subjectName = grade.subjectName || grade.subjectNameEn;
+      if (subjectName && !subjectMap.has(subjectName)) {
+        subjectMap.set(subjectName, {
+          id: grade.subjectId || `grade-${subjectName}`,
+          name: subjectName,
+          nameFr: grade.subjectName || subjectName,
+          nameEN: grade.subjectNameEn || subjectName,
+          coefficient: grade.coefficient || 1,
+          teacherName: grade.teacherName
+        });
+      }
+    }
+    
+    return Array.from(subjectMap.values());
+  }, [subjectsFromApi, grades]);
 
   const rows = useMemo(() => {
     const memo: any = {};
@@ -899,12 +926,21 @@ export function MasterSheet({ selectedClass, selectedTerm, className }: { select
       };
     }
     
-    // Add grades
+    // Add grades (supports both lookup by subjectId and direct subjectName)
     for (const grade of grades) {
       if (memo[grade.studentId]) {
+        // Try to find subject by ID first
         const subject = subjects.find((s: any) => s.id === grade.subjectId);
-        if (subject) {
-          memo[grade.studentId][subject.name] = parseFloat(grade.grade);
+        // Use found subject name, or fallback to grade's subjectName (from teacher submissions)
+        const subjectName = subject?.name || grade.subjectName || grade.subjectNameEn || `Subject ${grade.subjectId}`;
+        memo[grade.studentId][subjectName] = parseFloat(grade.grade);
+        
+        // Also add coefficient info if available
+        if (grade.coefficient) {
+          memo[grade.studentId][`${subjectName}_coefficient`] = grade.coefficient;
+        }
+        if (grade.teacherName) {
+          memo[grade.studentId][`${subjectName}_teacher`] = grade.teacherName;
         }
       }
     }

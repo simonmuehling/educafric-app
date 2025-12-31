@@ -5721,6 +5721,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== NEW: /api/teacher/class-subjects - Get teacher's assigned subjects for a specific class =====
+  // Used by TeacherGradeSubmission to fetch subjects with coefficients
+  app.get("/api/teacher/class-subjects", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const classId = req.query.classId ? parseInt(req.query.classId as string) : null;
+      const schoolId = req.query.schoolId ? parseInt(req.query.schoolId as string) : user.schoolId;
+      
+      console.log(`[TEACHER_CLASS_SUBJECTS] GET /api/teacher/class-subjects for teacher ${user.id}, class ${classId}, school ${schoolId}`);
+      
+      if (!classId) {
+        return res.status(400).json({ success: false, message: 'Class ID required', subjects: [] });
+      }
+      
+      // Get teacher's assigned subjects for this class from teacherSubjectAssignments
+      const assignedSubjects = await db
+        .select({
+          id: teacherSubjectAssignments.id,
+          subjectId: teacherSubjectAssignments.subjectId,
+          classId: teacherSubjectAssignments.classId,
+          nameFr: subjects.nameFr,
+          nameEn: subjects.nameEn,
+          code: subjects.code,
+          coefficient: subjects.coefficient,
+          category: subjects.category,
+          subjectType: subjects.subjectType
+        })
+        .from(teacherSubjectAssignments)
+        .innerJoin(subjects, eq(teacherSubjectAssignments.subjectId, subjects.id))
+        .where(and(
+          eq(teacherSubjectAssignments.teacherId, user.id),
+          eq(teacherSubjectAssignments.classId, classId),
+          schoolId ? eq(teacherSubjectAssignments.schoolId, schoolId) : undefined,
+          eq(teacherSubjectAssignments.active, true)
+        ));
+      
+      console.log(`[TEACHER_CLASS_SUBJECTS] Found ${assignedSubjects.length} subjects from teacherSubjectAssignments`);
+      
+      const subjectsWithCoefficients = assignedSubjects.map(s => ({
+        id: s.subjectId,
+        assignmentId: s.id,
+        nameFr: s.nameFr || '',
+        nameEn: s.nameEn || s.nameFr || '',
+        name: s.nameFr || s.nameEn || '',
+        code: s.code || '',
+        coefficient: parseFloat(s.coefficient as string) || 1,
+        category: s.category || 'general',
+        subjectType: s.subjectType || 'general'
+      }));
+      
+      console.log(`[TEACHER_CLASS_SUBJECTS] ✅ Returning ${subjectsWithCoefficients.length} subjects with coefficients`);
+      
+      res.json({ 
+        success: true, 
+        subjects: subjectsWithCoefficients,
+        message: subjectsWithCoefficients.length === 0 
+          ? 'Aucune matière assignée pour cette classe' 
+          : `${subjectsWithCoefficients.length} matière(s) trouvée(s)`
+      });
+    } catch (error) {
+      console.error('[TEACHER_CLASS_SUBJECTS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch class subjects', subjects: [] });
+    }
+  });
+
   // ===== NEW: /api/teacher/subjects - Get teacher's assigned subjects =====
   app.get("/api/teacher/subjects", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
     try {
