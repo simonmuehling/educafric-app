@@ -120,9 +120,9 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn({ on401: "returnNull" }), // Return null instead of throwing on 401
       refetchInterval: false,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true, // Enable refetch on tab focus for fresher data
       refetchOnMount: true,
-      staleTime: 30 * 1000, // 30 seconds - balance between performance and freshness
+      staleTime: 15 * 1000, // 15 seconds - subjects/coefficients need quicker updates
       gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
       retry: (failureCount, error: any) => {
         // Don't retry on authentication errors
