@@ -305,7 +305,7 @@ const TimetableConfiguration: React.FC = () => {
         endTime: formData.endTime,
         room: formData.room || null, // Optional - can be null
         academicYear: '2024-2025', // TODO: Get from context or settings
-        term: 'Term 1', // TODO: Get from context or settings
+        term: 'T1', // TODO: Get from context or settings
         notes: ''
       };
 

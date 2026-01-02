@@ -51,13 +51,34 @@ const text = {
     successLabel: 'Réussis',
     failedLabel: 'Échoués',
     timeline: 'Chronologie des Distributions',
+    timelineAndHistory: 'Timeline et Historique',
     recentActions: 'Actions Récentes',
     exportReport: 'Exporter Rapport',
     exportCSV: 'CSV',
     exportPDF: 'PDF',
     refresh: 'Actualiser',
     loading: 'Chargement...',
-    noData: 'Aucune donnée disponible'
+    noData: 'Aucune donnée disponible',
+    failed: 'échecs',
+    successRateLabel: 'Réussite',
+    dailyDistribution: 'Distribution Quotidienne',
+    top10Errors: 'Top 10 des Erreurs',
+    student: 'Étudiant',
+    classLabel: 'Classe',
+    by: 'Par',
+    loadMoreEvents: 'Charger plus d\'événements',
+    noEventsFound: 'Aucun événement trouvé pour la période sélectionnée',
+    exportAndActions: 'Export et Actions',
+    overviewCSV: 'Vue d\'ensemble CSV',
+    distributionCSV: 'Distribution CSV',
+    timelineCSV: 'Timeline CSV',
+    fullPDF: 'Rapport Complet PDF',
+    refreshData: 'Actualiser les données',
+    refreshBtn: 'Actualiser',
+    tipTitle: 'Astuce',
+    tipFilters: 'Utilisez les filtres ci-dessus pour personnaliser vos rapports avant l\'export.',
+    tipCharts: 'Les graphiques sont interactifs - cliquez sur les légendes pour masquer/afficher des éléments.',
+    loadingReportData: 'Chargement des données de rapport...'
   },
   en: {
     title: 'Reports & Statistics',
@@ -94,13 +115,34 @@ const text = {
     successLabel: 'Success',
     failedLabel: 'Failed',
     timeline: 'Distribution Timeline',
+    timelineAndHistory: 'Timeline & History',
     recentActions: 'Recent Actions',
     exportReport: 'Export Report',
     exportCSV: 'CSV',
     exportPDF: 'PDF',
     refresh: 'Refresh',
     loading: 'Loading...',
-    noData: 'No data available'
+    noData: 'No data available',
+    failed: 'failed',
+    successRateLabel: 'Success',
+    dailyDistribution: 'Daily Distribution',
+    top10Errors: 'Top 10 Errors',
+    student: 'Student',
+    classLabel: 'Class',
+    by: 'By',
+    loadMoreEvents: 'Load more events',
+    noEventsFound: 'No events found for the selected period',
+    exportAndActions: 'Export & Actions',
+    overviewCSV: 'Overview CSV',
+    distributionCSV: 'Distribution CSV',
+    timelineCSV: 'Timeline CSV',
+    fullPDF: 'Full Report PDF',
+    refreshData: 'Refresh data',
+    refreshBtn: 'Refresh',
+    tipTitle: 'Tip',
+    tipFilters: 'Use the filters above to customize your reports before exporting.',
+    tipCharts: 'Charts are interactive - click on legends to hide/show elements.',
+    loadingReportData: 'Loading report data...'
   }
 };
 
@@ -417,14 +459,14 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                       </div>
                       <p className="text-lg font-bold">{distributionStats.channelStats?.email?.sent || 0}</p>
                       <p className="text-xs text-muted-foreground">
-                        {distributionStats.channelStats?.email?.failed || 0} échecs
+                        {distributionStats.channelStats?.email?.failed || 0} {t.failed}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-blue-600">
                         {distributionStats.successRates?.email || 0}%
                       </p>
-                      <p className="text-xs text-muted-foreground">Réussite</p>
+                      <p className="text-xs text-muted-foreground">{t.successRateLabel}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -440,14 +482,14 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                       </div>
                       <p className="text-lg font-bold">{distributionStats.channelStats?.sms?.sent || 0}</p>
                       <p className="text-xs text-muted-foreground">
-                        {distributionStats.channelStats?.sms?.failed || 0} échecs
+                        {distributionStats.channelStats?.sms?.failed || 0} {t.failed}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-orange-600">
                         {distributionStats.successRates?.sms || 0}%
                       </p>
-                      <p className="text-xs text-muted-foreground">Réussite</p>
+                      <p className="text-xs text-muted-foreground">{t.successRateLabel}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -463,14 +505,14 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                       </div>
                       <p className="text-lg font-bold">{distributionStats.channelStats?.whatsapp?.sent || 0}</p>
                       <p className="text-xs text-muted-foreground">
-                        {distributionStats.channelStats?.whatsapp?.failed || 0} échecs
+                        {distributionStats.channelStats?.whatsapp?.failed || 0} {t.failed}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-green-600">
                         {distributionStats.successRates?.whatsapp || 0}%
                       </p>
-                      <p className="text-xs text-muted-foreground">Réussite</p>
+                      <p className="text-xs text-muted-foreground">{t.successRateLabel}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -483,7 +525,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <LineChart className="h-4 w-4" />
-                    Distribution Quotidienne
+                    {t.dailyDistribution}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -500,7 +542,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
-                    Top 10 des Erreurs
+                    {t.top10Errors}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -525,7 +567,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
           <div className="space-y-4">
             <h3 className="font-semibold flex items-center gap-2">
               <History className="h-4 w-4" />
-              Timeline et Historique
+              {t.timelineAndHistory}
             </h3>
 
             {timelineReport.timeline && timelineReport.timeline.length > 0 ? (
@@ -549,13 +591,13 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                             </Badge>
                           </div>
                           <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                            <span>Étudiant #{event.studentId}</span>
-                            <span>Classe {event.classId}</span>
+                            <span>{t.student} #{event.studentId}</span>
+                            <span>{t.classLabel} {event.classId}</span>
                             <span>{event.term}</span>
                             <span>{new Date(event.timestamp).toLocaleDateString()} {new Date(event.timestamp).toLocaleTimeString()}</span>
                           </div>
                           {event.userName && (
-                            <p className="text-xs text-gray-600 mt-1">Par: {event.userName}</p>
+                            <p className="text-xs text-gray-600 mt-1">{t.by}: {event.userName}</p>
                           )}
                           {event.metadata && (
                             <div className="flex gap-2 mt-2">
@@ -586,7 +628,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                     <div className="mt-4 text-center">
                       <Button variant="outline" size="sm">
                         <ChevronDown className="h-4 w-4 mr-2" />
-                        Charger plus d'événements
+                        {t.loadMoreEvents}
                       </Button>
                     </div>
                   )}
@@ -596,7 +638,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
               <Card>
                 <CardContent className="p-8 text-center text-muted-foreground">
                   <History className="h-8 w-8 mx-auto mb-4 opacity-50" />
-                  <p>Aucun événement trouvé pour la période sélectionnée</p>
+                  <p>{t.noEventsFound}</p>
                 </CardContent>
               </Card>
             )}
@@ -607,7 +649,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="font-semibold flex items-center gap-2 mb-4">
             <FileDown className="h-4 w-4" />
-            Export et Actions
+            {t.exportAndActions}
           </h3>
           
           <div className="flex flex-wrap gap-2">
@@ -618,7 +660,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
               data-testid="export-overview-csv"
             >
               {exportingReport ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
-              Vue d'ensemble CSV
+              {t.overviewCSV}
             </Button>
             
             <Button
@@ -628,7 +670,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
               data-testid="export-distribution-csv"
             >
               <FileDown className="h-4 w-4 mr-2" />
-              Distribution CSV
+              {t.distributionCSV}
             </Button>
             
             <Button
@@ -638,7 +680,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
               data-testid="export-timeline-csv"
             >
               <FileDown className="h-4 w-4 mr-2" />
-              Timeline CSV
+              {t.timelineCSV}
             </Button>
             
             <Button
@@ -648,13 +690,13 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
               data-testid="refresh-reports"
             >
               {loadingOverview ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-              Actualiser
+              {t.refreshBtn}
             </Button>
           </div>
           
           <div className="mt-4 text-sm text-muted-foreground">
-            <p>💡 <strong>Astuce:</strong> Utilisez les filtres ci-dessus pour personnaliser vos rapports avant l'export.</p>
-            <p>📊 Les graphiques sont interactifs - cliquez sur les légendes pour masquer/afficher des éléments.</p>
+            <p>💡 <strong>{t.tipTitle}:</strong> {t.tipFilters}</p>
+            <p>📊 {t.tipCharts}</p>
           </div>
         </div>
 
@@ -662,7 +704,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
         {(loadingOverview || loadingDistribution || loadingTimelineReport) && (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            <span>Chargement des données de rapport...</span>
+            <span>{t.loadingReportData}</span>
           </div>
         )}
       </CardContent>
