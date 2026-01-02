@@ -12,6 +12,97 @@ import {
   Loader2
 } from 'lucide-react';
 import LoadingSkeleton from './LoadingSkeleton';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+// Bilingual text config
+const text = {
+  fr: {
+    title: 'Rapports et Statistiques',
+    subtitle: 'Vue d\'ensemble complète des bulletins, distributions et historique des actions',
+    filters: 'Filtres',
+    term: 'Trimestre',
+    class: 'Classe',
+    channel: 'Canal',
+    academicYear: 'Année Scolaire',
+    allTerms: 'Tous les trimestres',
+    allClasses: 'Toutes les classes',
+    allChannels: 'Tous les canaux',
+    term1: 'Trimestre 1',
+    term2: 'Trimestre 2',
+    term3: 'Trimestre 3',
+    all: 'Tous',
+    allFem: 'Toutes',
+    startDate: 'Date de début',
+    endDate: 'Date de fin',
+    overview: 'Vue d\'ensemble',
+    totalBulletins: 'Total Bulletins',
+    sent: 'Envoyés',
+    overallSuccessRate: 'Taux Réussite Global',
+    avgTime: 'Temps Moyen (h)',
+    statusDistribution: 'Répartition par Statut',
+    successRateByChannel: 'Taux de Réussite par Canal',
+    channelDetails: 'Détails par Canal',
+    channelTable: { channel: 'Canal', sentCol: 'Envoyés', success: 'Réussis', failed: 'Échecs', successRate: 'Taux Réussite', avgTimeCol: 'Temps Moyen' },
+    distributionStats: 'Statistiques de Distribution',
+    emailStats: 'Email',
+    smsStats: 'SMS',
+    whatsappStats: 'WhatsApp',
+    sentLabel: 'Envoyés',
+    successLabel: 'Réussis',
+    failedLabel: 'Échoués',
+    timeline: 'Chronologie des Distributions',
+    recentActions: 'Actions Récentes',
+    exportReport: 'Exporter Rapport',
+    exportCSV: 'CSV',
+    exportPDF: 'PDF',
+    refresh: 'Actualiser',
+    loading: 'Chargement...',
+    noData: 'Aucune donnée disponible'
+  },
+  en: {
+    title: 'Reports & Statistics',
+    subtitle: 'Complete overview of bulletins, distributions and action history',
+    filters: 'Filters',
+    term: 'Term',
+    class: 'Class',
+    channel: 'Channel',
+    academicYear: 'Academic Year',
+    allTerms: 'All terms',
+    allClasses: 'All classes',
+    allChannels: 'All channels',
+    term1: 'Term 1',
+    term2: 'Term 2',
+    term3: 'Term 3',
+    all: 'All',
+    allFem: 'All',
+    startDate: 'Start Date',
+    endDate: 'End Date',
+    overview: 'Overview',
+    totalBulletins: 'Total Bulletins',
+    sent: 'Sent',
+    overallSuccessRate: 'Overall Success Rate',
+    avgTime: 'Avg Time (h)',
+    statusDistribution: 'Status Distribution',
+    successRateByChannel: 'Success Rate by Channel',
+    channelDetails: 'Channel Details',
+    channelTable: { channel: 'Channel', sentCol: 'Sent', success: 'Success', failed: 'Failed', successRate: 'Success Rate', avgTimeCol: 'Avg Time' },
+    distributionStats: 'Distribution Statistics',
+    emailStats: 'Email',
+    smsStats: 'SMS',
+    whatsappStats: 'WhatsApp',
+    sentLabel: 'Sent',
+    successLabel: 'Success',
+    failedLabel: 'Failed',
+    timeline: 'Distribution Timeline',
+    recentActions: 'Recent Actions',
+    exportReport: 'Export Report',
+    exportCSV: 'CSV',
+    exportPDF: 'PDF',
+    refresh: 'Refresh',
+    loading: 'Loading...',
+    noData: 'No data available'
+  }
+};
 
 // Lazy loaded chart components
 const DistributionPieChart = React.lazy(() => import('./DistributionPieChart'));
@@ -47,6 +138,9 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
   handleExportReport,
   refetchOverview
 }) => {
+  const { language } = useLanguage();
+  const t = text[language as 'fr' | 'en'];
+  
   const statusColors = {
     pending: '#f59e0b',
     approved: '#10b981',
@@ -65,10 +159,10 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BarChart3 className="h-5 w-5" />
-          Rapports et Statistiques
+          {t.title}
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Vue d'ensemble complète des bulletins, distributions et historique des actions
+          {t.subtitle}
         </p>
       </CardHeader>
       
@@ -77,32 +171,32 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
         <div className="bg-gray-50 p-4 rounded-lg space-y-4">
           <h3 className="font-semibold flex items-center gap-2">
             <Filter className="h-4 w-4" />
-            Filtres
+            {t.filters}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label>Trimestre</Label>
+              <Label>{t.term}</Label>
               <Select value={reportFilters.term} onValueChange={(value) => handleFilterChange('term', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Tous" />
+                  <SelectValue placeholder={t.all} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les trimestres</SelectItem>
-                  <SelectItem value="T1">Trimestre 1</SelectItem>
-                  <SelectItem value="T2">Trimestre 2</SelectItem>
-                  <SelectItem value="T3">Trimestre 3</SelectItem>
+                  <SelectItem value="all">{t.allTerms}</SelectItem>
+                  <SelectItem value="T1">{t.term1}</SelectItem>
+                  <SelectItem value="T2">{t.term2}</SelectItem>
+                  <SelectItem value="T3">{t.term3}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-2">
-              <Label>Classe</Label>
+              <Label>{t.class}</Label>
               <Select value={reportFilters.classId} onValueChange={(value) => handleFilterChange('classId', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Toutes" />
+                  <SelectValue placeholder={t.allFem} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toutes les classes</SelectItem>
+                  <SelectItem value="all">{t.allClasses}</SelectItem>
                   {classes?.map((cls: any) => (
                     <SelectItem key={cls.id} value={cls.id.toString()}>
                       {cls.name}
@@ -113,13 +207,13 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
             </div>
             
             <div className="space-y-2">
-              <Label>Canal</Label>
+              <Label>{t.channel}</Label>
               <Select value={reportFilters.channel} onValueChange={(value) => handleFilterChange('channel', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Tous" />
+                  <SelectValue placeholder={t.all} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les canaux</SelectItem>
+                  <SelectItem value="all">{t.allChannels}</SelectItem>
                   <SelectItem value="email">Email</SelectItem>
                   <SelectItem value="sms">SMS</SelectItem>
                   <SelectItem value="whatsapp">WhatsApp</SelectItem>
@@ -128,7 +222,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
             </div>
             
             <div className="space-y-2">
-              <Label>Année Scolaire</Label>
+              <Label>{t.academicYear}</Label>
               <Select value={reportFilters.academicYear} onValueChange={(value) => handleFilterChange('academicYear', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="2024-2025" />
@@ -143,7 +237,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date de début</Label>
+              <Label>{t.startDate}</Label>
               <Input
                 type="date"
                 value={reportFilters.startDate}
@@ -151,7 +245,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
               />
             </div>
             <div className="space-y-2">
-              <Label>Date de fin</Label>
+              <Label>{t.endDate}</Label>
               <Input
                 type="date"
                 value={reportFilters.endDate}
@@ -166,7 +260,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
           <div className="space-y-4">
             <h3 className="font-semibold flex items-center gap-2">
               <Target className="h-4 w-4" />
-              Vue d'ensemble
+              {t.overview}
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -174,7 +268,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Total Bulletins</p>
+                      <p className="text-sm text-muted-foreground">{t.totalBulletins}</p>
                       <p className="text-2xl font-bold">{overviewReport.totalBulletins}</p>
                     </div>
                     <FileText className="h-8 w-8 text-blue-500" />
@@ -186,7 +280,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Envoyés</p>
+                      <p className="text-sm text-muted-foreground">{t.sent}</p>
                       <p className="text-2xl font-bold text-green-600">{overviewReport.statusBreakdown?.sent || 0}</p>
                     </div>
                     <CheckCircle2 className="h-8 w-8 text-green-500" />
@@ -198,7 +292,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Taux Réussite Global</p>
+                      <p className="text-sm text-muted-foreground">{t.overallSuccessRate}</p>
                       <p className="text-2xl font-bold text-purple-600">{overviewReport.distributionRates?.overall || 0}%</p>
                     </div>
                     <TrendingUp className="h-8 w-8 text-purple-500" />
@@ -210,7 +304,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Temps Moyen (h)</p>
+                      <p className="text-sm text-muted-foreground">{t.avgTime}</p>
                       <p className="text-2xl font-bold text-orange-600">{overviewReport.averageProcessingTime || 0}</p>
                     </div>
                     <Timer className="h-8 w-8 text-orange-500" />
@@ -225,7 +319,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <PieChart className="h-4 w-4" />
-                    Répartition par Statut
+                    {t.statusDistribution}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -242,7 +336,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-4 w-4" />
-                    Taux de Réussite par Canal
+                    {t.successRateByChannel}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -263,7 +357,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
           <div className="space-y-4">
             <h3 className="font-semibold flex items-center gap-2">
               <Activity className="h-4 w-4" />
-              Détails par Canal
+              {t.channelDetails}
             </h3>
             
             <Card>
@@ -272,12 +366,12 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left p-2">Canal</th>
-                        <th className="text-left p-2">Envoyés</th>
-                        <th className="text-left p-2">Réussis</th>
-                        <th className="text-left p-2">Échecs</th>
-                        <th className="text-left p-2">Taux Réussite</th>
-                        <th className="text-left p-2">Temps Moyen</th>
+                        <th className="text-left p-2">{t.channelTable.channel}</th>
+                        <th className="text-left p-2">{t.channelTable.sentCol}</th>
+                        <th className="text-left p-2">{t.channelTable.success}</th>
+                        <th className="text-left p-2">{t.channelTable.failed}</th>
+                        <th className="text-left p-2">{t.channelTable.successRate}</th>
+                        <th className="text-left p-2">{t.channelTable.avgTimeCol}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -308,7 +402,7 @@ const ReportsTab: React.FC<ReportsTabProps> = ({
           <div className="space-y-4">
             <h3 className="font-semibold flex items-center gap-2">
               <Activity className="h-4 w-4" />
-              Statistiques de Distribution
+              {t.distributionStats}
             </h3>
 
             {/* Statistiques par canal */}

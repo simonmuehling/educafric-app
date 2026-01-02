@@ -3002,9 +3002,9 @@ export default function ComprehensiveBulletinGenerator() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="T1">Trimestre 1</SelectItem>
-                      <SelectItem value="T2">Trimestre 2</SelectItem>
-                      <SelectItem value="T3">Trimestre 3</SelectItem>
+                      <SelectItem value="T1">{language === 'fr' ? 'Trimestre 1' : 'Term 1'}</SelectItem>
+                      <SelectItem value="T2">{language === 'fr' ? 'Trimestre 2' : 'Term 2'}</SelectItem>
+                      <SelectItem value="T3">{language === 'fr' ? 'Trimestre 3' : 'Term 3'}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -3042,12 +3042,12 @@ export default function ComprehensiveBulletinGenerator() {
                             data-testid="load-data-button"
                           >
                             <Database className="h-4 w-4 mr-2" />
-                            Charger les données
+                            {language === 'fr' ? 'Charger les données' : 'Load data'}
                           </Button>
                           {hasValidSelection && (
                             <Badge variant="outline" className="text-green-700 border-green-200 bg-green-50">
                               <CheckCircle className="h-3 w-3 mr-1" />
-                              Sélection complète
+                              {language === 'fr' ? 'Sélection complète' : 'Selection complete'}
                             </Badge>
                           )}
                           {!hasValidSelection && (

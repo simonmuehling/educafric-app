@@ -580,16 +580,16 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t.filters?.allPeriods}</SelectItem>
-                    <SelectItem value="na">Non spécifié / N/A</SelectItem>
-                    <SelectItem value="Trimestre 1">Trimestre 1</SelectItem>
-                    <SelectItem value="Trimestre 2">Trimestre 2</SelectItem>
-                    <SelectItem value="Trimestre 3">Trimestre 3</SelectItem>
-                    <SelectItem value="Séquence 1">Séquence 1</SelectItem>
-                    <SelectItem value="Séquence 2">Séquence 2</SelectItem>
-                    <SelectItem value="Séquence 3">Séquence 3</SelectItem>
-                    <SelectItem value="Séquence 4">Séquence 4</SelectItem>
-                    <SelectItem value="Séquence 5">Séquence 5</SelectItem>
-                    <SelectItem value="Séquence 6">Séquence 6</SelectItem>
+                    <SelectItem value="na">{language === 'fr' ? 'Non spécifié / N/A' : 'Not specified / N/A'}</SelectItem>
+                    <SelectItem value="Trimestre 1">{language === 'fr' ? 'Trimestre 1' : 'Term 1'}</SelectItem>
+                    <SelectItem value="Trimestre 2">{language === 'fr' ? 'Trimestre 2' : 'Term 2'}</SelectItem>
+                    <SelectItem value="Trimestre 3">{language === 'fr' ? 'Trimestre 3' : 'Term 3'}</SelectItem>
+                    <SelectItem value="Séquence 1">{language === 'fr' ? 'Séquence 1' : 'Sequence 1'}</SelectItem>
+                    <SelectItem value="Séquence 2">{language === 'fr' ? 'Séquence 2' : 'Sequence 2'}</SelectItem>
+                    <SelectItem value="Séquence 3">{language === 'fr' ? 'Séquence 3' : 'Sequence 3'}</SelectItem>
+                    <SelectItem value="Séquence 4">{language === 'fr' ? 'Séquence 4' : 'Sequence 4'}</SelectItem>
+                    <SelectItem value="Séquence 5">{language === 'fr' ? 'Séquence 5' : 'Sequence 5'}</SelectItem>
+                    <SelectItem value="Séquence 6">{language === 'fr' ? 'Séquence 6' : 'Sequence 6'}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -605,20 +605,20 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t.filters?.allSubjects}</SelectItem>
-                    <SelectItem value="na">Non spécifié / N/A</SelectItem>
-                    <SelectItem value="Français">Français</SelectItem>
-                    <SelectItem value="Mathématiques">Mathématiques</SelectItem>
-                    <SelectItem value="Anglais">Anglais</SelectItem>
-                    <SelectItem value="Histoire-Géographie">Histoire-Géographie</SelectItem>
-                    <SelectItem value="Sciences Physiques">Sciences Physiques</SelectItem>
-                    <SelectItem value="Sciences de la Vie et de la Terre">SVT</SelectItem>
-                    <SelectItem value="Éducation Physique">Éducation Physique</SelectItem>
-                    <SelectItem value="Arts Plastiques">Arts Plastiques</SelectItem>
-                    <SelectItem value="Musique">Musique</SelectItem>
-                    <SelectItem value="Informatique">Informatique</SelectItem>
-                    <SelectItem value="Philosophie">Philosophie</SelectItem>
-                    <SelectItem value="Allemand">Allemand</SelectItem>
-                    <SelectItem value="Espagnol">Espagnol</SelectItem>
+                    <SelectItem value="na">{language === 'fr' ? 'Non spécifié / N/A' : 'Not specified / N/A'}</SelectItem>
+                    <SelectItem value="Français">{language === 'fr' ? 'Français' : 'French'}</SelectItem>
+                    <SelectItem value="Mathématiques">{language === 'fr' ? 'Mathématiques' : 'Mathematics'}</SelectItem>
+                    <SelectItem value="Anglais">{language === 'fr' ? 'Anglais' : 'English'}</SelectItem>
+                    <SelectItem value="Histoire-Géographie">{language === 'fr' ? 'Histoire-Géographie' : 'History-Geography'}</SelectItem>
+                    <SelectItem value="Sciences Physiques">{language === 'fr' ? 'Sciences Physiques' : 'Physical Sciences'}</SelectItem>
+                    <SelectItem value="Sciences de la Vie et de la Terre">{language === 'fr' ? 'SVT' : 'Life Sciences'}</SelectItem>
+                    <SelectItem value="Éducation Physique">{language === 'fr' ? 'Éducation Physique' : 'Physical Education'}</SelectItem>
+                    <SelectItem value="Arts Plastiques">{language === 'fr' ? 'Arts Plastiques' : 'Visual Arts'}</SelectItem>
+                    <SelectItem value="Musique">{language === 'fr' ? 'Musique' : 'Music'}</SelectItem>
+                    <SelectItem value="Informatique">{language === 'fr' ? 'Informatique' : 'Computer Science'}</SelectItem>
+                    <SelectItem value="Philosophie">{language === 'fr' ? 'Philosophie' : 'Philosophy'}</SelectItem>
+                    <SelectItem value="Allemand">{language === 'fr' ? 'Allemand' : 'German'}</SelectItem>
+                    <SelectItem value="Espagnol">{language === 'fr' ? 'Espagnol' : 'Spanish'}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
