@@ -33,6 +33,13 @@ import {
 import { BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import GradeAnalyticsTab from './GradeAnalyticsTab';
 
+// Bilingual trimesters config
+const TRIMESTERS = [
+  { key: 'T1', labelFR: 'Trimestre 1', labelEN: 'Term 1' },
+  { key: 'T2', labelFR: 'Trimestre 2', labelEN: 'Term 2' },
+  { key: 'T3', labelFR: 'Trimestre 3', labelEN: 'Term 3' }
+];
+
 interface GradeSubmission {
   id: number;
   teacherId: number;
@@ -557,9 +564,11 @@ export default function TeacherGradeReview() {
                         <SelectValue placeholder={t.allTerms} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="T1">Trimestre 1</SelectItem>
-                        <SelectItem value="T2">Trimestre 2</SelectItem>
-                        <SelectItem value="T3">Trimestre 3</SelectItem>
+                        {TRIMESTERS.map((term) => (
+                          <SelectItem key={term.key} value={term.key}>
+                            {language === 'fr' ? term.labelFR : term.labelEN}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
