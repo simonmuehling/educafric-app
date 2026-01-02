@@ -262,9 +262,11 @@ function CompileBulletinsFromGrades() {
                 <SelectValue placeholder={t.selectTerm} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="T1">Trimestre 1</SelectItem>
-                <SelectItem value="T2">Trimestre 2</SelectItem>
-                <SelectItem value="T3">Trimestre 3</SelectItem>
+                {TRIMESTERS.map((term) => (
+                  <SelectItem key={term.key} value={term.key}>
+                    {language === 'fr' ? term.labelFR : term.labelEN}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -524,7 +526,7 @@ function ArchiveManagementContent() {
                   <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toutes</SelectItem>
+                  <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
                   <SelectItem value="2024-2025">2024-2025</SelectItem>
                   <SelectItem value="2023-2024">2023-2024</SelectItem>
                 </SelectContent>
@@ -538,10 +540,10 @@ function ArchiveManagementContent() {
                   <SelectValue placeholder={language === 'fr' ? 'Sélectionner...' : 'Select...'} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="bulletin">Bulletins</SelectItem>
-                  <SelectItem value="transcript">Relevés</SelectItem>
-                  <SelectItem value="annual-report">Rapports Annuels</SelectItem>
+                  <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
+                  <SelectItem value="bulletin">{language === 'fr' ? 'Bulletins' : 'Report Cards'}</SelectItem>
+                  <SelectItem value="transcript">{language === 'fr' ? 'Relevés' : 'Transcripts'}</SelectItem>
+                  <SelectItem value="annual-report">{language === 'fr' ? 'Rapports Annuels' : 'Annual Reports'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1975,7 +1977,7 @@ function TeacherSubmissionsManager({ selectedClass, selectedTerm }: { selectedCl
                             <p className="font-medium">{grade.subjectName}</p>
                             <p className="text-blue-600 font-bold">{grade.grade}/20</p>
                             {grade.coefficient && (
-                              <p className="text-xs text-muted-foreground">Coef: {grade.coefficient}</p>
+                              <p className="text-xs text-muted-foreground">{language === 'fr' ? 'Coef:' : 'Coef:'} {grade.coefficient}</p>
                             )}
                           </div>
                         ))}
