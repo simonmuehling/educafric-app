@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform aimed at digitizing education in Africa. Its core purpose is to improve accessibility, affordability, and learning outcomes through a scalable and culturally relevant solution. The platform integrates academic management, communication tools, financial services, and offline access, with the ambition to become the leading EdTech solution across the African continent.
+Educafric is a bilingual, mobile-first EdTech platform designed to digitalize education in Africa. Its primary goal is to improve accessibility, affordability, and learning outcomes through a scalable and culturally relevant solution. The platform integrates academic management, communication tools, financial services, and offline access, with the ambition of becoming the leading EdTech solution across Africa.
 
 # User Preferences
 - EXEMPTION PREMIUM PERMANENTE: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -42,22 +42,22 @@ Educafric is a bilingual, mobile-first EdTech platform aimed at digitizing educa
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
 
 # System Architecture
-- **UI/UX Decisions**: The platform features an African-themed, mobile-first, PWA-enabled UI, built with Radix UI and Shadcn/UI, and styled with Tailwind CSS. All alert/confirmation dialogs must have a `bg-white` background. A standardized Student ID Card template, optimized for mobile-friendly color printing, digital signatures, and QR codes, is used universally.
+- **UI/UX Decisions**: African-themed, mobile-first, PWA-enabled UI utilizing Radix UI, Shadcn/UI, and Tailwind CSS. All alert/confirmation dialogs must have a `bg-white` background. A standardized, mobile-friendly Student ID Card template ensures consistent design, color printing, digital signatures, and QR codes.
 - **Technical Implementations**:
-    - **Frontend**: React (TypeScript) with Wouter for routing and TanStack Query for data fetching, PWA-enabled, with a React Native Android app.
-    - **Backend**: Express.js RESTful API.
-    - **Database & ORM**: PostgreSQL on Neon Serverless with Drizzle ORM for database interactions and strict multi-tenancy isolation (`user.schoolId`).
-    - **Authentication**: Session-based with `express-session` and `Passport.js`, including Firebase Google OAuth. Features role-based access control (8 roles), an Intrusion Detection System (IDS), and multi-role user support via `role_affiliations`.
+    - **Frontend**: React (TypeScript) with Wouter for client-side routing and TanStack Query for data fetching, supporting PWA. A React Native Android app is also available.
+    - **Backend**: RESTful API developed with Express.js.
+    - **Database & ORM**: PostgreSQL on Neon Serverless, managed with Drizzle ORM. Strict multi-tenancy isolation is enforced using `user.schoolId`.
+    - **Authentication**: Session-based authentication via `express-session` and `Passport.js`, including Firebase Google OAuth. Features 8-role-based access control, an Intrusion Detection System (IDS), and multi-role user support through `role_affiliations`.
     - **Route Architecture**: Express.js route registration prioritizes direct routes (Settings, API Modules, System Routes) over external routers to prevent conflicts.
     - **Cache Management**: `queryClient.ts` uses `serializeQueryKey()` to prevent query key collisions.
     - **Module Loading**: `fastModuleLoader.ts` includes `validateMappings()` for automatic conflict detection in module mappings.
-    - **Document Management**: Centralized system for documents with digital signatures and PDF generation, ensuring instant appearance. Documents are stored in `/public/documents/` with lowercase kebab-case naming.
-- **Feature Specifications**: Real-time attendance tracking (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment methods, GPS tracking, iCal/ICS export, bulk Excel import, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes.
+    - **Document Management**: Centralized system for instant document creation, featuring digital signatures and PDF generation, with documents stored in `/public/documents/`.
+- **Feature Specifications**: Includes real-time attendance (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment systems, GPS tracking, iCal/ICS export, bulk Excel import, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes.
 
 # External Dependencies
 - **Neon Database**: Serverless PostgreSQL database.
 - **Stripe**: Payment processing gateway.
 - **Firebase**: Google OAuth authentication.
-- **WhatsApp**: Direct messaging API for automated notifications.
+- **WhatsApp**: Direct API integration for notifications.
 - **Hostinger**: SMTP services for email notifications.
-- **Jitsi Meet**: Video conferencing integration for online classes.
+- **Jitsi Meet**: Integrated for video conferencing and online classes.

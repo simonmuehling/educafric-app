@@ -387,7 +387,7 @@ export default function FeesManagement() {
       setShowFeeDialog(false);
       resetFeeForm();
     },
-    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
+    onError: () => toast({ title: language === 'fr' ? 'Erreur' : 'Error', variant: 'destructive' })
   });
 
   const updateFeeMutation = useMutation({
@@ -400,7 +400,7 @@ export default function FeesManagement() {
       setShowFeeDialog(false);
       resetFeeForm();
     },
-    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
+    onError: () => toast({ title: language === 'fr' ? 'Erreur' : 'Error', variant: 'destructive' })
   });
 
   const deleteFeeMutation = useMutation({
@@ -412,7 +412,7 @@ export default function FeesManagement() {
       setShowDeleteDialog(false);
       setDeletingFee(null);
     },
-    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
+    onError: () => toast({ title: language === 'fr' ? 'Erreur' : 'Error', variant: 'destructive' })
   });
 
   const recordPaymentMutation = useMutation({
@@ -425,7 +425,7 @@ export default function FeesManagement() {
       setShowPaymentDialog(false);
       setPaymentData({ amount: '', paymentMethod: 'cash', transactionRef: '' });
     },
-    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
+    onError: () => toast({ title: language === 'fr' ? 'Erreur' : 'Error', variant: 'destructive' })
   });
 
   const sendReminderMutation = useMutation({
@@ -435,7 +435,7 @@ export default function FeesManagement() {
       setShowReminderDialog(false);
       setSelectedFeeIds([]);
     },
-    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
+    onError: () => toast({ title: language === 'fr' ? 'Erreur' : 'Error', variant: 'destructive' })
   });
 
   const assignExistingFeeMutation = useMutation({
@@ -454,7 +454,7 @@ export default function FeesManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/fees/assigned'] });
       queryClient.invalidateQueries({ queryKey: ['/api/fees/stats'] });
     },
-    onError: () => toast({ title: 'Erreur', variant: 'destructive' })
+    onError: () => toast({ title: language === 'fr' ? 'Erreur' : 'Error', variant: 'destructive' })
   });
 
   const handleSaveFee = () => {
@@ -478,9 +478,9 @@ export default function FeesManagement() {
 
   const handlePrintFee = (fee: FeeStructure) => {
     const w = window.open('', '_blank', 'width=600,height=800');
-    if (!w) { toast({ title: 'Popup bloqué', variant: 'destructive' }); return; }
+    if (!w) { toast({ title: language === 'fr' ? 'Popup bloqué' : 'Popup blocked', variant: 'destructive' }); return; }
     
-    const className = classes.find((c: any) => c.id === fee.classId)?.name || 'Toutes les classes';
+    const className = classes.find((c: any) => c.id === fee.classId)?.name || (language === 'fr' ? 'Toutes les classes' : 'All classes');
     const bilingualHeader = generateBilingualPrintHeaderHtml(
       school,
       { fr: 'GRILLE TARIFAIRE', en: 'FEE SCHEDULE' }
