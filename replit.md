@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed to digitalize education in Africa. Its primary goal is to improve accessibility, affordability, and learning outcomes through a scalable and culturally relevant solution. The platform integrates academic management, communication tools, financial services, and offline access, with the ambition of becoming the leading EdTech solution across Africa.
+Educafric is a bilingual, mobile-first EdTech platform designed to digitalize education in Africa. Its core purpose is to enhance accessibility, affordability, and learning outcomes across the continent. The platform offers a scalable and culturally relevant solution by integrating academic management, communication tools, financial services, and offline access, with the ambition to become a leading EdTech platform in Africa.
 
 # User Preferences
 - EXEMPTION PREMIUM PERMANENTE: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -43,11 +43,11 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
 - LOGO ROBUSTE MULTI-FALLBACK: Les composants Logo.tsx et FrontpageNavbar.tsx utilisent un système de fallback à 4 niveaux pour garantir l'affichage du logo: 1) /educafric-logo-128.png, 2) /educafric-logo-512.png, 3) /favicon.ico, 4) Icône GraduationCap. Le texte "Educafric" est TOUJOURS visible indépendamment du statut de l'image. LOGO_SOURCES array avec useState pour tracking des erreurs. NE JAMAIS supprimer ces fallbacks.
 
 # System Architecture
-- **UI/UX Decisions**: African-themed, mobile-first, PWA-enabled UI utilizing Radix UI, Shadcn/UI, and Tailwind CSS. All alert/confirmation dialogs must have a `bg-white` background. A standardized, mobile-friendly Student ID Card template ensures consistent design, color printing, digital signatures, and QR codes.
+- **UI/UX Decisions**: African-themed, mobile-first, PWA-enabled UI using Radix UI, Shadcn/UI, and Tailwind CSS. All alert/confirmation dialogs must have a `bg-white` background. A standardized Student ID Card template ensures consistent design, color printing, digital signatures, and QR codes.
 - **Technical Implementations**:
     - **Frontend**: React (TypeScript) with Wouter for client-side routing and TanStack Query for data fetching, supporting PWA.
     - **Backend**: RESTful API developed with Express.js.
-    - **Database & ORM**: PostgreSQL on Neon Serverless, managed with Drizzle ORM. Strict multi-tenancy isolation is enforced using `user.schoolId`.
+    - **Database & ORM**: PostgreSQL on Neon Serverless, managed with Drizzle ORM. Strict multi-tenancy isolation enforced using `user.schoolId`.
     - **Authentication**: Session-based authentication via `express-session` and `Passport.js`, including Firebase Google OAuth. Features 8-role-based access control, an Intrusion Detection System (IDS), and multi-role user support through `role_affiliations`.
     - **Route Architecture**: Express.js route registration prioritizes direct routes (Settings, API Modules, System Routes) over external routers to prevent conflicts.
     - **Cache Management**: `queryClient.ts` uses `serializeQueryKey()` to prevent query key collisions.

@@ -117,7 +117,36 @@ const TeacherSubmittedBulletins: React.FC = () => {
       deleteConfirm: 'Êtes-vous sûr de vouloir supprimer ce bulletin approuvé?',
       deleteWarning: 'Cette action est irréversible. Le bulletin sera définitivement supprimé du système.',
       deleteSuccess: 'Bulletin supprimé avec succès',
-      deleteError: 'Erreur lors de la suppression'
+      deleteError: 'Erreur lors de la suppression',
+      bulletinTypeLabel: 'Type de bulletin',
+      languageLabel: 'Langue',
+      generalFr: 'Général Francophone',
+      generalEn: 'Général Anglophone',
+      literaryFr: 'Série Littéraire',
+      scientificFr: 'Série Scientifique',
+      professionalFr: 'Professionnel/Technique',
+      technicalEn: 'Technique Anglophone',
+      subjectCol: 'Matière',
+      eval1: 'N1/20',
+      eval2: 'N2/20',
+      eval3: 'N3/20',
+      average: 'Moy.',
+      coefficient: 'Coef.',
+      competencies: 'Compétences',
+      appreciation: 'Appréciation',
+      remark: 'Remarque',
+      generalSection: 'Enseignement Général',
+      literarySection: 'Enseignement Littéraire',
+      scientificSection: 'Enseignement Scientifique',
+      professionalSection: 'Enseignement Professionnel',
+      otherSection: 'Autres Matières',
+      mk20: 'N/20',
+      av20: 'Moy/20',
+      c1: 'C1',
+      c2: 'C2',
+      c3: 'C3',
+      totalPoints: 'Total Points',
+      classAverage: 'Moyenne Classe'
     },
     en: {
       title: 'Teacher-Submitted Bulletins',
@@ -170,11 +199,142 @@ const TeacherSubmittedBulletins: React.FC = () => {
       deleteConfirm: 'Are you sure you want to delete this approved bulletin?',
       deleteWarning: 'This action is irreversible. The bulletin will be permanently removed from the system.',
       deleteSuccess: 'Bulletin deleted successfully',
-      deleteError: 'Error deleting bulletin'
+      deleteError: 'Error deleting bulletin',
+      bulletinTypeLabel: 'Report Type',
+      languageLabel: 'Language',
+      generalFr: 'General Francophone',
+      generalEn: 'General Anglophone',
+      literaryFr: 'Literary Series',
+      scientificFr: 'Scientific Series',
+      professionalFr: 'Professional/Technical',
+      technicalEn: 'Technical Anglophone',
+      subjectCol: 'Subject',
+      eval1: 'E1/20',
+      eval2: 'E2/20',
+      eval3: 'E3/20',
+      average: 'Avg.',
+      coefficient: 'Coef.',
+      competencies: 'Competencies',
+      appreciation: 'Appreciation',
+      remark: 'Remark',
+      generalSection: 'General Education',
+      literarySection: 'Literary Education',
+      scientificSection: 'Scientific Education',
+      professionalSection: 'Professional Education',
+      otherSection: 'Other Subjects',
+      mk20: 'Mk/20',
+      av20: 'Avg/20',
+      c1: 'C1',
+      c2: 'C2',
+      c3: 'C3',
+      totalPoints: 'Total Points',
+      classAverage: 'Class Average'
     }
   };
 
   const t = text[language as keyof typeof text];
+
+  // Helper: Get bulletin type display name
+  const getBulletinTypeName = (bulletinType?: string) => {
+    switch (bulletinType) {
+      case 'general-fr': return t.generalFr;
+      case 'general-en': return t.generalEn;
+      case 'literary-fr': return t.literaryFr;
+      case 'scientific-fr': return t.scientificFr;
+      case 'professional-fr': return t.professionalFr;
+      case 'technical-en': return t.technicalEn;
+      default: return bulletinType || t.generalFr;
+    }
+  };
+
+  // Helper: Normalize section name (case-insensitive, supports localized labels)
+  const normalizeSectionName = (section?: string): string => {
+    if (!section) return 'other';
+    const s = section.toLowerCase().trim();
+    
+    // Map localized/variant labels to canonical keys
+    const sectionMappings: Record<string, string> = {
+      'general': 'general',
+      'général': 'general',
+      'generale': 'general',
+      'enseignement général': 'general',
+      'general education': 'general',
+      'literary': 'literary',
+      'litteraire': 'literary',
+      'littéraire': 'literary',
+      'enseignement littéraire': 'literary',
+      'literary education': 'literary',
+      'scientific': 'scientific',
+      'scientifique': 'scientific',
+      'enseignement scientifique': 'scientific',
+      'scientific education': 'scientific',
+      'professional': 'professional',
+      'professionnel': 'professional',
+      'professionnelle': 'professional',
+      'technique': 'professional',
+      'technical': 'professional',
+      'enseignement professionnel': 'professional',
+      'professional education': 'professional',
+      'pro': 'professional',
+      'tech': 'professional',
+      'other': 'other',
+      'autre': 'other',
+      'autres': 'other'
+    };
+    
+    return sectionMappings[s] || 'other';
+  };
+
+  // Helper: Group subjects by section for sectioned bulletins
+  const groupSubjectsBySection = (subjects: any[], bulletinType?: string) => {
+    const isSectioned = ['literary-fr', 'scientific-fr', 'professional-fr', 'technical-en'].includes(bulletinType || '');
+    if (!isSectioned) {
+      return { all: subjects };
+    }
+    
+    const general = subjects.filter(s => {
+      const section = s.bulletinSection || s.subjectType || s.section;
+      return normalizeSectionName(section) === 'general';
+    });
+    const literary = subjects.filter(s => {
+      const section = s.bulletinSection || s.subjectType || s.section;
+      return normalizeSectionName(section) === 'literary';
+    });
+    const scientific = subjects.filter(s => {
+      const section = s.bulletinSection || s.subjectType || s.section;
+      return normalizeSectionName(section) === 'scientific';
+    });
+    const professional = subjects.filter(s => {
+      const section = s.bulletinSection || s.subjectType || s.section;
+      return normalizeSectionName(section) === 'professional';
+    });
+    const other = subjects.filter(s => {
+      const section = s.bulletinSection || s.subjectType || s.section;
+      return normalizeSectionName(section) === 'other';
+    });
+    
+    return { general, literary, scientific, professional, other };
+  };
+
+  // Helper: Determine which sections to display based on bulletin type
+  const getSectionsToDisplay = (bulletinType?: string) => {
+    switch (bulletinType) {
+      case 'literary-fr':
+        return [{ key: 'general', label: t.generalSection }, { key: 'literary', label: t.literarySection }, { key: 'other', label: t.otherSection }];
+      case 'scientific-fr':
+        return [{ key: 'general', label: t.generalSection }, { key: 'scientific', label: t.scientificSection }, { key: 'other', label: t.otherSection }];
+      case 'professional-fr':
+      case 'technical-en':
+        return [{ key: 'general', label: t.generalSection }, { key: 'professional', label: t.professionalSection }, { key: 'other', label: t.otherSection }];
+      default:
+        return [];
+    }
+  };
+
+  // Helper: Check if bulletin type is anglophone (different table format)
+  const isAnglophoneBulletin = (bulletinType?: string) => {
+    return bulletinType === 'general-en' || bulletinType === 'technical-en';
+  };
 
   // Sync grades mutation
   const syncGradesMutation = useMutation({
@@ -428,93 +588,174 @@ const TeacherSubmittedBulletins: React.FC = () => {
             </div>
           </div>
 
-          {/* Subjects Table - COMPLETE DATA DISPLAY */}
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg flex items-center gap-2" data-testid="heading-subjects">
-              <FileText className="w-5 h-5" />
-              {t.subjects}
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border text-sm">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border p-2 text-left" rowSpan={2}>{language === 'fr' ? 'Matière' : 'Subject'}</th>
-                    <th className="border p-2 text-center" colSpan={3}>{language === 'fr' ? 'Évaluations' : 'Evaluations'}</th>
-                    <th className="border p-2 text-center" rowSpan={2}>{language === 'fr' ? 'Moy.' : 'Avg.'}</th>
-                    <th className="border p-2 text-center" rowSpan={2}>{language === 'fr' ? 'Coef.' : 'Coef.'}</th>
-                    <th className="border p-2 text-left" rowSpan={2}>{language === 'fr' ? 'Compétences' : 'Competencies'}</th>
-                    <th className="border p-2 text-left" rowSpan={2}>{language === 'fr' ? 'Appréciation' : 'Appreciation'}</th>
-                    <th className="border p-2 text-left" rowSpan={2}>{language === 'fr' ? 'Remarque' : 'Remark'}</th>
-                  </tr>
-                  <tr className="bg-gray-50">
-                    <th className="border p-1 text-center text-xs">N/20</th>
-                    <th className="border p-1 text-center text-xs">M/20</th>
-                    <th className="border p-1 text-center text-xs">N3/20</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedBulletin.subjects && selectedBulletin.subjects.length > 0 ? (
-                    selectedBulletin.subjects.map((subject: any, idx: number) => (
-                      <tr key={idx} data-testid={`subject-row-${idx}`} className="hover:bg-blue-50">
-                        <td className="border p-2 font-medium">{subject.name || subject.id}</td>
-                        <td className="border p-2 text-center">{subject.note1 ?? subject.grade ?? '-'}</td>
-                        <td className="border p-2 text-center">{subject.note2 ?? '-'}</td>
-                        <td className="border p-2 text-center">{subject.note3 ?? '-'}</td>
-                        <td className="border p-2 text-center font-bold text-blue-700">{subject.moyenneFinale ?? subject.average ?? subject.grade ?? '-'}</td>
-                        <td className="border p-2 text-center">{subject.coefficient || 1}</td>
-                        <td className="border p-2 text-xs">
-                          {subject.competencies && Array.isArray(subject.competencies) && subject.competencies.length > 0 ? (
-                            <ul className="list-disc pl-3 space-y-0.5">
-                              {subject.competencies.slice(0, 3).map((comp: any, i: number) => (
-                                <li key={i} className="text-gray-600">
-                                  {typeof comp === 'string' ? comp : (comp?.name || comp?.code || `C${i+1}`)}
-                                  {comp?.score && <span className="ml-1 text-blue-600">({comp.score})</span>}
-                                </li>
-                              ))}
-                              {subject.competencies.length > 3 && (
-                                <li className="text-gray-400">+{subject.competencies.length - 3} {language === 'fr' ? 'autres' : 'more'}</li>
-                              )}
-                            </ul>
-                          ) : subject.evaluatedCompetencies ? (
-                            <span className="text-gray-600">{subject.evaluatedCompetencies}</span>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </td>
-                        <td className="border p-2 text-xs max-w-[150px] truncate" title={subject.appreciation || ''}>
-                          {subject.appreciation || '-'}
-                        </td>
-                        <td className="border p-2 text-xs max-w-[150px]">
-                          {subject.remark || subject.comment || subject.remarks || '-'}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={9} className="border p-4 text-center text-gray-500">{t.noData}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Bulletin Type and Language Info */}
-            {(selectedBulletin.bulletinType || selectedBulletin.language) && (
-              <div className="flex gap-4 mt-3 text-sm text-gray-600">
-                {selectedBulletin.bulletinType && (
-                  <div>
-                    <span className="font-medium">{language === 'fr' ? 'Type:' : 'Type:'}</span>{' '}
-                    <Badge variant="outline" className="ml-1">{selectedBulletin.bulletinType}</Badge>
-                  </div>
-                )}
+          {/* Subjects Table - BULLETIN TYPE AWARE DISPLAY */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg flex items-center gap-2" data-testid="heading-subjects">
+                <FileText className="w-5 h-5" />
+                {t.subjects}
+              </h3>
+              {/* Bulletin Type Badge */}
+              <div className="flex gap-2">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  {getBulletinTypeName(selectedBulletin.bulletinType)}
+                </Badge>
                 {selectedBulletin.language && (
-                  <div>
-                    <span className="font-medium">{language === 'fr' ? 'Langue:' : 'Language:'}</span>{' '}
-                    <Badge variant="outline" className="ml-1">{selectedBulletin.language === 'fr' ? 'Français' : 'English'}</Badge>
-                  </div>
+                  <Badge variant="outline">
+                    {selectedBulletin.language === 'fr' ? 'Français' : 'English'}
+                  </Badge>
                 )}
               </div>
-            )}
+            </div>
+
+            {/* Render based on bulletin type */}
+            {(() => {
+              const bulletinType = selectedBulletin.bulletinType || 'general-fr';
+              const subjects = selectedBulletin.subjects || [];
+              const isAnglophone = isAnglophoneBulletin(bulletinType);
+              const isSectioned = ['literary-fr', 'scientific-fr', 'professional-fr', 'technical-en'].includes(bulletinType);
+              const groupedSubjects = groupSubjectsBySection(subjects, bulletinType);
+              const sectionsToDisplay = getSectionsToDisplay(bulletinType);
+
+              // Helper to render a single subject row (Francophone format)
+              const renderFrancophoneRow = (subject: any, idx: number, sectionKey: string = 'all') => (
+                <tr key={`${sectionKey}-${subject.id ?? idx}`} data-testid={`subject-row-${sectionKey}-${subject.id ?? idx}`} className="hover:bg-blue-50">
+                  <td className="border p-2 font-medium">{subject.name || subject.subject || subject.id}</td>
+                  <td className="border p-2 text-center">{subject.note1 ?? subject.n1 ?? subject.grade ?? '-'}</td>
+                  <td className="border p-2 text-center">{subject.note2 ?? subject.n2 ?? '-'}</td>
+                  <td className="border p-2 text-center">{subject.note3 ?? subject.n3 ?? '-'}</td>
+                  <td className="border p-2 text-center font-bold text-blue-700">{subject.moyenneFinale ?? subject.average ?? subject.m20 ?? subject.grade ?? '-'}</td>
+                  <td className="border p-2 text-center">{subject.coefficient ?? subject.coef ?? 1}</td>
+                  <td className="border p-2 text-xs">
+                    {subject.competencies && Array.isArray(subject.competencies) && subject.competencies.length > 0 ? (
+                      <ul className="list-disc pl-3 space-y-0.5">
+                        {subject.competencies.slice(0, 3).map((comp: any, i: number) => (
+                          <li key={i} className="text-gray-600">
+                            {typeof comp === 'string' ? comp : (comp?.name || comp?.code || `C${i+1}`)}
+                            {comp?.score && <span className="ml-1 text-blue-600">({comp.score})</span>}
+                          </li>
+                        ))}
+                        {subject.competencies.length > 3 && (
+                          <li className="text-gray-400">+{subject.competencies.length - 3} {language === 'fr' ? 'autres' : 'more'}</li>
+                        )}
+                      </ul>
+                    ) : subject.evaluatedCompetencies ? (
+                      <span className="text-gray-600">{subject.evaluatedCompetencies}</span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="border p-2 text-xs max-w-[150px] truncate" title={subject.appreciation || ''}>
+                    {subject.appreciation || '-'}
+                  </td>
+                  <td className="border p-2 text-xs max-w-[150px]">
+                    {subject.remark || subject.comment || subject.remarks || '-'}
+                  </td>
+                </tr>
+              );
+
+              // Helper to render a single subject row (Anglophone format - with competency columns)
+              const renderAnglophoneRow = (subject: any, idx: number, sectionKey: string = 'all') => (
+                <tr key={`${sectionKey}-${subject.id ?? idx}`} data-testid={`subject-row-${sectionKey}-${subject.id ?? idx}`} className="hover:bg-blue-50">
+                  <td className="border p-2 font-medium">{subject.name || subject.subject || subject.id}</td>
+                  <td className="border p-2 text-center">{subject.mk20 ?? subject.note1 ?? subject.grade ?? '-'}</td>
+                  <td className="border p-2 text-center font-bold text-blue-700">{subject.av20 ?? subject.moyenneFinale ?? subject.average ?? '-'}</td>
+                  <td className="border p-2 text-center">{subject.coefficient ?? subject.coef ?? 1}</td>
+                  <td className="border p-2 text-center">{subject.competence1 ?? subject.c1 ?? '-'}</td>
+                  <td className="border p-2 text-center">{subject.competence2 ?? subject.c2 ?? '-'}</td>
+                  <td className="border p-2 text-center">{subject.competence3 ?? subject.c3 ?? '-'}</td>
+                  <td className="border p-2 text-xs max-w-[150px] truncate" title={subject.appreciation || ''}>
+                    {subject.appreciation || subject.remark || '-'}
+                  </td>
+                </tr>
+              );
+
+              // Francophone table header
+              const FrancophoneTableHeader = () => (
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left" rowSpan={2}>{t.subjectCol}</th>
+                    <th className="border p-2 text-center" colSpan={3}>{language === 'fr' ? 'Évaluations' : 'Evaluations'}</th>
+                    <th className="border p-2 text-center" rowSpan={2}>{t.average}</th>
+                    <th className="border p-2 text-center" rowSpan={2}>{t.coefficient}</th>
+                    <th className="border p-2 text-left" rowSpan={2}>{t.competencies}</th>
+                    <th className="border p-2 text-left" rowSpan={2}>{t.appreciation}</th>
+                    <th className="border p-2 text-left" rowSpan={2}>{t.remark}</th>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <th className="border p-1 text-center text-xs">{t.eval1}</th>
+                    <th className="border p-1 text-center text-xs">{t.eval2}</th>
+                    <th className="border p-1 text-center text-xs">{t.eval3}</th>
+                  </tr>
+                </thead>
+              );
+
+              // Anglophone table header (different columns)
+              const AnglophoneTableHeader = () => (
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left">{t.subjectCol}</th>
+                    <th className="border p-2 text-center">{t.mk20}</th>
+                    <th className="border p-2 text-center">{t.av20}</th>
+                    <th className="border p-2 text-center">{t.coefficient}</th>
+                    <th className="border p-2 text-center">{t.c1}</th>
+                    <th className="border p-2 text-center">{t.c2}</th>
+                    <th className="border p-2 text-center">{t.c3}</th>
+                    <th className="border p-2 text-left">{t.remark}</th>
+                  </tr>
+                </thead>
+              );
+
+              // For sectioned bulletins, render sections
+              if (isSectioned) {
+                return (
+                  <div className="space-y-6">
+                    {sectionsToDisplay.map(section => {
+                      const sectionSubjects = groupedSubjects[section.key as keyof typeof groupedSubjects] || [];
+                      if (sectionSubjects.length === 0) return null;
+                      
+                      return (
+                        <div key={section.key} className="space-y-2">
+                          <h4 className="font-semibold text-md bg-gray-100 p-2 rounded">
+                            {section.label}
+                          </h4>
+                          <div className="overflow-x-auto">
+                            <table className="w-full border-collapse border text-sm">
+                              {isAnglophone ? <AnglophoneTableHeader /> : <FrancophoneTableHeader />}
+                              <tbody>
+                                {sectionSubjects.map((subject: any, idx: number) => 
+                                  isAnglophone ? renderAnglophoneRow(subject, idx, section.key) : renderFrancophoneRow(subject, idx, section.key)
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              }
+
+              // For non-sectioned bulletins, render single table
+              return (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border text-sm">
+                    {isAnglophone ? <AnglophoneTableHeader /> : <FrancophoneTableHeader />}
+                    <tbody>
+                      {subjects.length > 0 ? (
+                        subjects.map((subject: any, idx: number) => 
+                          isAnglophone ? renderAnglophoneRow(subject, idx) : renderFrancophoneRow(subject, idx)
+                        )
+                      ) : (
+                        <tr>
+                          <td colSpan={isAnglophone ? 8 : 9} className="border p-4 text-center text-gray-500">{t.noData}</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Review Section */}
