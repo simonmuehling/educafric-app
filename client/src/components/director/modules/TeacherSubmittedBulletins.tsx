@@ -20,8 +20,10 @@ import {
   ThumbsUp,
   ThumbsDown,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Trash2
 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 
@@ -60,6 +62,8 @@ const TeacherSubmittedBulletins: React.FC = () => {
   const [selectedBulletin, setSelectedBulletin] = useState<TeacherBulletin | null>(null);
   const [reviewComments, setReviewComments] = useState('');
   const [activeTab, setActiveTab] = useState<string>('pending');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [bulletinToDelete, setBulletinToDelete] = useState<TeacherBulletin | null>(null);
 
   const text = {
     fr: {
@@ -107,7 +111,13 @@ const TeacherSubmittedBulletins: React.FC = () => {
       syncGrades: 'Synchroniser Notes',
       syncGradesDesc: 'Synchroniser les notes des bulletins approuvés vers le système de notes',
       syncSuccess: 'Notes synchronisées avec succès',
-      syncing: 'Synchronisation en cours...'
+      syncing: 'Synchronisation en cours...',
+      delete: 'Supprimer',
+      deleteTitle: 'Supprimer le bulletin',
+      deleteConfirm: 'Êtes-vous sûr de vouloir supprimer ce bulletin approuvé?',
+      deleteWarning: 'Cette action est irréversible. Le bulletin sera définitivement supprimé du système.',
+      deleteSuccess: 'Bulletin supprimé avec succès',
+      deleteError: 'Erreur lors de la suppression'
     },
     en: {
       title: 'Teacher-Submitted Bulletins',
@@ -154,7 +164,13 @@ const TeacherSubmittedBulletins: React.FC = () => {
       syncGrades: 'Sync Grades',
       syncGradesDesc: 'Sync grades from approved bulletins to the grades system',
       syncSuccess: 'Grades synced successfully',
-      syncing: 'Syncing grades...'
+      syncing: 'Syncing grades...',
+      delete: 'Delete',
+      deleteTitle: 'Delete Bulletin',
+      deleteConfirm: 'Are you sure you want to delete this approved bulletin?',
+      deleteWarning: 'This action is irreversible. The bulletin will be permanently removed from the system.',
+      deleteSuccess: 'Bulletin deleted successfully',
+      deleteError: 'Error deleting bulletin'
     }
   };
 
@@ -243,6 +259,46 @@ const TeacherSubmittedBulletins: React.FC = () => {
       reviewStatus: 'rejected',
       comments: reviewComments
     });
+  };
+
+  // Delete bulletin mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (bulletinId: number) => {
+      const response = await apiRequest('DELETE', `/api/director/teacher-bulletins/${bulletinId}`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(error.message || 'Failed to delete bulletin');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/director/teacher-bulletins'] });
+      toast({
+        title: t.deleteSuccess,
+        description: language === 'fr' ? 'Le bulletin a été supprimé du système.' : 'The bulletin has been removed from the system.'
+      });
+      setDeleteConfirmOpen(false);
+      setBulletinToDelete(null);
+    },
+    onError: (error: Error) => {
+      console.error('[BULLETIN_DELETE] Error:', error);
+      toast({
+        title: t.error,
+        description: error.message || t.deleteError,
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleDeleteClick = (bulletin: TeacherBulletin) => {
+    setBulletinToDelete(bulletin);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (bulletinToDelete) {
+      deleteMutation.mutate(bulletinToDelete.id);
+    }
   };
 
   const getStatusBadge = (status?: string) => {
@@ -604,16 +660,29 @@ const TeacherSubmittedBulletins: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedBulletin(bulletin)}
-                          className="ml-4"
-                          data-testid={`button-view-${bulletin.id}`}
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          {t.view}
-                        </Button>
+                        <div className="flex gap-2 ml-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedBulletin(bulletin)}
+                            data-testid={`button-view-${bulletin.id}`}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            {t.view}
+                          </Button>
+                          {bulletin.reviewStatus === 'approved' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteClick(bulletin)}
+                              disabled={deleteMutation.isPending}
+                              className="border-red-200 hover:bg-red-50"
+                              data-testid={`button-delete-${bulletin.id}`}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -623,6 +692,44 @@ const TeacherSubmittedBulletins: React.FC = () => {
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.deleteTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {bulletinToDelete && (
+                <div className="space-y-3">
+                  <p className="text-red-600 font-medium">{t.deleteConfirm}</p>
+                  <div className="bg-gray-50 p-3 rounded-lg space-y-1 text-sm">
+                    <p><strong>{t.student}:</strong> {bulletinToDelete.studentName || bulletinToDelete.studentInfo?.name || t.noData}</p>
+                    <p><strong>{t.class}:</strong> {bulletinToDelete.className || bulletinToDelete.studentInfo?.classLabel || t.noData}</p>
+                    <p><strong>{t.term}:</strong> {bulletinToDelete.term}</p>
+                    <p><strong>{t.teacher}:</strong> {bulletinToDelete.teacherName || t.noData}</p>
+                  </div>
+                  <p className="text-sm text-gray-500">{t.deleteWarning}</p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">
+              {t.cancel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteMutation.isPending 
+                ? (language === 'fr' ? 'Suppression...' : 'Deleting...') 
+                : t.delete}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

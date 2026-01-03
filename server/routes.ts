@@ -13454,6 +13454,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DELETE /api/director/teacher-bulletins/:id - Delete an approved teacher bulletin
+  app.delete('/api/director/teacher-bulletins/:id', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as { schoolId: number; id: number };
+      const bulletinId = parseInt(req.params.id);
+      
+      console.log('[DELETE_BULLETIN] Deleting bulletin:', bulletinId, 'for school:', user.schoolId);
+      
+      if (isNaN(bulletinId)) {
+        return res.status(400).json({ success: false, message: 'Invalid bulletin ID' });
+      }
+      
+      // Verify bulletin belongs to director's school
+      const [bulletin] = await db.select({
+        id: teacherBulletins.id,
+        schoolId: teacherBulletins.schoolId,
+        reviewStatus: teacherBulletins.reviewStatus,
+        studentId: teacherBulletins.studentId,
+        term: teacherBulletins.term
+      })
+        .from(teacherBulletins)
+        .where(eq(teacherBulletins.id, bulletinId))
+        .limit(1);
+      
+      if (!bulletin) {
+        return res.status(404).json({ success: false, message: 'Bulletin not found' });
+      }
+      
+      if (bulletin.schoolId !== user.schoolId) {
+        return res.status(403).json({ success: false, message: 'Unauthorized: Bulletin belongs to another school' });
+      }
+      
+      // Delete the bulletin
+      const [deletedBulletin] = await db
+        .delete(teacherBulletins)
+        .where(eq(teacherBulletins.id, bulletinId))
+        .returning();
+      
+      console.log('[DELETE_BULLETIN] ✅ Deleted bulletin:', bulletinId);
+      
+      res.json({
+        success: true,
+        message: 'Bulletin deleted successfully',
+        deletedBulletin
+      });
+      
+    } catch (error) {
+      console.error('[DELETE_BULLETIN] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete bulletin' });
+    }
+  });
+
   // Sync grades from all approved bulletins (backfill for bulletins approved before fix)
   app.post('/api/director/sync-approved-bulletin-grades', requireAuth, requireAnyRole(['Director', 'Admin']), async (req: Request, res: Response) => {
     try {
