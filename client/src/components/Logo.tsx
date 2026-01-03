@@ -31,13 +31,15 @@ const Logo = ({ className = '', showText = true, size = 'md' }: LogoProps) => {
           src={logoImage} 
           alt="Educafric Logo" 
           className="w-full h-full object-contain rounded-full"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+          }}
         />
       </div>
-      {showText && (
-        <span className={`ml-3 font-bold text-primary ${textSizeClasses[size === 'xl' ? 'lg' : size]}`}>
-          Educafric
-        </span>
-      )}
+      <span className={`ml-3 font-bold text-primary ${textSizeClasses[size === 'xl' ? 'lg' : size]}`}>
+        Educafric
+      </span>
     </Link>
   );
 };
