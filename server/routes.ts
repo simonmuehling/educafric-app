@@ -4798,6 +4798,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DELETE /api/director/teacher-grade-submissions/:id - Delete an approved grade submission
+  app.delete("/api/director/teacher-grade-submissions/:id", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const userSchoolId = user.schoolId;
+      const submissionId = parseInt(req.params.id);
+      
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+      
+      if (isNaN(submissionId)) {
+        return res.status(400).json({ success: false, message: 'Invalid submission ID' });
+      }
+      
+      console.log('[DELETE_GRADE_SUBMISSION] Deleting submission:', submissionId, 'for school:', userSchoolId);
+      
+      // Fetch submission to verify ownership and status
+      const [submission] = await db
+        .select({
+          id: teacherGradeSubmissions.id,
+          schoolId: teacherGradeSubmissions.schoolId,
+          reviewStatus: teacherGradeSubmissions.reviewStatus,
+          studentId: teacherGradeSubmissions.studentId,
+          subjectId: teacherGradeSubmissions.subjectId,
+          term: teacherGradeSubmissions.term
+        })
+        .from(teacherGradeSubmissions)
+        .where(eq(teacherGradeSubmissions.id, submissionId))
+        .limit(1);
+      
+      if (!submission) {
+        return res.status(404).json({ success: false, message: 'Submission not found' });
+      }
+      
+      if (submission.schoolId !== userSchoolId) {
+        return res.status(403).json({ success: false, message: 'Unauthorized: Submission belongs to another school' });
+      }
+      
+      // Delete related history records first
+      await db.execute(sql`DELETE FROM grade_review_history WHERE grade_submission_id = ${submissionId}`);
+      
+      // Delete the submission
+      const [deletedSubmission] = await db
+        .delete(teacherGradeSubmissions)
+        .where(eq(teacherGradeSubmissions.id, submissionId))
+        .returning();
+      
+      console.log('[DELETE_GRADE_SUBMISSION] ✅ Deleted submission:', submissionId);
+      
+      res.json({
+        success: true,
+        message: 'Grade submission deleted successfully',
+        deletedSubmission
+      });
+      
+    } catch (error) {
+      console.error('[DELETE_GRADE_SUBMISSION] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete grade submission' });
+    }
+  });
+
   // POST /api/director/teacher-grade-submissions/:id/notify - Manually notify teacher about submission
   app.post("/api/director/teacher-grade-submissions/:id/notify", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {

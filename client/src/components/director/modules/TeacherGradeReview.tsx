@@ -28,8 +28,10 @@ import {
   History,
   Bell,
   BarChart3,
-  PieChart
+  PieChart,
+  Trash2
 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import GradeAnalyticsTab from './GradeAnalyticsTab';
 
@@ -99,6 +101,10 @@ export default function TeacherGradeReview() {
   
   // History modal
   const [historySubmissionId, setHistorySubmissionId] = useState<number | null>(null);
+  
+  // Delete confirmation
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [gradeToDelete, setGradeToDelete] = useState<GradeSubmission | null>(null);
 
   // Text translations
   const text = {
@@ -176,7 +182,13 @@ export default function TeacherGradeReview() {
       byTeacher: 'Par enseignant',
       bySubject: 'Par matière',
       byClass: 'Par classe',
-      noData: 'Aucune donnée disponible'
+      noData: 'Aucune donnée disponible',
+      delete: 'Supprimer',
+      deleteTitle: 'Supprimer la note',
+      deleteConfirm: 'Êtes-vous sûr de vouloir supprimer cette note approuvée?',
+      deleteWarning: 'Cette action est irréversible. La note sera définitivement supprimée du système.',
+      deleteSuccess: 'Note supprimée avec succès',
+      deleteError: 'Erreur lors de la suppression'
     },
     en: {
       title: 'Teacher Grade Review',
@@ -252,7 +264,13 @@ export default function TeacherGradeReview() {
       byTeacher: 'By Teacher',
       bySubject: 'By Subject',
       byClass: 'By Class',
-      noData: 'No data available'
+      noData: 'No data available',
+      delete: 'Delete',
+      deleteTitle: 'Delete Grade',
+      deleteConfirm: 'Are you sure you want to delete this approved grade?',
+      deleteWarning: 'This action is irreversible. The grade will be permanently removed from the system.',
+      deleteSuccess: 'Grade deleted successfully',
+      deleteError: 'Error deleting grade'
     }
   };
 
@@ -427,6 +445,46 @@ export default function TeacherGradeReview() {
       });
     }
   });
+
+  // Delete grade mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (submissionId: number) => {
+      return apiRequest('DELETE', `/api/director/teacher-grade-submissions/${submissionId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && key[0]?.toString().includes('teacher-grade-submissions');
+        }
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/teacher-grade-submissions'] });
+      toast({
+        title: t.deleteSuccess,
+        description: language === 'fr' ? 'La note a été supprimée du système.' : 'The grade has been removed from the system.'
+      });
+      setDeleteConfirmOpen(false);
+      setGradeToDelete(null);
+    },
+    onError: () => {
+      toast({
+        title: t.error,
+        description: t.deleteError,
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleDeleteClick = (submission: GradeSubmission) => {
+    setGradeToDelete(submission);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (gradeToDelete) {
+      deleteMutation.mutate(gradeToDelete.id);
+    }
+  };
 
   // Fetch analytics
   const { data: analyticsData } = useQuery({
@@ -719,6 +777,19 @@ export default function TeacherGradeReview() {
                           >
                             <Bell className="h-4 w-4 text-purple-600" />
                           </Button>
+                          {submission.reviewStatus === 'approved' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeleteClick(submission)}
+                              title={t.delete}
+                              disabled={deleteMutation.isPending}
+                              data-testid={`button-delete-${submission.id}`}
+                              className="border-red-200 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -903,6 +974,45 @@ export default function TeacherGradeReview() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.deleteTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {gradeToDelete && (
+                <div className="space-y-3">
+                  <p className="text-red-600 font-medium">{t.deleteConfirm}</p>
+                  <div className="bg-gray-50 p-3 rounded-lg space-y-1 text-sm">
+                    <p><strong>{t.student}:</strong> {gradeToDelete.studentFirstName} {gradeToDelete.studentLastName}</p>
+                    <p><strong>{t.subject}:</strong> {gradeToDelete.subjectName}</p>
+                    <p><strong>{t.class}:</strong> {gradeToDelete.className}</p>
+                    <p><strong>{t.term}:</strong> {gradeToDelete.term}</p>
+                    <p><strong>{t.grade}:</strong> {gradeToDelete.termAverage}/20</p>
+                  </div>
+                  <p className="text-sm text-gray-500">{t.deleteWarning}</p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">
+              {t.cancel}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteMutation.isPending 
+                ? (language === 'fr' ? 'Suppression...' : 'Deleting...') 
+                : t.delete}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
