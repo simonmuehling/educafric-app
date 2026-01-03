@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
@@ -10,6 +10,12 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const LOGO_SOURCES = [
+  '/educafric-logo-128.png',
+  '/educafric-logo-512.png',
+  '/favicon.ico'
+];
 
 
 interface NavigationItem {
@@ -23,6 +29,16 @@ export default function FrontpageNavbar() {
   const { language, setLanguage } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [, navigate] = useLocation();
+  const [logoError, setLogoError] = useState(false);
+  const [logoSourceIndex, setLogoSourceIndex] = useState(0);
+
+  const handleLogoError = () => {
+    if (logoSourceIndex < LOGO_SOURCES.length - 1) {
+      setLogoSourceIndex(logoSourceIndex + 1);
+    } else {
+      setLogoError(true);
+    }
+  };
 
   const text = {
     fr: {
@@ -72,17 +88,21 @@ export default function FrontpageNavbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo - Home Button */}
-          <Link href="/" className="flex items-center gap-2">
-            <img 
-              src="/educafric-logo-128.png" 
-              alt="Educafric Logo" 
-              className="w-10 h-10 rounded-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
-            />
+          {/* Logo - Home Button with robust fallback */}
+          <Link href="/" className="flex items-center gap-2" data-testid="navbar-logo">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center overflow-hidden">
+              {!logoError ? (
+                <img 
+                  src={LOGO_SOURCES[logoSourceIndex]} 
+                  alt="Educafric Logo" 
+                  className="w-full h-full object-cover rounded-full"
+                  onError={handleLogoError}
+                  loading="eager"
+                />
+              ) : (
+                <GraduationCap className="w-6 h-6 text-white" />
+              )}
+            </div>
             <span className="text-xl font-bold text-primary">Educafric</span>
           </Link>
 

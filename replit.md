@@ -40,6 +40,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
   3. Create HTML version in `/public/documents/` for web viewing.
   4. Update alphabetical index in `00-index-documents-alphabetique.html`.
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
+- LOGO ROBUSTE MULTI-FALLBACK: Les composants Logo.tsx et FrontpageNavbar.tsx utilisent un système de fallback à 4 niveaux pour garantir l'affichage du logo: 1) /educafric-logo-128.png, 2) /educafric-logo-512.png, 3) /favicon.ico, 4) Icône GraduationCap. Le texte "Educafric" est TOUJOURS visible indépendamment du statut de l'image. LOGO_SOURCES array avec useState pour tracking des erreurs. NE JAMAIS supprimer ces fallbacks.
 
 # System Architecture
 - **UI/UX Decisions**: African-themed, mobile-first, PWA-enabled UI utilizing Radix UI, Shadcn/UI, and Tailwind CSS. All alert/confirmation dialogs must have a `bg-white` background. A standardized, mobile-friendly Student ID Card template ensures consistent design, color printing, digital signatures, and QR codes.
