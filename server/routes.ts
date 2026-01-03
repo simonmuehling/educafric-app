@@ -13221,7 +13221,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .limit(1);
             
             // Map bulletin data to teacherGradeSubmissions schema columns
-            const grade = parseFloat(subject.moyenneFinale) || parseFloat(subject.grade) || parseFloat(subject.note1) || 0;
+            // Support ALL 6 bulletin types: general-fr, general-en, literary-fr, scientific-fr, professional-fr, technical-en
+            const bulletinType = bulletin.bulletinType || 'general-fr';
+            const isAnglophone = bulletinType === 'general-en' || bulletinType === 'technical-en';
+            
+            // Extract grade values based on bulletin type
+            let firstEval, secondEval, thirdEval, termAvg;
+            
+            if (isAnglophone) {
+              // Anglophone format: mk20, av20, competence1/2/3
+              firstEval = parseFloat(subject.mk20) || parseFloat(subject.note1) || parseFloat(subject.grade) || 0;
+              secondEval = parseFloat(subject.competence1) || parseFloat(subject.c1) || 0;
+              thirdEval = parseFloat(subject.competence2) || parseFloat(subject.c2) || 0;
+              termAvg = parseFloat(subject.av20) || parseFloat(subject.moyenneFinale) || parseFloat(subject.average) || firstEval;
+            } else {
+              // Francophone format: note1, note2, note3, moyenneFinale
+              firstEval = parseFloat(subject.note1) || parseFloat(subject.n1) || parseFloat(subject.grade) || 0;
+              secondEval = parseFloat(subject.note2) || parseFloat(subject.n2) || 0;
+              thirdEval = parseFloat(subject.note3) || parseFloat(subject.n3) || 0;
+              termAvg = parseFloat(subject.moyenneFinale) || parseFloat(subject.m20) || parseFloat(subject.average) || firstEval;
+            }
+            
             const gradeData = {
               teacherId: bulletin.teacherId,
               schoolId: bulletin.schoolId,
@@ -13230,19 +13250,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
               subjectId: subjectId,
               term: bulletin.term,
               academicYear: bulletin.academicYear,
-              firstEvaluation: String(parseFloat(subject.note1) || grade),
-              secondEvaluation: String(parseFloat(subject.note2) || 0),
-              thirdEvaluation: String(parseFloat(subject.note3) || 0),
-              coefficient: parseInt(subject.coefficient) || 1,
-              termAverage: String(grade),
-              subjectComments: subject.appreciation || subject.remark || '',
+              firstEvaluation: String(firstEval),
+              secondEvaluation: String(secondEval),
+              thirdEvaluation: String(thirdEval),
+              coefficient: parseInt(subject.coefficient) || parseInt(subject.coef) || 1,
+              termAverage: String(termAvg),
+              subjectComments: subject.appreciation || subject.remark || subject.comment || '',
               isSubmitted: true,
               submittedAt: new Date(),
               reviewStatus: 'approved',
               reviewedBy: user.id,
               reviewedAt: new Date(),
-              reviewFeedback: `Approved from bulletin #${bulletinId}`
+              reviewFeedback: `Approved from bulletin #${bulletinId} (${bulletinType})`
             };
+            
+            console.log(`[DIRECTOR_BULLETINS] 📝 Grade mapping (${bulletinType}): first=${firstEval}, second=${secondEval}, third=${thirdEval}, avg=${termAvg}`);
             
             if (existingGrade.length > 0) {
               // Update existing grade
@@ -13587,7 +13609,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ))
               .limit(1);
             
-            const grade = parseFloat(subject.moyenneFinale) || parseFloat(subject.grade) || parseFloat(subject.note1) || 0;
+            // Support ALL 6 bulletin types: general-fr, general-en, literary-fr, scientific-fr, professional-fr, technical-en
+            const bulletinType = bulletin.bulletinType || 'general-fr';
+            const isAnglophone = bulletinType === 'general-en' || bulletinType === 'technical-en';
+            
+            // Extract grade values based on bulletin type
+            let firstEval, secondEval, thirdEval, termAvg;
+            
+            if (isAnglophone) {
+              // Anglophone format: mk20, av20, competence1/2/3
+              firstEval = parseFloat(subject.mk20) || parseFloat(subject.note1) || parseFloat(subject.grade) || 0;
+              secondEval = parseFloat(subject.competence1) || parseFloat(subject.c1) || 0;
+              thirdEval = parseFloat(subject.competence2) || parseFloat(subject.c2) || 0;
+              termAvg = parseFloat(subject.av20) || parseFloat(subject.moyenneFinale) || parseFloat(subject.average) || firstEval;
+            } else {
+              // Francophone format: note1, note2, note3, moyenneFinale
+              firstEval = parseFloat(subject.note1) || parseFloat(subject.n1) || parseFloat(subject.grade) || 0;
+              secondEval = parseFloat(subject.note2) || parseFloat(subject.n2) || 0;
+              thirdEval = parseFloat(subject.note3) || parseFloat(subject.n3) || 0;
+              termAvg = parseFloat(subject.moyenneFinale) || parseFloat(subject.m20) || parseFloat(subject.average) || firstEval;
+            }
+            
             const gradeData = {
               teacherId: bulletin.teacherId,
               schoolId: bulletin.schoolId,
@@ -13596,18 +13638,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
               subjectId: subjectId,
               term: bulletin.term,
               academicYear: bulletin.academicYear,
-              firstEvaluation: String(parseFloat(subject.note1) || grade),
-              secondEvaluation: String(parseFloat(subject.note2) || 0),
-              thirdEvaluation: String(parseFloat(subject.note3) || 0),
-              coefficient: parseInt(subject.coefficient) || 1,
-              termAverage: String(grade),
-              subjectComments: subject.appreciation || subject.remark || '',
+              firstEvaluation: String(firstEval),
+              secondEvaluation: String(secondEval),
+              thirdEvaluation: String(thirdEval),
+              coefficient: parseInt(subject.coefficient) || parseInt(subject.coef) || 1,
+              termAverage: String(termAvg),
+              subjectComments: subject.appreciation || subject.remark || subject.comment || '',
               isSubmitted: true,
               submittedAt: new Date(),
               reviewStatus: 'approved',
               reviewedBy: user.id,
               reviewedAt: new Date(),
-              reviewFeedback: `Synced from approved bulletin #${bulletin.id}`
+              reviewFeedback: `Synced from approved bulletin #${bulletin.id} (${bulletinType})`
             };
             
             if (existingGrade.length > 0) {
