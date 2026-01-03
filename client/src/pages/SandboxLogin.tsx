@@ -114,6 +114,7 @@ const SandboxLogin = () => {
   ];
 
   const handleSandboxLogin = async (profile: typeof sandboxProfiles[0]) => {
+    console.log('[SANDBOX_LOGIN] Button clicked for profile:', profile.id, profile.email);
     setIsLogging(profile.id);
     
     try {
