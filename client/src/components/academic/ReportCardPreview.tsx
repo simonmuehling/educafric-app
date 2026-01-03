@@ -549,27 +549,28 @@ export default function ReportCardPreview({
           {/* EXACT Ministry Subject Table - A4 PRINT OPTIMIZED */}
           <div className="mt-1 grades-table-wrapper">
             <table className="w-full border border-black" style={{lineHeight: '1.2', tableLayout: 'fixed', borderCollapse: 'collapse'}}>
-              {/* Fixed Column Widths for A4 Fit - Optimized for readability */}
+              {/* Fixed Column Widths for A4 Fit - Ministry Official CBA Format */}
               {showTwoColumns ? (
-                <colgroup><col style={{ width: '22%' }} /><col style={{ width: '24%' }} /><col style={{ width: '7%' }} /><col style={{ width: '7%' }} /><col style={{ width: '6%' }} /><col style={{ width: '8%' }} /><col style={{ width: '8%' }} /><col style={{ width: '9%' }} /><col style={{ width: '9%' }} /></colgroup>
+                /* Anglophone CBA: Subject/Teacher | Competencies | MK/20 | AV/20 | Coef | AV x coef | GRADE | [Min-Max] | Remarks */
+                <colgroup><col style={{ width: '18%' }} /><col style={{ width: '20%' }} /><col style={{ width: '7%' }} /><col style={{ width: '7%' }} /><col style={{ width: '6%' }} /><col style={{ width: '8%' }} /><col style={{ width: '7%' }} /><col style={{ width: '10%' }} /><col style={{ width: '17%' }} /></colgroup>
               ) : (
                 <colgroup><col style={{ width: '20%' }} /><col style={{ width: '28%' }} /><col style={{ width: '8%' }} /><col style={{ width: '7%' }} /><col style={{ width: '9%' }} /><col style={{ width: '10%' }} /><col style={{ width: '9%' }} /><col style={{ width: '9%' }} /></colgroup>
               )}
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border border-black px-1 py-0.5 font-bold text-center text-[9px]">
-                    {language === 'fr' ? 'Matière / Enseignant' : 'Subject / Teacher'}
+                    {language === 'fr' ? 'Matière / Enseignant' : "Subject and Teacher's Names"}
                   </th>
                   <th className="border border-black px-1 py-0.5 font-bold text-center text-[9px]">
-                    {language === 'fr' ? 'Compétences' : 'Competencies'}
+                    {language === 'fr' ? 'Compétences' : 'COMPETENCIES EVALUATED'}
                   </th>
                   {showTwoColumns ? (
                     <>
                       <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
-                        N/20
+                        MK/20
                       </th>
                       <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
-                        M/20
+                        AV/20
                       </th>
                     </>
                   ) : (
@@ -581,17 +582,24 @@ export default function ReportCardPreview({
                     Coef
                   </th>
                   <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
-                    {language === 'fr' ? 'Total' : 'Total'}
+                    {showTwoColumns ? 'AV x coef' : (language === 'fr' ? 'Total' : 'Total')}
                   </th>
                   <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
-                    {language === 'fr' ? 'Cote' : 'Grade'}
+                    {language === 'fr' ? 'Cote' : 'GRADE'}
                   </th>
+                  {showTwoColumns && (
+                    <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                      [Min - Max]
+                    </th>
+                  )}
                   <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
-                    {language === 'fr' ? 'Appréciation' : 'Remarks'}
+                    {showTwoColumns ? "Remarks and Teacher's signature" : (language === 'fr' ? 'Appréciation' : 'Remarks')}
                   </th>
-                  <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
-                    {language === 'fr' ? 'Obs.' : 'Comments'}
-                  </th>
+                  {!showTwoColumns && (
+                    <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                      {language === 'fr' ? 'Obs.' : 'Comments'}
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -664,24 +672,37 @@ export default function ReportCardPreview({
                       <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">
                         {r.grade || cote}
                       </td>
+                      {showTwoColumns && (
+                        <td className="border border-black px-0.5 py-0.5 text-center text-[8px]">
+                          {r.minMax || `${Math.max(0, Number(av20) - 2).toFixed(1)} - ${Math.min(20, Number(av20) + 2).toFixed(1)}`}
+                        </td>
+                      )}
                       <td className="border border-black px-0.5 py-0.5 appreciation-text text-[8px]">
                         {(() => {
                           const customApp = (r as any).customAppreciation;
                           if (customApp) return customApp;
                           const remarkCode = r.remark;
                           if (remarkCode) return getAppreciationText(remarkCode, language);
+                          // For Anglophone, combine remarks and teacher comments
+                          if (showTwoColumns) {
+                            const remark = r.remarksAndSignature || '';
+                            const comments = r.teacherComments?.slice(0, 1).join('; ') || '';
+                            return remark + (comments ? ` - ${comments}` : '');
+                          }
                           return r.remarksAndSignature || '';
                         })()}
                       </td>
-                      <td className="border border-black px-0.5 py-0.5 text-[8px] align-top">
-                        {r.teacherComments && r.teacherComments.length > 0 ? (
-                          <div className="text-[8px] leading-tight">
-                            {r.teacherComments.slice(0, 2).map((c, i) => (
-                              <div key={i}>{i + 1}. {c}</div>
-                            ))}
-                          </div>
-                        ) : null}
-                      </td>
+                      {!showTwoColumns && (
+                        <td className="border border-black px-0.5 py-0.5 text-[8px] align-top">
+                          {r.teacherComments && r.teacherComments.length > 0 ? (
+                            <div className="text-[8px] leading-tight">
+                              {r.teacherComments.slice(0, 2).map((c, i) => (
+                                <div key={i}>{i + 1}. {c}</div>
+                              ))}
+                            </div>
+                          ) : null}
+                        </td>
+                      )}
                     </tr>
                     );
                   };
@@ -712,7 +733,8 @@ export default function ReportCardPreview({
                         <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">{sectionTotalCoef}</td>
                         <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">{round2(sectionTotalMxCoef)}</td>
                         <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">{sectionMoyenne}/20</td>
-                        <td colSpan={2} className="border border-black px-0.5 py-0.5"></td>
+                        {showTwoColumns && <td className="border border-black px-0.5 py-0.5"></td>}
+                        <td colSpan={showTwoColumns ? 1 : 2} className="border border-black px-0.5 py-0.5"></td>
                       </tr>
                     );
                   };
@@ -780,8 +802,9 @@ export default function ReportCardPreview({
                       <td className="border border-black px-0.5 py-2 text-center">&nbsp;</td>
                       <td className="border border-black px-0.5 py-2 text-center">&nbsp;</td>
                       <td className="border border-black px-0.5 py-2 text-center">&nbsp;</td>
+                      {showTwoColumns && <td className="border border-black px-0.5 py-2 text-center">&nbsp;</td>}
                       <td className="border border-black px-0.5 py-2">&nbsp;</td>
-                      <td className="border border-black px-0.5 py-2">&nbsp;</td>
+                      {!showTwoColumns && <td className="border border-black px-0.5 py-2">&nbsp;</td>}
                     </tr>
                   ));
                   
@@ -803,17 +826,18 @@ export default function ReportCardPreview({
                   <td className="border border-black px-0.5 py-0.5 text-center font-bold text-[10px]">{totalCoef}</td>
                   <td className="border border-black px-0.5 py-0.5 text-center font-bold text-[10px]">{round2(totalMxCoef)}</td>
                   <td className="border border-black px-0.5 py-0.5"></td>
+                  {showTwoColumns && <td className="border border-black px-0.5 py-0.5"></td>}
                   <td className="border border-black px-0.5 py-0.5"></td>
-                  <td className="border border-black px-0.5 py-0.5"></td>
+                  {!showTwoColumns && <td className="border border-black px-0.5 py-0.5"></td>}
                 </tr>
                 <tr className="bg-yellow-50">
                   <td colSpan={2} className="border border-black px-1 py-1 font-bold text-[11px]">
-                    {language === 'fr' ? 'MOYENNE GÉNÉRALE' : 'OVERALL AVERAGE'}
+                    {showTwoColumns ? 'ANNUAL AVERAGE' : (language === 'fr' ? 'MOYENNE GÉNÉRALE' : 'OVERALL AVERAGE')}
                   </td>
                   <td colSpan={showTwoColumns ? 3 : 2} className={`border border-black px-1 py-1 text-center font-bold text-[12px] ${moyenne < 10 ? 'text-red-600 bg-red-50' : 'text-green-700 bg-green-50'}`}>
                     {moyenne}/20
                   </td>
-                  <td colSpan={4} className="border border-black px-1 py-1 text-[10px]">
+                  <td colSpan={showTwoColumns ? 4 : 4} className="border border-black px-1 py-1 text-[10px]">
                     <strong>{language === 'fr' ? 'Mention:' : 'Grade:'}</strong> {moyenne >= 16 ? 'A' : moyenne >= 14 ? 'B' : moyenne >= 12 ? 'C+' : moyenne >= 10 ? 'C' : 'D'}
                   </td>
                 </tr>
@@ -1004,56 +1028,56 @@ export default function ReportCardPreview({
 
           {/* FOOTER SECTION - Pushed to bottom via margin-top: auto */}
           <div className="bulletin-footer-section">
-          {/* Third Trimester Annual Summary - Compact for Print */}
+          {/* Third Trimester Annual Summary - Ministry Required for 3rd Term / Annual Report Sheet */}
           {isThirdTrimester && annualSummary && (
-            <div className={`${isSectionedBulletin ? "mt-2" : "mt-3"} border border-orange-300 rounded p-2 bg-orange-50 print:hidden`}>
-              <h3 className="text-lg font-semibold text-orange-800 mb-3">
-                {language === 'fr' ? 'Résumé Annuel' : 'Annual Summary'}
+            <div className={`${isSectionedBulletin ? "mt-2" : "mt-3"} border border-orange-300 rounded p-2 bg-orange-50 annual-summary-print print:border-black print:bg-white`}>
+              <h3 className="text-lg font-semibold text-orange-800 mb-3 print:text-black print:text-sm print:mb-1">
+                {language === 'fr' ? 'RÉSUMÉ ANNUEL / ANNUAL SUMMARY' : 'ANNUAL SUMMARY / RÉSUMÉ ANNUEL'}
               </h3>
               
-              {/* Trimester Averages */}
-              <div className="grid grid-cols-4 gap-3 mb-4">
-                <div className="text-center">
-                  <div className="text-xs text-gray-600">
+              {/* Trimester Averages - Ministry Format */}
+              <div className="grid grid-cols-4 gap-3 mb-4 print:gap-1 print:mb-2">
+                <div className="text-center print:border print:border-black print:p-1">
+                  <div className="text-xs text-gray-600 print:text-black print:text-[8px]">
                     {language === 'fr' ? '1er T.' : '1st T.'}
                   </div>
-                  <div className={`text-sm font-semibold ${annualSummary.firstTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.firstTrimesterAverage}/20</div>
+                  <div className={`text-sm font-semibold print:text-[10px] ${annualSummary.firstTrimesterAverage < 10 ? 'text-red-600 print:text-red-600' : 'print:text-black'}`}>{annualSummary.firstTrimesterAverage}/20</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-600">
+                <div className="text-center print:border print:border-black print:p-1">
+                  <div className="text-xs text-gray-600 print:text-black print:text-[8px]">
                     {language === 'fr' ? '2e T.' : '2nd T.'}
                   </div>
-                  <div className={`text-sm font-semibold ${annualSummary.secondTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.secondTrimesterAverage}/20</div>
+                  <div className={`text-sm font-semibold print:text-[10px] ${annualSummary.secondTrimesterAverage < 10 ? 'text-red-600 print:text-red-600' : 'print:text-black'}`}>{annualSummary.secondTrimesterAverage}/20</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-600">
+                <div className="text-center print:border print:border-black print:p-1">
+                  <div className="text-xs text-gray-600 print:text-black print:text-[8px]">
                     {language === 'fr' ? '3e T.' : '3rd T.'}
                   </div>
-                  <div className={`text-sm font-semibold ${annualSummary.thirdTrimesterAverage < 10 ? 'text-red-600' : ''}`}>{annualSummary.thirdTrimesterAverage}/20</div>
+                  <div className={`text-sm font-semibold print:text-[10px] ${annualSummary.thirdTrimesterAverage < 10 ? 'text-red-600 print:text-red-600' : 'print:text-black'}`}>{annualSummary.thirdTrimesterAverage}/20</div>
                 </div>
-                <div className="text-center bg-white rounded border p-2">
-                  <div className="text-xs text-orange-700 font-medium">
-                    {language === 'fr' ? 'Moyenne Annuelle' : 'Annual Average'}
+                <div className="text-center bg-white rounded border p-2 print:border-2 print:border-black print:p-1 print:bg-yellow-50">
+                  <div className="text-xs text-orange-700 font-medium print:text-black print:text-[8px]">
+                    {language === 'fr' ? 'Moy. Annuelle' : 'Annual Avg.'}
                   </div>
-                  <div className={`text-lg font-bold ${annualSummary.annualAverage < 10 ? 'text-red-600' : 'text-orange-800'}`}>{annualSummary.annualAverage}/20</div>
+                  <div className={`text-lg font-bold print:text-[12px] ${annualSummary.annualAverage < 10 ? 'text-red-600 print:text-red-600' : 'text-orange-800 print:text-black'}`}>{annualSummary.annualAverage}/20</div>
                 </div>
               </div>
 
-              {/* Annual Rank and Pass Decision */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="text-center border rounded p-2">
-                  <div className="text-xs text-gray-600">
+              {/* Annual Rank and Pass Decision - Ministry CLASS COUNCIL DECISION Format */}
+              <div className="grid grid-cols-2 gap-4 mb-4 print:gap-2 print:mb-2">
+                <div className="text-center border rounded p-2 print:border-black print:p-1">
+                  <div className="text-xs text-gray-600 print:text-black print:text-[8px]">
                     {language === 'fr' ? 'Rang Annuel' : 'Annual Rank'}
                   </div>
-                  <div className="text-sm font-semibold">{annualSummary.annualRank}e / {annualSummary.totalStudents}</div>
+                  <div className="text-sm font-semibold print:text-[10px]">{annualSummary.annualRank}{language === 'fr' ? 'e' : 'th'} / {annualSummary.totalStudents}</div>
                 </div>
-                <div className="text-center border rounded p-2">
-                  <div className="text-xs text-gray-600">
-                    {language === 'fr' ? 'Décision de Passage' : 'Pass Decision'}
+                <div className="text-center border rounded p-2 print:border-black print:p-1">
+                  <div className="text-xs text-gray-600 print:text-black print:text-[8px]">
+                    {language === 'fr' ? 'Décision Conseil de Classe' : 'CLASS COUNCIL DECISION'}
                   </div>
-                  <div className={`text-sm font-bold ${
-                    annualSummary.passDecision === 'PASSE' ? 'text-green-700' : 
-                    annualSummary.passDecision === 'REDOUBLE' ? 'text-orange-700' : 'text-red-700'
+                  <div className={`text-sm font-bold print:text-[10px] ${
+                    annualSummary.passDecision === 'PASSE' || annualSummary.passDecision === 'Promoted' ? 'text-green-700' : 
+                    annualSummary.passDecision === 'REDOUBLE' || annualSummary.passDecision === 'Repeat' ? 'text-orange-700' : 'text-red-700'
                   }`}>
                     {annualSummary.passDecision}
                   </div>
