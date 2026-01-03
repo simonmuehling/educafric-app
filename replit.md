@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform aimed at digitalizing education in Africa. Its primary goal is to improve accessibility, affordability, and learning outcomes by integrating academic management, communication tools, financial services, and offline access. The platform aspires to become a leading EdTech solution across the African continent.
+Educafric is a bilingual, mobile-first EdTech platform designed to digitalize education in Africa. Its core purpose is to enhance accessibility, affordability, and learning outcomes by integrating academic management, communication, financial services, and offline access. The platform aims to become a leading EdTech solution across Africa, significantly improving educational infrastructure and opportunities.
 
 # User Preferences
 - EXEMPTION PREMIUM PERMANENTE: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -16,7 +16,7 @@ Educafric is a bilingual, mobile-first EdTech platform aimed at digitalizing edu
 - FOND BLANC POUR TOUS LES DIALOGS D'ALERTE: TOUS les dialogs d'alerte/confirmation (DeleteConfirmationDialog et autres AlertDialogContent) DOIVENT avoir un fond blanc permanent avec la classe `bg-white`. Ceci garantit une lisibilité optimale peu importe le thème actif. Le composant `DeleteConfirmationDialog` a été mis à jour avec `<AlertDialogContent className="bg-white">`. Tout nouveau dialog d'aete DOIT suivre ce standard.
 - MOCK STUDENTS ONLY FOR SANDBOX: L'endpoint `/api/director/students` a été corrigé pour retourner UNIQUEMENT les mock students pour les utilisateurs sandbox (email contenant @test.educafric.com, @educafric.demo, sandbox@, demo@, .sandbox@, .demo@, .test@). Les écoles réelles reçoivent UNIQUEMENT les étudiants de la base de données via une requête Drizzle. JAMAIS de mock data pour les écoles réelles.
 - EMPLOIS DU TEMPS DATABASE-ONLY: L'endpoint `/api/student/timetable` a été converti de mock data vers architecture database-only. Il récupère maintenant la classe de l'étudiant depuis la table `students`, puis filtre les emplois du temps depuis la table `timetables` par `classId`, `schoolId`, et `isActive=true`. L'endpoint `/api/teacher/timetable` filtre correctement par `teacherId`. Tous les endpoints d'emplois du temps utilisent UNIQUEMENT des requêtes database, conformément au principe ARCHITECTURE DATABASE-ONLY.
-- MASTERSHEET DATABASE-ONLY: Le module Fiche Scolaire (Mastersheet) dans Gestion Académique utilise maintenant UNIQUEMENT des données database via l'endpoint `/api/director/bulletins/list`. Cet endpoint interroge la table `bulletinComprehensive` avec isolation multi-tenant stricte (filtre par `schoolId`, `classId`, et `term`). L'affichage inclut : informations réelles de l'école depuis `/api/director/settings`, liste des bulletins créés avec noms d'élèves/moyennes/rangs/codes de vérification, et entête d'impression bilingue format ministère (RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON) avec logo de l'école et délégations officielles. ZÉRO mock data, tout vient de la database.
+- MASTERSHEET DATABASE-ONLY: Le module Fiche Scolaire (Mastersheet) dans Gestion Académique utilise maintenant UNIQUEMENT des données database via l'endpoint `/api/director/bulletins/list`. Cet endpoint interroge la table `bulletinComprehensive` avec isolation multi-tenant stricte (filtre par `schoolId`, `classId`, et `term`). L'affichage inclus : informations réelles de l'école depuis `/api/director/settings`, liste des bulletins créés avec noms d'élèves/moyennes/rangs/codes de vérification, et entête d'impression bilingue format ministère (RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON) avec logo de l'école et délégations officielles. ZÉRO mock data, tout vient de la database.
 - TEACHER SUBJECT ASSIGNMENTS (MES CLASSES): Les modules enseignant récupèrent maintenant les matières/classes depuis `teacherSubjectAssignments` (module "Mes Classes") et NON depuis `timetables`. Endpoints modifiés:
   - `/api/teacher/bulletin/class-subjects/:classId` - Récupère UNIQUEMENT depuis `teacherSubjectAssignments` pour afficher automatiquement le nom de l'enseignant + matière assignée dans "Notes par matière"
   - `/api/teacher/timetable` - Récupère depuis `timetables` ET `teacherSubjectAssignments`, retourne `assignedClasses` et `assignedSubjects` dans la réponse
@@ -43,22 +43,22 @@ Educafric is a bilingual, mobile-first EdTech platform aimed at digitalizing edu
 - LOGO ROBUSTE MULTI-FALLBACK: Les composants Logo.tsx et FrontpageNavbar.tsx utilisent un système de fallback à 4 niveaux pour garantir l'affichage du logo: 1) /educafric-logo-128.png, 2) /educafric-logo-512.png, 3) /favicon.ico, 4) Icône GraduationCap. Le texte "Educafric" est TOUJOURS visible indépendamment du statut de l'image. LOGO_SOURCES array avec useState pour tracking des erreurs. NE JAMAIS supprimer ces fallbacks.
 
 # System Architecture
-- **UI/UX Decisions**: African-themed, mobile-first, PWA-enabled UI utilizing Radix UI, Shadcn/UI, and Tailwind CSS. All alert/confirmation dialogs must have a `bg-white` background. A standardized Student ID Card template is used for consistent design, color printing, digital signatures, and QR codes.
+- **UI/UX Decisions**: African-themed, mobile-first, PWA-enabled UI using Radix UI, Shadcn/UI, and Tailwind CSS. Alert and confirmation dialogs utilize a `bg-white` background. Student ID cards adhere to a standardized template supporting color printing, digital signatures, and QR codes.
 - **Technical Implementations**:
-    - **Frontend**: React (TypeScript) with Wouter for client-side routing and TanStack Query for data fetching, supporting PWA.
+    - **Frontend**: React (TypeScript) with Wouter for client-side routing and TanStack Query for data fetching, supporting PWA features.
     - **Backend**: RESTful API developed with Express.js.
-    - **Database & ORM**: PostgreSQL on Neon Serverless, managed with Drizzle ORM, with strict multi-tenancy isolation using `user.schoolId`.
-    - **Authentication**: Session-based authentication via `express-session` and `Passport.js`, including Firebase Google OAuth. Features 8-role-based access control, an Intrusion Detection System (IDS), and multi-role user support through `role_affiliations`.
+    - **Database & ORM**: PostgreSQL on Neon Serverless, managed with Drizzle ORM, ensuring strict multi-tenancy isolation via `user.schoolId`.
+    - **Authentication**: Session-based authentication using `express-session` and `Passport.js`, including Firebase Google OAuth, with 8-role-based access control, an Intrusion Detection System (IDS), and multi-role user support.
     - **Route Architecture**: Express.js route registration prioritizes direct routes (Settings, API Modules, System Routes) over external routers to prevent conflicts.
     - **Cache Management**: `queryClient.ts` uses `serializeQueryKey()` to prevent query key collisions.
-    - **Module Loading**: `fastModuleLoader.ts` includes `validateMappings()` for automatic conflict detection in module mappings.
-    - **Document Management**: Centralized system for instant document creation, featuring digital signatures and PDF generation, with documents stored in `/public/documents/`.
-- **Feature Specifications**: Includes real-time attendance (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment systems, GPS tracking, iCal/ICS export, bulk Excel import, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes.
+    - **Module Loading**: `fastModuleLoader.ts` includes `validateMappings()` for automatic conflict detection in module mappings, ensuring proper module separation by dashboard.
+    - **Document Management**: Centralized system for instant document creation, featuring digital signatures and PDF generation, with all documents stored in the `/public/documents/` directory.
+- **Feature Specifications**: Includes real-time attendance tracking (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment systems, GPS tracking, iCal/ICS export, robust bulk Excel import with immediate display, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes.
 
 # External Dependencies
 - **Neon Database**: Serverless PostgreSQL database.
 - **Stripe**: Payment processing gateway.
-- **Firebase**: Google OAuth authentication.
+- **Firebase**: Google OAuth for user authentication.
 - **WhatsApp**: Direct API integration for notifications.
 - **Hostinger**: SMTP services for email notifications.
 - **Jitsi Meet**: Integrated for video conferencing and online classes.

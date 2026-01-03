@@ -157,6 +157,10 @@ export const teacherBulletins = pgTable("teacher_bulletins", {
   bulletinType: text("bulletin_type"), // 'general-fr', 'general-en', 'technical-fr', 'technical-en'
   language: text("language").default("fr"),
   
+  // Annual summary for third trimester
+  isThirdTrimester: boolean("is_third_trimester").default(false),
+  annualSummary: jsonb("annual_summary"), // {firstTrimesterAverage, secondTrimesterAverage, thirdTrimesterAverage, annualAverage, annualRank, totalStudents, passDecision, finalAppreciation, holidayRecommendations}
+  
   // Status tracking
   status: text("status").notNull().default("draft"), // 'draft', 'signed', 'sent', 'reviewed', 'approved', 'rejected'
   

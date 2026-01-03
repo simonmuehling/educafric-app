@@ -48,6 +48,19 @@ interface TeacherBulletin {
   reviewComments?: string;
   sentToSchoolAt?: string;
   reviewedAt?: string;
+  // Annual summary for third trimester
+  isThirdTrimester?: boolean;
+  annualSummary?: {
+    firstTrimesterAverage: number;
+    secondTrimesterAverage: number;
+    thirdTrimesterAverage: number;
+    annualAverage: number;
+    annualRank: number;
+    totalStudents: number;
+    passDecision: string;
+    finalAppreciation?: string;
+    holidayRecommendations?: string;
+  };
 }
 
 interface BulletinsResponse {
@@ -118,6 +131,16 @@ const TeacherSubmittedBulletins: React.FC = () => {
       deleteWarning: 'Cette action est irréversible. Le bulletin sera définitivement supprimé du système.',
       deleteSuccess: 'Bulletin supprimé avec succès',
       deleteError: 'Erreur lors de la suppression',
+      annualSummary: 'Résumé Annuel - 3e Trimestre',
+      firstTrimAvg: 'Moy. 1er Trim.',
+      secondTrimAvg: 'Moy. 2e Trim.',
+      thirdTrimAvg: 'Moy. 3e Trim.',
+      annualAvg: 'Moy. Annuelle',
+      annualRank: 'Rang Annuel',
+      totalStudentsLabel: 'Total Élèves',
+      passDecisionLabel: 'Décision Conseil',
+      finalAppreciationLabel: 'Appréciation Finale',
+      holidayRecommendationsLabel: 'Recommandations Vacances',
       bulletinTypeLabel: 'Type de bulletin',
       languageLabel: 'Langue',
       generalFr: 'Général Francophone',
@@ -200,6 +223,16 @@ const TeacherSubmittedBulletins: React.FC = () => {
       deleteWarning: 'This action is irreversible. The bulletin will be permanently removed from the system.',
       deleteSuccess: 'Bulletin deleted successfully',
       deleteError: 'Error deleting bulletin',
+      annualSummary: 'Annual Summary - 3rd Term',
+      firstTrimAvg: '1st Term Avg.',
+      secondTrimAvg: '2nd Term Avg.',
+      thirdTrimAvg: '3rd Term Avg.',
+      annualAvg: 'Annual Avg.',
+      annualRank: 'Annual Rank',
+      totalStudentsLabel: 'Total Students',
+      passDecisionLabel: 'Council Decision',
+      finalAppreciationLabel: 'Final Appreciation',
+      holidayRecommendationsLabel: 'Holiday Recommendations',
       bulletinTypeLabel: 'Report Type',
       languageLabel: 'Language',
       generalFr: 'General Francophone',
@@ -587,6 +620,65 @@ const TeacherSubmittedBulletins: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Annual Summary - Third Trimester Only */}
+          {(selectedBulletin.isThirdTrimester || selectedBulletin.term === 'T3' || selectedBulletin.term === 'Troisième') && selectedBulletin.annualSummary && (
+            <div className="space-y-4 p-4 border-2 border-orange-300 rounded-lg bg-orange-50">
+              <h3 className="font-semibold text-lg flex items-center gap-2 text-orange-800" data-testid="heading-annual-summary">
+                <Calendar className="w-5 h-5" />
+                {t.annualSummary}
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div data-testid="annual-first-trim">
+                  <p className="text-sm text-gray-600">{t.firstTrimAvg}</p>
+                  <p className="text-lg font-semibold">{selectedBulletin.annualSummary.firstTrimesterAverage}/20</p>
+                </div>
+                <div data-testid="annual-second-trim">
+                  <p className="text-sm text-gray-600">{t.secondTrimAvg}</p>
+                  <p className="text-lg font-semibold">{selectedBulletin.annualSummary.secondTrimesterAverage}/20</p>
+                </div>
+                <div data-testid="annual-third-trim">
+                  <p className="text-sm text-gray-600">{t.thirdTrimAvg}</p>
+                  <p className="text-lg font-semibold">{selectedBulletin.annualSummary.thirdTrimesterAverage}/20</p>
+                </div>
+                <div data-testid="annual-average" className="bg-white rounded p-2 border-2 border-orange-400">
+                  <p className="text-sm text-orange-700 font-medium">{t.annualAvg}</p>
+                  <p className={`text-xl font-bold ${selectedBulletin.annualSummary.annualAverage < 10 ? 'text-red-600' : 'text-orange-800'}`}>
+                    {selectedBulletin.annualSummary.annualAverage}/20
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div data-testid="annual-rank">
+                  <p className="text-sm text-gray-600">{t.annualRank}</p>
+                  <p className="text-lg font-semibold">
+                    {selectedBulletin.annualSummary.annualRank}{language === 'fr' ? 'e' : 'th'} / {selectedBulletin.annualSummary.totalStudents}
+                  </p>
+                </div>
+                <div data-testid="annual-decision" className="bg-white rounded p-2 border">
+                  <p className="text-sm text-gray-600">{t.passDecisionLabel}</p>
+                  <p className={`text-lg font-bold ${
+                    selectedBulletin.annualSummary.passDecision === 'PASSE' || selectedBulletin.annualSummary.passDecision === 'Promoted' ? 'text-green-700' :
+                    selectedBulletin.annualSummary.passDecision === 'REDOUBLE' || selectedBulletin.annualSummary.passDecision === 'Repeat' ? 'text-orange-700' : 'text-red-700'
+                  }`}>
+                    {selectedBulletin.annualSummary.passDecision}
+                  </p>
+                </div>
+              </div>
+              {selectedBulletin.annualSummary.finalAppreciation && (
+                <div data-testid="annual-appreciation">
+                  <p className="text-sm text-gray-600 font-medium">{t.finalAppreciationLabel}</p>
+                  <p className="text-sm bg-white rounded p-2 border italic">{selectedBulletin.annualSummary.finalAppreciation}</p>
+                </div>
+              )}
+              {selectedBulletin.annualSummary.holidayRecommendations && (
+                <div data-testid="annual-recommendations">
+                  <p className="text-sm text-gray-600 font-medium">{t.holidayRecommendationsLabel}</p>
+                  <p className="text-sm bg-white rounded p-2 border">{selectedBulletin.annualSummary.holidayRecommendations}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Subjects Table - BULLETIN TYPE AWARE DISPLAY */}
           <div className="space-y-4">

@@ -154,6 +154,22 @@ const TeacherBulletinInterface: React.FC = () => {
   const [selectedComments, setSelectedComments] = useState<string[]>([]);
   const [generalAppreciation, setGeneralAppreciation] = useState('');
 
+  // Check if this is third trimester for annual summary
+  const isThirdTrimester = selectedTerm === 'T3';
+
+  // Annual summary state for third trimester
+  const [annualSummary, setAnnualSummary] = useState({
+    firstTrimesterAverage: 0,
+    secondTrimesterAverage: 0,
+    thirdTrimesterAverage: 0,
+    annualAverage: 0,
+    annualRank: 0,
+    totalStudents: 45,
+    passDecision: '', // 'PASSE', 'REDOUBLE', 'RENVOYÉ' or 'Promoted', 'Repeat', 'Dismissed'
+    finalAppreciation: '',
+    holidayRecommendations: ''
+  });
+
   // Bilingual labels
   const labels = {
     fr: {
@@ -180,7 +196,20 @@ const TeacherBulletinInterface: React.FC = () => {
       signed: 'Signé',
       sent: 'Envoyé',
       continue: 'Continuer',
-      delete: 'Supprimer'
+      delete: 'Supprimer',
+      annualSummary: 'Résumé Annuel - 3e Trimestre',
+      firstTrimAvg: 'Moy. 1er Trim.',
+      secondTrimAvg: 'Moy. 2e Trim.',
+      thirdTrimAvg: 'Moy. 3e Trim.',
+      annualAvg: 'Moy. Annuelle',
+      annualRank: 'Rang Annuel',
+      totalStudentsLabel: 'Total Élèves',
+      passDecisionLabel: 'Décision Conseil',
+      finalAppreciationLabel: 'Appréciation Finale',
+      holidayRecommendationsLabel: 'Recommandations Vacances',
+      promoted: 'PASSE',
+      repeat: 'REDOUBLE',
+      dismissed: 'RENVOYÉ'
     },
     en: {
       title: 'Report Card Creation - Teacher',
@@ -206,7 +235,20 @@ const TeacherBulletinInterface: React.FC = () => {
       signed: 'Signed',
       sent: 'Sent',
       continue: 'Continue',
-      delete: 'Delete'
+      delete: 'Delete',
+      annualSummary: 'Annual Summary - 3rd Term',
+      firstTrimAvg: '1st Term Avg.',
+      secondTrimAvg: '2nd Term Avg.',
+      thirdTrimAvg: '3rd Term Avg.',
+      annualAvg: 'Annual Avg.',
+      annualRank: 'Annual Rank',
+      totalStudentsLabel: 'Total Students',
+      passDecisionLabel: 'Council Decision',
+      finalAppreciationLabel: 'Final Appreciation',
+      holidayRecommendationsLabel: 'Holiday Recommendations',
+      promoted: 'Promoted',
+      repeat: 'Repeat',
+      dismissed: 'Dismissed'
     }
   };
 
@@ -421,7 +463,10 @@ const TeacherBulletinInterface: React.FC = () => {
       discipline,
       selectedComments,
       generalAppreciation,
-      status: 'draft'
+      status: 'draft',
+      // Include annual summary for third trimester
+      isThirdTrimester,
+      annualSummary: isThirdTrimester ? annualSummary : null
     };
     saveBulletinMutation.mutate(bulletinData);
   };
@@ -438,7 +483,10 @@ const TeacherBulletinInterface: React.FC = () => {
       discipline,
       selectedComments,
       generalAppreciation,
-      status: 'signed'
+      status: 'signed',
+      // Include annual summary for third trimester
+      isThirdTrimester,
+      annualSummary: isThirdTrimester ? annualSummary : null
     };
     signBulletinMutation.mutate(bulletinData);
   };
@@ -455,7 +503,10 @@ const TeacherBulletinInterface: React.FC = () => {
       discipline,
       selectedComments,
       generalAppreciation,
-      status: 'sent'
+      status: 'sent',
+      // Include annual summary for third trimester
+      isThirdTrimester,
+      annualSummary: isThirdTrimester ? annualSummary : null
     };
     sendToSchoolMutation.mutate(bulletinData);
   };
@@ -718,6 +769,126 @@ const TeacherBulletinInterface: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Annual Summary - Third Trimester Only */}
+              {isThirdTrimester && (
+                <Card className="border-orange-200 bg-orange-50">
+                  <CardHeader>
+                    <CardTitle className="text-orange-800">{t.annualSummary}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <Label className="text-xs">{t.firstTrimAvg}</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="20"
+                          step="0.01"
+                          value={annualSummary.firstTrimesterAverage}
+                          onChange={(e) => setAnnualSummary(prev => ({...prev, firstTrimesterAverage: parseFloat(e.target.value) || 0}))}
+                          data-testid="input-first-trim-avg"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">{t.secondTrimAvg}</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="20"
+                          step="0.01"
+                          value={annualSummary.secondTrimesterAverage}
+                          onChange={(e) => setAnnualSummary(prev => ({...prev, secondTrimesterAverage: parseFloat(e.target.value) || 0}))}
+                          data-testid="input-second-trim-avg"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">{t.thirdTrimAvg}</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="20"
+                          step="0.01"
+                          value={annualSummary.thirdTrimesterAverage}
+                          onChange={(e) => setAnnualSummary(prev => ({...prev, thirdTrimesterAverage: parseFloat(e.target.value) || 0}))}
+                          data-testid="input-third-trim-avg"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-bold">{t.annualAvg}</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="20"
+                          step="0.01"
+                          value={annualSummary.annualAverage}
+                          onChange={(e) => setAnnualSummary(prev => ({...prev, annualAverage: parseFloat(e.target.value) || 0}))}
+                          className="font-bold"
+                          data-testid="input-annual-avg"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-xs">{t.annualRank}</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={annualSummary.annualRank}
+                          onChange={(e) => setAnnualSummary(prev => ({...prev, annualRank: parseInt(e.target.value) || 0}))}
+                          data-testid="input-annual-rank"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">{t.totalStudentsLabel}</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={annualSummary.totalStudents}
+                          onChange={(e) => setAnnualSummary(prev => ({...prev, totalStudents: parseInt(e.target.value) || 45}))}
+                          data-testid="input-total-students"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">{t.passDecisionLabel}</Label>
+                        <Select 
+                          value={annualSummary.passDecision} 
+                          onValueChange={(value) => setAnnualSummary(prev => ({...prev, passDecision: value}))}
+                        >
+                          <SelectTrigger data-testid="select-pass-decision">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PASSE">{t.promoted}</SelectItem>
+                            <SelectItem value="REDOUBLE">{t.repeat}</SelectItem>
+                            <SelectItem value="RENVOYÉ">{t.dismissed}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">{t.finalAppreciationLabel}</Label>
+                      <Textarea
+                        value={annualSummary.finalAppreciation}
+                        onChange={(e) => setAnnualSummary(prev => ({...prev, finalAppreciation: e.target.value}))}
+                        placeholder={language === 'fr' ? 'Appréciation finale du conseil de classe...' : 'Final class council appreciation...'}
+                        className="h-16"
+                        data-testid="textarea-final-appreciation"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">{t.holidayRecommendationsLabel}</Label>
+                      <Textarea
+                        value={annualSummary.holidayRecommendations}
+                        onChange={(e) => setAnnualSummary(prev => ({...prev, holidayRecommendations: e.target.value}))}
+                        placeholder={language === 'fr' ? 'Recommandations pour les vacances...' : 'Recommendations for holidays...'}
+                        className="h-16"
+                        data-testid="textarea-holiday-recommendations"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Actions */}
               <Card>

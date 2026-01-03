@@ -10273,6 +10273,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           discipline: bulletinData.discipline || { absJ: 0, absNJ: 0, late: 0, sanctions: [] },
           bulletinType: bulletinData.bulletinType || 'general-fr',
           language: bulletinData.language || 'fr',
+          isThirdTrimester: bulletinData.isThirdTrimester || false,
+          annualSummary: bulletinData.annualSummary || null,
           status: 'sent',
           sentToSchoolAt: new Date(),
           reviewStatus: 'pending',
@@ -10335,6 +10337,322 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         message: 'Erreur lors de la soumission du bulletin'
       });
+    }
+  });
+
+  // ===== TEACHER BULLETIN WORKFLOW ENDPOINTS =====
+  
+  // Save bulletin as draft
+  app.post("/api/teacher/bulletins/save", requireAuth, requireAnyRole(['Teacher', 'Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const bulletinData = req.body;
+      
+      console.log('[TEACHER_BULLETIN_SAVE] 💾 Saving bulletin draft:', {
+        teacherId: user.id,
+        studentId: bulletinData.studentId,
+        term: bulletinData.term,
+        status: 'draft'
+      });
+      
+      // Get teacher's school
+      const teacherAssignment = await db
+        .select({ schoolId: timetables.schoolId })
+        .from(timetables)
+        .where(eq(timetables.teacherId, user.id))
+        .limit(1);
+      
+      const schoolId = teacherAssignment[0]?.schoolId || user.schoolId || bulletinData.schoolId;
+      
+      // Check for existing draft
+      const [existingDraft] = await db.select()
+        .from(teacherBulletins)
+        .where(and(
+          eq(teacherBulletins.teacherId, user.id),
+          eq(teacherBulletins.studentId, parseInt(bulletinData.studentId) || 0),
+          eq(teacherBulletins.term, bulletinData.term || 'T1'),
+          eq(teacherBulletins.status, 'draft')
+        ));
+      
+      let savedBulletin;
+      
+      if (existingDraft) {
+        // Update existing draft
+        [savedBulletin] = await db.update(teacherBulletins)
+          .set({
+            studentInfo: bulletinData.student || {},
+            subjects: bulletinData.subjects || [],
+            discipline: bulletinData.discipline || { absJ: 0, absNJ: 0, late: 0, sanctions: [] },
+            isThirdTrimester: bulletinData.isThirdTrimester || false,
+            annualSummary: bulletinData.annualSummary || null,
+            updatedAt: new Date(),
+            metadata: {
+              lastSavedBy: user.id,
+              lastSavedAt: new Date().toISOString(),
+              teacherName: `${user.firstName || ''} ${user.lastName || ''}`.trim()
+            }
+          })
+          .where(eq(teacherBulletins.id, existingDraft.id))
+          .returning();
+      } else {
+        // Create new draft
+        [savedBulletin] = await db.insert(teacherBulletins)
+          .values({
+            teacherId: user.id,
+            schoolId: schoolId || 1,
+            studentId: parseInt(bulletinData.studentId) || 0,
+            classId: parseInt(bulletinData.classId) || 0,
+            term: bulletinData.term || 'T1',
+            academicYear: bulletinData.academicYear || '2024-2025',
+            studentInfo: bulletinData.student || {},
+            subjects: bulletinData.subjects || [],
+            discipline: bulletinData.discipline || { absJ: 0, absNJ: 0, late: 0, sanctions: [] },
+            bulletinType: bulletinData.bulletinType || 'general-fr',
+            language: bulletinData.language || 'fr',
+            isThirdTrimester: bulletinData.isThirdTrimester || false,
+            annualSummary: bulletinData.annualSummary || null,
+            status: 'draft',
+            metadata: {
+              createdBy: user.id,
+              createdAt: new Date().toISOString(),
+              teacherName: `${user.firstName || ''} ${user.lastName || ''}`.trim()
+            }
+          })
+          .returning();
+      }
+      
+      console.log(`[TEACHER_BULLETIN_SAVE] ✅ Bulletin saved with ID: ${savedBulletin?.id}`);
+      
+      res.json({
+        success: true,
+        message: 'Bulletin sauvegardé',
+        data: { bulletinId: savedBulletin?.id }
+      });
+    } catch (error) {
+      console.error('[TEACHER_BULLETIN_SAVE] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Erreur lors de la sauvegarde' });
+    }
+  });
+
+  // Sign bulletin
+  app.post("/api/teacher/bulletins/sign", requireAuth, requireAnyRole(['Teacher', 'Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const bulletinData = req.body;
+      
+      console.log('[TEACHER_BULLETIN_SIGN] ✍️ Signing bulletin:', {
+        teacherId: user.id,
+        studentId: bulletinData.studentId,
+        term: bulletinData.term
+      });
+      
+      // Get teacher's school
+      const teacherAssignment = await db
+        .select({ schoolId: timetables.schoolId })
+        .from(timetables)
+        .where(eq(timetables.teacherId, user.id))
+        .limit(1);
+      
+      const schoolId = teacherAssignment[0]?.schoolId || user.schoolId || bulletinData.schoolId;
+      
+      // Generate signature hash
+      const signatureHash = require('crypto').createHash('sha256')
+        .update(`${user.id}-${bulletinData.studentId}-${bulletinData.term}-${Date.now()}`)
+        .digest('hex');
+      
+      // Upsert bulletin with signed status
+      const [existingBulletin] = await db.select()
+        .from(teacherBulletins)
+        .where(and(
+          eq(teacherBulletins.teacherId, user.id),
+          eq(teacherBulletins.studentId, parseInt(bulletinData.studentId) || 0),
+          eq(teacherBulletins.term, bulletinData.term || 'T1')
+        ));
+      
+      let savedBulletin;
+      
+      if (existingBulletin) {
+        [savedBulletin] = await db.update(teacherBulletins)
+          .set({
+            studentInfo: bulletinData.student || {},
+            subjects: bulletinData.subjects || [],
+            discipline: bulletinData.discipline || { absJ: 0, absNJ: 0, late: 0, sanctions: [] },
+            isThirdTrimester: bulletinData.isThirdTrimester || false,
+            annualSummary: bulletinData.annualSummary || null,
+            status: 'signed',
+            signedAt: new Date(),
+            signatureHash,
+            updatedAt: new Date()
+          })
+          .where(eq(teacherBulletins.id, existingBulletin.id))
+          .returning();
+      } else {
+        [savedBulletin] = await db.insert(teacherBulletins)
+          .values({
+            teacherId: user.id,
+            schoolId: schoolId || 1,
+            studentId: parseInt(bulletinData.studentId) || 0,
+            classId: parseInt(bulletinData.classId) || 0,
+            term: bulletinData.term || 'T1',
+            academicYear: bulletinData.academicYear || '2024-2025',
+            studentInfo: bulletinData.student || {},
+            subjects: bulletinData.subjects || [],
+            discipline: bulletinData.discipline || { absJ: 0, absNJ: 0, late: 0, sanctions: [] },
+            bulletinType: bulletinData.bulletinType || 'general-fr',
+            language: bulletinData.language || 'fr',
+            isThirdTrimester: bulletinData.isThirdTrimester || false,
+            annualSummary: bulletinData.annualSummary || null,
+            status: 'signed',
+            signedAt: new Date(),
+            signatureHash,
+            metadata: {
+              signedBy: user.id,
+              signedAt: new Date().toISOString(),
+              teacherName: `${user.firstName || ''} ${user.lastName || ''}`.trim()
+            }
+          })
+          .returning();
+      }
+      
+      console.log(`[TEACHER_BULLETIN_SIGN] ✅ Bulletin signed with ID: ${savedBulletin?.id}`);
+      
+      res.json({
+        success: true,
+        message: 'Bulletin signé',
+        data: { bulletinId: savedBulletin?.id, signatureHash }
+      });
+    } catch (error) {
+      console.error('[TEACHER_BULLETIN_SIGN] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Erreur lors de la signature' });
+    }
+  });
+
+  // Send bulletin to school for director review
+  app.post("/api/teacher/bulletins/send-to-school", requireAuth, requireAnyRole(['Teacher', 'Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const bulletinData = req.body;
+      
+      console.log('[TEACHER_BULLETIN_SEND] 📤 Sending bulletin to school:', {
+        teacherId: user.id,
+        studentId: bulletinData.studentId,
+        term: bulletinData.term
+      });
+      
+      // Get teacher's school
+      const teacherAssignment = await db
+        .select({ schoolId: timetables.schoolId })
+        .from(timetables)
+        .where(eq(timetables.teacherId, user.id))
+        .limit(1);
+      
+      const schoolId = teacherAssignment[0]?.schoolId || user.schoolId || bulletinData.schoolId;
+      
+      // Upsert bulletin with sent status
+      const [existingBulletin] = await db.select()
+        .from(teacherBulletins)
+        .where(and(
+          eq(teacherBulletins.teacherId, user.id),
+          eq(teacherBulletins.studentId, parseInt(bulletinData.studentId) || 0),
+          eq(teacherBulletins.term, bulletinData.term || 'T1')
+        ));
+      
+      let savedBulletin;
+      const studentName = bulletinData.student?.name || 'Unknown Student';
+      const className = bulletinData.student?.classLabel || bulletinData.className || 'Unknown Class';
+      const average = bulletinData.subjects?.reduce((sum: number, s: any) => sum + (s.moyenneFinale || 0), 0) / 
+                     (bulletinData.subjects?.length || 1) || 0;
+      
+      if (existingBulletin) {
+        [savedBulletin] = await db.update(teacherBulletins)
+          .set({
+            studentInfo: { 
+              ...bulletinData.student, 
+              name: studentName,
+              className,
+              average: average.toFixed(2)
+            },
+            subjects: bulletinData.subjects || [],
+            discipline: bulletinData.discipline || { absJ: 0, absNJ: 0, late: 0, sanctions: [] },
+            isThirdTrimester: bulletinData.isThirdTrimester || false,
+            annualSummary: bulletinData.annualSummary || null,
+            status: 'sent',
+            sentToSchoolAt: new Date(),
+            reviewStatus: 'pending',
+            updatedAt: new Date()
+          })
+          .where(eq(teacherBulletins.id, existingBulletin.id))
+          .returning();
+      } else {
+        [savedBulletin] = await db.insert(teacherBulletins)
+          .values({
+            teacherId: user.id,
+            schoolId: schoolId || 1,
+            studentId: parseInt(bulletinData.studentId) || 0,
+            classId: parseInt(bulletinData.classId) || 0,
+            term: bulletinData.term || 'T1',
+            academicYear: bulletinData.academicYear || '2024-2025',
+            studentInfo: { 
+              ...bulletinData.student, 
+              name: studentName,
+              className,
+              average: average.toFixed(2)
+            },
+            subjects: bulletinData.subjects || [],
+            discipline: bulletinData.discipline || { absJ: 0, absNJ: 0, late: 0, sanctions: [] },
+            bulletinType: bulletinData.bulletinType || 'general-fr',
+            language: bulletinData.language || 'fr',
+            isThirdTrimester: bulletinData.isThirdTrimester || false,
+            annualSummary: bulletinData.annualSummary || null,
+            status: 'sent',
+            sentToSchoolAt: new Date(),
+            reviewStatus: 'pending',
+            metadata: {
+              submittedBy: user.id,
+              submittedAt: new Date().toISOString(),
+              teacherName: `${user.firstName || ''} ${user.lastName || ''}`.trim()
+            }
+          })
+          .returning();
+      }
+      
+      // Get director for notification
+      const [director] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(and(
+          eq(users.schoolId, schoolId || 1),
+          eq(users.role, 'Director')
+        ))
+        .limit(1);
+      
+      if (director) {
+        await storage.createNotification({
+          userId: director.id,
+          title: `📝 Bulletin soumis - ${studentName}`,
+          message: `L'enseignant ${user.firstName} ${user.lastName} a soumis le bulletin de ${studentName} (${className}) pour le ${bulletinData.term}. En attente de votre validation.`,
+          type: 'bulletin_submission',
+          priority: 'high',
+          isRead: false,
+          metadata: {
+            bulletinId: savedBulletin?.id,
+            teacherId: user.id,
+            studentId: bulletinData.studentId,
+            term: bulletinData.term
+          }
+        });
+      }
+      
+      console.log(`[TEACHER_BULLETIN_SEND] ✅ Bulletin sent with ID: ${savedBulletin?.id}`);
+      
+      res.json({
+        success: true,
+        message: 'Bulletin envoyé à l\'école',
+        data: { bulletinId: savedBulletin?.id }
+      });
+    } catch (error) {
+      console.error('[TEACHER_BULLETIN_SEND] ❌ Error:', error);
+      res.status(500).json({ success: false, message: 'Erreur lors de l\'envoi' });
     }
   });
 
