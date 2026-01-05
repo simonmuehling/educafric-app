@@ -589,6 +589,31 @@ const OnlineClassesManager: React.FC = () => {
     }
   });
 
+  const startSessionMutation = useMutation({
+    mutationFn: async (sessionId: number) => {
+      const response = await apiRequest('POST', `/api/online-classes/sessions/${sessionId}/start`);
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/sessions'] });
+      if (data.joinUrl) {
+        window.open(data.joinUrl, '_blank', 'noopener,noreferrer');
+        toast({
+          title: language === 'fr' ? 'Session démarrée' : 'Session started',
+          description: language === 'fr' ? 'La salle de classe virtuelle est ouverte' : 'Virtual classroom is now open',
+          variant: 'default'
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur lors du démarrage' : 'Error starting session',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+
   const handleEditSession = (session: OnlineClassSession) => {
     setEditingSession(session);
     
@@ -805,27 +830,55 @@ const OnlineClassesManager: React.FC = () => {
                             <p className="text-sm text-gray-500 mt-2">{session.description}</p>
                           )}
                           {session.status === 'scheduled' && (
-                            <div className="flex gap-2 mt-2">
+                            <div className="flex flex-col gap-2 mt-2">
                               <Button
-                                variant="outline"
+                                variant="default"
                                 size="sm"
-                                className="flex-1"
-                                onClick={() => handleEditSession(session)}
-                                data-testid={`button-edit-session-${session.id}`}
+                                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                                onClick={() => startSessionMutation.mutate(session.id)}
+                                disabled={startSessionMutation.isPending}
+                                data-testid={`button-start-session-${session.id}`}
                               >
-                                <Edit className="h-4 w-4 mr-2" />
-                                {language === 'fr' ? 'Modifier' : 'Edit'}
+                                <Video className="h-4 w-4 mr-2" />
+                                {language === 'fr' ? 'Démarrer la session' : 'Start Session'}
                               </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => handleEditSession(session)}
+                                  data-testid={`button-edit-session-${session.id}`}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  {language === 'fr' ? 'Modifier' : 'Edit'}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => handleCancelSession(session.id, session.title)}
+                                  disabled={cancelSessionMutation.isPending}
+                                  data-testid={`button-cancel-session-${session.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  {t.sessions.cancel}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                          {session.status === 'live' && (
+                            <div className="mt-2">
                               <Button
-                                variant="outline"
+                                variant="default"
                                 size="sm"
-                                className="flex-1"
-                                onClick={() => handleCancelSession(session.id, session.title)}
-                                disabled={cancelSessionMutation.isPending}
-                                data-testid={`button-cancel-session-${session.id}`}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={() => startSessionMutation.mutate(session.id)}
+                                disabled={startSessionMutation.isPending}
+                                data-testid={`button-join-session-${session.id}`}
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                {t.sessions.cancel}
+                                <Video className="h-4 w-4 mr-2" />
+                                {language === 'fr' ? 'Rejoindre la session' : 'Join Session'}
                               </Button>
                             </div>
                           )}
