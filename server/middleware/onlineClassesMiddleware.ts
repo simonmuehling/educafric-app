@@ -239,22 +239,35 @@ export const requirePersonalSubscription = async (
     return next();
   }
 
-  // Check for sandbox/test exemption
-  const exemptPatterns = [
+  // Check for sandbox/test exemption - STRICT pattern matching
+  // Only Educafric internal test domains are exempt
+  const exemptDomains = [
     '@educafric.demo',
+    '@educafric.test',
     '@test.educafric.com',
-    'sandbox.',
-    'demo.',
-    'test.',
-    '.sandbox@',
-    '.demo@',
-    '.test@'
+    '@demo.educafric.com'
   ];
   
-  const isExempt = user.email && exemptPatterns.some(pattern => user.email!.includes(pattern));
+  const email = user.email?.toLowerCase() || '';
+  const isExemptDomain = exemptDomains.some(domain => email.endsWith(domain));
+  
+  // Also check for exact match test emails within Educafric
+  const exactExemptEmails = [
+    'sandbox@educafric.com',
+    'demo@educafric.com',
+    'test@educafric.com'
+  ];
+  const isExactMatch = exactExemptEmails.includes(email);
+  
+  // Check prefix patterns ONLY for @educafric domains
+  const isEducafricDomain = email.includes('@educafric');
+  const localPart = email.split('@')[0];
+  const prefixExempt = isEducafricDomain && ['sandbox', 'demo', 'test'].some(p => localPart.startsWith(p));
+  
+  const isExempt = isExemptDomain || isExactMatch || prefixExempt;
   
   if (isExempt) {
-    console.log(`[PERSONAL_SUBSCRIPTION] ✅ User ${user.email} exempt from personal subscription check`);
+    console.log(`[PERSONAL_SUBSCRIPTION] ✅ User ${user.email} exempt from personal subscription check (Educafric internal account)`);
     return next();
   }
 

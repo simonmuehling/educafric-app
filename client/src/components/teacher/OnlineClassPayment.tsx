@@ -24,7 +24,7 @@ interface OnlineClassPaymentProps {
   language: 'fr' | 'en';
 }
 
-function StripePaymentForm({ durationType, amount, onSuccess, language }: any) {
+function StripePaymentForm({ durationType, amount, onSuccess, language, paymentIntentId }: any) {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -40,7 +40,7 @@ function StripePaymentForm({ durationType, amount, onSuccess, language }: any) {
     setIsProcessing(true);
 
     try {
-      const { error } = await stripe.confirmPayment({
+      const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
           return_url: `${window.location.origin}/teacher`,
@@ -54,14 +54,40 @@ function StripePaymentForm({ durationType, amount, onSuccess, language }: any) {
           description: error.message,
           variant: 'destructive',
         });
-      } else {
-        toast({
-          title: language === 'fr' ? 'Paiement réussi!' : 'Payment Successful!',
-          description: language === 'fr' 
-            ? 'Votre accès aux cours en ligne a été activé.' 
-            : 'Your online classes access has been activated.',
-        });
-        onSuccess();
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // Payment succeeded - now confirm with backend to create activation record
+        console.log('[STRIPE_PAYMENT] Payment succeeded, confirming with backend...');
+        
+        try {
+          const confirmResponse = await apiRequest('/api/online-class-payments/confirm-stripe-payment', {
+            method: 'POST',
+            body: JSON.stringify({
+              paymentIntentId: paymentIntent.id,
+              durationType
+            })
+          });
+          
+          console.log('[STRIPE_PAYMENT] Backend confirmation response:', confirmResponse);
+          
+          toast({
+            title: language === 'fr' ? 'Paiement réussi!' : 'Payment Successful!',
+            description: language === 'fr' 
+              ? 'Votre accès aux cours en ligne a été activé.' 
+              : 'Your online classes access has been activated.',
+          });
+          onSuccess();
+        } catch (confirmError: any) {
+          console.error('[STRIPE_PAYMENT] Backend confirmation error:', confirmError);
+          // Payment went through but activation failed - still notify user
+          toast({
+            title: language === 'fr' ? 'Paiement reçu' : 'Payment Received',
+            description: language === 'fr' 
+              ? 'Paiement réussi. Veuillez rafraîchir la page pour activer votre accès.' 
+              : 'Payment successful. Please refresh the page to activate your access.',
+            variant: 'default',
+          });
+          onSuccess();
+        }
       }
     } catch (error: any) {
       toast({

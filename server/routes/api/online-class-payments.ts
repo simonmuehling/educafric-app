@@ -122,6 +122,119 @@ router.post('/create-stripe-intent',
 );
 
 /**
+ * POST /api/online-class-payments/confirm-stripe-payment
+ * Confirm Stripe payment and activate online classes module
+ * This is called by the frontend after successful payment (since webhooks don't work well on Replit)
+ */
+const confirmStripePaymentSchema = z.object({
+  paymentIntentId: z.string(),
+  durationType: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'semestral', 'yearly'])
+});
+
+router.post('/confirm-stripe-payment',
+  requireAuth,
+  async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      if (user.role !== 'Teacher') {
+        return res.status(403).json({
+          success: false,
+          error: 'Seuls les enseignants peuvent activer ce module'
+        });
+      }
+
+      const validated = confirmStripePaymentSchema.parse(req.body);
+      
+      console.log(`[ONLINE_CLASS_PAYMENT] 🔍 Confirming Stripe payment for teacher ${user.id}:`, {
+        paymentIntentId: validated.paymentIntentId,
+        durationType: validated.durationType
+      });
+
+      if (!stripe) {
+        return res.status(500).json({
+          success: false,
+          error: 'Stripe non configuré'
+        });
+      }
+
+      // Retrieve the payment intent from Stripe to verify it's paid
+      const paymentIntent = await stripe.paymentIntents.retrieve(validated.paymentIntentId);
+      
+      console.log(`[ONLINE_CLASS_PAYMENT] 📄 PaymentIntent status: ${paymentIntent.status}`);
+
+      if (paymentIntent.status !== 'succeeded') {
+        return res.status(400).json({
+          success: false,
+          error: `Paiement non confirmé. Statut: ${paymentIntent.status}`
+        });
+      }
+
+      // Verify the payment metadata matches
+      if (paymentIntent.metadata.teacherId !== user.id.toString()) {
+        console.error(`[ONLINE_CLASS_PAYMENT] ❌ TeacherId mismatch:`, {
+          expected: user.id.toString(),
+          actual: paymentIntent.metadata.teacherId
+        });
+        return res.status(403).json({
+          success: false,
+          error: 'Ce paiement ne vous appartient pas'
+        });
+      }
+
+      // Check if already activated for this payment
+      const existingActivation = await onlineClassActivationService.checkTeacherActivation(user.id);
+      if (existingActivation && existingActivation.paymentReference === validated.paymentIntentId) {
+        console.log(`[ONLINE_CLASS_PAYMENT] ℹ️ Already activated for this payment`);
+        return res.json({
+          success: true,
+          message: 'Module déjà activé',
+          activation: existingActivation
+        });
+      }
+
+      // Activate online class module for teacher
+      const amount = calculatePrice(validated.durationType);
+      const activation = await onlineClassActivationService.activateForTeacher(
+        user.id,
+        validated.paymentIntentId,
+        'stripe',
+        validated.durationType as any,
+        amount
+      );
+
+      console.log(`[ONLINE_CLASS_PAYMENT] 🎉 Teacher ${user.id} activated successfully via direct confirmation`);
+      console.log(`[ONLINE_CLASS_PAYMENT] 📅 Access expires: ${activation.endDate.toISOString()}`);
+
+      res.json({
+        success: true,
+        message: 'Module cours en ligne activé avec succès!',
+        activation: {
+          startDate: activation.startDate,
+          endDate: activation.endDate,
+          durationType: activation.durationType
+        }
+      });
+    } catch (error: any) {
+      console.error('[ONLINE_CLASS_PAYMENT] ❌ Stripe confirmation error:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          error: 'Données invalides',
+          details: error.errors
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Erreur lors de la confirmation du paiement'
+      });
+    }
+  }
+);
+
+/**
  * POST /api/online-class-payments/create-mtn-payment
  * Create an MTN Mobile Money payment for online class purchase
  */

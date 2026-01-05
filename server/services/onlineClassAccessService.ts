@@ -21,31 +21,57 @@ export class OnlineClassAccessService {
   /**
    * Vérifier si un utilisateur est exempt des restrictions premium
    * (comptes sandbox et @test.educafric.com)
+   * 
+   * ATTENTION: La logique est STRICTE pour éviter de marquer des vrais utilisateurs
+   * comme exempts. Un email comme "testsimon@yahoo.com" n'est PAS exempt.
    */
   private isSandboxOrTestUser(userEmail: string): boolean {
     if (!userEmail) return false;
     
     const email = userEmail.toLowerCase();
     
-    // Vérifier les domaines exemptés (suffixes)
+    // Vérifier les domaines exemptés EDUCAFRIC (suffixes)
+    // Seuls les domaines Educafric internes sont exemptés
     const exemptDomains = [
       '@educafric.demo',
       '@educafric.test', 
-      '@test.educafric.com'
+      '@test.educafric.com',
+      '@demo.educafric.com'
     ];
     
     if (exemptDomains.some(domain => email.endsWith(domain))) {
+      console.log(`[SANDBOX_CHECK] ✅ ${email} exempt via domain pattern`);
       return true;
     }
     
-    // Vérifier les préfixes exemptés (avant le @)
-    const localPart = email.split('@')[0];
-    const exemptPrefixes = ['sandbox', 'demo', 'test'];
+    // Vérifier des emails exacts pour les comptes de test internes
+    // NE PAS utiliser de préfixes génériques comme "test" qui pourraient
+    // correspondre à de vrais utilisateurs (ex: testsimon@yahoo.com)
+    const exactExemptEmails = [
+      'sandbox@educafric.com',
+      'demo@educafric.com',
+      'test@educafric.com'
+    ];
     
-    if (exemptPrefixes.some(prefix => localPart.startsWith(prefix))) {
+    if (exactExemptEmails.includes(email)) {
+      console.log(`[SANDBOX_CHECK] ✅ ${email} exempt via exact match`);
       return true;
     }
     
+    // Pour les préfixes, EXIGER que le domaine soit aussi @educafric.* 
+    // Cela évite d'exempter des emails réels comme testsimon@yahoo.com
+    const isEducafricDomain = email.includes('@educafric');
+    if (isEducafricDomain) {
+      const localPart = email.split('@')[0];
+      const exemptPrefixes = ['sandbox', 'demo', 'test'];
+      
+      if (exemptPrefixes.some(prefix => localPart.startsWith(prefix))) {
+        console.log(`[SANDBOX_CHECK] ✅ ${email} exempt via Educafric prefix pattern`);
+        return true;
+      }
+    }
+    
+    console.log(`[SANDBOX_CHECK] ❌ ${email} is NOT a sandbox/test account`);
     return false;
   }
   
