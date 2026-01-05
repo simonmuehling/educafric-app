@@ -488,8 +488,9 @@ router.post('/sessions/:sessionId/start',
 
       const courseData = course[0];
 
-      // SECURITY: Cross-tenant protection
-      if (courseData.schoolId !== user.schoolId) {
+      // SECURITY: Cross-tenant protection (skip for independent courses)
+      const isIndependentCourse = courseData.schoolId === null;
+      if (!isIndependentCourse && courseData.schoolId !== user.schoolId && user.role !== 'SiteAdmin') {
         return res.status(403).json({
           success: false,
           error: 'Access denied: Course belongs to different school'
@@ -692,14 +693,24 @@ router.post('/sessions/:sessionId/join',
       }
 
       const courseData = course[0];
+      
+      // Check if this is an independent course
+      const isIndependentCourse = courseData.schoolId === null;
 
       // SECURITY: Verify access to this session
       if (user.role === 'Teacher') {
         // Teachers can join their own courses
-        if (courseData.teacherId !== user.id || courseData.schoolId !== user.schoolId) {
+        if (courseData.teacherId !== user.id) {
           return res.status(403).json({
             success: false,
             error: 'You can only join your own course sessions'
+          });
+        }
+        // For school-linked courses, also verify same school
+        if (!isIndependentCourse && courseData.schoolId !== user.schoolId) {
+          return res.status(403).json({
+            success: false,
+            error: 'Access denied: Course belongs to different school'
           });
         }
       } else if (user.role === 'Director') {
@@ -710,6 +721,8 @@ router.post('/sessions/:sessionId/join',
             error: 'You can only join sessions in your school'
           });
         }
+      } else if (user.role === 'SiteAdmin' || user.role === 'Admin') {
+        // SiteAdmin and Admin can join any session
       } else {
         // Students/Parents need enrollment check (TODO: implement enrollment verification)
         return res.status(403).json({
