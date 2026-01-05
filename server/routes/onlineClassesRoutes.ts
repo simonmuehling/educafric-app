@@ -273,7 +273,9 @@ router.get('/courses/:courseId/sessions',
       const course = courseDetails[0];
 
       // SECURITY: Cross-tenant protection - verify same school (even for Admin/Director)
-      if (course.schoolId !== user.schoolId && user.role !== 'SiteAdmin') {
+      // For independent courses (schoolId is null), skip school verification
+      const isIndependentCourse = course.schoolId === null || course.isIndependent;
+      if (!isIndependentCourse && course.schoolId !== user.schoolId && user.role !== 'SiteAdmin') {
         return res.status(403).json({
           success: false,
           error: 'Access denied: Course belongs to different school'
@@ -334,13 +336,14 @@ router.post('/courses/:courseId/sessions',
       
       // SECURITY: Verify course ownership for Teachers
       if (user.role === 'Teacher') {
+        // For teachers, verify they own the course (either school-linked or independent)
         const courseOwnership = await db
           .select()
           .from(onlineCourses)
           .where(and(
             eq(onlineCourses.id, courseId),
-            eq(onlineCourses.teacherId, user.id),
-            eq(onlineCourses.schoolId, user.schoolId!)
+            eq(onlineCourses.teacherId, user.id)
+            // Note: No schoolId check for independent courses (schoolId can be NULL)
           ))
           .limit(1);
         
@@ -348,6 +351,15 @@ router.post('/courses/:courseId/sessions',
           return res.status(403).json({
             success: false,
             error: 'You can only create sessions for your own courses'
+          });
+        }
+        
+        const course = courseOwnership[0];
+        // For school-linked courses, also verify teacher belongs to that school
+        if (course.schoolId !== null && !course.isIndependent && course.schoolId !== user.schoolId) {
+          return res.status(403).json({
+            success: false,
+            error: 'Access denied: Course belongs to different school'
           });
         }
       }
