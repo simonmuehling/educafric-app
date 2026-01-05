@@ -138,7 +138,7 @@ const CreateEducationalContent = () => {
     enabled: !!user
   });
 
-  // Fetch teacher's assigned classes for level selection
+  // Fetch teacher's assigned classes for level selection (all schools)
   const { data: teacherClasses = [], isLoading: classesLoading } = useQuery<any[]>({
     queryKey: ['/api/teacher/classes'],
     queryFn: async () => {
@@ -149,7 +149,14 @@ const CreateEducationalContent = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch classes');
       const data = await response.json();
-      return data.classes || data.schoolsWithClasses?.[0]?.classes || [];
+      // Extract classes from ALL schools the teacher is assigned to
+      const allClasses = data.schoolsWithClasses?.flatMap((school: any) => 
+        (school.classes || []).map((cls: any) => ({
+          ...cls,
+          schoolName: school.schoolName
+        }))
+      ) || data.classes || [];
+      return allClasses;
     },
     enabled: !!user
   });
