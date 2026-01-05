@@ -33,6 +33,8 @@ export default function SandboxDemo() {
       viewFeatures: 'View All Features',
       goToDashboard: 'Go to My Dashboard',
       backHome: 'Back to Home',
+      ctaTitle: 'Ready to test EDUCAFRIC?',
+      ctaDescription: 'Access all demo accounts and explore every feature of our educational platform.',
       roles: {
         director: 'School Director Demo',
         teacher: 'Teacher Demo', 
@@ -57,6 +59,8 @@ export default function SandboxDemo() {
       viewFeatures: 'Voir Toutes Fonctionnalités',
       goToDashboard: 'Aller à Mon Tableau de Bord',
       backHome: 'Retour à l\'Accueil',
+      ctaTitle: 'Prêt à tester EDUCAFRIC ?',
+      ctaDescription: 'Accédez à tous les comptes de démonstration et explorez chaque fonctionnalité de notre plateforme éducative.',
       roles: {
         director: 'Démo Directeur d\'École',
         teacher: 'Démo Enseignant',
@@ -202,10 +206,10 @@ export default function SandboxDemo() {
         <div className="text-center mt-16">
           <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">
-              Prêt à tester EDUCAFRIC ?
+              {t.ctaTitle}
             </h3>
             <p className="text-gray-600 mb-6">
-              Accédez à tous les comptes de démonstration et explorez chaque fonctionnalité de notre plateforme éducative.
+              {t.ctaDescription}
             </p>
             <Button
               onClick={() => navigate('/sandbox-login')}
