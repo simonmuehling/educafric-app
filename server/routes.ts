@@ -2076,8 +2076,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(subjectsTable.schoolId, userSchoolId)
         ));
       
-      console.log('[DIRECTOR_SUBJECTS_API] ✅ Subjects count for class', classId, ':', classSubjects.length);
-      res.json({ success: true, subjects: classSubjects });
+      // Add name field for frontend compatibility (uses nameFr or nameEn)
+      const subjectsWithName = classSubjects.map(s => ({
+        ...s,
+        name: s.name || s.nameFr || s.nameEn || 'Sans nom'
+      }));
+      
+      console.log('[DIRECTOR_SUBJECTS_API] ✅ Subjects count for class', classId, ':', subjectsWithName.length);
+      res.json({ success: true, subjects: subjectsWithName });
     } catch (error) {
       console.error('[DIRECTOR_SUBJECTS_API] Error fetching subjects:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch subjects' });
