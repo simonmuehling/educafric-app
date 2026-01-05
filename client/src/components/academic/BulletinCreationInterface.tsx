@@ -20,6 +20,16 @@ import ReportCardPreview from './ReportCardPreview';
 import AnnualReportSheet from './AnnualReportSheet';
 import BulletinPrint from './BulletinPrint';
 import { formatName } from '@/utils/formatName';
+import { 
+  getBulletinConfig, 
+  detectBulletinType, 
+  getFormatDescription,
+  getAvailableBulletinTypes,
+  type BulletinType as BulletinConfigType,
+  type SchoolType,
+  type SchoolLanguage,
+  type BulletinConfig
+} from '@/lib/bulletinConfig';
 
 // Real school data fetching (useQuery already imported above)
 
@@ -425,27 +435,44 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
     defaultTerm === 'T3' ? 'Troisième' : 'Premier'
   );
   
-  // Initialize bulletin type based on school type and language
+  // Initialize bulletin type based on school type and language using centralized config
   type BulletinType = 'general-fr' | 'general-en' | 'literary-fr' | 'scientific-fr' | 'professional-fr' | 'technical-en';
   
   const getInitialBulletinType = (): BulletinType => {
-    // Check school data
-    const schoolType = testModeEducationalType || schoolData?.school?.educationalType;
-    if (schoolType === 'technical') {
-      return language === 'en' ? 'technical-en' : 'professional-fr';
+    const educationalType = testModeEducationalType || schoolData?.school?.educationalType || 'secondaire-general';
+    
+    // Map to SchoolType
+    let schoolType: SchoolType = 'secondaire-general';
+    if (educationalType.includes('primaire') || educationalType.includes('primary')) {
+      schoolType = 'primaire';
+    } else if (educationalType.includes('technique') || educationalType === 'technical') {
+      schoolType = 'secondaire-technique';
+    } else if (educationalType.includes('profess')) {
+      schoolType = 'professionnel';
     }
-    // For general schools, use language-specific format
-    return language === 'en' ? 'general-en' : 'general-fr';
+    
+    // Map to SchoolLanguage
+    const detectedLanguage: SchoolLanguage = language === 'en' ? 'en' : 'fr';
+    
+    // Use centralized detection
+    return detectBulletinType(schoolType, detectedLanguage) as BulletinType;
   };
   
   const [bulletinType, setBulletinType] = useState<BulletinType>(getInitialBulletinType());
+  const [currentBulletinConfig, setCurrentBulletinConfig] = useState<BulletinConfig>(getBulletinConfig(getInitialBulletinType() as BulletinConfigType));
   const isSectionedBulletin = ['literary-fr', 'scientific-fr', 'professional-fr', 'technical-en'].includes(bulletinType);
   const [selectedClassId, setSelectedClassId] = useState<string>(defaultClass || '');
   const [year, setYear] = useState(defaultYear || '2025/2026');
   
-  // Update bulletin type when school data or language changes
+  // Update bulletin type and config when school data or language changes
   useEffect(() => {
-    setBulletinType(getInitialBulletinType());
+    const newType = getInitialBulletinType();
+    setBulletinType(newType);
+    setCurrentBulletinConfig(getBulletinConfig(newType as BulletinConfigType));
+    console.log('[BULLETIN_CONFIG] Director interface - Auto-detected:', {
+      bulletinType: newType,
+      format: getBulletinConfig(newType as BulletinConfigType).format
+    });
   }, [schoolData, testModeEducationalType, language]);
   
   // ✅ Declare lastLoadedClassId state early so it can be used in sync effect
@@ -1547,7 +1574,13 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
 
             <div>
               <Label htmlFor="bulletinType">{t.bulletinType}</Label>
-              <Select value={bulletinType} onValueChange={(value: any) => setBulletinType(value)}>
+              <Select 
+                value={bulletinType} 
+                onValueChange={(value: any) => {
+                  setBulletinType(value);
+                  setCurrentBulletinConfig(getBulletinConfig(value as BulletinConfigType));
+                }}
+              >
                 <SelectTrigger className="bg-white border-gray-300" data-testid="select-bulletin-type">
                   <SelectValue placeholder={t.selectBulletinType} />
                 </SelectTrigger>
@@ -1560,6 +1593,9 @@ export default function BulletinCreationInterface(props: BulletinCreationInterfa
                   <SelectItem value="technical-en">{t.technicalEn}</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {getFormatDescription(currentBulletinConfig.format, language === 'en' ? 'en' : 'fr')}
+              </p>
             </div>
             
             <div>

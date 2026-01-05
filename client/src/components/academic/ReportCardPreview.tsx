@@ -255,8 +255,8 @@ interface SubjectLine {
   competence1?: string; // Individual competency 1
   competence2?: string; // Individual competency 2
   competence3?: string; // Individual competency 3
-  mk20?: number; // MK/20 column
-  av20?: number; // AV/20 column  
+  mk20?: number; // MK/20 column (CBA format)
+  av20?: number; // AV/20 column (CBA format)
   coef: number;
   avXcoef?: number; // AV x coef column
   grade?: string; // GRADE [Min – Max] 
@@ -265,6 +265,10 @@ interface SubjectLine {
   teacherComments?: string[]; // Per-subject teacher comments (Ministry)
   subjectType?: 'general' | 'scientific' | 'literary' | 'professional' | 'other'; // Subject type for technical schools (5 sections)
   bulletinSection?: 'general' | 'scientific' | 'literary' | 'professional' | 'other'; // Manual bulletin section mapping for technical schools (overrides subjectType for bulletin grouping)
+  // N/20-M/20 format fields (francophone general secondary)
+  classAverage?: number; // M/20 - Class average for this subject
+  m20ClassAvg?: number; // Alternative field name for class average
+  subjectRank?: string; // Rang - Student's rank in this subject
   // Legacy fields for backward compatibility
   note1?: number;
   moyenneFinale?: number;
@@ -326,9 +330,15 @@ export default function ReportCardPreview({
   const effectiveBulletinType = bulletinType || (isTechnicalSchool ? 'professional-fr' : 'general-fr');
   const entries = useMemo(() => (lines || []).map(x => ({ ...x, coef: Number(x.coef ?? 1) })), [lines]);
   
-  // Determine bulletin characteristics
+  // Determine bulletin characteristics based on bulletin format
+  // CBA format (anglophone): general-en, technical-en → showCBAColumns = true (MK/20, AV/20, AV×coef, Min-Max)
+  // N/20-M/20 format (francophone general): general-fr, literary-fr, scientific-fr → N/20, M/20, Rang columns
+  // Simple format (primaire, technique FR): professional-fr → Note × Coef = Total
   const isSectionedBulletin = ['literary-fr', 'scientific-fr', 'professional-fr', 'technical-en'].includes(effectiveBulletinType);
-  const showTwoColumns = effectiveBulletinType === 'general-en';
+  const showCBAColumns = ['general-en', 'technical-en'].includes(effectiveBulletinType); // CBA format for anglophone
+  const showN20M20Columns = ['general-fr', 'literary-fr', 'scientific-fr'].includes(effectiveBulletinType); // N/20-M/20 format for francophone general
+  // Legacy alias for backward compatibility
+  const showTwoColumns = showCBAColumns;
   
   // Determine which sections to show based on bulletin type
   const bulletinSections = useMemo(() => {
@@ -549,11 +559,15 @@ export default function ReportCardPreview({
           {/* EXACT Ministry Subject Table - A4 PRINT OPTIMIZED */}
           <div className="mt-1 grades-table-wrapper">
             <table className="w-full border border-black" style={{lineHeight: '1.2', tableLayout: 'fixed', borderCollapse: 'collapse'}}>
-              {/* Fixed Column Widths for A4 Fit - Ministry Official CBA Format */}
-              {showTwoColumns ? (
+              {/* Fixed Column Widths for A4 Fit - Format-Specific */}
+              {showCBAColumns ? (
                 /* Anglophone CBA: Subject/Teacher | Competencies | MK/20 | AV/20 | Coef | AV x coef | GRADE | [Min-Max] | Remarks */
                 <colgroup><col style={{ width: '18%' }} /><col style={{ width: '20%' }} /><col style={{ width: '7%' }} /><col style={{ width: '7%' }} /><col style={{ width: '6%' }} /><col style={{ width: '8%' }} /><col style={{ width: '7%' }} /><col style={{ width: '10%' }} /><col style={{ width: '17%' }} /></colgroup>
+              ) : showN20M20Columns ? (
+                /* Francophone N/20-M/20: Subject/Teacher | Competencies | N/20 | M/20 | Coef | Total | Rang | Cote | Appréciation */
+                <colgroup><col style={{ width: '18%' }} /><col style={{ width: '22%' }} /><col style={{ width: '7%' }} /><col style={{ width: '7%' }} /><col style={{ width: '6%' }} /><col style={{ width: '8%' }} /><col style={{ width: '6%' }} /><col style={{ width: '7%' }} /><col style={{ width: '19%' }} /></colgroup>
               ) : (
+                /* Simple format: Subject/Teacher | Competencies | Note | Coef | Total | Cote | Appréciation | Obs. */
                 <colgroup><col style={{ width: '20%' }} /><col style={{ width: '28%' }} /><col style={{ width: '8%' }} /><col style={{ width: '7%' }} /><col style={{ width: '9%' }} /><col style={{ width: '10%' }} /><col style={{ width: '9%' }} /><col style={{ width: '9%' }} /></colgroup>
               )}
               <thead>
@@ -564,13 +578,22 @@ export default function ReportCardPreview({
                   <th className="border border-black px-1 py-0.5 font-bold text-center text-[9px]">
                     {language === 'fr' ? 'Compétences' : 'COMPETENCIES EVALUATED'}
                   </th>
-                  {showTwoColumns ? (
+                  {showCBAColumns ? (
                     <>
                       <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
                         MK/20
                       </th>
                       <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
                         AV/20
+                      </th>
+                    </>
+                  ) : showN20M20Columns ? (
+                    <>
+                      <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                        N/20
+                      </th>
+                      <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                        M/20
                       </th>
                     </>
                   ) : (
@@ -582,20 +605,25 @@ export default function ReportCardPreview({
                     Coef
                   </th>
                   <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
-                    {showTwoColumns ? 'AV x coef' : (language === 'fr' ? 'Total' : 'Total')}
+                    {showCBAColumns ? 'AV x coef' : (language === 'fr' ? 'Total' : 'Total')}
                   </th>
+                  {showN20M20Columns && (
+                    <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
+                      Rang
+                    </th>
+                  )}
                   <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
                     {language === 'fr' ? 'Cote' : 'GRADE'}
                   </th>
-                  {showTwoColumns && (
+                  {showCBAColumns && (
                     <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
                       [Min - Max]
                     </th>
                   )}
                   <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
-                    {showTwoColumns ? "Remarks and Teacher's signature" : (language === 'fr' ? 'Appréciation' : 'Remarks')}
+                    {showCBAColumns ? "Remarks and Teacher's signature" : (language === 'fr' ? 'Appréciation' : 'Remarks')}
                   </th>
-                  {!showTwoColumns && (
+                  {!showCBAColumns && !showN20M20Columns && (
                     <th className="border border-black px-0.5 py-0.5 font-bold text-center text-[9px]">
                       {language === 'fr' ? 'Obs.' : 'Comments'}
                     </th>
@@ -649,13 +677,22 @@ export default function ReportCardPreview({
                           );
                         })()}
                       </td>
-                      {showTwoColumns ? (
+                      {showCBAColumns ? (
                         <>
                           <td className="border border-black px-0.5 py-0.5 text-center grade-value text-[9px]">
                             {mk20}
                           </td>
                           <td className={`border border-black px-0.5 py-0.5 text-center grade-value text-[9px] font-bold ${Number(av20) < 10 ? 'grade-fail text-red-600' : ''}`}>
                             {av20}
+                          </td>
+                        </>
+                      ) : showN20M20Columns ? (
+                        <>
+                          <td className={`border border-black px-0.5 py-0.5 text-center grade-value text-[9px] font-bold ${Number(av20) < 10 ? 'grade-fail text-red-600' : ''}`}>
+                            {av20}
+                          </td>
+                          <td className="border border-black px-0.5 py-0.5 text-center grade-value text-[9px]">
+                            {r.classAverage || r.m20ClassAvg || '-'}
                           </td>
                         </>
                       ) : (
@@ -669,10 +706,15 @@ export default function ReportCardPreview({
                       <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-semibold">
                         {r.avXcoef || avXcoef}
                       </td>
+                      {showN20M20Columns && (
+                        <td className="border border-black px-0.5 py-0.5 text-center text-[9px]">
+                          {r.subjectRank || '-'}
+                        </td>
+                      )}
                       <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">
                         {r.grade || cote}
                       </td>
-                      {showTwoColumns && (
+                      {showCBAColumns && (
                         <td className="border border-black px-0.5 py-0.5 text-center text-[8px]">
                           {r.minMax || `${Math.max(0, Number(av20) - 2).toFixed(1)} - ${Math.min(20, Number(av20) + 2).toFixed(1)}`}
                         </td>
@@ -683,8 +725,7 @@ export default function ReportCardPreview({
                           if (customApp) return customApp;
                           const remarkCode = r.remark;
                           if (remarkCode) return getAppreciationText(remarkCode, language);
-                          // For Anglophone, combine remarks and teacher comments
-                          if (showTwoColumns) {
+                          if (showCBAColumns) {
                             const remark = r.remarksAndSignature || '';
                             const comments = r.teacherComments?.slice(0, 1).join('; ') || '';
                             return remark + (comments ? ` - ${comments}` : '');
@@ -692,7 +733,7 @@ export default function ReportCardPreview({
                           return r.remarksAndSignature || '';
                         })()}
                       </td>
-                      {!showTwoColumns && (
+                      {!showCBAColumns && !showN20M20Columns && (
                         <td className="border border-black px-0.5 py-0.5 text-[8px] align-top">
                           {r.teacherComments && r.teacherComments.length > 0 ? (
                             <div className="text-[8px] leading-tight">
@@ -722,7 +763,7 @@ export default function ReportCardPreview({
                         <td colSpan={2} className="border border-black px-1 py-0.5 text-[9px] italic text-blue-700">
                           {language === 'fr' ? `Sous-total ${sectionName}` : `Subtotal ${sectionName}`}
                         </td>
-                        {showTwoColumns ? (
+                        {(showCBAColumns || showN20M20Columns) ? (
                           <>
                             <td className="border border-black px-0.5 py-0.5"></td>
                             <td className="border border-black px-0.5 py-0.5"></td>
@@ -732,9 +773,10 @@ export default function ReportCardPreview({
                         )}
                         <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">{sectionTotalCoef}</td>
                         <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">{round2(sectionTotalMxCoef)}</td>
+                        {showN20M20Columns && <td className="border border-black px-0.5 py-0.5"></td>}
                         <td className="border border-black px-0.5 py-0.5 text-center text-[9px] font-bold">{sectionMoyenne}/20</td>
-                        {showTwoColumns && <td className="border border-black px-0.5 py-0.5"></td>}
-                        <td colSpan={showTwoColumns ? 1 : 2} className="border border-black px-0.5 py-0.5"></td>
+                        {showCBAColumns && <td className="border border-black px-0.5 py-0.5"></td>}
+                        <td colSpan={(showCBAColumns || showN20M20Columns) ? 1 : 2} className="border border-black px-0.5 py-0.5"></td>
                       </tr>
                     );
                   };

@@ -14,6 +14,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { formatName } from '@/utils/formatName';
+import { 
+  getBulletinConfig, 
+  detectBulletinType, 
+  getFormatDescription,
+  type BulletinType,
+  type SchoolType,
+  type SchoolLanguage,
+  type BulletinConfig
+} from '@/lib/bulletinConfig';
 // Preview functionality removed - only Academic Management bulletins should be previewed
 
 // Ministry-required Teacher Comments - LISTE DES COMMENTAIRES POUR L'ENSEIGNANT
@@ -122,6 +131,10 @@ const TeacherBulletinInterface: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [selectedTerm, setSelectedTerm] = useState<'T1' | 'T2' | 'T3'>('T1');
   const [academicYear, setAcademicYear] = useState('2024-2025');
+  
+  // Bulletin type and format configuration - auto-detected from school
+  const [bulletinType, setBulletinType] = useState<BulletinType>('general-fr');
+  const [bulletinConfig, setBulletinConfig] = useState<BulletinConfig>(getBulletinConfig('general-fr'));
   
   // Active tab state
   const [activeTab, setActiveTab] = useState('selection');
@@ -325,6 +338,42 @@ const TeacherBulletinInterface: React.FC = () => {
 
   const students = studentsData?.students || studentsData || [];
   const savedBulletins: SavedBulletin[] = savedBulletinsData?.bulletins || [];
+
+  // Auto-detect bulletin type when school is selected
+  useEffect(() => {
+    if (selectedSchool) {
+      const school = schoolsWithClasses.find((s: any) => String(s.schoolId) === selectedSchool);
+      if (school) {
+        // Detect school type (primaire, secondaire-general, secondaire-technique, professionnel)
+        const educationalType = school.educationalType || school.schoolType || 'secondaire-general';
+        let schoolType: SchoolType = 'secondaire-general';
+        
+        if (educationalType.includes('primaire') || educationalType.includes('primary')) {
+          schoolType = 'primaire';
+        } else if (educationalType.includes('technique') || educationalType.includes('technical')) {
+          schoolType = 'secondaire-technique';
+        } else if (educationalType.includes('profess')) {
+          schoolType = 'professionnel';
+        }
+        
+        // Detect language
+        const schoolLanguage = school.language || (language === 'en' ? 'en' : 'fr');
+        const detectedLanguage: SchoolLanguage = schoolLanguage.includes('en') ? 'en' : 'fr';
+        
+        // Get detected bulletin type
+        const detectedType = detectBulletinType(schoolType, detectedLanguage);
+        setBulletinType(detectedType);
+        setBulletinConfig(getBulletinConfig(detectedType));
+        
+        console.log('[BULLETIN_CONFIG] Auto-detected:', { 
+          schoolType, 
+          language: detectedLanguage, 
+          bulletinType: detectedType,
+          format: getBulletinConfig(detectedType).format
+        });
+      }
+    }
+  }, [selectedSchool, schoolsWithClasses, language]);
 
   // Initialize subjects when student is selected
   useEffect(() => {
@@ -612,6 +661,26 @@ const TeacherBulletinInterface: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Bulletin Format Info */}
+              {selectedSchool && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-blue-800 dark:text-blue-300">
+                      {language === 'fr' ? 'Type de Bulletin Détecté' : 'Detected Bulletin Type'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      {bulletinConfig.labelFr} / {bulletinConfig.labelEn}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-blue-700 dark:text-blue-400">
+                    {getFormatDescription(bulletinConfig.format, language === 'en' ? 'en' : 'fr')}
+                  </p>
+                </div>
+              )}
 
               {canProceedToCreation && (
                 <Button 
