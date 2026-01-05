@@ -515,7 +515,7 @@ router.post('/sessions/:sessionId/start',
         user.email || undefined
       );
 
-      // If no subscription found and not a sandbox user, deny access
+      // If no subscription found (activationType is null) and not a sandbox user, deny access
       if (!subscriptionInfo.activationType) {
         console.log(`[ONLINE_CLASSES_API] ❌ No subscription for user ${user.id} - session start denied`);
         return res.status(402).json({
@@ -803,11 +803,21 @@ router.post('/sessions/:sessionId/join',
       }
 
       // SUBSCRIPTION VALIDATION: Check if course owner (teacher) has active subscription
-      // This prevents students from joining if teacher's subscription is expired
+      // This prevents students from joining if teacher's subscription is expired or missing
       const teacherSubscription = await onlineClassAccessService.getSubscriptionEndDate(
         courseData.teacherId,
         undefined // We don't have teacher's email, but teacherId is enough
       );
+
+      // Check if teacher has NO subscription at all
+      if (!teacherSubscription.activationType) {
+        console.log(`[ONLINE_CLASSES_API] ❌ Teacher ${courseData.teacherId} has no subscription - join denied for user ${user.id}`);
+        return res.status(402).json({
+          success: false,
+          error: "L'enseignant n'a pas d'abonnement actif. La session n'est pas disponible. / Teacher has no active subscription. Session is not available.",
+          code: 'TEACHER_NO_SUBSCRIPTION'
+        });
+      }
 
       // Check if subscription is expired
       if (teacherSubscription.endDate && teacherSubscription.endDate < new Date()) {

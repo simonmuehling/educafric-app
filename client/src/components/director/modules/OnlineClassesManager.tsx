@@ -871,7 +871,7 @@ const OnlineClassesManager: React.FC = () => {
                                 sessionForm.setValue('subjectId', '');
                               }} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger className="bg-white border-gray-300" data-testid="select-session-class">
+                                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium [&>span]:truncate [&>span]:max-w-[90%]" data-testid="select-session-class">
                                     <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -896,7 +896,7 @@ const OnlineClassesManager: React.FC = () => {
                               <FormLabel className="text-gray-700">{t.createSession.selectTeacher}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
-                                  <SelectTrigger className="bg-white border-gray-300" data-testid="select-session-teacher">
+                                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium [&>span]:truncate [&>span]:max-w-[90%]" data-testid="select-session-teacher">
                                     <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -921,7 +921,7 @@ const OnlineClassesManager: React.FC = () => {
                               <FormLabel className="text-gray-700">{t.createSession.selectSubject}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value} disabled={!selectedClassId}>
                                 <FormControl>
-                                  <SelectTrigger className="bg-white border-gray-300" data-testid="select-session-subject">
+                                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium [&>span]:truncate [&>span]:max-w-[90%]" data-testid="select-session-subject">
                                     <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -1175,7 +1175,7 @@ const OnlineClassesManager: React.FC = () => {
                               <FormLabel className="text-gray-700">{t.createRecurrence.selectCourse} (Optional)</FormLabel>
                               <Select onValueChange={(value) => field.onChange(value === "none" ? "" : value)} value={field.value || "none"}>
                                 <FormControl>
-                                  <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-course">
+                                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium [&>span]:truncate [&>span]:max-w-[90%]" data-testid="select-recurrence-course">
                                     <SelectValue placeholder={language === 'fr' ? "Aucun - Programmation directe" : "None - Direct scheduling"} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -1205,7 +1205,7 @@ const OnlineClassesManager: React.FC = () => {
                                   <FormLabel className="text-gray-700">{t.createSession.selectClass}</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value || ""}>
                                     <FormControl>
-                                      <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-class">
+                                      <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium [&>span]:truncate [&>span]:max-w-[90%]" data-testid="select-recurrence-class">
                                         <SelectValue placeholder={t.createSession.selectClassPlaceholder} />
                                       </SelectTrigger>
                                     </FormControl>
@@ -1230,7 +1230,7 @@ const OnlineClassesManager: React.FC = () => {
                                   <FormLabel className="text-gray-700">{t.createSession.selectTeacher}</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value || ""}>
                                     <FormControl>
-                                      <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-teacher">
+                                      <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium [&>span]:truncate [&>span]:max-w-[90%]" data-testid="select-recurrence-teacher">
                                         <SelectValue placeholder={t.createSession.selectTeacherPlaceholder} />
                                       </SelectTrigger>
                                     </FormControl>
@@ -1256,7 +1256,7 @@ const OnlineClassesManager: React.FC = () => {
                                     <FormLabel className="text-gray-700">{t.createSession.selectSubject}</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value || ""}>
                                       <FormControl>
-                                        <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-subject">
+                                        <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium [&>span]:truncate [&>span]:max-w-[90%]" data-testid="select-recurrence-subject">
                                           <SelectValue placeholder={t.createSession.selectSubjectPlaceholder} />
                                         </SelectTrigger>
                                       </FormControl>
@@ -1322,7 +1322,7 @@ const OnlineClassesManager: React.FC = () => {
                               <FormLabel className="text-gray-700">{t.createRecurrence.ruleType}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
-                                  <SelectTrigger className="bg-white border-gray-300" data-testid="select-recurrence-type">
+                                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium [&>span]:truncate [&>span]:max-w-[90%]" data-testid="select-recurrence-type">
                                     <SelectValue />
                                   </SelectTrigger>
                                 </FormControl>

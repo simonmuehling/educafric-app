@@ -396,8 +396,9 @@ export class OnlineClassAccessService {
 
   /**
    * Calculate JWT expiration in minutes based on subscription end date
-   * Returns the minimum of: default duration (60 min) or time until subscription expires
-   * Minimum returned is 5 minutes to allow at least one short session
+   * Returns the minimum of: default duration or time until subscription expires
+   * JWT will expire exactly when subscription expires (no extension past subscription end)
+   * Uses ceiling to ensure token expires AT or BEFORE subscription end
    */
   calculateJwtExpirationMinutes(
     subscriptionEndDate: Date | null,
@@ -410,13 +411,16 @@ export class OnlineClassAccessService {
 
     const now = new Date();
     const msUntilExpiry = subscriptionEndDate.getTime() - now.getTime();
-    const minutesUntilExpiry = Math.floor(msUntilExpiry / (1000 * 60));
 
-    // Minimum 5 minutes for a usable session
-    if (minutesUntilExpiry <= 5) {
-      console.log(`[JWT_EXPIRY] ⚠️ Subscription expiring in ${minutesUntilExpiry} min - granting minimum 5 min`);
-      return 5;
+    // If subscription already expired, return 0 (caller should have rejected already)
+    if (msUntilExpiry <= 0) {
+      console.log(`[JWT_EXPIRY] ❌ Subscription already expired - returning 0`);
+      return 0;
     }
+
+    // Convert to minutes using ceiling to avoid extending past subscription end
+    // Example: 30 seconds remaining = ceil(0.5) = 1 minute token
+    const minutesUntilExpiry = Math.ceil(msUntilExpiry / (1000 * 60));
 
     // Cap at default if subscription has more time
     if (minutesUntilExpiry > defaultMinutes) {
