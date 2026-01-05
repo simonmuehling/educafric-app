@@ -84,44 +84,52 @@ export default function SandboxBanner() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-white sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <GraduationCap className="w-6 h-6 text-green-600" />
+        <DialogContent className="bg-white w-[95vw] max-w-[420px] mx-auto rounded-2xl p-0 overflow-hidden">
+          <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-6 text-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <GraduationCap className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">
               {t.dialogTitle}
-            </DialogTitle>
-            <DialogDescription className="text-gray-600 pt-2">
+            </h2>
+            <p className="text-white/80 text-sm">EDUCAFRIC</p>
+          </div>
+          
+          <div className="p-5 sm:p-6">
+            <p className="text-gray-600 text-center text-sm sm:text-base leading-relaxed mb-6">
               {t.dialogDescription}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsDialogOpen(false)}
-              className="w-full sm:w-auto"
-              data-testid="button-cancel-dialog"
-            >
-              <X className="w-4 h-4 mr-2" />
-              {t.cancel}
-            </Button>
-            <Button
-              onClick={handleLogin}
-              variant="outline"
-              className="w-full sm:w-auto border-green-600 text-green-600 hover:bg-green-50"
-              data-testid="button-login-dialog"
-            >
-              <LogIn className="w-4 h-4 mr-2" />
-              {t.login}
-            </Button>
-            <Button
-              onClick={handleCreateAccount}
-              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
-              data-testid="button-create-account-dialog"
-            >
-              <UserPlus className="w-4 h-4 mr-2" />
-              {t.createAccount}
-            </Button>
-          </DialogFooter>
+            </p>
+            
+            <div className="space-y-3">
+              <Button
+                onClick={handleCreateAccount}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-base font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02]"
+                data-testid="button-create-account-dialog"
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                {t.createAccount}
+              </Button>
+              
+              <Button
+                onClick={handleLogin}
+                variant="outline"
+                className="w-full border-2 border-green-600 text-green-600 hover:bg-green-50 py-3 text-base font-semibold rounded-xl transition-all duration-200"
+                data-testid="button-login-dialog"
+              >
+                <LogIn className="w-5 h-5 mr-2" />
+                {t.login}
+              </Button>
+              
+              <Button
+                variant="ghost"
+                onClick={() => setIsDialogOpen(false)}
+                className="w-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 py-2 text-sm rounded-xl"
+                data-testid="button-cancel-dialog"
+              >
+                {t.cancel}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
