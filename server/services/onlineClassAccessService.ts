@@ -14,6 +14,14 @@ interface AccessCheckResult {
     end: Date;
   };
   nextAvailableAt?: Date;
+  subscriptionDetails?: {
+    startDate: Date;
+    endDate: Date;
+    durationDays: number;
+    daysRemaining: number;
+    durationType: string;
+    isExpiringSoon: boolean;
+  };
 }
 
 export class OnlineClassAccessService {
@@ -93,6 +101,18 @@ export class OnlineClassAccessService {
     // Our timetable: 1=Monday, 2=Tuesday, etc.
     const jsDay = date.getDay();
     return jsDay === 0 ? 7 : jsDay; // Convert Sunday from 0 to 7
+  }
+
+  /**
+   * Get human-readable duration label based on days
+   */
+  private getDurationLabel(durationDays: number): string {
+    if (durationDays <= 1) return '1 jour';
+    if (durationDays <= 7) return '1 semaine';
+    if (durationDays <= 31) return '1 mois';
+    if (durationDays <= 93) return '3 mois';
+    if (durationDays <= 186) return '6 mois';
+    return '1 an';
   }
 
   /**
@@ -255,11 +275,27 @@ export class OnlineClassAccessService {
       const teacherActivation = await onlineClassActivationService.checkTeacherActivation(teacherId);
       
       if (teacherActivation) {
+        const now = new Date();
+        const startDate = new Date(teacherActivation.startDate);
+        const endDate = new Date(teacherActivation.endDate);
+        const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const durationType = this.getDurationLabel(durationDays);
+        const isExpiringSoon = daysRemaining <= 7;
+        
         return {
           allowed: true,
           reason: "teacher_personal_subscription",
-          message: "Abonnement personnel actif - accès illimité",
-          activationType: "teacher"
+          message: `Abonnement personnel actif (${durationType}) - expire le ${endDate.toLocaleDateString('fr-FR')}`,
+          activationType: "teacher",
+          subscriptionDetails: {
+            startDate,
+            endDate,
+            durationDays,
+            daysRemaining,
+            durationType,
+            isExpiringSoon
+          }
         };
       }
       
@@ -275,11 +311,27 @@ export class OnlineClassAccessService {
     const teacherActivation = await onlineClassActivationService.checkTeacherActivation(teacherId);
     
     if (teacherActivation) {
+      const now = new Date();
+      const startDate = new Date(teacherActivation.startDate);
+      const endDate = new Date(teacherActivation.endDate);
+      const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const durationType = this.getDurationLabel(durationDays);
+      const isExpiringSoon = daysRemaining <= 7;
+      
       return {
         allowed: true,
         reason: "teacher_personal_subscription",
-        message: "Abonnement personnel actif - accès illimité",
-        activationType: "teacher"
+        message: `Abonnement personnel actif (${durationType}) - expire le ${endDate.toLocaleDateString('fr-FR')}`,
+        activationType: "teacher",
+        subscriptionDetails: {
+          startDate,
+          endDate,
+          durationDays,
+          daysRemaining,
+          durationType,
+          isExpiringSoon
+        }
       };
     }
 
