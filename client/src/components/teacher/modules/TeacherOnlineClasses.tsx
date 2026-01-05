@@ -1317,18 +1317,52 @@ const TeacherOnlineClasses: React.FC = () => {
           </Button>
         </div>
         
-        {/* Access type indicator */}
+        {/* Access type indicator with subscription details */}
         {accessData?.activationType && (
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
-            <Info className="w-4 h-4 text-blue-600" />
-            <p className="text-sm text-blue-800">
-              {accessData.activationType === 'school' 
-                ? (language === 'fr' ? '🏫 Accès fourni par votre école - Vous pouvez rejoindre les sessions assignées' : '🏫 Access provided by your school - You can join assigned sessions')
-                : accessData.activationType === 'teacher'
-                  ? (language === 'fr' ? '👤 Abonnement personnel actif - Vous pouvez créer vos propres cours' : '👤 Personal subscription active - You can create your own courses')
-                  : (language === 'fr' ? '✅ Accès complet actif' : '✅ Full access active')
-              }
-            </p>
+          <div className={`mt-4 p-3 rounded-lg flex items-start gap-2 ${
+            accessData.subscriptionDetails?.isExpiringSoon 
+              ? 'bg-orange-50 border border-orange-200' 
+              : 'bg-blue-50 border border-blue-200'
+          }`}>
+            <Info className={`w-4 h-4 mt-0.5 ${accessData.subscriptionDetails?.isExpiringSoon ? 'text-orange-600' : 'text-blue-600'}`} />
+            <div className="flex-1">
+              <p className={`text-sm ${accessData.subscriptionDetails?.isExpiringSoon ? 'text-orange-800' : 'text-blue-800'}`}>
+                {accessData.activationType === 'school' 
+                  ? (language === 'fr' ? '🏫 Accès fourni par votre école - Vous pouvez rejoindre les sessions assignées' : '🏫 Access provided by your school - You can join assigned sessions')
+                  : accessData.activationType === 'teacher'
+                    ? (language === 'fr' ? '👤 Abonnement personnel actif - Vous pouvez créer vos propres cours' : '👤 Personal subscription active - You can create your own courses')
+                    : (language === 'fr' ? '✅ Accès complet actif' : '✅ Full access active')
+                }
+              </p>
+              
+              {/* Subscription details for personal subscription */}
+              {accessData.activationType === 'teacher' && accessData.subscriptionDetails && (
+                <div className={`mt-2 pt-2 border-t ${accessData.subscriptionDetails.isExpiringSoon ? 'border-orange-200' : 'border-blue-200'}`}>
+                  <div className="flex flex-wrap gap-4 text-xs">
+                    <span className={accessData.subscriptionDetails.isExpiringSoon ? 'text-orange-700' : 'text-blue-700'}>
+                      <strong>{language === 'fr' ? 'Durée:' : 'Duration:'}</strong> {accessData.subscriptionDetails.durationType}
+                    </span>
+                    <span className={accessData.subscriptionDetails.isExpiringSoon ? 'text-orange-700' : 'text-blue-700'}>
+                      <strong>{language === 'fr' ? 'Expire:' : 'Expires:'}</strong> {new Date(accessData.subscriptionDetails.endDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                    <span className={`font-semibold ${accessData.subscriptionDetails.isExpiringSoon ? 'text-orange-800' : 'text-blue-800'}`}>
+                      {accessData.subscriptionDetails.isExpiringSoon && '⚠️ '}
+                      {accessData.subscriptionDetails.daysRemaining} {language === 'fr' ? 'jours restants' : 'days remaining'}
+                    </span>
+                  </div>
+                  
+                  {/* Countdown for expiring soon */}
+                  {accessData.subscriptionDetails.isExpiringSoon && (
+                    <div className="mt-2 p-2 bg-orange-100 rounded text-xs text-orange-900">
+                      {language === 'fr' 
+                        ? `⏰ Votre abonnement expire bientôt! Renouvelez avant le ${new Date(accessData.subscriptionDetails.endDate).toLocaleDateString('fr-FR')} pour continuer à créer des cours.`
+                        : `⏰ Your subscription is expiring soon! Renew before ${new Date(accessData.subscriptionDetails.endDate).toLocaleDateString('en-US')} to continue creating courses.`
+                      }
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
         

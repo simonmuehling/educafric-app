@@ -15,8 +15,8 @@ interface AccessCheckResult {
   };
   nextAvailableAt?: Date;
   subscriptionDetails?: {
-    startDate: Date;
-    endDate: Date;
+    startDate: string;
+    endDate: string;
     durationDays: number;
     daysRemaining: number;
     durationType: string;
@@ -289,8 +289,8 @@ export class OnlineClassAccessService {
           message: `Abonnement personnel actif (${durationType}) - expire le ${endDate.toLocaleDateString('fr-FR')}`,
           activationType: "teacher",
           subscriptionDetails: {
-            startDate,
-            endDate,
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
             durationDays,
             daysRemaining,
             durationType,
@@ -325,8 +325,8 @@ export class OnlineClassAccessService {
         message: `Abonnement personnel actif (${durationType}) - expire le ${endDate.toLocaleDateString('fr-FR')}`,
         activationType: "teacher",
         subscriptionDetails: {
-          startDate,
-          endDate,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
           durationDays,
           daysRemaining,
           durationType,
