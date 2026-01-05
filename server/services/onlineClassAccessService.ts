@@ -344,6 +344,90 @@ export class OnlineClassAccessService {
   }
 
   /**
+   * Get subscription expiration date for a teacher
+   * Returns the end date of the subscription (school or personal)
+   * Used to limit JWT token duration
+   */
+  async getSubscriptionEndDate(
+    teacherId: number,
+    userEmail?: string
+  ): Promise<{ endDate: Date | null; activationType: "school" | "teacher" | "sandbox" | null }> {
+    
+    // Sandbox/test users have no expiration (infinite access)
+    if (userEmail && this.isSandboxOrTestUser(userEmail)) {
+      console.log(`[SUBSCRIPTION_EXPIRY] ✅ Sandbox user ${userEmail} - no expiration limit`);
+      return { endDate: null, activationType: "sandbox" };
+    }
+    
+    // Get teacher info
+    const [teacher] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, teacherId))
+      .limit(1);
+
+    if (!teacher) {
+      return { endDate: null, activationType: null };
+    }
+
+    const schoolId = teacher.schoolId;
+
+    // Check personal activation first (takes priority for JWT duration)
+    const teacherActivation = await onlineClassActivationService.checkTeacherActivation(teacherId);
+    if (teacherActivation) {
+      const endDate = new Date(teacherActivation.endDate);
+      console.log(`[SUBSCRIPTION_EXPIRY] 🎓 Teacher ${teacherId} personal subscription ends: ${endDate.toISOString()}`);
+      return { endDate, activationType: "teacher" };
+    }
+
+    // Check school activation
+    if (schoolId) {
+      const schoolActivation = await onlineClassActivationService.checkSchoolActivation(schoolId);
+      if (schoolActivation) {
+        const endDate = new Date(schoolActivation.endDate);
+        console.log(`[SUBSCRIPTION_EXPIRY] 🏫 School ${schoolId} activation ends: ${endDate.toISOString()}`);
+        return { endDate, activationType: "school" };
+      }
+    }
+
+    console.log(`[SUBSCRIPTION_EXPIRY] ❌ No active subscription for teacher ${teacherId}`);
+    return { endDate: null, activationType: null };
+  }
+
+  /**
+   * Calculate JWT expiration in minutes based on subscription end date
+   * Returns the minimum of: default duration (60 min) or time until subscription expires
+   * Minimum returned is 5 minutes to allow at least one short session
+   */
+  calculateJwtExpirationMinutes(
+    subscriptionEndDate: Date | null,
+    defaultMinutes: number = 60
+  ): number {
+    // No subscription end date means unlimited (use default)
+    if (!subscriptionEndDate) {
+      return defaultMinutes;
+    }
+
+    const now = new Date();
+    const msUntilExpiry = subscriptionEndDate.getTime() - now.getTime();
+    const minutesUntilExpiry = Math.floor(msUntilExpiry / (1000 * 60));
+
+    // Minimum 5 minutes for a usable session
+    if (minutesUntilExpiry <= 5) {
+      console.log(`[JWT_EXPIRY] ⚠️ Subscription expiring in ${minutesUntilExpiry} min - granting minimum 5 min`);
+      return 5;
+    }
+
+    // Cap at default if subscription has more time
+    if (minutesUntilExpiry > defaultMinutes) {
+      return defaultMinutes;
+    }
+
+    console.log(`[JWT_EXPIRY] ⏰ Limiting JWT to ${minutesUntilExpiry} min (subscription ends soon)`);
+    return minutesUntilExpiry;
+  }
+
+  /**
    * Check if a school has online class activated (for admin purposes)
    */
   async isSchoolActivated(schoolId: number): Promise<boolean> {

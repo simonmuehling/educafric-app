@@ -12,6 +12,7 @@ import {
 } from '../middleware/onlineClassesMiddleware';
 import { jitsiService } from '../services/jitsiService.js';
 import { onlineClassNotificationService } from '../services/onlineClassNotificationService';
+import { onlineClassAccessService } from '../services/onlineClassAccessService';
 import { db } from '../db.js';
 import { 
   onlineCourses, 
@@ -504,9 +505,51 @@ router.post('/sessions/:sessionId/start',
       if (!isAdmin && !isOwner) {
         return res.status(403).json({
           success: false,
-          error: 'Access denied: Only course owners and administrators can start sessions'
+          error: 'Access denied: Only course owners and administrators can start sessions / Accès refusé: Seuls les propriétaires du cours et administrateurs peuvent démarrer des sessions'
         });
       }
+
+      // SUBSCRIPTION VALIDATION: Check if teacher has active subscription
+      const subscriptionInfo = await onlineClassAccessService.getSubscriptionEndDate(
+        user.id,
+        user.email || undefined
+      );
+
+      // If no subscription found and not a sandbox user, deny access
+      if (!subscriptionInfo.activationType) {
+        console.log(`[ONLINE_CLASSES_API] ❌ No subscription for user ${user.id} - session start denied`);
+        return res.status(402).json({
+          success: false,
+          error: 'Abonnement requis pour démarrer une session. Souscrivez pour 150,000 CFA/an. / Subscription required to start a session. Subscribe for 150,000 CFA/year.',
+          code: 'SUBSCRIPTION_REQUIRED',
+          subscriptionRequired: true,
+          yearlyPrice: 150000,
+          currency: 'XAF'
+        });
+      }
+
+      // Check if subscription is expired (endDate is in the past)
+      if (subscriptionInfo.endDate && subscriptionInfo.endDate < new Date()) {
+        console.log(`[ONLINE_CLASSES_API] ❌ Subscription expired for user ${user.id} on ${subscriptionInfo.endDate.toISOString()}`);
+        return res.status(402).json({
+          success: false,
+          error: 'Votre abonnement a expiré. Veuillez renouveler pour continuer. / Your subscription has expired. Please renew to continue.',
+          code: 'SUBSCRIPTION_EXPIRED',
+          subscriptionExpired: true,
+          expiredAt: subscriptionInfo.endDate.toISOString(),
+          yearlyPrice: 150000,
+          currency: 'XAF'
+        });
+      }
+
+      // Calculate JWT expiration based on subscription end date
+      // This ensures the JWT token expires when the subscription expires
+      const jwtExpirationMinutes = onlineClassAccessService.calculateJwtExpirationMinutes(
+        subscriptionInfo.endDate,
+        120 // Default 2 hours max
+      );
+
+      console.log(`[ONLINE_CLASSES_API] ✅ Subscription valid for user ${user.id}, JWT expires in ${jwtExpirationMinutes} minutes`);
       
       // TODO: Update session status (temporarily disabled due to DB sync)
       // const updatedSession = await db
@@ -539,6 +582,7 @@ router.post('/sessions/:sessionId/start',
       });
 
       // Generate JWT token for the teacher to join immediately
+      // Token expiration is limited by subscription end date
       const sessionData = session[0];
       const jwtToken = jitsiService.generateJwtToken({
         room: sessionData.roomName,
@@ -546,6 +590,8 @@ router.post('/sessions/:sessionId/start',
         userId: user.id,
         role: 'teacher',
         email: user.email
+      }, {
+        expirationMinutes: jwtExpirationMinutes // Limited by subscription expiry
       });
       
       // Create join URL with moderator privileges
@@ -554,6 +600,11 @@ router.post('/sessions/:sessionId/start',
         startWithVideoMuted: false,
         requireDisplayName: false
       });
+
+      // Log subscription-based expiration for debugging
+      if (subscriptionInfo.endDate) {
+        console.log(`[JITSI_MEET] ⏰ Token expires in ${jwtExpirationMinutes} min (subscription ends: ${subscriptionInfo.endDate.toISOString()})`);
+      }
 
       console.log(`[JITSI_MEET] ✅ Generated join URL for started session ${sessionId}`);
 
@@ -747,17 +798,42 @@ router.post('/sessions/:sessionId/join',
         // Students/Parents need enrollment check (TODO: implement enrollment verification)
         return res.status(403).json({
           success: false,
-          error: 'Access denied - enrollment required'
+          error: 'Access denied - enrollment required / Accès refusé - inscription requise'
         });
       }
 
-      // Generate JWT token
+      // SUBSCRIPTION VALIDATION: Check if course owner (teacher) has active subscription
+      // This prevents students from joining if teacher's subscription is expired
+      const teacherSubscription = await onlineClassAccessService.getSubscriptionEndDate(
+        courseData.teacherId,
+        undefined // We don't have teacher's email, but teacherId is enough
+      );
+
+      // Check if subscription is expired
+      if (teacherSubscription.endDate && teacherSubscription.endDate < new Date()) {
+        console.log(`[ONLINE_CLASSES_API] ❌ Teacher ${courseData.teacherId}'s subscription expired - join denied for user ${user.id}`);
+        return res.status(402).json({
+          success: false,
+          error: "L'abonnement de l'enseignant a expiré. La session n'est plus disponible. / Teacher's subscription has expired. Session is no longer available.",
+          code: 'TEACHER_SUBSCRIPTION_EXPIRED'
+        });
+      }
+
+      // Calculate JWT expiration based on teacher's subscription end date
+      const jwtExpirationMinutes = onlineClassAccessService.calculateJwtExpirationMinutes(
+        teacherSubscription.endDate,
+        120 // Default 2 hours max
+      );
+
+      // Generate JWT token with subscription-limited expiration
       const jwtToken = jitsiService.generateJwtToken({
         room: sessionData.roomName,
         displayName: user.email?.split('@')[0] || `${user.role} ${user.id}`,
         userId: user.id,
         role: user.role === 'Teacher' || user.role === 'Director' ? 'teacher' : 'student',
         email: user.email
+      }, {
+        expirationMinutes: jwtExpirationMinutes // Limited by teacher's subscription expiry
       });
       
       // Create join URL
@@ -767,7 +843,7 @@ router.post('/sessions/:sessionId/join',
         requireDisplayName: false
       });
 
-      console.log(`[JITSI_MEET] ✅ Generated join URL for session ${sessionId} by user ${user.id}`);
+      console.log(`[JITSI_MEET] ✅ Generated join URL for session ${sessionId} by user ${user.id} (expires in ${jwtExpirationMinutes} min)`);
 
       res.json({
         success: true,
