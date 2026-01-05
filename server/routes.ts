@@ -8827,11 +8827,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: record.id,
           studentId: record.studentId,
           studentName: student ? `${student.firstName} ${student.lastName}` : 'Unknown',
-          class: student?.className || `Class ${record.classId}`,
+          className: student?.className || `Class ${record.classId}`,
           classId: record.classId,
           date: record.date,
           status: record.status,
-          reason: record.reason
+          reason: record.reason,
+          markedAt: record.date // Use date as markedAt for display
         };
       });
       

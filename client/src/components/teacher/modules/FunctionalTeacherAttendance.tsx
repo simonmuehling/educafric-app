@@ -102,7 +102,9 @@ const FunctionalTeacherAttendance: React.FC = () => {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch attendance data');
-      return response.json();
+      const result = await response.json();
+      // Extract attendance array from response
+      return result.attendance || result || [];
     },
     enabled: !!user
   });
