@@ -43,15 +43,15 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
 - LOGO ROBUSTE MULTI-FALLBACK: Les composants Logo.tsx et FrontpageNavbar.tsx utilisent un système de fallback à 4 niveaux pour garantir l'affichage du logo: 1) /educafric-logo-128.png, 2) /educafric-logo-512.png, 3) /favicon.ico, 4) Icône GraduationCap. Le texte "Educafric" est TOUJOURS visible indépendamment du statut de l'image. LOGO_SOURCES array avec useState pour tracking des erreurs. NE JAMAIS supprimer ces fallbacks.
 
 # System Architecture
-- **UI/UX Decisions**: African-themed, mobile-first, PWA-enabled UI using Radix UI, Shadcn/UI, and Tailwind CSS. Alert/confirmation dialogs have a `bg-white` background. Student ID cards adhere to a standardized template with color printing, digital signatures, and QR codes. Logo display uses a robust 4-level fallback system.
+- **UI/UX Decisions**: African-themed, mobile-first, PWA-enabled UI using Radix UI, Shadcn/UI, and Tailwind CSS. Alert/confirmation dialogs use a `bg-white` background. Student ID cards adhere to a standardized template with color printing, digital signatures, and QR codes. Logo display uses a robust 4-level fallback system.
 - **Technical Implementations**:
     - **Frontend**: React (TypeScript) with Wouter for client-side routing and TanStack Query for data fetching, supporting PWA features.
     - **Backend**: RESTful API with Express.js.
-    - **Database & ORM**: PostgreSQL on Neon Serverless with Drizzle ORM, ensuring strict multi-tenancy isolation via `user.schoolId`. Data storage modules exclusively use database queries.
+    - **Database & ORM**: PostgreSQL on Neon Serverless with Drizzle ORM, ensuring strict multi-tenancy isolation via `user.schoolId`. All data storage modules exclusively use database queries.
     - **Authentication**: Session-based authentication using `express-session` and `Passport.js`, including Firebase Google OAuth, with 8-role-based access control, an Intrusion Detection System (IDS), and multi-role user support. Phone number is the primary unique identifier; email is optional.
     - **Route Architecture**: Express.js route registration prioritizes direct routes (Settings, API Modules, System Routes) over external routers to prevent conflicts. Module mappings are strictly separated by dashboard.
     - **Cache Management**: `queryClient.ts` uses `serializeQueryKey()` to prevent query key collisions.
-    - **Document Management**: Centralized system for instant document creation with digital signatures and PDF generation. All documents are stored in `/public/documents/`.
+    - **Document Management**: Centralized system for instant PDF document creation with digital signatures. All documents are stored in `/public/documents/`.
 - **Feature Specifications**: Includes real-time attendance tracking (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment systems, GPS tracking, iCal/ICS export, robust bulk Excel import with immediate display, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes. Schools can define custom academic levels.
 
 # External Dependencies
