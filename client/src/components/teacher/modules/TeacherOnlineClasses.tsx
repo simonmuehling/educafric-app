@@ -1098,9 +1098,20 @@ const TeacherOnlineClasses: React.FC = () => {
 
   // Determine access permissions based on activation type
   const hasSchoolAccess = accessData?.activationType === 'school';
-  const hasPersonalSubscription = accessData?.activationType === 'teacher' || accessData?.activationType === null; // null = sandbox
+  // ✅ FIXED: Sandbox users (activationType null/undefined) AND teacher subscribers get personal access
+  const isSandboxOrTest = accessData?.reason === 'sandbox_exemption' || accessData?.activationType === null;
+  const hasPersonalSubscription = accessData?.activationType === 'teacher' || isSandboxOrTest;
   const canCreateCourses = hasPersonalSubscription; // Only personal subscribers can create courses
   const canViewSchoolSessions = hasSchoolAccess || hasPersonalSubscription; // Both can view school sessions
+  
+  // Debug log
+  console.log('[TEACHER_ONLINE_CLASSES] Access check:', { 
+    allowed: accessData?.allowed, 
+    activationType: accessData?.activationType, 
+    reason: accessData?.reason,
+    hasPersonalSubscription,
+    isSandboxOrTest
+  });
 
   // Show loading state while checking access
   if (accessLoading) {
