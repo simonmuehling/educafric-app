@@ -25,7 +25,7 @@ import {
   insertCourseEnrollmentSchema
 } from '../../shared/schemas/onlineClassesSchema.js';
 import { eq, and, or, desc, gte, lte, sql, isNull } from 'drizzle-orm';
-import { users } from '../../shared/schema.js';
+import { users, classes } from '../../shared/schema.js';
 
 const router = Router();
 
@@ -457,50 +457,69 @@ router.post('/sessions/:sessionId/start',
       const user = req.user!;
       
       // SECURITY: Verify authorization to start session
-      const [session, course] = await Promise.all([
-        db.select()
-          .from(classSessions)
-          .where(eq(classSessions.id, sessionId))
-          .limit(1),
-        db.select({
+      const sessionResult = await db.select()
+        .from(classSessions)
+        .where(eq(classSessions.id, sessionId))
+        .limit(1);
+
+      if (sessionResult.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Session not found / Session introuvable'
+        });
+      }
+
+      const sessionData = sessionResult[0];
+      
+      // Handle school-created sessions (no courseId, uses classId/teacherId directly)
+      let teacherId: number;
+      let schoolId: number | null;
+      
+      if (sessionData.courseId) {
+        // Session is linked to an onlineCourse
+        const courseResult = await db.select({
           id: onlineCourses.id,
           teacherId: onlineCourses.teacherId,
           schoolId: onlineCourses.schoolId
         })
           .from(onlineCourses)
-          .innerJoin(classSessions, eq(classSessions.courseId, onlineCourses.id))
-          .where(eq(classSessions.id, sessionId))
-          .limit(1)
-      ]);
+          .where(eq(onlineCourses.id, sessionData.courseId))
+          .limit(1);
 
-      if (session.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Session not found'
-        });
+        if (courseResult.length === 0) {
+          return res.status(404).json({
+            success: false,
+            error: 'Course not found / Cours introuvable'
+          });
+        }
+        teacherId = courseResult[0].teacherId;
+        schoolId = courseResult[0].schoolId;
+      } else {
+        // School-created session (scheduler) - uses teacherId and gets schoolId from class
+        teacherId = sessionData.teacherId!;
+        if (sessionData.classId) {
+          const classResult = await db.select({ schoolId: classes.schoolId })
+            .from(classes)
+            .where(eq(classes.id, sessionData.classId))
+            .limit(1);
+          schoolId = classResult.length > 0 ? classResult[0].schoolId : null;
+        } else {
+          schoolId = null;
+        }
       }
 
-      if (course.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Course not found'
-        });
-      }
-
-      const courseData = course[0];
-
-      // SECURITY: Cross-tenant protection (skip for independent courses)
-      const isIndependentCourse = courseData.schoolId === null;
-      if (!isIndependentCourse && courseData.schoolId !== user.schoolId && user.role !== 'SiteAdmin') {
+      // SECURITY: Cross-tenant protection
+      const isSchoolSession = schoolId !== null;
+      if (isSchoolSession && schoolId !== user.schoolId && user.role !== 'SiteAdmin') {
         return res.status(403).json({
           success: false,
-          error: 'Access denied: Course belongs to different school'
+          error: 'Access denied: Session belongs to different school / Accès refusé: Session appartient à une autre école'
         });
       }
 
       // SECURITY: Only course owner or admins can start sessions
       const isAdmin = ['SiteAdmin', 'Admin', 'Director'].includes(user.role);
-      const isOwner = user.role === 'Teacher' && courseData.teacherId === user.id;
+      const isOwner = user.role === 'Teacher' && teacherId === user.id;
 
       if (!isAdmin && !isOwner) {
         return res.status(403).json({
@@ -573,7 +592,7 @@ router.post('/sessions/:sessionId/start',
       // Send notifications to enrolled students (fire-and-forget pattern)
       setImmediate(async () => {
         try {
-          const teacherName = await onlineClassNotificationService.getTeacherName(courseData.teacherId);
+          const teacherName = await onlineClassNotificationService.getTeacherName(teacherId);
           await onlineClassNotificationService.notifySessionStarting(sessionId, teacherName);
           console.log(`[ONLINE_CLASSES_API] 📧 Session starting notifications sent for session ${sessionId}`);
         } catch (notifError) {
@@ -583,7 +602,6 @@ router.post('/sessions/:sessionId/start',
 
       // Generate JWT token for the teacher to join immediately
       // Token expiration is limited by subscription end date
-      const sessionData = session[0];
       const jwtToken = jitsiService.generateJwtToken({
         room: sessionData.roomName,
         displayName: user.email?.split('@')[0] || `Teacher ${user.id}`,
