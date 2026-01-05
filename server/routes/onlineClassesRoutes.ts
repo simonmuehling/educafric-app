@@ -968,12 +968,22 @@ router.delete('/sessions/:sessionId',
       const sessionData = session[0];
 
       // SECURITY: Verify access to this session
+      // For independent courses (schoolId is null), skip school verification
+      const isIndependentCourse = sessionData.schoolId === null;
+      
       if (user.role === 'Teacher') {
         // Teachers can delete their own sessions
-        if (sessionData.teacherId !== user.id || sessionData.schoolId !== user.schoolId) {
+        if (sessionData.teacherId !== user.id) {
           return res.status(403).json({
             success: false,
             error: 'You can only delete your own sessions'
+          });
+        }
+        // For school-linked courses, verify same school
+        if (!isIndependentCourse && sessionData.schoolId !== user.schoolId) {
+          return res.status(403).json({
+            success: false,
+            error: 'Access denied: Course belongs to different school'
           });
         }
       } else if (user.role === 'Director') {
@@ -984,6 +994,8 @@ router.delete('/sessions/:sessionId',
             error: 'You can only delete sessions in your school'
           });
         }
+      } else if (user.role === 'SiteAdmin' || user.role === 'Admin') {
+        // SiteAdmin and Admin can delete any session
       } else {
         return res.status(403).json({
           success: false,
