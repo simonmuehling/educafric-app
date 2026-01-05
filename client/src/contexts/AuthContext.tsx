@@ -69,8 +69,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Force check auth status after successful login
       await checkAuthStatus();
       
-      // Immediate navigation to dashboard (no delay)
-      setLocation('/dashboard');
+      // Check for redirect parameter in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectUrl = urlParams.get('redirect');
+      
+      // Navigate to redirect URL if provided, otherwise to dashboard
+      setLocation(redirectUrl || '/dashboard');
     } catch (error: any) {
       // Better error logging - avoid "[object Object]" display
       console.error('Login error:', error.message || error.toString() || 'Unknown login error');

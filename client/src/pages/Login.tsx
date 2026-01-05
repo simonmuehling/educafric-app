@@ -65,6 +65,15 @@ export default function Login() {
     emailMatch: boolean;
     phoneMatch: boolean;
   } | null>(null);
+
+  // Check URL params for mode=register on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode');
+    if (mode === 'register') {
+      setIsRegisterMode(true);
+    }
+  }, []);
   
   // Check for duplicate email/phone
   const checkForDuplicates = async (email: string, phoneNumber: string) => {

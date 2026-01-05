@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   School, 
   GraduationCap, 
@@ -12,12 +13,15 @@ import {
   Library,
   UserCheck,
   ArrowRight,
-  CheckCircle
+  CheckCircle,
+  LayoutDashboard,
+  Home
 } from 'lucide-react';
 
 export default function SandboxDemo() {
   const [, navigate] = useLocation();
   const { language } = useLanguage();
+  const { user, isAuthenticated } = useAuth();
 
   const text = {
     en: {
@@ -27,6 +31,8 @@ export default function SandboxDemo() {
       testNow: 'Test Platform',
       fullDemo: 'Full Demo Access',
       viewFeatures: 'View All Features',
+      goToDashboard: 'Go to My Dashboard',
+      backHome: 'Back to Home',
       roles: {
         director: 'School Director Demo',
         teacher: 'Teacher Demo', 
@@ -49,6 +55,8 @@ export default function SandboxDemo() {
       testNow: 'Tester la Plateforme',
       fullDemo: 'Accès Démo Complet',
       viewFeatures: 'Voir Toutes Fonctionnalités',
+      goToDashboard: 'Aller à Mon Tableau de Bord',
+      backHome: 'Retour à l\'Accueil',
       roles: {
         director: 'Démo Directeur d\'École',
         teacher: 'Démo Enseignant',
@@ -109,6 +117,30 @@ export default function SandboxDemo() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-12">
       <div className="container mx-auto px-6">
+        {/* Navigation Buttons - Top */}
+        <div className="flex justify-between items-center mb-8">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 bg-white/80 hover:bg-white"
+            data-testid="button-back-home"
+          >
+            <Home className="w-4 h-4" />
+            {t.backHome}
+          </Button>
+          
+          {isAuthenticated && user && (
+            <Button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+              data-testid="button-go-to-dashboard"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              {t.goToDashboard}
+            </Button>
+          )}
+        </div>
+
         {/* Header */}
         <div className="text-center mb-12">
           <div className="text-center mb-6">

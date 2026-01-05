@@ -42,14 +42,14 @@ export default function SandboxBanner() {
   const handleCreateAccount = () => {
     setIsDialogOpen(false);
     if (window && window.location) {
-      window.location.href = '/register';
+      window.location.href = '/login?mode=register&redirect=/sandbox-demo';
     }
   };
 
   const handleLogin = () => {
     setIsDialogOpen(false);
     if (window && window.location) {
-      window.location.href = '/login';
+      window.location.href = '/login?redirect=/sandbox-demo';
     }
   };
 
