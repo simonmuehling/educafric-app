@@ -53,3 +53,4 @@ DEBUG_AUTH = "true"
 
 [userenv.shared]
 ORANGE_MONEY_SIMULATION = "true"
+VITE_STRIPE_PUBLIC_KEY = "pk_live_51QfHarA3Hgea2ldmzVvPNcuS6MwX2g4ocZsNyxEozgz8k0u1CHfxHsM0dmx2jlLFRMrozNjS9QYSalmVrREz1kcq003rH7XHZ7"
