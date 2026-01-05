@@ -32,9 +32,13 @@ const PRECACHE_ASSETS = [
   // Sandbox login
   '/sandbox-login',
   
-  // Common UI assets
-  '/assets/logo.png',
-  '/assets/school-logo.png',
+  // Common UI assets - Educafric logos
+  '/educafric-logo-128.png',
+  '/educafric-logo-512.png',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
+  '/favicon.ico',
+  '/favicon.png',
   
   // Fonts (if any)
   // Add font paths here
