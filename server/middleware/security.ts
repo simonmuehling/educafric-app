@@ -208,6 +208,11 @@ const CSRF_ALLOWLIST: Array<(p: string, m: string) => boolean> = [
   // Settings routes (already protected by authentication middleware)
   (p) => p.endsWith('/settings'),
   
+  // Online Classes routes (already protected by requireAuth and subscription middleware)
+  (p) => p.startsWith('/api/online-classes/'),
+  (p) => p.startsWith('/api/online-class-activations/'),
+  (p) => p.startsWith('/api/online-class-payments/'),
+  
   // Health check
   (p) => p === '/api/health',
 ];
