@@ -353,6 +353,16 @@ export class OnlineClassSchedulerService {
   }
 
   /**
+   * Delete a recurrence rule
+   */
+  async deleteRecurrence(recurrenceId: number) {
+    await db
+      .delete(onlineClassRecurrences)
+      .where(eq(onlineClassRecurrences.id, recurrenceId));
+    return { deleted: true };
+  }
+
+  /**
    * Get all recurrences for a school
    */
   async getSchoolRecurrences(schoolId: number) {

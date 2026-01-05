@@ -2301,6 +2301,36 @@ select:focus-visible {
   animation: moduleSlideIn 0.3s ease-out !important;
 }
 
+/* ===== SELECT COMPONENT VISIBILITY FIX ===== */
+/* Ensure selected values in Select components are always visible */
+/* Target ShadCN Select trigger (button with role=combobox) */
+button[role="combobox"] {
+  color: #1f2937 !important; /* text-gray-800 */
+}
+
+button[role="combobox"] span {
+  color: #111827 !important; /* text-gray-900 for selected value */
+  font-weight: 500;
+}
+
+button[role="combobox"] span[data-placeholder] {
+  color: #6b7280 !important; /* text-gray-500 for placeholder */
+  font-weight: 400;
+}
+
+/* Dark mode support for select triggers */
+.dark button[role="combobox"] {
+  color: #f3f4f6 !important;
+}
+
+.dark button[role="combobox"] span {
+  color: #ffffff !important;
+}
+
+.dark button[role="combobox"] span[data-placeholder] {
+  color: #9ca3af !important;
+}
+
 /* Print isolation - hide everything except explicitly marked printable content */
 @media print {
   body * {

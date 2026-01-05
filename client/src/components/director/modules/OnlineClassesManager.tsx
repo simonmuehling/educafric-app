@@ -699,7 +699,11 @@ const OnlineClassesManager: React.FC = () => {
   };
 
   const courses: OnlineCourse[] = coursesData?.courses || [];
-  const sessions: OnlineClassSession[] = sessionsData?.sessions || [];
+  // Normalize session statuses to lowercase for consistent comparison
+  const sessions: OnlineClassSession[] = (sessionsData?.sessions || []).map(session => ({
+    ...session,
+    status: (session.status?.toLowerCase?.() || 'scheduled') as OnlineClassSession['status']
+  }));
   const recurrences: RecurrenceRule[] = recurrencesData?.recurrences || [];
 
   return (

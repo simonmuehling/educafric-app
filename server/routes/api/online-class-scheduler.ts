@@ -426,6 +426,57 @@ router.patch(
 );
 
 /**
+ * DELETE /api/online-class-scheduler/recurrences/:id
+ * Delete a recurrence rule
+ * Requires: Director or SchoolAdmin role
+ */
+router.delete(
+  "/recurrences/:id",
+  requireAuth,
+  async (req, res) => {
+    if (!req.user || req.user.role !== "Director") {
+      return res.status(403).json({
+        success: false,
+        message: "Accès refusé - rôle Director requis / Access denied - Director role required"
+      });
+    }
+    try {
+      const recurrenceId = parseInt(req.params.id);
+      
+      if (!req.user.schoolId) {
+        return res.status(403).json({
+          success: false,
+          message: "Utilisateur n'est pas associé à une école / User is not associated with a school"
+        });
+      }
+
+      const recurrence = await onlineClassSchedulerService.getRecurrenceById(recurrenceId);
+      if (!recurrence || recurrence.schoolId !== req.user.schoolId) {
+        return res.status(404).json({
+          success: false,
+          message: "Récurrence non trouvée / Recurrence not found"
+        });
+      }
+
+      await onlineClassSchedulerService.deleteRecurrence(recurrenceId);
+
+      console.log(`[SCHEDULER_API] ✅ Recurrence ${recurrenceId} deleted by ${req.user.email}`);
+
+      res.json({
+        success: true,
+        message: "Récurrence supprimée avec succès / Recurrence deleted successfully"
+      });
+    } catch (error) {
+      console.error("[SCHEDULER_API] ❌ Error deleting recurrence:", error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : "Erreur lors de la suppression / Error deleting recurrence"
+      });
+    }
+  }
+);
+
+/**
  * POST /api/online-class-scheduler/recurrences/:id/generate
  * Manually trigger session generation for a recurrence
  * Requires: Director or SchoolAdmin role
