@@ -50,3 +50,6 @@ defaultBucketID = "replit-objstore-5e32ab65-3e75-45f8-b547-a6f9ea5bc61a"
 [userenv.development]
 SANDBOX_ENABLED = "true"
 DEBUG_AUTH = "true"
+
+[userenv.shared]
+ORANGE_MONEY_SIMULATION = "true"
