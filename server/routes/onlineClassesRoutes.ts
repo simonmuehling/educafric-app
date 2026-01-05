@@ -23,7 +23,7 @@ import {
   insertClassSessionSchema,
   insertCourseEnrollmentSchema
 } from '../../shared/schemas/onlineClassesSchema.js';
-import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, or, desc, gte, lte, sql, isNull } from 'drizzle-orm';
 import { users } from '../../shared/schema.js';
 
 const router = Router();
@@ -837,7 +837,7 @@ router.get('/teacher/sessions',
         });
       }
       
-      // Get sessions created by this teacher
+      // Get sessions created by this teacher (both school-linked and independent courses)
       const sessions = await db
         .select({
           id: classSessions.id,
@@ -853,13 +853,18 @@ router.get('/teacher/sessions',
           lobbyEnabled: classSessions.lobbyEnabled,
           chatEnabled: classSessions.chatEnabled,
           screenShareEnabled: classSessions.screenShareEnabled,
-          createdAt: classSessions.createdAt
+          createdAt: classSessions.createdAt,
+          isIndependent: onlineCourses.isIndependent
         })
         .from(classSessions)
         .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
         .where(and(
           eq(onlineCourses.teacherId, user.id),
-          eq(onlineCourses.schoolId, user.schoolId!)
+          // Include both school-linked courses (matching schoolId) AND independent courses (null schoolId)
+          or(
+            eq(onlineCourses.schoolId, user.schoolId!),
+            isNull(onlineCourses.schoolId)
+          )
         ))
         .orderBy(classSessions.scheduledStart);
 
