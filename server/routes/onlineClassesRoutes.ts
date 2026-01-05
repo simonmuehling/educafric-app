@@ -538,9 +538,29 @@ router.post('/sessions/:sessionId/start',
         }
       });
 
+      // Generate JWT token for the teacher to join immediately
+      const sessionData = session[0];
+      const jwtToken = jitsiService.generateJwtToken({
+        room: sessionData.roomName,
+        displayName: user.email?.split('@')[0] || `Teacher ${user.id}`,
+        userId: user.id,
+        role: 'teacher',
+        email: user.email
+      });
+      
+      // Create join URL with moderator privileges
+      const joinUrl = jitsiService.createJoinUrl(sessionData.roomName, jwtToken, {
+        startWithAudioMuted: false,
+        startWithVideoMuted: false,
+        requireDisplayName: false
+      });
+
+      console.log(`[JITSI_MEET] ✅ Generated join URL for started session ${sessionId}`);
+
       res.json({
         success: true,
-        session: updatedSession[0]
+        session: updatedSession[0],
+        joinUrl
       });
     } catch (error) {
       console.error('[ONLINE_CLASSES_API] Error starting session:', error);
