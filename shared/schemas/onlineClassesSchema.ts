@@ -7,9 +7,10 @@ import { z } from "zod";
 import { schools, subjects, classes, users } from "../schema";
 
 // Online courses table (enhanced from existing structure if any)
+// schoolId is nullable to support independent courses (not linked to any school)
 export const onlineCourses = pgTable("online_courses", {
   id: serial("id").primaryKey(),
-  schoolId: integer("school_id").notNull().references(() => schools.id),
+  schoolId: integer("school_id").references(() => schools.id), // Nullable for independent courses
   title: text("title").notNull(),
   description: text("description"),
   subjectId: integer("subject_id").references(() => subjects.id),
@@ -20,6 +21,7 @@ export const onlineCourses = pgTable("online_courses", {
   maxParticipants: integer("max_participants").default(50),
   allowRecording: boolean("allow_recording").default(true),
   requireApproval: boolean("require_approval").default(false),
+  isIndependent: boolean("is_independent").default(false), // Independent course (not linked to any school)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });

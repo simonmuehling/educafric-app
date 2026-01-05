@@ -33,11 +33,13 @@ const createCourseSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
   subjectId: z.number().optional(),
+  subjectName: z.string().optional(),
   classId: z.number().optional(),
   language: z.string().default("fr"),
   maxParticipants: z.number().default(50),
   allowRecording: z.boolean().default(true),
-  requireApproval: z.boolean().default(false)
+  requireApproval: z.boolean().default(false),
+  isIndependent: z.boolean().default(false) // Independent course (not linked to any school)
 });
 
 const createSessionSchema = z.object({
@@ -60,7 +62,7 @@ const enrollmentSchema = z.object({
 
 /**
  * GET /api/online-classes/courses
- * List all courses for the authenticated user's school
+ * List all courses for the authenticated user's school + their independent courses
  */
 router.get('/courses', 
   requireAuth,
@@ -75,29 +77,61 @@ router.get('/courses',
                            user.email?.startsWith('sandbox.');
       const schoolId = user.schoolId || (isSandboxUser ? 999 : null);
       
-      if (!schoolId) {
-        return res.status(400).json({
-          success: false,
-          error: 'School ID is required'
-        });
+      // Fetch school-linked courses if user has a school
+      let schoolCourses: any[] = [];
+      if (schoolId) {
+        schoolCourses = await db
+          .select({
+            id: onlineCourses.id,
+            title: onlineCourses.title,
+            description: onlineCourses.description,
+            language: onlineCourses.language,
+            isActive: onlineCourses.isActive,
+            maxParticipants: onlineCourses.maxParticipants,
+            allowRecording: onlineCourses.allowRecording,
+            isIndependent: onlineCourses.isIndependent,
+            teacherId: onlineCourses.teacherId,
+            createdAt: onlineCourses.createdAt
+          })
+          .from(onlineCourses)
+          .where(eq(onlineCourses.schoolId, schoolId))
+          .orderBy(desc(onlineCourses.createdAt));
       }
+      
+      // Always fetch teacher's independent courses (for Teachers)
+      let independentCourses: any[] = [];
+      if (user.role === 'Teacher') {
+        independentCourses = await db
+          .select({
+            id: onlineCourses.id,
+            title: onlineCourses.title,
+            description: onlineCourses.description,
+            language: onlineCourses.language,
+            isActive: onlineCourses.isActive,
+            maxParticipants: onlineCourses.maxParticipants,
+            allowRecording: onlineCourses.allowRecording,
+            isIndependent: onlineCourses.isIndependent,
+            teacherId: onlineCourses.teacherId,
+            createdAt: onlineCourses.createdAt
+          })
+          .from(onlineCourses)
+          .where(and(
+            eq(onlineCourses.teacherId, user.id),
+            eq(onlineCourses.isIndependent, true)
+          ))
+          .orderBy(desc(onlineCourses.createdAt));
+      }
+      
+      // Combine and deduplicate courses
+      const courseMap = new Map();
+      for (const course of [...independentCourses, ...schoolCourses]) {
+        courseMap.set(course.id, course);
+      }
+      const courses = Array.from(courseMap.values()).sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
 
-      const courses = await db
-        .select({
-          id: onlineCourses.id,
-          title: onlineCourses.title,
-          description: onlineCourses.description,
-          language: onlineCourses.language,
-          isActive: onlineCourses.isActive,
-          maxParticipants: onlineCourses.maxParticipants,
-          allowRecording: onlineCourses.allowRecording,
-          createdAt: onlineCourses.createdAt
-        })
-        .from(onlineCourses)
-        .where(eq(onlineCourses.schoolId, schoolId))
-        .orderBy(desc(onlineCourses.createdAt));
-
-      console.log(`[ONLINE_CLASSES_API] ✅ Listed ${courses.length} courses for school ${schoolId}`);
+      console.log(`[ONLINE_CLASSES_API] ✅ Listed ${courses.length} courses (${schoolCourses.length} school, ${independentCourses.length} independent) for user ${user.id}`);
 
       res.json({
         success: true,
@@ -128,19 +162,6 @@ router.post('/courses',
     try {
       const user = req.user!;
       
-      // Handle sandbox users with null schoolId
-      const isSandboxUser = user.email?.includes('@educafric.demo') || 
-                           user.email?.includes('@test.educafric.com') || 
-                           user.email?.startsWith('sandbox.');
-      const schoolId = user.schoolId || (isSandboxUser ? 999 : null);
-      
-      if (!schoolId) {
-        return res.status(400).json({
-          success: false,
-          error: 'School ID is required to create a course'
-        });
-      }
-      
       console.log('[ONLINE_CLASSES_API] 📥 Received request body:', JSON.stringify(req.body, null, 2));
       console.log('[ONLINE_CLASSES_API] 📥 Content-Type:', req.headers['content-type']);
       
@@ -157,6 +178,28 @@ router.post('/courses',
       
       const validated = parsed.data;
       
+      // Handle independent courses vs school-linked courses
+      let schoolId: number | null = null;
+      
+      if (validated.isIndependent) {
+        // Independent course - no school required
+        console.log('[ONLINE_CLASSES_API] 🆓 Creating INDEPENDENT course (no school affiliation)');
+        schoolId = null;
+      } else {
+        // School-linked course - require schoolId
+        const isSandboxUser = user.email?.includes('@educafric.demo') || 
+                             user.email?.includes('@test.educafric.com') || 
+                             user.email?.startsWith('sandbox.');
+        schoolId = user.schoolId || (isSandboxUser ? 999 : null);
+        
+        if (!schoolId) {
+          return res.status(400).json({
+            success: false,
+            error: 'School ID is required to create a school-linked course. Use independent course option instead.'
+          });
+        }
+      }
+      
       const newCourse = await db
         .insert(onlineCourses)
         .values({
@@ -166,12 +209,13 @@ router.post('/courses',
           maxParticipants: validated.maxParticipants,
           allowRecording: validated.allowRecording,
           requireApproval: validated.requireApproval,
-          schoolId,
-          teacherId: user.id
+          schoolId: schoolId,
+          teacherId: user.id,
+          isIndependent: validated.isIndependent
         })
         .returning();
 
-      console.log(`[ONLINE_CLASSES_API] ✅ Created course "${validated.title}" by user ${user.id}`);
+      console.log(`[ONLINE_CLASSES_API] ✅ Created ${validated.isIndependent ? 'INDEPENDENT' : 'school-linked'} course "${validated.title}" by user ${user.id}`);
 
       res.status(201).json({
         success: true,

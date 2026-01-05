@@ -102,6 +102,7 @@ const TeacherOnlineClasses: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [starting, setStarting] = useState(false);
+  const [isIndependentCourse, setIsIndependentCourse] = useState(false);
 
   // Course creation state
   const [newCourseData, setNewCourseData] = useState({
@@ -366,25 +367,40 @@ const TeacherOnlineClasses: React.FC = () => {
   // Create course mutation with teacher context
   const createCourseMutation = useMutation({
     mutationFn: async (courseData: typeof newCourseData) => {
-      // Validate selection guards
-      if (!selectedClass || !selectedSubject) {
-        throw new Error('Class and subject must be selected');
+      let enrichedCourseData: any;
+      
+      // Handle independent courses vs school-linked courses
+      if (isIndependentCourse) {
+        // Independent course - no class/subject required
+        enrichedCourseData = {
+          ...courseData,
+          isIndependent: true,
+          language: language
+        };
+        console.log('[TEACHER_ONLINE_CLASSES] Creating INDEPENDENT course with data:', enrichedCourseData);
+      } else {
+        // School-linked course - validate selection
+        if (!selectedClass || !selectedSubject) {
+          throw new Error('Class and subject must be selected');
+        }
+        
+        const classId = parseInt(selectedClass, 10);
+        
+        if (isNaN(classId)) {
+          throw new Error('Invalid class selection');
+        }
+        
+        // Now selectedSubject contains the subject NAME, not ID
+        enrichedCourseData = {
+          ...courseData,
+          classId,
+          subjectName: selectedSubject, // Send subject name instead of ID
+          isIndependent: false,
+          language: language
+        };
+        console.log('[TEACHER_ONLINE_CLASSES] Creating SCHOOL-LINKED course with data:', enrichedCourseData);
       }
       
-      const classId = parseInt(selectedClass, 10);
-      
-      if (isNaN(classId)) {
-        throw new Error('Invalid class selection');
-      }
-      
-      // Now selectedSubject contains the subject NAME, not ID
-      const enrichedCourseData = {
-        ...courseData,
-        classId,
-        subjectName: selectedSubject, // Send subject name instead of ID
-        language: language
-      };
-      console.log('[TEACHER_ONLINE_CLASSES] Creating course with data:', enrichedCourseData);
       const response = await apiRequest('POST', '/api/online-classes/courses', enrichedCourseData);
       return response.json();
     },
@@ -734,16 +750,55 @@ const TeacherOnlineClasses: React.FC = () => {
     return <Badge className={config.color}>{config.text}</Badge>;
   };
 
+  // Handle independent course creation
+  const handleContinueIndependent = () => {
+    setIsIndependentCourse(true);
+    setStep('course-creation');
+  };
+
   // Render selection interface
   const renderSelection = () => (
     <div className="space-y-6">
+      {/* Option 1: Independent Course - No class/school affiliation */}
+      <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <User className="w-6 h-6 text-green-600" />
+            <span>{language === 'fr' ? 'Cours Indépendant' : 'Independent Course'}</span>
+            <Badge className="bg-green-100 text-green-700 ml-2">
+              {language === 'fr' ? 'Recommandé' : 'Recommended'}
+            </Badge>
+          </CardTitle>
+          <CardDescription>
+            {language === 'fr' 
+              ? 'Créez votre propre cours sans être lié à une école. Invitez qui vous voulez.'
+              : 'Create your own course without being tied to a school. Invite anyone you want.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={handleContinueIndependent}
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+            data-testid="button-create-independent-course"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            {language === 'fr' ? 'Créer un Cours Indépendant' : 'Create Independent Course'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Option 2: School-linked Course */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Video className="w-6 h-6 text-purple-600" />
-            <span>{t.selectionTitle}</span>
+            <GraduationCap className="w-6 h-6 text-purple-600" />
+            <span>{language === 'fr' ? 'Cours lié à une École' : 'School-linked Course'}</span>
           </CardTitle>
-          <CardDescription>{t.selectionDesc}</CardDescription>
+          <CardDescription>
+            {language === 'fr' 
+              ? 'Créez un cours pour une classe spécifique d\'une école où vous enseignez.'
+              : 'Create a course for a specific class at a school where you teach.'}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Class Selection */}
@@ -752,7 +807,7 @@ const TeacherOnlineClasses: React.FC = () => {
               <GraduationCap className="w-4 h-4" />
               <span>{t.selectClass}</span>
             </Label>
-            <Select value={selectedClass} onValueChange={(val) => { setSelectedClass(val); setSelectedSubject(''); }}>
+            <Select value={selectedClass} onValueChange={(val) => { setSelectedClass(val); setSelectedSubject(''); setIsIndependentCourse(false); }}>
               <SelectTrigger data-testid="select-class">
                 <SelectValue placeholder={t.selectClass} />
               </SelectTrigger>
@@ -816,22 +871,34 @@ const TeacherOnlineClasses: React.FC = () => {
   // Render course creation form
   const renderCourseCreation = () => (
     <div className="space-y-6">
-      <Card>
+      <Card className={isIndependentCourse ? "border-2 border-green-200" : ""}>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center space-x-2">
-              <Video className="w-6 h-6 text-purple-600" />
-              <span>{t.createCourse}</span>
+              {isIndependentCourse ? (
+                <User className="w-6 h-6 text-green-600" />
+              ) : (
+                <Video className="w-6 h-6 text-purple-600" />
+              )}
+              <span>{isIndependentCourse 
+                ? (language === 'fr' ? 'Créer un Cours Indépendant' : 'Create Independent Course')
+                : t.createCourse
+              }</span>
             </span>
-            <Button variant="outline" onClick={() => setStep('selection')}>
+            <Button variant="outline" onClick={() => { setStep('selection'); setIsIndependentCourse(false); }}>
               {t.back}
             </Button>
           </CardTitle>
           <CardDescription>
-            {language === 'fr' ? 
-              `Classe: ${selectedClassData?.name || ''} ${selectedClassData?.schoolName ? `(${selectedClassData.schoolName})` : ''} | Matière: ${selectedSubject || ''}` :
-              `Class: ${selectedClassData?.name || ''} ${selectedClassData?.schoolName ? `(${selectedClassData.schoolName})` : ''} | Subject: ${selectedSubject || ''}`
-            }
+            {isIndependentCourse ? (
+              language === 'fr' 
+                ? 'Ce cours n\'est lié à aucune école. Vous pouvez inviter qui vous voulez.' 
+                : 'This course is not linked to any school. You can invite anyone.'
+            ) : (
+              language === 'fr' ? 
+                `Classe: ${selectedClassData?.name || ''} ${selectedClassData?.schoolName ? `(${selectedClassData.schoolName})` : ''} | Matière: ${selectedSubject || ''}` :
+                `Class: ${selectedClassData?.name || ''} ${selectedClassData?.schoolName ? `(${selectedClassData.schoolName})` : ''} | Subject: ${selectedSubject || ''}`
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
