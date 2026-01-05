@@ -306,19 +306,21 @@ const TeacherOnlineClasses: React.FC = () => {
     }
   });
 
-  // Subjects/Matières data (predefined list with numeric IDs)
-  const subjects = [
-    { id: 1, name: language === 'fr' ? 'Mathématiques' : 'Mathematics' },
-    { id: 2, name: language === 'fr' ? 'Français' : 'French' },
-    { id: 3, name: language === 'fr' ? 'Anglais' : 'English' },
-    { id: 4, name: language === 'fr' ? 'Sciences' : 'Science' },
-    { id: 5, name: language === 'fr' ? 'Histoire' : 'History' },
-    { id: 6, name: language === 'fr' ? 'Géographie' : 'Geography' },
-    { id: 7, name: language === 'fr' ? 'Physique' : 'Physics' },
-    { id: 8, name: language === 'fr' ? 'Chimie' : 'Chemistry' },
-    { id: 9, name: language === 'fr' ? 'Biologie' : 'Biology' },
-    { id: 10, name: language === 'fr' ? 'Philosophie' : 'Philosophy' }
-  ];
+  // Get ALL classes from ALL schools (multi-school support)
+  const allClasses = classesData?.schoolsWithClasses?.flatMap((school: any) => 
+    school.classes?.map((cls: any) => ({
+      ...cls,
+      schoolName: school.schoolName,
+      schoolId: school.schoolId
+    })) || []
+  ) || [];
+
+  // Get subjects from the selected class (from teacherSubjectAssignments)
+  const selectedClassData = allClasses.find((cls: any) => cls.id?.toString() === selectedClass);
+  const classSubjects = selectedClassData?.subjects?.map((subjectName: string, index: number) => ({
+    id: index + 1,
+    name: subjectName
+  })) || [];
 
   // Fetch teacher's courses
   const { data: coursesData, isLoading: coursesLoading } = useQuery({
@@ -364,22 +366,22 @@ const TeacherOnlineClasses: React.FC = () => {
   // Create course mutation with teacher context
   const createCourseMutation = useMutation({
     mutationFn: async (courseData: typeof newCourseData) => {
-      // Validate selection guards to prevent NaN IDs
+      // Validate selection guards
       if (!selectedClass || !selectedSubject) {
         throw new Error('Class and subject must be selected');
       }
       
       const classId = parseInt(selectedClass, 10);
-      const subjectId = parseInt(selectedSubject, 10);
       
-      if (isNaN(classId) || isNaN(subjectId)) {
-        throw new Error('Invalid class or subject selection');
+      if (isNaN(classId)) {
+        throw new Error('Invalid class selection');
       }
       
+      // Now selectedSubject contains the subject NAME, not ID
       const enrichedCourseData = {
         ...courseData,
         classId,
-        subjectId,
+        subjectName: selectedSubject, // Send subject name instead of ID
         language: language
       };
       console.log('[TEACHER_ONLINE_CLASSES] Creating course with data:', enrichedCourseData);
@@ -750,17 +752,17 @@ const TeacherOnlineClasses: React.FC = () => {
               <GraduationCap className="w-4 h-4" />
               <span>{t.selectClass}</span>
             </Label>
-            <Select value={selectedClass} onValueChange={setSelectedClass}>
+            <Select value={selectedClass} onValueChange={(val) => { setSelectedClass(val); setSelectedSubject(''); }}>
               <SelectTrigger data-testid="select-class">
                 <SelectValue placeholder={t.selectClass} />
               </SelectTrigger>
               <SelectContent>
                 {classesLoading ? (
                   <SelectItem value="loading" disabled>{t.loading}</SelectItem>
-                ) : classesData?.schoolsWithClasses?.[0]?.classes?.length > 0 ? (
-                  classesData.schoolsWithClasses[0].classes.map((cls: any) => (
+                ) : allClasses.length > 0 ? (
+                  allClasses.map((cls: any) => (
                     <SelectItem key={cls.id} value={cls.id.toString()}>
-                      {cls.name}
+                      {cls.name} {cls.schoolName ? `(${cls.schoolName})` : ''}
                     </SelectItem>
                   ))
                 ) : (
@@ -776,16 +778,22 @@ const TeacherOnlineClasses: React.FC = () => {
               <Book className="w-4 h-4" />
               <span>{t.selectSubject}</span>
             </Label>
-            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+            <Select value={selectedSubject} onValueChange={setSelectedSubject} disabled={!selectedClass}>
               <SelectTrigger data-testid="select-subject">
-                <SelectValue placeholder={t.selectSubject} />
+                <SelectValue placeholder={!selectedClass ? (language === 'fr' ? 'Sélectionnez d\'abord une classe' : 'Select a class first') : t.selectSubject} />
               </SelectTrigger>
               <SelectContent>
-                {subjects.map((subject) => (
-                  <SelectItem key={subject.id} value={subject.id.toString()}>
-                    {subject.name}
+                {classSubjects.length > 0 ? (
+                  classSubjects.map((subject: any) => (
+                    <SelectItem key={subject.id} value={subject.name}>
+                      {subject.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-subjects" disabled>
+                    {language === 'fr' ? 'Aucune matière assignée à cette classe' : 'No subjects assigned to this class'}
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -821,8 +829,8 @@ const TeacherOnlineClasses: React.FC = () => {
           </CardTitle>
           <CardDescription>
             {language === 'fr' ? 
-              `Classe: ${classesData?.schoolsWithClasses?.[0]?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Matière: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}` :
-              `Class: ${classesData?.schoolsWithClasses?.[0]?.classes?.find((c: any) => c.id.toString() === selectedClass)?.name || ''} | Subject: ${subjects.find(s => s.id.toString() === selectedSubject)?.name || ''}`
+              `Classe: ${selectedClassData?.name || ''} ${selectedClassData?.schoolName ? `(${selectedClassData.schoolName})` : ''} | Matière: ${selectedSubject || ''}` :
+              `Class: ${selectedClassData?.name || ''} ${selectedClassData?.schoolName ? `(${selectedClassData.schoolName})` : ''} | Subject: ${selectedSubject || ''}`
             }
           </CardDescription>
         </CardHeader>
