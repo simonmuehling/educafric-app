@@ -1424,4 +1424,87 @@ router.post('/:id/review', requireAuth, async (req, res) => {
   }
 });
 
+// ===== DELETE: Delete educational content (teacher can only delete their own) =====
+router.delete('/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = (req as any).user;
+    const contentId = parseInt(id);
+
+    if (isNaN(contentId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content ID / ID de contenu invalide'
+      });
+    }
+
+    console.log(`[EDUCATIONAL_CONTENT] DELETE request for content ${contentId} by user ${user.id}`);
+
+    // First, verify the content exists and belongs to this teacher
+    const [existingContent] = await db
+      .select({
+        id: educationalContent.id,
+        teacherId: educationalContent.teacherId,
+        schoolId: educationalContent.schoolId,
+        title: educationalContent.title,
+        files: educationalContent.files
+      })
+      .from(educationalContent)
+      .where(eq(educationalContent.id, contentId))
+      .limit(1);
+
+    if (!existingContent) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content not found / Contenu introuvable'
+      });
+    }
+
+    // Check ownership - teacher can only delete their own content
+    // Directors/Admins can delete any content in their school
+    const isOwner = existingContent.teacherId === user.id;
+    const isDirectorOrAdmin = ['Director', 'Admin'].includes(user.role) && existingContent.schoolId === user.schoolId;
+
+    if (!isOwner && !isDirectorOrAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only delete your own content / Vous ne pouvez supprimer que vos propres contenus'
+      });
+    }
+
+    // Delete associated files from disk
+    if (existingContent.files && Array.isArray(existingContent.files)) {
+      for (const file of existingContent.files as any[]) {
+        if (file.filename) {
+          try {
+            const filePath = path.join(process.cwd(), 'uploads', 'educational-content', file.filename);
+            await fs.unlink(filePath);
+            console.log(`[EDUCATIONAL_CONTENT] Deleted file: ${file.filename}`);
+          } catch (fileError) {
+            console.warn(`[EDUCATIONAL_CONTENT] Could not delete file ${file.filename}:`, fileError);
+          }
+        }
+      }
+    }
+
+    // Delete from database
+    await db.delete(educationalContent).where(eq(educationalContent.id, contentId));
+
+    console.log(`[EDUCATIONAL_CONTENT] ✅ Content ${contentId} deleted successfully`);
+
+    res.json({
+      success: true,
+      message: 'Content deleted successfully / Contenu supprimé avec succès',
+      deletedId: contentId
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Delete error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete content / Échec de la suppression'
+    });
+  }
+});
+
 export default router;

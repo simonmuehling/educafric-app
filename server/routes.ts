@@ -9733,6 +9733,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete a book from the library (teacher can only delete their own books)
+  app.delete("/api/teacher/library/books/:id", requireAuth, requireAnyRole(['Teacher', 'Admin', 'Director']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const bookId = parseInt(req.params.id);
+
+      if (isNaN(bookId)) {
+        return res.status(400).json({ success: false, message: 'Invalid book ID / ID de livre invalide' });
+      }
+
+      console.log('[TEACHER_LIBRARY] DELETE /api/teacher/library/books/' + bookId + ' by user:', user.id);
+
+      // Verify the book exists and check ownership
+      const [existingBook] = await db
+        .select({
+          id: libraryBooks.id,
+          teacherId: libraryBooks.teacherId,
+          schoolId: libraryBooks.schoolId,
+          titleFr: libraryBooks.titleFr
+        })
+        .from(libraryBooks)
+        .where(eq(libraryBooks.id, bookId))
+        .limit(1);
+
+      if (!existingBook) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Book not found / Livre introuvable' 
+        });
+      }
+
+      // Check ownership - teacher can only delete their own books
+      // Directors/Admins can delete any book in their school
+      const isOwner = existingBook.teacherId === user.id;
+      const isDirectorOrAdmin = ['Director', 'Admin'].includes(user.role) && existingBook.schoolId === user.schoolId;
+
+      if (!isOwner && !isDirectorOrAdmin) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'You can only delete your own books / Vous ne pouvez supprimer que vos propres livres' 
+        });
+      }
+
+      // Delete associated recommendations first
+      await db.delete(libraryRecommendations).where(eq(libraryRecommendations.bookId, bookId));
+
+      // Delete the book
+      await db.delete(libraryBooks).where(eq(libraryBooks.id, bookId));
+
+      console.log('[TEACHER_LIBRARY] ✅ Book', bookId, 'deleted successfully');
+
+      res.json({ 
+        success: true, 
+        message: 'Book deleted successfully / Livre supprimé avec succès',
+        deletedId: bookId
+      });
+    } catch (error) {
+      console.error('[TEACHER_LIBRARY] Error deleting book:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete book / Échec de la suppression' });
+    }
+  });
+
   // ============= SCHOOL TEACHER ABSENCES API (DIRECTOR ACCESS) =============
 
   // Get all teacher absences for school (Director access) - connects to TeacherAbsenceManager

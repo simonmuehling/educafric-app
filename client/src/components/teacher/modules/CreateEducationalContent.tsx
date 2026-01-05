@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   BookOpen, Upload, Download, Eye, Plus, Edit, Save, 
   FileText, Image, Video, AudioLines, Target, Clock,
-  Users, Star, Calendar, CheckSquare, X, Search, Share2, CheckCircle
+  Users, Star, Calendar, CheckSquare, X, Search, Share2, CheckCircle, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -25,6 +26,8 @@ const CreateEducationalContent = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [contentToDelete, setContentToDelete] = useState<any>(null);
   const [selectedContent, setSelectedContent] = useState<any>(null);
   const [currentContent, setCurrentContent] = useState({
     title: '',
@@ -408,6 +411,51 @@ const CreateEducationalContent = () => {
     }
   };
 
+  const handleDeleteClick = (content: any) => {
+    setContentToDelete(content);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteContent = async () => {
+    if (!contentToDelete) return;
+    
+    try {
+      const response = await fetch(`/api/educational-content/${contentToDelete.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        toast({
+          title: language === 'fr' ? "✅ Contenu supprimé" : "✅ Content deleted",
+          description: language === 'fr' 
+            ? `"${contentToDelete.title}" a été supprimé définitivement.` 
+            : `"${contentToDelete.title}" has been permanently deleted.`,
+          variant: "default"
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/educational-content', 'my-content'] });
+        refetchContent();
+      } else {
+        const data = await response.json();
+        toast({
+          title: language === 'fr' ? "Erreur" : "Error",
+          description: data.message || (language === 'fr' ? "Impossible de supprimer le contenu" : "Failed to delete content"),
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de supprimer le contenu" : "Failed to delete content",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setContentToDelete(null);
+    }
+  };
+
   const handlePreview = (content: any) => {
     setSelectedContent(content);
     setIsPreviewDialogOpen(true);
@@ -761,6 +809,15 @@ const CreateEducationalContent = () => {
                           >
                             <CheckCircle className="w-3 h-3 sm:mr-1" />
                             <span className="hidden sm:inline">{language === 'fr' ? 'Soumettre' : 'Submit'}</span>
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDeleteClick(content)}
+                            className="text-xs sm:text-sm px-2 sm:px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                            data-testid={`button-delete-${content.id}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
@@ -1313,6 +1370,34 @@ const CreateEducationalContent = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === 'fr' ? 'Confirmer la suppression' : 'Confirm Deletion'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === 'fr' 
+                ? `Êtes-vous sûr de vouloir supprimer "${contentToDelete?.title}" ? Cette action est irréversible.`
+                : `Are you sure you want to delete "${contentToDelete?.title}"? This action cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
+              {language === 'fr' ? 'Annuler' : 'Cancel'}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteContent}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {language === 'fr' ? 'Supprimer' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

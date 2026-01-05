@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { 
   BookOpen, Users, Plus, Eye, Share2, Filter,
   ExternalLink, Tag, Star, Clock,
@@ -57,6 +58,8 @@ const LibraryRelatedBooks: React.FC = () => {
   const [isRecommendDialogOpen, setIsRecommendDialogOpen] = useState(false);
   const [isAddBookDialogOpen, setIsAddBookDialogOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<LibraryBook | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [bookToDelete, setBookToDelete] = useState<LibraryBook | null>(null);
   
   const [recommendForm, setRecommendForm] = useState({
     bookId: '',
@@ -320,6 +323,53 @@ const LibraryRelatedBooks: React.FC = () => {
     }
   });
 
+  // Delete book mutation
+  const deleteBookMutation = useMutation({
+    mutationFn: async (bookId: number) => {
+      const response = await csrfFetch(`/api/teacher/library/books/${bookId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete book');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/library/books'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/library/recommendations'] });
+      setIsDeleteDialogOpen(false);
+      setBookToDelete(null);
+      toast({
+        title: language === 'fr' ? '✅ Livre supprimé' : '✅ Book deleted',
+        description: language === 'fr' 
+          ? 'Le livre a été supprimé de la bibliothèque' 
+          : 'The book has been removed from the library'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Impossible de supprimer le livre' : 'Failed to delete book'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleDeleteClick = (book: LibraryBook) => {
+    setBookToDelete(book);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteBook = () => {
+    if (bookToDelete) {
+      deleteBookMutation.mutate(bookToDelete.id);
+    }
+  };
+
   const handleBookSubmit = () => {
     const titleField = selectedBookLanguage === 'fr' ? bookForm.titleFr : bookForm.titleEn;
     
@@ -513,6 +563,16 @@ const LibraryRelatedBooks: React.FC = () => {
                           <ExternalLink className="w-4 h-4" />
                         </Button>
                       )}
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteClick(book)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+                        data-testid={`button-delete-book-${book.id}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -953,6 +1013,38 @@ const LibraryRelatedBooks: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === 'fr' ? 'Confirmer la suppression' : 'Confirm Deletion'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === 'fr' 
+                ? `Êtes-vous sûr de vouloir supprimer "${bookToDelete?.title[language]}" ? Cette action est irréversible.`
+                : `Are you sure you want to delete "${bookToDelete?.title[language]}"? This action cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)} data-testid="button-cancel-delete">
+              {language === 'fr' ? 'Annuler' : 'Cancel'}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteBook}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteBookMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {deleteBookMutation.isPending 
+                ? (language === 'fr' ? 'Suppression...' : 'Deleting...') 
+                : (language === 'fr' ? 'Supprimer' : 'Delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
