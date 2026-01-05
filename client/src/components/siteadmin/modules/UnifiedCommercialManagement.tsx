@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import ContractGenerator from '@/components/commercial/ContractGenerator';
+import OfferLetterCustomizer from '@/components/commercial/modules/OfferLetterCustomizer';
 import { 
   Briefcase, 
   Users, 
@@ -418,13 +419,14 @@ const UnifiedCommercialManagement: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
           <TabsTrigger value="team">Équipe</TabsTrigger>
           <TabsTrigger value="activities">Activités</TabsTrigger>
           <TabsTrigger value="appointments">Rendez-vous</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="contracts">Contrats</TabsTrigger>
+          <TabsTrigger value="offerLetters">Lettres d'Offres</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -1060,6 +1062,11 @@ const UnifiedCommercialManagement: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Offer Letters Tab */}
+        <TabsContent value="offerLetters" className="mt-6">
+          <OfferLetterCustomizer />
         </TabsContent>
       </Tabs>
 
