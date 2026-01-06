@@ -44,7 +44,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
 - MODULE COURS EN LIGNE - RÈGLES D'ACCÈS CRITIQUES:
   **INTERFACE VISIBLE POUR TOUS**: TOUS les enseignants DOIVENT voir l'interface complète avec les 3 onglets ("Mes Cours", "Sessions à Venir", "Créer un Cours") - JAMAIS cacher les onglets basé sur le statut d'abonnement.
   **LOGIQUE FRONTEND**: La condition `!hasPersonalSubscription` affiche les onglets avec restrictions (prompts d'achat). La condition `hasPersonalSubscription` affiche l'interface complète avec création de cours.
-  **3 NIVEAUX D'ACCÈS**:
+  **3 NIVEAUX D'ACCÈS**: 
   1) Abonnement Personnel (activationType='teacher') → Accès complet, création de cours indépendants
   2) Activation École (activationType='school') → Sessions assignées uniquement, prompt achat pour créer cours
   3) Sans Abonnement (activationType=null) → Interface visible, tous les boutons de création montrent prompt d'achat
@@ -53,6 +53,8 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
   **JWT EXPIRATION**: Calculé comme minimum de: fin d'abonnement, durée max session, ou 2h par défaut.
   **MULTI-RÔLE**: Vérifier `effectiveRole = user.activeRole || user.role` pour compatibilité Parent→Teacher.
   **NE JAMAIS**: Cacher les onglets de l'interface basé sur `hasPersonalSubscription` ou `hasSchoolAccess` - toujours montrer l'interface complète avec restrictions contextuelles.
+  **DIRECTEUR - AVERTISSEMENT ACTIVATION**: Dans OnlineClassesManager.tsx (director), vérifier `isSchoolActivated` via `/api/online-class-activations/school-status`. Si `!isSchoolActivated`, afficher un bandeau orange avec bouton WhatsApp pour contacter Educafric.
+  **BOUTON WHATSAPP**: Tous les boutons "Contacter Educafric" doivent ouvrir WhatsApp (pas email) avec message pré-rempli: `https://wa.me/237699999999?text=...`
 
 # System Architecture
 - **UI/UX Decisions**: African-themed, mobile-first, PWA-enabled UI using Radix UI, Shadcn/UI, and Tailwind CSS. Alert/confirmation dialogs consistently use a `bg-white` background. Student ID cards adhere to a standardized template with color printing, digital signatures, QR codes, and a mobile-friendly approach. Logo display uses a robust 4-level fallback system.
