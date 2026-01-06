@@ -17,11 +17,20 @@ const OWNER_EXCEPTION_NUMBERS = [
 
 /**
  * Normalize phone number for comparison
+ * Only allows digits and optional + prefix
  */
 function normalizePhoneNumber(phone: string): string {
   if (!phone) return '';
-  // Remove spaces, dashes, parentheses, dots
-  let normalized = phone.replace(/[\s\-\(\)\.\u00A0]/g, '');
+  // Remove ALL non-digit characters except + at the start
+  let normalized = phone.replace(/[^\d+]/g, '');
+  // Ensure + only appears at the start
+  if (normalized.includes('+')) {
+    const plusIndex = normalized.indexOf('+');
+    if (plusIndex > 0) {
+      // Remove + if not at start
+      normalized = normalized.replace(/\+/g, '');
+    }
+  }
   
   // Add + if missing for common international formats
   // Support common country codes: 237 (Cameroon), 41 (Switzerland), 33 (France), 
@@ -194,4 +203,40 @@ export async function validatePhoneNumber(
  */
 export function getOwnerExceptionNumbers(): string[] {
   return [...OWNER_EXCEPTION_NUMBERS];
+}
+
+/**
+ * Sanitize and normalize phone number for storage
+ * Removes all non-digit characters except leading +
+ * Returns null if phone is invalid
+ */
+export function sanitizePhoneForStorage(phone: string): string | null {
+  if (!phone || phone.trim() === '') return null;
+  
+  // Remove ALL non-digit characters except +
+  let sanitized = phone.replace(/[^\d+]/g, '');
+  
+  // Ensure + only appears at the start
+  if (sanitized.includes('+')) {
+    const firstPlus = sanitized.indexOf('+');
+    if (firstPlus > 0) {
+      sanitized = sanitized.replace(/\+/g, '');
+    } else {
+      // Remove any additional + signs after the first
+      sanitized = '+' + sanitized.substring(1).replace(/\+/g, '');
+    }
+  }
+  
+  // Get digits only for length check
+  const digitsOnly = sanitized.replace(/\+/g, '');
+  
+  // Must have at least 6 digits
+  if (digitsOnly.length < 6) return null;
+  
+  // Add + prefix if starts with common country code
+  if (!sanitized.startsWith('+') && digitsOnly.length >= 9) {
+    sanitized = '+' + digitsOnly;
+  }
+  
+  return sanitized;
 }
