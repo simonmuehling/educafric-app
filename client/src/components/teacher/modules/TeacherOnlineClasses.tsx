@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { OnlineClassPayment } from '@/components/teacher/OnlineClassPayment';
 import { 
   Video, 
@@ -554,6 +555,48 @@ const TeacherOnlineClasses: React.FC = () => {
       });
     }
   });
+
+  // Delete session mutation
+  const deleteSessionMutation = useMutation({
+    mutationFn: async (sessionId: number) => {
+      const response = await apiRequest('DELETE', `/api/online-classes/sessions/${sessionId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Session supprimée avec succès' : 'Session deleted successfully'
+      });
+      // Invalidate all session queries
+      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/teacher/sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/online-class-scheduler/teacher'] });
+      if (selectedCourse) {
+        queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses', selectedCourse.id, 'sessions'] });
+      }
+      setSessionToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error?.message || (language === 'fr' ? 'Échec de la suppression' : 'Failed to delete session'),
+        variant: "destructive"
+      });
+    }
+  });
+
+  // State for session delete confirmation
+  const [sessionToDelete, setSessionToDelete] = useState<ClassSession | null>(null);
+
+  // Handle delete confirmation
+  const handleDeleteSession = (session: ClassSession) => {
+    setSessionToDelete(session);
+  };
+
+  const confirmDeleteSession = () => {
+    if (sessionToDelete) {
+      deleteSessionMutation.mutate(sessionToDelete.id);
+    }
+  };
 
   // Handle selection completion
   const handleContinueSelection = () => {
@@ -1153,9 +1196,17 @@ const TeacherOnlineClasses: React.FC = () => {
                         {t.join}
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" data-testid={`button-settings-session-${session.id}`}>
-                      <Settings className="w-4 h-4" />
-                    </Button>
+                    {session.status === 'scheduled' && (
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => handleDeleteSession(session)}
+                        disabled={deleteSessionMutation.isPending}
+                        data-testid={`button-delete-session-${session.id}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1654,6 +1705,38 @@ const TeacherOnlineClasses: React.FC = () => {
         amount={calculatePrice(purchaseDuration)}
         language={language}
       />
+
+      {/* Delete Session Confirmation Dialog */}
+      <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => !open && setSessionToDelete(null)}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === 'fr' ? 'Supprimer cette session ?' : 'Delete this session?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === 'fr' 
+                ? `Êtes-vous sûr de vouloir supprimer la session "${sessionToDelete?.title}" ? Cette action est irréversible.`
+                : `Are you sure you want to delete the session "${sessionToDelete?.title}"? This action cannot be undone.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {language === 'fr' ? 'Annuler' : 'Cancel'}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteSession}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteSessionMutation.isPending}
+            >
+              {deleteSessionMutation.isPending 
+                ? (language === 'fr' ? 'Suppression...' : 'Deleting...') 
+                : (language === 'fr' ? 'Supprimer' : 'Delete')
+              }
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
