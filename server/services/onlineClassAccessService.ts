@@ -14,6 +14,11 @@ interface AccessCheckResult {
     end: Date;
   };
   nextAvailableAt?: Date;
+  canStartSession?: boolean; // For school access - can they start sessions now?
+  timeRestriction?: {
+    reason: string;
+    nextAvailableAt?: Date;
+  } | null;
   subscriptionDetails?: {
     startDate: string;
     endDate: string;
@@ -293,12 +298,32 @@ export class OnlineClassAccessService {
       const schoolActivation = await onlineClassActivationService.checkSchoolActivation(schoolId);
       
       if (schoolActivation) {
-        // School has activation - check time window
+        // School has activation - ALWAYS allow viewing assigned sessions
+        // Time window only restricts WHEN they can start, not VIEWING
         const timeWindowCheck = await this.checkSchoolTimeWindow(schoolId, currentTime);
+        const schoolEndDate = new Date(schoolActivation.endDate);
+        const daysRemaining = Math.ceil((schoolEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
         
         return {
-          ...timeWindowCheck,
-          activationType: "school"
+          allowed: true, // Always allow for viewing assigned sessions
+          reason: timeWindowCheck.allowed ? "school_access" : "school_access_time_restricted",
+          message: timeWindowCheck.allowed 
+            ? "Accès école - vous pouvez démarrer vos sessions assignées"
+            : `Accès école - ${timeWindowCheck.message}`,
+          activationType: "school",
+          canStartSession: timeWindowCheck.allowed, // Only start during allowed windows OR for scheduled sessions
+          timeRestriction: !timeWindowCheck.allowed ? {
+            reason: timeWindowCheck.reason,
+            nextAvailableAt: timeWindowCheck.nextAvailableAt
+          } : null,
+          subscriptionDetails: {
+            startDate: new Date(schoolActivation.startDate).toISOString(),
+            endDate: schoolEndDate.toISOString(),
+            durationDays: Math.ceil((schoolEndDate.getTime() - new Date(schoolActivation.startDate).getTime()) / (1000 * 60 * 60 * 24)),
+            daysRemaining,
+            durationType: "école",
+            isExpiringSoon: daysRemaining <= 7
+          }
         };
       }
       
@@ -371,18 +396,28 @@ export class OnlineClassAccessService {
   }
 
   /**
-   * Calculate JWT expiration in minutes based on subscription end date
-   * Returns the minimum of: default duration or time until subscription expires
-   * JWT will expire exactly when subscription expires (no extension past subscription end)
-   * Uses ceiling to ensure token expires AT or BEFORE subscription end
+   * Calculate JWT expiration in minutes based on subscription end date AND session max duration
+   * Returns the minimum of: subscription remaining, session max duration, or default cap
+   * JWT will expire when session ends OR subscription expires, whichever comes first
+   * Uses ceiling to ensure token expires AT or BEFORE limits
    */
   calculateJwtExpirationMinutes(
     subscriptionEndDate: Date | null,
-    defaultMinutes: number = 60
+    defaultMinutes: number = 60,
+    sessionMaxDuration?: number // Session maxDuration in minutes (from school-assigned session)
   ): number {
-    // No subscription end date means unlimited (use default)
+    let effectiveMaxMinutes = defaultMinutes;
+    
+    // If session has maxDuration, use it as the cap (e.g., 60 min session = max 60 min token)
+    if (sessionMaxDuration && sessionMaxDuration > 0) {
+      effectiveMaxMinutes = Math.min(effectiveMaxMinutes, sessionMaxDuration);
+      console.log(`[JWT_EXPIRY] 📚 Session maxDuration: ${sessionMaxDuration} min, effective cap: ${effectiveMaxMinutes} min`);
+    }
+    
+    // No subscription end date means unlimited subscription (use session duration as cap)
     if (!subscriptionEndDate) {
-      return defaultMinutes;
+      console.log(`[JWT_EXPIRY] ✅ No subscription limit, using session cap: ${effectiveMaxMinutes} min`);
+      return effectiveMaxMinutes;
     }
 
     const now = new Date();
@@ -395,16 +430,18 @@ export class OnlineClassAccessService {
     }
 
     // Convert to minutes using ceiling to avoid extending past subscription end
-    // Example: 30 seconds remaining = ceil(0.5) = 1 minute token
     const minutesUntilExpiry = Math.ceil(msUntilExpiry / (1000 * 60));
 
-    // Cap at default if subscription has more time
-    if (minutesUntilExpiry > defaultMinutes) {
-      return defaultMinutes;
+    // Return the MINIMUM of: subscription remaining OR session cap
+    const finalMinutes = Math.min(minutesUntilExpiry, effectiveMaxMinutes);
+    
+    if (finalMinutes < effectiveMaxMinutes) {
+      console.log(`[JWT_EXPIRY] ⏰ Limiting JWT to ${finalMinutes} min (subscription ends before session ends)`);
+    } else {
+      console.log(`[JWT_EXPIRY] ✅ JWT set to ${finalMinutes} min (session ends before subscription)`);
     }
-
-    console.log(`[JWT_EXPIRY] ⏰ Limiting JWT to ${minutesUntilExpiry} min (subscription ends soon)`);
-    return minutesUntilExpiry;
+    
+    return finalMinutes;
   }
 
   /**

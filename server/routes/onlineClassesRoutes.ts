@@ -562,14 +562,15 @@ router.post('/sessions/:sessionId/start',
         });
       }
 
-      // Calculate JWT expiration based on subscription end date
-      // This ensures the JWT token expires when the subscription expires
+      // Calculate JWT expiration based on subscription end date AND session maxDuration
+      // This ensures the JWT token expires when session ends OR subscription expires (whichever first)
       const jwtExpirationMinutes = onlineClassAccessService.calculateJwtExpirationMinutes(
         subscriptionInfo.endDate,
-        120 // Default 2 hours max
+        120, // Default 2 hours max
+        sessionData.maxDuration // Session maxDuration (e.g., 60 min for school-assigned session)
       );
 
-      console.log(`[ONLINE_CLASSES_API] ✅ Subscription valid for user ${user.id}, JWT expires in ${jwtExpirationMinutes} minutes`);
+      console.log(`[ONLINE_CLASSES_API] ✅ Subscription valid for user ${user.id}, JWT expires in ${jwtExpirationMinutes} minutes (session maxDuration: ${sessionData.maxDuration} min)`);
       
       // TODO: Update session status (temporarily disabled due to DB sync)
       // const updatedSession = await db
@@ -848,10 +849,12 @@ router.post('/sessions/:sessionId/join',
         });
       }
 
-      // Calculate JWT expiration based on teacher's subscription end date
+      // Calculate JWT expiration based on teacher's subscription end date AND session maxDuration
+      // Session ends at maxDuration (e.g., 60 min) OR when subscription expires (whichever first)
       const jwtExpirationMinutes = onlineClassAccessService.calculateJwtExpirationMinutes(
         teacherSubscription.endDate,
-        120 // Default 2 hours max
+        120, // Default 2 hours max
+        sessionData.maxDuration // Session maxDuration limits access
       );
 
       // Generate JWT token with subscription-limited expiration
