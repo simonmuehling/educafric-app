@@ -1196,12 +1196,13 @@ const TeacherOnlineClasses: React.FC = () => {
                         {t.join}
                       </Button>
                     )}
-                    {session.status === 'scheduled' && (
+                    {session.status === 'scheduled' && session.creatorType === 'teacher' && (
                       <Button 
                         size="sm" 
                         variant="destructive"
                         onClick={() => handleDeleteSession(session)}
                         disabled={deleteSessionMutation.isPending}
+                        title={language === 'fr' ? 'Supprimer la session' : 'Delete session'}
                         data-testid={`button-delete-session-${session.id}`}
                       >
                         <Trash2 className="w-4 h-4" />
