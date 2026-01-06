@@ -222,7 +222,17 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
 
   const t = text[language as keyof typeof text];
 
+  // Check if user has multiple roles (secondaryRoles from auth context)
+  const hasMultipleRoles = (user as any)?.secondaryRoles?.length > 0 || (user as any)?.roleAffiliations?.length > 1;
+
   const modules = [
+    // Multi-role switcher - shown first when user has multiple roles
+    ...(hasMultipleRoles ? [{
+      id: 'multirole',
+      label: language === 'fr' ? 'Changer de Rôle' : 'Switch Role',
+      icon: <Users className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-purple-600 to-indigo-600'
+    }] : []),
     {
       id: 'director-settings',
       label: t.settings,
@@ -348,12 +358,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.feesManagement,
       icon: <DollarSign className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-emerald-500 to-green-600'
-    },
-    {
-      id: 'multirole',
-      label: language === 'fr' ? 'Multi-Rôles' : 'Multi-Roles',
-      icon: <Users className="w-6 h-6" />,
-      color: 'bg-purple-600'
     }
   ];
 
