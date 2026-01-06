@@ -25,7 +25,8 @@ import {
   insertCourseEnrollmentSchema
 } from '../../shared/schemas/onlineClassesSchema.js';
 import { eq, and, or, desc, gte, lte, sql, isNull } from 'drizzle-orm';
-import { users, classes, enrollments, students, parentStudentRelations } from '../../shared/schema.js';
+import { users, classes, parentStudentRelations } from '../../shared/schema.js';
+import { enrollments } from '../../shared/schemas/classEnrollmentSchema.js';
 
 const router = Router();
 
@@ -959,13 +960,13 @@ router.get('/school/sessions',
       let allSessions = [...courseLinkedSessions, ...schedulerSessions];
 
       // For students: Filter by their enrolled class
+      // Note: enrollments.studentId IS the user ID for students (not a separate students table)
       if (user.role === 'Student') {
-        // Get student's enrolled classes
+        // Get student's enrolled classes (studentId = user.id for students)
         const studentEnrollments = await db
           .select({ classId: enrollments.classId })
           .from(enrollments)
-          .innerJoin(students, eq(enrollments.studentId, students.id))
-          .where(eq(students.userId, user.id));
+          .where(eq(enrollments.studentId, user.id));
         
         const enrolledClassIds = studentEnrollments.map(e => e.classId);
         
@@ -980,12 +981,11 @@ router.get('/school/sessions',
 
       // For parents: Filter by their children's enrolled classes
       if (user.role === 'Parent') {
-        // Get parent's children and their enrolled classes
+        // Get parent's children (studentId) and their enrolled classes
         const childEnrollments = await db
           .select({ classId: enrollments.classId })
           .from(parentStudentRelations)
-          .innerJoin(students, eq(parentStudentRelations.studentId, students.id))
-          .innerJoin(enrollments, eq(students.id, enrollments.studentId))
+          .innerJoin(enrollments, eq(parentStudentRelations.studentId, enrollments.studentId))
           .where(eq(parentStudentRelations.parentId, user.id));
         
         const childClassIds = childEnrollments.map(e => e.classId);
