@@ -1,24 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ModernCard } from '@/components/ui/ModernCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import { 
-  Shield, Star, Users, MessageSquare, Bell, MapPin, 
-  CreditCard, Calendar, Check, ArrowRight, Heart,
-  Smartphone, Eye, AlertTriangle, ScanEye, Loader2
+  MessageSquare, Bell, MapPin, Check, Loader2, 
+  Users, Navigation, Shield, Star, Phone
 } from 'lucide-react';
 
 const ParentSubscription = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [subscribingTo, setSubscribingTo] = useState<string | null>(null);
 
-  // 📡 Récupérer les vraies données d'abonnement parent
-  const { data: subscriptionData, isLoading } = useQuery({
+  // Fetch dynamic pricing from school settings
+  const { data: pricingData, isLoading: pricingLoading } = useQuery({
+    queryKey: ['/api/parent/pricing', user?.id],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/parent/pricing');
+      return response.json();
+    },
+    enabled: !!user?.id
+  });
+
+  // Fetch current subscription status
+  const { data: subscriptionData, isLoading: subLoading } = useQuery({
     queryKey: ['/api/parent/subscription', user?.id],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/parent/subscription');
@@ -27,444 +39,338 @@ const ParentSubscription = () => {
     enabled: !!user?.id
   });
 
-  // 📡 Récupérer l'état des passerelles pour chaque enfant
-  const { data: gatewayStatus } = useQuery({
-    queryKey: ['/api/parent/gateway-status', user?.id],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parent/gateway-status');
+  // Subscribe mutation
+  const subscribeMutation = useMutation({
+    mutationFn: async ({ planType }: { planType: string }) => {
+      const response = await apiRequest('POST', '/api/parent/subscribe', { planType, paymentMethod: 'pending' });
       return response.json();
     },
-    enabled: !!user?.id
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/parent/subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parent/pricing'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: data.message
+      });
+      setSubscribingTo(null);
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Échec de l\'abonnement' : 'Subscription failed',
+        variant: 'destructive'
+      });
+      setSubscribingTo(null);
+    }
   });
 
   const text = {
     fr: {
-      title: 'Abonnement Parent',
-      subtitle: 'Gérer votre plan d\'abonnement pour le suivi de vos enfants',
-      currentPlan: 'Plan Actuel',
-      subscriptionLevel: 'Niveau d\'Abonnement',
-      planDetails: 'Détails du Plan',
-      upgrade: 'Mettre à niveau',
-      downgrade: 'Rétrograder',
-      features: 'Fonctionnalités',
-      billingCycle: 'Cycle de Facturation',
-      nextBilling: 'Prochaine Facture',
-      paymentMethod: 'Méthode de Paiement',
-      planOptions: 'Options de Plan',
-      freePlan: 'Plan Gratuit',
-      parentPublic: 'Parent Bronze',
-      parentPrivate: 'Parent Bronze P',
-      parentGeolocation: 'Parent Géolocalisation',
-      monthly: 'Mensuel',
-      annual: 'Annuel',
-      perMonth: '/mois',
+      title: 'Mon Abonnement',
+      subtitle: 'Gérer vos abonnements pour le suivi de vos enfants',
+      communication: 'Communication',
+      communicationDesc: 'Ouvrir la passerelle de communication avec l\'école',
+      geolocation: 'Géolocalisation',
+      geolocationDesc: 'Suivre la position de votre enfant en temps réel',
       perYear: '/an',
-      savings: 'Économies',
-      popular: 'Populaire',
-      current: 'Actuel',
-      choosePlan: 'Choisir ce Plan',
-      viewAllPlans: 'Voir Tous Les Plans',
-      manageBilling: 'Gérer Facturation',
-      downloadInvoice: 'Télécharger Facture',
-      cancelSubscription: 'Annuler Abonnement',
-      familyDiscount: 'Remise Famille',
-      twoChildren: '2 enfants: -20%',
-      threeChildren: '3+ enfants: -40%',
-      basicFeatures: 'Fonctionnalités de Base',
-      premiumFeatures: 'Fonctionnalités Premium',
-      feature1: 'Suivi des notes en temps réel',
-      feature2: 'Notifications SMS/WhatsApp',
-      feature3: 'Communication avec enseignants',
-      feature4: 'Rapports de présence',
-      feature5: 'Accès emploi du temps',
-      feature6: 'Géolocalisation avancée',
-      feature7: 'Bouton d\'urgence',
-      feature8: 'Zones de sécurité',
-      feature9: 'Support prioritaire',
-      feature10: 'Analyses détaillées',
-      tracking: 'Suivi des élèves',
-      realtimeNotifications: 'Notifications en temps réel (email + sms)',
-      gradeAccess: 'Accès aux notes',
-      bulletinReception: 'Réception de bulletins',
-      onlineClass: 'Online class',
-      teacherComm: 'Communication enseignants',
-      bilingualSupport: 'Support bilingue',
-      priceInCFA: 'Prix en CFA',
-      activateNow: 'Activer Maintenant',
-      billingAddress: 'Adresse de Facturation',
-      paymentHistory: 'Historique des Paiements',
-      renewalDate: 'Date de Renouvellement',
-      autoRenewal: 'Renouvellement Automatique',
-      cancelAnytime: 'Annuler À Tout Moment'
+      free: 'Gratuit',
+      subscribe: 'S\'abonner',
+      active: 'Actif',
+      inactive: 'Inactif',
+      discount: 'Réduction',
+      children: 'enfants',
+      child: 'enfant',
+      familyDiscount: 'Réduction Famille',
+      features: 'Fonctionnalités incluses',
+      commFeature1: 'Notifications de l\'école (SMS/Email/WhatsApp)',
+      commFeature2: 'Messages des enseignants',
+      commFeature3: 'Alertes de présence',
+      commFeature4: 'Réception des bulletins',
+      commFeature5: 'Support bilingue',
+      geoFeature1: 'Position en temps réel',
+      geoFeature2: 'Historique des déplacements',
+      geoFeature3: 'Zones de sécurité',
+      geoFeature4: 'Alertes d\'entrée/sortie',
+      geoFeature5: 'Bouton d\'urgence',
+      noChildren: 'Connectez d\'abord vos enfants pour voir les tarifs',
+      loading: 'Chargement...',
+      yourChildren: 'Vos enfants',
+      finalPrice: 'Prix final',
+      basePrice: 'Prix de base'
     },
     en: {
-      title: 'Parent Subscription',
-      subtitle: 'Manage your subscription plan for tracking your children',
-      currentPlan: 'Current Plan',
-      subscriptionLevel: 'Subscription Level',
-      planDetails: 'Plan Details',
-      upgrade: 'Upgrade',
-      downgrade: 'Downgrade',
-      features: 'Features',
-      billingCycle: 'Billing Cycle',
-      nextBilling: 'Next Billing',
-      paymentMethod: 'Payment Method',
-      planOptions: 'Plan Options',
-      freePlan: 'Free Plan',
-      parentPublic: 'Parent Bronze',
-      parentPrivate: 'Parent Bronze P',
-      parentGeolocation: 'Geolocation Parent',
-      monthly: 'Monthly',
-      annual: 'Annual',
-      perMonth: '/month',
+      title: 'My Subscription',
+      subtitle: 'Manage your subscriptions for tracking your children',
+      communication: 'Communication',
+      communicationDesc: 'Open the communication gateway with the school',
+      geolocation: 'Geolocation',
+      geolocationDesc: 'Track your child\'s location in real-time',
       perYear: '/year',
-      savings: 'Savings',
-      popular: 'Popular',
-      current: 'Current',
-      choosePlan: 'Choose Plan',
-      viewAllPlans: 'View All Plans',
-      manageBilling: 'Manage Billing',
-      downloadInvoice: 'Download Invoice',
-      cancelSubscription: 'Cancel Subscription',
+      free: 'Free',
+      subscribe: 'Subscribe',
+      active: 'Active',
+      inactive: 'Inactive',
+      discount: 'Discount',
+      children: 'children',
+      child: 'child',
       familyDiscount: 'Family Discount',
-      twoChildren: '2 children: -20%',
-      threeChildren: '3+ children: -40%',
-      basicFeatures: 'Basic Features',
-      premiumFeatures: 'Premium Features',
-      feature1: 'Real-time grade tracking',
-      feature2: 'SMS/WhatsApp notifications',
-      feature3: 'Teacher communication',
-      feature4: 'Attendance reports',
-      feature5: 'Timetable access',
-      feature6: 'Advanced geolocation',
-      feature7: 'Emergency button',
-      feature8: 'Safety zones',
-      feature9: 'Priority support',
-      feature10: 'Detailed analytics',
-      tracking: 'Student tracking',
-      realtimeNotifications: 'Real-time notifications (email + sms)',
-      gradeAccess: 'Grade access',
-      bulletinReception: 'Bulletin reception',
-      onlineClass: 'Online class',
-      teacherComm: 'Teacher communication',
-      bilingualSupport: 'Bilingual support',
-      priceInCFA: 'Price in CFA',
-      activateNow: 'Activate Now',
-      billingAddress: 'Billing Address',
-      paymentHistory: 'Payment History',
-      renewalDate: 'Renewal Date',
-      autoRenewal: 'Auto Renewal',
-      cancelAnytime: 'Cancel Anytime'
+      features: 'Included features',
+      commFeature1: 'School notifications (SMS/Email/WhatsApp)',
+      commFeature2: 'Teacher messages',
+      commFeature3: 'Attendance alerts',
+      commFeature4: 'Bulletin reception',
+      commFeature5: 'Bilingual support',
+      geoFeature1: 'Real-time location',
+      geoFeature2: 'Movement history',
+      geoFeature3: 'Safety zones',
+      geoFeature4: 'Entry/exit alerts',
+      geoFeature5: 'Emergency button',
+      noChildren: 'Connect your children first to see pricing',
+      loading: 'Loading...',
+      yourChildren: 'Your children',
+      finalPrice: 'Final price',
+      basePrice: 'Base price'
     }
   };
 
-  const t = text[language as keyof typeof text];
+  const t = text[language as keyof typeof text] || text.fr;
 
-  const parentPlans = [
-    {
-      id: 'free',
-      name: t.freePlan,
-      price: 0,
-      period: 'free',
-      color: 'from-gray-400 to-gray-500',
-      features: [
-        { icon: <Eye className="w-5 h-5 sm:w-6 sm:h-6" />, text: t.feature5 },
-        { icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />, text: 'Notifications de base' },
-        { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, text: 'Support communautaire' }
-      ],
-      current: true
-    },
-    {
-      id: 'parent_bronze',
-      name: t.parentPublic,
-      price: 3000,
-      period: 'annual',
-      color: 'from-blue-500 to-blue-600',
-      popular: true,
-      features: [
-        { icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📍 ${t.tracking}` },
-        { icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />, text: `🔔 ${t.realtimeNotifications}` },
-        { icon: <Star className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📊 ${t.gradeAccess}` },
-        { icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📄 ${t.bulletinReception}` },
-        { icon: <Smartphone className="w-5 h-5 sm:w-6 sm:h-6" />, text: `💻 ${t.onlineClass}` },
-        { icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />, text: `💬 ${t.teacherComm}` },
-        { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, text: `🌍 ${t.bilingualSupport}` }
-      ]
-    },
-    {
-      id: 'parent_bronze_p',
-      name: t.parentPrivate,
-      price: 4000,
-      period: 'annual',
-      color: 'from-purple-500 to-purple-600',
-      features: [
-        { icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📍 ${t.tracking}` },
-        { icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />, text: `🔔 ${t.realtimeNotifications}` },
-        { icon: <Star className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📊 ${t.gradeAccess}` },
-        { icon: <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />, text: `📄 ${t.bulletinReception}` },
-        { icon: <Smartphone className="w-5 h-5 sm:w-6 sm:h-6" />, text: `💻 ${t.onlineClass}` },
-        { icon: <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />, text: `💬 ${t.teacherComm}` },
-        { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, text: `🌍 ${t.bilingualSupport}` }
-      ]
-    },
-    {
-      id: 'parent_geolocation',
-      name: t.parentGeolocation,
-      price: 1000,
-      period: 'monthly',
-      color: 'from-green-500 to-green-600',
-      premium: true,
-      features: [
-        { icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />, text: t.feature6 },
-        { icon: <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />, text: t.feature7 },
-        { icon: <ScanEye className="w-5 h-5 sm:w-6 sm:h-6" />, text: t.feature8 },
-        { icon: <Smartphone className="w-5 h-5 sm:w-6 sm:h-6" />, text: 'Suivi multi-appareils' },
-        { icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6" />, text: 'Alertes de position' }
-      ]
-    }
-  ];
+  const isLoading = pricingLoading || subLoading;
 
-  const handlePlanSelect = (planId: string) => {
-    setSelectedPlan(planId);
-    if (planId !== 'free') {
-      // Redirect to subscription page
-      window.open('/subscribe', '_blank');
-    }
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <span className="ml-3 text-gray-600">{t.loading}</span>
+      </div>
+    );
+  }
+
+  const pricing = pricingData?.pricing || {
+    communication: { enabled: true, price: 5000, period: 'annual' },
+    geolocation: { enabled: true, price: 5000, period: 'annual' },
+    discounts: { twoChildren: 20, threePlusChildren: 40 }
   };
+  const childCount = pricingData?.childCount || 0;
+
+  // Calculate discount
+  let discountPercent = 0;
+  if (childCount === 2) {
+    discountPercent = pricing.discounts.twoChildren;
+  } else if (childCount >= 3) {
+    discountPercent = pricing.discounts.threePlusChildren;
+  }
+
+  const calcFinalPrice = (basePrice: number) => {
+    if (basePrice === 0) return 0;
+    return Math.round(basePrice * (1 - discountPercent / 100));
+  };
+
+  const formatPrice = (price: number) => {
+    if (price === 0) return t.free;
+    return `${price.toLocaleString()} CFA${t.perYear}`;
+  };
+
+  const handleSubscribe = (planType: string) => {
+    setSubscribingTo(planType);
+    subscribeMutation.mutate({ planType });
+  };
+
+  // Check if already subscribed
+  const hasCommunication = subscriptionData?.hasCommunication || false;
+  const hasGeolocation = subscriptionData?.hasGeolocation || false;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
+      {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
         <p className="text-gray-600 mt-1">{t.subtitle}</p>
       </div>
 
-      {/* Current Subscription Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ModernCard title={t.currentPlan} className="p-6">
-          {isLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-              <span className="ml-2">Chargement de votre abonnement...</span>
-            </div>
-          ) : (
-            <div className={`p-4 bg-gradient-to-r rounded-lg border ${
-              subscriptionData?.isFreemium !== false 
-                ? 'from-green-50 to-blue-50 border-green-200' 
-                : 'from-purple-50 to-pink-50 border-purple-200'
-            }`}>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className={`text-lg font-semibold ${
-                  subscriptionData?.isFreemium !== false ? 'text-green-900' : 'text-purple-900'
-                }`}>
-                  {subscriptionData?.planName || t.freePlan}
-                </h4>
-                <Badge className={`${
-                  subscriptionData?.isFreemium !== false 
-                    ? 'bg-green-100 text-green-800 border-green-200' 
-                    : 'bg-purple-100 text-purple-800 border-purple-200'
-                }`}>
-                  {t.current}
+      {/* Children Count & Discount Info */}
+      {childCount > 0 && (
+        <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Users className="w-6 h-6 text-purple-600" />
+                <div>
+                  <p className="font-semibold text-purple-900">
+                    {t.yourChildren}: {childCount} {childCount > 1 ? t.children : t.child}
+                  </p>
+                  {discountPercent > 0 && (
+                    <p className="text-sm text-purple-700">
+                      {t.familyDiscount}: -{discountPercent}%
+                    </p>
+                  )}
+                </div>
+              </div>
+              {discountPercent > 0 && (
+                <Badge className="bg-purple-600 text-white">
+                  -{discountPercent}% {t.discount}
                 </Badge>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                <div>
-                  <span className="text-gray-600">{t.priceInCFA}:</span>
-                  <span className="font-semibold ml-2">
-                    {subscriptionData?.price || 0} CFA{subscriptionData?.isFreemium !== false ? '' : t.perMonth}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">{t.features}:</span>
-                  <span className="font-semibold ml-2">
-                    {subscriptionData?.features?.length || 3} {language === 'fr' ? 'disponibles' : 'available'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">{t.billingCycle}:</span>
-                  <span className="font-semibold ml-2">
-                    {subscriptionData?.billingCycle || (language === 'fr' ? 'Gratuit' : 'Free')}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">{t.renewalDate}:</span>
-                  <span className="font-semibold ml-2">
-                    {subscriptionData?.nextRenewal ? new Date(subscriptionData.nextRenewal).toLocaleDateString() : '-'}
-                  </span>
-                </div>
-              </div>
-
-              {/* AFFICHAGE ÉTAT DES PASSERELLES PAR ENFANT */}
-              {gatewayStatus && Object.keys(gatewayStatus).length > 0 && (
-                <div className="mb-4 p-3 bg-white/60 rounded-lg border">
-                  <h5 className="font-semibold text-gray-800 mb-2">🔄 État des passerelles enfants:</h5>
-                  <div className="space-y-2 text-xs">
-                    {Object.entries(gatewayStatus).map(([childId, status]: [string, any]) => (
-                      <div key={childId} className="flex items-center justify-between">
-                        <span className="text-gray-700">{status.childName}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500">{status.schoolName}</span>
-                          <Badge className={`text-xs px-2 py-0.5 ${
-                            status.gatewayActive 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {status.gatewayActive ? '✅ Active' : '❌ Inactive'}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-              <div className={`pt-3 border-t ${
-                subscriptionData?.isFreemium !== false ? 'border-green-200' : 'border-purple-200'
-              }`}>
-                {subscriptionData?.isFreemium !== false ? (
-                  <Button 
-                    size="sm"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                    onClick={() => window.open('/subscribe', '_blank')}
-                  >
-                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                    {t.upgrade}
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm"
-                      variant="outline"
-                      onClick={() => window.open('/subscribe', '_blank')}
-                    >
-                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                      {t.manageBilling}
-                    </Button>
-                    <Button 
-                      size="sm"
-                      className="bg-gradient-to-r from-green-600 to-blue-600 text-white"
-                      onClick={() => window.open('/subscribe?upgrade=true', '_blank')}
-                    >
-                      <Star className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                      Ajouter enfant
-                    </Button>
-                  </div>
+      {childCount === 0 && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardContent className="p-4">
+            <p className="text-yellow-800 text-center">{t.noChildren}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Subscription Plans */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* Communication Plan */}
+        {pricing.communication.enabled && (
+          <Card className="border-2 border-blue-200 hover:border-blue-400 transition-colors" data-testid="card-plan-communication">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-6 h-6" />
+                {t.communication}
+              </CardTitle>
+              <p className="text-blue-100 text-sm">{t.communicationDesc}</p>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              {/* Pricing */}
+              <div className="text-center py-4 bg-blue-50 rounded-lg">
+                {discountPercent > 0 && pricing.communication.price > 0 && (
+                  <p className="text-sm text-gray-500 line-through">
+                    {t.basePrice}: {pricing.communication.price.toLocaleString()} CFA
+                  </p>
                 )}
+                <p className="text-3xl font-bold text-blue-600">
+                  {formatPrice(calcFinalPrice(pricing.communication.price))}
+                </p>
               </div>
-            </div>
-          )}
-        </ModernCard>
 
-        <ModernCard title={t.familyDiscount} className="p-6">
-          <div className="space-y-4">
-            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-              <h5 className="font-semibold text-orange-800 mb-2">💰 {t.familyDiscount}</h5>
-              <div className="space-y-2 text-sm text-orange-700">
-                <div className="flex items-center justify-between">
-                  <span>👨‍👩‍👧 {t.twoChildren}</span>
-                  <Badge className="bg-orange-100 text-orange-800">-20%</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>👨‍👩‍👧‍👦 {t.threeChildren}</span>
-                  <Badge className="bg-orange-100 text-orange-800">-40%</Badge>
-                </div>
+              {/* Features */}
+              <div className="space-y-2">
+                <p className="font-medium text-gray-700">{t.features}:</p>
+                <ul className="space-y-2">
+                  {[t.commFeature1, t.commFeature2, t.commFeature3, t.commFeature4, t.commFeature5].map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
 
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h5 className="font-semibold text-blue-800 mb-2">📱 {t.paymentMethod}</h5>
-              <div className="text-sm text-blue-700 space-y-1">
-                <span>• 💳 Stripe (Visa, MasterCard)</span>
-                <span>• 📱 Orange Money</span>
-                <span>• 🏦 Virement Afriland First Bank</span>
+              {/* Subscribe Button */}
+              <Button
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled={hasCommunication || subscribingTo === 'communication' || childCount === 0}
+                onClick={() => handleSubscribe('communication')}
+                data-testid="button-subscribe-communication"
+              >
+                {subscribingTo === 'communication' ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : hasCommunication ? (
+                  <Shield className="w-4 h-4 mr-2" />
+                ) : null}
+                {hasCommunication ? t.active : t.subscribe}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Geolocation Plan */}
+        {pricing.geolocation.enabled && (
+          <Card className="border-2 border-green-200 hover:border-green-400 transition-colors" data-testid="card-plan-geolocation">
+            <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2">
+                <Navigation className="w-6 h-6" />
+                {t.geolocation}
+              </CardTitle>
+              <p className="text-green-100 text-sm">{t.geolocationDesc}</p>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              {/* Pricing */}
+              <div className="text-center py-4 bg-green-50 rounded-lg">
+                {discountPercent > 0 && pricing.geolocation.price > 0 && (
+                  <p className="text-sm text-gray-500 line-through">
+                    {t.basePrice}: {pricing.geolocation.price.toLocaleString()} CFA
+                  </p>
+                )}
+                <p className="text-3xl font-bold text-green-600">
+                  {formatPrice(calcFinalPrice(pricing.geolocation.price))}
+                </p>
               </div>
-            </div>
 
-            <Button 
-              variant="outline"
-              className="w-full"
-              onClick={() => window.open('/subscribe', '_blank')}
-            >
-              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-              {t.manageBilling}
-            </Button>
-          </div>
-        </ModernCard>
+              {/* Features */}
+              <div className="space-y-2">
+                <p className="font-medium text-gray-700">{t.features}:</p>
+                <ul className="space-y-2">
+                  {[t.geoFeature1, t.geoFeature2, t.geoFeature3, t.geoFeature4, t.geoFeature5].map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Subscribe Button */}
+              <Button
+                className="w-full bg-green-600 hover:bg-green-700"
+                disabled={hasGeolocation || subscribingTo === 'geolocation' || childCount === 0}
+                onClick={() => handleSubscribe('geolocation')}
+                data-testid="button-subscribe-geolocation"
+              >
+                {subscribingTo === 'geolocation' ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : hasGeolocation ? (
+                  <Shield className="w-4 h-4 mr-2" />
+                ) : null}
+                {hasGeolocation ? t.active : t.subscribe}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Available Plans */}
-      <ModernCard title={t.planOptions} className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {(Array.isArray(parentPlans) ? parentPlans : []).map((plan) => (
-            <div 
-              key={plan.id}
-              className={`relative p-6 border-2 rounded-xl transition-all duration-300 hover:shadow-lg ${
-                plan.current ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-blue-300'
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1">
-                    {t.popular}
-                  </Badge>
-                </div>
-              )}
-              
-              {plan.current && (
-                <div className="absolute -top-3 right-3">
-                  <Badge className="bg-green-500 text-white px-3 py-1">
-                    {t.current}
-                  </Badge>
-                </div>
-              )}
-
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name || ''}</h3>
-                <div className="text-3xl font-bold text-gray-900">
-                  {plan?.price?.toLocaleString()} CFA
-                </div>
-                <div className="text-sm text-gray-600">
-                  {plan.period === 'free' ? language === 'fr' ? 'Gratuit' : 'Free' : t.perMonth}
-                </div>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                {(Array.isArray(plan.features) ? plan.features : []).map((feature, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm">
-                    <div className="text-green-600">{feature.icon}</div>
-                    <span className="text-gray-700">{feature.text}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Button
-                className={`w-full ${
-                  plan.current 
-                    ? 'bg-green-600 hover:bg-green-700 text-white' 
-                    : plan.id === 'free'
-                    ? 'bg-gray-500 hover:bg-gray-600 text-white'
-                    : `bg-gradient-to-r ${plan.color} hover:opacity-90 text-white`
-                }`}
-                onClick={() => handlePlanSelect(plan.id)}
-                disabled={plan.current}
-              >
-                {plan.current ? t.current : plan.id === 'free' ? t.freePlan : t.choosePlan}
-              </Button>
+      {/* Family Discount Info */}
+      <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <Star className="w-6 h-6 text-amber-600" />
+            <div>
+              <p className="font-semibold text-amber-900">{t.familyDiscount}</p>
+              <p className="text-sm text-amber-700">
+                2 {t.children}: -{pricing.discounts.twoChildren}% | 3+ {t.children}: -{pricing.discounts.threePlusChildren}%
+              </p>
             </div>
-          ))}
-        </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="text-center pt-6 border-t border-gray-200 mt-6">
-          <Button 
-            size="lg"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
-            onClick={() => window.open('/subscribe', '_blank')}
-          >
-            🚀 {t.viewAllPlans}
-          </Button>
-        </div>
-      </ModernCard>
+      {/* Contact for Help */}
+      <Card className="border-gray-200">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Phone className="w-5 h-5 text-gray-600" />
+              <span className="text-gray-600">
+                {language === 'fr' ? 'Besoin d\'aide ?' : 'Need help?'}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => window.open('https://wa.me/237699999999?text=Bonjour, j\'ai besoin d\'aide avec mon abonnement Educafric', '_blank')}
+              data-testid="button-contact-whatsapp"
+            >
+              WhatsApp
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
