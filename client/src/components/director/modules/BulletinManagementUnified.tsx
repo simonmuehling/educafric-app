@@ -3896,15 +3896,20 @@ export default function BulletinManagementUnified() {
                 <div className="flex items-start gap-4 p-3 bg-white rounded-lg border">
                   <div className="flex-shrink-0">
                     {formData.schoolLogoUrl ? (
-                      <img 
-                        src={formData.schoolLogoUrl} 
-                        alt="Logo de l'école"
-                        className="w-16 h-16 object-contain rounded border"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                          console.warn('[BULLETIN] Logo failed to load:', formData.schoolLogoUrl);
-                        }}
-                      />
+                      <>
+                        <img 
+                          src={formData.schoolLogoUrl} 
+                          alt="Logo de l'école"
+                          className="w-16 h-16 object-contain rounded border bg-white"
+                          onLoad={() => console.log('[BULLETIN] ✅ Logo loaded successfully:', formData.schoolLogoUrl)}
+                          onError={(e) => {
+                            console.warn('[BULLETIN] ❌ Logo failed to load:', formData.schoolLogoUrl);
+                            (e.target as HTMLImageElement).src = '';
+                            (e.target as HTMLImageElement).alt = 'Logo non chargé';
+                          }}
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1 max-w-[64px] truncate">{formData.schoolLogoUrl.split('/').pop()}</p>
+                      </>
                     ) : (
                       <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center">
                         <School className="w-8 h-8 text-gray-400" />
