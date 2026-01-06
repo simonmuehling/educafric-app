@@ -114,7 +114,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       parentConnection: 'Trouver mes parents',
       canteen: 'Cantine',
       bus: 'Transport Scolaire',
-      multirole: 'Multi-Rôles'
+      multirole: 'Changer de Rôle'
     },
     en: {
       title: 'Student Dashboard',
@@ -135,7 +135,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       parentConnection: 'Find my parents',
       canteen: 'Canteen',
       bus: 'School Bus',
-      multirole: 'Multi-Roles'
+      multirole: 'Switch Role'
     }
   };
 

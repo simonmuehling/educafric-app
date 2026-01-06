@@ -135,7 +135,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       onlineClasses: 'Cours en Ligne',
       absenceDeclaration: 'Déclarer Absence',
       profile: 'Profil',
-      multirole: 'Multi-Rôles',
+      multirole: 'Changer de Rôle',
       notifications: 'Notifications',
       help: 'Aide'
     },
@@ -154,7 +154,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       absenceDeclaration: 'Declare Absence',
       profile: 'Profile',
       notifications: 'Notifications',
-      multirole: 'Multi-Roles',
+      multirole: 'Switch Role',
       help: 'Help'
     }
   };

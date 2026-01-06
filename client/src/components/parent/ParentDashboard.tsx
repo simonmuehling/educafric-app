@@ -159,7 +159,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     },
     {
       id: 'multirole',
-      label: language === 'fr' ? 'Multi-Rôles' : 'Multi-Roles',
+      label: language === 'fr' ? 'Changer de Rôle' : 'Switch Role',
       icon: <User className="w-5 h-5 sm:w-6 sm:h-6" />,
       color: 'bg-purple-600'
     },
