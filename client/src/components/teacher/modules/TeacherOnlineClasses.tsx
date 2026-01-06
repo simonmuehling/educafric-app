@@ -1421,29 +1421,42 @@ const TeacherOnlineClasses: React.FC = () => {
           </div>
         )}
         
-        {/* School-only access restriction notice */}
-        {hasSchoolAccess && !hasPersonalSubscription && (
+        {/* Non-subscriber restriction notice */}
+        {!hasPersonalSubscription && (
           <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div className="flex gap-3">
               <Info className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h3 className="font-medium text-yellow-900 mb-1">
-                  {language === 'fr' ? 'Accès limité' : 'Limited Access'}
+                  {language === 'fr' ? 'Abonnement Personnel Requis' : 'Personal Subscription Required'}
                 </h3>
                 <p className="text-sm text-yellow-800 mb-2">
-                  {language === 'fr' 
-                    ? 'Avec l\'accès fourni par votre école, vous pouvez rejoindre les sessions assignées par le directeur. Pour créer vos propres cours en ligne, veuillez acheter un abonnement personnel.'
-                    : 'With school-provided access, you can join sessions assigned by the director. To create your own online courses, please purchase a personal subscription.'
+                  {hasSchoolAccess
+                    ? (language === 'fr' 
+                        ? 'Avec l\'accès fourni par votre école, vous pouvez rejoindre les sessions assignées par le directeur. Pour créer vos propres cours en ligne, veuillez acheter un abonnement personnel.'
+                        : 'With school-provided access, you can join sessions assigned by the director. To create your own online courses, please purchase a personal subscription.')
+                    : (language === 'fr'
+                        ? 'Pour créer et gérer vos propres cours en ligne, veuillez acheter un abonnement personnel (à partir de 1,000 CFA/jour).'
+                        : 'To create and manage your own online courses, please purchase a personal subscription (starting at 1,000 CFA/day).')
                   }
                 </p>
+                <Button 
+                  size="sm"
+                  onClick={() => setIsPaymentOpen(true)}
+                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Acheter un Abonnement' : 'Buy Subscription'}
+                </Button>
               </div>
             </div>
           </div>
         )}
       </Card>
 
-      {/* SCHOOL-ONLY ACCESS: Show tabbed interface with countdown and sessions */}
-      {hasSchoolAccess && !hasPersonalSubscription && (
+      {/* NON-SUBSCRIBER VIEW: Show tabbed interface for ALL teachers without personal subscription */}
+      {/* This includes: school-only access OR no access at all */}
+      {!hasPersonalSubscription && (
         <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="my-courses" className="flex items-center gap-2">
