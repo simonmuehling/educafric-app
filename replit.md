@@ -40,7 +40,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
   3. Create HTML version in `/public/documents/` for web viewing.
   4. Update alphabetical index in `00-index-documents-alphabetique.html`.
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access.
-- LOGO ROBUSTE MULTI-FALLBACK: Les composants Logo.tsx et FrontpageNavbar.tsx utilisent un système de fallback à 4 niveaux pour garantir l'affichage du logo: 1) /educafric-logo-128.png, 2) /educafric-logo-512.png, 3) /favicon.ico, 4) Icône GraduationCap. Le texte "Educafric" est TOUJOURS visible indépendamment du statut de l'image. LOGO_SOURCES array avec useState pour tracking des erreurs. NE JAMAIS supprimer ces fallbacks.
+- LOGO ROBUSTE MULTI-FALLBACK: Les composants Logo.tsx et FrontpageNavbar.tsx utilisent un système de fallback à 4 niveaux pour garantir l'affichage du logo: 1) /educafric-logo-128.png, 2) /educafric-512.png, 3) /favicon.ico, 4) Icône GraduationCap. Le texte "Educafric" est TOUJOURS visible indépendamment du statut de l'image. LOGO_SOURCES array avec useState pour tracking des erreurs. NE JAMAIS supprimer ces fallbacks.
 - MODULE COURS EN LIGNE - RÈGLES D'ACCÈS CRITIQUES:
   **INTERFACE VISIBLE POUR TOUS**: TOUS les enseignants DOIVENT voir l'interface complète avec les 3 onglets ("Mes Cours", "Sessions à Venir", "Créer un Cours") - JAMAIS cacher les onglets basé sur le statut d'abonnement.
   **LOGIQUE FRONTEND**: La condition `!hasPersonalSubscription` affiche les onglets avec restrictions (prompts d'achat). La condition `hasPersonalSubscription` affiche l'interface complète avec création de cours.
