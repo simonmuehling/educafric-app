@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed to digitalize education in Africa. Its purpose is to enhance accessibility, affordability, and learning outcomes by offering comprehensive academic management, communication tools, financial services, and offline capabilities, aiming to become a leading educational solution across the continent.
+Educafric is a bilingual, mobile-first EdTech platform designed to digitalize education in Africa. Its purpose is to enhance accessibility, affordability, and learning outcomes by offering comprehensive academic management, communication tools, financial services, and offline capabilities. It aims to become a leading educational solution across the continent by providing a robust, multi-tenant solution for educational institutions.
 
 # User Preferences
 - EXEMPTION PREMIUM PERMANENTE: Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium. Patterns d'exemption incluent @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@. Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement. Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking.
@@ -55,6 +55,7 @@ Educafric is a bilingual, mobile-first EdTech platform designed to digitalize ed
   **NE JAMAIS**: Cacher les onglets de l'interface basé sur `hasPersonalSubscription` ou `hasSchoolAccess` - toujours montrer l'interface complète avec restrictions contextuelles.
   **DIRECTEUR - AVERTISSEMENT ACTIVATION**: Dans OnlineClassesManager.tsx (director), vérifier `isSchoolActivated` via `/api/online-class-activations/school-status`. Si `!isSchoolActivated`, afficher un bandeau orange avec bouton WhatsApp pour contacter Educafric.
   **BOUTON WHATSAPP**: Tous les boutons "Contacter Educafric" doivent ouvrir WhatsApp (pas email) avec message pré-rempli: `https://wa.me/237699999999?text=...`
+- LOGO ÉCOLE PERSISTANT BULLETINS: Le logo de l'école DOIT être récupéré depuis `/api/director/settings` (champ `school.logoUrl` ou `profile.logoUrl`) et stocké dans `formData.schoolLogoUrl`. Tous les endroits générant des bulletins DOIVENT utiliser `formData.schoolLogoUrl` au lieu de données hardcodées. Le champ database est `schools.logoUrl` (pas `logo`). L'endpoint `PUT /api/school/logo` utilise `db.update(schools).set({ logoUrl: ... })` pour persister.
 
 # System Architecture
 - **UI/UX Decisions**: African-themed, mobile-first, PWA-enabled UI using Radix UI, Shadcn/UI, and Tailwind CSS. Alert/confirmation dialogs consistently use a `bg-white` background. Student ID cards adhere to a standardized template with color printing, digital signatures, QR codes, and a mobile-friendly approach. Logo display uses a robust 4-level fallback system.

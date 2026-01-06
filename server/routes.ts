@@ -18099,8 +18099,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update school logo in database if user has a school
       if (user.schoolId) {
         try {
-          await storage.updateSchool(user.schoolId, { logo: objectPath });
-          console.log(`[SCHOOL_LOGO] ✅ Logo saved to database for school ${user.schoolId}`);
+          // Fix: Use logoUrl instead of logo to match the database column name
+          await db.update(schools).set({ logoUrl: objectPath }).where(eq(schools.id, user.schoolId));
+          console.log(`[SCHOOL_LOGO] ✅ Logo saved to database for school ${user.schoolId}: ${objectPath}`);
         } catch (dbError: any) {
           console.error(`[SCHOOL_LOGO] ⚠️ Failed to save logo to database:`, dbError.message);
           // Still store in session as fallback

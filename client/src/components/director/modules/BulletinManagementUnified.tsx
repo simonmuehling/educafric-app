@@ -648,6 +648,7 @@ export default function BulletinManagementUnified() {
     schoolAddress: '',
     schoolPhone: '',
     schoolEmail: '',
+    schoolLogoUrl: '',
     directorName: '',
     
     // Informations élève
@@ -855,11 +856,13 @@ export default function BulletinManagementUnified() {
           schoolAddress: settings.school?.address || '',
           schoolPhone: settings.school?.phone || '',
           schoolEmail: settings.school?.email || '',
+          schoolLogoUrl: settings.school?.logoUrl || settings.profile?.logoUrl || '',
           directorName: settings.school?.directorName || settings.school?.principalName || '',
           // Informations officielles Cameroun (auto-import depuis School Settings)
           regionalDelegation: settings.school?.regionaleMinisterielle || 'DU CENTRE',
           departmentalDelegation: settings.school?.delegationDepartementale || 'DU MFOUNDI'
         }));
+        console.log('[BULLETIN_INIT] 📷 School logo URL:', settings.school?.logoUrl || settings.profile?.logoUrl);
       }
 
       // Charger classes, enseignants
@@ -1969,6 +1972,7 @@ export default function BulletinManagementUnified() {
           address: formData.schoolAddress || "Yaoundé, Cameroun",
           phone: formData.schoolPhone || "+237 XXX XX XX XX",
           email: formData.schoolEmail || "contact@ecole.cm",
+          logoUrl: formData.schoolLogoUrl || "",
           director: formData.directorName || "Directeur",
           regionalDelegation: formData.regionalDelegation || "DU CENTRE",
           departmentalDelegation: formData.departmentalDelegation || "DU MFOUNDI"
@@ -2025,14 +2029,14 @@ export default function BulletinManagementUnified() {
       const bulletinData = {
         studentId: resolvedStudentId,
         classId: resolvedClassId,
-        academicYear: '2024-2025',
+        academicYear: formData.academicYear || '2024-2025',
         term: sampleApiTerm,
         language: language,
         schoolData: {
-          schoolName: 'École Secondaire de Yaoundé',
-          schoolAddress: 'Yaoundé, Cameroun',
-          schoolPhone: '+237655123456',
-          logoUrl: ''
+          schoolName: formData.schoolName || 'École',
+          schoolAddress: formData.schoolAddress || '',
+          schoolPhone: formData.schoolPhone || '',
+          logoUrl: formData.schoolLogoUrl || ''
         },
         studentData: {
           id: selectedStudent.id,
