@@ -476,33 +476,56 @@ export class PDFGenerator {
         
         // ✅ SECURITY: Validate file path to prevent directory traversal
         const normalizedPath = path.normalize(logoUrl);
-        if (normalizedPath.includes('..') || !normalizedPath.startsWith('/') && !normalizedPath.match(/^[a-zA-Z]:/)) {
+        if (normalizedPath.includes('..')) {
           throw new Error('Invalid file path - potential directory traversal');
         }
         
-        if (fs.existsSync(normalizedPath)) {
-          const stats = fs.statSync(normalizedPath);
-          
-          // ✅ SECURITY: Check file size
-          if (stats.size > 5 * 1024 * 1024) { // 5MB max
-            throw new Error('Local image file too large (>5MB)');
+        // ✅ HYBRID LOGO RESOLUTION: Try multiple locations for school logos
+        // Priority: 1) Full path, 2) public/uploads, 3) project root relative
+        const possiblePaths = [
+          normalizedPath,
+          path.join(process.cwd(), 'public', normalizedPath),
+          path.join(process.cwd(), 'public', 'uploads', 'logos', path.basename(normalizedPath)),
+          path.join(process.cwd(), normalizedPath.replace(/^\//, '')),
+        ];
+        
+        console.log('[PDF_LOGO] 🔍 Searching logo in paths:', possiblePaths);
+        
+        let resolvedPath: string | null = null;
+        for (const testPath of possiblePaths) {
+          if (fs.existsSync(testPath)) {
+            resolvedPath = testPath;
+            console.log('[PDF_LOGO] ✅ Found logo at:', resolvedPath);
+            break;
           }
-          
-          const buffer = fs.readFileSync(normalizedPath);
-          const ext = path.extname(normalizedPath).toLowerCase();
-          
-          // ✅ SECURITY: Validate file extension
-          if (!['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext)) {
-            throw new Error(`Unsupported image format: ${ext}`);
-          }
-          
-          const mimeType = ext === '.png' ? 'image/png' : 
-                          ext === '.gif' ? 'image/gif' :
-                          ext === '.webp' ? 'image/webp' : 'image/jpeg';
-          const base64 = buffer.toString('base64');
-          return `data:${mimeType};base64,${base64}`;
         }
-        throw new Error('Local file not found');
+        
+        if (!resolvedPath) {
+          console.warn('[PDF_LOGO] ❌ Logo not found in any path, tried:', possiblePaths);
+          throw new Error('Local file not found in any expected location');
+        }
+        
+        const stats = fs.statSync(resolvedPath);
+        
+        // ✅ SECURITY: Check file size
+        if (stats.size > 5 * 1024 * 1024) { // 5MB max
+          throw new Error('Local image file too large (>5MB)');
+        }
+        
+        const buffer = fs.readFileSync(resolvedPath);
+        const ext = path.extname(resolvedPath).toLowerCase();
+        
+        // ✅ SECURITY: Validate file extension
+        if (!['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext)) {
+          throw new Error(`Unsupported image format: ${ext}`);
+        }
+        
+        const mimeType = ext === '.png' ? 'image/png' : 
+                        ext === '.gif' ? 'image/gif' :
+                        ext === '.webp' ? 'image/webp' : 'image/jpeg';
+        const base64 = buffer.toString('base64');
+        console.log('[PDF_LOGO] ✅ Logo converted to base64 successfully');
+        return `data:${mimeType};base64,${base64}`;
       }
     } catch (error) {
       console.error('[PDF_LOGO] Secured logo conversion failed:', error.message);

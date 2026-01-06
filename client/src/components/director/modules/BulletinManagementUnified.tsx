@@ -3891,22 +3891,98 @@ export default function BulletinManagementUnified() {
                     Informations École
                   </CardTitle>
                 </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Nom de l'École</Label>
-                  <Input value={formData.schoolName} readOnly className="bg-gray-50" />
+              <CardContent className="space-y-4">
+                {/* Logo de l'École - Aperçu et Upload Manuel */}
+                <div className="flex items-start gap-4 p-3 bg-white rounded-lg border">
+                  <div className="flex-shrink-0">
+                    {formData.schoolLogoUrl ? (
+                      <img 
+                        src={formData.schoolLogoUrl} 
+                        alt="Logo de l'école"
+                        className="w-16 h-16 object-contain rounded border"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          console.warn('[BULLETIN] Logo failed to load:', formData.schoolLogoUrl);
+                        }}
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center">
+                        <School className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <Label className="text-sm font-medium">Logo de l'École</Label>
+                    <p className="text-xs text-gray-600">
+                      {formData.schoolLogoUrl 
+                        ? "✅ Logo chargé depuis les Paramètres École" 
+                        : "⚠️ Aucun logo configuré dans Paramètres École"}
+                    </p>
+                    <div className="flex gap-2">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        id="bulletin-logo-upload"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const formDataUpload = new FormData();
+                            formDataUpload.append('logo', file);
+                            try {
+                              const response = await fetch('/api/school/logo/simple-upload', {
+                                method: 'POST',
+                                body: formDataUpload
+                              });
+                              if (response.ok) {
+                                const result = await response.json();
+                                setFormData(prev => ({ ...prev, schoolLogoUrl: result.logoUrl }));
+                                toast({
+                                  title: "✅ Logo téléchargé",
+                                  description: "Le logo sera utilisé sur les bulletins",
+                                });
+                              }
+                            } catch (err) {
+                              toast({
+                                title: "❌ Erreur",
+                                description: "Impossible de télécharger le logo",
+                                variant: "destructive"
+                              });
+                            }
+                          }
+                        }}
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => document.getElementById('bulletin-logo-upload')?.click()}
+                      >
+                        <Upload className="w-4 h-4 mr-1" />
+                        {formData.schoolLogoUrl ? "Changer le logo" : "Télécharger un logo"}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <Label>Directeur</Label>
-                  <Input value={formData.directorName} readOnly className="bg-gray-50" />
-                </div>
-                <div>
-                  <Label>Adresse</Label>
-                  <Input value={formData.schoolAddress} readOnly className="bg-gray-50" />
-                </div>
-                <div>
-                  <Label>Téléphone</Label>
-                  <Input value={formData.schoolPhone} readOnly className="bg-gray-50" />
+                
+                {/* Autres informations école */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Nom de l'École</Label>
+                    <Input value={formData.schoolName} readOnly className="bg-gray-50" />
+                  </div>
+                  <div>
+                    <Label>Directeur</Label>
+                    <Input value={formData.directorName} readOnly className="bg-gray-50" />
+                  </div>
+                  <div>
+                    <Label>Adresse</Label>
+                    <Input value={formData.schoolAddress} readOnly className="bg-gray-50" />
+                  </div>
+                  <div>
+                    <Label>Téléphone</Label>
+                    <Input value={formData.schoolPhone} readOnly className="bg-gray-50" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
