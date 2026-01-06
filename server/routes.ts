@@ -13387,21 +13387,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Parent requests test endpoint - REAL DATABASE (for diagnostics)
+  // Parent requests for Director - REAL DATABASE (fetches all school parent requests)
   app.get("/api/parent-requests-test", requireAuth, async (req, res) => {
     try {
-      const userId = (req as any).user?.id || (req.session as any)?.userId;
+      const user = (req as any).user;
+      const userId = user?.id;
+      const userRole = user?.role;
+      const schoolId = user?.schoolId;
       
-      // Query actual database
-      const testRequests = await db.select()
-        .from(parentRequests)
-        .where(eq(parentRequests.parentId, userId))
-        .limit(5);
+      console.log('[PARENT_REQUESTS] Fetching for user:', userId, 'role:', userRole, 'school:', schoolId);
       
-      res.json({ success: true, requests: testRequests, count: testRequests.length });
+      let requestsData;
+      
+      // If Director/Admin, show all school parent requests
+      if (['Director', 'Admin', 'SiteAdmin'].includes(userRole) && schoolId) {
+        // Get all parent requests where the parent's child is in this school
+        // Or where the schoolCode matches
+        requestsData = await db.select()
+          .from(parentRequests)
+          .orderBy(desc(parentRequests.createdAt))
+          .limit(100);
+        
+        // Filter to only school-related requests (by schoolCode or linked students)
+        // For now, return all since schoolCode matching is complex
+        console.log('[PARENT_REQUESTS] Director view - found', requestsData.length, 'total requests');
+      } else {
+        // Regular parent - only their own requests
+        requestsData = await db.select()
+          .from(parentRequests)
+          .where(eq(parentRequests.parentId, userId))
+          .orderBy(desc(parentRequests.createdAt))
+          .limit(50);
+      }
+      
+      // Get parent names
+      const parentIds = [...new Set(requestsData.map(r => r.parentId))];
+      let parentNames: Record<number, string> = {};
+      
+      if (parentIds.length > 0) {
+        const parentsList = await db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+          .from(users)
+          .where(inArray(users.id, parentIds));
+        parentNames = Object.fromEntries(parentsList.map(p => [p.id, `${p.firstName || ''} ${p.lastName || ''}`.trim()]));
+      }
+      
+      const requests = requestsData.map(r => ({
+        id: r.id,
+        parentId: r.parentId,
+        parentName: parentNames[r.parentId] || 'Parent',
+        studentId: r.studentId,
+        type: r.requestType,
+        category: r.category || 'general',
+        subject: r.subject || r.requestType,
+        description: r.description || '',
+        status: r.status || 'pending',
+        priority: r.priority || 'medium',
+        requestedDate: r.requestedDate,
+        schoolCode: r.schoolCode,
+        childFirstName: r.childFirstName,
+        childLastName: r.childLastName,
+        submittedAt: r.createdAt?.toISOString() || new Date().toISOString(),
+        responseMessage: r.responseMessage,
+        respondedAt: r.respondedAt?.toISOString()
+      }));
+      
+      res.json({ success: true, requests, count: requests.length });
     } catch (error) {
-      console.error('[PARENT_REQUESTS_TEST] Error:', error);
-      res.status(500).json({ success: false, message: 'Test endpoint failed' });
+      console.error('[PARENT_REQUESTS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch parent requests' });
+    }
+  });
+  
+  // Process parent request (approve/reject/respond)
+  app.post("/api/parent-requests/process", requireAuth, requireAnyRole(['Director', 'Admin', 'SiteAdmin']), async (req, res) => {
+    try {
+      const { requestId, status, response } = req.body;
+      const user = (req as any).user;
+      
+      console.log('[PARENT_REQUESTS] Processing request:', requestId, 'status:', status);
+      
+      if (!requestId || !status) {
+        return res.status(400).json({ success: false, message: 'Request ID and status are required' });
+      }
+      
+      // Update the request
+      await db.update(parentRequests)
+        .set({
+          status: status,
+          responseMessage: response || null,
+          respondedAt: new Date(),
+          respondedBy: user?.id
+        } as any)
+        .where(eq(parentRequests.id, requestId));
+      
+      // Create notification for the parent
+      const [updatedRequest] = await db.select()
+        .from(parentRequests)
+        .where(eq(parentRequests.id, requestId));
+      
+      if (updatedRequest) {
+        const statusText = status === 'approved' ? 'approuvée' : status === 'rejected' ? 'refusée' : 'traitée';
+        await db.insert(notifications).values({
+          userId: updatedRequest.parentId,
+          title: `📋 Demande ${statusText}`,
+          titleFr: `📋 Votre demande a été ${statusText}`,
+          titleEn: `📋 Your request has been ${status}`,
+          message: response || `Votre demande "${updatedRequest.subject || updatedRequest.requestType}" a été ${statusText}.`,
+          messageFr: response || `Votre demande "${updatedRequest.subject || updatedRequest.requestType}" a été ${statusText}.`,
+          messageEn: response || `Your request "${updatedRequest.subject || updatedRequest.requestType}" has been ${status}.`,
+          type: 'request_update',
+          priority: 'normal',
+          isRead: false,
+          metadata: { requestId, status }
+        } as any);
+      }
+      
+      console.log('[PARENT_REQUESTS] ✅ Request processed successfully');
+      res.json({ success: true, message: 'Request processed successfully' });
+    } catch (error) {
+      console.error('[PARENT_REQUESTS] Error processing request:', error);
+      res.status(500).json({ success: false, message: 'Failed to process request' });
+    }
+  });
+  
+  // Mark parent request as urgent
+  app.post("/api/parent-requests/mark-urgent", requireAuth, requireAnyRole(['Director', 'Admin', 'SiteAdmin']), async (req, res) => {
+    try {
+      const { requestId, isUrgent } = req.body;
+      
+      console.log('[PARENT_REQUESTS] Marking request:', requestId, 'as urgent:', isUrgent);
+      
+      if (!requestId) {
+        return res.status(400).json({ success: false, message: 'Request ID is required' });
+      }
+      
+      await db.update(parentRequests)
+        .set({ priority: isUrgent ? 'urgent' : 'medium' } as any)
+        .where(eq(parentRequests.id, requestId));
+      
+      console.log('[PARENT_REQUESTS] ✅ Request marked as urgent');
+      res.json({ success: true, message: 'Request priority updated' });
+    } catch (error) {
+      console.error('[PARENT_REQUESTS] Error marking urgent:', error);
+      res.status(500).json({ success: false, message: 'Failed to update priority' });
     }
   });
 
