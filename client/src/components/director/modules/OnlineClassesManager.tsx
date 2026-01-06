@@ -26,7 +26,10 @@ import {
   AlertCircle,
   CalendarDays,
   Repeat,
-  Edit
+  Edit,
+  AlertTriangle,
+  MessageCircle,
+  CreditCard
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -450,6 +453,13 @@ const OnlineClassesManager: React.FC = () => {
     enabled: !!selectedClassId || !!selectedRecurrenceClassId
   });
 
+  // Check if school has online classes module activated
+  const { data: schoolStatusData } = useQuery<{ isActivated: boolean; activationDetails?: { daysRemaining: number }; message?: string }>({
+    queryKey: ['/api/online-class-activations/school-status']
+  });
+
+  const isSchoolActivated = schoolStatusData?.isActivated ?? false;
+
   const createSessionMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await apiRequest('POST', '/api/online-class-scheduler/sessions', data);
@@ -752,6 +762,47 @@ const OnlineClassesManager: React.FC = () => {
             </div>
           </CardHeader>
         </Card>
+
+        {/* Warning if school hasn't activated online classes module */}
+        {!isSchoolActivated && (
+          <Card className="border-2 border-orange-300 bg-orange-50 shadow-lg">
+            <CardContent className="pt-6">
+              <div className="flex gap-4">
+                <AlertTriangle className="w-8 h-8 text-orange-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg text-orange-900 mb-2">
+                    {language === 'fr' ? 'Module non activé pour votre école' : 'Module not activated for your school'}
+                  </h3>
+                  <p className="text-orange-800 mb-4">
+                    {language === 'fr' 
+                      ? 'Votre école n\'a pas encore activé le module Cours en Ligne. Pour l\'activer:'
+                      : 'Your school has not yet activated the Online Classes module. To activate it:'}
+                  </p>
+                  <ul className="text-orange-800 list-disc list-inside space-y-2 mb-4">
+                    <li>
+                      {language === 'fr' 
+                        ? 'Contactez Educafric via WhatsApp pour obtenir un devis et activer le module'
+                        : 'Contact Educafric via WhatsApp to get a quote and activate the module'}
+                    </li>
+                    <li>
+                      {language === 'fr' 
+                        ? 'Une fois activé, vous pourrez créer des sessions et les enseignants pourront les rejoindre'
+                        : 'Once activated, you can create sessions and teachers can join them'}
+                    </li>
+                  </ul>
+                  <Button 
+                    size="lg"
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => window.open('https://wa.me/237699999999?text=' + encodeURIComponent(language === 'fr' ? 'Bonjour Educafric, je souhaite activer le module Cours en Ligne pour mon école.' : 'Hello Educafric, I would like to activate the Online Classes module for my school.'), '_blank')}
+                  >
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                    {language === 'fr' ? 'Contacter Educafric via WhatsApp' : 'Contact Educafric via WhatsApp'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="shadow-xl">
           <CardContent className="pt-6">

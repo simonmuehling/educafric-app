@@ -382,4 +382,66 @@ router.get('/access-details',
   }
 );
 
+/**
+ * GET /api/online-class-activations/school-status
+ * Check if current director's school has online classes activated
+ */
+router.get('/school-status',
+  requireAuth,
+  async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      // Only directors can check their school's status
+      if (user.role !== 'Director') {
+        return res.status(403).json({
+          success: false,
+          error: 'Seuls les directeurs peuvent vérifier le statut de leur école'
+        });
+      }
+
+      if (!user.schoolId) {
+        return res.json({
+          success: true,
+          isActivated: false,
+          message: 'Aucune école associée'
+        });
+      }
+
+      const isActivated = await onlineClassAccessService.isSchoolActivated(user.schoolId);
+      
+      // Get activation details if activated
+      let activationDetails = null;
+      if (isActivated) {
+        const activation = await onlineClassActivationService.checkSchoolActivation(user.schoolId);
+        if (activation) {
+          activationDetails = {
+            startDate: activation.startDate,
+            endDate: activation.endDate,
+            daysRemaining: Math.ceil((new Date(activation.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+          };
+        }
+      }
+
+      console.log(`[ONLINE_CLASS_ACTIVATION] 🏫 School ${user.schoolId} status check: ${isActivated ? 'ACTIVATED' : 'NOT ACTIVATED'}`);
+
+      res.json({
+        success: true,
+        isActivated,
+        activationDetails,
+        message: isActivated 
+          ? 'Module Cours en Ligne activé pour votre école'
+          : 'Module Cours en Ligne non activé - Contactez Educafric pour l\'activer'
+      });
+    } catch (error) {
+      console.error('[ONLINE_CLASS_ACTIVATION] Error checking school status:', error);
+      
+      res.status(500).json({
+        success: false,
+        error: 'Échec de vérification du statut'
+      });
+    }
+  }
+);
+
 export default router;
