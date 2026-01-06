@@ -397,6 +397,27 @@ export const parentChildSubscriptions = pgTable("parent_child_subscriptions", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// 🎯 TARIFS PARENT PAR ÉCOLE : Communication et Géolocalisation
+export const schoolParentPricing = pgTable("school_parent_pricing", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().unique(),
+  // Tarif Communication (passerelle école-parent)
+  communicationEnabled: boolean("communication_enabled").default(true),
+  communicationPrice: integer("communication_price").default(5000), // 0=gratuit, 5000, 10000, 15000 CFA/an
+  communicationPeriod: text("communication_period").default("annual"), // 'annual'
+  // Tarif Géolocalisation
+  geolocationEnabled: boolean("geolocation_enabled").default(true),
+  geolocationPrice: integer("geolocation_price").default(5000), // 0=gratuit, 5000, 10000, 15000 CFA/an
+  geolocationPeriod: text("geolocation_period").default("annual"), // 'annual'
+  // Réductions par nombre d'enfants (en %)
+  discount2Children: integer("discount_2_children").default(20), // -20% pour 2 enfants
+  discount3PlusChildren: integer("discount_3plus_children").default(40), // -40% pour 3+ enfants
+  // Métadonnées
+  updatedBy: integer("updated_by"), // Site Admin qui a modifié
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // 🏫 TABLE ABONNEMENTS ÉCOLE : Support pour plans école
 export const schoolSubscriptions = pgTable("school_subscriptions", {
   id: serial("id").primaryKey(),
