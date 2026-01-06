@@ -3913,20 +3913,32 @@ export default function BulletinManagementUnified() {
                   </div>
                   <div className="flex-1 space-y-2">
                     <Label className="text-sm font-medium">Logo de l'École</Label>
-                    <p className="text-xs text-gray-600">
-                      {formData.schoolLogoUrl 
-                        ? "✅ Logo chargé depuis les Paramètres École" 
-                        : "⚠️ Aucun logo configuré dans Paramètres École"}
-                    </p>
+                    {formData.schoolLogoUrl?.toLowerCase().endsWith('.gif') ? (
+                      <p className="text-xs text-orange-600 bg-orange-50 p-2 rounded">
+                        ⚠️ Format GIF non supporté pour les PDF. Veuillez télécharger un logo au format <strong>PNG</strong> ou <strong>JPEG</strong>.
+                      </p>
+                    ) : formData.schoolLogoUrl ? (
+                      <p className="text-xs text-green-600">✅ Logo chargé depuis les Paramètres École (format compatible)</p>
+                    ) : (
+                      <p className="text-xs text-gray-600">⚠️ Aucun logo configuré dans Paramètres École</p>
+                    )}
                     <div className="flex gap-2">
                       <input 
                         type="file" 
-                        accept="image/*"
+                        accept="image/png,image/jpeg,image/jpg"
                         id="bulletin-logo-upload"
                         className="hidden"
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (file) {
+                            if (file.type === 'image/gif') {
+                              toast({
+                                title: "❌ Format non supporté",
+                                description: "Les fichiers GIF ne sont pas supportés. Utilisez PNG ou JPEG.",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
                             const formDataUpload = new FormData();
                             formDataUpload.append('logo', file);
                             try {
@@ -3959,7 +3971,7 @@ export default function BulletinManagementUnified() {
                         onClick={() => document.getElementById('bulletin-logo-upload')?.click()}
                       >
                         <Upload className="w-4 h-4 mr-1" />
-                        {formData.schoolLogoUrl ? "Changer le logo" : "Télécharger un logo"}
+                        {formData.schoolLogoUrl ? "Changer le logo (PNG/JPEG)" : "Télécharger un logo (PNG/JPEG)"}
                       </Button>
                     </div>
                   </div>

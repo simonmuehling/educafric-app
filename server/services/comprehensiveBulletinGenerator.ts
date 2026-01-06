@@ -233,19 +233,41 @@ export class ComprehensiveBulletinGenerator {
           return null;
         }
       } else {
-        // Handle local file paths
+        // Handle local file paths with HYBRID RESOLUTION
         imageSource = 'local file';
-        const fullPath = path.isAbsolute(imagePath) ? imagePath : path.join(process.cwd(), imagePath);
+        
+        // ✅ HYBRID PATH RESOLUTION: Try multiple locations for school logos
+        const possiblePaths = [
+          path.isAbsolute(imagePath) ? imagePath : path.join(process.cwd(), imagePath),
+          path.join(process.cwd(), 'public', imagePath),
+          path.join(process.cwd(), 'public', 'uploads', 'logos', path.basename(imagePath)),
+          path.join(process.cwd(), imagePath.replace(/^\//, '')),
+        ];
+        
+        console.log(`[PDF_IMAGES] 🔍 Searching ${imageType} in paths:`, possiblePaths);
+        
+        let fullPath: string | null = null;
+        for (const testPath of possiblePaths) {
+          try {
+            const stats = await fs.stat(testPath);
+            if (stats.isFile()) {
+              fullPath = testPath;
+              console.log(`[PDF_IMAGES] ✅ Found ${imageType} at:`, fullPath);
+              break;
+            }
+          } catch (e) {
+            // Path doesn't exist, try next
+          }
+        }
+        
+        if (!fullPath) {
+          console.warn(`[PDF_IMAGES] ❌ ${imageType} not found in any location, tried:`, possiblePaths);
+          return null;
+        }
         
         try {
-          // Check if file exists and is readable
-          const stats = await fs.stat(fullPath);
-          if (!stats.isFile()) {
-            console.warn(`[PDF_IMAGES] ⚠️ ${imageType} path is not a file: ${fullPath}`);
-            return null;
-          }
-          
           // Check file size (max 5MB)
+          const stats = await fs.stat(fullPath);
           if (stats.size > 5 * 1024 * 1024) {
             console.warn(`[PDF_IMAGES] ⚠️ ${imageType} file too large (${stats.size} bytes): ${fullPath}`);
             return null;
@@ -279,14 +301,19 @@ export class ComprehensiveBulletinGenerator {
           embeddedImage = await pdfDoc.embedPng(imageBytes);
         } else if (detectedImageType === 'jpg' || detectedImageType === 'jpeg') {
           embeddedImage = await pdfDoc.embedJpg(imageBytes);
+        } else if (detectedImageType === 'gif') {
+          console.warn(`[PDF_IMAGES] ⚠️ GIF format not supported by PDF generator. Please upload PNG or JPEG format for ${imageType}: ${imagePath}`);
+          console.warn(`[PDF_IMAGES] 📝 Solution: Re-upload the logo in PNG or JPEG format via School Settings`);
+          return null;
         } else {
           console.warn(`[PDF_IMAGES] ⚠️ Unsupported ${imageType} format '${detectedImageType}': ${imagePath}`);
+          console.warn(`[PDF_IMAGES] 📝 Supported formats: PNG, JPEG. Please re-upload in a supported format.`);
           return null;
         }
       } catch (embedError: any) {
         console.error(`[PDF_IMAGES] ❌ Failed to embed ${imageType} in PDF: ${embedError.message}`);
         console.error(`[PDF_IMAGES] 🔍 Debug info - Image type: ${detectedImageType}, Bytes length: ${imageBytes?.length || 0}`);
-        console.error(`[PDF_IMAGES] 📝 Suggestion: Check if ${imageType} format is supported (PNG/JPEG only)`);
+        console.error(`[PDF_IMAGES] 📝 Suggestion: Check if ${imageType} format is supported (PNG/JPEG only). GIF is NOT supported.`);
         return null;
       }
       
@@ -309,6 +336,7 @@ export class ComprehensiveBulletinGenerator {
     const ext = path.extname(imagePath).toLowerCase();
     if (ext === '.png') return 'png';
     if (ext === '.jpg' || ext === '.jpeg') return 'jpg';
+    if (ext === '.gif') return 'gif'; // Detected but not supported for embedding
     
     // Check magic bytes as fallback
     if (imageBytes.length >= 8) {
@@ -320,6 +348,11 @@ export class ComprehensiveBulletinGenerator {
       // JPEG signature: FF D8 FF
       if (imageBytes[0] === 0xFF && imageBytes[1] === 0xD8 && imageBytes[2] === 0xFF) {
         return 'jpg';
+      }
+      
+      // GIF signature: 47 49 46 38 (GIF8)
+      if (imageBytes[0] === 0x47 && imageBytes[1] === 0x49 && imageBytes[2] === 0x46 && imageBytes[3] === 0x38) {
+        return 'gif';
       }
     }
     
