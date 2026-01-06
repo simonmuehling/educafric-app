@@ -615,6 +615,145 @@ export function registerSiteAdminRoutes(app: Express, requireAuth: any) {
     }
   });
 
+  // ============================================
+  // 🎯 TARIFS ABONNEMENTS PARENTS PAR ÉCOLE
+  // ============================================
+  
+  // Get parent pricing for a specific school
+  app.get("/api/siteadmin/schools/:schoolId/parent-pricing", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { schoolId } = req.params;
+      console.log(`[SITE_ADMIN_API] Fetching parent pricing for school ${schoolId}`);
+      
+      const result = await db.execute(`
+        SELECT * FROM school_parent_pricing WHERE school_id = $1
+      `, [parseInt(schoolId)]);
+      
+      const pricing = (result as any).rows?.[0] || null;
+      
+      if (!pricing) {
+        // Return default pricing if not set
+        return res.json({
+          success: true,
+          pricing: {
+            schoolId: parseInt(schoolId),
+            communicationEnabled: true,
+            communicationPrice: 5000,
+            communicationPeriod: 'annual',
+            geolocationEnabled: true,
+            geolocationPrice: 5000,
+            geolocationPeriod: 'annual',
+            discount2Children: 20,
+            discount3PlusChildren: 40
+          }
+        });
+      }
+      
+      res.json({
+        success: true,
+        pricing: {
+          id: pricing.id,
+          schoolId: pricing.school_id,
+          communicationEnabled: pricing.communication_enabled,
+          communicationPrice: pricing.communication_price,
+          communicationPeriod: pricing.communication_period,
+          geolocationEnabled: pricing.geolocation_enabled,
+          geolocationPrice: pricing.geolocation_price,
+          geolocationPeriod: pricing.geolocation_period,
+          discount2Children: pricing.discount_2_children,
+          discount3PlusChildren: pricing.discount_3plus_children,
+          updatedBy: pricing.updated_by,
+          createdAt: pricing.created_at,
+          updatedAt: pricing.updated_at
+        }
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error fetching parent pricing:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch parent pricing' });
+    }
+  });
+  
+  // Update parent pricing for a school
+  app.patch("/api/siteadmin/schools/:schoolId/parent-pricing", requireAuth, requireSiteAdminAccess, async (req, res) => {
+    try {
+      const { schoolId } = req.params;
+      const {
+        communicationEnabled,
+        communicationPrice,
+        geolocationEnabled,
+        geolocationPrice,
+        discount2Children,
+        discount3PlusChildren
+      } = req.body;
+      
+      console.log(`[SITE_ADMIN_API] Updating parent pricing for school ${schoolId}:`, req.body);
+      
+      // Check if pricing exists
+      const existing = await db.execute(`
+        SELECT id FROM school_parent_pricing WHERE school_id = $1
+      `, [parseInt(schoolId)]);
+      
+      const existingRow = (existing as any).rows?.[0];
+      
+      if (existingRow) {
+        // Update existing
+        await db.execute(`
+          UPDATE school_parent_pricing SET
+            communication_enabled = COALESCE($2, communication_enabled),
+            communication_price = COALESCE($3, communication_price),
+            geolocation_enabled = COALESCE($4, geolocation_enabled),
+            geolocation_price = COALESCE($5, geolocation_price),
+            discount_2_children = COALESCE($6, discount_2_children),
+            discount_3plus_children = COALESCE($7, discount_3plus_children),
+            updated_by = $8,
+            updated_at = NOW()
+          WHERE school_id = $1
+        `, [
+          parseInt(schoolId),
+          communicationEnabled,
+          communicationPrice,
+          geolocationEnabled,
+          geolocationPrice,
+          discount2Children,
+          discount3PlusChildren,
+          req.user?.id
+        ]);
+      } else {
+        // Insert new
+        await db.execute(`
+          INSERT INTO school_parent_pricing 
+            (school_id, communication_enabled, communication_price, geolocation_enabled, geolocation_price, discount_2_children, discount_3plus_children, updated_by)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `, [
+          parseInt(schoolId),
+          communicationEnabled ?? true,
+          communicationPrice ?? 5000,
+          geolocationEnabled ?? true,
+          geolocationPrice ?? 5000,
+          discount2Children ?? 20,
+          discount3PlusChildren ?? 40,
+          req.user?.id
+        ]);
+      }
+      
+      console.log(`[SITE_ADMIN_API] ✅ Parent pricing updated for school ${schoolId}`);
+      res.json({
+        success: true,
+        message: 'Tarifs parents mis à jour avec succès',
+        messageFr: 'Tarifs parents mis à jour avec succès',
+        messageEn: 'Parent pricing updated successfully'
+      });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_API] Error updating parent pricing:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update parent pricing',
+        messageFr: 'Échec de la mise à jour des tarifs parents',
+        messageEn: 'Failed to update parent pricing'
+      });
+    }
+  });
+
   // Manage school subscription
   app.post("/api/siteadmin/schools/:schoolId/subscription", requireAuth, requireSiteAdminAccess, async (req, res) => {
     try {
