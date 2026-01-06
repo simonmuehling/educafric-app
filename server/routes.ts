@@ -34,7 +34,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, timetableChangeRequests, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages, bulletinComprehensive, assignedFees, feeStructures, paymentItems, schoolParentPricing, parentChildSubscriptions, students } from "../shared/schema";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, timetableChangeRequests, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages, bulletinComprehensive, assignedFees, feeStructures, paymentItems, schoolParentPricing, parentChildSubscriptions, students, parentRequests } from "../shared/schema";
 import { attendance } from "../shared/schemas/academicSchema";
 import bcrypt from 'bcryptjs';
 
