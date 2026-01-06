@@ -125,7 +125,7 @@ export const parentRequests = pgTable("parent_requests", {
   id: serial("id").primaryKey(),
   parentId: integer("parent_id").notNull(),
   studentId: integer("student_id").notNull(),
-  requestType: text("request_type").notNull(),
+  requestType: text("type").notNull(),
   subject: text("subject"),
   description: text("description"),
   priority: text("priority").default("medium"),
