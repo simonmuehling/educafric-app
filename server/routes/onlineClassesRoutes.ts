@@ -25,7 +25,7 @@ import {
   insertCourseEnrollmentSchema
 } from '../../shared/schemas/onlineClassesSchema.js';
 import { eq, and, or, desc, gte, lte, sql, isNull } from 'drizzle-orm';
-import { users, classes } from '../../shared/schema.js';
+import { users, classes, enrollments, students, parentStudentRelations } from '../../shared/schema.js';
 
 const router = Router();
 
@@ -893,7 +893,9 @@ router.post('/sessions/:sessionId/join',
 
 /**
  * GET /api/online-classes/school/sessions
- * Get all scheduled sessions for the school
+ * Get all scheduled sessions for the school (both course-linked and scheduler-created)
+ * For students: Only shows sessions for their enrolled class
+ * For parents: Shows sessions for their children's classes
  */
 router.get('/school/sessions',
   requireAuth,
@@ -902,8 +904,8 @@ router.get('/school/sessions',
     try {
       const user = req.user!;
       
-      // Get all sessions for this school with LEFT JOINs for sandbox compatibility
-      const sessions = await db
+      // 1. Get sessions linked to online courses
+      const courseLinkedSessions = await db
         .select({
           id: classSessions.id,
           title: classSessions.title,
@@ -913,10 +915,12 @@ router.get('/school/sessions',
           status: classSessions.status,
           roomName: classSessions.roomName,
           courseId: classSessions.courseId,
+          classId: classSessions.classId,
           courseName: onlineCourses.title,
           teacherName: sql<string>`COALESCE(CONCAT(${users.firstName}, ' ', ${users.lastName}), 'Enseignant')`,
           teacherId: onlineCourses.teacherId,
-          createdAt: classSessions.createdAt
+          createdAt: classSessions.createdAt,
+          creatorType: sql<string>`'course'`
         })
         .from(classSessions)
         .innerJoin(onlineCourses, eq(classSessions.courseId, onlineCourses.id))
@@ -924,11 +928,87 @@ router.get('/school/sessions',
         .where(eq(onlineCourses.schoolId, user.schoolId!))
         .orderBy(classSessions.scheduledStart);
 
-      console.log(`[ONLINE_CLASSES_API] ✅ Listed ${sessions.length} school sessions for user ${user.id} (schoolId: ${user.schoolId})`);
+      // 2. Get scheduler-created sessions (no courseId, has classId)
+      const schedulerSessions = await db
+        .select({
+          id: classSessions.id,
+          title: classSessions.title,
+          description: classSessions.description,
+          scheduledStart: classSessions.scheduledStart,
+          scheduledEnd: classSessions.scheduledEnd,
+          status: classSessions.status,
+          roomName: classSessions.roomName,
+          courseId: classSessions.courseId,
+          classId: classSessions.classId,
+          courseName: sql<string>`NULL`,
+          teacherName: sql<string>`COALESCE(CONCAT(${users.firstName}, ' ', ${users.lastName}), 'Enseignant')`,
+          teacherId: classSessions.teacherId,
+          createdAt: classSessions.createdAt,
+          creatorType: sql<string>`'school'`
+        })
+        .from(classSessions)
+        .leftJoin(users, eq(classSessions.teacherId, users.id))
+        .leftJoin(classes, eq(classSessions.classId, classes.id))
+        .where(and(
+          isNull(classSessions.courseId),
+          eq(classes.schoolId, user.schoolId!)
+        ))
+        .orderBy(classSessions.scheduledStart);
+
+      // Combine both types of sessions
+      let allSessions = [...courseLinkedSessions, ...schedulerSessions];
+
+      // For students: Filter by their enrolled class
+      if (user.role === 'Student') {
+        // Get student's enrolled classes
+        const studentEnrollments = await db
+          .select({ classId: enrollments.classId })
+          .from(enrollments)
+          .innerJoin(students, eq(enrollments.studentId, students.id))
+          .where(eq(students.userId, user.id));
+        
+        const enrolledClassIds = studentEnrollments.map(e => e.classId);
+        
+        if (enrolledClassIds.length > 0) {
+          allSessions = allSessions.filter(session => 
+            session.classId && enrolledClassIds.includes(session.classId)
+          );
+        } else {
+          allSessions = []; // No enrolled classes = no sessions
+        }
+      }
+
+      // For parents: Filter by their children's enrolled classes
+      if (user.role === 'Parent') {
+        // Get parent's children and their enrolled classes
+        const childEnrollments = await db
+          .select({ classId: enrollments.classId })
+          .from(parentStudentRelations)
+          .innerJoin(students, eq(parentStudentRelations.studentId, students.id))
+          .innerJoin(enrollments, eq(students.id, enrollments.studentId))
+          .where(eq(parentStudentRelations.parentId, user.id));
+        
+        const childClassIds = childEnrollments.map(e => e.classId);
+        
+        if (childClassIds.length > 0) {
+          allSessions = allSessions.filter(session => 
+            session.classId && childClassIds.includes(session.classId)
+          );
+        } else {
+          allSessions = []; // No children enrolled = no sessions
+        }
+      }
+
+      // Sort by scheduled start date
+      allSessions.sort((a, b) => 
+        new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime()
+      );
+
+      console.log(`[ONLINE_CLASSES_API] ✅ Listed ${allSessions.length} school sessions for user ${user.id} (role: ${user.role}, schoolId: ${user.schoolId})`);
 
       res.json({
         success: true,
-        sessions
+        sessions: allSessions
       });
 
     } catch (error) {
