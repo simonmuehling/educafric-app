@@ -555,39 +555,6 @@ const TeacherOnlineClasses: React.FC = () => {
     }
   });
 
-  // Delete session mutation
-  const deleteSessionMutation = useMutation({
-    mutationFn: async (sessionId: number) => {
-      const response = await apiRequest('DELETE', `/api/online-classes/sessions/${sessionId}`);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: language === 'fr' ? 'Succès' : 'Success',
-        description: language === 'fr' ? 'Session supprimée avec succès' : 'Session deleted successfully'
-      });
-      // Invalidate teacher sessions and course-specific sessions
-      queryClient.invalidateQueries({ queryKey: ['/api/online-classes/teacher/sessions'] });
-      if (selectedCourse) {
-        queryClient.invalidateQueries({ queryKey: ['/api/online-classes/courses', selectedCourse.id, 'sessions'] });
-      }
-    },
-    onError: () => {
-      toast({
-        title: t.error,
-        description: language === 'fr' ? 'Échec de la suppression de la session' : 'Failed to delete session',
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Handle delete session with confirmation
-  const handleDeleteSession = (sessionId: number) => {
-    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cette session ?' : 'Are you sure you want to delete this session?')) {
-      deleteSessionMutation.mutate(sessionId);
-    }
-  };
-
   // Handle selection completion
   const handleContinueSelection = () => {
     if (selectedClass && selectedSubject) {
@@ -1189,17 +1156,6 @@ const TeacherOnlineClasses: React.FC = () => {
                     <Button size="sm" variant="outline" data-testid={`button-settings-session-${session.id}`}>
                       <Settings className="w-4 h-4" />
                     </Button>
-                    {session.status !== 'live' && (
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => handleDeleteSession(session.id)}
-                        disabled={deleteSessionMutation.isPending}
-                        data-testid={`button-delete-session-${session.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>
