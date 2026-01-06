@@ -173,10 +173,14 @@ const logoUpload = multer({
   storage: logoStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    // Only allow PNG and JPEG - GIF is NOT supported by PDF generator
+    const allowedMimeTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
+    } else if (file.mimetype === 'image/gif') {
+      cb(new Error('Format GIF non supporté. Utilisez PNG ou JPEG pour que le logo apparaisse sur les bulletins PDF.'));
     } else {
-      cb(new Error('Only image files are allowed!'));
+      cb(new Error('Seuls les fichiers PNG et JPEG sont autorisés.'));
     }
   }
 });
@@ -18374,11 +18378,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fileSize: 5 * 1024 * 1024 // 5MB max
     },
     fileFilter: (req, file, cb) => {
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      // Only PNG and JPEG - GIF is NOT supported by PDF generator
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
+      } else if (file.mimetype === 'image/gif') {
+        cb(new Error('Format GIF non supporté. Utilisez PNG ou JPEG pour que le logo apparaisse sur les bulletins PDF.'));
       } else {
-        cb(new Error('Only image files (JPEG, PNG, GIF, WebP) are allowed'));
+        cb(new Error('Seuls les fichiers PNG et JPEG sont autorisés pour les logos.'));
       }
     }
   });

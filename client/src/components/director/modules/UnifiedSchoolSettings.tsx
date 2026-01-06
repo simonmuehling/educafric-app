@@ -591,6 +591,18 @@ const UnifiedSchoolSettings: React.FC = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file type - GIF not allowed (not supported by PDF generator)
+    if (file.type === 'image/gif') {
+      toast({
+        title: language === 'fr' ? 'Format non supporté' : 'Unsupported format',
+        description: language === 'fr' 
+          ? 'Le format GIF n\'est pas supporté. Utilisez PNG ou JPEG pour que le logo apparaisse sur les bulletins.' 
+          : 'GIF format is not supported. Use PNG or JPEG for the logo to appear on bulletins.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast({
@@ -918,7 +930,7 @@ const UnifiedSchoolSettings: React.FC = () => {
                     <div>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/png,image/jpeg,image/jpg"
                         onChange={handleLogoFileChange}
                         disabled={uploadingLogo}
                         className="hidden"
