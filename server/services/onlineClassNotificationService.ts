@@ -188,6 +188,7 @@ export class OnlineClassNotificationService {
 
   /**
    * Notify students and parents when a session is starting
+   * Supports both course-linked sessions and school-created sessions
    */
   async notifySessionStarting(sessionId: number, teacherName: string): Promise<void> {
     try {
@@ -205,22 +206,44 @@ export class OnlineClassNotificationService {
         return;
       }
 
-      // Get course details
-      const [course] = await db
-        .select()
-        .from(onlineCourses)
-        .where(eq(onlineCourses.id, session.courseId))
-        .limit(1);
+      // Handle both course-linked and school-created sessions
+      let classIdToUse: number | null = session.classId;
+      let schoolId: number | null = null;
+      let courseId: number | null = session.courseId;
 
-      if (!course) {
-        console.error(`[ONLINE_CLASS_NOTIFICATIONS] Course ${session.courseId} not found`);
+      if (session.courseId) {
+        // Course-linked session
+        const [course] = await db
+          .select()
+          .from(onlineCourses)
+          .where(eq(onlineCourses.id, session.courseId))
+          .limit(1);
+
+        if (course) {
+          classIdToUse = session.classId || course.classId;
+          schoolId = course.schoolId;
+        }
+      } else if (session.classId) {
+        // School-created session (scheduler) - get schoolId from class
+        const { classes } = await import('../../shared/schema');
+        const [classData] = await db
+          .select({ schoolId: classes.schoolId })
+          .from(classes)
+          .where(eq(classes.id, session.classId))
+          .limit(1);
+        
+        if (classData) {
+          schoolId = classData.schoolId;
+        }
+      }
+
+      if (!classIdToUse || !schoolId) {
+        console.error(`[ONLINE_CLASS_NOTIFICATIONS] Cannot determine class or school for session ${sessionId}`);
         return;
       }
 
       // Get recipients
-      // Use session's classId if provided, otherwise use course's classId
-      const classIdToUse = session.classId || course.classId;
-      const recipients = await this.getSessionRecipients(classIdToUse, course.schoolId, course.id);
+      const recipients = await this.getSessionRecipients(classIdToUse, schoolId, courseId);
 
       if (recipients.length === 0) {
         console.log(`[ONLINE_CLASS_NOTIFICATIONS] No recipients found for session ${sessionId}`);
@@ -238,10 +261,10 @@ export class OnlineClassNotificationService {
           teacher: teacherName
         },
         priority: 'high',
-        schoolId: course.schoolId,
+        schoolId: schoolId,
         metadata: {
           sessionId: session.id,
-          courseId: course.id,
+          courseId: courseId,
           eventType: 'session_starting'
         }
       });
