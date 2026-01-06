@@ -5486,8 +5486,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Insert message into database for each recipient
+      const insertedMessages: any[] = [];
+      const userSchoolId = user.schoolId || parseInt(schoolId) || null;
+      
+      for (const recipientId of recipientIds) {
+        try {
+          const [insertedMsg] = await db.insert(messages).values({
+            senderId: user.id,
+            senderName: teacherName,
+            senderRole: 'Teacher',
+            recipientId: recipientId,
+            recipientName: to || 'Destinataire',
+            recipientRole: recipientType,
+            subject: subject,
+            content: message,
+            messageType: type || 'general',
+            priority: priority,
+            isRead: false,
+            schoolId: userSchoolId,
+            createdAt: new Date()
+          } as any).returning();
+          
+          insertedMessages.push(insertedMsg);
+        } catch (insertErr) {
+          console.warn('[TEACHER_MESSAGES] Failed to insert message for recipient:', recipientId, insertErr);
+        }
+      }
+      
       const newMessage = {
-        id: Date.now(),
+        id: insertedMessages[0]?.id || Date.now(),
         from: teacherName,
         fromRole: 'Teacher',
         to: to || 'Destinataire',
@@ -5498,11 +5526,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         date: new Date().toISOString(),
         status: 'sent',
         type,
-        notificationsSent: recipientIds.length
+        notificationsSent: recipientIds.length,
+        messagesSaved: insertedMessages.length
       };
       
-      console.log('[TEACHER_MESSAGES] ✅ Message sent successfully, notifications:', recipientIds.length);
-      res.json({ success: true, message: 'Message sent successfully', data: newMessage, notificationsSent: recipientIds.length });
+      console.log('[TEACHER_MESSAGES] ✅ Message sent successfully, notifications:', recipientIds.length, 'messages saved:', insertedMessages.length);
+      res.json({ success: true, message: 'Message sent successfully', data: newMessage, notificationsSent: recipientIds.length, messagesSaved: insertedMessages.length });
     } catch (error) {
       console.error('[TEACHER_MESSAGES] Error sending message:', error);
       res.status(500).json({ success: false, message: 'Failed to send message' });
