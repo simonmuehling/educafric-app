@@ -3134,6 +3134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[DIRECTOR_PARENTS_API] Fetching parents for school:', userSchoolId);
       
       // ✅ STEP 1: Determine if user is sandbox
+      const { isSandboxUserByEmail } = await import('./utils/sandboxUtils');
       const userIsSandbox = isSandboxUserByEmail(user.email || '');
       console.log(`[DIRECTOR_PARENTS_API] User sandbox status: ${userIsSandbox}`);
       
