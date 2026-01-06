@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { School, Plus, Edit, Trash2, Search, MapPin, Users, DollarSign, TrendingUp, CreditCard } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { School, Plus, Edit, Trash2, Search, MapPin, Users, DollarSign, TrendingUp, CreditCard, MessageSquare, Navigation } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,10 +7,20 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { sortBy } from '@/utils/sort';
+
+interface ParentPricing {
+  communicationEnabled: boolean;
+  communicationPrice: number;
+  geolocationEnabled: boolean;
+  geolocationPrice: number;
+  discount2Children: number;
+  discount3PlusChildren: number;
+}
 
 interface PlatformSchool {
   id: number;
@@ -37,8 +47,72 @@ const FunctionalSiteAdminSchools: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [schoolForSettings, setSchoolForSettings] = useState<PlatformSchool | null>(null);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [parentPricing, setParentPricing] = useState<ParentPricing>({
+    communicationEnabled: true,
+    communicationPrice: 5000,
+    geolocationEnabled: true,
+    geolocationPrice: 5000,
+    discount2Children: 20,
+    discount3PlusChildren: 40
+  });
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Fetch parent pricing when school is selected
+  const { data: pricingData, refetch: refetchPricing } = useQuery({
+    queryKey: ['/api/siteadmin/schools', schoolForSettings?.id, 'parent-pricing'],
+    queryFn: async () => {
+      if (!schoolForSettings?.id) return null;
+      const response = await fetch(`/api/siteadmin/schools/${schoolForSettings.id}/parent-pricing`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch pricing');
+      return response.json();
+    },
+    enabled: !!schoolForSettings?.id && isSettingsDialogOpen
+  });
+
+  // Update parent pricing state when data is fetched
+  useEffect(() => {
+    if (pricingData?.pricing) {
+      setParentPricing({
+        communicationEnabled: pricingData.pricing.communicationEnabled ?? true,
+        communicationPrice: pricingData.pricing.communicationPrice ?? 5000,
+        geolocationEnabled: pricingData.pricing.geolocationEnabled ?? true,
+        geolocationPrice: pricingData.pricing.geolocationPrice ?? 5000,
+        discount2Children: pricingData.pricing.discount2Children ?? 20,
+        discount3PlusChildren: pricingData.pricing.discount3PlusChildren ?? 40
+      });
+    }
+  }, [pricingData]);
+
+  // Update parent pricing mutation
+  const updateParentPricingMutation = useMutation({
+    mutationFn: async ({ schoolId, updates }: { schoolId: number; updates: Partial<ParentPricing> }) => {
+      const response = await fetch(`/api/siteadmin/schools/${schoolId}/parent-pricing`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(updates)
+      });
+      if (!response.ok) throw new Error('Failed to update pricing');
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchPricing();
+      toast({
+        title: 'Succès / Success',
+        description: 'Tarifs parents mis à jour / Parent pricing updated'
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Erreur / Error',
+        description: 'Échec de la mise à jour / Update failed',
+        variant: 'destructive'
+      });
+    }
+  });
 
   const { data: schoolsData, isLoading, error } = useQuery({
     queryKey: ['/api/siteadmin/schools'],
@@ -528,6 +602,194 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Parent Pricing Section - Tarifs Abonnements Parents */}
+            <div className="space-y-4">
+              <div className="border-t pt-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                  Tarifs Abonnements Parents / Parent Subscription Pricing
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Configurer les tarifs de communication et géolocalisation pour les parents de cette école / Configure communication and geolocation pricing for parents of this school
+                </p>
+              </div>
+              
+              {/* Communication Pricing */}
+              <div className="p-4 border rounded-lg bg-blue-50/50">
+                <div className="flex items-center gap-2 mb-3">
+                  <MessageSquare className="h-5 w-5 text-blue-600" />
+                  <Label className="text-base font-medium">Communication (Passerelle École-Parent)</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between p-2 bg-white rounded border">
+                    <Label htmlFor="comm-enabled" className="text-sm">Activer / Enable</Label>
+                    <Switch
+                      id="comm-enabled"
+                      checked={parentPricing.communicationEnabled}
+                      onCheckedChange={(checked) => {
+                        setParentPricing(prev => ({ ...prev, communicationEnabled: checked }));
+                        if (schoolForSettings) {
+                          updateParentPricingMutation.mutate({
+                            schoolId: schoolForSettings.id,
+                            updates: { communicationEnabled: checked }
+                          });
+                        }
+                      }}
+                      disabled={updateParentPricingMutation.isPending}
+                      data-testid="switch-comm-enabled"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">Prix / Price:</Label>
+                    <Select
+                      value={String(parentPricing.communicationPrice)}
+                      onValueChange={(value) => {
+                        const price = parseInt(value);
+                        setParentPricing(prev => ({ ...prev, communicationPrice: price }));
+                        if (schoolForSettings) {
+                          updateParentPricingMutation.mutate({
+                            schoolId: schoolForSettings.id,
+                            updates: { communicationPrice: price }
+                          });
+                        }
+                      }}
+                      disabled={updateParentPricingMutation.isPending}
+                    >
+                      <SelectTrigger className="w-full bg-white" data-testid="select-comm-price">
+                        <SelectValue placeholder="Prix" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="0">Gratuit / Free</SelectItem>
+                        <SelectItem value="5000">5 000 CFA/an</SelectItem>
+                        <SelectItem value="10000">10 000 CFA/an</SelectItem>
+                        <SelectItem value="15000">15 000 CFA/an</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Geolocation Pricing */}
+              <div className="p-4 border rounded-lg bg-green-50/50">
+                <div className="flex items-center gap-2 mb-3">
+                  <Navigation className="h-5 w-5 text-green-600" />
+                  <Label className="text-base font-medium">Géolocalisation / Geolocation</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between p-2 bg-white rounded border">
+                    <Label htmlFor="geo-enabled" className="text-sm">Activer / Enable</Label>
+                    <Switch
+                      id="geo-enabled"
+                      checked={parentPricing.geolocationEnabled}
+                      onCheckedChange={(checked) => {
+                        setParentPricing(prev => ({ ...prev, geolocationEnabled: checked }));
+                        if (schoolForSettings) {
+                          updateParentPricingMutation.mutate({
+                            schoolId: schoolForSettings.id,
+                            updates: { geolocationEnabled: checked }
+                          });
+                        }
+                      }}
+                      disabled={updateParentPricingMutation.isPending}
+                      data-testid="switch-geo-enabled"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">Prix / Price:</Label>
+                    <Select
+                      value={String(parentPricing.geolocationPrice)}
+                      onValueChange={(value) => {
+                        const price = parseInt(value);
+                        setParentPricing(prev => ({ ...prev, geolocationPrice: price }));
+                        if (schoolForSettings) {
+                          updateParentPricingMutation.mutate({
+                            schoolId: schoolForSettings.id,
+                            updates: { geolocationPrice: price }
+                          });
+                        }
+                      }}
+                      disabled={updateParentPricingMutation.isPending}
+                    >
+                      <SelectTrigger className="w-full bg-white" data-testid="select-geo-price">
+                        <SelectValue placeholder="Prix" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="0">Gratuit / Free</SelectItem>
+                        <SelectItem value="5000">5 000 CFA/an</SelectItem>
+                        <SelectItem value="10000">10 000 CFA/an</SelectItem>
+                        <SelectItem value="15000">15 000 CFA/an</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Family Discount Settings */}
+              <div className="p-4 border rounded-lg bg-purple-50/50">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="h-5 w-5 text-purple-600" />
+                  <Label className="text-base font-medium">Réductions Famille / Family Discounts</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">2 enfants:</Label>
+                    <Select
+                      value={String(parentPricing.discount2Children)}
+                      onValueChange={(value) => {
+                        const discount = parseInt(value);
+                        setParentPricing(prev => ({ ...prev, discount2Children: discount }));
+                        if (schoolForSettings) {
+                          updateParentPricingMutation.mutate({
+                            schoolId: schoolForSettings.id,
+                            updates: { discount2Children: discount }
+                          });
+                        }
+                      }}
+                      disabled={updateParentPricingMutation.isPending}
+                    >
+                      <SelectTrigger className="w-full bg-white" data-testid="select-discount-2">
+                        <SelectValue placeholder="Réduction" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="0">0%</SelectItem>
+                        <SelectItem value="10">-10%</SelectItem>
+                        <SelectItem value="20">-20%</SelectItem>
+                        <SelectItem value="30">-30%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm whitespace-nowrap">3+ enfants:</Label>
+                    <Select
+                      value={String(parentPricing.discount3PlusChildren)}
+                      onValueChange={(value) => {
+                        const discount = parseInt(value);
+                        setParentPricing(prev => ({ ...prev, discount3PlusChildren: discount }));
+                        if (schoolForSettings) {
+                          updateParentPricingMutation.mutate({
+                            schoolId: schoolForSettings.id,
+                            updates: { discount3PlusChildren: discount }
+                          });
+                        }
+                      }}
+                      disabled={updateParentPricingMutation.isPending}
+                    >
+                      <SelectTrigger className="w-full bg-white" data-testid="select-discount-3plus">
+                        <SelectValue placeholder="Réduction" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="0">0%</SelectItem>
+                        <SelectItem value="20">-20%</SelectItem>
+                        <SelectItem value="30">-30%</SelectItem>
+                        <SelectItem value="40">-40%</SelectItem>
+                        <SelectItem value="50">-50%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end mt-4">
@@ -536,7 +798,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
               onClick={() => setIsSettingsDialogOpen(false)} 
               data-testid="button-close-settings"
             >
-              Fermer
+              Fermer / Close
             </Button>
           </div>
         </DialogContent>
