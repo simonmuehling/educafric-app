@@ -42,7 +42,9 @@ import {
   CheckCircle,
   UserCheck,
   CreditCard,
-  Info
+  Info,
+  AlertTriangle,
+  Mail
 } from 'lucide-react';
 
 interface OnlineCourse {
@@ -831,11 +833,16 @@ const TeacherOnlineClasses: React.FC = () => {
       </Card>
 
       {/* Option 2: School-linked Course */}
-      <Card>
+      <Card className={!hasSchoolAccess ? "border-2 border-orange-200 bg-orange-50/30" : ""}>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <GraduationCap className="w-6 h-6 text-purple-600" />
             <span>{language === 'fr' ? 'Cours lié à une École' : 'School-linked Course'}</span>
+            {!hasSchoolAccess && (
+              <Badge className="bg-orange-100 text-orange-700 ml-2">
+                {language === 'fr' ? 'Non activé' : 'Not activated'}
+              </Badge>
+            )}
           </CardTitle>
           <CardDescription>
             {language === 'fr' 
@@ -844,6 +851,55 @@ const TeacherOnlineClasses: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Warning if school hasn't activated online classes */}
+          {!hasSchoolAccess && (
+            <div className="p-4 bg-orange-100 border border-orange-300 rounded-lg">
+              <div className="flex gap-3">
+                <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-orange-900 mb-1">
+                    {language === 'fr' ? 'Module non activé par votre école' : 'Module not activated by your school'}
+                  </h4>
+                  <p className="text-sm text-orange-800 mb-3">
+                    {language === 'fr' 
+                      ? 'Votre école n\'a pas encore activé le module Cours en Ligne. Pour créer des cours liés à votre école:'
+                      : 'Your school has not yet activated the Online Classes module. To create school-linked courses:'}
+                  </p>
+                  <ul className="text-sm text-orange-800 list-disc list-inside space-y-1 mb-3">
+                    <li>
+                      {language === 'fr' 
+                        ? 'Demandez à votre directeur de contacter Educafric pour activer ce module'
+                        : 'Ask your director to contact Educafric to activate this module'}
+                    </li>
+                    <li>
+                      {language === 'fr' 
+                        ? 'Ou achetez un abonnement personnel pour créer vos propres cours indépendants'
+                        : 'Or purchase a personal subscription to create your own independent courses'}
+                    </li>
+                  </ul>
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      className="border-orange-400 text-orange-700 hover:bg-orange-100"
+                      onClick={() => window.open('mailto:contact@educafric.com?subject=Activation Module Cours en Ligne', '_blank')}
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      {language === 'fr' ? 'Contacter Educafric' : 'Contact Educafric'}
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => setIsPaymentOpen(true)}
+                      className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      {language === 'fr' ? 'Acheter Abonnement Personnel' : 'Buy Personal Subscription'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Class Selection */}
           <div className="space-y-2">
             <Label className="flex items-center space-x-2">
