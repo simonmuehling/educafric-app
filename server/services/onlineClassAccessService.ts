@@ -256,58 +256,8 @@ export class OnlineClassAccessService {
 
     const schoolId = teacher.schoolId;
 
-    // Case 1: Teacher is assigned to a school
-    if (schoolId) {
-      // Check if school has activation
-      const schoolActivation = await onlineClassActivationService.checkSchoolActivation(schoolId);
-      
-      if (schoolActivation) {
-        // School has activation - check time window
-        const timeWindowCheck = await this.checkSchoolTimeWindow(schoolId, currentTime);
-        
-        return {
-          ...timeWindowCheck,
-          activationType: "school"
-        };
-      }
-      
-      // School doesn't have activation - check if teacher has personal activation
-      const teacherActivation = await onlineClassActivationService.checkTeacherActivation(teacherId);
-      
-      if (teacherActivation) {
-        const now = new Date();
-        const startDate = new Date(teacherActivation.startDate);
-        const endDate = new Date(teacherActivation.endDate);
-        const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        const durationType = this.getDurationLabel(durationDays);
-        const isExpiringSoon = daysRemaining <= 7;
-        
-        return {
-          allowed: true,
-          reason: "teacher_personal_subscription",
-          message: `Abonnement personnel actif (${durationType}) - expire le ${endDate.toLocaleDateString('fr-FR')}`,
-          activationType: "teacher",
-          subscriptionDetails: {
-            startDate: startDate.toISOString(),
-            endDate: endDate.toISOString(),
-            durationDays,
-            daysRemaining,
-            durationType,
-            isExpiringSoon
-          }
-        };
-      }
-      
-      // Neither school nor teacher has activation
-      return {
-        allowed: false,
-        reason: "no_activation",
-        message: "Votre école n'a pas activé ce module. Contactez l'administration ou souscrivez personnellement (150,000 CFA/an)."
-      };
-    }
-
-    // Case 2: Independent teacher (no school assignment)
+    // ✅ PRIORITÉ: Vérifier l'abonnement personnel EN PREMIER
+    // Personal subscription gives full course creation rights regardless of school access
     const teacherActivation = await onlineClassActivationService.checkTeacherActivation(teacherId);
     
     if (teacherActivation) {
@@ -318,6 +268,8 @@ export class OnlineClassAccessService {
       const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       const durationType = this.getDurationLabel(durationDays);
       const isExpiringSoon = daysRemaining <= 7;
+      
+      console.log(`[ONLINE_CLASS_ACCESS] ✅ Teacher ${teacherId} has personal subscription - prioritized over school access`);
       
       return {
         allowed: true,
@@ -335,6 +287,30 @@ export class OnlineClassAccessService {
       };
     }
 
+    // Case 1: Teacher is assigned to a school (but no personal subscription)
+    if (schoolId) {
+      // Check if school has activation
+      const schoolActivation = await onlineClassActivationService.checkSchoolActivation(schoolId);
+      
+      if (schoolActivation) {
+        // School has activation - check time window
+        const timeWindowCheck = await this.checkSchoolTimeWindow(schoolId, currentTime);
+        
+        return {
+          ...timeWindowCheck,
+          activationType: "school"
+        };
+      }
+      
+      // Neither school nor teacher has activation
+      return {
+        allowed: false,
+        reason: "no_activation",
+        message: "Votre école n'a pas activé ce module. Contactez l'administration ou souscrivez personnellement (150,000 CFA/an)."
+      };
+    }
+
+    // Case 2: Independent teacher (no school assignment, no personal subscription)
     // No activation at all
     return {
       allowed: false,
