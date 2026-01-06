@@ -348,6 +348,12 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.feesManagement,
       icon: <DollarSign className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-emerald-500 to-green-600'
+    },
+    {
+      id: 'multirole',
+      label: language === 'fr' ? 'Multi-Rôles' : 'Multi-Roles',
+      icon: <Users className="w-6 h-6" />,
+      color: 'bg-purple-600'
     }
   ];
 
