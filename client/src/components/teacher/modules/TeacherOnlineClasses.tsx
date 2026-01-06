@@ -1390,30 +1390,90 @@ const TeacherOnlineClasses: React.FC = () => {
         )}
       </Card>
 
-      {/* SCHOOL-ONLY ACCESS: Show only assigned sessions */}
+      {/* SCHOOL-ONLY ACCESS: Show tabbed interface with countdown and sessions */}
       {hasSchoolAccess && !hasPersonalSubscription && (
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Calendar className="w-6 h-6 text-purple-600" />
-            <div>
-              <h3 className="text-lg font-semibold">
-                {language === 'fr' ? 'Sessions Assignées par l\'École' : 'School-Assigned Sessions'}
-              </h3>
-              <p className="text-sm text-gray-600">
-                {language === 'fr' 
-                  ? 'Rejoignez les cours en ligne programmés par votre école'
-                  : 'Join online classes scheduled by your school'
-                }
-              </p>
-            </div>
-            {(schoolSessionsData?.sessions?.length || 0) > 0 && (
-              <Badge className="ml-auto bg-purple-500 text-white" data-testid="school-sessions-badge">
-                {schoolSessionsData.sessions.length}
-              </Badge>
-            )}
-          </div>
-          {renderSessionsList()}
-        </Card>
+        <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="my-courses" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              {t.myCoursesTab}
+            </TabsTrigger>
+            <TabsTrigger value="upcoming-sessions" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              {t.upcomingSessionsTab}
+              {(schoolSessionsData?.sessions?.length || 0) > 0 && (
+                <Badge className="ml-2 bg-purple-500 text-white" data-testid="school-sessions-count">
+                  {schoolSessionsData.sessions.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="create-course" className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              {t.createCourseTab}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="my-courses" className="space-y-4">
+            <Card className="p-6">
+              <div className="text-center py-8 text-gray-500">
+                <BookOpen className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p className="font-medium mb-2">
+                  {language === 'fr' ? 'Pas de cours personnels' : 'No personal courses'}
+                </p>
+                <p className="text-sm">
+                  {language === 'fr' 
+                    ? 'Achetez un abonnement personnel pour créer vos propres cours'
+                    : 'Purchase a personal subscription to create your own courses'
+                  }
+                </p>
+              </div>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="upcoming-sessions" className="space-y-4">
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Calendar className="w-6 h-6 text-purple-600" />
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    {language === 'fr' ? 'Sessions Assignées par l\'École' : 'School-Assigned Sessions'}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {language === 'fr' 
+                      ? 'Rejoignez les cours en ligne programmés par votre école'
+                      : 'Join online classes scheduled by your school'
+                    }
+                  </p>
+                </div>
+              </div>
+              {renderSessionsList()}
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="create-course" className="space-y-4">
+            <Card className="p-6">
+              <div className="text-center py-8">
+                <CreditCard className="w-12 h-12 mx-auto mb-4 text-orange-400" />
+                <h3 className="font-semibold text-lg mb-2">
+                  {language === 'fr' ? 'Abonnement Personnel Requis' : 'Personal Subscription Required'}
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  {language === 'fr' 
+                    ? 'Pour créer vos propres cours en ligne, vous devez acheter un abonnement personnel.'
+                    : 'To create your own online courses, you need to purchase a personal subscription.'
+                  }
+                </p>
+                <Button 
+                  onClick={() => setIsPaymentOpen(true)}
+                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Acheter un Abonnement' : 'Buy Subscription'}
+                </Button>
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* PERSONAL SUBSCRIPTION: Full access - show all features */}
