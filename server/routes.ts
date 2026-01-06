@@ -34,7 +34,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, timetableChangeRequests, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages, bulletinComprehensive, assignedFees, feeStructures, paymentItems } from "../shared/schema";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, timetableChangeRequests, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages, bulletinComprehensive, assignedFees, feeStructures, paymentItems, schoolParentPricing, parentChildSubscriptions, students } from "../shared/schema";
 import { attendance } from "../shared/schemas/academicSchema";
 import bcrypt from 'bcryptjs';
 
@@ -12564,17 +12564,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user;
       console.log('[PARENT_PRICING] Fetching pricing for parent:', user.id);
       
-      // Get parent's children and their schools
-      const childrenResult = await db.execute(`
-        SELECT DISTINCT s.school_id 
-        FROM parent_student_relations psr
-        JOIN students s ON s.id = psr.student_id
-        WHERE psr.parent_id = $1
-      `, [user.id]);
+      // Get parent's children using Drizzle query builder
+      const childRelations = await db.select({
+        studentId: parentStudentRelations.studentId
+      })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, user.id));
       
-      const schoolIds = (childrenResult as any).rows?.map((r: any) => r.school_id) || [];
-      
-      if (schoolIds.length === 0) {
+      if (childRelations.length === 0) {
         // Return default pricing if no children
         return res.json({
           success: true,
@@ -12587,35 +12584,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get pricing from the first school (assume same school for all children)
-      const pricingResult = await db.execute(`
-        SELECT * FROM school_parent_pricing WHERE school_id = $1
-      `, [schoolIds[0]]);
+      const childCount = childRelations.length;
+      const studentIds = childRelations.map(r => r.studentId);
       
-      const pricing = (pricingResult as any).rows?.[0];
+      // Get school IDs from students
+      const studentRecords = await db.select({
+        schoolId: students.schoolId
+      })
+      .from(students)
+      .where(inArray(students.id, studentIds));
       
-      // Get count of children
-      const countResult = await db.execute(`
-        SELECT COUNT(*) as count FROM parent_student_relations WHERE parent_id = $1
-      `, [user.id]);
-      const childCount = parseInt((countResult as any).rows?.[0]?.count || '0');
+      const schoolIds = [...new Set(studentRecords.map(s => s.schoolId).filter(Boolean))];
+      
+      if (schoolIds.length === 0) {
+        return res.json({
+          success: true,
+          pricing: {
+            communication: { enabled: true, price: 5000, period: 'annual' },
+            geolocation: { enabled: true, price: 5000, period: 'annual' },
+            discounts: { twoChildren: 20, threePlusChildren: 40 }
+          },
+          childCount
+        });
+      }
+      
+      // Get pricing from the first school
+      const pricingRecords = await db.select()
+        .from(schoolParentPricing)
+        .where(eq(schoolParentPricing.schoolId, schoolIds[0]));
+      
+      const pricing = pricingRecords[0];
       
       res.json({
         success: true,
         pricing: {
           communication: {
-            enabled: pricing?.communication_enabled ?? true,
-            price: pricing?.communication_price ?? 5000,
-            period: pricing?.communication_period ?? 'annual'
+            enabled: pricing?.communicationEnabled ?? true,
+            price: pricing?.communicationPrice ?? 5000,
+            period: pricing?.communicationPeriod ?? 'annual'
           },
           geolocation: {
-            enabled: pricing?.geolocation_enabled ?? true,
-            price: pricing?.geolocation_price ?? 5000,
-            period: pricing?.geolocation_period ?? 'annual'
+            enabled: pricing?.geolocationEnabled ?? true,
+            price: pricing?.geolocationPrice ?? 5000,
+            period: pricing?.geolocationPeriod ?? 'annual'
           },
           discounts: {
-            twoChildren: pricing?.discount_2_children ?? 20,
-            threePlusChildren: pricing?.discount_3plus_children ?? 40
+            twoChildren: pricing?.discount2Children ?? 20,
+            threePlusChildren: pricing?.discount3PlusChildren ?? 40
           }
         },
         childCount,
@@ -12639,37 +12654,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, error: 'Invalid plan type' });
       }
       
-      // Get children
-      const childrenResult = await db.execute(`
-        SELECT psr.student_id, s.school_id
-        FROM parent_student_relations psr
-        JOIN students s ON s.id = psr.student_id
-        WHERE psr.parent_id = $1
-      `, [user.id]);
+      // Get children using Drizzle query builder
+      const childRelations = await db.select({
+        studentId: parentStudentRelations.studentId
+      })
+      .from(parentStudentRelations)
+      .where(eq(parentStudentRelations.parentId, user.id));
       
-      const children = (childrenResult as any).rows || [];
-      
-      if (children.length === 0) {
+      if (childRelations.length === 0) {
         return res.status(400).json({ success: false, error: 'No children found' });
       }
       
-      // Get pricing from school
-      const schoolId = children[0].school_id;
-      const pricingResult = await db.execute(`
-        SELECT * FROM school_parent_pricing WHERE school_id = $1
-      `, [schoolId]);
+      const studentIds = childRelations.map(r => r.studentId);
       
-      const pricing = (pricingResult as any).rows?.[0];
+      // Get school IDs from students
+      const studentRecords = await db.select({
+        id: students.id,
+        schoolId: students.schoolId
+      })
+      .from(students)
+      .where(inArray(students.id, studentIds));
+      
+      if (studentRecords.length === 0 || !studentRecords[0].schoolId) {
+        return res.status(400).json({ success: false, error: 'No school found for children' });
+      }
+      
+      // Get pricing from school
+      const schoolId = studentRecords[0].schoolId;
+      const pricingRecords = await db.select()
+        .from(schoolParentPricing)
+        .where(eq(schoolParentPricing.schoolId, schoolId));
+      
+      const pricing = pricingRecords[0];
       const basePrice = planType === 'communication' 
-        ? (pricing?.communication_price ?? 5000)
-        : (pricing?.geolocation_price ?? 5000);
+        ? (pricing?.communicationPrice ?? 5000)
+        : (pricing?.geolocationPrice ?? 5000);
       
       // Calculate discount
       let discount = 0;
-      if (children.length === 2) {
-        discount = pricing?.discount_2_children ?? 20;
-      } else if (children.length >= 3) {
-        discount = pricing?.discount_3plus_children ?? 40;
+      if (childRelations.length === 2) {
+        discount = pricing?.discount2Children ?? 20;
+      } else if (childRelations.length >= 3) {
+        discount = pricing?.discount3PlusChildren ?? 40;
       }
       
       const finalPrice = Math.round(basePrice * (1 - discount / 100));
@@ -12679,31 +12705,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const endDate = new Date();
       endDate.setFullYear(endDate.getFullYear() + 1); // 1 year subscription
       
-      for (const child of children) {
-        await db.execute(`
-          INSERT INTO parent_child_subscriptions 
-            (parent_id, child_id, plan_type, status, start_date, end_date, payment_method, gateway_active, created_at, updated_at)
-          VALUES ($1, $2, $3, 'active', $4, $5, $6, true, NOW(), NOW())
-          ON CONFLICT (parent_id, child_id) 
-          DO UPDATE SET 
-            plan_type = EXCLUDED.plan_type,
-            status = 'active',
-            start_date = EXCLUDED.start_date,
-            end_date = EXCLUDED.end_date,
-            payment_method = EXCLUDED.payment_method,
-            gateway_active = true,
-            updated_at = NOW()
-        `, [user.id, child.student_id, planType, startDate, endDate, paymentMethod || 'pending']);
+      for (const studentRecord of studentRecords) {
+        await db.insert(parentChildSubscriptions)
+          .values({
+            parentId: user.id,
+            childId: studentRecord.id,
+            planType,
+            status: 'active',
+            startDate,
+            endDate,
+            paymentMethod: paymentMethod || 'pending',
+            gatewayActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          })
+          .onConflictDoUpdate({
+            target: [parentChildSubscriptions.parentId, parentChildSubscriptions.childId],
+            set: {
+              planType,
+              status: 'active',
+              startDate,
+              endDate,
+              paymentMethod: paymentMethod || 'pending',
+              gatewayActive: true,
+              updatedAt: new Date()
+            }
+          });
       }
       
-      console.log(`[PARENT_SUBSCRIBE] ✅ Subscription created: ${planType} for ${children.length} children, price: ${finalPrice} CFA`);
+      console.log(`[PARENT_SUBSCRIBE] ✅ Subscription created: ${planType} for ${childRelations.length} children, price: ${finalPrice} CFA`);
       
       res.json({
         success: true,
         message: 'Abonnement activé avec succès / Subscription activated successfully',
         subscription: {
           planType,
-          childCount: children.length,
+          childCount: childRelations.length,
           basePrice,
           discount,
           finalPrice,
