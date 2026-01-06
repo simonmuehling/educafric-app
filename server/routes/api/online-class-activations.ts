@@ -294,14 +294,19 @@ router.get('/check-access',
     try {
       const user = req.user!;
       
+      // ✅ MULTI-ROLE: Check activeRole first, fallback to primary role
+      const effectiveRole = user.activeRole || user.role;
+      
       console.log('[ONLINE_CLASS_ACCESS_CHECK] User:', {
         id: user.id,
         email: user.email,
         role: user.role,
+        activeRole: user.activeRole,
+        effectiveRole,
         schoolId: user.schoolId
       });
       
-      if (user.role !== 'Teacher') {
+      if (effectiveRole !== 'Teacher') {
         return res.json({
           success: true,
           allowed: false,
@@ -343,7 +348,10 @@ router.get('/access-details',
     try {
       const user = req.user!;
       
-      if (user.role !== 'Teacher') {
+      // ✅ MULTI-ROLE: Check activeRole first, fallback to primary role
+      const effectiveRole = user.activeRole || user.role;
+      
+      if (effectiveRole !== 'Teacher') {
         return res.status(403).json({
           success: false,
           error: 'Seuls les enseignants peuvent voir ces détails'
