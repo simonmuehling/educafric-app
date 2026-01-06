@@ -1089,13 +1089,16 @@ const TeacherOnlineClasses: React.FC = () => {
   const renderSessionsList = () => {
     const isLoading = sessionsLoading || schoolSessionsLoading;
     
+    // Normalize status to lowercase for consistent UI comparisons
     const teacherSessions = (sessionsData?.sessions || []).map((s: ClassSession) => ({
       ...s,
+      status: (s.status?.toLowerCase?.() || 'scheduled') as ClassSession['status'],
       creatorType: 'teacher' as const
     }));
     
     const schoolSessions = (schoolSessionsData?.sessions || []).map((s: ClassSession) => ({
       ...s,
+      status: (s.status?.toLowerCase?.() || 'scheduled') as ClassSession['status'],
       creatorType: 'school' as const
     }));
     
