@@ -15,6 +15,7 @@ interface AccessCheckResult {
   };
   nextAvailableAt?: Date;
   canStartSession?: boolean; // For school access - can they start sessions now?
+  canCreateCourses?: boolean; // Can teacher create new courses?
   timeRestriction?: {
     reason: string;
     nextAvailableAt?: Date;
@@ -327,20 +328,27 @@ export class OnlineClassAccessService {
         };
       }
       
-      // Neither school nor teacher has activation
+      // Neither school nor teacher has activation - BUT still allow viewing the interface
+      // They can see the module but cannot create/start sessions without subscribing
       return {
-        allowed: false,
-        reason: "no_activation",
-        message: "Votre école n'a pas activé ce module. Contactez l'administration ou souscrivez personnellement (150,000 CFA/an)."
+        allowed: true, // ✅ Allow viewing the interface
+        reason: "no_school_activation",
+        message: "Votre école n'a pas activé ce module. Souscrivez personnellement ou contactez l'administration.",
+        activationType: null, // No activation
+        canStartSession: false, // Cannot start sessions
+        canCreateCourses: false // Cannot create courses
       };
     }
 
     // Case 2: Independent teacher (no school assignment, no personal subscription)
-    // No activation at all
+    // Allow viewing the interface but with limited features
     return {
-      allowed: false,
+      allowed: true, // ✅ Allow viewing the interface
       reason: "no_activation",
-      message: "Module non activé. Souscrivez pour 150,000 CFA/an pour un accès illimité."
+      message: "Souscrivez pour 150,000 CFA/an pour créer des cours en ligne.",
+      activationType: null, // No activation
+      canStartSession: false, // Cannot start sessions
+      canCreateCourses: false // Cannot create courses
     };
   }
 
