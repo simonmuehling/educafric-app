@@ -14996,43 +14996,202 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Individual class report PDF generation
-  // ✅ NOUVEAU: Route unifiée pour génération de Procès-Verbal PDF avec en-tête standardisé
+  // ✅ PROCÈS-VERBAL / MASTER SHEET - Real data with bilingual header
   app.get('/api/reports/proces-verbal/export/pdf', requireAuth, requireAnyRole(['Director', 'Admin', 'Teacher']), async (req: Request, res: Response) => {
     try {
-      const { classId, teacherId, period, subject } = req.query;
+      const { classId, period } = req.query;
       const user = req.user as any;
+      const userSchoolId = user.schoolId || user.school_id;
       
-      console.log('[PROCES_VERBAL_PDF] 📋 Génération procès-verbal avec en-tête standardisé...');
+      console.log('[PROCES_VERBAL_PDF] 📋 Generating Procès-Verbal with real data for school:', userSchoolId);
       
-      // Import PDFGenerator avec en-tête officiel camerounais
-      const { PDFGenerator } = await import('./services/pdfGenerator');
+      if (!userSchoolId) {
+        return res.status(400).json({ success: false, message: 'School ID required' });
+      }
+
+      // Fetch real school data
+      const [schoolData] = await db.select().from(schools).where(eq(schools.id, userSchoolId)).limit(1);
+      if (!schoolData) {
+        return res.status(404).json({ success: false, message: 'School not found' });
+      }
+
+      // Fetch classes for this school
+      let targetClasses = await db.select().from(classes).where(eq(classes.schoolId, userSchoolId));
       
-      // Préparer les données pour le générateur
-      const documentData = {
-        id: `proces-verbal-${Date.now()}`,
-        title: 'Procès-Verbal de Classe',
-        user: user,
-        type: 'report' as const
-      };
+      // If specific classId is provided, filter to that class
+      if (classId && classId !== 'all') {
+        targetClasses = targetClasses.filter(c => c.id === parseInt(classId as string));
+      }
+
+      // Import PDF-lib for generation
+      const { PDFDocument, StandardFonts, rgb, PageSizes } = await import('pdf-lib');
+      const pdfDoc = await PDFDocument.create();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       
-      // Utiliser le générateur système qui inclut l'en-tête standardisé
-      const pdfBuffer = await PDFGenerator.generateSystemReport(documentData);
+      // Process each class
+      for (const cls of targetClasses.slice(0, 5)) { // Limit to 5 classes for performance
+        // Get students in this class
+        const classStudents = await db.select().from(students).where(eq(students.classId, cls.id));
+        
+        // Get grades for this class
+        const classGrades = await db.select().from(grades).where(eq(grades.classId, cls.id));
+        
+        // Create page for this class
+        const page = pdfDoc.addPage(PageSizes.A4);
+        const { width, height } = page.getSize();
+        let yPos = height - 40;
+        
+        // ===== BILINGUAL HEADER =====
+        // English column (left)
+        page.drawText('REPUBLIC OF CAMEROON', { x: 40, y: yPos, size: 9, font: fontBold });
+        page.drawText('Peace - Work - Fatherland', { x: 40, y: yPos - 12, size: 7, font });
+        page.drawText('***', { x: 40, y: yPos - 22, size: 6, font });
+        page.drawText('MINISTRY OF SECONDARY EDUCATION', { x: 40, y: yPos - 32, size: 7, font: fontBold });
+        
+        // French column (right)
+        page.drawText('REPUBLIQUE DU CAMEROUN', { x: width - 200, y: yPos, size: 9, font: fontBold });
+        page.drawText('Paix - Travail - Patrie', { x: width - 200, y: yPos - 12, size: 7, font });
+        page.drawText('***', { x: width - 200, y: yPos - 22, size: 6, font });
+        page.drawText('MINISTERE DES ENSEIGNEMENTS SECONDAIRES', { x: width - 200, y: yPos - 32, size: 7, font: fontBold });
+        
+        // School name (center)
+        const schoolName = schoolData.name || 'Ecole';
+        const schoolNameWidth = fontBold.widthOfTextAtSize(schoolName, 11);
+        page.drawText(schoolName, { x: (width - schoolNameWidth) / 2, y: yPos - 55, size: 11, font: fontBold });
+        
+        // Regional/Departmental delegations
+        if (schoolData.regionaleMinisterielle) {
+          const regionText = `Del. Regionale: ${schoolData.regionaleMinisterielle}`;
+          page.drawText(regionText, { x: 40, y: yPos - 45, size: 6, font });
+        }
+        if (schoolData.delegationDepartementale) {
+          const deptText = `Del. Departementale: ${schoolData.delegationDepartementale}`;
+          page.drawText(deptText, { x: 40, y: yPos - 55, size: 6, font });
+        }
+        
+        yPos -= 80;
+        
+        // ===== DOCUMENT TITLE =====
+        const title = `PROCES-VERBAL DE NOTES / MASTER SHEET`;
+        const titleWidth = fontBold.widthOfTextAtSize(title, 14);
+        page.drawText(title, { x: (width - titleWidth) / 2, y: yPos, size: 14, font: fontBold });
+        
+        yPos -= 25;
+        
+        // Class info line
+        const classInfo = `Classe / Class: ${cls.name}    |    Trimestre / Term: ${period || schoolData.currentTerm || 'T1'}    |    Annee / Year: ${schoolData.academicYear || '2024-2025'}`;
+        page.drawText(classInfo, { x: 40, y: yPos, size: 9, font });
+        
+        yPos -= 20;
+        
+        // ===== TABLE HEADER =====
+        page.drawLine({ start: { x: 40, y: yPos }, end: { x: width - 40, y: yPos }, thickness: 1, color: rgb(0, 0, 0) });
+        yPos -= 15;
+        
+        page.drawText('N°', { x: 45, y: yPos, size: 8, font: fontBold });
+        page.drawText('Matricule', { x: 65, y: yPos, size: 8, font: fontBold });
+        page.drawText('Nom et Prenom / Full Name', { x: 140, y: yPos, size: 8, font: fontBold });
+        page.drawText('Moy/Avg', { x: 350, y: yPos, size: 8, font: fontBold });
+        page.drawText('Rang/Rank', { x: 410, y: yPos, size: 8, font: fontBold });
+        page.drawText('Mention', { x: 480, y: yPos, size: 8, font: fontBold });
+        
+        yPos -= 5;
+        page.drawLine({ start: { x: 40, y: yPos }, end: { x: width - 40, y: yPos }, thickness: 0.5, color: rgb(0, 0, 0) });
+        yPos -= 12;
+        
+        // ===== STUDENT ROWS =====
+        // Calculate averages for each student
+        const studentAverages: { studentId: number; name: string; matricule: string; average: number }[] = [];
+        
+        for (const student of classStudents) {
+          const studentGrades = classGrades.filter(g => g.studentId === student.id);
+          let totalPoints = 0;
+          let totalCoef = 0;
+          
+          studentGrades.forEach(g => {
+            const score = Number(g.score) || 0;
+            const coef = Number(g.coefficient) || 1;
+            totalPoints += score * coef;
+            totalCoef += coef;
+          });
+          
+          const average = totalCoef > 0 ? totalPoints / totalCoef : 0;
+          studentAverages.push({
+            studentId: student.id,
+            name: `${student.lastName || ''} ${student.firstName || ''}`.trim() || `Eleve ${student.id}`,
+            matricule: student.matricule || student.registrationNumber || `MAT-${student.id}`,
+            average: Math.round(average * 100) / 100
+          });
+        }
+        
+        // Sort by average (descending) for ranking
+        studentAverages.sort((a, b) => b.average - a.average);
+        
+        // Render student rows
+        let rowNum = 1;
+        for (const student of studentAverages.slice(0, 30)) { // Limit to 30 students per page
+          if (yPos < 60) break; // Leave space for footer
+          
+          // Determine mention based on average
+          let mention = '';
+          if (student.average >= 16) mention = 'Tres Bien';
+          else if (student.average >= 14) mention = 'Bien';
+          else if (student.average >= 12) mention = 'Assez Bien';
+          else if (student.average >= 10) mention = 'Passable';
+          else mention = 'Insuffisant';
+          
+          page.drawText(String(rowNum), { x: 45, y: yPos, size: 7, font });
+          page.drawText(student.matricule.substring(0, 15), { x: 65, y: yPos, size: 7, font });
+          page.drawText(student.name.substring(0, 35), { x: 140, y: yPos, size: 7, font });
+          page.drawText(student.average.toFixed(2), { x: 355, y: yPos, size: 7, font: fontBold });
+          page.drawText(`${rowNum}/${studentAverages.length}`, { x: 415, y: yPos, size: 7, font });
+          page.drawText(mention, { x: 480, y: yPos, size: 6, font });
+          
+          yPos -= 12;
+          rowNum++;
+        }
+        
+        // ===== CLASS STATISTICS =====
+        yPos -= 10;
+        page.drawLine({ start: { x: 40, y: yPos }, end: { x: width - 40, y: yPos }, thickness: 0.5, color: rgb(0, 0, 0) });
+        yPos -= 15;
+        
+        const classAvg = studentAverages.length > 0 
+          ? studentAverages.reduce((sum, s) => sum + s.average, 0) / studentAverages.length 
+          : 0;
+        const passCount = studentAverages.filter(s => s.average >= 10).length;
+        const passRate = studentAverages.length > 0 ? (passCount / studentAverages.length * 100) : 0;
+        
+        page.drawText(`STATISTIQUES DE CLASSE / CLASS STATISTICS`, { x: 40, y: yPos, size: 9, font: fontBold });
+        yPos -= 12;
+        page.drawText(`Effectif / Total Students: ${classStudents.length}`, { x: 40, y: yPos, size: 8, font });
+        page.drawText(`Moyenne de classe / Class Average: ${classAvg.toFixed(2)}/20`, { x: 200, y: yPos, size: 8, font });
+        page.drawText(`Taux de reussite / Pass Rate: ${passRate.toFixed(1)}%`, { x: 400, y: yPos, size: 8, font });
+        
+        // ===== FOOTER =====
+        yPos = 40;
+        page.drawText(`Document genere le / Generated on: ${new Date().toLocaleDateString('fr-FR')}`, { x: 40, y: yPos, size: 7, font });
+        page.drawText(`${schoolData.name} - Educafric Platform`, { x: width - 200, y: yPos, size: 7, font });
+      }
+
+      // Generate PDF buffer
+      const pdfBytes = await pdfDoc.save();
+      const pdfBuffer = Buffer.from(pdfBytes);
       
-      // Configuration des headers de réponse
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="proces-verbal-${new Date().toISOString().slice(0, 10)}.pdf"`);
       res.setHeader('Content-Length', pdfBuffer.length);
       
-      // Envoyer le PDF généré avec en-tête officiel camerounais
       res.send(pdfBuffer);
       
-      console.log('[PROCES_VERBAL_PDF] ✅ PDF généré avec en-tête standardisé et envoyé');
+      console.log(`[PROCES_VERBAL_PDF] ✅ Generated real Proces-Verbal for ${targetClasses.length} classes`);
       
-    } catch (error) {
-      console.error('[PROCES_VERBAL_PDF] ❌ Erreur génération:', error);
+    } catch (error: any) {
+      console.error('[PROCES_VERBAL_PDF] ❌ Error:', error);
       res.status(500).json({ 
         success: false, 
-        message: 'Erreur lors de la génération du procès-verbal PDF',
+        message: 'Erreur lors de la generation du proces-verbal PDF',
         error: error.message 
       });
     }
