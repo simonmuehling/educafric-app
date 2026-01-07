@@ -34,7 +34,7 @@ import educafricNumberRoutes from "./routes/educafricNumberRoutes";
 // Import database and schema
 import { storage } from "./storage.js";
 import { db } from "./db.js";
-import { users, schools, classes, subjects, grades, timetables, timetableNotifications, timetableChangeRequests, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages, bulletinComprehensive, assignedFees, feeStructures, paymentItems, schoolParentPricing, parentChildSubscriptions, students, parentRequests } from "../shared/schema";
+import { users, schools, classes, subjects, grades, timetables, timetableNotifications, timetableChangeRequests, rooms, notifications, teacherSubjectAssignments, classEnrollments, homework, homeworkSubmissions, userAchievements, teacherBulletins, teacherGradeSubmissions, enrollments, roleAffiliations, parentStudentRelations, teacherAbsences, messages, bulletinComprehensive, assignedFees, feeStructures, paymentItems, schoolParentPricing, parentChildSubscriptions, parentRequests } from "../shared/schema";
 import { attendance } from "../shared/schemas/academicSchema";
 import bcrypt from 'bcryptjs';
 
@@ -12779,12 +12779,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const childCount = childRelations.length;
       const studentIds = childRelations.map(r => r.studentId);
       
-      // Get school IDs from students
+      // Get school IDs from users table (students are stored in users with role='Student')
       const studentRecords = await db.select({
-        schoolId: students.schoolId
+        schoolId: users.schoolId
       })
-      .from(students)
-      .where(inArray(students.id, studentIds));
+      .from(users)
+      .where(inArray(users.id, studentIds));
       
       const schoolIds = [...new Set(studentRecords.map(s => s.schoolId).filter(Boolean))];
       
@@ -12859,13 +12859,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const studentIds = childRelations.map(r => r.studentId);
       
-      // Get school IDs from students
+      // Get school IDs from users table (students are stored in users with role='Student')
       const studentRecords = await db.select({
-        id: students.id,
-        schoolId: students.schoolId
+        id: users.id,
+        schoolId: users.schoolId
       })
-      .from(students)
-      .where(inArray(students.id, studentIds));
+      .from(users)
+      .where(inArray(users.id, studentIds));
       
       if (studentRecords.length === 0 || !studentRecords[0].schoolId) {
         return res.status(400).json({ success: false, error: 'No school found for children' });

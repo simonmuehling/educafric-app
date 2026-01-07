@@ -1,5 +1,5 @@
 # Overview
-Educafric is a bilingual, mobile-first EdTech platform designed for the African market. Its core purpose is to deliver comprehensive academic management, communication tools, financial services, and offline capabilities to enhance educational access and outcomes across Africa. The project aims for significant market penetration and user growth by improving educational accessibility and results through technology.
+Educafric is a bilingual, mobile-first EdTech platform designed for the African market. Its core purpose is to provide comprehensive academic management, communication tools, financial services, and offline capabilities to enhance educational access and outcomes across Africa. The project aims for significant market penetration and user growth by leveraging technology to improve educational accessibility and results.
 
 # User Preferences
 - CHANGEMENTS JANVIER 2026 - DEVOIRS BILINGUE: Module FunctionalTeacherAssignments.tsx entièrement bilingue (formulaire, labels, boutons, toasts). Onglets responsives (flex-col sm:flex-row, min-h-[44px]). Profils modifiables pour Teacher/Parent/Commercial via PUT endpoints. Fix WhatsApp password recovery (u.phone pas u.phoneNumber). ParentSubscription avec gestion erreurs. FIX CRITIQUE: fastModuleLoader.ts ligne 100 mapping 'subscription' corrigé vers ParentSubscription (pas SubscriptionStatusCard).
@@ -90,14 +90,14 @@ Educafric is a bilingual, mobile-first EdTech platform designed for the African 
 - **Technical Implementations**:
     - **Frontend**: React (TypeScript), Wouter for routing, TanStack Query for data fetching, and PWA capabilities.
     - **Backend**: RESTful API developed with Express.js.
-    - **Database & ORM**: PostgreSQL on Neon Serverless, managed with Drizzle ORM. Development and production databases are completely separated.
+    - **Database & ORM**: PostgreSQL on Neon Serverless, managed with Drizzle ORM.
     - **Authentication**: Session-based authentication via `express-session` and `Passport.js`, including Firebase Google OAuth. Supports an 8-role-based access control system and multi-role users.
     - **Route Architecture**: Express.js prioritizes internal routes (Settings, API Modules, System Routes, Services) over external routers. Module mappings are strictly separated by dashboard.
     - **Cache Management**: `queryClient.ts` uses `serializeQueryKey()` to prevent query key collisions.
     - **Document Management**: A centralized system generates PDF documents instantly using a specialized generator, storing them in `/public/documents/`. A hybrid logo resolution system is used for PDFs.
     - **Bulletin Generation**: Bulletins are generated using an adaptive flexbox layout defined in `client/src/index.css` for optimal print quality.
 - **Feature Specifications**: Key features include real-time attendance tracking with three statuses (Present, Late, Absent), flexible timetable management, multi-channel notifications (Email, WhatsApp, PWA), bilingual templates, integrated payment systems, GPS tracking, iCal/ICS export, robust bulk Excel import with immediate data display, Competency-Based Approach (CBA) bulletin generation, and Jitsi Meet integration for online classes. Schools can define custom academic levels. Online course access rules are dynamically applied based on subscription types. Parent subscriptions are dynamic, configurable by Site Admins, and include automatic family discounts. Messages from students can only be sent to their parents but received from all profiles.
-- **System Design Choices**: All storage modules exclusively rely on database queries via Drizzle ORM, with no hardcoded or mock data. Strict multi-tenancy is enforced using `user.schoolId`. Sandbox data is pre-seeded via idempotent scripts. User management includes a comprehensive multi-role system with `role_affiliations` and existing user detection by email/phone. Phone numbers are the primary unique identifiers, with email being optional.
+- **System Design Choices**: All storage modules exclusively rely on database queries via Drizzle ORM, with no hardcoded or mock data. Strict multi-tenancy is enforced using `user.schoolId`. Sandbox data is pre-seeded via idempotent scripts. User management includes a comprehensive multi-role system with `role_affiliations` and existing user detection by email/phone. Phone numbers are the primary unique identifiers, with email being optional. Development and production databases are completely separated.
 
 # External Dependencies
 - **Neon Database**: Serverless PostgreSQL database.
